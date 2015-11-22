@@ -5,7 +5,8 @@
   "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "gulp": "gulp"
+    "gulp": "gulp",
+    "kl": "npm run gulp scripts; npm run gulp"
   },
   "repository": {
     "type": "git",
@@ -16,7 +17,7 @@
   "devDependencies": {
     "babel": "^5.8.34",
     "babelify": "^6.3.0",
-    "browser-sync": "^2.6.5",
+    "browser-sync": "^2.10.0",
     "browserify": ">= 5",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^3.1.0",
@@ -33,7 +34,6 @@
     "gulp-util": "^3.0.6",
     "jshint": "2.x",
     "jsx-control-statements": "^1.1.2",
-    "literalify": "^0.4.0",
     "node-notifier": "^4.3.1",
     "run-sequence": "^1.1.4",
     "vinyl-buffer": "^1.0.0",
@@ -44,7 +44,9 @@
   },
   "dependencies": {
     "classnames": "^2.1.5",
+    "dateformat": "^1.0.12",
     "datejs": "^1.0.0-rc3",
+    "gulp": "^3.9.0",
     "history": "^1.12.0",
     "lazy-linq": "^1.0.2",
     "linqjs": "0.0.6",
@@ -54,7 +56,6 @@
     "node-sass": "^3.4.2",
     "numeral": "^1.5.3",
     "react": "^0.14.3",
-    "react-dom": "^0.14.3",
     "react-addons-css-transition-group": "^0.14.3",
     "react-addons-linked-state-mixin": "^0.14.3",
     "react-bootstrap": "^0.27.1",
