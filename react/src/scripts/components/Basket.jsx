@@ -63,8 +63,8 @@ const Basket = React.createClass({
             this.state.basket_items.forEach(bi => {
                 window.ga('ecommerce:addItem', {
                     'id': transaction,                // Transaction ID. Required.
-                    'name': bi.loan.name,             // Product name. Required.
-                    'sku': bi.loan.id.toString(),     // SKU/code.
+                    'name': bi.loan.location.country, // Product name. Required.
+                    'sku': bi.loan.activity,          // SKU/code.
                     'category': bi.loan.sector,       // Category or variation.
                     'price': bi.amount.toString(),    // Unit price.
                     'quantity': '1'                   // Quantity.
