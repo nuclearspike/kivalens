@@ -252,7 +252,9 @@ div.notification-bar {
   color: #cccccc;
   cursor: not-allowed; }
 
-.Select-noresults, .Select-search-prompt, .Select-searching {
+.Select-noresults,
+.Select-search-prompt,
+.Select-searching {
   box-sizing: border-box;
   color: #999999;
   cursor: default;
@@ -277,7 +279,8 @@ div.notification-bar {
   font-size: 1em;
   margin: 2px; }
 
-.Select-item-icon, .Select-item-label {
+.Select-item-icon,
+.Select-item-label {
   display: inline-block;
   vertical-align: middle; }
 
@@ -298,7 +301,8 @@ div.notification-bar {
   border-right: 1px solid #c9e6f2;
   padding: 2px 5px 4px; }
 
-.Select-item-icon:hover, .Select-item-icon:focus {
+.Select-item-icon:hover,
+.Select-item-icon:focus {
   background-color: #ddeff7;
   color: #0077b3; }
 
@@ -314,7 +318,9 @@ div.notification-bar {
   cursor: not-allowed;
   border-right: 1px solid #d9d9d9; }
 
-.Select.is-multi.is-disabled .Select-item-icon:hover, .Select.is-multi.is-disabled .Select-item-icon:focus, .Select.is-multi.is-disabled .Select-item-icon:active {
+.Select.is-multi.is-disabled .Select-item-icon:hover,
+.Select.is-multi.is-disabled .Select-item-icon:focus,
+.Select.is-multi.is-disabled .Select-item-icon:active {
   background-color: #f2f2f2; }
 
 @keyframes Select-animation-spin {
@@ -345,7 +351,7 @@ div.notification-bar {
   background: #e6e6e6;
   border: 1px solid lightgray;
   border-radius: 4px 4px 4px 4px;
-  font: normal normal normal normal 11px/normal Verdana, Arial, sans-serif;
+  font: normal normal normal normal 11px / normal Verdana, Arial, sans-serif;
   outline: #555555 none 0px; }
 
 .bar {
@@ -353,7 +359,7 @@ div.notification-bar {
   background: #cfcfcf; }
 
 .bar.bar-1 {
-  background: #cfcfcf; }
+  background: #93C54B; }
 
 .bar.bar-2 {
   background: #cfcfcf; }
@@ -368,8 +374,24 @@ div.notification-bar {
   height: 25px;
   line-height: 15px; }
 
-#horizontal-0, #horizontal-1, #horizontal-2, #horizontal-3, #vertical {
+#horizontal-0,
+#horizontal-1, #horizontal-2, #horizontal-3,
+#vertical {
   margin: 20px 10px; }
 
 #horizontal-2 .bar.bar-2 {
   background: #ddd; }
+
+.simpleFade-enter {
+  opacity: 0.01; }
+
+.simpleFade-enter.simpleFade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in; }
+
+.simpleFade-leave {
+  opacity: 1; }
+
+.simpleFade-leave.simpleFade-leave-active {
+  opacity: 0.01;
+  transition: opacity 100ms ease-in; }

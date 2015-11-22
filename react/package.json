@@ -7,6 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "gulp": "gulp"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nuclearspike/kivalensjs.git"
+  },
   "author": "Paul Ericksen",
   "license": "ISC",
   "devDependencies": {
@@ -29,6 +33,7 @@
     "gulp-util": "^3.0.6",
     "jshint": "2.x",
     "jsx-control-statements": "^1.1.2",
+    "literalify": "^0.4.0",
     "node-notifier": "^4.3.1",
     "run-sequence": "^1.1.4",
     "vinyl-buffer": "^1.0.0",
@@ -45,6 +50,8 @@
     "linqjs": "0.0.6",
     "minifyify": "^7.1.0",
     "multi-slider": "^2.0.0",
+    "node-gyp": "^3.1.0",
+    "node-sass": "^3.4.2",
     "numeral": "^1.5.3",
     "react": "^0.14.3",
     "react-dom": "^0.14.3",
@@ -52,6 +59,7 @@
     "react-addons-linked-state-mixin": "^0.14.3",
     "react-bootstrap": "^0.27.1",
     "react-cursor": "^1.2.1",
+    "react-dom": "^0.14.3",
     "react-ga": "^1.1.0",
     "react-highcharts": "^5.0.4",
     "react-infinite-list": "^0.3.1",
