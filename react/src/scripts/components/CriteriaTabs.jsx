@@ -70,6 +70,9 @@ const BalancingRow = React.createClass({
         onChange: React.PropTypes.func.isRequired,
         onFocus: React.PropTypes.func
     },
+    getInitialState(){
+        return $.extend({enabled: true, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.propertyCursor().value)
+    },
     componentDidMount(){
         this.lastRequest = {}
         this.lastResult = []
@@ -101,9 +104,6 @@ const BalancingRow = React.createClass({
         console.log("cursorChunk:", this.lastCursor)
         this.props.onChange()
     },
-    getInitialState(){
-        return {enabled: true, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}
-    },
     propertyCursor(){
         return this.props.group.refine(this.props.name)
     },
@@ -117,8 +117,9 @@ const BalancingRow = React.createClass({
                 allactive: this.refs.allactive.refs.value.value
             }
             $.extend(true, this.lastCursor, crit)
-            this.lastRequest = {sliceBy: 'partner', allActive: crit.allactive}
             this.setState(crit)
+
+            this.lastRequest = {sliceBy: 'partner', allActive: crit.allactive}
             s.criteria.onBalancingGet(this.lastRequest)
         }.bind(this), 50)
 
@@ -126,7 +127,7 @@ const BalancingRow = React.createClass({
     render(){
         var ref = this.props.name
         var options = this.props.options
-        var c_group = this.props.group.value
+        var c_group = this.propertyCursor()
 
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
         return <Row>
@@ -137,7 +138,7 @@ const BalancingRow = React.createClass({
                 <Input
                     type="checkbox" label='Enable filter'
                     ref='enabled'
-                    value={this.state.enabled}
+                    defaultChecked={this.state.enabled}
                     onChange={this.changed} />
                 <Row>
                     <Select multi={false} ref='hideshow'

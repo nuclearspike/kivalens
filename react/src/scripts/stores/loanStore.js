@@ -209,12 +209,13 @@ var loanStore = Reflux.createStore({
             last_partner_search_count = 0
         }
 
-        var partner_criteria_json = JSON.stringify($.extend(true, c.partner, c.portfolio.pb_partner))
+        var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, c.portfolio.pb_partner))
         var partner_ids
         if (last_partner_search[partner_criteria_json]){
             partner_ids = last_partner_search[partner_criteria_json]
         } else {
             last_partner_search_count++
+
             //typeof string is temporary
             var sp_arr
             try {
