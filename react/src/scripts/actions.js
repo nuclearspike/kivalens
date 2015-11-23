@@ -23,6 +23,8 @@ a.criteria  = Reflux.createActions([
     "change","lenderLoansEvent","savedSearchListChanged","switchToSaved","reload","startFresh"
 ])
 
+a.criteria.balancing = Reflux.createActions({"get": {children: ["completed"]}})
+
 a.notifications = Reflux.createAction({
     children: ["show"]
 })

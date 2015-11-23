@@ -2,10 +2,12 @@ import React from 'react';
 import Select from 'react-select';
 import Slider from 'react-slider' // 'multi-slider' is incompatible with .14 presently
 import Reflux from 'reflux'
+import numeral from 'numeral'
 import a from '../actions'
 import s from '../stores/'
 import {Grid,Row,Col,Input,Button,Tabs,Tab,Panel,OverlayTrigger,Popover} from 'react-bootstrap';
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
+import LinkedStateMixin from 'react-addons-linked-state-mixin'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
@@ -59,6 +61,141 @@ const SelectRow = React.createClass({
     }
 })
 
+const BalancingRow = React.createClass({
+    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']),
+    propTypes: {
+        options: React.PropTypes.instanceOf(Object).isRequired,
+        group: React.PropTypes.instanceOf(Cursor).isRequired,
+        name: React.PropTypes.string.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        onFocus: React.PropTypes.func
+    },
+    componentDidMount(){
+        this.lastRequest = {}
+        this.lastResult = []
+        this.lastCursor = {}
+        this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
+    },
+    receivedKivaSlices(request, result){
+        if (request === this.lastRequest){
+            this.lastResult = result
+            this.renderLastSliceResults()
+        }
+    },
+    renderLastSliceResults(){
+        if (!this.lastResult.slices) return
+        var slices = this.lastResult.slices
+        if (this.state.ltgt == 'gt')
+            slices = slices.where(s => s.percent > this.state.percent)
+        else
+            slices = slices.where(s => s.percent < this.state.percent)
+
+        //this needs to be a option
+        var ids = slices.select(s => parseInt(s.id))
+        var vals = {values: ids}
+        this.setState($.extend(true, {slices: slices, slices_count: slices.length}, vals))
+
+        $.extend(true, this.lastCursor, vals)
+
+        this.propertyCursor().set(this.lastCursor)
+        console.log("cursorChunk:", this.lastCursor)
+        this.props.onChange()
+    },
+    getInitialState(){
+        return {enabled: true, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}
+    },
+    propertyCursor(){
+        return this.props.group.refine(this.props.name)
+    },
+    changed(value, values){
+        setTimeout(function(){
+            var crit = {
+                enabled: this.refs.enabled.getChecked(),
+                hideshow: this.refs.hideshow.refs.value.value,
+                ltgt: this.refs.ltgt.refs.value.value,
+                percent: parseFloat(this.refs.percent.getValue()),
+                allactive: this.refs.allactive.refs.value.value
+            }
+            $.extend(true, this.lastCursor, crit)
+            this.lastRequest = {sliceBy: 'partner', allActive: crit.allactive}
+            this.setState(crit)
+            s.criteria.onBalancingGet(this.lastRequest)
+        }.bind(this), 50)
+
+    },
+    render(){
+        var ref = this.props.name
+        var options = this.props.options
+        var c_group = this.props.group.value
+
+        //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
+        return <Row>
+            <Col md={3}>
+                <label className="control-label">{options.label}</label>
+            </Col>
+            <Col md={9}>
+                <Input
+                    type="checkbox" label='Enable filter'
+                    ref='enabled'
+                    value={this.state.enabled}
+                    onChange={this.changed} />
+                <Row>
+                    <Select multi={false} ref='hideshow'
+                        options={[{label: 'Show', value: 'show'}, {label: "Hide", value: 'hide'}]}
+                        clearable={false}
+                        value={this.state.hideshow}
+                        className='col-xs-3'
+                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                    <Col xs={4}>
+                        {options.label.toLowerCase()} that have
+                    </Col>
+                </Row>
+                <Row>
+                    <Select multi={false} ref='ltgt'
+                        options={[{label: '<', value: 'lt'}, {label: ">", value: 'gt'}]}
+                        clearable={false}
+                        value={this.state.ltgt}
+                        className='col-xs-3'
+                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                    <Col xs={4}>
+                        <Input
+                            type="text" label=''
+                            className='col-xs-2'
+                            onChange={this.changed}
+                            ref='percent'
+                            defaultValue={this.state.percent} />
+                    </Col>
+                    <Col xs={3}>
+                        %
+                    </Col>
+                </Row>
+                <Row>
+                    <Col xs={3}>
+                        of my
+                    </Col>
+                    <Select multi={false} ref='allactive'
+                        options={[{label: 'Active Portfolio', value: 'active'}, {label: "Total Portfolio", value: 'all'}]}
+                        clearable={false}
+                        value={this.state.allactive}
+                        className='col-xs-5'
+                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                </Row>
+
+                <Row>
+                    Matching: {this.state.slices_count}. Loans with these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
+                    <ul style={{overflowY:'auto',maxHeight:'200px'}}>
+                        <For index='i' each='slice' of={this.state.slices}>
+                            <li key={i}>
+                                {numeral(slice.percent).format('0.000')}%: {slice.name}
+                            </li>
+                        </For>
+                    </ul>
+                </Row>
+            </Col>
+            </Row>
+    }
+})
+
 const SliderRow = React.createClass({
     mixins: [ImmutableOptimizations(['group'])],
     propTypes: {
@@ -99,7 +236,6 @@ const SliderRow = React.createClass({
                 <OverlayTrigger rootClose={true} trigger={options.helpText ? ["hover","focus","click"] : "none"} placement="top" overlay={<Popover id={options.label} title={options.label}>{options.helpText}</Popover>}>
                     <label style={{'borderBottom': '#333 1px dotted'}} className="control-label">{options.label}</label>
                 </OverlayTrigger>
-
                 <p>{display_min}-{display_max}</p>
             </Col>
             <Col md={9}>
@@ -149,6 +285,7 @@ const CriteriaTabs = React.createClass({
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
         this.external_partner_sliders = kivaloans.atheist_list_processed ? ['secular_rating','social_rating'] : []
+        this.options.partners = {label: "Partners", match: 'any', multi: true, select_options: kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => {return { label: p.name, value: p.id }})}
         this.setState({loansReady : true})
         this.criteriaChanged()
     },
@@ -164,9 +301,12 @@ const CriteriaTabs = React.createClass({
         //partner selects
         this.options.social_performance = {label: 'Social Performance', match: 'all', multi: true, select_options: [{"value":1,"label":"Anti-Poverty Focus"},{"value":3,"label":"Client Voice"},{"value":5,"label":"Entrepreneurial Support"},{"value":6,"label":"Facilitation of Savings"},{"value":4,"label":"Family and Community Empowerment"},{"value":7,"label":"Innovation"},{"value":2,"label":"Vulnerable Group Focus"}]}
         this.options.region = {label: 'Region', match: 'any', multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
+        this.options.partners = {label: "Partners", match: 'any', multi: true, select_options: []}
 
         //portfolio selects
         this.options.exclude_portfolio_loans = {label: "Exclude My Loans", match: '', multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
+
+        this.options.pb_partner = {label: "Partners"}
 
         //loan sliders
         this.options.repaid_in = {min: 2, max: 90, label: 'Repaid In (months)', helpText: "The number of months between today and the final scheduled repayment. Kiva's sort by repayment terms, which is how many months the borrower has to pay back, creates sorting and filtering issues due to when the loan was posted and the disbursal date. KivaLens just looks at the final scheduled repayment date relative to today."}
@@ -239,6 +379,9 @@ const CriteriaTabs = React.createClass({
                 break
             case 'social_performance':
                 data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths)).where(sp => sp != undefined).select(sp => sp.name).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                break
+            case 'partners':
+                data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).name)).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
                 break
             case 'region':
                 data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).countries)).select(c => c.region).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
@@ -337,11 +480,9 @@ const CriteriaTabs = React.createClass({
                     </Col>
                 </Tab>
 
-
-
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
                     <Col lg={8}>
-                        <For each='name' index='i' of={['region','social_performance']}>
+                        <For each='name' index='i' of={['region','partners','social_performance']}>
                             <SelectRow key={i} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>
@@ -368,8 +509,10 @@ const CriteriaTabs = React.createClass({
                                 <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}/>
                             </For>
                             {`(${lender_loans_message})`}
-                            <Panel header='Portfolio Balancing'>
-                                Coming Soon!
+                            <Panel header='Portfolio Balancing -- ALPHA TESTING'>
+                                <For each='name' index='i' of={['pb_partner']}>
+                                    <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
+                                </For>
                             </Panel>
                         </Col>
                     </Row>

@@ -5,9 +5,9 @@ $newfile = $_SERVER['DOCUMENT_ROOT'] . '\kivalens_org\react\data\atheist_data.cs
 
 if ( copy($file, $newfile) ) {
     echo $newfile;
-    echo "Copy success!";
+    echo "   Copy success!";
 }else{
-    echo "Copy failed.";
+    echo "   Copy failed.";
 }
 
 ?>

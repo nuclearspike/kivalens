@@ -134,6 +134,12 @@ var criteriaStore = Reflux.createStore({
         this.onChange(new_c)
         a.criteria.savedSearchListChanged()
     },
+    onBalancingGet(request){
+        get_verse_data('lender', kivaloans.lender_id, request.sliceBy, request.allActive, -1, -1).done(result => {
+            console.log(result)
+            a.criteria.balancing.get.completed(request, result)
+        })
+    },
     syncGetLastSwitch(){
         return this.last_switch
     },
@@ -193,5 +199,60 @@ var criteriaStore = Reflux.createStore({
         return meta
     }
 })
+
+function get_verse_data(subject_type, subject_id, slice_by, all_active, min_count, max_count){
+    var def = $.Deferred()
+    var granularity = 'cumulative' //for now
+    if (!subject_id) return
+    var url = location.protocol + "//www.kivalens.org/kiva.php/ajax/getSuperGraphData?sliceBy="+ slice_by +"&include="+ all_active +"&measure=count&subject_id=" + subject_id + "&type=" + subject_type + "&granularity=" + granularity
+    var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${min_count}_${max_count}_${granularity}`
+
+    var result = get_cache(cache_key)
+
+    if (result){
+        console.log(result)
+        def.resolve(result)
+    } else {
+        console.log(`cache_miss: ${cache_key}`)
+        $.ajax({
+            url: url,
+            crossDomain: true,
+            type: "GET",
+            dataType: "json",
+            cache: true
+        }).success(result => {
+            var slices = [], total_sum = 0
+
+            if (result.data) {
+                max_count = (max_count == -1) ? result.data.length : Math.min(max_count, result.data.length)
+                total_sum = result.data.sum(d => parseInt(d.value))
+                slices = result.data.select(d => { return {id: d.name, name: result.lookup[d.name], value: parseInt(d.value), percent: (parseInt(d.value) * 100) / total_sum }})
+            }
+            if (slices.length >= min_count) {
+                var toResolve = {slices: slices, total_sum: total_sum}
+                set_cache(cache_key, toResolve)
+                def.resolve(toResolve)
+            } else {
+                def.reject()
+            }
+        }).fail(def.reject)
+    }
+    return def.promise()
+}
+
+function get_cache(key){
+    var val = lsj.get(`cache_${key}`)
+    if (Object.keys(val).length > 0){
+        if (new Date().getTime() - val.time > 3 * 60 * 60 * 1000){
+            return null
+        } else {
+            return val.value
+        }
+    } else return null
+}
+
+function set_cache(key, value){
+    lsj.set(`cache_${key}`, {value: value, time: new Date().getTime()})
+}
 
 export default criteriaStore

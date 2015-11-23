@@ -69,6 +69,12 @@ class CritTester {
             this.testers.push(entity => selector(entity) && terms_arr.any(term => selector(entity).contains(term)))
         }
     }
+    addFieldContainsOrNotOneOfArrayTester(crit, selector){
+        if (crit.hideshow == 'show')
+            this.addFieldContainsOneOfArrayTester(crit.values, selector)
+        else
+            this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
+    }
     addFieldContainsOneOfArrayTester(crit, selector){
         if (crit && crit.length > 0) {
             var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
@@ -203,7 +209,7 @@ var loanStore = Reflux.createStore({
             last_partner_search_count = 0
         }
 
-        var partner_criteria_json = JSON.stringify(c.partner)
+        var partner_criteria_json = JSON.stringify($.extend(true, c.partner, c.portfolio.pb_partner))
         var partner_ids
         if (last_partner_search[partner_criteria_json]){
             partner_ids = last_partner_search[partner_criteria_json]
@@ -217,10 +223,16 @@ var loanStore = Reflux.createStore({
                 sp_arr = []
             }
 
+            var partners_given = []
+            if (c.partner.partners) {
+                partners_given = c.partner.partners.split(',').select(id => parseInt(id))
+            }
+
             var ct = new CritTester(c.partner)
 
-            ct.addArrayAllTester(c.partner.region,            partner=>partner.kl_regions)
+            ct.addArrayAnyTester(c.partner.region,            partner=>partner.kl_regions)
             ct.addArrayAllTester(sp_arr,                      partner=>partner.kl_sp)
+            ct.addFieldContainsOneOfArrayTester(partners_given, partner=>partner.id)
             ct.addRangeTesters('partner_default',             partner=>partner.default_rate)
             ct.addRangeTesters('partner_arrears',             partner=>partner.delinquency_rate)
             ct.addRangeTesters('portfolio_yield',             partner=>partner.portfolio_yield)
@@ -231,6 +243,9 @@ var loanStore = Reflux.createStore({
             if (lsj.get('Options').mergeAtheistList) {
                 ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
                 ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
+            }
+            if (c.portfolio.pb_partner && c.portfolio.pb_partner.enabled){
+                ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_partner, partner=>partner.id)
             }
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
             console.log('crit:partner:testers', ct.testers)

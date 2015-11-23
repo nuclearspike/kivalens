@@ -28,10 +28,10 @@ const Options = React.createClass({
                         <p>Changing these settings will <i>only</i> take effect the next time you visit the site/reload the page.</p>
                         <p>Expect these settings to change and your settings may be reset occasionally while in beta. Sorry for any inconvenience.</p>
                     </Panel>
-                    <Panel header='Repayment Terms'>
+                    <Panel header='Final Repayment Date'>
                         <Input
                             type="checkbox"
-                            label={`Ignore Loans over ${this.state.maxRepaymentTerms} month repayment terms (stop downloading)`}
+                            label={`Ignore loans with more than ${this.state.maxRepaymentTerms} months before final repayment (stop downloading)`}
                             checkedLink={this.linkState('maxRepaymentTerms_on')} />
                         <input
                             type="range"
