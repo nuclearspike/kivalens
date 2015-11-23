@@ -7,7 +7,16 @@ import LocalStorageMixin from 'react-localstorage'
 
 const Options = React.createClass({
     mixins: [LinkedStateMixin, LocalStorageMixin],
-    getInitialState(){ return { maxRepaymentTerms: 120, maxRepaymentTerms_on: false } },
+    getInitialState(){ return { maxRepaymentTerms: 120, maxRepaymentTerms_on: false, missingPartners: [] } },
+    componentDidMount(){
+        this.setState({missingPartners: this.getMissingPartners()})
+    },
+    getMissingPartners(){
+        var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
+        var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
+        console.log(m_partners)
+        return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
+    },
     render() {
         return (
             <Grid>
@@ -61,6 +70,23 @@ const Options = React.createClass({
                             tab for Criteria and a section displaying and explaining the ratings to the Partner tab
                             of the loan. If a partner is not present in the MFI Research Data, it will pass by default.
                         </p>
+                        <If condition={kivaloans.atheist_list_processed}>
+                            <div><b>Partners not included in Atheist Data:</b>
+                                <If condition={this.state.missingPartners.length==0}>
+                                    <span> None</span>
+                                </If>
+                            <ul>
+                                <For each='p' index='i' of={this.state.missingPartners}>
+                                    <li key={i}>
+                                        {p.id}: <a href={`http://www.kiva.org/partners/${p.id}`} target="_blank">{p.name}</a>
+                                        <If condition={p.kl_hasLoans}>
+                                            <span> (Has loans loaded)</span>
+                                        </If>
+                                    </li>
+                                </For>
+                            </ul>
+                            </div>
+                        </If>
                     </Panel>
                 </Col>
             </Grid>

@@ -1,13 +1,14 @@
 'use strict';
+require("../utils")
 import Reflux from 'reflux'
 import a from '../actions'
 
 var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
     init(){
-        this.last_known = JSON.parse(localStorage.getItem('last_criteria'))
-        this.all = JSON.parse(localStorage.getItem('all_criteria'))
-        if (!this.all) {
+        this.last_known = lsj.get('last_criteria')
+        this.all = lsj.get('all_criteria')
+        if (Object.keys(this.all).length == 0) {
             //default lists.
             this.all = {
                 "Expiring Soon": {
@@ -72,7 +73,6 @@ var criteriaStore = Reflux.createStore({
             }
             this.syncSavedAll()
         }
-        console.log("loaded from localStorage:",this.last_known)
         if (!this.last_known) this.last_known = {loan:{},partner:{},portfolio:{}}
     },
     onChange(criteria){
@@ -80,7 +80,7 @@ var criteriaStore = Reflux.createStore({
         if (!criteria) criteria = this.last_known
         this.last_known = criteria
         a.loans.filter(criteria)
-        localStorage.setItem('last_criteria', JSON.stringify(this.last_known))
+        lsj.set('last_criteria', this.last_known)
     },
     syncGetLast(){
         return $.extend(true, {}, this.syncBlankCriteria(), this.last_known)
@@ -145,7 +145,7 @@ var criteriaStore = Reflux.createStore({
     },
     syncSavedAll(){
         console.log('syncSavedAll', this.all)
-        localStorage.setItem('all_criteria', JSON.stringify(this.all))
+        lsj.set('all_criteria', this.all)
         a.criteria.savedSearchListChanged()
     },
     syncGetByName(name){

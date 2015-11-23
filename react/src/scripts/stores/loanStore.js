@@ -12,8 +12,7 @@ var last_partner_search = {}
 var last_partner_search_count = 0
 var kivaloans = new Loans(10*60*1000)
 
-var options = JSON.parse(localStorage.getItem('Options'))
-options =  $.extend(true, {}, options)
+var options = lsj.get("Options")
 
 //bridge the downloading/processing generic API class with the React app. convert Deferred notify -> Reflux actions
 kivaloans.init(null, options).progress(progress => {
@@ -33,56 +32,78 @@ kivaloans.init(null, options).progress(progress => {
     }
 })
 
+class CritTester {
+    constructor(crit_group){
+        this.crit_group = crit_group
+        this.testers = [()=>true]
+    }
+    addRangeTesters(crit_name, selector, overrideIf = null, overrideFunc = null){
+        var min = this.crit_group[`${crit_name}_min`]
+        if (min !== undefined) {
+            var low_test = (entity) => {
+                if (overrideIf && overrideIf(entity))
+                    return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
+                return min <= selector(entity)
+            }
+            this.testers.push(low_test)
+        }
+        var max = this.crit_group[`${crit_name}_max`]
+        if (max !== undefined) {
+            var high_test = (entity) => {
+                if (overrideIf && overrideIf(entity))
+                    return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
+                return selector(entity) <= max
+            }
+            this.testers.push(high_test)
+        }
+    }
+    addArrayAllTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && terms_arr.all(term => selector(entity).contains(term)))
+        }
+    }
+    addArrayAnyTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && terms_arr.any(term => selector(entity).contains(term)))
+        }
+    }
+    addFieldContainsOneOfArrayTester(crit, selector){
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => terms_arr.contains(selector(entity)))
+        }
+    }
+    addFieldNotContainsOneOfArrayTester(crit, selector){
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => !terms_arr.contains(selector(entity)))
+        }
+    }
+    addArrayAllStartWithTester(crit, selector){
+        if (crit && crit.trim().length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.match(/(\w+)/g)
+            terms_arr = terms_arr.select(term => term.toUpperCase())
+            this.testers.push(entity => terms_arr.all(search_term => selector(entity).any(w => w.startsWith(search_term))))
+        }
+    }
+    addSimpleContains(crit, selector){ //no longer used
+        var search = (crit && crit.trim().length > 0) ? crit.match(/(\w+)/g).distinct().select(word => word.toUpperCase()) : []
+        if (search.length)
+            this.testers.push(entity => search.all(search_text => selector(entity).toUpperCase().indexOf(search_text) > -1))
+    }
+    allPass(entity) {
+        return this.testers.all(func => func(entity))
+    }
+}
 //a.loans.load.failed
 window.kivaloans = kivaloans //todo: not just for debugging. ?
-
-var makeSearchTester = function(text){
-    var result =  (text && text.length > 0) ? text.match(/(\w+)/g).distinct().select(word => word.toUpperCase() ) : []
-    //console.log('makeSearchTester',result)
-    return {
-        startsWith: function(loan_attr){
-            return result.length == 0 ? true : result.any( search_text => sStartsWith(loan_attr, search_text)  )
-        },
-        contains: function(loan_attr){
-            return result.length == 0 ? true : result.any( search_text => loan_attr.toUpperCase().indexOf(search_text) > -1  )
-        },
-        terms_arr: result}
-}
-
-var makeRangeTester = function(crit_group, value_name){
-    var min = crit_group[`${value_name}_min`]
-    var max = crit_group[`${value_name}_max`]
-    return {
-        range: function(attr){
-            var min_met = (min == null)? true: min <= attr
-            var max_met = (max == null)? true: attr <= max
-            return min_met && max_met
-        }
-    }
-}
-
-var makeExactTester = function(value){
-    var terms_arr = []
-    if (value && value.length > 0)
-        terms_arr = (Array.isArray(value)) ? value : value.split(',')
-    //console.log('makeExactTester',terms_arr)
-    return {
-        exact: function(loan_attr){
-            return terms_arr.length == 0 ? true: terms_arr.contains(loan_attr)
-        },
-        arr_all: function(loan_attr){
-            return terms_arr.length == 0 ? true: loan_attr && terms_arr.all(term => loan_attr.contains(term))
-        },
-        arr_any: function(loan_attr){
-            return terms_arr.length == 0 ? true: loan_attr && terms_arr.any(term => loan_attr.contains(term))
-        }
-    }
-}
 
 var loanStore = Reflux.createStore({
     listenables: [a.loans],
     init:function(){
-        basket_loans = JSON.parse(localStorage.getItem('basket'))
+        basket_loans = lsj.getA('basket')
         if (!Array.isArray(basket_loans)) basket_loans = []
         if (basket_loans.length > 0 && !basket_loans[0].loan_id) basket_loans = []
         a.loans.basket.changed();
@@ -90,7 +111,7 @@ var loanStore = Reflux.createStore({
 
     //BASKET
     _basketSave: function(){
-        localStorage.setItem('basket', JSON.stringify(basket_loans))
+        lsj.set('basket', basket_loans)
         a.loans.basket.changed()
     },
     syncInBasket: function(loan_id){ return basket_loans.first(bi => bi.loan_id == loan_id) != undefined },
@@ -195,38 +216,29 @@ var loanStore = Reflux.createStore({
             }catch(e){
                 sp_arr = []
             }
-            var stSocialPerf = makeExactTester(sp_arr)
-            var stRegion     = makeExactTester(c.partner.region)
-            var rgRisk       = makeRangeTester(c.partner, 'partner_risk_rating')
-            var rgDefault    = makeRangeTester(c.partner, 'partner_default')
-            var rgDelinq     = makeRangeTester(c.partner, 'partner_arrears')
-            var rgPY         = makeRangeTester(c.partner, 'portfolio_yield')
-            var rgProfit     = makeRangeTester(c.partner, 'profit')
-            var rgAtRisk     = makeRangeTester(c.partner, 'loans_at_risk_rate')
-            var rgSecular    = makeRangeTester(c.partner, 'secular_rating')
-            var rgSocial     = makeRangeTester(c.partner, 'social_rating')
-            var rgCEX        = makeRangeTester(c.partner, 'currency_exchange_loss_rate')
-            var rgPCP        = makeRangeTester(c.partner, 'average_loan_size_percent_per_capita_income')
+
+            var ct = new CritTester(c.partner)
+
+            ct.addArrayAllTester(c.partner.region,            partner=>partner.kl_regions)
+            ct.addArrayAllTester(sp_arr,                      partner=>partner.kl_sp)
+            ct.addRangeTesters('partner_default',             partner=>partner.default_rate)
+            ct.addRangeTesters('partner_arrears',             partner=>partner.delinquency_rate)
+            ct.addRangeTesters('portfolio_yield',             partner=>partner.portfolio_yield)
+            ct.addRangeTesters('profit',                      partner=>partner.profitability)
+            ct.addRangeTesters('loans_at_risk_rate',          partner=>partner.loans_at_risk_rate)
+            ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
+            ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
+            if (lsj.get('Options').mergeAtheistList) {
+                ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
+                ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
+            }
+            ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
+            console.log('crit:partner:testers', ct.testers)
 
             //filter the partners
-            partner_ids = kivaloans.partners_from_kiva.where(p => {
-                return stSocialPerf.arr_all(p.kl_sp)
-                    && stRegion.arr_any(p.kl_regions)
-                    && rgDefault.range(p.default_rate)
-                    && rgDelinq.range(p.delinquency_rate)
-                    && rgProfit.range(p.profitability)
-                    && rgPY.range(p.portfolio_yield)
-                    && rgAtRisk.range(p.loans_at_risk_rate)
-                    && rgCEX.range(p.currency_exchange_loss_rate)
-                    && rgPCP.range(p.average_loan_size_percent_per_capita_income)
-                    && (p.atheistScore ? rgSecular.range(p.atheistScore.secularRating) : true)
-                    && (p.atheistScore ? rgSocial.range(p.atheistScore.socialRating) : true)
-                    && (isNaN(parseFloat(p.rating)) ? c.partner.partner_risk_rating_min == null : rgRisk.range(parseFloat(p.rating)))
-                    //&& rgRisk.range(parseFloat(p.rating))
-            }).select(p => p.id)
+            partner_ids = kivaloans.partners_from_kiva.where(p => ct.allPass(p)).select(p => p.id)
 
             last_partner_search[partner_criteria_json] = partner_ids
-            //console.log("partner_ids, length: ", partner_ids, partner_ids.length)
         }
         return partner_ids
     },
@@ -235,55 +247,34 @@ var loanStore = Reflux.createStore({
         if (!c){ c = criteriaStore.syncGetLast() }
         //needs a copy of it and to guarantee the groups are there.
         $.extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
-        //console.log("$$$$$$$ syncFilterLoans",c)
-        console.time("syncFilterLoans")
 
+        console.time("syncFilterLoans")
         c = criteriaStore.fixUpgrades(c)
 
         //break this into another unit --store? LoansAPI.filter(loans, criteria)
 
-        //for each search term for sector, break it into an array, ignoring spaces and commas
-        //for each loan, test the sector against each search term.
+        var ct = new CritTester(c.loan)
+        ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan => loan.sector)
+        ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan => loan.activity)
+        ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan => loan.location.country_code)
+        ct.addArrayAllTester(c.loan.tags,       loan=>loan.kl_tags)
+        ct.addArrayAllTester(c.loan.themes,     loan=>loan.themes)
+        ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
+        ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
+        ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
+        ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
+        ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days)
+        ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
+        ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
+        ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
+        ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id)
+        if (c.portfolio.exclude_portfolio_loans && kivaloans.lender_loans)
+            ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
 
-        //if (c.loan.repaid_in_max) c.loan.repaid_in_max += .2
+        console.log('crit:loan:testers', ct.testers)
 
-        var stSector = makeExactTester(c.loan.sector)
-        var stActivity = makeExactTester(c.loan.activity)
-        var stName = makeSearchTester(c.loan.name)
-        var stCountry = makeExactTester(c.loan.country_code)
-        var stUse = makeSearchTester(c.loan.use)
-        var stTags = makeExactTester(c.loan.tags)
-        var stThemes = makeExactTester(c.loan.themes)
-        var rgRepaid = makeRangeTester(c.loan, 'repaid_in')
-        var rgBorrowerCount = makeRangeTester(c.loan, 'borrower_count')
-        var rgPercentFemale = makeRangeTester(c.loan, 'percent_female')
-        var rgStillNeeded = makeRangeTester(c.loan, 'still_needed')
-        var rgExpiringInDays = makeRangeTester(c.loan, 'expiring_in_days')
-        var rgDisbursalInDays = makeRangeTester(c.loan, 'disbursal_in_days')
-
-        var partner_ids = this.syncFilterPartners(c)
-
-        //console.log('criteria', c)
-
-        var lender_loan_ids = c.portfolio.exclude_portfolio_loans == 'true' ? kivaloans.lender_loans : []
-
-        var linq_loans = kivaloans.loans_from_kiva.where(loan => { //asEnumerable()
-            return loan.status == 'fundraising' &&
-                partner_ids.contains(loan.partner_id) && //ids must always be populated. there isn't the normal "if empty, skip"
-                stSector.exact(loan.sector) &&
-                stActivity.exact(loan.activity) &&
-                stCountry.exact(loan.location.country_code) &&
-                stTags.arr_all(loan.kl_tags) &&
-                stThemes.arr_all(loan.themes) &&
-                rgRepaid.range(loan.kl_repaid_in) &&
-                rgBorrowerCount.range(loan.borrowers.length) &&
-                rgPercentFemale.range(loan.kl_percent_women) &&
-                rgStillNeeded.range(loan.loan_amount - loan.basket_amount - loan.funded_amount) &&
-                rgExpiringInDays.range(loan.kl_expiring_in_days) &&
-                rgDisbursalInDays.range(loan.kl_disbursal_in_days) &&
-                stName.contains(loan.name) &&
-                !lender_loan_ids.contains(loan.id) && //find a better way?
-                stUse.terms_arr.all(search_term => loan.kl_use_or_descr_arr.any(w => w.startsWith(search_term) ) )
+        var linq_loans = kivaloans.loans_from_kiva.where(loan => {
+            return loan.status == 'fundraising' &&  ct.allPass(loan)
         })
 
         var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
@@ -291,7 +282,6 @@ var loanStore = Reflux.createStore({
             if (a < b) return 1
             return 0
         }
-
         var basicOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
             if (a > b) return 1
             if (a < b) return -1
@@ -316,17 +306,11 @@ var loanStore = Reflux.createStore({
                 linq_loans = linq_loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
         }
         if (cacheResults)
-            last_filtered = linq_loans //.toArray()
+            last_filtered = linq_loans
         console.timeEnd("syncFilterLoans")
         return linq_loans
     }
-});
+})
 
-window.perf = function(func){ //need separate for async
-    var t0 = performance.now();
-    func();
-    var t1 = performance.now();
-    console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.")
-}
 
 export default loanStore

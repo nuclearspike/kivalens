@@ -146,7 +146,7 @@ class ResultProcessors {
         }
 
         var addIt = { kl_downloaded: new Date() }
-
+        addIt.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
         addIt.kl_posted_date = new Date(loan.posted_date)
         addIt.kl_newest_sort = Math.round(new Date() - addIt.kl_posted_date)
         addIt.kl_posted_hours_ago = (new Date() - addIt.kl_posted_date) / (60*60*1000)
@@ -167,7 +167,7 @@ class ResultProcessors {
             use_arr = processText(loan.use, common_use)
             addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
             addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
-            addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? Date.from_iso(loan.terms.scheduled_payments.last().due_date) : null
+            addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
 
             var today = new Date();
             addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))

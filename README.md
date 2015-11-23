@@ -6,3 +6,5 @@ Using React, Reflux, react-bootstrap, gulp, browserify, node, ES6, babel (JSX, E
 linqjs, Highcharts, ...
 
 Contact me if you're interested in contributing.
+
+[See the live version](http://www.kivalens.org/react/#/search)
