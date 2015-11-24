@@ -71,13 +71,14 @@ const BalancingRow = React.createClass({
         onFocus: React.PropTypes.func
     },
     getInitialState(){
-        return $.extend({enabled: true, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.propertyCursor().value)
+        return $.extend({enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.propertyCursor().value)
     },
     componentDidMount(){
         this.lastRequest = {}
         this.lastResult = []
         this.lastCursor = {}
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
+        this.changed()
     },
     receivedKivaSlices(request, result){
         if (request === this.lastRequest){
@@ -88,14 +89,15 @@ const BalancingRow = React.createClass({
     renderLastSliceResults(){
         if (!this.lastResult.slices) return
         var slices = this.lastResult.slices
+
+        //todo: this logic needs to move out of the presentation.
         if (this.state.ltgt == 'gt')
             slices = slices.where(s => s.percent > this.state.percent)
         else
             slices = slices.where(s => s.percent < this.state.percent)
 
-        //this needs to be a option
-        var ids = slices.select(s => parseInt(s.id))
-        var vals = {values: ids}
+        var vals = {}
+        vals.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
         this.setState($.extend(true, {slices: slices, slices_count: slices.length}, vals))
 
         $.extend(true, this.lastCursor, vals)
@@ -119,15 +121,15 @@ const BalancingRow = React.createClass({
             $.extend(true, this.lastCursor, crit)
             this.setState(crit)
 
-            this.lastRequest = {sliceBy: 'partner', allActive: crit.allactive}
+            this.lastRequest = {sliceBy: this.props.options.slice_by, allActive: crit.allactive}
             s.criteria.onBalancingGet(this.lastRequest)
         }.bind(this), 50)
 
     },
     render(){
-        var ref = this.props.name
+        //var ref = this.props.name
         var options = this.props.options
-        var c_group = this.propertyCursor()
+        //var c_group = this.propertyCursor()
 
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
         return <Row>
@@ -142,10 +144,10 @@ const BalancingRow = React.createClass({
                     onChange={this.changed} />
                 <Row>
                     <Select multi={false} ref='hideshow'
-                        options={[{label: 'Show', value: 'show'}, {label: "Hide", value: 'hide'}]}
+                        options={[{label: 'Show only', value: 'show'}, {label: "Hide all", value: 'hide'}]}
                         clearable={false}
                         value={this.state.hideshow}
-                        className='col-xs-3'
+                        className='col-xs-4'
                         onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
                     <Col xs={4}>
                         {options.label.toLowerCase()} that have
@@ -153,10 +155,10 @@ const BalancingRow = React.createClass({
                 </Row>
                 <Row>
                     <Select multi={false} ref='ltgt'
-                        options={[{label: '<', value: 'lt'}, {label: ">", value: 'gt'}]}
+                        options={[{label: '< Less than', value: 'lt'}, {label: "> More than", value: 'gt'}]}
                         clearable={false}
                         value={this.state.ltgt}
-                        className='col-xs-3'
+                        className='col-xs-4'
                         onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
                     <Col xs={4}>
                         <Input
@@ -307,7 +309,11 @@ const CriteriaTabs = React.createClass({
         //portfolio selects
         this.options.exclude_portfolio_loans = {label: "Exclude My Loans", match: '', multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
 
-        this.options.pb_partner = {label: "Partners"}
+        this.options.pb_partner  = {label: "Partners", key: 'id', slice_by: 'partner'}
+        this.options.pb_country  = {label: "Countries", slice_by: 'country'}
+        this.options.pb_region   = {label: "Regions", slice_by: 'region'}
+        this.options.pb_sector   = {label: "Sectors", slice_by: 'sector'}
+        this.options.pb_activity = {label: "Activites", slice_by: 'activity'}
 
         //loan sliders
         this.options.repaid_in = {min: 2, max: 90, label: 'Repaid In (months)', helpText: "The number of months between today and the final scheduled repayment. Kiva's sort by repayment terms, which is how many months the borrower has to pay back, creates sorting and filtering issues due to when the loan was posted and the disbursal date. KivaLens just looks at the final scheduled repayment date relative to today."}
@@ -502,7 +508,6 @@ const CriteriaTabs = React.createClass({
                 </Tab>
 
 
-
                 <Tab eventKey={3} title={`Your Portfolio${this.state.portfolioTab}`} className="ample-padding-top">
                     <Row>
                         <Col md={9}>
@@ -511,7 +516,18 @@ const CriteriaTabs = React.createClass({
                             </For>
                             {`(${lender_loans_message})`}
                             <Panel header='Portfolio Balancing -- ALPHA TESTING'>
-                                <For each='name' index='i' of={['pb_partner']}>
+                                Caveats: 1) The summary data that KivaLens pulls for your account is not "live" data.
+                                It should never be over 24 hours old, however. This means if you complete a bunch of
+                                loans and come back for more, the completed loans will not be accounted for in the
+                                balancing.
+                                2) It's not recommended that you use
+                                Bulk Add in conjunction with balancing. This is due to the fact that it's very possible
+                                that all of the loans in the results are there because you don't yet have only a couple
+                                partners, and bulk adding loans that come from just a few partners without reviewing
+                                them would result in a lop-sided portfolio.
+                                3) This feature is still rough. Do not assume it has filtered unless you come to the tab
+                                and disable then re-enable it and see a) the partners listed b) the number of loans change.
+                                <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
                                     <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
                                 </For>
                             </Panel>

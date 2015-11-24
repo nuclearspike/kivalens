@@ -53,7 +53,8 @@ const Options = React.createClass({
                         <p className="ample-padding-top">
                             This is used when filtering loans to hide loans you've already loaned to and to automatically
                             prune your basket when you come back to KivaLens after making loan purchases.
-                            Also, expect more in the future to help balance your portfolio.
+                            It is also used for balancing your portfolio (see the "Portfolio Balancing" section on the
+                            "Your Portfolio" criteria tab).
                         </p>
                     </Panel>
                     <Panel header='External Research'>

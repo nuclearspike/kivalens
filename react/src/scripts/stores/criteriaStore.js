@@ -203,7 +203,7 @@ var criteriaStore = Reflux.createStore({
 function get_verse_data(subject_type, subject_id, slice_by, all_active, min_count, max_count){
     var def = $.Deferred()
     var granularity = 'cumulative' //for now
-    if (!subject_id) return
+    if (!subject_id) return def
     var url = location.protocol + "//www.kivalens.org/kiva.php/ajax/getSuperGraphData?sliceBy="+ slice_by +"&include="+ all_active +"&measure=count&subject_id=" + subject_id + "&type=" + subject_type + "&granularity=" + granularity
     var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${min_count}_${max_count}_${granularity}`
 
@@ -237,7 +237,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, min_coun
             }
         }).fail(def.reject)
     }
-    return def.promise()
+    return def
 }
 
 function get_cache(key){

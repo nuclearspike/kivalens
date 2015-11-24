@@ -248,6 +248,9 @@ var loanStore = Reflux.createStore({
             if (c.portfolio.pb_partner && c.portfolio.pb_partner.enabled){
                 ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_partner, partner=>partner.id)
             }
+            //if (c.portfolio.pb_region && c.portfolio.pb_region.enabled){
+            //    ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_region, partner=>partner.kl_regions)
+            //}
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
             console.log('crit:partner:testers', ct.testers)
 
@@ -286,7 +289,15 @@ var loanStore = Reflux.createStore({
         ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id)
         if (c.portfolio.exclude_portfolio_loans && kivaloans.lender_loans)
             ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
-
+        if (c.portfolio.pb_sector && c.portfolio.pb_sector.enabled){
+            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_sector, loan=>loan.sector)
+        }
+        if (c.portfolio.pb_country && c.portfolio.pb_country.enabled){
+            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_country, loan=>loan.location.country)
+        }
+        if (c.portfolio.pb_activity && c.portfolio.pb_activity.enabled){
+            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_activity, loan=>loan.activity)
+        }
         console.log('crit:loan:testers', ct.testers)
 
         var linq_loans = kivaloans.loans_from_kiva.where(loan => {
