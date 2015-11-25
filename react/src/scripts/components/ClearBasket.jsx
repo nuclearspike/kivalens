@@ -7,7 +7,7 @@ const ClearBasket = React.createClass({
     componentDidMount: function () {
         window.rga.event({category: 'basket', action: 'basket:clear-from-return-url', value: s.loans.syncBasketCount()})
         a.loans.basket.clear()
-        location.replace(`${location.protocol}://${location.host}${location.pathname}#/search`)
+        location.replace(`http://${location.host}${location.pathname}#/search`)
     },
     render: function () {return (<div></div>)}
 })

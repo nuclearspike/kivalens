@@ -62,7 +62,7 @@ const SelectRow = React.createClass({
 })
 
 const BalancingRow = React.createClass({
-    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']),
+    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']), <-- bad when component has it's own state!
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         group: React.PropTypes.instanceOf(Cursor).isRequired,
@@ -75,19 +75,20 @@ const BalancingRow = React.createClass({
     },
     componentDidMount(){
         this.lastRequest = {}
-        this.lastResult = []
+        this.lastResult = {}
         this.lastCursor = {}
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
         this.changed()
     },
     receivedKivaSlices(request, result){
         if (request === this.lastRequest){
+            console.log('receivedKivaSlices',result)
             this.lastResult = result
             this.renderLastSliceResults()
         }
     },
     renderLastSliceResults(){
-        if (!this.lastResult.slices) return
+        if (!Array.isArray(this.lastResult.slices)) return
         var slices = this.lastResult.slices
 
         //todo: this logic needs to move out of the presentation.
@@ -96,11 +97,9 @@ const BalancingRow = React.createClass({
         else
             slices = slices.where(s => s.percent < this.state.percent)
 
-        var vals = {}
-        vals.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
-        this.setState($.extend(true, {slices: slices, slices_count: slices.length}, vals))
-
-        $.extend(true, this.lastCursor, vals)
+        //'values' are what is passed through to the filtering. slices is for display.
+        this.lastCursor.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+        this.setState({slices: slices, slices_count: slices.length})
 
         this.propertyCursor().set(this.lastCursor)
         console.log("cursorChunk:", this.lastCursor)
@@ -124,7 +123,6 @@ const BalancingRow = React.createClass({
             this.lastRequest = {sliceBy: this.props.options.slice_by, allActive: crit.allactive}
             s.criteria.onBalancingGet(this.lastRequest)
         }.bind(this), 50)
-
     },
     render(){
         //var ref = this.props.name
@@ -148,7 +146,7 @@ const BalancingRow = React.createClass({
                         clearable={false}
                         value={this.state.hideshow}
                         className='col-xs-4'
-                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                        onChange={this.changed} />
                     <Col xs={4}>
                         {options.label.toLowerCase()} that have
                     </Col>
@@ -159,7 +157,7 @@ const BalancingRow = React.createClass({
                         clearable={false}
                         value={this.state.ltgt}
                         className='col-xs-4'
-                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                        onChange={this.changed} />
                     <Col xs={4}>
                         <Input
                             type="text" label=''
@@ -181,7 +179,7 @@ const BalancingRow = React.createClass({
                         clearable={false}
                         value={this.state.allactive}
                         className='col-xs-5'
-                        onChange={this.changed} onFocus={this.props.onFocus} onBlur={this.props.onBlur} />
+                        onChange={this.changed} />
                 </Row>
 
                 <Row>
@@ -516,7 +514,8 @@ const CriteriaTabs = React.createClass({
                             </For>
                             {`(${lender_loans_message})`}
                             <Panel header='Portfolio Balancing -- ALPHA TESTING'>
-                                Caveats: 1) The summary data that KivaLens pulls for your account is not "live" data.
+                                Caveats:
+                                1) The summary data that KivaLens pulls for your account is not "live" data.
                                 It should never be over 24 hours old, however. This means if you complete a bunch of
                                 loans and come back for more, the completed loans will not be accounted for in the
                                 balancing.
@@ -527,6 +526,10 @@ const CriteriaTabs = React.createClass({
                                 them would result in a lop-sided portfolio.
                                 3) This feature is still rough. Do not assume it has filtered unless you come to the tab
                                 and disable then re-enable it and see a) the partners listed b) the number of loans change.
+                                These settings may not clear when you click the "Clear" button. The "Show only" option
+                                is not fully functional yet...
+
+
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
                                     <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
                                 </For>

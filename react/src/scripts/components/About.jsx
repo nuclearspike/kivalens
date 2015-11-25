@@ -129,6 +129,13 @@ var About = React.createClass({
                     spreadsheet. This feature is off by default, simply turn it on in the Options tab and reload the
                     page.
                 </li>
+
+                <li>
+                    Portfolio Balancing: Whether you're a "Country Collector," that you don't want to have too many
+                    active loans from only a few partners, or if you want to find more sectors like your favorites, use
+                    the Portfolio Balancing tools to help you accomplish your lending goals. Just make sure you have
+                    your Lender ID filled out on the Options tab first.
+                </li>
             </ul>
 
             <h3>Reducing Risk</h3>
