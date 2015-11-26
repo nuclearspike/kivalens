@@ -180,8 +180,11 @@ var loanStore = Reflux.createStore({
     //LOANS
     onDetail: function(id){
         var loan = kivaloans.getById(id)
-        a.loans.detail.completed(loan) //return immediately with the last one we got (typically at start up)
-        kivaloans.refreshLoan(loan).done(loan => a.loans.detail.completed(loan)) //kick off a process to get an updated version
+        if (loan)
+            a.loans.detail.completed(loan) //return immediately with the last one we got (typically at start up)
+        else
+            loan = {id: id}
+        kivaloans.refreshLoan(loan).done(l => a.loans.detail.completed(l)) //kick off a process to get an updated version
     },
     onFilter: function(c){
         a.loans.filter.completed(this.syncFilterLoans(c))

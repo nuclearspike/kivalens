@@ -20,7 +20,6 @@ const LoanListItem = React.createClass({
         var loan = this.props;
         return (
             <ListGroupItem
-                onClick={a.loans.detail.bind(null, loan.id)}
                 className={cx('loan_list_item', {in_basket: this.state.inBasket})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>

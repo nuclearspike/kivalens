@@ -555,5 +555,4 @@ const CriteriaTabs = React.createClass({
         );
     }
 })
-// Always Exclude list of IDs.
 export default CriteriaTabs

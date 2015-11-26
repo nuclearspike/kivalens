@@ -11,42 +11,52 @@ import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 
+const DTDD = ({term, def}) => {return <span><dt>{term}</dt><dd>{def}</dd></span>}
+
+//const _dtdd = (term, def) => { return <span><dt>{term}</dt>, <dd>{def}</dd></span>}
+
+//const DTDD = React.createClass({
+//    render(){
+//        let {term, def} = this.props
+//        return <span><dt>{term}</dt><dd>{def}</dd></span>
+//    }
+//})
+
 var Loan = React.createClass({
     mixins:[Reflux.ListenerMixin, History],
-    getInitialState: function(){
-        var loan = s.loans.syncGet(this.props.params.id)
-        var partner = loan? kivaloans.getPartner(loan.partner_id) :null
-        var active_tab = (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1
-        return {loan: loan, partner: partner, activeTab: active_tab, inBasket: s.loans.syncInBasket(this.props.params.id)}
+    getInitialState(){ return this.stateFromProps(this.props) },
+    componentWillUnmount(){ clearInterval(this.refreshInterval) },
+    componentWillMount(){ },
+    componentDidMount(){
+        this.listenTo(a.loans.detail.completed, (loan)=>{ if (this.props.params.id == loan.id){ this.switchToLoan(loan) } })
+        this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
+        this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
+        this.refreshLoan() //happens always even if we have it, to cause a refresh.
+        this.refreshInterval = setInterval(this.refreshLoan,30000)
     },
-    componentWillMount: function(){
+    componentWillReceiveProps(props){
+        this.setState(this.stateFromProps(props))
+        a.loans.detail(props.params.id) //cannot be refreshLoan() newProps!
         clearInterval(this.refreshInterval)
-        if (!s.loans.syncHasLoadedLoans()){
-            //todo: switch this to be in the router onEnter and redirect there!
-            this.history.pushState(null, `/search`);
-            window.location.reload()
-        }
+        this.refreshInterval = setInterval(this.refreshLoan, 30000)
     },
-    switchToLoan: function(loan){
+    stateFromProps({params}){
+        //var loan = s.loans.syncGet(params.id)
+        var active_tab = (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1
+        return {activeTab: active_tab}
+    },
+    switchToLoan(loan){
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         this.calcRepaymentsGraph(loan)
-        var partner = this.state.partner
-        if (!partner || loan.partner_id != partner.id)
-            partner = kivaloans.getPartner(loan.partner_id)
-        this.setState({loan: loan, basket_perc: basket_perc, funded_perc: funded_perc, inBasket: s.loans.syncInBasket(loan.id), partner: partner})
+        var partner = kivaloans.getPartner(loan.partner_id)
+        this.setState({loan: loan, partner: partner, basket_perc: basket_perc, funded_perc: funded_perc, inBasket: s.loans.syncInBasket(loan.id)})
         this.graphHack()
     },
-    componentDidMount: function(){
-        this.listenTo(a.loans.detail.completed, this.switchToLoan)
-        this.listenTo(a.loans.basket.changed, ()=>{ this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
-        if (s.loans.syncHasLoadedLoans()){ this.switchToLoan(s.loans.syncGet(this.state.loan.id)) }
-        //this.refreshInterval = setInterval(()=>{a.loans.detail(this.state.loan.id)},30000)
+    refreshLoan(){
+        a.loans.detail(this.props.params.id)
     },
-    shouldComponentUpdate: function(nextProps, nextState){
-        return (this.state.loan) ? true : false //DOESN'T WORK?
-    },
-    tabSelect: function(selectedKey){
+    tabSelect(selectedKey){
         this.setState({activeTab: selectedKey, showGraphs: false})
         localStorage.loan_active_tab = selectedKey
         this.graphHack()
@@ -54,7 +64,7 @@ var Loan = React.createClass({
     graphHack(){
         setTimeout(()=> this.setState({showGraphs: true}), 600) //hacky! if this doesn't happen, the graphs paint wrong. :(
     },
-    produceChart: function(loan){
+    produceChart(loan){
         var result = {
             chart: {type: 'bar',
                 animation: true,
@@ -93,7 +103,7 @@ var Loan = React.createClass({
 
         return result
     },
-    calcRepaymentsGraph: function(loan){
+    calcRepaymentsGraph(loan){
         if (loan.kl_repay_categories || !loan.terms.scheduled_payments) return
         var payments = loan.terms.scheduled_payments.select(payment => {
             return {due_date: new Date(payment.due_date).toString("MMM-yyyy"), amount: payment.amount}
@@ -102,18 +112,19 @@ var Loan = React.createClass({
         loan.kl_repay_categories = grouped_payments.select(payment => payment.due_date)
         loan.kl_repay_data = grouped_payments.select(payment => payment.amount)
     },
-    render: function() {
+    render() {
         var loan = this.state.loan
         var partner = this.state.partner
+        if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div>
                 <h1 style={{marginTop:'0px'}}>{loan.name}
                     <If condition={this.state.inBasket}>
-                        <Button className="float_right" onClick={a.loans.basket.remove.bind(this, this.state.loan.id)}>Remove from Basket</Button>
+                        <Button className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
                     <Else/>
-                        <Button className="float_right" onClick={a.loans.basket.add.bind(this, this.state.loan.id, 25)}>Add to Basket</Button>
+                        <Button className="float_right" disabled={loan.status!='fundraising'} onClick={a.loans.basket.add.bind(this, loan.id, 25)}>Add to Basket</Button>
                     </If>
                 </h1>
                 <Tabs activeKey={this.state.activeTab} onSelect={this.tabSelect}>
@@ -137,23 +148,33 @@ var Loan = React.createClass({
                                 <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                 <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>
                                 <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>
-                                <dt>Expires</dt><dd>{new Date(loan.planned_expiration_date).toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd>
+                                <If condition={loan.status != 'fundraising'}>
+                                    <DTDD term='Status' def={loan.status} />
+                                </If>
+                                <If condition={loan.funded_date}>
+                                    <DTDD term='Funded' def={new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt')} />
+                                </If>
+                                <If condition={loan.status == 'fundraising'}>
+                                    <span><dt>Expires</dt><dd>{new Date(loan.planned_expiration_date).toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
+                                </If>
                                 <dt>Disbursed</dt><dd>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </dd>
                             </dl>
-                            <dl className="dl-horizontal">
-                                <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour).format('0.00')}</dd>
-                                <dt>Loan Amount</dt><dd>${loan.loan_amount}</dd>
-                                <dt>Funded Amount</dt><dd>${loan.funded_amount}</dd>
-                                <dt>Basket Amount</dt><dd>${loan.basket_amount}</dd>
-                                <dt>Still Needed</dt><dd>${loan.kl_still_needed}</dd>
-                            </dl>
+                            <If condition={loan.status == 'fundraising'}>
+                                <dl className="dl-horizontal">
+                                    <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour).format('0.00')}</dd>
+                                    <dt>Loan Amount</dt><dd>${loan.loan_amount}</dd>
+                                    <dt>Funded Amount</dt><dd>${loan.funded_amount}</dd>
+                                    <dt>Basket Amount</dt><dd>${loan.basket_amount}</dd>
+                                    <dt>Still Needed</dt><dd>${loan.kl_still_needed}</dd>
+                                </dl>
+                            </If>
                             <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                         </Col>
                         <ReactCSSTransitionGroup transitionName="simpleFade" transitionEnterTimeout={500} transitionLeaveTimeout={300} >
                             <If condition={this.state.activeTab == 2 && this.state.showGraphs}>
                                 <Col lg={4} style={{height: '500px'}} id='graph_container'>
-                                    <Highcharts config={this.produceChart(this.state.loan)} />
+                                    <Highcharts config={this.produceChart(loan)} />
                                     <dl className="dl-horizontal">
                                         <dt>50% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>
                                         <dt>75% back by</dt><dd>{loan.kl_75_back.toString("MMM d, yyyy")}</dd>
@@ -163,7 +184,6 @@ var Loan = React.createClass({
                             </If>
                         </ReactCSSTransitionGroup>
                     </Tab>
-
 
                     <Tab eventKey={3} title="Partner" className="ample-padding-top">
                             <h2>{partner.name}</h2>
