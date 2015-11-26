@@ -419,7 +419,7 @@ class Loans {
         this.partners_from_kiva = []
         this.lender_loans = []
         this.is_ready = false
-        this.lender_loans_message = 'Lender ID not set'
+        this.lender_loans_message = "Lender ID not set"
         this.lender_loans_state = llUnknown
         this.indexed_loans = {}
         this.base_kiva_params = {}

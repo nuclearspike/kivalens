@@ -11,6 +11,9 @@ const Options = React.createClass({
     componentDidMount(){
         this.setState({missingPartners: this.getMissingPartners()})
     },
+    getStateFilterKeys: function() {
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList'];
+    },
     getMissingPartners(){
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))

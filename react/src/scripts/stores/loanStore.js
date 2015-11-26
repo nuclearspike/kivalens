@@ -35,7 +35,8 @@ kivaloans.init(null, options).progress(progress => {
 class CritTester {
     constructor(crit_group){
         this.crit_group = crit_group
-        this.testers = [()=>true]
+        this.testers = []
+        this.fail_all = false
     }
     addRangeTesters(crit_name, selector, overrideIf = null, overrideFunc = null){
         var min = this.crit_group[`${crit_name}_min`]
@@ -69,16 +70,25 @@ class CritTester {
             this.testers.push(entity => selector(entity) && terms_arr.any(term => selector(entity).contains(term)))
         }
     }
-    addFieldContainsOrNotOneOfArrayTester(crit, selector){
-        if (crit.hideshow == 'show')
-            this.addFieldContainsOneOfArrayTester(crit.values, selector)
-        else
-            this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
+    addBalancer(crit, selector){
+        if (crit && crit.enabled){
+            if (crit.hideshow == 'show') {
+                if (Array.isArray(crit.values) && crit.values.length == 0)
+                    this.fail_all = true
+                else
+                    this.addFieldContainsOneOfArrayTester(crit.values, selector)
+            } else
+                this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
+        }
     }
-    addFieldContainsOneOfArrayTester(crit, selector){
-        if (crit && crit.length > 0) {
-            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
-            this.testers.push(entity => terms_arr.contains(selector(entity)))
+    addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty = false){
+        if (crit){
+            if (crit.length > 0) {
+                var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+                this.testers.push(entity => terms_arr.contains(selector(entity)))
+            } else {
+                if (fail_if_empty) this.fail_all = true
+            }
         }
     }
     addFieldNotContainsOneOfArrayTester(crit, selector){
@@ -100,6 +110,8 @@ class CritTester {
             this.testers.push(entity => search.all(search_text => selector(entity).toUpperCase().indexOf(search_text) > -1))
     }
     allPass(entity) {
+        if (this.fail_all) return false //must happen first!!
+        if (this.testers.length == 0) return true
         return this.testers.all(func => func(entity))
     }
 }
@@ -208,10 +220,10 @@ var loanStore = Reflux.createStore({
             last_partner_search = {}
             last_partner_search_count = 0
         }
-
+        var useCache = false
         var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, c.portfolio.pb_partner))
         var partner_ids
-        if (last_partner_search[partner_criteria_json]){
+        if (useCache && last_partner_search[partner_criteria_json]){
             partner_ids = last_partner_search[partner_criteria_json]
         } else {
             last_partner_search_count++
@@ -241,16 +253,12 @@ var loanStore = Reflux.createStore({
             ct.addRangeTesters('loans_at_risk_rate',          partner=>partner.loans_at_risk_rate)
             ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
             ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
-            if (lsj.get('Options').mergeAtheistList) {
+            if (kivaloans.atheist_list_processed && lsj.get('Options').mergeAtheistList) {
                 ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
                 ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
             }
-            if (c.portfolio.pb_partner && c.portfolio.pb_partner.enabled){
-                ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_partner, partner=>partner.id)
-            }
-            //if (c.portfolio.pb_region && c.portfolio.pb_region.enabled){
-            //    ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_region, partner=>partner.kl_regions)
-            //}
+            ct.addBalancer(c.portfolio.pb_partner, partner=>partner.id)
+
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
             console.log('crit:partner:testers', ct.testers)
 
@@ -273,6 +281,7 @@ var loanStore = Reflux.createStore({
         //break this into another unit --store? LoansAPI.filter(loans, criteria)
 
         var ct = new CritTester(c.loan)
+
         ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan => loan.sector)
         ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan => loan.activity)
         ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan => loan.location.country_code)
@@ -286,18 +295,12 @@ var loanStore = Reflux.createStore({
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
-        ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id)
+        ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id, true)
         if (c.portfolio.exclude_portfolio_loans && kivaloans.lender_loans)
             ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
-        if (c.portfolio.pb_sector && c.portfolio.pb_sector.enabled){
-            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_sector, loan=>loan.sector)
-        }
-        if (c.portfolio.pb_country && c.portfolio.pb_country.enabled){
-            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_country, loan=>loan.location.country)
-        }
-        if (c.portfolio.pb_activity && c.portfolio.pb_activity.enabled){
-            ct.addFieldContainsOrNotOneOfArrayTester(c.portfolio.pb_activity, loan=>loan.activity)
-        }
+        ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
+        ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
+        ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
         console.log('crit:loan:testers', ct.testers)
 
         var linq_loans = kivaloans.loans_from_kiva.where(loan => {

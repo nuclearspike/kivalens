@@ -7,6 +7,7 @@ var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
     init(){
         this.last_known = lsj.get('last_criteria')
+        a.criteria.reload(this.last_known) //??
         this.all = lsj.get('all_criteria')
         if (Object.keys(this.all).length == 0) {
             //default lists.
@@ -69,7 +70,38 @@ var criteriaStore = Reflux.createStore({
                     },
                     "partner": {},
                     "portfolio": {"exclude_portfolio_loans": 'true'}
+                },
+                "Countries I Don't Have":{
+                    "loan":{},
+                    "partner":{},
+                    "portfolio": {
+                        "exclude_portfolio_loans": "true",
+                        "pb_country": {
+                            "enabled": true,
+                            "hideshow": "hide",
+                            "ltgt": "gt",
+                            "percent": 0,
+                            "allactive": "all",
+                            "values": []
+                        }
+                    }
+                },
+                "Balance Partner Risk":{
+                    "loan":{},
+                    "partner":{},
+                    "portfolio": {
+                        "exclude_portfolio_loans": "true",
+                        "pb_partner": {
+                            "enabled": true,
+                            "hideshow": "hide",
+                            "ltgt": "gt",
+                            "percent": 0,
+                            "allactive": "active",
+                            "values": []
+                        }
+                    }
                 }
+
             }
             this.syncSavedAll()
         }
@@ -79,6 +111,7 @@ var criteriaStore = Reflux.createStore({
         console.log("criteriaStore:onChange", criteria)
         if (!criteria) criteria = this.last_known
         this.last_known = criteria
+        //cannot put the reload into here or it goes into endless cycle.
         a.loans.filter(criteria)
         lsj.set('last_criteria', this.last_known)
     },
@@ -134,10 +167,12 @@ var criteriaStore = Reflux.createStore({
         this.onChange(new_c)
         a.criteria.savedSearchListChanged()
     },
-    onBalancingGet(request){
-        get_verse_data('lender', kivaloans.lender_id, request.sliceBy, request.allActive, -1, -1).done(result => {
+    onBalancingGet(sliceBy, crit){
+        //pull from cache if available, otherwise
+        get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive).done(result => {
             console.log(result)
-            a.criteria.balancing.get.completed(request, result)
+            result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
+            a.criteria.balancing.get.completed(sliceBy, crit, result)
         })
     },
     syncGetLastSwitch(){
@@ -200,12 +235,12 @@ var criteriaStore = Reflux.createStore({
     }
 })
 
-function get_verse_data(subject_type, subject_id, slice_by, all_active, min_count, max_count){
+function get_verse_data(subject_type, subject_id, slice_by, all_active){
     var def = $.Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
     var url = location.protocol + "//www.kivalens.org/kiva.php/ajax/getSuperGraphData?sliceBy="+ slice_by +"&include="+ all_active +"&measure=count&subject_id=" + subject_id + "&type=" + subject_type + "&granularity=" + granularity
-    var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${min_count}_${max_count}_${granularity}`
+    var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${granularity}`
 
     var result = get_cache(cache_key)
 
@@ -216,7 +251,6 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, min_coun
         console.log(`cache_miss: ${cache_key}`)
         $.ajax({
             url: url,
-            crossDomain: true,
             type: "GET",
             dataType: "json",
             cache: true
@@ -224,17 +258,12 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, min_coun
             var slices = [], total_sum = 0
 
             if (result.data) {
-                max_count = (max_count == -1) ? result.data.length : Math.min(max_count, result.data.length)
                 total_sum = result.data.sum(d => parseInt(d.value))
                 slices = result.data.select(d => { return {id: d.name, name: result.lookup[d.name], value: parseInt(d.value), percent: (parseInt(d.value) * 100) / total_sum }})
             }
-            if (slices.length >= min_count) {
-                var toResolve = {slices: slices, total_sum: total_sum}
-                set_cache(cache_key, toResolve)
-                def.resolve(toResolve)
-            } else {
-                def.reject()
-            }
+            var toResolve = {slices: slices, total_sum: total_sum}
+            set_cache(cache_key, toResolve)
+            def.resolve(toResolve)
         }).fail(def.reject)
     }
     return def
@@ -243,11 +272,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, min_coun
 function get_cache(key){
     var val = lsj.get(`cache_${key}`)
     if (Object.keys(val).length > 0){
-        if (new Date().getTime() - val.time > 3 * 60 * 60 * 1000){
-            return null
-        } else {
-            return val.value
-        }
+        return (new Date().getTime() - val.time > 2 * 60 * 60 * 1000) ? null : val.value
     } else return null
 }
 

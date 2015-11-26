@@ -5,7 +5,7 @@ import Reflux from 'reflux'
 import numeral from 'numeral'
 import a from '../actions'
 import s from '../stores/'
-import {Grid,Row,Col,Input,Button,Tabs,Tab,Panel,OverlayTrigger,Popover} from 'react-bootstrap';
+import {Grid,Row,Col,Input,Button,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap';
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
@@ -67,21 +67,20 @@ const BalancingRow = React.createClass({
         options: React.PropTypes.instanceOf(Object).isRequired,
         group: React.PropTypes.instanceOf(Cursor).isRequired,
         name: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired,
-        onFocus: React.PropTypes.func
+        onChange: React.PropTypes.func.isRequired
     },
     getInitialState(){
-        return $.extend({enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.propertyCursor().value)
+        return $.extend({enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.cursor().value)
     },
     componentDidMount(){
-        this.lastRequest = {}
         this.lastResult = {}
-        this.lastCursor = {}
+        this.lastCursorValue = {}
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
+        this.listenTo(a.criteria.reload, this.changed)
         this.changed()
     },
-    receivedKivaSlices(request, result){
-        if (request === this.lastRequest){
+    receivedKivaSlices(sliceBy, crit, result){
+        if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
             console.log('receivedKivaSlices',result)
             this.lastResult = result
             this.renderLastSliceResults()
@@ -91,44 +90,40 @@ const BalancingRow = React.createClass({
         if (!Array.isArray(this.lastResult.slices)) return
         var slices = this.lastResult.slices
 
-        //todo: this logic needs to move out of the presentation.
-        if (this.state.ltgt == 'gt')
-            slices = slices.where(s => s.percent > this.state.percent)
-        else
-            slices = slices.where(s => s.percent < this.state.percent)
-
         //'values' are what is passed through to the filtering. slices is for display.
-        this.lastCursor.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+        this.lastCursorValue.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
         this.setState({slices: slices, slices_count: slices.length})
 
-        this.propertyCursor().set(this.lastCursor)
-        console.log("cursorChunk:", this.lastCursor)
+        this.cursor(this.lastCursorValue)
+        console.log("cursorChunk:", this.lastCursorValue)
         this.props.onChange()
     },
-    propertyCursor(){
-        return this.props.group.refine(this.props.name)
+    cursor(val){
+        var c = this.props.group.refine(this.props.name)
+        if (val)
+            c.set(val)
+        else
+            return c
     },
-    changed(value, values){
+    changed(){
         setTimeout(function(){
-            var crit = {
+            if (!this.refs.enabled) {
+                console.log("changed() bailing early. reference is bad")
+                return
+            }
+            this.lastCursorValue = {
                 enabled: this.refs.enabled.getChecked(),
                 hideshow: this.refs.hideshow.refs.value.value,
                 ltgt: this.refs.ltgt.refs.value.value,
                 percent: parseFloat(this.refs.percent.getValue()),
                 allactive: this.refs.allactive.refs.value.value
             }
-            $.extend(true, this.lastCursor, crit)
-            this.setState(crit)
-
-            this.lastRequest = {sliceBy: this.props.options.slice_by, allActive: crit.allactive}
-            s.criteria.onBalancingGet(this.lastRequest)
+            this.setState(this.lastCursorValue)
+            s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue)
         }.bind(this), 50)
     },
     render(){
-        //var ref = this.props.name
         var options = this.props.options
-        //var c_group = this.propertyCursor()
-
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
         return <Row>
             <Col md={3}>
@@ -183,14 +178,18 @@ const BalancingRow = React.createClass({
                 </Row>
 
                 <Row>
-                    Matching: {this.state.slices_count}. Loans with these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
-                    <ul style={{overflowY:'auto',maxHeight:'200px'}}>
-                        <For index='i' each='slice' of={this.state.slices}>
-                            <li key={i}>
-                                {numeral(slice.percent).format('0.000')}%: {slice.name}
-                            </li>
-                        </For>
-                    </ul>
+                    <If condition={this.state.enabled}>
+                        <div>
+                            Matching: {this.state.slices_count}. Loans with these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
+                            <ul style={{overflowY:'auto',maxHeight:'200px'}}>
+                                <For index='i' each='slice' of={this.state.slices}>
+                                    <li key={i}>
+                                        {numeral(slice.percent).format('0.000')}%: {slice.name}
+                                    </li>
+                                </For>
+                            </ul>
+                        </div>
+                    </If>
                 </Row>
             </Col>
             </Row>
@@ -258,6 +257,7 @@ const CriteriaTabs = React.createClass({
         this.setKnownOptions()
     },
     componentDidMount: function () {
+        this.kiva_lender_id = lsj.get("Options").kiva_lender_id
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
@@ -505,30 +505,43 @@ const CriteriaTabs = React.createClass({
                     </Col>
                 </Tab>
 
-
                 <Tab eventKey={3} title={`Your Portfolio${this.state.portfolioTab}`} className="ample-padding-top">
                     <Row>
                         <Col md={9}>
                             <For each='name' index='i' of={['exclude_portfolio_loans']}>
                                 <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}/>
                             </For>
-                            {`(${lender_loans_message})`}
+                            <If condition={this.kiva_lender_id && !kivaloans.lender_id}>
+                                <Alert bsStyle='warning'>
+                                    If you reload the page, loans in your portfolio that are
+                                    fundraising will be loaded so that they can be excluded. After this one time,
+                                    you'll never have to deal with this again. Sorry for the inconvenience.
+                                </Alert>
+                            <Else/>
+                                <If condition={!this.kiva_lender_id && !kivaloans.lender_id}>
+                                    <Alert bsStyle='info'>Your Lender ID is not set in Options yet.</Alert>
+                                <Else/>
+                                     {`(${lender_loans_message})`}
+                                </If>
+                            </If>
+
                             <Panel header='Portfolio Balancing -- ALPHA TESTING'>
+                                <If condition={!this.kiva_lender_id}>
+                                    <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
+                                </If>
                                 Caveats:
                                 1) The summary data that KivaLens pulls for your account is not "live" data.
                                 It should never be over 24 hours old, however. This means if you complete a bunch of
                                 loans and come back for more, the completed loans will not be accounted for in the
-                                balancing.
-                                2) It's not recommended that you use
-                                Bulk Add in conjunction with balancing. This is due to the fact that it's very possible
+                                balancing. Kiva updates their summary data around midnight PST.
+                                2) It's not recommended that you use Bulk Add in conjunction with balancing without
+                                caution. This is due to the fact that it's very possible
                                 that all of the loans in the results are there because you don't yet have only a couple
                                 partners, and bulk adding loans that come from just a few partners without reviewing
                                 them would result in a lop-sided portfolio.
-                                3) This feature is still rough. Do not assume it has filtered unless you come to the tab
-                                and disable then re-enable it and see a) the partners listed b) the number of loans change.
-                                These settings may not clear when you click the "Clear" button. The "Show only" option
-                                is not fully functional yet...
-
+                                3) This feature is still rough. Do not (yet) assume it has filtered with the newest data
+                                unless you come to the tab and disable then re-enable it and see a) the
+                                partners/sectors/etc listed b) the number of loans change.
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
                                     <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
