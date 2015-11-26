@@ -144,12 +144,12 @@ var Loan = React.createClass({
                             <a href={`http://www.kiva.org/lend/${loan.id}`} target="_blank">View on Kiva.org</a>
                         </Row>
                             <dl className="dl-horizontal">
-                                <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.join(', '): '(none)'}</dd>
+                                <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
                                 <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                 <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>
                                 <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>
                                 <If condition={loan.status != 'fundraising'}>
-                                    <DTDD term='Status' def={loan.status} />
+                                    <DTDD term='Status' def={humanize(loan.status)} />
                                 </If>
                                 <If condition={loan.funded_date}>
                                     <DTDD term='Funded' def={new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt')} />

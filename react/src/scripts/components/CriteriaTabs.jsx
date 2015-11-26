@@ -377,7 +377,7 @@ const CriteriaTabs = React.createClass({
                 data = loans.groupBy(l=>l.activity).map(g=>{return {name: g[0].activity, count: g.length}})
                 break
             case 'tags':
-                data = [].concat.apply([], loans.select(l => l.kl_tags)).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                data = [].concat.apply([], loans.select(l => l.kl_tags)).groupBy(t => t).map(g=>{return {name: humanize(g[0]), count: g.length}})
                 break
             case 'themes':
                 data = [].concat.apply([], loans.select(l => l.themes)).where(t => t != undefined).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})

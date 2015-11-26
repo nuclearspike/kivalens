@@ -253,10 +253,9 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
             url: url,
             type: "GET",
             dataType: "json",
-            cache: true
+            cache: false
         }).success(result => {
             var slices = [], total_sum = 0
-
             if (result.data) {
                 total_sum = result.data.sum(d => parseInt(d.value))
                 slices = result.data.select(d => { return {id: d.name, name: result.lookup[d.name], value: parseInt(d.value), percent: (parseInt(d.value) * 100) / total_sum }})
