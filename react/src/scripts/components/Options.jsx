@@ -11,13 +11,16 @@ const Options = React.createClass({
     componentDidMount(){
         this.setState({missingPartners: this.getMissingPartners()})
     },
+    componentWillUnmount(){
+        setDebugging()
+    },
     getStateFilterKeys: function() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList'];
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging'];
     },
     getMissingPartners(){
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
-        console.log(m_partners)
+        cl("missingPartners",m_partners)
         return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },
     render() {
@@ -92,6 +95,13 @@ const Options = React.createClass({
                             </div>
                         </If>
                     </Panel>
+                    <Panel header='Debug'>
+                        <Input
+                            type="checkbox"
+                            label="Output debugging console messages"
+                            checkedLink={this.linkState('debugging')} />
+                    </Panel>
+
                 </Col>
             </Grid>
         )

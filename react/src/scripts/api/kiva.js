@@ -100,7 +100,7 @@ class Request {
         //console.log('get():', path, params)
         return $.getJSON(`http://api.kivaws.org/v1/${path}?${serialize(params)}`)
             //.done(result => console.log(result) )
-            .fail((xhr, status, err) => console.log(status, err, xhr, err.toString()) )
+            .fail((xhr, status, err) => cl(status, err, xhr, err.toString()) )
     }
 
     //semaphored access to kiva api to not overload it. also, it handles collections.
@@ -499,7 +499,7 @@ class Loans {
             return objArray
         }
         $.get('data/atheist_data.csv') //todo: this is bad. shouldn't hard reference location
-            .fail(()=>{console.log("failed to retrieve Atheist list")})
+            .fail(()=>{cl("failed to retrieve Atheist list")})
             .then(CSV2JSON).done(mfis => {
                 mfis.forEach(mfi => {
                     var kivaMFI = this.getPartner(parseInt(mfi['id']))
@@ -584,7 +584,7 @@ class Loans {
             kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
             kl.lender_loans_state = llComplete
             kl.notify_promise.notify({lender_loans_event: 'done'})
-            console.log('LENDER LOAN IDS:', ids)
+            cl('LENDER LOAN IDS:', ids)
         })
     }
     refreshLoan(loan){ //returns a promise
@@ -614,7 +614,7 @@ class Loans {
                     loans_added.push(loan.id)
                 }
             })
-            console.log("############### LOANS UPDATED:", loans_updated)
+            cl("############### LOANS UPDATED:", loans_updated)
             if (loans_updated > 0) this.notify_promise.notify({background_updated: loans_updated})
 
             //find the loans that weren't found during the last update and return them. Possibly due to being funded.
@@ -626,12 +626,12 @@ class Loans {
                     var existing = kl.indexed_loans[loan.id]
                     $.extend(true, existing, loan)
                 })
-                console.log("############### MIA LOANS:", mia_loans.length, loans)
+                cl("############### MIA LOANS:", mia_loans.length, loans)
             })
 
             //get all loans that were added since the last update and add their details to the loans.
             new LoanBatch(loans_added).start().done(loans => { //this is ok when there aren't any
-                console.log("############### NEW LOANS FOUND:", loans_added.length, loans)
+                cl("############### NEW LOANS FOUND:", loans_added.length, loans)
                 this.setKivaLoans(loans, false)
             })
         })

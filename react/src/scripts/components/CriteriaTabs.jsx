@@ -81,7 +81,7 @@ const BalancingRow = React.createClass({
     },
     receivedKivaSlices(sliceBy, crit, result){
         if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
-            console.log('receivedKivaSlices',result)
+            cl('receivedKivaSlices',result)
             this.lastResult = result
             this.renderLastSliceResults()
         }
@@ -95,7 +95,7 @@ const BalancingRow = React.createClass({
         this.setState({slices: slices, slices_count: slices.length})
 
         this.cursor(this.lastCursorValue)
-        console.log("cursorChunk:", this.lastCursorValue)
+        cl("cursorChunk:", this.lastCursorValue)
         this.props.onChange()
     },
     cursor(val){
@@ -108,7 +108,7 @@ const BalancingRow = React.createClass({
     changed(){
         setTimeout(function(){
             if (!this.refs.enabled) {
-                console.log("changed() bailing early. reference is bad")
+                cl("changed() bailing early. reference is bad")
                 return
             }
             this.lastCursorValue = {
@@ -342,7 +342,7 @@ const CriteriaTabs = React.createClass({
         var criteria = this.buildCriteria()
         this.state_count++
         this.setState({state_count: this.state_count})
-        console.log("######### buildCriteria: criteria", criteria)
+        cl("######### buildCriteria: criteria", criteria)
         a.criteria.change(criteria)
     },
     buildCriteria: function(){
@@ -366,30 +366,31 @@ const CriteriaTabs = React.createClass({
     },
     genHelperGraphs(group, key, loans){
         var data
+
         switch (key){
             case 'country_code':
-                data = loans.groupBy(l=>l.location.country).map(g=>{return {name: g[0].location.country, count: g.length}})
+                data = loans.groupSelect(l=>l.location.country)
                 break
             case 'sector':
-                data = loans.groupBy(l=>l.sector).map(g=>{ return {name: g[0].sector, count: g.length}})
+                data = loans.groupSelect(l=>l.sector)
                 break
             case 'activity':
-                data = loans.groupBy(l=>l.activity).map(g=>{return {name: g[0].activity, count: g.length}})
+                data = loans.groupSelect(l=>l.activity)
                 break
             case 'tags':
-                data = [].concat.apply([], loans.select(l => l.kl_tags)).groupBy(t => t).map(g=>{return {name: humanize(g[0]), count: g.length}})
+                data = loans.select(l => l.kl_tags).flatten().groupSelect(t => humanize(t))
                 break
             case 'themes':
-                data = [].concat.apply([], loans.select(l => l.themes)).where(t => t != undefined).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupSelect(t => t)
                 break
             case 'social_performance':
-                data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths)).where(sp => sp != undefined).select(sp => sp.name).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths).flatten().where(sp => sp != undefined).select(sp => sp.name).groupSelect(t => t)
                 break
             case 'partners':
-                data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).name)).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).name).flatten().groupSelect(t => t)
                 break
             case 'region':
-                data = [].concat.apply([], loans.select(l => kivaloans.getPartner(l.partner_id).countries)).select(c => c.region).groupBy(t => t).map(g=>{return {name: g[0], count: g.length}})
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).countries).flatten().select(c => c.region).groupSelect(t => t)
                 break
             default:
                 return
@@ -434,7 +435,7 @@ const CriteriaTabs = React.createClass({
                 data: data.select(d => d.count)
             }]
         }
-        //console.log(config)
+        //cl(config)
         var newState = {helper_charts: {}}
         newState.helper_charts[group] = config
         this.setState(newState)
@@ -443,7 +444,7 @@ const CriteriaTabs = React.createClass({
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
         this.last_select = {group: group, key: key}
-        console.log('focusSelect', group, key)
+        cl('focusSelect', group, key)
 
         var loans = (this.options[key].match == 'any') ? this.performSearchWithout(group, key) : s.loans.syncFilterLoansLast()
         this.genHelperGraphs(group,key,loans)

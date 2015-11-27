@@ -26,7 +26,7 @@ const Criteria = React.createClass({
         this.setState({cycle: Math.random().toString()})  //HACK!!
     },
     promptForName(){
-        console.log("promptForName()")
+        cl("promptForName()")
         var options = {title: "Enter Name for Search Criteria", label: 'Name', callback: s.criteria.syncSaveLastByName}
         a.utils.prompt(options)
     },

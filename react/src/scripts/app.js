@@ -36,7 +36,7 @@ const App = React.createClass({
         if (r_page.indexOf("?") > -1)
             r_page = r_page.substr(0, r_page.indexOf('?'));
         if (r_page != this.last_ga_page) {
-            console.log("ga:pageview", r_page)
+            cl("ga:pageview", r_page)
             ga.pageview(r_page)
             this.last_ga_page = r_page
         }

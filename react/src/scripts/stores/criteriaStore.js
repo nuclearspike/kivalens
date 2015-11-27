@@ -108,7 +108,7 @@ var criteriaStore = Reflux.createStore({
         if (!this.last_known) this.last_known = {loan:{},partner:{},portfolio:{}}
     },
     onChange(criteria){
-        console.log("criteriaStore:onChange", criteria)
+        cl("criteriaStore:onChange", criteria)
         if (!criteria) criteria = this.last_known
         this.last_known = criteria
         //cannot put the reload into here or it goes into endless cycle.
@@ -170,7 +170,7 @@ var criteriaStore = Reflux.createStore({
     onBalancingGet(sliceBy, crit){
         //pull from cache if available, otherwise
         get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive).done(result => {
-            console.log(result)
+            cl('onBalancingGet.get_verse_data.done',result)
             result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
             a.criteria.balancing.get.completed(sliceBy, crit, result)
         })
@@ -185,7 +185,7 @@ var criteriaStore = Reflux.createStore({
         return Object.keys(this.all)
     },
     syncSavedAll(){
-        console.log('syncSavedAll', this.all)
+        cl('syncSavedAll', this.all)
         lsj.set('all_criteria', this.all)
         a.criteria.savedSearchListChanged()
     },
@@ -245,10 +245,10 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
     var result = get_cache(cache_key)
 
     if (result){
-        console.log(result)
+        cl('get_verse_data.cache_hit', result)
         def.resolve(result)
     } else {
-        console.log(`cache_miss: ${cache_key}`)
+        cl(`cache_miss: ${cache_key}`)
         $.ajax({
             url: url,
             type: "GET",

@@ -263,7 +263,7 @@ var loanStore = Reflux.createStore({
             ct.addBalancer(c.portfolio.pb_partner, partner=>partner.id)
 
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
-            console.log('crit:partner:testers', ct.testers)
+            cl('crit:partner:testers', ct.testers)
 
             //filter the partners
             partner_ids = kivaloans.partners_from_kiva.where(p => ct.allPass(p)).select(p => p.id)
@@ -304,7 +304,7 @@ var loanStore = Reflux.createStore({
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
         ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
-        console.log('crit:loan:testers', ct.testers)
+        cl('crit:loan:testers', ct.testers)
 
         var linq_loans = kivaloans.loans_from_kiva.where(loan => {
             return loan.status == 'fundraising' &&  ct.allPass(loan)
