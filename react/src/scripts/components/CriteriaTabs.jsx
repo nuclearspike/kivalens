@@ -81,6 +81,7 @@ const BalancingRow = React.createClass({
     },
     receivedKivaSlices(sliceBy, crit, result){
         if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
+            this.setState({loading: false})
             cl('receivedKivaSlices',result)
             this.lastResult = result
             this.renderLastSliceResults()
@@ -95,13 +96,13 @@ const BalancingRow = React.createClass({
         this.setState({slices: slices, slices_count: slices.length})
         this.cursor(this.lastCursorValue)
         cl("cursorChunk:", this.lastCursorValue)
-        this.props.onChange()
     },
     cursor(val){
         var c = this.props.group.refine(this.props.name)
-        if (val)
+        if (val) {
             c.set(val)
-        else
+            this.props.onChange()
+        } else
             return c
     },
     changed(){
@@ -119,10 +120,12 @@ const BalancingRow = React.createClass({
             }
             this.setState(this.lastCursorValue)
 
-            if (this.lastCursorValue.enabled)
+            if (this.lastCursorValue.enabled) {
+                this.setState({loading: true})
                 s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue)
-            else
+            } else
                 this.cursor({})
+
 
         }.bind(this), 50)
     },
@@ -182,9 +185,12 @@ const BalancingRow = React.createClass({
                 </Row>
 
                 <Row>
-                    <If condition={this.state.enabled}>
+                    <If condition={this.state.loading}>
+                        <div>Loading data from Kiva...</div>
+                    </If>
+                    <If condition={this.state.enabled && !this.state.loading}>
                         <div>
-                            Matching: {this.state.slices_count}. Loans with these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
+                            Matching: {this.state.slices_count}. Loans from these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
                             <ul style={{overflowY:'auto',maxHeight:'200px'}}>
                                 <For index='i' each='slice' of={this.state.slices}>
                                     <li key={i}>
@@ -538,18 +544,22 @@ const CriteriaTabs = React.createClass({
                                     <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
                                 </If>
                                 Caveats:
-                                1) The summary data that KivaLens pulls for your account is not "live" data.
+                                <ul>
+                                    <li>The summary data that KivaLens pulls for your account is not "live" data.
                                 It should never be over 24 hours old, however. This means if you complete a bunch of
                                 loans and come back for more, the completed loans will not be accounted for in the
-                                balancing. Kiva updates their summary data around midnight PST.
-                                2) It's not recommended that you use Bulk Add in conjunction with balancing without
+                                balancing. Kiva updates their summary data around midnight PST.</li>
+                                    <li>It's not recommended that you use Bulk Add in conjunction with balancing without
                                 caution. This is due to the fact that it's very possible
                                 that all of the loans in the results are there because you don't yet have only a couple
                                 partners, and bulk adding loans that come from just a few partners without reviewing
-                                them would result in a lop-sided portfolio.
-                                3) This feature is still rough. Do not (yet) assume it has filtered with the newest data
+                                them would result in a lop-sided portfolio.</li>
+                                    <li>This feature is still rough. Do not (yet) assume it has filtered with the newest data
                                 unless you come to the tab and disable then re-enable it and see a) the
-                                partners/sectors/etc listed b) the number of loans change.
+                                partners/sectors/etc listed b) the number of loans change.</li>
+                                    <li>Fetching the data from Kiva can sometimes take a few seconds. If you don't see
+                                        anything happen right away, just give it a a second.</li>
+                                </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
                                     <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />

@@ -20,7 +20,7 @@ a.partners = Reflux.createActions({
 });
 
 a.criteria  = Reflux.createActions([
-    "change","lenderLoansEvent","savedSearchListChanged","switchToSaved","reload","startFresh","guaranteeVerseData"
+    "change","lenderLoansEvent","savedSearchListChanged","switchToSaved","reload","startFresh"
 ])
 
 a.criteria.balancing = Reflux.createActions({"get": {children: ["completed"]}})
