@@ -169,9 +169,9 @@ var criteriaStore = Reflux.createStore({
         this.onChange(new_c)
         a.criteria.savedSearchListChanged()
     },
-    onBalancingGet(sliceBy, crit){
+    onBalancingGet(sliceBy, crit, fetchNotifyFunc){
         //pull from cache if available, otherwise
-        get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive).done(result => {
+        get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive, fetchNotifyFunc).done(result => {
             cl('onBalancingGet.get_verse_data.done',result)
             result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
             a.criteria.balancing.get.completed(sliceBy, crit, result)
@@ -237,7 +237,7 @@ var criteriaStore = Reflux.createStore({
     }
 })
 
-function get_verse_data(subject_type, subject_id, slice_by, all_active){
+function get_verse_data(subject_type, subject_id, slice_by, all_active, fetchNotifyFunc){
     var def = $.Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
@@ -251,6 +251,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
         def.resolve(result)
     } else {
         cl(`cache_miss: ${cache_key}`)
+        if (fetchNotifyFunc) fetchNotifyFunc()
         $.ajax({
             url: url,
             type: "GET",

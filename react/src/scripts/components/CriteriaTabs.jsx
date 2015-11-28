@@ -121,8 +121,8 @@ const BalancingRow = React.createClass({
             this.setState(this.lastCursorValue)
 
             if (this.lastCursorValue.enabled) {
-                this.setState({loading: true})
-                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue)
+                //this.setState({loading: true})
+                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
             } else
                 this.cursor({})
 
