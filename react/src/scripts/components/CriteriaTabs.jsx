@@ -93,7 +93,6 @@ const BalancingRow = React.createClass({
         //'values' are what is passed through to the filtering. slices is for display.
         this.lastCursorValue.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
         this.setState({slices: slices, slices_count: slices.length})
-
         this.cursor(this.lastCursorValue)
         cl("cursorChunk:", this.lastCursorValue)
         this.props.onChange()
@@ -119,7 +118,12 @@ const BalancingRow = React.createClass({
                 allactive: this.refs.allactive.refs.value.value
             }
             this.setState(this.lastCursorValue)
-            s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue)
+
+            if (this.lastCursorValue.enabled)
+                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue)
+            else
+                this.cursor({})
+
         }.bind(this), 50)
     },
     render(){
@@ -298,15 +302,18 @@ const CriteriaTabs = React.createClass({
         this.options.tags = {label: 'Tags', match: 'all', multi: true, select_options: [{"value":"user_favorite","label":"User Favorite"},{"value":"volunteer_like","label":"Volunteer Like"},{"value":"volunteer_pick","label":"Volunteer Pick"},{"value":"#Animals","label":"#Animals"},{"value":"#Eco-friendly","label":"#Eco-friendly"},{"value":"#Elderly","label":"#Elderly"},{"value":"#Fabrics","label":"#Fabrics"},{"value":"#FemaleEducation","label":"#FemaleEducation"},{"value":"#FirstLoan","label":"#FirstLoan"},{"value":"#HealthAndSanitation","label":"#HealthAndSanitation"},{"value":"#IncomeProducingDurableAsset","label":"#IncomeProducingDurableAsset"},{"value":"#InspiringStory","label":"#InspiringStory"},{"value":"#InterestingPhoto","label":"#InterestingPhoto"},{"value":"#JobCreator","label":"#JobCreator"},{"value":"#Low-profitFP","label":"#Low-profitFP"},{"value":"#Orphan","label":"#Orphan"},{"value":"#Parent","label":"#Parent"},{"value":"#Refugee","label":"#Refugee"},{"value":"#RepeatBorrower","label":"#RepeatBorrower"},{"value":"#Schooling","label":"#Schooling"},{"value":"#Single","label":"#Single"},{"value":"#SingleParent","label":"#SingleParent"},{"value":"#SupportingFamily","label":"#SupportingFamily"},{"value":"#SustainableAg","label":"#SustainableAg"},{"value":"#Technology","label":"#Technology"},{"value":"#Trees","label":"#Trees"},{"value":"#Unique","label":"#Unique"},{"value":"#Vegan","label":"#Vegan"},{"value":"#Widowed","label":"#Widowed"},{"value":"#WomanOwnedBiz","label":"#WomanOwnedBiz"}]}
         this.options.themes = {label: 'Themes', match: 'all', multi: true, select_options: [{"value":"Green","label":"Green"},{"value":"Higher Education","label":"Higher Education"},{"value":"Arab Youth","label":"Arab Youth"},{"value":"Kiva City LA","label":"Kiva City LA"},{"value":"Islamic Finance","label":"Islamic Finance"},{"value":"Youth","label":"Youth"},{"value":"Start-Up","label":"Start-Up"},{"value":"Water and Sanitation","label":"Water and Sanitation"},{"value":"Vulnerable Groups","label":"Vulnerable Groups"},{"value":"Fair Trade","label":"Fair Trade"},{"value":"Rural Exclusion","label":"Rural Exclusion"},{"value":"Mobile Technology","label":"Mobile Technology"},{"value":"Underfunded Areas","label":"Underfunded Areas"},{"value":"Conflict Zones","label":"Conflict Zones"},{"value":"Job Creation","label":"Job Creation"},{"value":"SME","label":"Small and Medium Enterprises"},{"value":"Growing Businesses","label":"Growing Businesses"},{"value":"Kiva City Detroit","label":"Kiva City Detroit"},{"value":"Health","label":"Health"},{"value":"Disaster recovery","label":"Disaster recovery"},{"value":"Flexible Credit Study","label":"Flexible Credit Study"},{"value":"Innovative Loans","label":"Innovative Loans"}].orderBy(c => c.label)}
         this.options.sort = {label: 'Sort', match: '', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'}]}
+        this.options.bonus_credit_eligibility = {label: "Bonus Credit", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only loans eligible"},{value:'false', label:"Only loans NOT eligible"}]}
 
         //partner selects
         this.options.social_performance = {label: 'Social Performance', match: 'all', multi: true, select_options: [{"value":1,"label":"Anti-Poverty Focus"},{"value":3,"label":"Client Voice"},{"value":5,"label":"Entrepreneurial Support"},{"value":6,"label":"Facilitation of Savings"},{"value":4,"label":"Family and Community Empowerment"},{"value":7,"label":"Innovation"},{"value":2,"label":"Vulnerable Group Focus"}]}
         this.options.region = {label: 'Region', match: 'any', multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
         this.options.partners = {label: "Partners", match: 'any', multi: true, select_options: []}
+        this.options.charges_fees_and_interest = {label: "Charges Interest", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only partners that charge fees & interest"},{value:'false', label:"Only partners that do NOT charge fees & interest"}]}
 
         //portfolio selects
         this.options.exclude_portfolio_loans = {label: "Exclude My Loans", match: '', multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
 
+        //balancing
         this.options.pb_partner  = {label: "Partners", key: 'id', slice_by: 'partner'}
         this.options.pb_country  = {label: "Countries", slice_by: 'country'}
         this.options.pb_region   = {label: "Regions", slice_by: 'region'}
@@ -454,10 +461,10 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render: function() {
-        var cursor = Cursor.build(this);
-        var cLoan = cursor.refine('criteria').refine('loan')
-        var cPartner = cursor.refine('criteria').refine('partner')
-        var cPorfolio = cursor.refine('criteria').refine('portfolio')
+        var cursor = Cursor.build(this).refine('criteria')
+        var cLoan = cursor.refine('loan')
+        var cPartner = cursor.refine('partner')
+        var cPorfolio = cursor.refine('portfolio')
         var lender_loans_message = kivaloans.lender_loans_message
 
         return (<div>
@@ -471,7 +478,7 @@ const CriteriaTabs = React.createClass({
                         <InputRow label='Use or Description' group={cLoan} name='use' onChange={this.criteriaChanged}/>
                         <InputRow label='Name' group={cLoan} name='name' onChange={this.criteriaChanged}/>
 
-                        <For each='name' index='i' of={['country_code','sector','activity','themes','tags','sort']}>
+                        <For each='name' index='i' of={['country_code','sector','activity','themes','tags','bonus_credit_eligibility','sort']}>
                             <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','expiring_in_days', 'disbursal_in_days']}>
@@ -488,7 +495,7 @@ const CriteriaTabs = React.createClass({
 
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
                     <Col lg={8}>
-                        <For each='name' index='i' of={['region','partners','social_performance']}>
+                        <For each='name' index='i' of={['region','partners','social_performance','charges_fees_and_interest']}>
                             <SelectRow key={i} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>

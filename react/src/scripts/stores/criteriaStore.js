@@ -161,7 +161,9 @@ var criteriaStore = Reflux.createStore({
     },
     onStartFresh(){
         var new_c = this.syncBlankCriteria()
-        new_c.portfolio.exclude_portfolio_loans = 'true'
+        new_c.portfolio.exclude_portfolio_loans = 'true' //there was a reason this was a string.
+        new_c.loan.name = ''
+        new_c.loan.use = ''
         this.last_switch = null
         a.criteria.reload(new_c)
         this.onChange(new_c)

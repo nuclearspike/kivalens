@@ -22,6 +22,8 @@ window.setDebugging = function() {
     window.kl_debugging = lsj.get("Options").debugging
 }
 
+setDebugging()
+
 window.cl = function() {
     if (window.kl_debugging)
         console.trace(arguments)

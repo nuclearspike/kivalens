@@ -109,8 +109,16 @@ class CritTester {
         if (search.length)
             this.testers.push(entity => search.all(search_text => selector(entity).toUpperCase().indexOf(search_text) > -1))
     }
+    addThreeStateTester(crit, selector){
+        //'', 'true', 'false'
+        if (crit === 'true'){
+            this.testers.push(entity => selector(entity) === true)
+        } else if (crit === 'false') {
+            this.testers.push(entity => selector(entity) === false)
+        }
+    }
     allPass(entity) {
-        if (this.fail_all) return false //must happen first!!
+        if (this.fail_all) return false //must happen first
         if (this.testers.length == 0) return true
         return this.testers.all(func => func(entity))
     }
@@ -223,7 +231,8 @@ var loanStore = Reflux.createStore({
             last_partner_search = {}
             last_partner_search_count = 0
         }
-        var useCache = false
+        var useCache = true
+
         var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, c.portfolio.pb_partner))
         var partner_ids
         if (useCache && last_partner_search[partner_criteria_json]){
@@ -234,14 +243,14 @@ var loanStore = Reflux.createStore({
             //typeof string is temporary
             var sp_arr
             try {
-                sp_arr = (typeof c.partner.social_performance === 'string') ? c.partner.social_performance.split(',').where(sp => sp && !isNaN(sp)).select(sp => parseInt(sp)) : []
+                sp_arr = (typeof c.partner.social_performance === 'string') ? c.partner.social_performance.split(',').where(sp => sp && !isNaN(sp)).select(sp => parseInt(sp)) : []  //cannot be reduced to select(parseInt) :(
             }catch(e){
                 sp_arr = []
             }
 
             var partners_given = []
-            if (c.partner.partners) {
-                partners_given = c.partner.partners.split(',').select(id => parseInt(id))
+            if (c.partner.partners) { //explicitly given by user.
+                partners_given = c.partner.partners.split(',').select(id => parseInt(id)) //cannot be reduced to select(parseInt) :(
             }
 
             var ct = new CritTester(c.partner)
@@ -256,6 +265,7 @@ var loanStore = Reflux.createStore({
             ct.addRangeTesters('loans_at_risk_rate',          partner=>partner.loans_at_risk_rate)
             ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
             ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
+            ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner=>partner.charges_fees_and_interest)
             if (kivaloans.atheist_list_processed && lsj.get('Options').mergeAtheistList) {
                 ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
                 ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
@@ -264,6 +274,9 @@ var loanStore = Reflux.createStore({
 
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
             cl('crit:partner:testers', ct.testers)
+
+            //if (ct.testers.length == 0)
+            //    partner_ids = 'all' or null and [] means none match.
 
             //filter the partners
             partner_ids = kivaloans.partners_from_kiva.where(p => ct.allPass(p)).select(p => p.id)
@@ -285,9 +298,9 @@ var loanStore = Reflux.createStore({
 
         var ct = new CritTester(c.loan)
 
-        ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan => loan.sector)
-        ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan => loan.activity)
-        ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan => loan.location.country_code)
+        ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan=>loan.sector)
+        ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan=>loan.activity)
+        ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan=>loan.location.country_code)
         ct.addArrayAllTester(c.loan.tags,       loan=>loan.kl_tags)
         ct.addArrayAllTester(c.loan.themes,     loan=>loan.themes)
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
@@ -298,17 +311,17 @@ var loanStore = Reflux.createStore({
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
-        ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id, true)
+        ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id, true) //always added!
         if (c.portfolio.exclude_portfolio_loans && kivaloans.lender_loans)
             ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
         ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
+        ct.addThreeStateTester(c.loan.bonus_credit_eligibility, loan=>loan.bonus_credit_eligibility)
+        ct.testers.push(loan => loan.status == 'fundraising')
         cl('crit:loan:testers', ct.testers)
 
-        var linq_loans = kivaloans.loans_from_kiva.where(loan => {
-            return loan.status == 'fundraising' &&  ct.allPass(loan)
-        })
+        var linq_loans = kivaloans.loans_from_kiva.where(loan => ct.allPass(loan)) //can't reduce.
 
         var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
             if (a > b) return -1
