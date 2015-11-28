@@ -164,6 +164,10 @@ var criteriaStore = Reflux.createStore({
         new_c.portfolio.exclude_portfolio_loans = 'true' //there was a reason this was a string.
         new_c.loan.name = ''
         new_c.loan.use = ''
+        new_c.pb_sector   = {enabled: false} //does this help???
+        new_c.pb_activity = {enabled: false}
+        new_c.pb_partner  = {enabled: false}
+        new_c.pb_country  = {enabled: false}
         this.last_switch = null
         a.criteria.reload(new_c)
         this.onChange(new_c)

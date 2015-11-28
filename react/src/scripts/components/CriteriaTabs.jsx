@@ -70,19 +70,43 @@ const BalancingRow = React.createClass({
         onChange: React.PropTypes.func.isRequired
     },
     getInitialState(){
-        return $.extend({enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.cursor().value)
+        return $.extend({cycle: '1', enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.cursor().value)
     },
     componentDidMount(){
         this.lastResult = {}
         this.lastCursorValue = {}
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
-        this.listenTo(a.criteria.reload, this.changed)
+        this.listenTo(a.criteria.reload, this.outsideChange)
         this.changed()
+    },
+    outsideChange(crit){
+        /*
+            the value of the cursor is wrong on a reset! I have an issue of not having a true place to look for what it
+            should be.
+        */
+        console.log('outsideChange:crit', crit)
+        //console.log(this.cursor().value)
+        this.setState($.extend(true, {cycle: Math.random().toString()}, crit.portfolio[this.props.name]))  //HACK!!
+    },
+    changed(){
+        if (!this.refs.enabled) return
+        this.lastCursorValue = {
+            enabled: this.refs.enabled.getChecked(),
+            hideshow: this.refs.hideshow.refs.value.value,
+            ltgt: this.refs.ltgt.refs.value.value,
+            percent: parseFloat(this.refs.percent.getValue()),
+            allactive: this.refs.allactive.refs.value.value
+        }
+        this.setState(this.lastCursorValue)
+
+        if (this.lastCursorValue.enabled) {
+            s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
+        } else
+            this.cursor({enabled: false})
     },
     receivedKivaSlices(sliceBy, crit, result){
         if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
             this.setState({loading: false})
-            cl('receivedKivaSlices',result)
             this.lastResult = result
             this.renderLastSliceResults()
         }
@@ -105,34 +129,10 @@ const BalancingRow = React.createClass({
         } else
             return c
     },
-    changed(){
-        setTimeout(function(){
-            if (!this.refs.enabled) {
-                cl("changed() bailing early. reference is bad")
-                return
-            }
-            this.lastCursorValue = {
-                enabled: this.refs.enabled.getChecked(),
-                hideshow: this.refs.hideshow.refs.value.value,
-                ltgt: this.refs.ltgt.refs.value.value,
-                percent: parseFloat(this.refs.percent.getValue()),
-                allactive: this.refs.allactive.refs.value.value
-            }
-            this.setState(this.lastCursorValue)
-
-            if (this.lastCursorValue.enabled) {
-                //this.setState({loading: true})
-                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
-            } else
-                this.cursor({})
-
-
-        }.bind(this), 50)
-    },
     render(){
         var options = this.props.options
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
-        return <Row>
+        return <Row key={this.state.cycle}>
             <Col md={3}>
                 <label className="control-label">{options.label}</label>
             </Col>
@@ -349,7 +349,7 @@ const CriteriaTabs = React.createClass({
     },
     criteriaChanged(){
         clearTimeout(timeoutHandle);
-        timeoutHandle = setTimeout(this.performSearch, 50)
+        timeoutHandle = setTimeout(this.performSearch, 150)
     },
     performSearch(){
         var criteria = this.buildCriteria()
@@ -558,7 +558,7 @@ const CriteriaTabs = React.createClass({
                                 unless you come to the tab and disable then re-enable it and see a) the
                                 partners/sectors/etc listed b) the number of loans change.</li>
                                     <li>Fetching the data from Kiva can sometimes take a few seconds. If you don't see
-                                        anything happen right away, just give it a a second.</li>
+                                        anything happen right away, just give it a few seconds.</li>
                                 </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>

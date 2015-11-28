@@ -62,7 +62,7 @@ const Criteria = React.createClass({
                 <If condition={this.state.show_graphs}>
                     <ChartDistribution/>
                 </If>
-                <CriteriaTabs key={tab_key}/>
+                <CriteriaTabs key={tab_key} criteria='pass a cursor'/>
             </div>
         );
     }
