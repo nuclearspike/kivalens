@@ -12,6 +12,7 @@ const Criteria = React.createClass({
     getStateFilterKeys() { return ['show_graphs']},
     componentDidMount(){
         this.listenTo(a.criteria.savedSearchListChanged, this._savedSearchListChanged )
+        this.listenTo(a.criteria.reload, this.criteriaReloaded)
         this._savedSearchListChanged()
     },
     _savedSearchListChanged(){
@@ -21,9 +22,11 @@ const Criteria = React.createClass({
         this.setState(newState)
         //a.loans.filter() //todo: temp??? graphs disappearing.
     },
+    criteriaReloaded(crit){
+        this.setState({cycle: Math.random().toString(), criteria: crit})  //HACK!!
+    },
     clearCriteria(){
         a.criteria.startFresh()
-        this.setState({cycle: Math.random().toString()})  //HACK!!
     },
     promptForName(){
         cl("promptForName()")

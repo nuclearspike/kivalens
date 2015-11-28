@@ -89,20 +89,26 @@ const BalancingRow = React.createClass({
         this.setState($.extend(true, {cycle: Math.random().toString()}, crit.portfolio[this.props.name]))  //HACK!!
     },
     changed(){
-        if (!this.refs.enabled) return
-        this.lastCursorValue = {
-            enabled: this.refs.enabled.getChecked(),
-            hideshow: this.refs.hideshow.refs.value.value,
-            ltgt: this.refs.ltgt.refs.value.value,
-            percent: parseFloat(this.refs.percent.getValue()),
-            allactive: this.refs.allactive.refs.value.value
-        }
-        this.setState(this.lastCursorValue)
+        console.log("changed()")
 
-        if (this.lastCursorValue.enabled) {
-            s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
-        } else
-            this.cursor({enabled: false})
+        setTimeout(function(){
+            if (!this.refs.enabled) return
+            this.lastCursorValue = {
+                enabled: this.refs.enabled.getChecked(),
+                hideshow: this.refs.hideshow.refs.value.value,
+                ltgt: this.refs.ltgt.refs.value.value,
+                percent: parseFloat(this.refs.percent.getValue()),
+                allactive: this.refs.allactive.refs.value.value
+            }
+            this.setState(this.lastCursorValue)
+
+            if (this.lastCursorValue.enabled) {
+                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
+            } else
+                this.cursor({enabled: false})
+        }.bind(this), 50) //or the values haven't changed.
+
+        console.log("changed():leaving")
     },
     receivedKivaSlices(sliceBy, crit, result){
         if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
@@ -132,7 +138,7 @@ const BalancingRow = React.createClass({
     render(){
         var options = this.props.options
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
-        return <Row key={this.state.cycle}>
+        return <Row>
             <Col md={3}>
                 <label className="control-label">{options.label}</label>
             </Col>
