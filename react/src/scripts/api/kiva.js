@@ -617,8 +617,7 @@ class Loans {
             cl("############### LOANS UPDATED:", loans_updated)
             if (loans_updated > 0) this.notify_promise.notify({background_updated: loans_updated})
 
-            //find the loans that weren't found during the last update and return them. Possibly due to being funded.
-            //But not always. They don't seem to be funded loans... ?
+            //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
             var mia_loans = kl.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
                         loan.kl_background_resync != kl.background_resync).select(loan => loan.id)
             new LoanBatch(mia_loans).start().done(loans => { //this is ok when there aren't any
@@ -629,7 +628,7 @@ class Loans {
                 cl("############### MIA LOANS:", mia_loans.length, loans)
             })
 
-            //get all loans that were added since the last update and add their details to the loans.
+            //fetch the full details for the new loans and add them to the list.
             new LoanBatch(loans_added).start().done(loans => { //this is ok when there aren't any
                 cl("############### NEW LOANS FOUND:", loans_added.length, loans)
                 this.setKivaLoans(loans, false)

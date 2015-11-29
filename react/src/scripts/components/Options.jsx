@@ -32,7 +32,6 @@ const Options = React.createClass({
                         header='Notice'
                         bsStyle="info">
                         <p>Changing these settings will <i>only</i> take effect the next time you visit the site/reload the page.</p>
-                        <p>Expect these settings to change and your settings may be reset occasionally while in beta. Sorry for any inconvenience.</p>
                     </Panel>
                     <Panel header='Final Repayment Date'>
                         <Input
@@ -44,7 +43,7 @@ const Options = React.createClass({
                             min={8}
                             max={120}
                             valueLink={this.linkState('maxRepaymentTerms')}/>
-                        After the initial load, if you keep the app open long enough, the rest of the loans will get loaded so you'll still need to use the
+                        After the initial load, if you keep the page open long enough, the rest of the loans will get loaded so you'll still need to use the
                         final repayment date criteria option.
                     </Panel>
                     <Panel header='Who are you?'>
@@ -70,7 +69,7 @@ const Options = React.createClass({
                             checkedLink={this.linkState('mergeAtheistList')} />
                         <p>
                             KivaLens server pulls the <a href="http://www.kiva.org/team/atheists" target="_blank">Atheist Team</a>'s
-                            MFI List found in a <a href="http://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv" target="_blank">Google Doc</a> once
+                            MFI List from this <a href="http://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv" target="_blank">Google Doc</a> once
                             a day and merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
                             means that it is religion based. When activated, this will add 2 new sliders to the Partner

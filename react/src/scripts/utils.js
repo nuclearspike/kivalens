@@ -30,7 +30,7 @@ window.cl = function() {
 }
 
 //this is a common enough pattern in KL that it makes sense to standardize and shorten.
-Array.prototype.groupSelect = function(selector){
+Array.prototype.groupBySelectWithCount = function(selector){
     return this.groupBy(selector).select(g => {return {name: selector(g[0]), count: g.length}})
 }
 

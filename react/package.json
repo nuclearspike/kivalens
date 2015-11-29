@@ -1,7 +1,7 @@
 {
   "name": "KivaLens",
-  "version": "0.1.0",
-  "description": "Kiva Lens React.",
+  "version": "0.9.0",
+  "description": "Kiva Lens - ReactJS",
   "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -48,7 +48,6 @@
     "datejs": "^1.0.0-rc3",
     "gulp": "^3.9.0",
     "history": "^1.12.0",
-    "lazy-linq": "^1.0.2",
     "linqjs": "0.0.6",
     "minifyify": "^7.1.0",
     "multi-slider": "^2.0.0",

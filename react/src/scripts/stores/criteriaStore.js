@@ -267,7 +267,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, fetchNot
                 total_sum = result.data.sum(d => parseInt(d.value))
                 slices = result.data.select(d => { return {id: d.name, name: result.lookup[d.name], value: parseInt(d.value), percent: (parseInt(d.value) * 100) / total_sum }})
             }
-            var toResolve = {slices: slices, total_sum: total_sum}
+            var toResolve = {slices: slices, total_sum: total_sum, last_updated: result.last_updated}
             set_cache(cache_key, toResolve)
             def.resolve(toResolve)
         }).fail(def.reject)
@@ -278,7 +278,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, fetchNot
 function get_cache(key){
     var val = lsj.get(`cache_${key}`)
     if (Object.keys(val).length > 0){
-        return (new Date().getTime() - val.time > 2 * 60 * 60 * 1000) ? null : val.value
+        return (new Date().getTime() - val.time > 60 * 60 * 1000) ? null : val.value
     } else return null
 }
 

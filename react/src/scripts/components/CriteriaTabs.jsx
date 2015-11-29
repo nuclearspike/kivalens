@@ -8,6 +8,7 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap';
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
+import TimeAgo from 'react-timeago'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
@@ -106,26 +107,24 @@ const BalancingRow = React.createClass({
                 s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
             } else
                 this.cursor({enabled: false})
-        }.bind(this), 50) //or the values haven't changed.
+        }.bind(this), 50) //or the values haven't changed and the controls will be locked.
 
         console.log("changed():leaving")
     },
     receivedKivaSlices(sliceBy, crit, result){
+        //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
         if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
             this.setState({loading: false})
             this.lastResult = result
-            this.renderLastSliceResults()
-        }
-    },
-    renderLastSliceResults(){
-        if (!Array.isArray(this.lastResult.slices)) return
-        var slices = this.lastResult.slices
 
-        //'values' are what is passed through to the filtering. slices is for display.
-        this.lastCursorValue.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
-        this.setState({slices: slices, slices_count: slices.length})
-        this.cursor(this.lastCursorValue)
-        cl("cursorChunk:", this.lastCursorValue)
+            if (!Array.isArray(this.lastResult.slices)) return
+            var slices = this.lastResult.slices
+            //'values' are what is passed through to the filtering. slices is for display.
+            this.lastCursorValue.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+            this.setState({slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
+            this.cursor(this.lastCursorValue)
+            cl("cursorChunk:", this.lastCursorValue)
+        }
     },
     cursor(val){
         var c = this.props.group.refine(this.props.name)
@@ -139,10 +138,10 @@ const BalancingRow = React.createClass({
         var options = this.props.options
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
         return <Row>
-            <Col md={3}>
+            <Col md={2}>
                 <label className="control-label">{options.label}</label>
             </Col>
-            <Col md={9}>
+            <Col md={10}>
                 <Input
                     type="checkbox" label='Enable filter'
                     ref='enabled'
@@ -204,6 +203,9 @@ const BalancingRow = React.createClass({
                                     </li>
                                 </For>
                             </ul>
+                            <If condition={this.state.lastUpdated}>
+                                <p>Last Updated: <TimeAgo date={new Date(this.state.lastUpdated).toISOString()}/></p>
+                            </If>
                         </div>
                     </If>
                 </Row>
@@ -388,28 +390,28 @@ const CriteriaTabs = React.createClass({
 
         switch (key){
             case 'country_code':
-                data = loans.groupSelect(l=>l.location.country)
+                data = loans.groupBySelectWithCount(l=>l.location.country)
                 break
             case 'sector':
-                data = loans.groupSelect(l=>l.sector)
+                data = loans.groupBySelectWithCount(l=>l.sector)
                 break
             case 'activity':
-                data = loans.groupSelect(l=>l.activity)
+                data = loans.groupBySelectWithCount(l=>l.activity)
                 break
             case 'tags':
-                data = loans.select(l => l.kl_tags).flatten().groupSelect(t => humanize(t))
+                data = loans.select(l => l.kl_tags).flatten().groupBySelectWithCount(t => humanize(t))
                 break
             case 'themes':
-                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupSelect(t => t)
+                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupBySelectWithCount(t => t)
                 break
             case 'social_performance':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths).flatten().where(sp => sp != undefined).select(sp => sp.name).groupSelect(t => t)
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths).flatten().where(sp => sp != undefined).select(sp => sp.name).groupBySelectWithCount(t => t)
                 break
             case 'partners':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).name).flatten().groupSelect(t => t)
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).name).flatten().groupBySelectWithCount(t => t)
                 break
             case 'region':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).countries).flatten().select(c => c.region).groupSelect(t => t)
+                data = loans.select(l => kivaloans.getPartner(l.partner_id).countries).flatten().select(c => c.region).groupBySelectWithCount(t => t)
                 break
             default:
                 return
@@ -527,7 +529,7 @@ const CriteriaTabs = React.createClass({
 
                 <Tab eventKey={3} title={`Your Portfolio${this.state.portfolioTab}`} className="ample-padding-top">
                     <Row>
-                        <Col md={9}>
+                        <Col md={10}>
                             <For each='name' index='i' of={['exclude_portfolio_loans']}>
                                 <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}/>
                             </For>
@@ -545,26 +547,31 @@ const CriteriaTabs = React.createClass({
                                 </If>
                             </If>
 
-                            <Panel header='Portfolio Balancing -- ALPHA TESTING'>
+                            <Panel header='Portfolio Balancing -- BETA TESTING'>
                                 <If condition={!this.kiva_lender_id}>
                                     <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
                                 </If>
-                                Caveats:
+                                Notes:
                                 <ul>
-                                    <li>The summary data that KivaLens pulls for your account is not "live" data.
-                                It should never be over 24 hours old, however. This means if you complete a bunch of
-                                loans and come back for more, the completed loans will not be accounted for in the
-                                balancing. Kiva updates their summary data around midnight PST.</li>
-                                    <li>It's not recommended that you use Bulk Add in conjunction with balancing without
-                                caution. This is due to the fact that it's very possible
-                                that all of the loans in the results are there because you don't yet have only a couple
-                                partners, and bulk adding loans that come from just a few partners without reviewing
-                                them would result in a lop-sided portfolio.</li>
-                                    <li>This feature is still rough. Do not (yet) assume it has filtered with the newest data
-                                unless you come to the tab and disable then re-enable it and see a) the
-                                partners/sectors/etc listed b) the number of loans change.</li>
-                                    <li>Fetching the data from Kiva can sometimes take a few seconds. If you don't see
-                                        anything happen right away, just give it a few seconds.</li>
+                                    <li>
+                                        The summary data that KivaLens pulls for your account is not "live" data.
+                                        It should never be over 24 hours old, however. This means if you complete a
+                                        bunch of loans and come back for more right away, the completed loans will
+                                        not be accounted for in the balancing. Look for "Last Updated" to know how
+                                        fresh the data is.
+                                    </li>
+                                    <li>
+                                        It's not recommended that you use Bulk Add in conjunction with balancing without
+                                        caution because it's very possible that all of the loans in the results are there
+                                        because you don't yet have only a couple partners/countries/etc, and bulk
+                                        adding loans that come from just a few partners/countries/etc without reviewing
+                                        them would result in a lop-sided portfolio.
+                                    </li>
+                                    <li>
+                                        Fetching the data from Kiva can sometimes take a few seconds. If you don't see
+                                        anything happen right away, just wait. This also applies to loading saved
+                                        searches that have balancing options set.
+                                    </li>
                                 </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
