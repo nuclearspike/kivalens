@@ -498,6 +498,10 @@ class Loans {
             }
             return objArray
         }
+
+        if (this.startedAtheistDownload && this.atheist_list_processed) return
+        this.startedAtheistDownload = true
+
         $.get('data/atheist_data.csv') //todo: this is bad. shouldn't hard reference location
             .fail(()=>{cl("failed to retrieve Atheist list")})
             .then(CSV2JSON).done(mfis => {

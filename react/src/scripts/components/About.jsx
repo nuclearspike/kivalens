@@ -238,7 +238,7 @@ var About = React.createClass({
 
             <h3>History</h3>
             <p>
-                KivaLens was initially created in 2009 (as a Silverlight plugin) because I wanted to find loans
+                KivaLens was initially created in 2009 (as a Silverlight app) because I wanted to find loans
                 in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years and incorporated a
                 lot of the search features directly into Kiva's site which also then made their way into the API
                 as well. There are still some things that Kiva does not do that are handy. I have been working to

@@ -3,7 +3,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Link} from 'react-router'
-import {Navbar, Nav, NavItem, NavBrand, Badge, CollapsibleNav} from 'react-bootstrap'
+import {Navbar, Nav, NavItem, Badge} from 'react-bootstrap'
 import s from '../stores/'
 import a from '../actions'
 
@@ -15,16 +15,17 @@ const KLNav = React.createClass({
     },
     render() {
         return (
-            <Navbar inverse fluid staticTop toggleNavKey={0}>
-                <NavBrand><Link to="/search">KivaLens</Link></NavBrand>
-                <CollapsibleNav eventKey={0}>
+            <Navbar inverse fluid staticTop>
+                <Navbar.Brand><Link to="/search">KivaLens</Link></Navbar.Brand>
+                <Navbar.Toggle />
+                <Navbar.Collapse>
                     <Nav navbar>
                         <NavItem key={1} href="#/search">Search</NavItem>
                         <NavItem key={2} href="#/basket">Basket<Badge>{this.state.basket_count}</Badge></NavItem>
                         <NavItem key={3} href="#/options">Options</NavItem>
                         <NavItem key={4} href="#/about">About</NavItem>
                     </Nav>
-                </CollapsibleNav>
+                </Navbar.Collapse>
             </Navbar>
         );
     }

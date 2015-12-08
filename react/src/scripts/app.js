@@ -1,5 +1,5 @@
 'use strict'
-
+//KIVA LENS
 if (window.location.hostname != 'localhost'){
     process.env.NODE_ENV = 'production';
 }
@@ -12,6 +12,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute} from 'react-router'
+import createHistory from 'history/lib/createHashHistory'
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, NotFound, PromptModal} from "./components";
 import KivaAPI from './api/kiva'
 import ga from 'react-ga';
@@ -28,7 +29,7 @@ const App = React.createClass({
     componentDidMount(){
         ga.initialize('UA-10202885-1');
         //this only happens during startup of the app. don't allow #/ but
-        if (location.href.indexOf('#/?') > -1) location.replace(`http://${location.host}${location.pathname}#/search`)
+        if (location.href.endsWith("#/")) location.replace(`http://${location.host}${location.pathname}#/search`)
         if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
     logPageChange(){
@@ -52,12 +53,14 @@ const App = React.createClass({
     }
 })
 
+var history = createHistory({queryKey: false}) //isn't working. supposed to remove ?_k=woeflwj
+
 //When Page read, mount it.
 document.addEventListener("DOMContentLoaded", function(event) {
     $.ajaxSetup({ cache: false });
 
     if (document.getElementById("react-app")){
-        ReactDOM.render((<Router>
+        ReactDOM.render((<Router history={history}>
             <Route component={App} path="/">
                 <Route path="search" component={Search}>
                     <Route path="loan/:id" component={Loan}/>

@@ -28,7 +28,7 @@ var Loan = React.createClass({
     componentWillUnmount(){ clearInterval(this.refreshInterval) },
     componentWillMount(){ },
     componentDidMount(){
-        this.listenTo(a.loans.detail.completed, (loan)=>{ if (this.props.params.id == loan.id){ this.switchToLoan(loan) } })
+        this.listenTo(a.loans.detail.completed, loan=>{ if (this.props.params.id == loan.id){ this.switchToLoan(loan) } })
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
         this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
         this.refreshLoan() //happens always even if we have it, to cause a refresh.

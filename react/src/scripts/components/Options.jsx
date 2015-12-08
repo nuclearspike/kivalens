@@ -13,6 +13,7 @@ const Options = React.createClass({
     },
     componentWillUnmount(){
         setDebugging()
+        //kivaloans.getAtheistList
     },
     getStateFilterKeys: function() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging'];
@@ -31,7 +32,10 @@ const Options = React.createClass({
                     <Panel
                         header='Notice'
                         bsStyle="info">
-                        <p>Changing these settings will <i>only</i> take effect the next time you visit the site/reload the page.</p>
+                        <p>
+                            Changing these settings will <i>only</i> take effect the next time you visit the
+                            site/reload the page.
+                        </p>
                     </Panel>
                     <Panel header='Final Repayment Date'>
                         <Input

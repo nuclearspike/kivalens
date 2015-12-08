@@ -1,4 +1,4 @@
-class lsj {
+class lsj { //localStorage JSON
     static get(key, default_result = {}){
         return $.extend(true, {}, JSON.parse(localStorage.getItem(key)), default_result)
     }

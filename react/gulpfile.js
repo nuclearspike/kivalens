@@ -112,6 +112,12 @@ gulp.task('s', function() {
         }));
 });
 
+gulp.task("delete_rogue_react", function(){ //todo: temp fix!
+    var clean = require('gulp-clean')
+    return gulp.src('node_modules/react-infinite-list/node_modules/react', {read: false})
+        .pipe(clean({force: true}));
+})
+
 gulp.task('scripts', function() { return compile(false); });
 
 //deploy~: gulp d --u 'gjgjgjg' --pw djfjffj
