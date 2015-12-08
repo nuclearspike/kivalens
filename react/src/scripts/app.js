@@ -29,7 +29,6 @@ const App = React.createClass({
     componentDidMount(){
         ga.initialize('UA-10202885-1');
         //this only happens during startup of the app. don't allow #/ but
-        if (location.href.endsWith("#/")) location.replace(`http://${location.host}${location.pathname}#/search`)
         if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
     logPageChange(){
@@ -43,6 +42,8 @@ const App = React.createClass({
         }
     },
     render(){
+        //do not render a blank page.
+        if (!this.props.children) location.replace(`http://${location.host}${location.pathname}#/search`)
         this.logPageChange()
         return <div>
                 <KLNav/>
@@ -70,8 +71,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 <Route path="options" component={Options}/>
                 <Route path="about" component={About}/>
                 <Route path="clear-basket" component={ClearBasket}/>
-                <Redirect from="*" to="search"/>
-                <Redirect from="/" to="search"/>
+                <Redirect from="*" to="/search"/>
+                <Redirect from="" to="/search"/>
             </Route>
         </Router>), document.getElementById("react-app"))
     }
