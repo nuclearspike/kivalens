@@ -49,7 +49,7 @@ const Basket = React.createClass({
             this.setState({showGoodbye: true})
             window.rga.modalview('/baskettransfer');
 
-            //ECOMMERCE!!!
+            //GA STATS
             window.ga('require', 'ecommerce');
             var d = new Date()
             var transaction = d.getTime().toString()

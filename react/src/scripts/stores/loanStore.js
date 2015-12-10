@@ -233,6 +233,7 @@ var loanStore = Reflux.createStore({
         }
         var useCache = true
 
+        //this isn't great. merging unrelated stuff.
         var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, c.portfolio.pb_partner))
         var partner_ids
         if (useCache && last_partner_search[partner_criteria_json]){
@@ -321,7 +322,7 @@ var loanStore = Reflux.createStore({
         ct.testers.push(loan => loan.status == 'fundraising')
         cl('crit:loan:testers', ct.testers)
 
-        var linq_loans = kivaloans.loans_from_kiva.where(loan => ct.allPass(loan)) //can't reduce.
+        var linq_loans = kivaloans.loans_from_kiva.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
 
         var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
             if (a > b) return -1

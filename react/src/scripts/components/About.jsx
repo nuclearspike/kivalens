@@ -6,12 +6,12 @@ var About = React.createClass({
     render() {
         return (<Grid>
             <h1>About</h1>
-            <h3>Under Construction</h3>
+            <h3>Rebuilt and Rethought</h3>
             <p>
-                KivaLens is currently being rebuilt. The Silverlight version had issues with changes made to Kiva's API
-                and rather than fix it, I decided to re-invent it using different tools that weren't available when KivaLens
+                KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly started being unable
+                to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools that weren't available when KivaLens
                 was first written. Please <a href="mailto:liquidmonkey@gmail.com?subject=KivaLens" target="_blank">let me know</a> your
-                favorite missing features and I'll implement those first. You can also join
+                what else you'd like to be able to do. You can also join
                 the <a href="http://www.kiva.org/team/kivalens?default_team=kivalens" target="_blank">KivaLens Team</a> to discuss.
             </p>
 
