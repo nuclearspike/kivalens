@@ -3,7 +3,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Modal,ProgressBar,Panel,Alert} from 'react-bootstrap';
-import {BasketListItem} from '.';
+import {BasketListItem,Loan} from '.';
 import a from '../actions'
 import s from '../stores'
 import InfiniteList from 'react-infinite-list'
@@ -78,9 +78,8 @@ const Basket = React.createClass({
         s.loans.syncRefreshBasket().always(()=> this.setState({refreshing: false}))
     },
     render() {
-        var style = {height:'100%', width: '100%'};
         return (
-            <div style={style}>
+            <div style={{height:'100%', width: '100%'}}>
                 <Col md={4}>
                     <ButtonGroup justified>
                         <Button href="#" key={1} disabled={this.state.basket_count == 0} onClick={this.clear}>Empty Basket</Button>
@@ -109,6 +108,9 @@ const Basket = React.createClass({
                         <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
                         </Alert>
+                    </If>
+                    <If condition={this.state.selected_item_id}>
+                        <Loan params={{id: this.state.selected_item_id}}/>
                     </If>
                 </Col>
                 <div className="static-modal">

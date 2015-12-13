@@ -1,6 +1,7 @@
-'use strict';
+'use strict'
 import React from 'react'
 import {Grid} from 'react-bootstrap'
+import {NewTabLink, LenderLink, KivaLink, EmailLink} from '.'
 
 var About = React.createClass({
     render() {
@@ -8,31 +9,30 @@ var About = React.createClass({
             <h1>About</h1>
             <h3>Rebuilt and Rethought</h3>
             <p>
-                KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly started being unable
+                KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly stopped being able
                 to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools that weren't available when KivaLens
-                was first written. Please <a href="mailto:liquidmonkey@gmail.com?subject=KivaLens" target="_blank">let me know</a> your
+                was first written. Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me know</EmailLink> your
                 what else you'd like to be able to do. You can also join
-                the <a href="http://www.kiva.org/team/kivalens?default_team=kivalens" target="_blank">KivaLens Team</a> to discuss.
+                the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Team</KivaLink> to discuss.
             </p>
 
             <h3>Questions/Problems{'?'}</h3>
             <p>
                 All of the data that KivaLens displays is either a direct presentation of or computation from data that
-                is pulled from <a href="http://build.kiva.org/api" target="_blank">Kiva.org's Public API</a> with the exception
+                is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the exception
                 of data from the Atheist Team's research. If you have any questions about why a loan is showing
                 certain data (where you have confirmed that it's the same on Kiva's own site) or if you have questions
-                about what that data means, please check out <a href="http://www.kiva.org/help" target="_blank">Kiva's
-                Help Center or contact Kiva Customer Service</a>.
+                about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's Help Center or contact Kiva Customer Service</KivaLink>.
             </p>
             <p>
                 If you find a discrepancy between Kiva's site and what KivaLens' displays for loans or partners or if
                 you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is working
-                then <a href="mailto:liquidmonkey@gmail.com?subject=KivaLens-Bug" target="_blank">let me know</a> and
+                then <EmailLink subject="KivaLens Bug" body="I found a bug! The problem is... The steps to reproduce it are..." title="Report a bug">let me know</EmailLink> and
                 include as many details about what loan/partner and information you can so that I can reproduce the
                 problem.
             </p>
             <p>
-                Any questions about the <a href="http://www.kiva.org/team/atheists" target="_blank">Atheist Team</a>'s
+                Any questions about the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
                 MFI research should be directed to that team. I only pull, display and filter using the data,
                 I do not verify it.
             </p>
@@ -200,22 +200,26 @@ var About = React.createClass({
                     have that in their name and they are not tagged in Kiva's system as being a solidarity loan.
                 </li>
                 <li>
-                    Repeat Borrowers: Just because a borrower is coming back for a second or third loan does NOT mean
+                    Repeat Borrowers: A borrower coming back for a second or third loan does NOT mean
                     they are more risky. In fact, it can mean the opposite. If a borrower has completed a loan
                     successfully and the partner has chosen to give them another loan, then many times that means
-                    they are more likely to repay. Repeat borrowers does not necessarily mean they are in a cycle
-                    of debt, but instead that they've shown that their previous loan was so successful in improving
+                    they are more likely to repay. Repeat borrowing does not necessarily mean they are in a cycle
+                    of debt, but instead that they've shown that their previous loan was successful in improving
                     their business that another loan can help them to continue to grow their business. Use
-                    the {'#'}RepeatBorrower tag search to help find them. If you know of any research regarding the
-                    repayment rates of loans tagged with {'#'}RepeatBorrower to those tagged {'#'}FirstLoan (and untagged)
-                    that can corroberate this assumption, please let me know!
+                    the {'#'}RepeatBorrower tag search to help find them.
+
+                    KivaLens user (<LenderLink lender='thomas85717133'>Thomas</LenderLink>) has
+                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data snapshots</NewTabLink> and compared repayment rates for loans tagged {'#'}FirstLoan vs
+                    {'#'}RepeatBorrower and found loans tagged with {'#'}RepeatBorrower had a repayment rate of 99.16%
+                    vs loans tagged with {'#'}FirstLoan of 98.55% (current as of Dec 8, 2015). To get more information and see the code used to calculate,
+                    check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715" title="View KivaLens team message board">this message</KivaLink>.
                 </li>
                 <li>
                     Diversify! When using KivaLens, your criteria may keep bringing up loans from the same partners
                     over and over again. Having too much money with a handful partner means that if those partners have
                     institutional default, you could lose all of your outstanding balance. Also diversity among countries
                     can also be beneficial because it protects you from your portfolio being as impacted by natural
-                    disasters, wars, etc.
+                    disasters, wars, etc. Use KivaLens' Portfolio Balancing Criteria options (on Portfolio tab) to do this for you.
                 </li>
                 <li>
                     Something to consider: Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I
@@ -229,11 +233,11 @@ var About = React.createClass({
 
             <h3>Open-source</h3>
             <p>
-                Kiva Lens is now open-source, so feel free to <a href="mailto:liquidmonkey@gmail.com?subject=KivaLensDeveloper" target="_blank">email me</a> about
+                Kiva Lens is now open-source, so feel free to <EmailLink subject="KivaLens Developer">email me</EmailLink> about
                 working on it. It uses React, Reflux, react-bootstrap, gulp,
                 browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, jquery and more. You can check out
                 the source code (in progress)
-                at my <a href="https://github.com/nuclearspike/kivalensjs/tree/master/react" target="_blank">github repository</a>.
+                at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github repository</NewTabLink>.
             </p>
 
             <h3>History</h3>
@@ -241,26 +245,16 @@ var About = React.createClass({
                 KivaLens was initially created in 2009 (as a Silverlight app) because I wanted to find loans
                 in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years and incorporated a
                 lot of the search features directly into Kiva's site which also then made their way into the API
-                as well. There are still some things that Kiva does not do that are handy. I have been working to
-                re-implement KivaLens as a React app (pure HTML output, so it will work on all browsers with no plugin
-                install, tablets and phones too).
-            </p>
-            <p>
-                If you were using the RSS feed option from KivaLens, you are going to need to find an alternative.
-                At this time, I have no plans to implement anything on the server so RSS won't be an option. However,
-                Kiva has added quite a few more risk-related filters to their API and have an RSS feed
-                available. <a href="http://build.kiva.org/api#GET*|loans|search" target="_blank">Here is Kiva's documentation</a> for
-                building a query then just use the ".rss" extension. Here's <a href="http://api.kivaws.org/v1/loans/search.rss" target="_blank">unfiltered output</a>. Then
-                just add query parameters like "{'?'}theme=Green{'&'}sort_by=repayment_term".
+                as well. There are still some things that Kiva does not do that are handy and fun!
             </p>
 
             <h3>Kiva Lender Assistant Chrome Extension</h3>
             <p>
                 There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
                 on the Lend tab along with other repayment info, talks to you about things it notices about the loan, details about lenders and
-                teams you hover over, etc. <a href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" target="_blank">
-                Check out screenshots, a detailed description and install Kiva Lender Assistant here.</a> or <a href="https://github.com/nuclearspike/lenderassist" target="_blank">checkout
-                the source code on github (developers wanted!)</a>
+                teams you hover over, etc. <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">
+                Check out screenshots, a detailed description and install Kiva Lender Assistant here.</NewTabLink> or <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
+                the source code on github (developers wanted!)</NewTabLink>
             </p>
 
         </Grid>)

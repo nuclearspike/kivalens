@@ -6,14 +6,13 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Button} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
-import {KivaImage} from '.'
+import {KivaImage, LoanLink, KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 
-const DTDD = ({term, def}) => {return <span><dt>{term}</dt><dd>{def}</dd></span>}
+const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
 
-//const _dtdd = (term, def) => { return <span><dt>{term}</dt>, <dd>{def}</dd></span>}
 
 //const DTDD = React.createClass({
 //    render(){
@@ -113,8 +112,8 @@ var Loan = React.createClass({
         loan.kl_repay_data = grouped_payments.select(payment => payment.amount)
     },
     render() {
-        var loan = this.state.loan
-        var partner = this.state.partner
+        let {loan, partner} = this.state
+
         if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -141,7 +140,7 @@ var Loan = React.createClass({
                             <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
                         </Row>
                         <Row>
-                            <a href={`http://www.kiva.org/lend/${loan.id}`} target="_blank">View on Kiva.org</a>
+                            <LoanLink id={loan.id}>View on Kiva.org</LoanLink>
                         </Row>
                             <dl className="dl-horizontal">
                                 <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
@@ -217,7 +216,7 @@ var Loan = React.createClass({
                             <If condition={partner.image}>
                                 <KivaImage className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
                             </If>
-                            <a href={`http://www.kiva.org/partners/${partner.id}`} target="_blank">View Partner on Kiva.org</a>
+                            <KivaLink href={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
                         </Col>
                         <Col lg={12}>
                             <If condition={partner.kl_sp.length}>
