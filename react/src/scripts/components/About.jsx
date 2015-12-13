@@ -154,9 +154,7 @@ var About = React.createClass({
                     other than USD, there is a risk that you can lose some money due to the exchange rate. Using the
                     Currency Exchange Loss % Partner slider, you can use history as an indicator of the future for
                     how much you may lose (but there's no guarantee). Some partners cover more of the currency loss
-                    than others. If enough people are interested, I can also add options to filter out non-USD
-                    disbursal currencies as well as the currency risk details for the loans (whether shared by
-                    the partner and by how much or if it is all on the lender).
+                    than others.
                 </li>
                 <li>
                     Default Rates: All partners will have defaults, some partners choose to cover the losses of defaulted

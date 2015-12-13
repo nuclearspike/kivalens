@@ -122,7 +122,8 @@ const Basket = React.createClass({
                         <Modal.Body>
                             <p>
                                 Depending upon the number of loans in your basket, transferring your selection to Kiva
-                                could take some time... Please wait.
+                                could take some time... Please wait. If you receive a 404 error on Kiva, come back to
+                                KivaLens and try the transfer again (your basket will still be here). Kiva currently has a bug.
                             </p>
                         </Modal.Body>
 

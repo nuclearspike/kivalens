@@ -104,6 +104,11 @@ class CritTester {
             this.testers.push(entity => terms_arr.all(search_term => selector(entity).any(w => w.startsWith(search_term))))
         }
     }
+    addSimpleEquals(crit, selector){
+        if (crit && crit.trim().length > 0) {
+            this.testers.push(entity => selector(entity) == crit)
+        }
+    }
     addSimpleContains(crit, selector){ //no longer used
         var search = (crit && crit.trim().length > 0) ? crit.match(/(\w+)/g).distinct().select(word => word.toUpperCase()) : []
         if (search.length)
@@ -304,6 +309,7 @@ var loanStore = Reflux.createStore({
         ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan=>loan.location.country_code)
         ct.addArrayAllTester(c.loan.tags,       loan=>loan.kl_tags)
         ct.addArrayAllTester(c.loan.themes,     loan=>loan.themes)
+        ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
