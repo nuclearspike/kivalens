@@ -58,7 +58,7 @@ const Options = React.createClass({
                             labelClassName='col-lg-2'
                             wrapperClassName='col-lg-10'
                             valueLink={this.linkState('kiva_lender_id')} />
-                        <KivaLink href="myLenderId">Click here if you don't know yours</KivaLink>
+                        <KivaLink path="myLenderId">Click here if you don't know yours</KivaLink>
 
                         <p className="ample-padding-top">
                             This is used when filtering loans to hide loans you've already loaned to and to automatically
@@ -73,7 +73,7 @@ const Options = React.createClass({
                             label={`Merge Atheist Team's MFI Research Data for Secular and Social ratings`}
                             checkedLink={this.linkState('mergeAtheistList')} />
                         <p>
-                            KivaLens server pulls the <KivaLink href="team/atheists">Atheist Team</KivaLink>'s
+                            KivaLens server pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
                             MFI List from this <NewTabLink href="http://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv" title="Download CSV">Google Doc</NewTabLink> once
                             a day and merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
@@ -89,7 +89,7 @@ const Options = React.createClass({
                             <ul>
                                 <For each='p' index='i' of={this.state.missingPartners}>
                                     <li key={i}>
-                                        {p.id}: <KivaLink href={`partners/${p.id}`}>{p.name}</KivaLink>
+                                        {p.id}: <KivaLink path={`partners/${p.id}`}>{p.name}</KivaLink>
                                         <If condition={p.kl_hasLoans}>
                                             <span> (Has loans loaded)</span>
                                         </If>

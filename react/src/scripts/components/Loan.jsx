@@ -216,7 +216,7 @@ var Loan = React.createClass({
                             <If condition={partner.image}>
                                 <KivaImage className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
                             </If>
-                            <KivaLink href={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
+                            <KivaLink path={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
                         </Col>
                         <Col lg={12}>
                             <If condition={partner.kl_sp.length}>
