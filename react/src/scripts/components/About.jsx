@@ -34,7 +34,7 @@ var About = React.createClass({
             <p>
                 Any questions about the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
                 MFI research should be directed to that team. I only pull, display and filter using the data,
-                I do not verify it.
+                I do not produce or verify it.
             </p>
 
             <h3>Features</h3>
@@ -42,42 +42,40 @@ var About = React.createClass({
                 <li>
                     Sorting/Filtering by Final Repayment Date vs Repayment Terms. While Kiva allows you to sort by repayment
                     terms, there are a few issues with this method from the perspective of the lender. Since different
-                    loans have different dates they posted to Kiva and the disbursal dates can have wide-ranges as well,
-                    an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago repayments could
-                    already be underway. While the same repayment terms on a post-disbursed loan that just posted today
-                    could end up with a final repayment date months different from the first, yet Kiva will sort them
-                    together because they have the same repayment terms. Also, since Kiva only allows you to sort by
-                    repayment terms, it still shows you all loans. KivaLens lets you remove loans that don't match
-                    your selection for final repayment. Also, KivaLens doesn't sort by the term for the borrower, but
-                    the final repayment date relative to today, erasing the issues created by pre/post disbursed loans
-                    and different post dates. In Kiva's system, all repayment dates are shown at the first of the month,
-                    while many/most partners will settle the payments on the 17th of the prior month. So, you can still
-                    get your repayments about 2 weeks sooner than what KivaLens reports assuming the partners settle
-                    early (as is common) and the borrower and partner are not delinquent.
+                    loans have different dates on which they posted to Kiva and the disbursal dates can have wide-ranges as well,
+                    an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already have
+                    repayments underway. While the same repayment terms on a <i>post</i>-disbursed loan that just posted today
+                    could end up with a final repayment date <i>months</i> different from the first loan mentioned. Yet
+                    Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Also, since
+                    Kiva only allows you to sort by repayment terms but not filter by them, it still shows you all
+                    loans. KivaLens lets you remove loans that don't match your selection for final repayment. Also,
+                    KivaLens doesn't sort by the term for the borrower, but the final repayment date relative to today,
+                    erasing the issues created by pre/post disbursed loans and different post dates. In Kiva's system
+                    (and the API, so also KivaLens), all repayment dates are shown at the first of the month, while
+                    many/most partners will actually settle the payments on the 17th of the <i>prior</i> month. So,
+                    many times you'll actually get your repayments about 2 weeks <i>sooner</i> than what KivaLens displays,
+                    assuming the partners settle early (as is common) and the borrower and partner are not delinquent.
                 </li>
 
                 <li>
                     New Sort! You still have the ability to sort by final repayment date, but I've added a new sort
-                    that will sort by when the loan is scheduled -- by percentages. Let's say you have 3 loans, all
-                    with a final repayment date 3 months away. The new sort will prioritize which pays more
-                    sooner. Let's say loan {'#'}1 has a equal amount you get back each month. {'#'}2 has a larger amount
-                    on the first repayment then by the final it's very little and {'#'}3 only has one repayment at the
-                    very end. The new sorts will prioritize by how quickly you get 50%, then
-                    75% then 100% back. So for the loans above, {'#'}2 would be the first, then {'#'}1, then {'#'}3.
-                    With pre-disbursed loans that start paying back right away, the first repayment to the lender
-                    can actually be a combination of multiple repayments made by the borrower. Using this sort will
-                    help find the loans that will allow the quickest turnaround for your money, if that's what your
-                    goal is.
+                    that will sort by when the loan is scheduled to repay -- by percentages. Let me explain. Let's
+                    say you have 3 loans, all with a final repayment date 3 months away. The new sort will prioritize
+                    which pays more sooner. So, let's say loan {'#'}1 has a equal amount you get back each month.
+                    {'#'}2 has a larger amount on the first repayment then by the final it's very little and {'#'}3
+                    only has one single repayment at the very end. The new sorts will prioritize by how quickly you
+                    get 50%, then 75% then 100% back. So for the loans above, {'#'}2 would be the first, then {'#'}1,
+                    then {'#'}3. With pre-disbursed loans that start paying back right away, the first repayment to
+                    the lender can actually be a combination of multiple repayments made by the borrower. Using this
+                    sort will help find the loans that will allow the quickest turnaround for your money, if that's
+                    what your goal is.
                 </li>
 
                 <li>
-                    Auto-complete drop-downs for Sector, Activity, Country, Region (new), Social Performance
-                    Badges (new), Themes (new), Tags (new). Options marked as "new" were not possible before
-                    on KivaLens ...{'&'} some are really great (Inspiring Story, Interesting Photo, Volunteer Like,
-                    and a bunch more) and can help you reduce the list even more if you still have too many to look
-                    through. Kiva can filter by these, but you cannot combine them. Kiva Lens will also show you
-                    graphs along the side (when on a large enough device) indicating what options you have for that
-                    criteria so you don't have to guess and what will narrow your options for you.
+                    Auto-complete drop-downs for Sector, Activity, Country, Region, Social Performance Badges,
+                    Themes, Tags, Partners. KivaLens will also show you graphs along the side (when on a large
+                    enough device) indicating what options you have for that criteria so you don't have to guess
+                    at what will narrow your options for you.
                 </li>
 
                 <li>
@@ -89,15 +87,15 @@ var About = React.createClass({
                 <li>
                     Bulk Add! This is a favorite feature for previous KivaLens users and what I heard about the
                     most from mega-lenders that they were missing after the previous version of KivaLens bit the
-                    dust in July of this year. Add tons of loans to your basket all at once!
+                    dust in July of 2015. Add tons of loans that match your criteria to your basket all at once!
                 </li>
 
                 <li>
                     Mobile! Since the new site is just HTML and Javascript rather than Silverlight, it will run
                     on everything and it's designed to automatically adapt to the size of the device
                     you're using, so if you're on a phone, it will hide the graphs, and stack everything into
-                    one column, on a tablet, it displays differently depending on its orientation and
-                    laptop-desktop have the easiest experience taking advantage of the width.
+                    one column; on a tablet, it displays differently depending on its orientation and
+                    laptop/desktop users have the easiest experience taking advantage of the width to show you more.
                 </li>
 
                 <li>
@@ -120,18 +118,19 @@ var About = React.createClass({
                 </li>
 
                 <li>
-                    Saved Searches: Save your favorite searches to quickly jump back to them.
+                    Saved Searches: Save your favorite searches to quickly jump back to them. The site will start
+                    you out with some default saved searches to give you an idea of how to use them.
                 </li>
 
                 <li>
                     Filter on the Atheist Team's MFI research with sliders for Secular and Social scoring. When you
                     click on a loan, the Partner tab will show a new section displaying data pulled from their
                     spreadsheet. This feature is off by default, simply turn it on in the Options tab and reload the
-                    page.
+                    page. The next time you visit the site, your old preferences will, of course, still be there.
                 </li>
 
                 <li>
-                    Portfolio Balancing: Whether you're a "Country Collector," that you don't want to have too many
+                    Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too many
                     active loans from only a few partners, or if you want to find more sectors like your favorites, use
                     the Portfolio Balancing tools to help you accomplish your lending goals. Just make sure you have
                     your Lender ID filled out on the Options tab first.
