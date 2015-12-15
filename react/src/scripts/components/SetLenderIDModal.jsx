@@ -47,7 +47,7 @@ const SetLenderIDModal = React.createClass({
                                     labelClassName='col-lg-4'
                                     wrapperClassName='col-lg-8'
                                     valueLink={this.linkState('kiva_lender_id')} />
-                                Your Kiva Lender ID is not your email address.&nbsp;
+                                    Your Kiva Lender ID is not your email address.&nbsp;
                                 <KivaLink secure path="myLenderId">Click here if you don't know yours</KivaLink>
                                 <If condition={checking}>
                                     <Alert>Checking with Kiva</Alert>

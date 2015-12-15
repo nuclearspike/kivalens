@@ -50,7 +50,7 @@ const Options = React.createClass({
                             min={8}
                             max={120}
                             valueLink={this.linkState('maxRepaymentTerms')}/>
-                        This setting will only take effect the next time you return to the site. After the initial load,
+                        This setting will be used the next time you load the site. After the initial load of loans,
                         if you keep the page open long enough, the rest of the loans will get loaded so you'll still
                         need to use the final repayment date criteria option.
                     </Panel>

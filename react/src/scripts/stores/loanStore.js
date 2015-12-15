@@ -299,7 +299,7 @@ var loanStore = Reflux.createStore({
         //needs a copy of it and to guarantee the groups are there.
         $.extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
 
-        console.time("syncFilterLoans")
+        console.time("filter")
         c = criteriaStore.fixUpgrades(c)
 
         //break this into another unit --store? LoansAPI.filter(loans, criteria)
@@ -362,7 +362,7 @@ var loanStore = Reflux.createStore({
         }
         if (cacheResults)
             last_filtered = linq_loans
-        console.timeEnd("syncFilterLoans")
+        console.timeEnd("filter")
         return linq_loans
     }
 })

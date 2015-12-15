@@ -63,7 +63,7 @@ const SelectRow = React.createClass({
 })
 
 const BalancingRow = React.createClass({
-    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']), <-- bad when component has it's own state!
+    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']), <-- bad when component has it's own state
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         group: React.PropTypes.instanceOf(Cursor).isRequired,
@@ -86,7 +86,6 @@ const BalancingRow = React.createClass({
             should be.
         */
         console.log('outsideChange:crit', crit)
-        //console.log(this.cursor().value)
         this.setState($.extend(true, {cycle: Math.random().toString()}, crit.portfolio[this.props.name]))  //HACK!!
     },
     changed(){
@@ -127,7 +126,7 @@ const BalancingRow = React.createClass({
         }
     },
     cursor(val){
-        var c = this.props.group.refine(this.props.name)
+        var c = this.props.group
         if (val) {
             c.set(val)
             this.props.onChange()
@@ -370,7 +369,7 @@ const CriteriaTabs = React.createClass({
         cl("######### buildCriteria: criteria", criteria)
         a.criteria.change(criteria)
     },
-    buildCriteria: function(){
+    buildCriteria(){
         return s.criteria.stripNullValues($.extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
     },
     buildCriteriaWithout(group, key){
@@ -584,7 +583,7 @@ const CriteriaTabs = React.createClass({
                                 </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                                    <BalancingRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
+                                    <BalancingRow key={i} group={cPorfolio.refine(name)} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
                                 </For>
                             </Panel>
                         </Col>

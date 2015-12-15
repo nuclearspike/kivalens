@@ -19,7 +19,7 @@ var criteriaStore = Reflux.createStore({
                         "expiring_in_days_max": 3
                     },
                     "partner": {},
-                    "portfolio": {"exclude_portfolio_loans": true}
+                    "portfolio": {"exclude_portfolio_loans": 'true'}
                 },
                 "Short Term": {
                     "loan": {
@@ -137,12 +137,15 @@ var criteriaStore = Reflux.createStore({
         if (crit.partner && crit.partner.social_performance && Array.isArray(crit.partner.social_performance)){
             crit.partner.social_performance = crit.partner.social_performance.join(',')
         }
-        if (crit.portfolio.exclude_portfolio_loans === true) {
+        // the reason these are strings is for display purposes. having the dropdown's value set to boolean true or
+        // false doesn't work. this is easier
+
+        if (crit.portfolio.exclude_portfolio_loans === true)
             crit.portfolio.exclude_portfolio_loans = 'true'
-        }
-        if (crit.portfolio.exclude_portfolio_loans === false){
+
+        if (crit.portfolio.exclude_portfolio_loans === false)
             crit.portfolio.exclude_portfolio_loans = 'false'
-        }
+
 
         return crit
     },
@@ -161,13 +164,13 @@ var criteriaStore = Reflux.createStore({
     },
     onStartFresh(){
         var new_c = this.syncBlankCriteria()
-        new_c.portfolio.exclude_portfolio_loans = 'true' //there was a reason this was a string.
         new_c.loan.name = ''
         new_c.loan.use = ''
-        new_c.pb_sector   = {enabled: false} //does this help???
-        new_c.pb_activity = {enabled: false}
-        new_c.pb_partner  = {enabled: false}
-        new_c.pb_country  = {enabled: false}
+        new_c.portfolio.exclude_portfolio_loans = true
+        new_c.portfolio.pb_sector   = {enabled: false} //does this help???
+        new_c.portfolio.pb_activity = {enabled: false}
+        new_c.portfolio.pb_partner  = {enabled: false}
+        new_c.portfolio.pb_country  = {enabled: false}
         this.last_switch = null
         a.criteria.reload(new_c)
         this.onChange(new_c)

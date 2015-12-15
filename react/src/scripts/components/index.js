@@ -13,7 +13,7 @@ import ClearBasket from './ClearBasket.jsx'
 
 //SIMPLE STATE-LESS COMPONENTS
 import React from 'react'
-const ClickLink = ({onClick,children}) => <a href="#" onClick={(e)=>{e.preventDefault(); onClick()}}>{children}</a>
+const ClickLink = ({onClick,children}) => <a href="#" onClick={(e)=>{e.preventDefault(); onClick(e)}}>{children}</a>
 const NewTabLink = ({href, title, children}) => <a href={href} title={title || 'Open link in new tab'} target="_blank">{children}</a>
 const KivaLink = ({path, title, children, secure = false}) => <NewTabLink href={`${secure ? 'https': 'http'}://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
 const LenderLink = ({lender, title, children, secure = false}) => <KivaLink path={`lender/${lender}?super_graphs=1`} secure={secure} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>
