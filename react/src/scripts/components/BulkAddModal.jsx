@@ -59,10 +59,10 @@ const BulkAddModal = React.createClass({
                             loan may possibly get reduced.)</p>
 
                         Max to lend ${this.state.maxBasket}
-                        <input type="range" min="25" defaultValue={this.state.maxBasket} max={this.state.basket_space} step="25" valueLink={this.linkState('maxBasket')}/>
+                        <input type="range" min="25" max={this.state.basket_space} step="25" valueLink={this.linkState('maxBasket')}/>
                         <br/>
                         Max per loan ${this.state.maxPerLoan}
-                        <input type="range" min="25" defaultValue={this.state.maxPerLoan} max="250" step="25" valueLink={this.linkState('maxPerLoan')} />
+                        <input type="range" min="25" max="250" step="25" valueLink={this.linkState('maxPerLoan')} />
 
                     </Modal.Body>
 

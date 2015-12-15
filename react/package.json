@@ -51,7 +51,7 @@
     "classnames": "^2.1.5",
     "dateformat": "^1.0.12",
     "datejs": "^1.0.0-rc3",
-    "history": "^1.15.0",
+    "history": "^1.16.0",
     "linqjs": "0.0.6",
     "multi-slider": "^2.0.0",
     "numeral": "^1.5.3",

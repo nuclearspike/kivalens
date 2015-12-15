@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 import Reflux from 'reflux'
 import {Loans, LoanBatch} from '../api/kiva'
@@ -10,12 +10,13 @@ var basket_loans = []
 var last_filtered = []
 var last_partner_search = {}
 var last_partner_search_count = 0
+
 var kivaloans = new Loans(10*60*1000)
 
 var options = lsj.get("Options")
 
 //bridge the downloading/processing generic API class with the React app. convert Deferred notify -> Reflux actions
-kivaloans.init(null, options).progress(progress => {
+kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
     if (progress.background_added)
         a.loans.backgroundResync.added(progress.background_added)
     if (progress.background_updated)

@@ -18,13 +18,10 @@ function serialize(obj, prefix) {
 
 var api_options = {}
 
-//looking to get rid of this completely
-export default class K {
-    static setAPIOptions(options){
+function setAPIOptions(options){
         $.extend(api_options, {max_concurrent: 8}, options)
         if (api_options.max_concurrent)
             sem_one.capacity = api_options.max_concurrent
-    }
 }
 
 const sREADY = 1, sDOWNLOADING = 2, sDONE = 3, sFAILED = 4, sCANCELLED = 5
@@ -430,8 +427,9 @@ class Loans {
         if (this.update_interval > 0)
             setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
-    init(crit, options){
+    init(crit, options, api_options){
         //fetch partners.
+        setAPIOptions(api_options)
         crit = $.extend(crit, {})
         this.notify_promise.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(partners => {
