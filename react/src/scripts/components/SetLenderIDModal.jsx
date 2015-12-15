@@ -16,6 +16,7 @@ const SetLenderIDModal = React.createClass({
     setLenderID(){
         var lid = this.state.kiva_lender_id
         if (!lid) return
+        lid = lid.trim()
 
         this.setState({checking: true, failed: false})
         Request.get(`lenders/${lid}.json`)
