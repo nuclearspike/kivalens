@@ -19,9 +19,9 @@ function serialize(obj, prefix) {
 var api_options = {}
 
 function setAPIOptions(options){
-        $.extend(api_options, {max_concurrent: 8}, options)
-        if (api_options.max_concurrent)
-            sem_one.capacity = api_options.max_concurrent
+    $.extend(api_options, {max_concurrent: 8}, options)
+    if (api_options.max_concurrent)
+        sem_one.capacity = api_options.max_concurrent
 }
 
 const sREADY = 1, sDOWNLOADING = 2, sDONE = 3, sFAILED = 4, sCANCELLED = 5
