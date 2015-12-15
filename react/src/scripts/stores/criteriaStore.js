@@ -53,7 +53,7 @@ var criteriaStore = Reflux.createStore({
                         "borrower_count_min":12,
                         "still_needed_min":25},
                     "partner":{},
-                    "portfolio":{"exclude_portfolio_loans": 'true'}
+                    "portfolio": {"exclude_portfolio_loans": 'true'}
                 },
                 "Interesting Photo": {
                     "loan": {
@@ -166,7 +166,7 @@ var criteriaStore = Reflux.createStore({
         var new_c = this.syncBlankCriteria()
         new_c.loan.name = ''
         new_c.loan.use = ''
-        new_c.portfolio.exclude_portfolio_loans = true
+        new_c.portfolio.exclude_portfolio_loans = 'true'
         new_c.portfolio.pb_sector   = {enabled: false} //does this help???
         new_c.portfolio.pb_activity = {enabled: false}
         new_c.portfolio.pb_partner  = {enabled: false}
