@@ -1,22 +1,32 @@
 'use strict';
 
 import React from 'react'
-import {Grid,Input,Row,Col,Panel,Alert} from 'react-bootstrap'
+import {Grid,Input,Row,Col,Panel,Alert,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import LocalStorageMixin from 'react-localstorage'
-import {KivaLink, NewTabLink} from '.'
+import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
 
 const Options = React.createClass({
     mixins: [LinkedStateMixin, LocalStorageMixin],
-    getInitialState(){ return { maxRepaymentTerms: 120, maxRepaymentTerms_on: false, missingPartners: [] } },
+    getInitialState(){ return { maxRepaymentTerms: 120, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     componentDidMount(){
         this.setState({missingPartners: this.getMissingPartners()})
     },
     componentWillUnmount(){
         setDebugging()
-        //kivaloans.getAtheistList
+        if (this.state.mergeAtheistList && !kivaloans.atheist_list_processed)
+            kivaloans.getAtheistList()
     },
-    getStateFilterKeys: function() {
+    showLenderIDModal(){
+        this.setState({ showLenderModal: true })
+    },
+    hideLenderIDModal(){
+        this.setState({ showLenderModal: false })
+    },
+    setLenderID(new_lender_id){
+        this.setState({kiva_lender_id: new_lender_id})
+    },
+    getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging'];
     },
     getMissingPartners(){
@@ -30,14 +40,6 @@ const Options = React.createClass({
             <Grid>
                 <h1>Options</h1>
                 <Col md={12}>
-                    <Panel
-                        header='Notice'
-                        bsStyle="info">
-                        <p>
-                            Changing these settings will <i>only</i> take effect the next time you visit the
-                            site/reload the page.
-                        </p>
-                    </Panel>
                     <Panel header='Final Repayment Date'>
                         <Input
                             type="checkbox"
@@ -48,20 +50,19 @@ const Options = React.createClass({
                             min={8}
                             max={120}
                             valueLink={this.linkState('maxRepaymentTerms')}/>
-                        After the initial load, if you keep the page open long enough, the rest of the loans will get loaded so you'll still need to use the
-                        final repayment date criteria option.
+                        This setting will only take effect the next time you return to the site. After the initial load,
+                        if you keep the page open long enough, the rest of the loans will get loaded so you'll still
+                        need to use the final repayment date criteria option.
                     </Panel>
                     <Panel header='Who are you?'>
-                        <Input
-                            type='text'
-                            label='Kiva Lender ID'
-                            labelClassName='col-lg-2'
-                            wrapperClassName='col-lg-10'
-                            valueLink={this.linkState('kiva_lender_id')} />
-                        <KivaLink path="myLenderId">Click here if you don't know yours</KivaLink>
-
+                        <If condition={this.state.kiva_lender_id}>
+                            <span>Your Lender ID: <b>{this.state.kiva_lender_id}</b> <ClickLink onClick={this.showLenderIDModal}>Change</ClickLink></span>
+                        <Else/>
+                            <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button>
+                        </If>
+                        <SetLenderIDModal show={this.state.showLenderModal} onSet={lenderId=>this.setLenderID(lenderId)} onHide={this.hideLenderIDModal}/>
                         <p className="ample-padding-top">
-                            This is used when filtering loans to hide loans you've already loaned to and to automatically
+                            This is used to hide loans you've already loaned to and to automatically
                             prune your basket when you come back to KivaLens after making loan purchases.
                             It is also used for balancing your portfolio (see the "Portfolio Balancing" section on the
                             "Your Portfolio" criteria tab).

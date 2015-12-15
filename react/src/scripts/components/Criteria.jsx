@@ -8,7 +8,7 @@ import s from '../stores/'
 
 const Criteria = React.createClass({
     mixins: [Reflux.ListenerMixin, LocalStorageMixin],
-    getInitialState() { return {show_graphs: true, saved_searches: s.criteria.syncGetAllNames()} },
+    getInitialState() { return {show_graphs: false, saved_searches: s.criteria.syncGetAllNames()} },
     getStateFilterKeys() { return ['show_graphs']},
     componentDidMount(){
         this.listenTo(a.criteria.savedSearchListChanged, this._savedSearchListChanged )

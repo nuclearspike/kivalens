@@ -32,6 +32,7 @@ var Loan = React.createClass({
         this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
         this.refreshLoan() //happens always even if we have it, to cause a refresh.
         this.refreshInterval = setInterval(this.refreshLoan,30000)
+        this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
     componentWillReceiveProps(props){
         this.setState(this.stateFromProps(props))
@@ -230,7 +231,7 @@ var Loan = React.createClass({
                                 </div>
                             </If>
 
-                            <If condition={atheistScore}>
+                            <If condition={this.state.showAtheistResearch && atheistScore}>
                                 <div>
                                     <h3>Atheist Team Research</h3>
                                     <dl className="dl-horizontal">

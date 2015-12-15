@@ -516,7 +516,8 @@ class Loans {
                             "reviewComments": mfi.reviewComments}
                     }
                 })
-                this.atheist_list_processed = true //need this?
+                this.notify_promise.notify({atheist_list_loaded: true})
+                this.atheist_list_processed = true
             })
     }
     convertCriteriaToKivaParams(crit) { //started to implement this on the criteriaStore

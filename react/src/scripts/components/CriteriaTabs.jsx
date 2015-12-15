@@ -275,13 +275,17 @@ const CriteriaTabs = React.createClass({
         this.setKnownOptions()
     },
     componentDidMount: function () {
-        this.kiva_lender_id = lsj.get("Options").kiva_lender_id
+        this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
         this.listenTo(a.loans.filter.completed, this.filteredDone)
+        this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
         if (kivaloans.isReady()) this.loansReady()
         this.criteriaChanged()
+    },
+    figureAtheistList(){
+        this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
     filteredDone(loans){
         //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
@@ -303,9 +307,9 @@ const CriteriaTabs = React.createClass({
     loansReady: function(){
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-        this.external_partner_sliders = kivaloans.atheist_list_processed ? ['secular_rating','social_rating'] : []
         this.options.partners = {label: "Partners", match: 'any', multi: true, select_options: kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => {return { label: p.name, value: p.id }})}
         this.setState({loansReady : true})
+        this.figureAtheistList()
         this.criteriaChanged()
     },
     setKnownOptions: function(){
@@ -354,7 +358,6 @@ const CriteriaTabs = React.createClass({
         this.options.average_loan_size_percent_per_capita_income = {min: 0, max: 300, label: 'Average Loan/Capita Income', helpText: "The Field Partner's average loan size is expressed as a percentage of the country's gross national annual income per capita. Loans that are smaller (that is, as a lower percentage of gross national income per capita) are generally made to more economically disadvantaged populations. However, these same loans are generally more costly for the Field Partner to originate, disburse and collect."}
         this.options.secular_rating = {min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda."}
         this.options.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)."}
-        this.external_partner_sliders = []
     },
     criteriaChanged(){
         clearTimeout(timeoutHandle);
@@ -525,9 +528,11 @@ const CriteriaTabs = React.createClass({
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>
                             <SliderRow key={`${this.state.tab_flips}_${i}`} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
                         </For>
-                        <For each='name' index='i' of={this.external_partner_sliders}>
-                            <SliderRow key={`${this.state.tab_flips}_${i}_atheist`} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
-                        </For>
+                        <If condition={this.state.displayAtheistOptions}>
+                            <For each='name' index='i' of={['secular_rating','social_rating']}>
+                                <SliderRow key={`${this.state.tab_flips}_${i}_atheist`} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
+                            </For>
+                        </If>
                     </Col>
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
@@ -540,27 +545,21 @@ const CriteriaTabs = React.createClass({
                 <Tab eventKey={3} title={`Your Portfolio${this.state.portfolioTab}`} className="ample-padding-top">
                     <Row>
                         <Col md={10}>
+                            <If condition={!this.state.kiva_lender_id}>
+                                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
+                            </If>
+
+                            To prevent you from accidentally lending to the same borrower twice if their loan is
+                            still fundraising, just exclude those loans. {`(${lender_loans_message})`}
+
                             <For each='name' index='i' of={['exclude_portfolio_loans']}>
                                 <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}/>
                             </For>
-                            <If condition={this.kiva_lender_id && !kivaloans.lender_id}>
-                                <Alert bsStyle='warning'>
-                                    If you reload the page, loans in your portfolio that are
-                                    fundraising will be loaded so that they can be excluded. After this one time,
-                                    you'll never have to deal with this again. Sorry for the inconvenience.
-                                </Alert>
-                            <Else/>
-                                <If condition={!this.kiva_lender_id && !kivaloans.lender_id}>
-                                    <Alert bsStyle='info'>Your Lender ID is not set in Options yet.</Alert>
-                                <Else/>
-                                     {`(${lender_loans_message})`}
-                                </If>
-                            </If>
-
-                            <Panel header='Portfolio Balancing -- BETA TESTING'>
-                                <If condition={!this.kiva_lender_id}>
-                                    <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
-                                </If>
+                        </Col>
+                    </Row>
+                    <Row className="ample-padding-top">
+                        <Col md={10}>
+                            <Panel header='Portfolio Balancing'>
                                 Notes:
                                 <ul>
                                     <li>

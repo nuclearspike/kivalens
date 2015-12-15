@@ -125,8 +125,8 @@ var About = React.createClass({
                 <li>
                     Filter on the Atheist Team's MFI research with sliders for Secular and Social scoring. When you
                     click on a loan, the Partner tab will show a new section displaying data pulled from their
-                    spreadsheet. This feature is off by default, simply turn it on in the Options tab and reload the
-                    page. The next time you visit the site, your old preferences will, of course, still be there.
+                    spreadsheet. This feature is off by default, simply turn it on in the Options tab and go search.
+                    The next time you visit the site, your old preferences will, of course, still be there.
                 </li>
 
                 <li>

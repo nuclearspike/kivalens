@@ -26,6 +26,8 @@ kivaloans.init(null, options).progress(progress => {
         a.loans.load.progressed(progress.loan_load_progress)
     if (progress.failed)
         a.loans.load.failed(progress.failed)
+    if (progress.atheist_list_loaded)
+        a.criteria.atheistListLoaded()
     if (progress.lender_loans_event) {
         a.criteria.lenderLoansEvent(progress.lender_loans_event)
         loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: is this best here? this isn't just standard relay
@@ -319,7 +321,7 @@ var loanStore = Reflux.createStore({
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
         ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id, true) //always added!
-        if (c.portfolio.exclude_portfolio_loans && kivaloans.lender_loans)
+        if (c.portfolio.exclude_portfolio_loans == 'true' && kivaloans.lender_loans)
             ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)

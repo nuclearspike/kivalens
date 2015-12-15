@@ -44,9 +44,19 @@ const Basket = React.createClass({
     },
     transferToKiva(){
         if (this.state.basket_count > 0) {
+            this.setState({showGoodbye: true})
+
+            if (['xs','sm','md'].contains(findBootstrapEnv())) {
+                this.refs.basket_form.submit()
+            } else {
+                var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
+                setTimeout(()=> {
+                    this.refs.basket_form.submit()
+                    w.close()
+                }, 2500)
+            }
             window.rga.event({category: 'basket', action: 'basket:transfer', value: this.state.amount_sum})
 
-            this.setState({showGoodbye: true})
             window.rga.modalview('/baskettransfer');
 
             //GA STATS
@@ -95,14 +105,14 @@ const Basket = React.createClass({
                 <Col md={8}>
                     <Panel>
                         <h1>Basket: {this.state.basket_count} loans ${this.state.amount_sum}</h1>
-                        <form method="POST" onSubmit={this.transferToKiva} action="http://www.kiva.org/basket/set">
+                        <form method="POST" ref='basket_form' action="http://www.kiva.org/basket/set">
                             <p>Note: Checking out will replace your current basket on Kiva.</p>
                             <input name="callback_url" value={`${location.protocol}//${location.host}${location.pathname}#clear-basket`} type="hidden" />
                             <input name="loans" value={this.makeBasket()} type="hidden" ref="basket_array" />
                             <input name="donation" value="0.00" type="hidden" />
                             <input name="app_id" value="org.kiva.kivalens" type="hidden" />
-                            <input type="submit" disabled={this.state.basket_count == 0} className="btn btn-primary" value="Checkout at Kiva"/>
                         </form>
+                        <Button bsStyle='primary' disabled={this.state.basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
                     </Panel>
                     <If condition={this.state.refreshing}>
                         <Alert bsStyle="info">
@@ -123,7 +133,8 @@ const Basket = React.createClass({
                             <p>
                                 Depending upon the number of loans in your basket, transferring your selection to Kiva
                                 could take some time... Please wait. If you receive a 404 error on Kiva, come back to
-                                KivaLens and try the transfer again (your basket will still be here). Kiva currently has a bug.
+                                KivaLens and try the transfer again (your basket will still be here).
+                                Kiva currently has a bug.
                             </p>
                         </Modal.Body>
 
