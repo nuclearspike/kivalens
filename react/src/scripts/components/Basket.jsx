@@ -49,6 +49,9 @@ const Basket = React.createClass({
             if (['xs','sm','md'].contains(findBootstrapEnv())) {
                 this.refs.basket_form.submit()
             } else {
+                //there's currently a bug on kiva with expired sessions throwing a 404 when adding to basket.
+                // opening a tiny window to kiva starts the session and seems to prevent the 404's from happening.
+                // if kiva fixes the bug, this can just be a submit without a timeout
                 var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
                 setTimeout(()=> {
                     this.refs.basket_form.submit()
@@ -59,7 +62,7 @@ const Basket = React.createClass({
 
             window.rga.modalview('/baskettransfer');
 
-            //GA STATS
+            //GA STATS. track high-level usage information, nothing identifies the user
             window.ga('require', 'ecommerce');
             var d = new Date()
             var transaction = d.getTime().toString()
