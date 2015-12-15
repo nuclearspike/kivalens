@@ -62,10 +62,22 @@ const Options = React.createClass({
                         </If>
                         <SetLenderIDModal show={this.state.showLenderModal} onSet={lenderId=>this.setLenderID(lenderId)} onHide={this.hideLenderIDModal}/>
                         <p className="ample-padding-top">
-                            This is used to hide loans you've already loaned to and to automatically
-                            prune your basket when you come back to KivaLens after making loan purchases.
-                            It is also used for balancing your portfolio (see the "Portfolio Balancing" section on the
-                            "Your Portfolio" criteria tab).
+                            This is used for:
+                            <ul>
+                                <li>Excluding Fundraising Loans: Fetches your loans from Kiva to so it can remove
+                                    fundraising loans that are already in your portfolio to prevent accidentally
+                                    lending to the same borrower twice.</li>
+                                <li>Portfolio Balancing: On the "Your Portfolio" Criteria tab, KivaLens will pull
+                                    summary data of your portfolio for Partners, Countries, Sectors and Activities
+                                    so that you can exclude or include loans that match your criteria (ex: only find
+                                    Sectors that aren't like any in your total portfolio to collect all sectors
+                                    OR only find Partners that don't have more than 5% of your active portfolio
+                                    to balance your risk).</li>
+                                <li>Basket Pruning: By default, your basket will not clear. If set, when you come back
+                                    to KivaLens, your basket will have the loans that completed removed. Otherwise,
+                                    you'll either need to click the "Return to 3rd party app" at the end of your Kiva
+                                    checkout (which will clear your basket) or manually clear the basket.</li>
+                            </ul>
                         </p>
                     </Panel>
                     <Panel header='External Research'>

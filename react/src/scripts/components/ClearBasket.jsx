@@ -4,12 +4,12 @@ import s from '../stores'
 
 //should this allow the user to choose to clear the basket?
 const ClearBasket = React.createClass({
-    componentDidMount: function () {
+    componentDidMount() {
         window.rga.event({category: 'basket', action: 'basket:clear-from-return-url', value: s.loans.syncBasketCount()})
         a.loans.basket.clear()
         location.replace(`http://${location.host}${location.pathname}#/search`)
     },
-    render: function () {return (<div></div>)}
+    render() {return <div></div>}
 })
 
 export default ClearBasket

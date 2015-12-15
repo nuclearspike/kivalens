@@ -6,10 +6,10 @@ import a from '../actions'
 
 var LoadingLoansModal = React.createClass({
     mixins: [Reflux.ListenerMixin],
-    getInitialState:function(){
+    getInitialState(){
         return {progress_label: 'Please Wait', show: this.props.show, error_message: ''}
     },
-    componentDidMount: function() {
+    componentDidMount() {
         window.rga.modalview('/loading');
         this.listenTo(a.loans.load.progressed, progress => {
             var new_state = {show: !kivaloans.isReady()}
@@ -60,7 +60,7 @@ var LoadingLoansModal = React.createClass({
                     </Modal.Footer>
                 </Modal>
             </div>
-        );
+        )
     }
 })
 

@@ -10,13 +10,13 @@ import s from '../stores/'
 
 const LoanListItem = React.createClass({
     mixins: [Reflux.ListenerMixin],
-    getInitialState: function () {
+    getInitialState() {
         return { inBasket: s.loans.syncInBasket(this.props.id) }
     },
-    componentDidMount: function() {
+    componentDidMount() {
         this.listenTo(a.loans.basket.changed, ()=>{ this.setState({inBasket: s.loans.syncInBasket(this.props.id)}) })
     },
-    render: function() {
+    render() {
         var loan = this.props;
         return (
             <ListGroupItem

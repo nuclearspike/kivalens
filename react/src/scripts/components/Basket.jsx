@@ -91,43 +91,44 @@ const Basket = React.createClass({
         s.loans.syncRefreshBasket().always(()=> this.setState({refreshing: false}))
     },
     render() {
+        let {basket_count,selected_item_id,amount_sum,basket_items,refreshing,showGoodbye} = this.state
         return (
             <div style={{height:'100%', width: '100%'}}>
                 <Col md={4}>
                     <ButtonGroup justified>
-                        <Button href="#" key={1} disabled={this.state.basket_count == 0} onClick={this.clear}>Empty Basket</Button>
-                        <Button href="#" key={3} disabled={!this.state.selected_item_id} onClick={this.remove}>Remove Selected</Button>
+                        <Button href="#" key={1} disabled={basket_count == 0} onClick={this.clear}>Empty Basket</Button>
+                        <Button href="#" key={3} disabled={!selected_item_id} onClick={this.remove}>Remove Selected</Button>
                     </ButtonGroup>
                     <InfiniteList
                         className="loan_list_container"
-                        items={this.state.basket_items}
+                        items={basket_items}
                         height={600}
                         itemHeight={100}
                         listItemClass={BasketListItem} />
                 </Col>
                 <Col md={8}>
                     <Panel>
-                        <h1>Basket: {this.state.basket_count} loans ${this.state.amount_sum}</h1>
+                        <h1>Basket: {basket_count} loans ${amount_sum}</h1>
                         <form method="POST" ref='basket_form' action="http://www.kiva.org/basket/set">
                             <p>Note: Checking out will replace your current basket on Kiva.</p>
                             <input name="callback_url" value={`${location.protocol}//${location.host}${location.pathname}#clear-basket`} type="hidden" />
-                            <input name="loans" value={this.makeBasket()} type="hidden" ref="basket_array" />
+                            <input name="loans" value={this.makeBasket()} type="hidden" />
                             <input name="donation" value="0.00" type="hidden" />
                             <input name="app_id" value="org.kiva.kivalens" type="hidden" />
                         </form>
-                        <Button bsStyle='primary' disabled={this.state.basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
+                        <Button bsStyle='primary' disabled={basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
                     </Panel>
-                    <If condition={this.state.refreshing}>
+                    <If condition={refreshing}>
                         <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
                         </Alert>
                     </If>
-                    <If condition={this.state.selected_item_id}>
-                        <Loan params={{id: this.state.selected_item_id}}/>
+                    <If condition={selected_item_id}>
+                        <Loan params={{id: selected_item_id}}/>
                     </If>
                 </Col>
                 <div className="static-modal">
-                    <Modal show={this.state.showGoodbye} onHide={()=>{}}>
+                    <Modal show={showGoodbye} onHide={()=>{}}>
                         <Modal.Header>
                             <Modal.Title>Transferring Basket to Kiva</Modal.Title>
                         </Modal.Header>

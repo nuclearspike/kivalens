@@ -77,16 +77,7 @@ const BalancingRow = React.createClass({
         this.lastResult = {}
         this.lastCursorValue = {}
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
-        this.listenTo(a.criteria.reload, this.outsideChange)
         this.changed()
-    },
-    outsideChange(crit){
-        /*
-            the value of the cursor is wrong on a reset! I have an issue of not having a true place to look for what it
-            should be.
-        */
-        console.log('outsideChange:crit', crit)
-        this.setState($.extend(true, {cycle: Math.random().toString()}, crit.portfolio[this.props.name]))  //HACK!!
     },
     changed(){
         console.log("changed()")
@@ -380,7 +371,7 @@ const CriteriaTabs = React.createClass({
     performSearchWithout(group, key){
         return s.loans.syncFilterLoans(this.buildCriteriaWithout(group, key), false)
     },
-    tabSelect: function(selectedKey){
+    tabSelect(selectedKey){
         if (this.state.activeTab != selectedKey) {
             this.tab_flips++
             this.setState({activeTab: selectedKey, tab_flips: this.tab_flips})
@@ -486,7 +477,7 @@ const CriteriaTabs = React.createClass({
         this.last_select = {}
         this.setState({helper_charts: {}})
     },
-    render: function() {
+    render() {
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')

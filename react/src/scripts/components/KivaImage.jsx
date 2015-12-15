@@ -1,10 +1,10 @@
 import React from 'react';
 
 const KivaImage = React.createClass({
-    getDefaultProps: function(){
+    getDefaultProps(){
         return {type : 'width'}
     },
-    render: function(){
+    render(){
         //if loan={loan} is set to a valid API loan object, it knows how to get the image id
         var image_id = (this.props.loan) ? this.props.loan.image.id : this.props.image_id
 
@@ -27,7 +27,7 @@ const KivaImage = React.createClass({
 
 //optionally wrap it in a link? not exported at this time.
 const KivaThumbnail = React.createClass({
-    render: function(){
+    render(){
         return (
             <KivaImage image_width={113} {...this.props}/>
         )

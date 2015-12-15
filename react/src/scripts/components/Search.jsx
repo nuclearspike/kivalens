@@ -11,13 +11,13 @@ import InfiniteList from 'react-infinite-list'
 
 var Search = React.createClass({
     mixins: [Reflux.ListenerMixin],
-    getInitialState:function(){
+    getInitialState(){
         var filtered_loans = s.loans.syncFilterLoansLast()
         if (filtered_loans.length == 0)
             filtered_loans = s.loans.syncFilterLoans()
         return {filtered_loans: filtered_loans, loan_count: filtered_loans.length, notification: {active: false, message: ''}}
     },
-    componentDidMount: function() {
+    componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
         this.listenTo(a.loans.filter.completed, loans => {
@@ -34,19 +34,19 @@ var Search = React.createClass({
     showNotification(message){
         this.setState({notification: {active: true, message: message}})
     },
-    changeCriteria: function(e){
+    changeCriteria(e){
         //e.preventDefault()
         //todo: scroll to criteria after it switches
     },
-    bulkAdd: function(e){
+    bulkAdd(e){
         e.preventDefault()
         this.setState({showBulkAdd: true})
     },
-    modalHidden: function(){
+    modalHidden(){
         //I hate this. this cannot be the right way to do this. it works. but there has to be a better way.
         this.setState({showBulkAdd: false})
     },
-    render: function()  {
+    render()  {
         var style = {height:'100%', width: '100%'};
         return (
             <div style={style} >

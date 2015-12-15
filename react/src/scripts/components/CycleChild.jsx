@@ -1,10 +1,10 @@
 import React from 'react';
 
 const CycleChild = React.createClass({
-    getInitialState: function(){
+    getInitialState(){
         return {index: 0}
     },
-    componentDidMount: function(){
+    componentDidMount(){
         var index
         index = parseInt(localStorage.getItem(this.props.name))
         if (isNaN(index)) index = -1
@@ -15,7 +15,7 @@ const CycleChild = React.createClass({
             Math.floor(Math.random() * (this.props.children.length - 1))
         this.setState({index: index})
     },
-    render: function () {
+    render() {
         return (<span>{this.props.children[this.state.index]}</span>)
     }
 })

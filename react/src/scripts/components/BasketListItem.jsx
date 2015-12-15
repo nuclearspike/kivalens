@@ -1,11 +1,9 @@
-'use strict';
+'use strict'
 
 import React from 'react'
-import {ListGroupItem} from 'react-bootstrap';
+import {ListGroupItem} from 'react-bootstrap'
 import {KivaImage} from '.'
-import cx from 'classnames'
 import a from '../actions'
-import s from '../stores/'
 
 const BasketListItem = React.createClass({
     getInitialState: function () {

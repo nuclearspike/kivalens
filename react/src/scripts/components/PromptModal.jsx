@@ -21,7 +21,7 @@ const PromptModal = React.createClass({
         this.callback(this.state.return_value)
         this.close()
     },
-    render: function () {
+    render() {
         return (
             <div className="static-modal">
                 <Modal show={this.state.show} onHide={this.close}>

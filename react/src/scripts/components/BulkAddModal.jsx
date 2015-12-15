@@ -7,8 +7,8 @@ import s from '../stores/'
 
 const BulkAddModal = React.createClass({
     mixins: [LinkedStateMixin],
-    getInitialState: function () { return {show: true, maxBasket: 1000, maxPerLoan: 25} },
-    componentDidMount: function () {
+    getInitialState() { return {show: true, maxBasket: 1000, maxPerLoan: 25} },
+    componentDidMount() {
         window.rga.modalview('/bulkadd');
         this.loans = s.loans.syncFilterLoansLast()
         var newState = {}
@@ -16,13 +16,13 @@ const BulkAddModal = React.createClass({
         if (this.state.maxBasket > newState.basket_space) newState.maxBasket = newState.basket_space
         this.setState(newState)
     },
-    close: function(){
+    close(){
         this.setState({ show: false });
         a.loans.basket.changed()
         window.rga.event({category: 'bulk_add', action: 'bulk_add:close'})
         if (this.props.onHide) this.props.onHide()
     },
-    doIt: function(){
+    doIt(){
         var amount_remaining = Math.min(this.state.maxBasket, this.state.basket_space)
         var to_add = []
         this.loans.some(loan => {
@@ -41,7 +41,7 @@ const BulkAddModal = React.createClass({
         a.loans.basket.batchAdd(to_add)
         this.close()
     },
-    render: function () {
+    render() {
         return (
             <div className="static-modal">
                 <Modal show={this.state.show} onHide={this.close}>
