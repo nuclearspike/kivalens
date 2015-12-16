@@ -62,6 +62,31 @@ class CritTester {
             this.testers.push(high_test)
         }
     }
+    addAnyAllNoneTester(crit_name, values, def_value, selector, entityFieldIsArray = false){
+        if (!values)
+            values = this.crit_group[crit_name]
+        if (values && values.length > 0) {
+            var all_any_none = this.crit_group[`${crit_name}_all_any_none`] || def_value
+            //if (all_any_none == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
+            switch (all_any_none) {
+                case 'any':
+                    if (entityFieldIsArray)
+                        this.addArrayAnyTester(values, selector)
+                    else
+                        this.addFieldContainsOneOfArrayTester(values, selector)
+                    break;
+                case 'all':
+                    this.addArrayAllTester(values, selector)
+                    break;
+                case 'none':
+                    if (entityFieldIsArray)
+                        this.addArrayNoneTester(values, selector)
+                    else
+                        this.addFieldNotContainsOneOfArrayTester(values, selector)
+                    break
+            }
+        }
+    }
     addArrayAllTester(crit, selector) {
         if (crit && crit.length > 0) {
             var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
@@ -72,6 +97,12 @@ class CritTester {
         if (crit && crit.length > 0) {
             var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
             this.testers.push(entity => selector(entity) && terms_arr.any(term => selector(entity).contains(term)))
+        }
+    }
+    addArrayNoneTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && !terms_arr.any(term => selector(entity).contains(term)))
         }
     }
     addBalancer(crit, selector){
@@ -265,9 +296,9 @@ var loanStore = Reflux.createStore({
 
             var ct = new CritTester(c.partner)
 
-            ct.addArrayAnyTester(c.partner.region,            partner=>partner.kl_regions)
-            ct.addArrayAllTester(sp_arr,                      partner=>partner.kl_sp)
-            ct.addFieldContainsOneOfArrayTester(partners_given, partner=>partner.id)
+            ct.addAnyAllNoneTester('region',null,'any',       partner=>partner.kl_regions, true)
+            ct.addAnyAllNoneTester('social_performance',sp_arr,'all', partner=>partner.kl_sp, true)
+            ct.addAnyAllNoneTester('partners', partners_given,'any',   partner=>partner.id)
             ct.addRangeTesters('partner_default',             partner=>partner.default_rate)
             ct.addRangeTesters('partner_arrears',             partner=>partner.delinquency_rate)
             ct.addRangeTesters('portfolio_yield',             partner=>partner.portfolio_yield)
@@ -308,12 +339,13 @@ var loanStore = Reflux.createStore({
 
         var ct = new CritTester(c.loan)
 
-        ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan=>loan.sector)
-        ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan=>loan.activity)
-        ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan=>loan.location.country_code)
+        ct.addAnyAllNoneTester('sector',      null,'any',loan=>loan.sector)
+        ct.addAnyAllNoneTester('activity',    null,'any',loan=>loan.activity)
+        ct.addAnyAllNoneTester('country_code',null,'any',loan=>loan.location.country_code)
+        ct.addAnyAllNoneTester('tags',        null,'all',loan=>loan.kl_tags, true)
+        ct.addAnyAllNoneTester('themes',      null,'all',loan=>loan.themes, true)
+
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
-        ct.addArrayAllTester(c.loan.tags,       loan=>loan.kl_tags)
-        ct.addArrayAllTester(c.loan.themes,     loan=>loan.themes)
         ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
