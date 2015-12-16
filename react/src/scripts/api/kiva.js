@@ -150,6 +150,7 @@ class ResultProcessors {
         if (!loan.basket_amount) loan.basket_amount = 0
         addIt.kl_dollars_per_hour = (loan.funded_amount + loan.basket_amount) / addIt.kl_posted_hours_ago
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
+        addIt.kl_percent_funded = Math.max((100 * (loan.funded_amount - loan.basket_amount)) / loan.loan_amount, 0)
         if (loan.description.texts) { //the presence implies this is a detail result
             var descr_arr
             var use_arr

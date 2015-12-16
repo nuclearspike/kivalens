@@ -1,8 +1,7 @@
 'use strict'
 //KIVA LENS
-if (window.location.hostname != 'localhost'){
-    process.env.NODE_ENV = 'production';
-}
+if (window.location.hostname != 'localhost')
+    process.env.NODE_ENV = 'production'
 
 require('linqjs')
 require('datejs')
@@ -52,12 +51,9 @@ const App = React.createClass({
     }
 })
 
-var history = createHistory({queryKey: false}) //isn't working. supposed to remove ?_k=woeflwj
+var history = createHistory({queryKey: false})
 
-//When Page read, mount it.
-document.addEventListener("DOMContentLoaded", function(event) {
-    $.ajaxSetup({ cache: false });
-
+$(function() {
     if (document.getElementById("react-app")){
         ReactDOM.render((<Router history={history}>
             <Route component={App} path="/">
@@ -74,4 +70,4 @@ document.addEventListener("DOMContentLoaded", function(event) {
             </Route>
         </Router>), document.getElementById("react-app"))
     }
-});
+})

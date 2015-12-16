@@ -54,10 +54,6 @@ const BulkAddModal = React.createClass({
                             criteria, it will start at the top of the list and for any loan that is not currently in
                             your basket, it will apply the rules below. Kiva has a maximum basket amount of $10,000.</p>
 
-                        <p>(Due to delays in Kiva's API, KivaLens may not have the most up-to-the-minute information
-                            about basket and funded amounts. Therefore, upon checkout at Kiva, your amounts per
-                            loan may possibly get reduced.)</p>
-
                         Max to lend ${this.state.maxBasket}
                         <input type="range" min="25" max={this.state.basket_space} step="25" valueLink={this.linkState('maxBasket')}/>
                         <br/>

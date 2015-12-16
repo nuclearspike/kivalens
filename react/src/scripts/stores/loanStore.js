@@ -13,8 +13,9 @@ var last_partner_search_count = 0
 
 var kivaloans = new Loans(10*60*1000)
 
-var options = lsj.get("Options")
+var options = lsj.get("Options") //not how it should be done. this is app-specific options going into a generic init()
 
+$.ajaxSetup({ cache: false })
 //bridge the downloading/processing generic API class with the React app. convert Deferred notify -> Reflux actions
 kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
     if (progress.background_added)
@@ -310,6 +311,7 @@ var loanStore = Reflux.createStore({
         ct.addFieldContainsOneOfArrayTester(c.loan.sector,       loan=>loan.sector)
         ct.addFieldContainsOneOfArrayTester(c.loan.activity,     loan=>loan.activity)
         ct.addFieldContainsOneOfArrayTester(c.loan.country_code, loan=>loan.location.country_code)
+        ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
         ct.addArrayAllTester(c.loan.tags,       loan=>loan.kl_tags)
         ct.addArrayAllTester(c.loan.themes,     loan=>loan.themes)
         ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
@@ -317,6 +319,7 @@ var loanStore = Reflux.createStore({
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
+        ct.addRangeTesters('percent_funded',      loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days)
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)

@@ -80,8 +80,6 @@ const BalancingRow = React.createClass({
         this.changed()
     },
     changed(){
-        console.log("changed()")
-
         setTimeout(function(){
             if (!this.refs.enabled) return
             this.lastCursorValue = {
@@ -98,8 +96,6 @@ const BalancingRow = React.createClass({
             } else
                 this.cursor({enabled: false})
         }.bind(this), 50) //or the values haven't changed and the controls will be locked.
-
-        console.log("changed():leaving")
     },
     receivedKivaSlices(sliceBy, crit, result){
         //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
@@ -311,6 +307,7 @@ const CriteriaTabs = React.createClass({
         this.options.themes = {label: 'Themes', match: 'all', multi: true, select_options: [{"value":"Green","label":"Green"},{"value":"Higher Education","label":"Higher Education"},{"value":"Arab Youth","label":"Arab Youth"},{"value":"Kiva City LA","label":"Kiva City LA"},{"value":"Islamic Finance","label":"Islamic Finance"},{"value":"Youth","label":"Youth"},{"value":"Start-Up","label":"Start-Up"},{"value":"Water and Sanitation","label":"Water and Sanitation"},{"value":"Vulnerable Groups","label":"Vulnerable Groups"},{"value":"Fair Trade","label":"Fair Trade"},{"value":"Rural Exclusion","label":"Rural Exclusion"},{"value":"Mobile Technology","label":"Mobile Technology"},{"value":"Underfunded Areas","label":"Underfunded Areas"},{"value":"Conflict Zones","label":"Conflict Zones"},{"value":"Job Creation","label":"Job Creation"},{"value":"SME","label":"Small and Medium Enterprises"},{"value":"Growing Businesses","label":"Growing Businesses"},{"value":"Kiva City Detroit","label":"Kiva City Detroit"},{"value":"Health","label":"Health"},{"value":"Disaster recovery","label":"Disaster recovery"},{"value":"Flexible Credit Study","label":"Flexible Credit Study"},{"value":"Innovative Loans","label":"Innovative Loans"}].orderBy(c => c.label)}
         this.options.currency_exchange_loss_liability = {label: "Currency Loss", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'shared', label:"Shared Loss"},{value:'none', label:"No Currency Exchange Loss"}]}
         this.options.bonus_credit_eligibility = {label: "Bonus Credit", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only loans eligible"},{value:'false', label:"Only loans NOT eligible"}]}
+        this.options.repayment_interval = {label: "Repayment Interval", match: 'any', multi: true, select_options:[{value:'Monthly', label:"Monthly"},{value:"Irregularly", label:"Irregularly"},{value:"At end of term", label:"At end of term"}]}
         this.options.sort = {label: 'Sort', match: '', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'}]}
 
         //partner selects
@@ -334,17 +331,18 @@ const CriteriaTabs = React.createClass({
         this.options.borrower_count = {min: 1, max: 20, label: 'Borrower Count', helpText: "The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right."}
         this.options.percent_female = {min: 0, max: 100, label: 'Percent Female', helpText: "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed."}
         this.options.still_needed = {min: 0, max: 1000, step: 25, label: 'Still Needed ($)', helpText: "How much is still needed to fully fund the loan. Loan Amount - Funded Amount - Basket Amount. Set the lower bound to $25 to exclude loans that are fully funded with basket amounts. Set both the lower and upper bound to $25 to find loans where they just need one more lender."} //min: 25? otherwise it bounces back to 25 if set to min
+        this.options.percent_funded = {min: 0, max: 100, step: 1, label: 'Funded (%)', helpText: "What percent of the loan has already been funded (includes amounts in baskets)"}
         this.options.expiring_in_days = {min: 0, max: 35, label: 'Expiring In (days)', helpText: "The number of days left before the loan expires if not funded"}
         this.options.disbursal_in_days = {min: -90, max: 90, label: 'Disbursal (days)', helpText: "Relative to today, when does the borrower get the money? Negative days mean the borrower already has the money and the Kiva loan is used to back-fill the loan from the MFI rather than making the borrower wait for fundraising. Positive days mean the borrower does not yet have the money."}
 
         //partner sliders
         this.options.partner_risk_rating = {min: 0, max: 5, step: 0.5, label: 'Risk Rating (stars)', helpText: "5 star means that Kiva has estimated that the institution servicing the loan has very low probability of collapse. 1 star means they may be new and untested. To include unrated partners, have the left-most slider all the way at left."}
-        this.options.partner_arrears = {min: 0, max: 50, label: 'Delinq Rate (%)', helpText: "Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding"}
-        this.options.partner_default = {min: 0, max: 30, label: 'Default Rate (%)', helpText: "The default rate is the percentage of ended loans (no longer paying back) which have failed to repay (measured in dollar volume, not units). How this is calculated: Default Rate = Amount of Ended Loans Defaulted / Amount of Ended Loans. For more information, please refer to Kiva's Help Center. "}
-        this.options.portfolio_yield = {min: 0, max: 100, label: 'Portfolio Yield (%)', helpText: "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield."}
-        this.options.profit = {min: -100, max: 100, label: 'Profit (%)', helpText: "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time."}
+        this.options.partner_arrears = {min: 0, max: 50, step: 0.1, label: 'Delinq Rate (%)', helpText: "Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding"}
+        this.options.partner_default = {min: 0, max: 30, step: 0.1, label: 'Default Rate (%)', helpText: "The default rate is the percentage of ended loans (no longer paying back) which have failed to repay (measured in dollar volume, not units). How this is calculated: Default Rate = Amount of Ended Loans Defaulted / Amount of Ended Loans. For more information, please refer to Kiva's Help Center. "}
+        this.options.portfolio_yield = {min: 0, max: 100, step: 0.1, label: 'Portfolio Yield (%)', helpText: "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield."}
+        this.options.profit = {min: -100, max: 100, step: 0.1, label: 'Profit (%)', helpText: "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time."}
         this.options.loans_at_risk_rate = {min: 0, max: 100, label: 'Loans at Risk (%)', helpText: "The loans at risk rate refers to the percentage of Kiva loans being paid back by this Field Partner that are past due in repayment by at least 1 day. This delinquency can be due to either non-payment by Kiva borrowers or non-payment by the Field Partner itself. Loans at Risk Rate = Amount of paying back loans that are past due / Total amount of Kiva loans outstanding"}
-        this.options.currency_exchange_loss_rate = {min: 0, max: 10, label: 'Currency Exchange Loss (%)', helpText: "Kiva calculates the Currency Exchange Loss Rate for its Field Partners as: Amount of Currency Exchange Loss / Total Loans."}
+        this.options.currency_exchange_loss_rate = {min: 0, max: 10, step: 0.1, label: 'Currency Exchange Loss (%)', helpText: "Kiva calculates the Currency Exchange Loss Rate for its Field Partners as: Amount of Currency Exchange Loss / Total Loans."}
         this.options.average_loan_size_percent_per_capita_income = {min: 0, max: 300, label: 'Average Loan/Capita Income', helpText: "The Field Partner's average loan size is expressed as a percentage of the country's gross national annual income per capita. Loans that are smaller (that is, as a lower percentage of gross national income per capita) are generally made to more economically disadvantaged populations. However, these same loans are generally more costly for the Field Partner to originate, disburse and collect."}
         this.options.secular_rating = {min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda."}
         this.options.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)."}
@@ -403,6 +401,9 @@ const CriteriaTabs = React.createClass({
                 break
             case 'bonus_credit_eligibility':
                 data = loans.groupBySelectWithCount(l=>l.bonus_credit_eligibility)
+                break
+            case 'repayment_interval':
+                data = loans.groupBySelectWithCount(l=>l.terms.repayment_interval)
                 break
             case 'social_performance':
                 data = loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths).flatten().where(sp => sp != undefined).select(sp => sp.name).groupBySelectWithCount(t => t)
@@ -495,10 +496,10 @@ const CriteriaTabs = React.createClass({
                         <InputRow label='Use or Description' group={cLoan} name='use' onChange={this.criteriaChanged}/>
                         <InputRow label='Name' group={cLoan} name='name' onChange={this.criteriaChanged}/>
 
-                        <For each='name' index='i' of={['country_code','sector','activity','themes','tags','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
+                        <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
                             <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
                         </For>
-                        <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','expiring_in_days', 'disbursal_in_days']}>
+                        <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','percent_funded','expiring_in_days', 'disbursal_in_days']}>
                             <SliderRow key={`${this.state.tab_flips}_${i}`} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
                         </For>
                     </Col>

@@ -179,6 +179,7 @@ var Loan = React.createClass({
                                         <dt>50% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>
                                         <dt>75% back by</dt><dd>{loan.kl_75_back.toString("MMM d, yyyy")}</dd>
                                         <dt>Final repayment</dt><dd>{loan.kl_final_repayment.toString("MMM d, yyyy")}</dd>
+                                        <dt>Interval</dt><dd>{loan.terms.repayment_interval}</dd>
                                     </dl>
                                 </Col>
                             </If>
