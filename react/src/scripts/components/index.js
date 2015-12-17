@@ -1,13 +1,13 @@
-'use strict';
+'use strict'
 
 //PAGES
-import Search from './Search.jsx';
+import Search from './Search.jsx'
 import Criteria from './Criteria.jsx'
-import Loan from './Loan.jsx';
-import Basket from './Basket.jsx';
-import Options from './Options.jsx';
-import About from './About.jsx';
-import NotFound from './NotFound.jsx';
+import Loan from './Loan.jsx'
+import Basket from './Basket.jsx'
+import Options from './Options.jsx'
+import About from './About.jsx'
+import NotFound from './NotFound.jsx'
 import ClearBasket from './ClearBasket.jsx'
 
 
@@ -26,9 +26,9 @@ const EmailLink = ({email, subject, body, title, children}) => {
 }
 
 //COMPONENTS
-import KLNav from './KLNav.jsx';
-import KLFooter from './KLFooter.jsx';
-import LoanListItem from './LoanListItem.jsx';
+import KLNav from './KLNav.jsx'
+import KLFooter from './KLFooter.jsx'
+import LoanListItem from './LoanListItem.jsx'
 import BasketListItem from './BasketListItem.jsx'
 import LoadingLoansModal from './LoadingLoansModal.jsx'
 import BulkAddModal from './BulkAddModal.jsx'
@@ -41,7 +41,7 @@ import PromptModal from './PromptModal.jsx'
 import SetLenderIDModal from './SetLenderIDModal.jsx'
 
 //when mistakenly importing without {}'s around variable name. prevents obscure errors.
-import CatchNoCurlies from './CatchNoCurlies.jsx';
+import CatchNoCurlies from './CatchNoCurlies.jsx'
 
 export default CatchNoCurlies;
 

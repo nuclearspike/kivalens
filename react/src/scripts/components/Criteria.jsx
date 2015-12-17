@@ -1,3 +1,5 @@
+'use strict'
+
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Row,Col,Input,Button,Tabs,Tab,DropdownButton,MenuItem,ButtonGroup} from 'react-bootstrap'

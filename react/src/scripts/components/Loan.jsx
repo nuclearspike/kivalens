@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 import React from 'react'
 import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')

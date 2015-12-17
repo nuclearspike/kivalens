@@ -1,11 +1,13 @@
-import React from 'react';
-import Select from 'react-select';
+'use strict'
+
+import React from 'react'
+import Select from 'react-select'
 import Slider from 'react-slider' // 'multi-slider' is incompatible with .14 presently
 import Reflux from 'reflux'
 import numeral from 'numeral'
 import a from '../actions'
 import s from '../stores/'
-import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap';
+import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import TimeAgo from 'react-timeago'
@@ -24,10 +26,10 @@ const AllAnyNoneButton = React.createClass({
         var styles = (this.props.canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
         return <DropdownButton style={{padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
             <If condition={this.props.canAll}>
-                <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All</MenuItem>
+                <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All of these</MenuItem>
             </If>
-            <MenuItem onClick={this.onSelect.bind(this,'any')} eventKey="2">Any</MenuItem>
-            <MenuItem onClick={this.onSelect.bind(this,'none')} eventKey="3">None</MenuItem>
+            <MenuItem onClick={this.onSelect.bind(this,'any')} eventKey="2">Any of these</MenuItem>
+            <MenuItem onClick={this.onSelect.bind(this,'none')} eventKey="3">None of these</MenuItem>
         </DropdownButton>
     }
 })
@@ -288,7 +290,7 @@ const CriteriaTabs = React.createClass({
     getInitialState: function () {
         return { activeTab: 1, state_count: 0, tab_flips: 0, portfolioTab: '', helper_charts: {}, criteria: s.criteria.syncGetLast()}
     },
-    componentWillMount: function(){
+    componentWillMount(){
         this.state_count = 0
         this.tab_flips = 0
         this.options = {}
@@ -324,7 +326,7 @@ const CriteriaTabs = React.createClass({
         this.setState(newState)
         this.criteriaChanged()
     },
-    loansReady: function(){
+    loansReady(){
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
         this.options.partners.select_options = kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => {return { label: p.name, value: p.id }})
@@ -332,7 +334,7 @@ const CriteriaTabs = React.createClass({
         this.figureAtheistList()
         this.criteriaChanged()
     },
-    setKnownOptions: function(){
+    setKnownOptions(){
         //loan selects
         this.options.country_code = {label: 'Countries', allAnyNone: true, multi: true, select_options: [{"label":"Afghanistan","value":"AF"},{"label":"Albania","value":"AL"},{"label":"Armenia","value":"AM"},{"label":"Azerbaijan","value":"AZ"},{"label":"Belize","value":"BZ"},{"label":"Benin","value":"BJ"},{"label":"Bolivia","value":"BO"},{"label":"Bosnia and Herzegovina","value":"BA"},{"label":"Brazil","value":"BR"},{"label":"Bulgaria","value":"BG"},{"label":"Burkina Faso","value":"BF"},{"label":"Burundi","value":"BI"},{"label":"Cambodia","value":"KH"},{"label":"Cameroon","value":"CM"},{"label":"Chad","value":"TD"},{"label":"Chile","value":"CL"},{"label":"China","value":"CN"},{"label":"Colombia","value":"CO"},{"label":"Congo","value":"CG"},{"label":"Costa Rica","value":"CR"},{"label":"Cote D'Ivoire","value":"CI"},{"label":"Dominican Republic","value":"DO"},{"label":"Ecuador","value":"EC"},{"label":"Egypt","value":"EG"},{"label":"El Salvador","value":"SV"},{"label":"Gaza","value":"GZ"},{"label":"Georgia","value":"GE"},{"label":"Ghana","value":"GH"},{"label":"Guatemala","value":"GT"},{"label":"Haiti","value":"HT"},{"label":"Honduras","value":"HN"},{"label":"India","value":"IN"},{"label":"Indonesia","value":"ID"},{"label":"Iraq","value":"IQ"},{"label":"Israel","value":"IL"},{"label":"Jordan","value":"JO"},{"label":"Kenya","value":"KE"},{"label":"Kosovo","value":"XK"},{"label":"Kyrgyzstan","value":"KG"},{"label":"Lao People's Democratic Republic","value":"LA"},{"label":"Lebanon","value":"LB"},{"label":"Lesotho","value":"LS"},{"label":"Liberia","value":"LR"},{"label":"Madagascar","value":"MG"},{"label":"Malawi","value":"MW"},{"label":"Mali","value":"ML"},{"label":"Mauritania","value":"MR"},{"label":"Mexico","value":"MX"},{"label":"Moldova","value":"MD"},{"label":"Mongolia","value":"MN"},{"label":"Mozambique","value":"MZ"},{"label":"Myanmar (Burma)","value":"MM"},{"label":"Namibia","value":"NA"},{"label":"Nepal","value":"NP"},{"label":"Nicaragua","value":"NI"},{"label":"Nigeria","value":"NG"},{"label":"Pakistan","value":"PK"},{"label":"Palestine","value":"PS"},{"label":"Panama","value":"PA"},{"label":"Papua New Guinea","value":"PG"},{"label":"Paraguay","value":"PY"},{"label":"Peru","value":"PE"},{"label":"Philippines","value":"PH"},{"label":"Rwanda","value":"RW"},{"label":"Saint Vincent and the Grenadines","value":"VC"},{"label":"Samoa","value":"WS"},{"label":"Senegal","value":"SN"},{"label":"Sierra Leone","value":"SL"},{"label":"Solomon Islands","value":"SB"},{"label":"Somalia","value":"SO"},{"label":"South Africa","value":"ZA"},{"label":"South Sudan","value":"QS"},{"label":"Sri Lanka","value":"LK"},{"label":"Suriname","value":"SR"},{"label":"Tajikistan","value":"TJ"},{"label":"Tanzania","value":"TZ"},{"label":"Thailand","value":"TH"},{"label":"The Democratic Republic of the Congo","value":"CD"},{"label":"Timor-Leste","value":"TL"},{"label":"Togo","value":"TG"},{"label":"Turkey","value":"TR"},{"label":"Uganda","value":"UG"},{"label":"Ukraine","value":"UA"},{"label":"United States","value":"US"},{"label":"Vanuatu","value":"VU"},{"label":"Vietnam","value":"VN"},{"label":"Yemen","value":"YE"},{"label":"Zambia","value":"ZM"},{"label":"Zimbabwe","value":"ZW"}]}
         this.options.sector = {label: 'Sectors', allAnyNone: true, multi: true, select_options: [{"value":"Agriculture","label":"Agriculture"},{"value":"Arts","label":"Arts"},{"value":"Clothing","label":"Clothing"},{"value":"Construction","label":"Construction"},{"value":"Education","label":"Education"},{"value":"Entertainment","label":"Entertainment"},{"value":"Food","label":"Food"},{"value":"Health","label":"Health"},{"value":"Housing","label":"Housing"},{"value":"Manufacturing","label":"Manufacturing"},{"value":"Personal Use","label":"Personal Use"},{"value":"Retail","label":"Retail"},{"value":"Services","label":"Services"},{"value":"Transportation","label":"Transportation"},{"value":"Wholesale","label":"Wholesale"}]}

@@ -1,9 +1,11 @@
-import React from 'react';
+'use strict'
+
+import React from 'react'
 import Reflux from 'reflux'
 import a from '../actions'
 import s from '../stores/'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
-import {Collapse,Well} from 'react-bootstrap';
+import {Collapse,Well} from 'react-bootstrap'
 
 //var timeoutHandle = null;
 const ChartDistribution = React.createClass({

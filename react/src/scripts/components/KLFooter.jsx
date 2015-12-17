@@ -1,10 +1,10 @@
-'use strict';
+'use strict'
 import React from 'react'
 import {Col,Row,Grid} from 'react-bootstrap'
 
 class KLFooter extends React.Component {
     render() {
-        return (<Grid>
+        return <Grid>
                 <Row style={{paddingTop:'20px', paddingBottom:'50px'}}>
                     <Col md={12} className="ample-padding-top text-center">
                             &copy;{new Date().getFullYear()} KivaLens is not supported by Kiva.org.
@@ -12,7 +12,6 @@ class KLFooter extends React.Component {
                     </Col>
                 </Row>
             </Grid>
-        );
     }
 }
 

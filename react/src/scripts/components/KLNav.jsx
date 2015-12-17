@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 import React from 'react'
 import Reflux from 'reflux'
@@ -31,4 +31,4 @@ const KLNav = React.createClass({
     }
 })
 
-export default KLNav;
+export default KLNav

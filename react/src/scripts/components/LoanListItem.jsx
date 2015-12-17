@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
 import React from 'react'
 import Reflux from 'reflux'
-import {ListGroupItem} from 'react-bootstrap';
+import {ListGroupItem} from 'react-bootstrap'
 import {KivaImage} from '.'
 import cx from 'classnames'
 import a from '../actions'

@@ -1,4 +1,6 @@
-import React from 'react';
+'use strict'
+
+import React from 'react'
 import Reflux from 'reflux'
 import {Modal,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
