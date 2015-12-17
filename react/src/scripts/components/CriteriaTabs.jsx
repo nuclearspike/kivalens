@@ -15,16 +15,12 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 var timeoutHandle=0
 
 const AllAnyNoneButton = React.createClass({
-    getInitialState(){
-        var def_selected = this.props.cursor.value || ((this.props.canAll)? 'all' : 'any')
-        return {selected: def_selected}
-    },
+    mixins: [ImmutableOptimizations(['cursor'])],
     onSelect(selected){
-        this.setState({selected: selected})
         this.props.onChange(selected)
     },
     render(){
-        let {selected} = this.state
+        var selected = this.props.cursor.value
         var styles = (this.props.canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
         return <DropdownButton style={{padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
             <If condition={this.props.canAll}>
@@ -74,15 +70,14 @@ const SelectRow = React.createClass({
     cursorAllAnyNone(){
         return this.props.group.refine(`${this.props.name}_all_any_none`)
     },
-    anyAllNoneChange(value){
+    allAnyNoneChange(value){
         this.cursorAllAnyNone().set(value)
         this.props.onChange()
     },
-    getMatchText(){
-        return this.cursorAllAnyNone().value || ((this.props.options.canAll)? 'all' : 'any')
-    },
     render(){
         var options = this.props.options
+        if (options.allAnyNone && !this.cursorAllAnyNone().value)
+            this.cursorAllAnyNone().set(this.props.options.canAll ? 'all' : 'any')
         return <Row>
             <Col md={3}>
                 <label className="control-label">{options.label}</label>
@@ -91,7 +86,7 @@ const SelectRow = React.createClass({
                 <table style={{width:'100%'}}>
                     <tr>
                         <If condition={options.allAnyNone}>
-                            <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()} onChange={this.anyAllNoneChange} canAll={options.canAll}/></td>
+                            <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()} onChange={this.allAnyNoneChange} canAll={options.canAll}/></td>
                         </If>
                         <td style={{width:'100%'}}><Select multi={options.multi} style={{display:'table-cell', width:'auto'}} ref='select' value={this.cursorValue().value} options={options.select_options} placeholder='' clearable={options.multi} onChange={this.selectChange} onFocus={this.props.onFocus} onBlur={this.props.onBlur} /></td>
                     </tr>
@@ -314,7 +309,7 @@ const CriteriaTabs = React.createClass({
     },
     filteredDone(loans){
         //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
-        if (this.last_select && this.last_select.key && this.options[this.last_select.key].match == 'all') {
+        if (this.last_select && this.last_select.key && this.state.criteria[this.last_select.group][`${this.last_select.key}_all_any_none`] == 'all') {
             this.genHelperGraphs(this.last_select.group, this.last_select.key, loans)
         }
     },
@@ -344,19 +339,19 @@ const CriteriaTabs = React.createClass({
         this.options.activity = {label: 'Activities', allAnyNone: true, multi: true, select_options: [{"label":"Agriculture","value":"Agriculture"},{"label":"Air Conditioning","value":"Air Conditioning"},{"label":"Animal Sales","value":"Animal Sales"},{"label":"Arts","value":"Arts"},{"label":"Auto Repair","value":"Auto Repair"},{"label":"Bakery","value":"Bakery"},{"label":"Balut-Making","value":"Balut-Making"},{"label":"Barber Shop","value":"Barber Shop"},{"label":"Beauty Salon","value":"Beauty Salon"},{"label":"Bicycle Repair","value":"Bicycle Repair"},{"label":"Bicycle Sales","value":"Bicycle Sales"},{"label":"Blacksmith","value":"Blacksmith"},{"label":"Bookbinding","value":"Bookbinding"},{"label":"Bookstore","value":"Bookstore"},{"label":"Bricks","value":"Bricks"},{"label":"Butcher Shop","value":"Butcher Shop"},{"label":"Cafe","value":"Cafe"},{"label":"Call Center","value":"Call Center"},{"label":"Carpentry","value":"Carpentry"},{"label":"Catering","value":"Catering"},{"label":"Cattle","value":"Cattle"},{"label":"Cement","value":"Cement"},{"label":"Cereals","value":"Cereals"},{"label":"Charcoal Sales","value":"Charcoal Sales"},{"label":"Cheese Making","value":"Cheese Making"},{"label":"Child Care","value":"Child Care"},{"label":"Cloth & Dressmaking Supplies","value":"Cloth & Dressmaking Supplies"},{"label":"Clothing","value":"Clothing"},{"label":"Clothing Sales","value":"Clothing Sales"},{"label":"Cobbler","value":"Cobbler"},{"label":"Computers","value":"Computers"},{"label":"Construction","value":"Construction"},{"label":"Construction Supplies","value":"Construction Supplies"},{"label":"Consumer Goods","value":"Consumer Goods"},{"label":"Cosmetics Sales","value":"Cosmetics Sales"},{"label":"Crafts","value":"Crafts"},{"label":"Dairy","value":"Dairy"},{"label":"Decorations Sales","value":"Decorations Sales"},{"label":"Dental","value":"Dental"},{"label":"Education provider","value":"Education provider"},{"label":"Electrical Goods","value":"Electrical Goods"},{"label":"Electrician","value":"Electrician"},{"label":"Electronics Repair","value":"Electronics Repair"},{"label":"Electronics Sales","value":"Electronics Sales"},{"label":"Embroidery","value":"Embroidery"},{"label":"Entertainment","value":"Entertainment"},{"label":"Farm Supplies","value":"Farm Supplies"},{"label":"Farming","value":"Farming"},{"label":"Film","value":"Film"},{"label":"Fish Selling","value":"Fish Selling"},{"label":"Fishing","value":"Fishing"},{"label":"Flowers","value":"Flowers"},{"label":"Food","value":"Food"},{"label":"Food Market","value":"Food Market"},{"label":"Food Production/Sales","value":"Food Production/Sales"},{"label":"Food Stall","value":"Food Stall"},{"label":"Fruits & Vegetables","value":"Fruits & Vegetables"},{"label":"Fuel/Firewood","value":"Fuel/Firewood"},{"label":"Funeral Expenses","value":"Funeral Expenses"},{"label":"Furniture Making","value":"Furniture Making"},{"label":"Games","value":"Games"},{"label":"General Store","value":"General Store"},{"label":"Goods Distribution","value":"Goods Distribution"},{"label":"Grocery Store","value":"Grocery Store"},{"label":"Hardware","value":"Hardware"},{"label":"Health","value":"Health"},{"label":"Higher education costs","value":"Higher education costs"},{"label":"Home Appliances","value":"Home Appliances"},{"label":"Home Energy","value":"Home Energy"},{"label":"Home Products Sales","value":"Home Products Sales"},{"label":"Hotel","value":"Hotel"},{"label":"Internet Cafe","value":"Internet Cafe"},{"label":"Jewelry","value":"Jewelry"},{"label":"Knitting","value":"Knitting"},{"label":"Land Rental","value":"Land Rental"},{"label":"Laundry","value":"Laundry"},{"label":"Liquor Store / Off-License","value":"Liquor Store / Off-License"},{"label":"Livestock","value":"Livestock"},{"label":"Machine Shop","value":"Machine Shop"},{"label":"Machinery Rental","value":"Machinery Rental"},{"label":"Manufacturing","value":"Manufacturing"},{"label":"Medical Clinic","value":"Medical Clinic"},{"label":"Metal Shop","value":"Metal Shop"},{"label":"Milk Sales","value":"Milk Sales"},{"label":"Mobile Phones","value":"Mobile Phones"},{"label":"Motorcycle Repair","value":"Motorcycle Repair"},{"label":"Motorcycle Transport","value":"Motorcycle Transport"},{"label":"Movie Tapes & DVDs","value":"Movie Tapes & DVDs"},{"label":"Music Discs & Tapes","value":"Music Discs & Tapes"},{"label":"Musical Instruments","value":"Musical Instruments"},{"label":"Musical Performance","value":"Musical Performance"},{"label":"Natural Medicines","value":"Natural Medicines"},{"label":"Office Supplies","value":"Office Supplies"},{"label":"Paper Sales","value":"Paper Sales"},{"label":"Party Supplies","value":"Party Supplies"},{"label":"Patchwork","value":"Patchwork"},{"label":"Perfumes","value":"Perfumes"},{"label":"Personal Housing Expenses","value":"Personal Housing Expenses"},{"label":"Personal Medical Expenses","value":"Personal Medical Expenses"},{"label":"Personal Products Sales","value":"Personal Products Sales"},{"label":"Personal Purchases","value":"Personal Purchases"},{"label":"Pharmacy","value":"Pharmacy"},{"label":"Phone Accessories","value":"Phone Accessories"},{"label":"Phone Repair","value":"Phone Repair"},{"label":"Phone Use Sales","value":"Phone Use Sales"},{"label":"Photography","value":"Photography"},{"label":"Pigs","value":"Pigs"},{"label":"Plastics Sales","value":"Plastics Sales"},{"label":"Poultry","value":"Poultry"},{"label":"Primary/secondary school costs","value":"Primary/secondary school costs"},{"label":"Printing","value":"Printing"},{"label":"Property","value":"Property"},{"label":"Pub","value":"Pub"},{"label":"Quarrying","value":"Quarrying"},{"label":"Recycled Materials","value":"Recycled Materials"},{"label":"Recycling","value":"Recycling"},{"label":"Religious Articles","value":"Religious Articles"},{"label":"Renewable Energy Products","value":"Renewable Energy Products"},{"label":"Restaurant","value":"Restaurant"},{"label":"Retail","value":"Retail"},{"label":"Rickshaw","value":"Rickshaw"},{"label":"Secretarial Services","value":"Secretarial Services"},{"label":"Services","value":"Services"},{"label":"Sewing","value":"Sewing"},{"label":"Shoe Sales","value":"Shoe Sales"},{"label":"Soft Drinks","value":"Soft Drinks"},{"label":"Souvenir Sales","value":"Souvenir Sales"},{"label":"Spare Parts","value":"Spare Parts"},{"label":"Sporting Good Sales","value":"Sporting Good Sales"},{"label":"Tailoring","value":"Tailoring"},{"label":"Taxi","value":"Taxi"},{"label":"Textiles","value":"Textiles"},{"label":"Timber Sales","value":"Timber Sales"},{"label":"Tourism","value":"Tourism"},{"label":"Transportation","value":"Transportation"},{"label":"Traveling Sales","value":"Traveling Sales"},{"label":"Upholstery","value":"Upholstery"},{"label":"Used Clothing","value":"Used Clothing"},{"label":"Used Shoes","value":"Used Shoes"},{"label":"Utilities","value":"Utilities"},{"label":"Vehicle","value":"Vehicle"},{"label":"Vehicle Repairs","value":"Vehicle Repairs"},{"label":"Veterinary Sales","value":"Veterinary Sales"},{"label":"Waste Management","value":"Waste Management"},{"label":"Water Distribution","value":"Water Distribution"},{"label":"Weaving","value":"Weaving"},{"label":"Wedding Expenses","value":"Wedding Expenses"},{"label":"Well digging","value":"Well digging"},{"label":"Wholesale","value":"Wholesale"}]}
         this.options.tags = {label: 'Tags', canAll: true, allAnyNone: true, multi: true, select_options: [{"value":"user_favorite","label":"User Favorite"},{"value":"volunteer_like","label":"Volunteer Like"},{"value":"volunteer_pick","label":"Volunteer Pick"},{"value":"#Animals","label":"#Animals"},{"value":"#Eco-friendly","label":"#Eco-friendly"},{"value":"#Elderly","label":"#Elderly"},{"value":"#Fabrics","label":"#Fabrics"},{"value":"#FemaleEducation","label":"#FemaleEducation"},{"value":"#FirstLoan","label":"#FirstLoan"},{"value":"#HealthAndSanitation","label":"#HealthAndSanitation"},{"value":"#IncomeProducingDurableAsset","label":"#IncomeProducingDurableAsset"},{"value":"#InspiringStory","label":"#InspiringStory"},{"value":"#InterestingPhoto","label":"#InterestingPhoto"},{"value":"#JobCreator","label":"#JobCreator"},{"value":"#Low-profitFP","label":"#Low-profitFP"},{"value":"#Orphan","label":"#Orphan"},{"value":"#Parent","label":"#Parent"},{"value":"#Refugee","label":"#Refugee"},{"value":"#RepeatBorrower","label":"#RepeatBorrower"},{"value":"#Schooling","label":"#Schooling"},{"value":"#Single","label":"#Single"},{"value":"#SingleParent","label":"#SingleParent"},{"value":"#SupportingFamily","label":"#SupportingFamily"},{"value":"#SustainableAg","label":"#SustainableAg"},{"value":"#Technology","label":"#Technology"},{"value":"#Trees","label":"#Trees"},{"value":"#Unique","label":"#Unique"},{"value":"#Vegan","label":"#Vegan"},{"value":"#Widowed","label":"#Widowed"},{"value":"#WomanOwnedBiz","label":"#WomanOwnedBiz"}]}
         this.options.themes = {label: 'Themes', canAll: true, allAnyNone: true, multi: true, select_options: [{"value":"Green","label":"Green"},{"value":"Higher Education","label":"Higher Education"},{"value":"Arab Youth","label":"Arab Youth"},{"value":"Kiva City LA","label":"Kiva City LA"},{"value":"Islamic Finance","label":"Islamic Finance"},{"value":"Youth","label":"Youth"},{"value":"Start-Up","label":"Start-Up"},{"value":"Water and Sanitation","label":"Water and Sanitation"},{"value":"Vulnerable Groups","label":"Vulnerable Groups"},{"value":"Fair Trade","label":"Fair Trade"},{"value":"Rural Exclusion","label":"Rural Exclusion"},{"value":"Mobile Technology","label":"Mobile Technology"},{"value":"Underfunded Areas","label":"Underfunded Areas"},{"value":"Conflict Zones","label":"Conflict Zones"},{"value":"Job Creation","label":"Job Creation"},{"value":"SME","label":"Small and Medium Enterprises"},{"value":"Growing Businesses","label":"Growing Businesses"},{"value":"Kiva City Detroit","label":"Kiva City Detroit"},{"value":"Health","label":"Health"},{"value":"Disaster recovery","label":"Disaster recovery"},{"value":"Flexible Credit Study","label":"Flexible Credit Study"},{"value":"Innovative Loans","label":"Innovative Loans"}].orderBy(c => c.label)}
-        this.options.currency_exchange_loss_liability = {label: "Currency Loss", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'shared', label:"Shared Loss"},{value:'none', label:"No Currency Exchange Loss"}]}
-        this.options.bonus_credit_eligibility = {label: "Bonus Credit", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only loans eligible"},{value:'false', label:"Only loans NOT eligible"}]}
+        this.options.currency_exchange_loss_liability = {label: "Currency Loss", multi: false, select_options:[{value: '', label:"Show All"}, {value:'shared', label:"Shared Loss"},{value:'none', label:"No Currency Exchange Loss"}]}
+        this.options.bonus_credit_eligibility = {label: "Bonus Credit", multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only loans eligible"},{value:'false', label:"Only loans NOT eligible"}]}
         this.options.repayment_interval = {label: "Repayment Interval", multi: true, select_options:[{value:'Monthly', label:"Monthly"},{value:"Irregularly", label:"Irregularly"},{value:"At end of term", label:"At end of term"}]}
-        this.options.sort = {label: 'Sort', match: '', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'}]}
+        this.options.sort = {label: 'Sort', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'}]}
 
         //partner selects
         this.options.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, select_options: [{"value":1,"label":"Anti-Poverty Focus"},{"value":3,"label":"Client Voice"},{"value":5,"label":"Entrepreneurial Support"},{"value":6,"label":"Facilitation of Savings"},{"value":4,"label":"Family and Community Empowerment"},{"value":7,"label":"Innovation"},{"value":2,"label":"Vulnerable Group Focus"}]}
         this.options.region = {label: 'Region', allAnyNone: true, multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
         this.options.partners = {label: "Partners", allAnyNone: true, multi: true, select_options: []}
-        this.options.charges_fees_and_interest = {label: "Charges Interest", match: '', multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only partners that charge fees & interest"},{value:'false', label:"Only partners that do NOT charge fees & interest"}]}
+        this.options.charges_fees_and_interest = {label: "Charges Interest",  multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only partners that charge fees & interest"},{value:'false', label:"Only partners that do NOT charge fees & interest"}]}
 
         //portfolio selects
-        this.options.exclude_portfolio_loans = {label: "Exclude My Loans", match: '', multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
+        this.options.exclude_portfolio_loans = {label: "Exclude My Loans", multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
 
         //balancing
         this.options.pb_partner  = {label: "Partners", key: 'id', slice_by: 'partner'}
@@ -510,8 +505,20 @@ const CriteriaTabs = React.createClass({
         this.last_select = {group: group, key: key}
         cl('focusSelect', group, key)
 
-        var loans = (this.options[key].match == 'any' || !this.options[this.last_select.key].multi) ? this.performSearchWithout(group, key) : s.loans.syncFilterLoansLast()
-        this.genHelperGraphs(group,key,loans)
+        //['all','any','none'].contains(this.state.criteria[group][`${key}_all_any_none`])
+        //var loans = (this.options[this.last_select.key].allAnyNone) || !this.options[this.last_select.key].multi ?
+        //    this.performSearchWithout(group, key) :
+        //    s.loans.syncFilterLoansLast()
+
+        //do we ignore what is in the select
+        var ignore_values = false
+
+        if (this.state.criteria[group][`${key}_all_any_none`] == 'all')
+            ignore_values = true
+
+        var loans = ignore_values ? s.loans.syncFilterLoansLast() : this.performSearchWithout(group, key)
+
+        this.genHelperGraphs(group, key, loans)
     },
     removeGraphs(){
         this.last_select = {}
