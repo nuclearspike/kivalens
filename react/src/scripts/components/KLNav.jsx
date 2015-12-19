@@ -22,8 +22,9 @@ const KLNav = React.createClass({
                     <Nav navbar>
                         <NavItem key={1} href="#/search">Search</NavItem>
                         <NavItem key={2} href="#/basket">Basket<Badge>{this.state.basket_count}</Badge></NavItem>
-                        <NavItem key={3} href="#/options">Options</NavItem>
-                        <NavItem key={4} href="#/about">About</NavItem>
+                        <NavItem key={3} href="#/live">Live</NavItem>
+                        <NavItem key={4} href="#/options">Options</NavItem>
+                        <NavItem key={5} href="#/about">About</NavItem>
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>

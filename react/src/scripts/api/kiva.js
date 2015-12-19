@@ -421,6 +421,7 @@ class Loans {
         this.lender_loans_state = llUnknown
         this.indexed_loans = {}
         this.base_kiva_params = {}
+        this.running_totals = {funded_amount:0, funded_loans: 0, new_loans: 0}
         this.background_resync = 0
         this.notify_promise = $.Deferred()
         this.update_interval = update_interval
@@ -605,7 +606,11 @@ class Loans {
                 var existing = kl.indexed_loans[loan.id]
                 if (existing) {
                     if (existing.funded_amount != loan.funded_amount) {
-                        cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
+                        kl.running_totals.funded_amount += loan.funded_amount - existing.funded_amount
+                        if (loan.status == "funded")
+                            kl.running_totals.funded_loans++
+                        this.notify_promise.notify({running_totals_change: kl.running_totals})
+                            cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
                     }
                     $.extend(true, existing, loan)
                 }
@@ -616,8 +621,11 @@ class Loans {
     }
     newLoanNotice(id){
         if (!this.isReady()) return
+        var kl = this
         new LoanBatch([id]).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
+            kl.running_totals.new_loans++
+            this.notify_promise.notify({running_totals_change: kl.running_totals})
             this.setKivaLoans(loans, false)
         })
     }

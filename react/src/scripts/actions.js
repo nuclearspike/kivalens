@@ -5,6 +5,7 @@ import Reflux from 'reflux'
 var a = {loans: null, criteria: null, partners: null, notifications: null, utils: null};
 
 a.loans = Reflux.createActions({
+    "live": {children: ['change']},
     "load": {children: ["progressed", "completed", "failed"]},
     "filter": {children: ["completed"]},
     "detail": {children: ["completed"]},

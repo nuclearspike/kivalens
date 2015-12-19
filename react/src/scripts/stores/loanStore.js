@@ -34,6 +34,9 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
         a.criteria.lenderLoansEvent(progress.lender_loans_event)
         loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: is this best here? this isn't just standard relay
     }
+    if (progress.running_totals_change) {
+        a.loans.live.change(progress.running_totals_change)
+    }
 })
 
 class CritTester {
