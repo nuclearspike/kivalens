@@ -16,11 +16,12 @@ const Live = React.createClass({
     render() {
         let {new_loans, funded_loans, funded_amount} = this.state.running_totals
         return <Grid>
-                <h1>Updates to Kiva -- Beta</h1>
-                <p>Since starting the current KivaLens session, the following activity has occurred on Kiva.org. To
-                    keep data as fresh as possible, KivaLens subscribes to the same live data-stream
-                    that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses.</p>
-                <dl className="dl-horizontal">
+                <h1>Updates to Kiva - Beta</h1>
+                <p>To keep data as fresh as possible, KivaLens subscribes to the same live data-stream
+                    that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses and adds new loans and updates existing
+                    loans accordingly. Since starting the current KivaLens session, the following activity has occurred
+                    on Kiva.org. </p>
+                <dl className="dl-horizontal" style={{fontSize: 'large'}}>
                     <dt>New Loans</dt><dd>{new_loans}</dd>
                     <dt>Fully Funded</dt><dd>{funded_loans}</dd>
                     <dt>Lending Total</dt><dd>${numeral(funded_amount).format('0,0')}</dd>

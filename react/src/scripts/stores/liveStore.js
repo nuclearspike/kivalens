@@ -53,9 +53,7 @@ $(()=>{
 })
 
 var liveStore = Reflux.createStore({
-        init() {
-
-        }
+        init() {}
     }
 )
 

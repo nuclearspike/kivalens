@@ -614,7 +614,7 @@ class Loans {
                     $.extend(true, existing, loan)
                 } else {
                     kl.running_totals.funded_amount += 25
-                    //this.setKivaLoans([loan], false) //do we want this?
+                    this.setKivaLoans([loan], false) //todo: do we want this?
                 }
                 if (loan.status == "funded")
                     kl.running_totals.funded_loans++

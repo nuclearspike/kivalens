@@ -72,6 +72,16 @@ var About = React.createClass({
                 </li>
 
                 <li>
+                    Any/All/None Filtering: What is the difference between "Any" and "All"{'?'} "All" is only available
+                    for properties of a loan where it can have multiple. So, a loan can only have one country, but
+                    it can have multiple tags so there won't be an "All" option for Country since a loan couldn't be
+                    in multiple countries and you'd get no results. If you select "All" then the loan must have
+                    <i>all</i> listed tags. If you select "Any" for Tags, then the loan has to match <i>at least one</i>
+                    of your selection. "None" allows you to exclude results, so if you are opposed to "Liquor Store
+                    / Off-License," "Balut-Making" and other controversial activities, you can exclude them.
+                </li>
+
+                <li>
                     Auto-complete drop-downs for Sector, Activity, Country, Region, Social Performance Badges,
                     Themes, Tags, Partners. KivaLens will also show you graphs along the side (when on a large
                     enough device) indicating what options you have for that criteria so you don't have to guess
