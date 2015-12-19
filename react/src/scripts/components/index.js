@@ -7,6 +7,7 @@ import Loan from './Loan.jsx'
 import Basket from './Basket.jsx'
 import Options from './Options.jsx'
 import About from './About.jsx'
+import Live from './Live.jsx'
 import NotFound from './NotFound.jsx'
 import ClearBasket from './ClearBasket.jsx'
 
@@ -46,7 +47,7 @@ import CatchNoCurlies from './CatchNoCurlies.jsx'
 export default CatchNoCurlies;
 
 export {NewTabLink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
-    Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage,
+    Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
     KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, RandomChild, CycleChild, PromptModal,
     SetLenderIDModal}

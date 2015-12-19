@@ -598,6 +598,29 @@ class Loans {
     getLoanFromKiva(id){
         return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
     }
+    refreshLoans(loan_arr){
+        var kl = this
+        new LoanBatch(loan_arr).start().done(loans => {
+            loans.forEach(loan => {
+                var existing = kl.indexed_loans[loan.id]
+                if (existing) {
+                    if (existing.funded_amount != loan.funded_amount) {
+                        cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
+                    }
+                    $.extend(true, existing, loan)
+                }
+            })
+            //cl("############### refreshLoans:", loan_arr.length, loans)
+        })
+
+    }
+    newLoanNotice(id){
+        if (!this.isReady()) return
+        new LoanBatch([id]).start().done(loans => { //this is ok when there aren't any
+            cl("###############!!!!!!!! newLoanNotice:", loans)
+            this.setKivaLoans(loans, false)
+        })
+    }
     backgroundResync(){
         this.background_resync++
         var kl = this

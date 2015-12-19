@@ -11,5 +11,6 @@
 
 import criteria from './criteriaStore'
 import loans from './loanStore'
+import live from './liveStore'
 
-export default {criteria: criteria, loans: loans}
+export default {criteria: criteria, loans: loans, live: live}

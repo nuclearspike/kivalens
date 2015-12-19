@@ -11,7 +11,7 @@ var last_filtered = []
 var last_partner_search = {}
 var last_partner_search_count = 0
 
-var kivaloans = new Loans(10*60*1000)
+var kivaloans = new Loans(60*60*1000)
 
 var options = lsj.get("Options") //not how it should be done. this is app-specific options going into a generic init()
 

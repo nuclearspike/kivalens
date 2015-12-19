@@ -86,12 +86,14 @@ const SelectRow = React.createClass({
             </Col>
             <Col md={9}>
                 <table style={{width:'100%'}}>
+                    <tbody>
                     <tr>
                         <If condition={options.allAnyNone}>
                             <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()} onChange={this.allAnyNoneChange} canAll={options.canAll}/></td>
                         </If>
                         <td style={{width:'100%'}}><Select multi={options.multi} style={{display:'table-cell', width:'auto'}} ref='select' value={this.cursorValue().value} options={options.select_options} placeholder='' clearable={options.multi} onChange={this.selectChange} onFocus={this.props.onFocus} onBlur={this.props.onBlur} /></td>
                     </tr>
+                    </tbody>
                 </table>
             </Col>
         </Row>
@@ -478,7 +480,8 @@ const CriteriaTabs = React.createClass({
             yAxis: {
                 min: 0,
                 dataLabels: {enabled: false},
-                labels: {overflow: 'justify'}
+                labels: {overflow: 'justify'},
+                title: {text: 'Matching Loans'}
             },
             plotOptions: {
                 bar: {

@@ -78,7 +78,8 @@ var Loan = React.createClass({
             yAxis: {
                 min: 0,
                 dataLabels: {enabled: false},
-                labels: {overflow: 'justify'}
+                labels: {overflow: 'justify'},
+                title: {text: 'USD'}
             },
             tooltip: {
                 valueDecimals: 2,
@@ -253,4 +254,4 @@ var Loan = React.createClass({
     }
 })
 
-export default Loan;
+export default Loan
