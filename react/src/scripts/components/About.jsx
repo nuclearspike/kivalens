@@ -106,8 +106,17 @@ var About = React.createClass({
 
                 <li>
                     Live Filtering = Speed! Since it downloads the loans at the start and then filters them
-                    locally, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch
-                    your results change right then.
+                    in your browser, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch
+                    your results change right then, it doesn't have to talk to the server.
+                </li>
+
+                <li>
+                    Always Fresh! KivaLens subscribes to the same live data-stream
+                    that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new loan
+                    posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your browser
+                    are kept exactly up-to-date without needing to reload the page. These updates do not cause
+                    your criteria to re-filter, but you'll see the impact of any new loans, funded loans or lending
+                    activity altering the funded amounts the next time you return to the Criteria tab or alter your filter.
                 </li>
 
                 <li>

@@ -416,6 +416,8 @@ class Loans {
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
+        this.queue_to_refresh = []
+        this.queue_new_loan_query = []
         this.is_ready = false
         this.lender_loans_message = "Lender ID not set"
         this.lender_loans_state = llUnknown
@@ -607,24 +609,59 @@ class Loans {
                 if (existing) {
                     if (existing.funded_amount != loan.funded_amount) {
                         kl.running_totals.funded_amount += loan.funded_amount - existing.funded_amount
-                        if (loan.status == "funded")
-                            kl.running_totals.funded_loans++
-                        this.notify_promise.notify({running_totals_change: kl.running_totals})
-                            cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
+                        cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
                     }
                     $.extend(true, existing, loan)
+                } else {
+                    kl.running_totals.funded_amount += 25
+                    //this.setKivaLoans([loan], false) //do we want this?
                 }
+                if (loan.status == "funded")
+                    kl.running_totals.funded_loans++
+                this.notify_promise.notify({running_totals_change: kl.running_totals})
             })
             //cl("############### refreshLoans:", loan_arr.length, loans)
         })
-
     }
-    newLoanNotice(id){
+    queueToRefresh(loan_id_arr){
+        this.queue_to_refresh = this.queue_to_refresh.concat(loan_id_arr).distinct()
+
+        var clearQueue = ()=>{
+            if (!this.queue_to_refresh.length) return
+            var to_refresh = this.queue_to_refresh
+            this.queue_to_refresh = []
+            this.refreshLoans(to_refresh)
+        }
+
+        if (this.queue_to_refresh.length < 10) {
+            //let them stack up.
+            clearTimeout(this.queueToRefreshTimeout)
+            this.queueToRefreshTimeout = setTimeout(clearQueue, 5000)
+        } else {
+            //do it immediately
+            clearQueue()
+        }
+    }
+    queueNewLoanNotice(id){
+        this.queue_new_loan_query.push(id)
+
+        var clearQueue = ()=>{
+            if (!this.queue_new_loan_query.length) return
+            var to_add = this.queue_new_loan_query
+            this.queue_new_loan_query = []
+            this.newLoanNotice(to_add)
+        }
+
+        //let them stack up.
+        clearTimeout(this.queueToNewQueryTimeout)
+        this.queueToNewQueryTimeout = setTimeout(clearQueue, 1000)
+    }
+    newLoanNotice(id_arr){
         if (!this.isReady()) return
         var kl = this
-        new LoanBatch([id]).start().done(loans => { //this is ok when there aren't any
+        new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
-            kl.running_totals.new_loans++
+            kl.running_totals.new_loans += loans.length
             this.notify_promise.notify({running_totals_change: kl.running_totals})
             this.setKivaLoans(loans, false)
         })

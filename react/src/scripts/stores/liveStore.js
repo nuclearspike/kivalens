@@ -28,20 +28,16 @@ class Channel {
 }
 
 class LoanPostedChannel extends Channel {
-    constructor(){
-        super('loan.posted')
-    }
+    constructor(){ super('loan.posted') }
     processData(data){
-        kivaloans.newLoanNotice(data.p.loan.id)
+        kivaloans.queueNewLoanNotice(data.p.loan.id)
     }
 }
 
 class LoanPurchasedChannel extends Channel {
-    constructor(){
-        super('loan.purchased')
-    }
+    constructor(){ super('loan.purchased') }
     processData(data){
-        kivaloans.refreshLoans(data.p.loans.select(l=>l.id))
+        kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
     }
 }
 
