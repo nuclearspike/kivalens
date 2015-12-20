@@ -34,7 +34,7 @@ const SetLenderIDModal = React.createClass({
     },
     render() {
         let {show, checking, failed} = this.state
-        return (<Modal show={show} onHide={()=>this.onHide(null)}>
+        return (<Modal show={show} onHide={()=>this.onHide()}>
                     <Modal.Header>
                         <Modal.Title>Set Kiva Lender ID</Modal.Title>
                     </Modal.Header>

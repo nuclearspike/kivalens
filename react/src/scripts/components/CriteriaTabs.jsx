@@ -534,7 +534,7 @@ const CriteriaTabs = React.createClass({
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
         var cPorfolio = cursor.refine('portfolio')
-        var lender_loans_message = kivaloans.lender_loans_message
+        var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
 
         return (<div>
             <Tabs animation={false} activeKey={this.state.activeTab} onSelect={this.tabSelect}>

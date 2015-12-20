@@ -25,17 +25,18 @@ var LoadingLoansModal = React.createClass({
         })
     },
     render() {
+        let {ids_progress, details_progress, show, progress_label, error_message} = this.state
         return (
             <div className="static-modal">
-                <Modal show={this.state.show} onHide={()=>{}}>
+                <Modal show={show} onHide={()=>{}}>
                     <Modal.Header>
                         <Modal.Title>Loading Fundraising Loans from Kiva.org</Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body>
                         <ProgressBar>
-                            <ProgressBar bsStyle="info" active={this.state.ids_progress < 32} label={this.state.ids_progress > 10 ? 'basics': ''} now={this.state.ids_progress} />
-                            <ProgressBar active label={this.state.details_progress > 10 ? 'details': ''} now={this.state.details_progress} />
+                            <ProgressBar bsStyle="info" active={ids_progress < 32} label={ids_progress > 10 ? 'basics': ''} now={ids_progress} />
+                            <ProgressBar active label={details_progress > 10 ? 'details': ''} now={details_progress} />
                         </ProgressBar>
                         <CycleChild name='didYouKnow_loading'>
                             <p>To greatly reduce load time, check out the "Options" tab if you never consider longer term loans.</p>
@@ -51,13 +52,13 @@ var LoadingLoansModal = React.createClass({
                             <p>You can click anywhere in one of the drop-down boxes to bring up the selection (you don't need to click the little arrow) or just start typing.</p>
                             <p>Kiva's site does not allow you to search for multiple "Tags" (where the loan must be tagged with both) but they are a great way to narrow your search. You can look for Interesting Photos, Inspiring Stories, Repeat Borrowers and many more!</p>
                             <p>Did you know that the "Posted" and "Expires" Dates on the Loan Detail have already been adjusted to your timezone{'?'}</p>
-                            <p>Be sure to check out the Options page if you would like to integrate the Atheist Team's MFI research data. Then just reload the page.</p>
+                            <p>Be sure to check out the Options page if you would like to integrate the Atheist Team's MFI research data.</p>
                         </CycleChild>
                     </Modal.Body>
 
                     <Modal.Footer>
-                        {this.state.progress_label}<br/>
-                        {this.state.error_message}
+                        {progress_label}<br/>
+                        {error_message}
                     </Modal.Footer>
                 </Modal>
             </div>

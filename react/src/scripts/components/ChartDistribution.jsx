@@ -10,15 +10,13 @@ import {Collapse,Well} from 'react-bootstrap'
 //var timeoutHandle = null;
 const ChartDistribution = React.createClass({
     mixins: [Reflux.ListenerMixin],
-    getDefaultProps: function(){return {open: true}},
-    getInitialState: function () {
-        return {countryData: [], sectorData: [], activityData: []}
-    },
-    componentDidMount: function () {
+    getDefaultProps(){return {open: true}},
+    getInitialState() {return {countryData: [], sectorData: [], activityData: []}},
+    componentDidMount() {
         this.listenTo(a.loans.filter.completed, this.redoCharts)
         this.redoCharts(s.loans.syncFilterLoansLast())
     },
-    produceChart: function(){
+    produceChart(){
         var result = {
             chart: {
                 plotBackgroundColor: null,
@@ -80,14 +78,17 @@ const ChartDistribution = React.createClass({
         //a.loans.filter() //this makes me nervous
         return result
     },
-    redoCharts: function(loans){
+    groupByForChart(loans, selector){
+        loans.groupBy(selector).select(g=>{return {name: selector(g[0]), y: g.length}})
+    },
+    redoCharts(loans){
         if (['xs','sm'].contains(findBootstrapEnv())) return
-        var countryData  = loans.groupBy(l=>l.location.country).map(g=>{return {name: g[0].location.country, y: g.length}})
-        var sectorData   = loans.groupBy(l=>l.sector).map(g=>{ return {name: g[0].sector, y: g.length}})
-        var activityData = loans.groupBy(l=>l.activity).map(g=>{return {name: g[0].activity, y: g.length}})
+        var countryData  = this.groupByForChart(loans, l=>l.location.country)
+        var sectorData   = this.groupByForChart(loans, l=>l.sector)
+        var activityData = this.groupByForChart(loans, l=>l.activity)
         this.setState({countryData: countryData, sectorData: sectorData, activityData: activityData})
    },
-    render: function () {
+    render() {
         return (<div className="hidden-xs hidden-sm">
                     <Well>
                         <Highcharts style={{height: '200px'}} config={this.produceChart()} />

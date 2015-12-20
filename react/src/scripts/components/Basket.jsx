@@ -29,7 +29,7 @@ const Basket = React.createClass({
             raw_basket_count: s.loans.syncBasketCount()
         }
     },
-    makeBasket: function(){
+    makeBasket(){
         return JSON.stringify(this.state.basket_items.select(bi => {return {"id": bi.loan.id, "amount": bi.amount}}))
     },
     remove(e) {
@@ -51,7 +51,7 @@ const Basket = React.createClass({
             } else {
                 //there's currently a bug on kiva with expired sessions throwing a 404 when adding to basket.
                 // opening a tiny window to kiva starts the session and seems to prevent the 404's from happening.
-                // if kiva fixes the bug, this can just be a submit without a timeout
+                // if kiva fixes the bug, this can just be a submit without a little window and timeout
                 var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
                 setTimeout(()=> {
                     this.refs.basket_form.submit()

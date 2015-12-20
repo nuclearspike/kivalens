@@ -6,10 +6,8 @@ import {KivaImage} from '.'
 import a from '../actions'
 
 const BasketListItem = React.createClass({
-    getInitialState: function () {
-        return {  }
-    },
-    render: function() {
+    getInitialState() {return { }},
+    render() {
         var loan = this.props.loan;
         return (
             <ListGroupItem

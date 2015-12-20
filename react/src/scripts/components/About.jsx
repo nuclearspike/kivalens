@@ -111,7 +111,8 @@ var About = React.createClass({
                 <li>
                     See graphs! View graphs that show the distribution of the current filter. Ex: Select
                     "Retail" as your Sector filter, and see how Retail loans are spread across Countries and
-                    what Activities are available.
+                    what Activities are available by clicking into those drop-downs to make the graphs down the side
+                    appear. There are also the half-donut charts.
                 </li>
 
                 <li>
@@ -173,7 +174,8 @@ var About = React.createClass({
                     other than USD, there is a risk that you can lose some money due to the exchange rate. Using the
                     Currency Exchange Loss % Partner slider, you can use history as an indicator of the future for
                     how much you may lose (but there's no guarantee). Some partners cover more of the currency loss
-                    than others.
+                    than others. There's also a drop-down for "Currency Loss" that allows you to exclude loans where
+                    loss is possible.
                 </li>
                 <li>
                     Default Rates: All partners will have defaults, some partners choose to cover the losses of defaulted
@@ -198,13 +200,13 @@ var About = React.createClass({
                     Profitability: When I initially wrote KivaLens (prior to working at Kiva), I incorrectly assumed
                     that a partner with a negative profitability naturally meant they were at greater risk for
                     institutional collapse and thus causing all outstanding loans to fail. This is not always true!
-                    There are a number of partners that receive money from outside sources to compensate for
-                    the losses from either private or government bodies that appear on their books. So,
-                    don't think that just because your borrower is getting a loan from a partner
-                    that has a large negative profit, that it means they're necessarily more likely to collapse
-                    and you'll lose your money. It's not that simple. If they are not receiving money from outside
+                    There are a number of partners that receive money from outside sources and this money is not
+                    factored in when calculating their profitability. So, just because your borrower is getting a
+                    loan from a partner that has a large negative profit, they're necessarily more likely to collapse
+                    and you'll lose your money. It's not that simple. However, if they are not receiving money from outside
                     sources and are operating a loss for extended periods, they may be at higher risk of institutional
-                    default. You may want to lend through partners that have low to average profitability.
+                    default. Since there is no way to tell which MFIs are or are not receiving money from outside
+                    sources, the "safest" bet is to choose partners with positive profitability.
                 </li>
                 <li>
                     Group Loans: Due to the high variability with how group loans are organized by partner, you cannot
@@ -212,8 +214,9 @@ var About = React.createClass({
                     borrowers together so they can prove themselves and graduate to individual loans and the grouping
                     is arbitrary just to make repayment collections simpler to lower the cost of servicing the loan.
                     Some groups are "solidarity" groups where group members have committed to pay for individuals who
-                    default and while you can search for "solidarity" in the name field, many solidarity loans do not
-                    have that in their name and they are not tagged in Kiva's system as being a solidarity loan.
+                    default. While you can search for "solidarity" in the name field to find some "safer" loans,
+                    most solidarity loans do not have that in their name and there is no way to tell from the
+                    loan data to help you find more.
                 </li>
                 <li>
                     Repeat Borrowers: A borrower coming back for a second or third loan does NOT mean
@@ -221,25 +224,30 @@ var About = React.createClass({
                     successfully and the partner has chosen to give them another loan, then many times that means
                     they are more likely to repay. Repeat borrowing does not necessarily mean they are in a cycle
                     of debt, but instead that they've shown that their previous loan was successful in improving
-                    their business that another loan can help them to continue to grow their business. Use
-                    the {'#'}RepeatBorrower tag search to help find them.
+                    their business that another (usually larger) loan can help them to continue to grow their business.
+                    Use the {'#'}RepeatBorrower tag search to help find them.
 
                     KivaLens user (<LenderLink lender='thomas85717133'>Thomas</LenderLink>) has
-                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data snapshots</NewTabLink> and compared repayment rates for loans tagged {'#'}FirstLoan vs
-                    {'#'}RepeatBorrower and found loans tagged with {'#'}RepeatBorrower had a repayment rate of 99.16%
-                    vs loans tagged with {'#'}FirstLoan of 98.55% (current as of Dec 8, 2015). To get more information and see the code used to calculate,
+                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data snapshots</NewTabLink> and
+                    compared repayment rates for ended loans tagged {'#'}FirstLoan vs {'#'}RepeatBorrower and found loans
+                    tagged with {'#'}RepeatBorrower had a repayment rate of 99.16% vs loans tagged with {'#'}FirstLoan
+                    of 98.55% (using data current as of Dec 8, 2015). To get more information and see the code used to calculate,
                     check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715" title="View KivaLens team message board">this message</KivaLink>.
                 </li>
                 <li>
-                    Diversify! When using KivaLens, your criteria may keep bringing up loans from the same partners
+                    Diversify! When searching for loans, your criteria may keep bringing up loans from the same partners
                     over and over again. Having too much money with a handful partner means that if those partners have
-                    institutional default, you could lose all of your outstanding balance. Also diversity among countries
+                    institutional default, you could lose all of your outstanding balance. Diversity among countries
                     can also be beneficial because it protects you from your portfolio being as impacted by natural
-                    disasters, wars, etc. Use KivaLens' Portfolio Balancing Criteria options (on Portfolio tab) to do this for you.
+                    disasters, wars, etc. Use KivaLens' Portfolio Balancing Criteria options (on Portfolio tab)
+                    to do this for you. After you set your Lender ID on the Options page, go back to Search and
+                    there's a pre-set Saved Search of "Balance Partner Risk" which sets the Portfolio Balancing options
+                    to hide loans from any partner where they have > 0% of your active portfolio. If you have a lot
+                    of active loans, you may need to increase the percentage to allow for more per partner.
                 </li>
                 <li>
                     Something to consider: Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I
-                    changed the name from kivabank to kivalens many years ago). Over time, even the most cautious lenders
+                    changed the name from kivabank to kivalens years ago). Over time, even the most cautious lenders
                     are very likely to lose money to default or currency exchange unless you are extremely lucky.
                     You should lend with the expectation of some loss and be happy when it everything goes perfectly.
                     You are lending to help people, not for any return on your money (obviously) or even with any
@@ -259,9 +267,10 @@ var About = React.createClass({
             <h3>History</h3>
             <p>
                 KivaLens was initially created in 2009 (as a Silverlight app) because I wanted to find loans
-                in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years and incorporated a
-                lot of the search features directly into Kiva's site which also then made their way into the API
-                as well. There are still some things that Kiva does not do that are handy and fun!
+                in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years
+                and helped incorporate a lot of the search features directly into Kiva's site which also then made
+                their way into the API as well. There are still some great things KivaLens does that Kiva does not
+                do that are handy and fun!
             </p>
 
             <h3>Kiva Lender Assistant Chrome Extension</h3>

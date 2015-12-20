@@ -31,9 +31,7 @@ const Criteria = React.createClass({
         a.criteria.startFresh()
     },
     promptForName(){
-        cl("promptForName()")
-        var options = {title: "Enter Name for Search Criteria", label: 'Name', callback: s.criteria.syncSaveLastByName}
-        a.utils.prompt(options)
+        a.utils.prompt({title: "Enter Name for Search Criteria", label: 'Name', callback: s.criteria.syncSaveLastByName})
     },
     toggleGraph(){ this.setState({ show_graphs: !this.state.show_graphs }) },
     render() {
