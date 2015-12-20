@@ -17,22 +17,15 @@ const Options = React.createClass({
         if (this.state.mergeAtheistList && !kivaloans.atheist_list_processed)
             kivaloans.getAtheistList()
     },
-    showLenderIDModal(){
-        this.setState({ showLenderModal: true })
-    },
-    hideLenderIDModal(){
-        this.setState({ showLenderModal: false })
-    },
-    setLenderID(new_lender_id){
-        this.setState({kiva_lender_id: new_lender_id})
-    },
+    showLenderIDModal(){this.setState({ showLenderModal: true })},
+    hideLenderIDModal(){this.setState({ showLenderModal: false })},
+    setLenderID(new_lender_id){this.setState({kiva_lender_id: new_lender_id})},
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging'];
     },
     getMissingPartners(){
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
-        cl("missingPartners",m_partners)
         return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },
     render() {
@@ -60,7 +53,7 @@ const Options = React.createClass({
                         <Else/>
                             <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button>
                         </If>
-                        <SetLenderIDModal show={this.state.showLenderModal} onSet={lenderId=>this.setLenderID(lenderId)} onHide={this.hideLenderIDModal}/>
+                        <SetLenderIDModal show={this.state.showLenderModal} onSet={this.setLenderID} onHide={this.hideLenderIDModal}/>
                         <p className="ample-padding-top">
                             This is used for:
                         </p>
