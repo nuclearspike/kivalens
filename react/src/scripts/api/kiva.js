@@ -595,13 +595,26 @@ class Loans {
             cl('LENDER LOAN IDS:', ids)
         })
     }
-    refreshLoan(loan){ //returns a promise
+    refreshLoan(loan){ //returns a promise todo: who uses this?
         //since this object was what was already in our arrays and index, then it will just update, return can be ignored.
         return this.getLoanFromKiva(loan.id).then(k_loan => {
-            $.extend(true, loan, k_loan)
-            this.notify_promise.notify({loan_updated: loan})
+            this.mergeLoanAndNotify(loan, k_loan)
             return loan
         })
+    }
+    mergeLoanAndNotify(existing, refreshed, extra = {}){
+        if (existing.funded_amount != refreshed.funded_amount) {
+            this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
+            cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
+        }
+        var old_status = existing.status
+        $.extend(true, existing, refreshed, extra)
+        if (old_status != 'funded' && refreshed.status == "funded") {
+            this.running_totals.funded_loans++
+            this.notify_promise.notify({loan_funded: existing})
+        }
+        this.notify_promise.notify({running_totals_change: this.running_totals})
+        this.notify_promise.notify({loan_updated: existing})
     }
     getLoanFromKiva(id){
         return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
@@ -612,19 +625,11 @@ class Loans {
             loans.forEach(loan => {
                 var existing = kl.indexed_loans[loan.id]
                 if (existing) {
-                    if (existing.funded_amount != loan.funded_amount) {
-                        kl.running_totals.funded_amount += loan.funded_amount - existing.funded_amount
-                        cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
-                    }
-                    $.extend(true, existing, loan)
-                    this.notify_promise.notify({loan_updated: existing})
+                    kl.mergeLoanAndNotify(existing, loan)
                 } else {
-                    kl.running_totals.funded_amount += 25
-                    this.setKivaLoans([loan], false) //todo: do we want this?
+                    kl.running_totals.funded_amount += 25 //no notify... it'll catch up next time?
+                    kl.setKivaLoans([loan], false) //todo: do we want this?
                 }
-                if (loan.status == "funded")
-                    kl.running_totals.funded_loans++
-                this.notify_promise.notify({running_totals_change: kl.running_totals})
             })
             //cl("############### refreshLoans:", loan_arr.length, loans)
         })
@@ -686,25 +691,25 @@ class Loans {
                         || existing.basket_amount != loan.basket_amount || existing.funded_amount != loan.funded_amount)
                         loans_updated++
                     //todo: add notify for running total
-                    $.extend(true, existing, loan, {kl_background_resync: kl.background_resync})
-                    this.notify_promise.notify({loan_updated: existing})
+                    kl.mergeLoanAndNotify(existing, loan,  {kl_background_resync: kl.background_resync})
+                    kl.notify_promise.notify({loan_updated: existing})
                 } else {
                     //gather all ids for new loans to fetch the details
                     loans_added.push(loan.id)
                 }
             })
             cl("############### LOANS UPDATED:", loans_updated)
-            if (loans_updated > 0) this.notify_promise.notify({background_updated: loans_updated})
+            if (loans_updated > 0) kl.notify_promise.notify({background_updated: loans_updated})
 
             //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
             var mia_loans = kl.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
                         loan.kl_background_resync != kl.background_resync).select(loan => loan.id)
 
             //these need refreshing.
-            this.refreshLoans(mia_loans)
+            kl.refreshLoans(mia_loans)
 
             //fetch the full details for the new loans and add them to the list.
-            this.newLoanNotice(loans_added)
+            kl.newLoanNotice(loans_added)
         })
     }
 }

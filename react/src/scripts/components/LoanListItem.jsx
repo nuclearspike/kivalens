@@ -15,7 +15,7 @@ const LoanListItem = React.createClass({
     },
     componentDidMount() {
         this.listenTo(a.loans.basket.changed, ()=>{ this.setState({inBasket: s.loans.syncInBasket(this.props.id)}) })
-        this.listenTo(a.loans.live.updated, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
+        this.listenTo(a.loans.live.funded, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
         this.loanUpdated(this.props)
     },
     loanUpdated(loan){
