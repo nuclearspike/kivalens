@@ -13,7 +13,6 @@ import numeral from 'numeral'
 
 const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
 
-
 //const DTDD = React.createClass({
 //    render(){
 //        let {term, def} = this.props
@@ -30,8 +29,10 @@ var Loan = React.createClass({
         this.listenTo(a.loans.detail.completed, loan=>{ if (this.props.params.id == loan.id){ this.switchToLoan(loan) } })
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
         this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
+        this.listenTo(a.loans.live.updated, loan => {if (loan.id == this.props.params.id) this.refreshLoan})
+
         this.refreshLoan() //happens always even if we have it, to cause a refresh.
-        this.refreshInterval = setInterval(this.refreshLoan,30000)
+        this.refreshInterval = setInterval(this.refreshLoan,5*60000)
         this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
     componentWillReceiveProps(props){
@@ -156,13 +157,13 @@ var Loan = React.createClass({
                                     <DTDD term='Funded' def={new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt')} />
                                 </If>
                                 <If condition={loan.status == 'fundraising'}>
-                                    <span><dt>Expires</dt><dd>{new Date(loan.planned_expiration_date).toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
+                                    <span><dt>Expires</dt><dd>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
                                 </If>
                                 <dt>Disbursed</dt><dd>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </dd>
                             </dl>
                             <If condition={loan.status == 'fundraising'}>
                                 <dl className="dl-horizontal">
-                                    <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour).format('0.00')}</dd>
+                                    <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</dd>
                                     <dt>Loan Amount</dt><dd>${loan.loan_amount}</dd>
                                     <dt>Funded Amount</dt><dd>${loan.funded_amount}</dd>
                                     <dt>Basket Amount</dt><dd>${loan.basket_amount}</dd>

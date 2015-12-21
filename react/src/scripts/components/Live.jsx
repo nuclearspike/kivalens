@@ -5,6 +5,7 @@ import {KivaLink} from '.'
 import a from '../actions'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
+import {setWatchedPot} from '../stores/liveStore'
 
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
@@ -25,7 +26,11 @@ const Live = React.createClass({
         return {running_totals: kivaloans.running_totals}
     },
     componentDidMount() {
-        this.listenTo(a.loans.live.change, rt => this.setState({running_totals: rt}))
+        setWatchedPot(true)
+        this.listenTo(a.loans.live.statsChanged, rt => this.setState({running_totals: rt}))
+    },
+    componentWillUnmount(){
+        setWatchedPot(false)
     },
     render() {
         let {new_loans, funded_loans, funded_amount} = this.state.running_totals

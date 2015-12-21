@@ -145,10 +145,10 @@ class ResultProcessors {
         var addIt = { kl_downloaded: new Date() }
         addIt.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
         addIt.kl_posted_date = new Date(loan.posted_date)
-        addIt.kl_newest_sort = Math.round(new Date() - addIt.kl_posted_date)
-        addIt.kl_posted_hours_ago = (new Date() - addIt.kl_posted_date) / (60*60*1000)
+        addIt.kl_newest_sort = addIt.kl_posted_date.getTime()
+        addIt.kl_posted_hours_ago = function(){ return  (new Date() - this.kl_posted_date) / (60*60*1000) }.bind(loan)
         if (!loan.basket_amount) loan.basket_amount = 0
-        addIt.kl_dollars_per_hour = (loan.funded_amount + loan.basket_amount) / addIt.kl_posted_hours_ago
+        addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         addIt.kl_percent_funded = Math.max((100 * (loan.funded_amount - loan.basket_amount)) / loan.loan_amount, 0)
         if (loan.description.texts) { //the presence implies this is a detail result
@@ -170,9 +170,10 @@ class ResultProcessors {
             var today = new Date();
             addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
+            addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
             //addIt.kl_repaid_in = (addIt.kl_final_repayment - new Date()) / (30 * 24 * 60 * 60 * 1000)
-            addIt.kl_expiring_in_days = (new Date(loan.planned_expiration_date) - new Date()) / (24 * 60 * 60 * 1000)
-            addIt.kl_disbursal_in_days = (new Date(loan.terms.disbursal_date) - new Date()) / (24 * 60 * 60 * 1000)
+            addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
+            addIt.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
 
             addIt.kl_percent_women = loan.borrowers.where(b => b.gender == "F").length * 100 / loan.borrowers.length
 
@@ -596,7 +597,11 @@ class Loans {
     }
     refreshLoan(loan){ //returns a promise
         //since this object was what was already in our arrays and index, then it will just update, return can be ignored.
-        return this.getLoanFromKiva(loan.id).then(k_loan => $.extend(true, loan, k_loan))
+        return this.getLoanFromKiva(loan.id).then(k_loan => {
+            $.extend(true, loan, k_loan)
+            this.notify_promise.notify({loan_updated: loan})
+            return loan
+        })
     }
     getLoanFromKiva(id){
         return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
@@ -612,6 +617,7 @@ class Loans {
                         cl(`############### refreshLoans: FUNDED CHANGED: was: ${existing.funded_amount} now: ${loan.funded_amount}`)
                     }
                     $.extend(true, existing, loan)
+                    this.notify_promise.notify({loan_updated: existing})
                 } else {
                     kl.running_totals.funded_amount += 25
                     this.setKivaLoans([loan], false) //todo: do we want this?
@@ -672,17 +678,18 @@ class Loans {
 
         new LoansSearch(this.base_kiva_params, false).start().done(loans => {
             var loans_added = [], loans_updated = 0
-            //for every loan found in a search from Kiva..
+            //for every loan found in a search from Kiva... these are not full details!
             loans.forEach(loan => {
                 var existing = kl.indexed_loans[loan.id]
                 if (existing) {
                     if (existing.status != loan.status
                         || existing.basket_amount != loan.basket_amount || existing.funded_amount != loan.funded_amount)
                         loans_updated++
-
+                    //todo: add notify for running total
                     $.extend(true, existing, loan, {kl_background_resync: kl.background_resync})
+                    this.notify_promise.notify({loan_updated: existing})
                 } else {
-                    //gather all ids for new loans.
+                    //gather all ids for new loans to fetch the details
                     loans_added.push(loan.id)
                 }
             })
@@ -692,19 +699,12 @@ class Loans {
             //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
             var mia_loans = kl.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
                         loan.kl_background_resync != kl.background_resync).select(loan => loan.id)
-            new LoanBatch(mia_loans).start().done(loans => { //this is ok when there aren't any
-                loans.forEach(loan => {
-                    var existing = kl.indexed_loans[loan.id]
-                    $.extend(true, existing, loan)
-                })
-                cl("############### MIA LOANS:", mia_loans.length, loans)
-            })
+
+            //these need refreshing.
+            this.refreshLoans(mia_loans)
 
             //fetch the full details for the new loans and add them to the list.
-            new LoanBatch(loans_added).start().done(loans => { //this is ok when there aren't any
-                cl("############### NEW LOANS FOUND:", loans_added.length, loans)
-                this.setKivaLoans(loans, false)
-            })
+            this.newLoanNotice(loans_added)
         })
     }
 }

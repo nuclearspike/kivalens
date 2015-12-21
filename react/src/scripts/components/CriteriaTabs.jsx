@@ -22,10 +22,11 @@ const AllAnyNoneButton = React.createClass({
         this.props.onChange(selected)
     },
     render(){
-        var selected = this.props.cursor.value
-        var styles = (this.props.canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
+        let {canAll} = this.props
+        var selected = this.props.cursor.value || (canAll ? 'all' : 'any')
+        var styles = (canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
         return <DropdownButton style={{padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
-            <If condition={this.props.canAll}>
+            <If condition={canAll}>
                 <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All of these</MenuItem>
             </If>
             <MenuItem onClick={this.onSelect.bind(this,'any')} eventKey="2">Any of these</MenuItem>
@@ -47,9 +48,9 @@ const InputRow = React.createClass({
         this.props.onChange()
     },
     render(){
-        return (<Row>
+        return <Row>
             <Input type='text' label={this.props.label} labelClassName='col-md-3' wrapperClassName='col-md-9' ref='input' defaultValue={this.props.group.refine(this.props.name).value} onKeyUp={this.inputChange} />
-        </Row>)
+        </Row>
     }
 })
 
@@ -65,8 +66,15 @@ const SelectRow = React.createClass({
     cursorValue(){
         return this.props.group.refine(this.props.name)
     },
+    //defaultAllAnyNone(){
+    //    return this.props.options.canAll ? 'all' : 'any'
+    //},
     selectChange(value, values){
         this.cursorValue().set(value)
+
+        //if (value && this.props.options.allAnyNone && !this.cursorAllAnyNone().value) //todo: this is wrong!!
+        //    this.cursorAllAnyNone().set(this.defaultAllAnyNone())
+
         this.props.onChange()
     },
     cursorAllAnyNone(){
@@ -78,8 +86,6 @@ const SelectRow = React.createClass({
     },
     render(){
         var options = this.props.options
-        if (options.allAnyNone && !this.cursorAllAnyNone().value)
-            this.cursorAllAnyNone().set(this.props.options.canAll ? 'all' : 'any')
         return <Row>
             <Col md={3}>
                 <label className="control-label">{options.label}</label>
@@ -312,9 +318,12 @@ const CriteriaTabs = React.createClass({
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
     filteredDone(loans){
+        if (!(this.last_select && this.last_select.key)) return
         //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
-        if (this.last_select && this.last_select.key && this.state.criteria[this.last_select.group][`${this.last_select.key}_all_any_none`] == 'all') {
-            this.genHelperGraphs(this.last_select.group, this.last_select.key, loans)
+        let {key, group} = this.last_select
+        var cg = this.state.criteria[group]
+        if (cg[`${key}_all_any_none`] == 'all' || (this.options[key].canAll && !cg[`${key}_all_any_none`])) {
+            this.genHelperGraphs(group, key, loans)
         }
     },
     reloadCriteria(criteria = {}){
@@ -331,7 +340,7 @@ const CriteriaTabs = React.createClass({
     loansReady(){
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => {return { label: p.name, value: p.id }})
+        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => ({ label: p.name, value: p.id }))
         this.setState({loansReady : true})
         this.figureAtheistList()
         this.criteriaChanged()
@@ -499,7 +508,7 @@ const CriteriaTabs = React.createClass({
                 data: data.select(d => d.count)
             }]
         }
-        //cl(config)
+
         var newState = {helper_charts: {}}
         newState.helper_charts[group] = config
         this.setState(newState)
@@ -508,17 +517,13 @@ const CriteriaTabs = React.createClass({
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
         this.last_select = {group: group, key: key}
-        cl('focusSelect', group, key)
-
-        //['all','any','none'].contains(this.state.criteria[group][`${key}_all_any_none`])
-        //var loans = (this.options[this.last_select.key].allAnyNone) || !this.options[this.last_select.key].multi ?
-        //    this.performSearchWithout(group, key) :
-        //    s.loans.syncFilterLoansLast()
 
         //do we ignore what is in the select
         var ignore_values = false
 
-        if (this.state.criteria[group][`${key}_all_any_none`] == 'all')
+        var cg = this.state.criteria[group]
+
+        if (cg[`${key}_all_any_none`] == 'all' || (this.options[key].canAll && !cg[`${key}_all_any_none`]))
             ignore_values = true
 
         var loans = ignore_values ? s.loans.syncFilterLoansLast() : this.performSearchWithout(group, key)

@@ -30,7 +30,7 @@ const Basket = React.createClass({
         }
     },
     makeBasket(){
-        return JSON.stringify(this.state.basket_items.select(bi => {return {"id": bi.loan.id, "amount": bi.amount}}))
+        return JSON.stringify(this.state.basket_items.select(bi => ({"id": bi.loan.id, "amount": bi.amount})))
     },
     remove(e) {
         e.preventDefault()

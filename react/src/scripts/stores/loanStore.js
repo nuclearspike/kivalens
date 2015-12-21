@@ -34,9 +34,10 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
         a.criteria.lenderLoansEvent(progress.lender_loans_event)
         loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: is this best here? this isn't just standard relay
     }
-    if (progress.running_totals_change) {
-        a.loans.live.change(progress.running_totals_change)
-    }
+    if (progress.running_totals_change)
+        a.loans.live.statsChanged(progress.running_totals_change)
+    if (progress.loan_updated)
+        a.loans.live.updated(progress.loan_updated)
 })
 
 class CritTester {
@@ -179,38 +180,38 @@ var loanStore = Reflux.createStore({
     },
 
     //BASKET
-    _basketSave: function(){
+    _basketSave(){
         lsj.set('basket', basket_loans)
         a.loans.basket.changed()
     },
-    syncInBasket: function(loan_id){ return basket_loans.first(bi => bi.loan_id == loan_id) != undefined },
-    syncBasketCount: function(){ return basket_loans.length },
-    syncGetBasket: function(){
-        return basket_loans.map(bi => {return {amount: bi.amount, loan: kivaloans.getById(bi.loan_id)}}).where(bi => bi.loan != undefined)
+    syncInBasket(loan_id){ return basket_loans.first(bi => bi.loan_id == loan_id) != undefined },
+    syncBasketCount(){ return basket_loans.length },
+    syncGetBasket(){
+        return basket_loans.map(bi => ({amount: bi.amount, loan: kivaloans.getById(bi.loan_id)})).where(bi => bi.loan != undefined)
     },
-    onBasketClear: function(){
+    onBasketClear(){
         basket_loans = []
         window.rga.event({category: 'basket', action: 'basket:clear'})
         this._basketSave()
     },
-    onBasketBatchAdd: function(loans_to_add){
+    onBasketBatchAdd(loans_to_add){
         basket_loans = basket_loans.concat(loans_to_add) //.distinct((a,b)=> a.loan_id == b.loan_id)
         window.rga.event({category: 'basket', action: 'basket:batchAdd', value: loans_to_add.length})
         this._basketSave()
     },
-    onBasketAdd: function(loan_id, amount = 25){
+    onBasketAdd(loan_id, amount = 25){
         if (!this.syncInBasket(loan_id)) {
             window.rga.event({category: 'basket', action: 'basket:add'})
             basket_loans.push({amount: amount, loan_id: loan_id})
             this._basketSave()
         }
     },
-    onBasketRemove: function(loan_id){
+    onBasketRemove(loan_id){
         basket_loans.removeAll(bi => bi.loan_id == loan_id)
         window.rga.event({category: 'basket', action: 'basket:remove'})
         this._basketSave()
     },
-    onBasketBatchRemove: function(loan_ids){
+    onBasketBatchRemove(loan_ids){
         if (!loan_ids.length) return
         basket_loans.removeAll(bi => loan_ids.contains(bi.loan_id))
         window.rga.event({category: 'basket', action: 'basket:batchRemove'})
@@ -229,7 +230,7 @@ var loanStore = Reflux.createStore({
     },
 
     //LOANS
-    onDetail: function(id){
+    onDetail(id){
         var loan = kivaloans.getById(id)
         if (loan)
             a.loans.detail.completed(loan) //return immediately with the last one we got (typically at start up)
@@ -237,10 +238,10 @@ var loanStore = Reflux.createStore({
             loan = {id: id}
         kivaloans.refreshLoan(loan).done(l => a.loans.detail.completed(l)) //kick off a process to get an updated version
     },
-    onFilter: function(c){
+    onFilter(c){
         a.loans.filter.completed(this.syncFilterLoans(c))
     },
-    onLoadCompleted: function(loans){
+    onLoadCompleted(loans){
         //find loans in the basket where they are not in the listing from kiva.
         var checkThese = basket_loans.where(bi => !kivaloans.hasLoan(bi.loan_id)).select(bi => bi.loan_id)
         //fetch them to find out what they are. when no longer fundraising, remove from basket.
@@ -254,14 +255,14 @@ var loanStore = Reflux.createStore({
         })
         //loans that are left in the basket which are not in kivaloans.loans_from_kiva may not fit base criteria.
     },
-    syncHasLoadedLoans: function(){
+    syncHasLoadedLoans(){
         return kivaloans.loans_from_kiva.length > 0
     },
-    mergeLoan: function(d_loan){ //used?
+    mergeLoan(d_loan){ //used?
         var loan = kivaloans.getById(d_loan.id)
         if (loan) $.extend(true, loan, d_loan)
     },
-    syncGet: function(id){
+    syncGet(id){
         return kivaloans.getById(id)
     },
     syncFilterLoansLast(){
@@ -269,15 +270,14 @@ var loanStore = Reflux.createStore({
             a.loans.filter() //todo this seems bad. is it needed?
         return last_filtered
     },
-    syncFilterPartners: function(c){
+    syncFilterPartners(c){
         if (last_partner_search_count > 10) {
             last_partner_search = {}
             last_partner_search_count = 0
         }
         var useCache = true
 
-        //this isn't great. merging unrelated stuff.
-        var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, c.portfolio.pb_partner))
+        var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, {balancing: c.portfolio.pb_partner}))
         var partner_ids
         if (useCache && last_partner_search[partner_criteria_json]){
             partner_ids = last_partner_search[partner_criteria_json]
@@ -300,7 +300,7 @@ var loanStore = Reflux.createStore({
             var ct = new CritTester(c.partner)
 
             ct.addAnyAllNoneTester('region',null,'any',       partner=>partner.kl_regions, true)
-            ct.addAnyAllNoneTester('social_performance',sp_arr,'all', partner=>partner.kl_sp, true)
+            ct.addAnyAllNoneTester('social_performance',sp_arr,'all',  partner=>partner.kl_sp, true)
             ct.addAnyAllNoneTester('partners', partners_given,'any',   partner=>partner.id)
             ct.addRangeTesters('partner_default',             partner=>partner.default_rate)
             ct.addRangeTesters('partner_arrears',             partner=>partner.delinquency_rate)
@@ -329,7 +329,7 @@ var loanStore = Reflux.createStore({
         }
         return partner_ids
     },
-    syncFilterLoans: function(c, cacheResults = true){
+    syncFilterLoans(c, cacheResults = true, loans_to_test = null){
         if (!kivaloans.isReady()) return []
         if (!c){ c = criteriaStore.syncGetLast() }
         //needs a copy of it and to guarantee the groups are there.
@@ -355,12 +355,12 @@ var loanStore = Reflux.createStore({
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
         ct.addRangeTesters('percent_funded',      loan=>loan.kl_percent_funded)
-        ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days)
+        ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
         ct.addFieldContainsOneOfArrayTester(this.syncFilterPartners(c), loan=>loan.partner_id, true) //always added!
-        if (c.portfolio.exclude_portfolio_loans == 'true' && kivaloans.lender_loans)
+        if (c.portfolio.exclude_portfolio_loans == 'true' && kivaloans.lender_loans  && kivaloans.lender_loans.length)
             ct.addFieldNotContainsOneOfArrayTester(kivaloans.lender_loans, loan=>loan.id)
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
@@ -369,7 +369,9 @@ var loanStore = Reflux.createStore({
         ct.testers.push(loan => loan.status == 'fundraising')
         cl('crit:loan:testers', ct.testers)
 
-        var linq_loans = kivaloans.loans_from_kiva.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
+        if (!loans_to_test) loans_to_test = kivaloans.loans_from_kiva
+
+        var linq_loans = loans_to_test.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
 
         var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
             if (a > b) return -1
@@ -383,18 +385,19 @@ var loanStore = Reflux.createStore({
         }
 
         //loans are default ordered by 50 back, 75 back, last repayment
+        if (linq_loans.length > 1)
         switch (c.loan.sort) {
             case 'final_repayment':
                 linq_loans = linq_loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
                 break
             case 'popularity':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_dollars_per_hour, basicReverseOrder)
+                linq_loans = linq_loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
                 break
             case 'newest':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_newest_sort).thenByDescending(loan => loan.id)
+                linq_loans = linq_loans.orderBy(loan => loan.kl_newest_sort, basicReverseOrder).thenByDescending(loan => loan.id)
                 break
             case 'expiring':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_expiring_in_days).thenBy(loan => loan.id)
+                linq_loans = linq_loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
                 break
             default:
                 linq_loans = linq_loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)

@@ -3,6 +3,10 @@
 import Reflux from 'reflux'
 import a from '../actions'
 
+//when you are on the live page, it doesn't queue the actions and ends up with more API calls
+//but goes full real-time
+var watchedPot = false
+
 class Channel {
     constructor(channelName){
         this.data = []
@@ -30,14 +34,21 @@ class Channel {
 class LoanPostedChannel extends Channel {
     constructor(){ super('loan.posted') }
     processData(data){
-        kivaloans.queueNewLoanNotice(data.p.loan.id)
+        if (watchedPot)
+            kivaloans.newLoanNotice([data.p.loan.id])
+        else
+            kivaloans.queueNewLoanNotice(data.p.loan.id)
     }
 }
 
 class LoanPurchasedChannel extends Channel {
     constructor(){ super('loan.purchased') }
     processData(data){
-        kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
+        var loan_ids = data.p.loans.select(l=>l.id)
+        if (watchedPot)
+            kivaloans.refreshLoans(loan_ids)
+        else
+            kivaloans.queueToRefresh(loan_ids)
     }
 }
 
@@ -57,4 +68,9 @@ var liveStore = Reflux.createStore({
     }
 )
 
+function setWatchedPot(wp){
+    watchedPot = wp
+}
+
 export default liveStore
+export {setWatchedPot}

@@ -15,12 +15,17 @@ const LoanListItem = React.createClass({
     },
     componentDidMount() {
         this.listenTo(a.loans.basket.changed, ()=>{ this.setState({inBasket: s.loans.syncInBasket(this.props.id)}) })
+        this.listenTo(a.loans.live.updated, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
+        this.loanUpdated(this.props)
+    },
+    loanUpdated(loan){
+        if (loan.status == 'funded') this.setState({funded: true})
     },
     render() {
-        var loan = this.props;
+        var loan = this.props
         return (
             <ListGroupItem
-                className={cx('loan_list_item', {in_basket: this.state.inBasket})}
+                className={cx('loan_list_item', {in_basket: this.state.inBasket, funded: this.state.funded})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>
                 <KivaImage className="float_left" type="square" loan={loan} image_width={113} height={90} width={90}/>

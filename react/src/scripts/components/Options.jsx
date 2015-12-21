@@ -67,9 +67,10 @@ const Options = React.createClass({
                                 Sectors that aren't like any in your total portfolio to collect all sectors
                                 OR only find Partners that don't have more than 5% of your active portfolio
                                 to balance your risk).</li>
-                            <li>Basket Pruning: By default, your basket will not clear. If set, when you come back
-                                to KivaLens, your basket will have the loans that completed removed. Otherwise,
-                                you'll either need to click the "Return to 3rd party app" at the end of your Kiva
+                            <li>Basket Pruning: By default, your basket will not clear when returning to the site.
+                                If your Lender ID is set, when you come back to KivaLens, your basket will
+                                have the loans that completed removed. Otherwise, you'll either need
+                                to click the "Return to 3rd party app" at the end of your Kiva
                                 checkout (which will clear your basket) or manually clear the basket.</li>
                         </ul>
 
