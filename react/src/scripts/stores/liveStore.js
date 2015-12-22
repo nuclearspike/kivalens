@@ -34,7 +34,7 @@ class Channel {
 class LoanPostedChannel extends Channel {
     constructor(){ super('loan.posted') }
     processData(data){
-        if (watchedPot)
+        if (watchedPot && kivaloans.isReady())
             kivaloans.newLoanNotice([data.p.loan.id])
         else
             kivaloans.queueNewLoanNotice(data.p.loan.id)
@@ -45,32 +45,23 @@ class LoanPurchasedChannel extends Channel {
     constructor(){ super('loan.purchased') }
     processData(data){
         var loan_ids = data.p.loans.select(l=>l.id)
-        if (watchedPot)
+        if (watchedPot && kivaloans.isReady())
             kivaloans.refreshLoans(loan_ids)
         else
             kivaloans.queueToRefresh(loan_ids)
     }
 }
 
-var channels = {}
+window.channels = {}
+//window.startChannels = ()=> Object.keys(channels).forEach(channel => channels[channel].connect())
 
 $(()=>{
-    var chans = [LoanPostedChannel, LoanPurchasedChannel]
-    chans.forEach(ch => {
-        var chan = new ch()
-        channels[chan.channelName] = chan
-    })
-    window.channels = channels
+    ([new LoanPostedChannel(), new LoanPurchasedChannel()]).forEach(chan => channels[chan.channelName] = chan)
 })
 
-var liveStore = Reflux.createStore({
-        init() {}
-    }
-)
+var liveStore = Reflux.createStore({ init() {} })
 
-function setWatchedPot(wp){
-    watchedPot = wp
-}
+function setWatchedPot(boil){ watchedPot = boil }
 
 export default liveStore
 export {setWatchedPot}

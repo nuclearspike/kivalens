@@ -31,14 +31,21 @@ window.cl = function() {
 
 //this is a common enough pattern in KL that it makes sense to standardize and shorten.
 Array.prototype.groupBySelectWithCount = function(selector){
-    return this.groupBy(selector).select(g => {return {name: selector(g[0]), count: g.length}})
+    return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
 }
+
+Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
+    return this.groupBy(selector).select(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
+}
+
+Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
 //flatten takes a complex array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
 //turns var a = [1,2,3,4,5,6,7,8,9,10,11]; a.chunk(5); into => [[1,2,3,4,5],[6,7,8,9,10],[11]]
 //added for taking arrays of loan ids and breaking them into the max kiva allows for a request
+//this now has a lodash equivalent... can remove this after conversion
 Array.prototype.chunk = function(chunkSize) {
     var R = []
     for (var i=0; i<this.length; i+=chunkSize)
@@ -46,6 +53,7 @@ Array.prototype.chunk = function(chunkSize) {
     return R
 }
 
+//I hate this!
 window.findBootstrapEnv = function() {
     var envs = ["xs", "sm", "md", "lg"],
         doc = window.document,
@@ -66,6 +74,7 @@ window.findBootstrapEnv = function() {
     return "";
 }
 
+//turns user_favorite => User Favorite
 window.humanize = function (str) {
     var frags = str.split('_');
     for (var i=0; i<frags.length; i++) {

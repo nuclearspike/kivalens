@@ -175,7 +175,7 @@ class ResultProcessors {
             addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
             addIt.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
 
-            addIt.kl_percent_women = loan.borrowers.where(b => b.gender == "F").length * 100 / loan.borrowers.length
+            addIt.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
             var amount_50 = loan.loan_amount  * 0.5
             var amount_75 = loan.loan_amount * 0.75
@@ -628,6 +628,7 @@ class Loans {
                     kl.mergeLoanAndNotify(existing, loan)
                 } else {
                     kl.running_totals.funded_amount += 25 //no notify... it'll catch up next time?
+                    this.notify_promise.notify({running_totals_change: kl.running_totals})
                     kl.setKivaLoans([loan], false) //todo: do we want this?
                 }
             })
@@ -636,6 +637,8 @@ class Loans {
     }
     queueToRefresh(loan_id_arr){
         this.queue_to_refresh = this.queue_to_refresh.concat(loan_id_arr).distinct()
+
+        if (!this.isReady()) return
 
         var clearQueue = ()=>{
             if (!this.queue_to_refresh.length) return
@@ -656,6 +659,8 @@ class Loans {
     queueNewLoanNotice(id){
         this.queue_new_loan_query.push(id)
 
+        if (!this.isReady()) return
+
         var clearQueue = ()=>{
             if (!this.queue_new_loan_query.length) return
             var to_add = this.queue_new_loan_query
@@ -663,7 +668,7 @@ class Loans {
             this.newLoanNotice(to_add)
         }
 
-        //let them stack up.
+        //let them stack up. don't have a max to flush since new loans come in bursts then stop.
         clearTimeout(this.queueToNewQueryTimeout)
         this.queueToNewQueryTimeout = setTimeout(clearQueue, 1000)
     }

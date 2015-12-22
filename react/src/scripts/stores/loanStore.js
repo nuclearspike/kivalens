@@ -22,8 +22,10 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
         a.loans.backgroundResync.added(progress.background_added)
     if (progress.background_updated)
         a.loans.backgroundResync.updated(progress.background_updated)
-    if (progress.loans_loaded)
+    if (progress.loans_loaded) {
         a.loans.load.completed(kivaloans.loans_from_kiva)
+        //window.startChannels()
+    }
     if (progress.loan_load_progress)
         a.loans.load.progressed(progress.loan_load_progress)
     if (progress.failed)
