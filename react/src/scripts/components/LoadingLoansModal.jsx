@@ -55,7 +55,7 @@ var LoadingLoansModal = React.createClass({
                             <p>What else do you wish KivaLens could do{'?'} Check out the About page to contact me!</p>
                             <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p>
                             <p>You can click anywhere in one of the drop-down boxes to bring up the selection (you don't need to click the little arrow) or just start typing.</p>
-                            <p>Kiva's site does not allow you to search for multiple "Tags" (where the loan must be tagged with both) but they are a great way to narrow your search. You can look for loans that have Interesting Photos, Inspiring Stories, and are Repeat Borrowers!</p>
+                            <p>Kiva's site does not allow you to search for multiple "Tags" (where the loan must be tagged with both) but they are a great way to narrow your search. You can look for loans that have Interesting Photos, Inspiring Stories, and who are Repeat Borrowers!</p>
                             <p>All/Any/None options. Selecting "All" Tags requires the loan to have all of the tags listed while "Any" means the loan has to match one or more of them.</p>
                             <p>To fill up your basket quickly with matching loans, use the "Bulk Add" button above the list of loans.</p>
                             <p>KivaLens keeps the loans up-to-the-second fresh. Check out the "Live" page to see how KivaLens is getting updates from Kiva as they happen.</p>

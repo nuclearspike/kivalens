@@ -79,7 +79,7 @@ const ChartDistribution = React.createClass({
         return result
     },
     groupByForChart(loans, selector){
-        loans.groupBy(selector).select(g=>({name: selector(g[0]), y: g.length}))
+        return loans.groupBy(selector).select(g=>({name: selector(g[0]), y: g.length}))
     },
     redoCharts(loans){
         if (['xs','sm'].contains(findBootstrapEnv())) return

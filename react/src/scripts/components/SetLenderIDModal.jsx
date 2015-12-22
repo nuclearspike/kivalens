@@ -51,7 +51,7 @@ const SetLenderIDModal = React.createClass({
                                     Your Kiva Lender ID is not your email address.&nbsp;
                                 <KivaLink secure path="myLenderId">Click here if you don't know yours</KivaLink>
                                 <If condition={checking}>
-                                    <Alert>Checking with Kiva</Alert>
+                                    <Alert>Checking with Kiva...</Alert>
                                 </If>
                                 <If condition={failed}>
                                     <Alert bsStyle="danger">Invalid Lender ID</Alert>

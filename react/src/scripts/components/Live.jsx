@@ -45,7 +45,7 @@ const Live = React.createClass({
             .select(p => ({country: p.lender.lenderPage.whereabouts.split(',').last().trim() || "(Undisclosed)", loan_count: p.loans.length}))
             .groupBySelectWithSum(c=>c.country, c=>c.loan_count).orderBy(g=>g.sum).reverse().take(10)
 
-        //generic splattening to get the loan objects
+        //generic splattening of the payloads to get the loan objects
         var loans_during = messages.select(p=>p.loans).flatten()
 
         var top_sectors = loans_during.groupBySelectWithCount(l=>l.sector.name).orderBy(g=>g.count).reverse().take(10)
@@ -77,7 +77,7 @@ const Live = React.createClass({
                 </Col>
                 <Col md={3}>
                     <b>Top Lending Countries: Loans: Country</b>
-                    <p>(Past 30 minutes)</p>
+                    <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_lending_countries}>
                             <li key={i}>{ranked.sum}: {ranked.name}</li>
@@ -86,7 +86,7 @@ const Live = React.createClass({
                 </Col>
                 <Col md={3}>
                     <b>Top Sectors: Loans: Sector</b>
-                    <p>(Past 30 minutes)</p>
+                    <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_sectors}>
                             <li key={i}>{ranked.count}: {ranked.name}</li>
@@ -95,7 +95,7 @@ const Live = React.createClass({
                 </Col>
                 <Col md={3}>
                     <b>Top Countries: Loans: Country</b>
-                    <p>(Past 30 minutes)</p>
+                    <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_countries}>
                             <li key={i}>{ranked.count}: {ranked.name}</li>

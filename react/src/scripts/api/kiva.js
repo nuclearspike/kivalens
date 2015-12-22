@@ -332,12 +332,12 @@ class LoansSearch extends PagedKiva {
 
     start(){
         //this seems problematic, break this into a "post process" function, support it in the base class?
-        return super.start().then(loans => {
+        return super.start().fail(this.promise.reject).then(loans => {
             //after the download process is complete, if a max final payment date was specified, then remove all that don't match.
             if (this.max_repayment_date)
                 loans = loans.where(loan => loan.kl_final_repayment.isBefore(this.max_repayment_date))
             return loans
-        }).fail(this.promise.reject)
+        })
     }
 }
 
@@ -360,11 +360,11 @@ class LenderLoans extends PagedKiva {
 
     start(){
         //return only an array of the ids of the loans (in a done()) //if the "then()" promise fails, reject the original
-        return super.start().then(loans => {
+        return super.start().fail(this.promise.reject).then(loans => {
             if (this.fundraising_only)
                 loans = loans.where(loan => loan.status == 'fundraising')
             return loans.select(loan => loan.id)
-        }).fail(this.promise.reject) //? is this fail() correct?
+        })
     }
 }
 
@@ -382,22 +382,23 @@ class LoanBatch {
         var $def = $.Deferred()
         var r_loans = []
 
-        for (var i = 0; i < chunks.length; i++){
+        chunks.forEach(chunk => {
             $def.notify({task: 'details', done: 0, total: 1, label: 'Preparing to download...'})
-            Request.sem_get(`loans/${chunks[i].join(',')}.json`, {}, 'loans', false)
-                .done(loans => {
-                    ResultProcessors.processLoans(loans)
+            Request.sem_get(`loans/${chunk.join(',')}.json`, {}, 'loans', false)
+                .then(ResultProcessors.processLoans).done(loans => {
                     r_loans = r_loans.concat(loans)
 
-                    $def.notify({task: 'details', done: r_loans.length , total: this.ids.length,
-                        label: `${r_loans.length}/${this.ids.length} downloaded`})
+                    $def.notify({
+                        task: 'details', done: r_loans.length, total: this.ids.length,
+                        label: `${r_loans.length}/${this.ids.length} downloaded`
+                    })
 
                     if (r_loans.length >= this.ids.length) {
                         $def.notify({done: true})
                         $def.resolve(r_loans)
                     }
                 })
-        }
+        })
         if (chunks.length == 0){
             $def.notify({done: true})
             $def.reject() //prevent done() processing on an empty set.
@@ -409,6 +410,46 @@ class LoanBatch {
 
 const llUnknown = 0, llDownloading = 1, llComplete = 2
 
+//not super robust. just a simple way to have things queue up until either a time passes between
+//events or the queue reaches a given max. behavior, if it waits 5 seconds and another event happens,
+//the timer restarts and it can continue like this over and over until the max queue is reached.
+class QueuedActions {
+    constructor(){
+        this.queue = []
+        this.queueTimeout=0
+    }
+    init(options){
+        var defaults = {action:()=>{},isReady:()=>true,maxQueue:10,waitFor:5000}
+        $.extend(true, this, defaults, options)
+        return this
+    }
+    processQueue(){
+        if (!this.queue.length) return
+        var to_pass = this.queue
+        this.queue = []
+        this.action(to_pass)
+    }
+    enqueue(objs){
+        if (Array.isArray(objs))
+            this.queue = this.queue.concat(objs).distinct()
+        else
+            this.queue.push(objs)
+
+        if (!this.isReady()) return
+
+        //should we wait?
+        if (this.queue.length <= this.maxQueue) {
+            //let them stack up.
+            clearTimeout(this.queueTimeout)
+            this.queueTimeout = setTimeout(this.processQueue.bind(this), this.waitFor)
+        } else {
+            //do it immediately
+            this.processQueue()
+        }
+    }
+}
+
+
 //rename this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
 //processes
 class Loans {
@@ -417,8 +458,8 @@ class Loans {
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
-        this.queue_to_refresh = []
-        this.queue_new_loan_query = []
+        this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this)})
+        this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.is_ready = false
         this.lender_loans_message = "Lender ID not set"
         this.lender_loans_state = llUnknown
@@ -436,7 +477,7 @@ class Loans {
         //fetch partners.
         setAPIOptions(api_options)
         crit = $.extend(crit, {})
-        this.notify_promise.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
+        this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(partners => {
             var max_repayment_date = null
 
@@ -452,10 +493,13 @@ class Loans {
             //todo: switch over to using the meta criteria
             //if (crit && crit.loan && crit.loan.repaid_in_max)
             //    max_repayment_date = (crit.loan.repaid_in_max).months().fromNow()
-            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date).progress(progress => this.notify_promise.notify({loan_load_progress: progress})).done(()=> this.notify_promise.notify({loans_loaded: true}))
-        }).fail((xhr)=>{this.notify_promise.notify({failed: xhr.responseJSON.message})})
+            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date).progress(progress => this.notify({loan_load_progress: progress})).done(()=> this.notify({loans_loaded: true}))
+        }).fail((xhr)=>{this.notify({failed: xhr.responseJSON.message})})
         //used saved partner filter
         return this.notify_promise
+    }
+    notify(message){
+        this.notify_promise.notify(message)
     }
     getAtheistList(){
         var CSVToArray = function(strData) {
@@ -519,8 +563,8 @@ class Loans {
                             "reviewComments": mfi.reviewComments}
                     }
                 })
-                this.notify_promise.notify({atheist_list_loaded: true})
                 this.atheist_list_processed = true
+                this.notify({atheist_list_loaded: true})
             })
     }
     convertCriteriaToKivaParams(crit) { //started to implement this on the criteriaStore
@@ -585,13 +629,13 @@ class Loans {
         if (this.lender_loans_state == llDownloading) return null ///not the right pattern. UI code in the API
         this.lender_loans_message = `Loading fundraising loans for ${this.lender_id} (Please wait...)`
         this.lender_loans_state = llDownloading
-        this.notify_promise.notify({lender_loans_event: 'started'})
+        this.notify({lender_loans_event: 'started'})
         var kl = this
         return new LenderLoans(this.lender_id).start().done(ids => {
             kl.lender_loans = ids
             kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
             kl.lender_loans_state = llComplete
-            kl.notify_promise.notify({lender_loans_event: 'done'})
+            kl.notify({lender_loans_event: 'done'})
             cl('LENDER LOAN IDS:', ids)
         })
     }
@@ -611,10 +655,10 @@ class Loans {
         $.extend(true, existing, refreshed, extra)
         if (old_status != 'funded' && refreshed.status == "funded") {
             this.running_totals.funded_loans++
-            this.notify_promise.notify({loan_funded: existing})
+            this.notify({loan_funded: existing})
         }
-        this.notify_promise.notify({running_totals_change: this.running_totals})
-        this.notify_promise.notify({loan_updated: existing})
+        this.notify({running_totals_change: this.running_totals})
+        this.notify({loan_updated: existing})
     }
     getLoanFromKiva(id){
         return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
@@ -628,7 +672,7 @@ class Loans {
                     kl.mergeLoanAndNotify(existing, loan)
                 } else {
                     kl.running_totals.funded_amount += 25 //no notify... it'll catch up next time?
-                    this.notify_promise.notify({running_totals_change: kl.running_totals})
+                    this.notify({running_totals_change: kl.running_totals})
                     kl.setKivaLoans([loan], false) //todo: do we want this?
                 }
             })
@@ -636,41 +680,10 @@ class Loans {
         })
     }
     queueToRefresh(loan_id_arr){
-        this.queue_to_refresh = this.queue_to_refresh.concat(loan_id_arr).distinct()
-
-        if (!this.isReady()) return
-
-        var clearQueue = ()=>{
-            if (!this.queue_to_refresh.length) return
-            var to_refresh = this.queue_to_refresh
-            this.queue_to_refresh = []
-            this.refreshLoans(to_refresh)
-        }
-
-        if (this.queue_to_refresh.length < 10) {
-            //let them stack up.
-            clearTimeout(this.queueToRefreshTimeout)
-            this.queueToRefreshTimeout = setTimeout(clearQueue, 5000)
-        } else {
-            //do it immediately
-            clearQueue()
-        }
+        return this.queue_to_refresh.enqueue(loan_id_arr)
     }
     queueNewLoanNotice(id){
-        this.queue_new_loan_query.push(id)
-
-        if (!this.isReady()) return
-
-        var clearQueue = ()=>{
-            if (!this.queue_new_loan_query.length) return
-            var to_add = this.queue_new_loan_query
-            this.queue_new_loan_query = []
-            this.newLoanNotice(to_add)
-        }
-
-        //let them stack up. don't have a max to flush since new loans come in bursts then stop.
-        clearTimeout(this.queueToNewQueryTimeout)
-        this.queueToNewQueryTimeout = setTimeout(clearQueue, 1000)
+        return this.queue_new_loan_query.enqueue(id)
     }
     newLoanNotice(id_arr){
         if (!this.isReady()) return
@@ -678,7 +691,7 @@ class Loans {
         new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
             kl.running_totals.new_loans += loans.length
-            this.notify_promise.notify({running_totals_change: kl.running_totals})
+            this.notify({running_totals_change: kl.running_totals})
             this.setKivaLoans(loans, false)
         })
     }
@@ -697,14 +710,14 @@ class Loans {
                         loans_updated++
                     //todo: add notify for running total
                     kl.mergeLoanAndNotify(existing, loan,  {kl_background_resync: kl.background_resync})
-                    kl.notify_promise.notify({loan_updated: existing})
+                    kl.notify({loan_updated: existing})
                 } else {
                     //gather all ids for new loans to fetch the details
                     loans_added.push(loan.id)
                 }
             })
             cl("############### LOANS UPDATED:", loans_updated)
-            if (loans_updated > 0) kl.notify_promise.notify({background_updated: loans_updated})
+            if (loans_updated > 0) kl.notify({background_updated: loans_updated})
 
             //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
             var mia_loans = kl.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
