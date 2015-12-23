@@ -9,10 +9,7 @@ import {Request} from '../api/kiva'
 const SetLenderIDModal = React.createClass({
     mixins: [LinkedStateMixin],
     getInitialState() { return {show: this.props.show, checking: false, failed: false} },
-    componentDidMount() { },
-    componentWillReceiveProps(props){
-        this.setState({show: props.show})
-    },
+    componentWillReceiveProps({show}){this.setState({show: show})},
     setLenderID(){
         var lid = this.state.kiva_lender_id
         if (!lid) return
@@ -20,10 +17,10 @@ const SetLenderIDModal = React.createClass({
 
         this.setState({checking: true, failed: false})
         Request.get(`lenders/${lid}.json`)
-            .fail(xhr => this.setState({failed: true}))
+            .fail(() => this.setState({failed: true}))
             .done(()=>{
                 kivaloans.setLender(lid)
-                if (this.props.onSet) this.props.onSet(lid)
+                this.props.onSet(lid)
                 this.onHide()
             })
             .always(()=>{this.setState({checking: false})})

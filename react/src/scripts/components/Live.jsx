@@ -11,7 +11,7 @@ import {setWatchedPot} from '../stores/liveStore'
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
     getInitialState(){ return {oldVal: this.props.value, newVal: this.props.value} },
-    componentWillReceiveProps(newProps){this.setState({oldVal: this.state.newVal, newVal: newProps.value})},
+    componentWillReceiveProps({value}){this.setState({oldVal: this.state.newVal, newVal: value})},
     //add a way to override the default formatting if needed.
     render(){
         let {oldVal, newVal} = this.state
@@ -76,7 +76,7 @@ const Live = React.createClass({
                     </dl>
                 </Col>
                 <Col md={3}>
-                    <b>Top Lending Countries: Loans: Country</b>
+                    <b>Top Lending Countries</b>
                     <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_lending_countries}>
@@ -85,7 +85,7 @@ const Live = React.createClass({
                     </ul>
                 </Col>
                 <Col md={3}>
-                    <b>Top Sectors: Loans: Sector</b>
+                    <b>Top Sectors</b>
                     <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_sectors}>
@@ -94,7 +94,7 @@ const Live = React.createClass({
                     </ul>
                 </Col>
                 <Col md={3}>
-                    <b>Top Countries: Loans: Country</b>
+                    <b>Top Countries</b>
                     <p>(Up to last 30 minutes)</p>
                     <ul>
                         <For each='ranked' index='i' of={this.state.top_countries}>

@@ -150,8 +150,8 @@ class ResultProcessors {
         if (!loan.basket_amount) loan.basket_amount = 0
         addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
-        addIt.kl_percent_funded = Math.max((100 * (loan.funded_amount - loan.basket_amount)) / loan.loan_amount, 0)
-        if (loan.description.texts) { //the presence implies this is a detail result
+        addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
+        if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
             var descr_arr
             var use_arr
 
@@ -196,9 +196,6 @@ class ResultProcessors {
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
             delete loan.terms.local_payments //we don't care
 
-        } else {
-            //this happens during the background refresh.
-            //throw new Error
         }
         $.extend(loan, addIt)
 
@@ -359,8 +356,8 @@ class LenderLoans extends PagedKiva {
     }
 
     start(){
-        //return only an array of the ids of the loans (in a done()) //if the "then()" promise fails, reject the original
-        return super.start().fail(this.promise.reject).then(loans => {
+        //return only an array of the ids of the loans (in a done())
+        return super.start().then(loans => {
             if (this.fundraising_only)
                 loans = loans.where(loan => loan.status == 'fundraising')
             return loans.select(loan => loan.id)
@@ -546,14 +543,14 @@ class Loans {
             return objArray
         }
 
-        if (this.startedAtheistDownload && this.atheist_list_processed) return
+        if (this.startedAtheistDownload || this.atheist_list_processed) return
         this.startedAtheistDownload = true
 
-        $.get('data/atheist_data.csv') //todo: this is bad. shouldn't hard reference location
+        $.get('data/atheist_data.csv')
             .fail(()=>{cl("failed to retrieve Atheist list")})
             .then(CSV2JSON).done(mfis => {
                 mfis.forEach(mfi => {
-                    var kivaMFI = this.getPartner(parseInt(mfi['id']))
+                    var kivaMFI = this.getPartner(parseInt(mfi.id))
                     if (kivaMFI){
                         kivaMFI.atheistScore = {"secularRating": parseInt(mfi.secularRating),
                             "religiousAffiliation": mfi.religiousAffiliation,
@@ -671,7 +668,7 @@ class Loans {
                 if (existing) {
                     kl.mergeLoanAndNotify(existing, loan)
                 } else {
-                    kl.running_totals.funded_amount += 25 //no notify... it'll catch up next time?
+                    kl.running_totals.funded_amount += 25
                     this.notify({running_totals_change: kl.running_totals})
                     kl.setKivaLoans([loan], false) //todo: do we want this?
                 }
@@ -708,9 +705,7 @@ class Loans {
                     if (existing.status != loan.status
                         || existing.basket_amount != loan.basket_amount || existing.funded_amount != loan.funded_amount)
                         loans_updated++
-                    //todo: add notify for running total
                     kl.mergeLoanAndNotify(existing, loan,  {kl_background_resync: kl.background_resync})
-                    kl.notify({loan_updated: existing})
                 } else {
                     //gather all ids for new loans to fetch the details
                     loans_added.push(loan.id)
@@ -734,7 +729,7 @@ class Loans {
 
 export {LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
 
-//temp
+//temp... verify that these aren't ever used before removal
 window.Request = Request
 window.LoansSearch = LoansSearch
 window.LenderLoans = LenderLoans

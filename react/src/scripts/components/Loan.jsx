@@ -22,9 +22,8 @@ const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
 
 var Loan = React.createClass({
     mixins:[Reflux.ListenerMixin, History],
-    getInitialState(){ return this.stateFromProps(this.props) },
+    getInitialState(){ return this.savedActiveTab() },
     componentWillUnmount(){ clearInterval(this.refreshInterval) },
-    componentWillMount(){ },
     componentDidMount(){
         this.listenTo(a.loans.detail.completed, loan=>{ if (this.props.params.id == loan.id){ this.switchToLoan(loan) } })
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
@@ -32,19 +31,14 @@ var Loan = React.createClass({
         this.listenTo(a.loans.live.updated, loan => {if (loan.id == this.props.params.id) this.refreshLoan})
 
         this.refreshLoan() //happens always even if we have it, to cause a refresh.
-        this.refreshInterval = setInterval(this.refreshLoan,5*60000)
+        this.refreshInterval = setInterval(this.refreshLoan, 5*60000)
         this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
-    componentWillReceiveProps(props){
-        this.setState(this.stateFromProps(props))
-        a.loans.detail(props.params.id) //cannot be refreshLoan() newProps!
-        clearInterval(this.refreshInterval)
-        this.refreshInterval = setInterval(this.refreshLoan, 30000)
+    componentWillReceiveProps({params}){
+        a.loans.detail(params.id)
     },
-    stateFromProps({params}){
-        //var loan = s.loans.syncGet(params.id)
-        var active_tab = (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1
-        return {activeTab: active_tab}
+    savedActiveTab(){
+        return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1}
     },
     switchToLoan(loan){
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
@@ -52,7 +46,7 @@ var Loan = React.createClass({
         this.calcRepaymentsGraph(loan)
         var partner = kivaloans.getPartner(loan.partner_id)
         this.setState({loan: loan, partner: partner, basket_perc: basket_perc, funded_perc: funded_perc, inBasket: s.loans.syncInBasket(loan.id)})
-        this.graphHack()
+        this.graphHack() //?? needed?
     },
     refreshLoan(){
         a.loans.detail(this.props.params.id)
@@ -115,7 +109,7 @@ var Loan = React.createClass({
         loan.kl_repay_data = grouped_payments.select(payment => payment.amount)
     },
     render() {
-        let {loan, partner} = this.state
+        let {loan, partner, activeTab, inBasket, funded_perc, basket_perc, showGraphs, showAtheistResearch} = this.state
 
         if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
@@ -123,21 +117,21 @@ var Loan = React.createClass({
         return (
             <div>
                 <h1 style={{marginTop:'0px'}}>{loan.name}
-                    <If condition={this.state.inBasket}>
+                    <If condition={inBasket}>
                         <Button className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
                     <Else/>
                         <Button className="float_right" disabled={loan.status!='fundraising'} onClick={a.loans.basket.add.bind(this, loan.id, 25)}>Add to Basket</Button>
                     </If>
                 </h1>
-                <Tabs activeKey={this.state.activeTab} onSelect={this.tabSelect}>
+                <Tabs activeKey={activeTab} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top">
                         <KivaImage loan={loan} type="width" image_width={800} width="100%"/>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
                         <Col lg={8}>
                             <ProgressBar>
-                                <ProgressBar striped bsStyle="success" now={this.state.funded_perc} key={1}/>
-                                <ProgressBar bsStyle="warning" now={this.state.basket_perc} key={2}/>
+                                <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
+                                <ProgressBar bsStyle="warning" now={basket_perc} key={2}/>
                             </ProgressBar>
                         <Row>
                             <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
@@ -174,7 +168,7 @@ var Loan = React.createClass({
 
                         </Col>
                         <ReactCSSTransitionGroup transitionName="simpleFade" transitionEnterTimeout={500} transitionLeaveTimeout={300} >
-                            <If condition={this.state.activeTab == 2 && this.state.showGraphs}>
+                            <If condition={activeTab == 2 && showGraphs}>
                                 <Col lg={4} style={{height: '500px'}} id='graph_container'>
                                     <Highcharts config={this.produceChart(loan)} />
                                     <dl className="dl-horizontal">
@@ -234,7 +228,7 @@ var Loan = React.createClass({
                                 </div>
                             </If>
 
-                            <If condition={this.state.showAtheistResearch && atheistScore}>
+                            <If condition={showAtheistResearch && atheistScore}>
                                 <div>
                                     <h3>Atheist Team Research</h3>
                                     <dl className="dl-horizontal">
