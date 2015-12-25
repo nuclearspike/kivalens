@@ -45,7 +45,7 @@ var LoadingLoansModal = React.createClass({
                         </ProgressBar>
                         <CycleChild name='didYouKnow_loading'>
                             <p>To greatly reduce load time, check out the "Options" tab if you never consider longer term loans.</p>
-                            <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet.</p>
+                            <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet... and there's a bunch of other things you can do it, check it out!</p>
                             <p>Did you know that KivaLens now works on smart-phones and tablets (iPad, Kindle, etc), too{'?'}</p>
                             <p>When typing into one of the drop-downs, as soon as it highlights the one you want, you can press Tab or Enter.</p>
                             <p>Do you know any software developers{'?'} KivaLens is open-source and will accept quality contributions (check out the About page for more information).</p>

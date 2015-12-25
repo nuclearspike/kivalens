@@ -21,7 +21,7 @@ const Options = React.createClass({
     hideLenderIDModal(){this.setState({ showLenderModal: false })},
     setLenderID(new_lender_id){this.setState({kiva_lender_id: new_lender_id})},
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging'];
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging']
     },
     getMissingPartners(){
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')

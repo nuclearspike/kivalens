@@ -34,7 +34,7 @@ class Channel {
 class LoanPostedChannel extends Channel {
     constructor(){ super('loan.posted') }
     processData(data){
-        if (watchedPot && kivaloans.isReady())
+        if (false && watchedPot && kivaloans.isReady())
             kivaloans.newLoanNotice([data.p.loan.id])
         else
             kivaloans.queueNewLoanNotice(data.p.loan.id)
@@ -45,7 +45,7 @@ class LoanPurchasedChannel extends Channel {
     constructor(){ super('loan.purchased') }
     processData(data){
         var loan_ids = data.p.loans.select(l=>l.id)
-        if (watchedPot && kivaloans.isReady())
+        if (false && watchedPot && kivaloans.isReady())
             kivaloans.refreshLoans(loan_ids)
         else
             kivaloans.queueToRefresh(loan_ids)

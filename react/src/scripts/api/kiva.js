@@ -1,3 +1,4 @@
+'use strict'
 require('linqjs')
 require('datejs')
 var sem_one = require('semaphore')(8)
@@ -361,7 +362,7 @@ class LenderLoans extends PagedKiva {
         if (this.fundraising_only && !loans.any(loan => loan.status == 'fundraising')){
             //if all loans on the page would have expired. this could miss some mega-mega lenders in corner cases.
             var today = Date.today()
-            if (loans.all(loan => loan.kl_planned_expiration_date.isBefore(today)))
+            if (loans.all(loan => new Date(loan.planned_expiration_date).isBefore(today)))
                 return false
         }
         return true
@@ -425,15 +426,16 @@ const llUnknown = 0, llDownloading = 1, llComplete = 2
 class QueuedActions {
     constructor(){
         this.queue = []
-        this.queueTimeout=0
+        this.queueInterval=0
     }
     init(options){
         var defaults = {action:()=>{},isReady:()=>true,maxQueue:10,waitFor:5000}
         $.extend(true, this, defaults, options)
+        this.queueInterval = setInterval(this.processQueue.bind(this), this.waitFor)
         return this
     }
     processQueue(){
-        if (!this.queue.length) return
+        if (!this.isReady() || !this.queue.length) return
         var to_pass = this.queue
         this.queue = []
         this.action(to_pass)
@@ -444,17 +446,9 @@ class QueuedActions {
         else
             this.queue.push(objs)
 
-        if (!this.isReady()) return
-
-        //should we wait?
-        if (this.queue.length <= this.maxQueue) {
-            //let them stack up.
-            clearTimeout(this.queueTimeout)
-            this.queueTimeout = setTimeout(this.processQueue.bind(this), this.waitFor)
-        } else {
-            //do it immediately
+        //should we wait? do it immediately
+        if (this.queue.length > this.maxQueue)
             this.processQueue()
-        }
     }
 }
 
@@ -467,7 +461,7 @@ class Loans {
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
-        this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this)})
+        this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.is_ready = false
         this.lender_loans_message = "Lender ID not set"
@@ -489,11 +483,9 @@ class Loans {
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(partners => {
             var max_repayment_date = null
-
-            if (options && options.mergeAtheistList) this.getAtheistList()
-
-            var base_options = JSON.parse(localStorage.getItem('Options')) //todo: this is app-specific!
-            base_options = $.extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, base_options)
+            var base_options = $.extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, options)
+            if (base_options.mergeAtheistList)
+                this.getAtheistList()
             if (base_options.maxRepaymentTerms_on)
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
             if (base_options.kiva_lender_id)
@@ -502,8 +494,10 @@ class Loans {
             //todo: switch over to using the meta criteria
             //if (crit && crit.loan && crit.loan.repaid_in_max)
             //    max_repayment_date = (crit.loan.repaid_in_max).months().fromNow()
-            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date).progress(progress => this.notify({loan_load_progress: progress})).done(()=> this.notify({loans_loaded: true}))
-        }).fail((xhr)=>{this.notify({failed: xhr.responseJSON.message})})
+            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
+                .progress(progress => this.notify({loan_load_progress: progress}))
+                .done(()=> this.notify({loans_loaded: true}))
+        }).fail(xhr=>this.notify({failed: xhr.responseJSON.message}))
         //used saved partner filter
         return this.notify_promise
     }

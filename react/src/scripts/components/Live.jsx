@@ -9,6 +9,7 @@ import a from '../actions'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
 import {setWatchedPot} from '../stores/liveStore'
+import LocalStorageMixin from 'react-localstorage'
 
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
@@ -54,24 +55,32 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
                 clearTimeout(this[handleName])
                 this[handleName] = setTimeout(eval(`this.${onTrigger}`)(), delayTime)
             }
-            return true //this is not in the docs, but not having a return true doesn't update the page?
+            return true //this is not in the docs, but not having a return true doesn't update the page? bad assumption?
         },
-        componentWillUnmount(){
-            clearTimeout(this[handleName])
-        }
+        componentWillUnmount(){clearTimeout(this[handleName])}
     }
 }
 
 const Live = React.createClass({
-    mixins: [Reflux.ListenerMixin,LinkedStateMixin,DelayStateTriggerMixin('maxMinutes','recalcTop'),DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop')],
+    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin,
+        DelayStateTriggerMixin('maxMinutes','recalcTop'),
+        DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop')],
     getInitialState() {
         return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
     },
+    getStateFilterKeys() {return ['maxMinutes']},
     componentDidMount() {
         setWatchedPot(true)
-        this.listenTo(a.loans.live.statsChanged, rt => this.setState({running_totals: rt}))
+        this.listenTo(a.loans.live.statsChanged, this.newRunningTotals)
         this.recalcTop()
-        this.topInterval = setInterval(this.recalcTop, 5000)
+        this.topInterval = setInterval(this.recalcTop, 2000)
+    },
+    //shouldComponentUpdate(){
+    //    return true
+    //},
+    newRunningTotals(rt){
+        this.setState({running_totals: rt, force: Math.random().toString()})
+        this.forceUpdate()
     },
     recalcTop(){
         var c = channels["loan.purchased"]
@@ -88,8 +97,8 @@ const Live = React.createClass({
         //generic splattening of the payloads to get the loan objects
         var loans_during = messages.select(p=>p.loans).flatten()
 
-        var top_sectors = loans_during.groupBySelectWithCount(l=>l.sector.name).orderBy(g=>g.count).reverse().take(10)
-        var top_countries = loans_during.groupBySelectWithCount(l=>l.location.country.name).orderBy(g=>g.count).reverse().take(10)
+        var top_sectors = loans_during.groupBySelectWithCount(l=>l.sector.name).orderBy(g=>g.count, basicReverseOrder).take(10)
+        var top_countries = loans_during.groupBySelectWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
 
         if (top_lending_countries.sum(g=>g.sum) >= 20)
             this.setState({top_lending_countries: top_lending_countries, top_sectors: top_sectors, top_countries: top_countries})
@@ -156,6 +165,11 @@ const Live = React.createClass({
                             keep it fresh, KivaLens listens to Kiva's live data-stream of both lending activity
                             and newly posted loans and updates it's own listing automatically. Each time you do a
                             search, it's searching the most recent data.
+                        </li>
+                        <li>
+                            Every time you click on a loan, KivaLens will get the newest version of it, just in case
+                            anything has changed. For example, there is no data-stream notice for other lenders
+                            adding the loan to their basket.
                         </li>
                         <li>
                             Once every 10 minutes, KivaLens silently performs a resync of it's data to catch any changes
