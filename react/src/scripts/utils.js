@@ -22,6 +22,12 @@ window.setDebugging = function() {
     window.kl_debugging = lsj.get("Options").debugging
 }
 
+window.basicReverseOrder = function(a,b) { //this is a hack. OrderBy has issues! Not sure what the conditions are.
+    if (a > b) return -1
+    if (a < b) return 1
+    return 0
+}
+
 setDebugging()
 
 window.cl = function() {

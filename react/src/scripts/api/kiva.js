@@ -1,5 +1,7 @@
-var sem_one = require('semaphore')(8);
-var sem_two = require('semaphore')(8);
+require('linqjs')
+require('datejs')
+var sem_one = require('semaphore')(8)
+var sem_two = require('semaphore')(8)
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
 
@@ -206,6 +208,15 @@ class ResultProcessors {
 
         return loan
     }
+
+    static processPartners(partners){
+        var regions_lu = {"North America":"na","Central America":"ca","South America":"sa","Africa":"af","Asia":"as","Middle East":"me","Eastern Europe":"ee","Western Europe":"we","Antarctica":"an","Oceania":"oc"}
+        partners.forEach(p => {
+            p.kl_sp = p.social_performance_strengths ? p.social_performance_strengths.select(sp => sp.id) : []
+            p.kl_regions = p.countries.select(c => regions_lu[c.region]).distinct()
+        })
+        return partners
+    }
 }
 
 //generic class for handling any of kiva's paged responses in a data-type agnostic way. create subclasses to specialize, see LoanSearch below
@@ -279,7 +290,7 @@ class PagedKiva {
 
     wrapUp() {
         this.promise.notify({label: 'Processing...'})
-        var result_objects = []
+        var result_objects = [] //can't I not do the forEach but just a select & flatten?
         this.requests.where(req => req.state == sDONE).forEach(req => result_objects = result_objects.concat(req.results))
         this.promise.notify({complete: true})
         this.promise.resolve(result_objects)
@@ -349,7 +360,8 @@ class LenderLoans extends PagedKiva {
         //projects may want it for different reasons.
         if (this.fundraising_only && !loans.any(loan => loan.status == 'fundraising')){
             //if all loans on the page would have expired. this could miss some mega-mega lenders in corner cases.
-            if (loans.all(loan => new Date(loan.planned_expiration_date).isBefore(Date.today())))
+            var today = Date.today()
+            if (loans.all(loan => loan.kl_planned_expiration_date.isBefore(today)))
                 return false
         }
         return true
@@ -600,13 +612,8 @@ class Loans {
         return this.indexed_loans[id] != undefined
     }
     getAllPartners(){
-        return Request.sem_get('partners.json', {}, 'partners', false).then(partners => {
-            var regions_lu = {"North America":"na","Central America":"ca","South America":"sa","Africa":"af","Asia":"as","Middle East":"me","Eastern Europe":"ee","Western Europe":"we","Antarctica":"an","Oceania":"oc"}
+        return Request.sem_get('partners.json', {}, 'partners', false).then(ResultProcessors.processPartners).then(partners => {
             this.partners_from_kiva = partners
-            this.partners_from_kiva.forEach(p => {
-                p.kl_sp = p.social_performance_strengths ? p.social_performance_strengths.select(sp => sp.id) : []
-                p.kl_regions = p.countries.select(c => regions_lu[c.region]).distinct()
-            })
             //todo: temp. for debugging
             window.partners = this.partners_from_kiva
             //gather all country objects where partners operate, flatten and remove dupes.

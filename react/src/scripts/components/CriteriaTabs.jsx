@@ -468,12 +468,6 @@ const CriteriaTabs = React.createClass({
                 return
         }
 
-        var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
-            if (a > b) return -1
-            if (a < b) return 1
-            return 0
-        }
-
         data = data.orderBy(d => d.count, basicReverseOrder)
 
         var config = {

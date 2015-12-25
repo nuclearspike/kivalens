@@ -379,17 +379,6 @@ var loanStore = Reflux.createStore({
 
         var linq_loans = loans_to_test.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
 
-        var basicReverseOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
-            if (a > b) return -1
-            if (a < b) return 1
-            return 0
-        }
-        var basicOrder = (a,b) => { //this is a hack. OrderBy has issues! Not sure what the conditions are.
-            if (a > b) return 1
-            if (a < b) return -1
-            return 0
-        }
-
         //loans are default ordered by 50 back, 75 back, last repayment
         if (linq_loans.length > 1)
         switch (c.loan.sort) {

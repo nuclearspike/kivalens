@@ -42,8 +42,28 @@ const TopTen = React.createClass({
     }
 })
 
+//watches for state change on what is defined by the selector/field, it triggers the function (given as string) after delay
+const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 200) {
+    //invent a new handle name.
+    var handleName = 'DelayTriggerChangedHandle' + Math.random().toString()
+    var stateSelectorFunc = typeof stateSelector == 'string' ? state=>state[stateSelector] : stateSelector
+
+    return {
+        componentDidUpdate(prevProps, prevState){
+            if (JSON.stringify(stateSelectorFunc(prevState)) != JSON.stringify(stateSelectorFunc(this.state))) {
+                clearTimeout(this[handleName])
+                this[handleName] = setTimeout(eval(`this.${onTrigger}`)(), delayTime)
+            }
+            return true //this is not in the docs, but not having a return true doesn't update the page?
+        },
+        componentWillUnmount(){
+            clearTimeout(this[handleName])
+        }
+    }
+}
+
 const Live = React.createClass({
-    mixins: [Reflux.ListenerMixin,LinkedStateMixin],
+    mixins: [Reflux.ListenerMixin,LinkedStateMixin,DelayStateTriggerMixin('maxMinutes','recalcTop'),DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop')],
     getInitialState() {
         return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
     },
@@ -53,19 +73,12 @@ const Live = React.createClass({
         this.recalcTop()
         this.topInterval = setInterval(this.recalcTop, 5000)
     },
-    componentDidUpdate(prevProps, prevState){
-        if (prevState.maxMinutes != this.state.maxMinutes) {
-            clearTimeout(this.maxMinutesChangedHandle)
-            this.maxMinutesChangedHandle = setTimeout(this.recalcTop, 200)
-        }
-        return true
-    },
     recalcTop(){
         var c = channels["loan.purchased"]
-        var thirty_mins_ago = parseInt(this.state.maxMinutes).minutes().ago()
+        var x_mins_ago = parseInt(this.state.maxMinutes).minutes().ago()
 
         //get recent message payloads
-        var messages = c.data.where(d=>d.received.isAfter(thirty_mins_ago)).select(d => d.data.p)
+        var messages = c.data.where(d=>d.received.isAfter(x_mins_ago)).select(d => d.data.p)
 
         //top lending countries
         var top_lending_countries = messages.where(p => p.lender.public)
