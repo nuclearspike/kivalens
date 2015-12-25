@@ -9,7 +9,7 @@ import s from '../stores/'
 
 const BulkAddModal = React.createClass({
     mixins: [LinkedStateMixin],
-    getInitialState() { return {show: true, maxBasket: 1000, maxPerLoan: 25} },
+    getInitialState() { return {show: true, maxBasket: 1000, maxPerLoan: 25, basket_space: 10000} },
     componentDidMount() {
         window.rga.modalview('/bulkadd');
         this.loans = s.loans.syncFilterLoansLast()

@@ -650,7 +650,7 @@ class Loans {
         }
         var old_status = existing.status
         $.extend(true, existing, refreshed, extra)
-        if (old_status != 'funded' && refreshed.status == "funded") {
+        if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
             this.running_totals.funded_loans++
             this.notify({loan_funded: existing})
         }
