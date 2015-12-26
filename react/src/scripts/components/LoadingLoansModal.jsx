@@ -47,9 +47,10 @@ var LoadingLoansModal = React.createClass({
                             <p>To greatly reduce load time, check out the "Options" tab if you never consider longer term loans.</p>
                             <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet... and there's a bunch of other things you can do it, check it out!</p>
                             <p>Did you know that KivaLens now works on smart-phones and tablets (iPad, Kindle, etc), too{'?'}</p>
+                            <p>Click the "Saved Search" button to see some samples of couple of the types of queries you do.</p>
                             <p>When typing into one of the drop-downs, as soon as it highlights the one you want, you can press Tab or Enter.</p>
                             <p>Do you know any software developers{'?'} KivaLens is open-source and will accept quality contributions (check out the About page for more information).</p>
-                            <p>You can hide loans you've already loaned to by adding your Lender ID in the Options tab, then checking the "Exclude My Loans" option on the "Your Portfolio" tab..</p>
+                            <p>You can hide loans you've already loaned to by adding your Lender ID in the Options tab, then checking the "Exclude My Loans" option on the "Your Portfolio" tab.</p>
                             <p>Use the "Saved Search" button when you have your search exactly like you want it, give it a name and be able to return to it whenever you want.</p>
                             <p>Have you told your Kiva Lending Teams about your favorite KivaLens features yet{'?'}</p>
                             <p>What else do you wish KivaLens could do{'?'} Check out the About page to contact me!</p>

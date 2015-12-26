@@ -58,9 +58,9 @@ const Options = React.createClass({
                             This is used for:
                         </p>
                         <ul>
-                            <li>Excluding Fundraising Loans: Fetches your loans from Kiva to so it can remove
+                            <li>Excluding Fundraising Loans: Fetches your loans from Kiva so it can remove
                                 fundraising loans that are already in your portfolio to prevent accidentally
-                                lending to the same borrower twice.</li>
+                                lending to the same borrower more than once.</li>
                             <li>Portfolio Balancing: On the "Your Portfolio" Criteria tab, KivaLens will pull
                                 summary data of your portfolio for Partners, Countries, Sectors and Activities
                                 so that you can exclude or include loans that match your criteria (ex: only find

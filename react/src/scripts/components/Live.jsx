@@ -24,19 +24,22 @@ const AnimInt = React.createClass({
     }
 })
 
+const LabeledNumber = ({number, label}) => <div key={label} className="labeledNumber">
+    <div className="number"><AnimInt value={number}/></div>
+    <div className="name">{label}</div>
+</div>
+
 const TopTen = React.createClass({
     render(){
         let {title, data = [], field = 'count'} = this.props
-        return <Col md={4}>
+        return <Col md={4} className="topTen">
             <Panel header={title}>
                 <If condition={data.length == 0}>
                     <p>Waiting for more activity</p>
                 <Else/>
-                    <ul>
-                        <For each='ranked' index='i' of={data}>
-                            <li key={i}>{ranked[field]}: {ranked.name}</li>
-                        </For>
-                    </ul>
+                    <For each='ranked' index='i' of={data}>
+                        <LabeledNumber key={ranked.name} number={ranked[field]} label={ranked.name}/>
+                    </For>
                 </If>
             </Panel>
         </Col>
@@ -63,8 +66,8 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
 
 const Live = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin,
-        DelayStateTriggerMixin('maxMinutes','recalcTop'),
-        DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop')],
+        DelayStateTriggerMixin('maxMinutes','recalcTop', 1000),
+        DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop',1000)],
     getInitialState() {
         return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
     },
@@ -73,7 +76,7 @@ const Live = React.createClass({
         setWatchedPot(true)
         this.listenTo(a.loans.live.statsChanged, this.newRunningTotals)
         this.recalcTop()
-        this.topInterval = setInterval(this.recalcTop, 2000)
+        this.topInterval = setInterval(this.recalcTop, 1000)
     },
     //shouldComponentUpdate(){
     //    return true
@@ -92,7 +95,7 @@ const Live = React.createClass({
         //top lending countries
         var top_lending_countries = messages.where(p => p.lender.public)
             .select(p => ({country: p.lender.lenderPage.whereabouts.split(',').last().trim() || "(Undisclosed)", loan_count: p.loans.length}))
-            .groupBySelectWithSum(c=>c.country, c=>c.loan_count).orderBy(g=>g.sum).reverse().take(10)
+            .groupBySelectWithSum(c=>c.country, c=>c.loan_count).orderBy(g=>g.sum, basicReverseOrder).take(10)
 
         //generic splattening of the payloads to get the loan objects
         var loans_during = messages.select(p=>p.loans).flatten()
@@ -148,7 +151,7 @@ const Live = React.createClass({
                     </Col>
                 </Row>
                 <Row>
-                    <h2>How Does KivaLens Work{'?'}</h2>
+                    <h2>How Does KivaLens Stay Fresh{'?'}</h2>
                     <ul>
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
@@ -172,11 +175,15 @@ const Live = React.createClass({
                             adding the loan to their basket.
                         </li>
                         <li>
-                            Once every 10 minutes, KivaLens silently performs a resync of it's data to catch any changes
-                            that the datastream misses.
+                            Every time you visit the Basket page, KivaLens will make sure all of the loans in your
+                            basket have the most recent funded/basket amounts.
                         </li>
                         <li>
-                            When you search for a loan in KivaLens, it searches the loans that it has already has in
+                            Once every 10 minutes, KivaLens silently performs a resync of it's data to catch any changes
+                            not included in the datastream notifications.
+                        </li>
+                        <li>
+                            When you search for a loan in KivaLens, it searches the loans that it has in
                             memory, it does not use Kiva or KivaLen's servers  to perform the search.
                             This is why KivaLens searches are so fast.
                         </li>

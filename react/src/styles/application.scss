@@ -20,6 +20,45 @@
   }
 }
 
+.labeledNumber {
+  color: rgb(51, 51, 51);
+  display: table;
+  height: 34px;
+  width: 100%;
+  outline: rgb(51, 51, 51) none 0px;
+  margin-bottom: 2px;
+
+  .number {
+    color: rgb(85, 85, 85);
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 50px;
+    background: rgb(238, 238, 238);
+    border-top: 1px solid rgb(204, 204, 204);
+    border-right: 0px none rgb(85, 85, 85);
+    border-bottom: 1px solid rgb(204, 204, 204);
+    border-left: 1px solid rgb(204, 204, 204);
+    border-radius: 4px 0 0 4px;
+    outline: rgb(85, 85, 85) none 0px;
+    padding: 6px 12px;
+  }
+  .name {
+    color: rgb(85, 85, 85);
+    background: white;
+    display: table-cell;
+    vertical-align: middle;
+    border: 1px solid rgb(204, 204, 204);
+    border-radius: 0 4px 4px 0;
+    outline: rgb(85, 85, 85) none 0px;
+    padding: 6px 12px;
+  }
+}
+
+
+
+
 .float_left {
   float: left;
 }
