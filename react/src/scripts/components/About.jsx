@@ -38,7 +38,7 @@ var About = React.createClass({
             </p>
 
             <h3>Features</h3>
-            <ul>
+            <ul className='spacedList'>
                 <li>
                     Sorting/Filtering by Final Repayment Date vs Repayment Terms. While Kiva allows you to sort by repayment
                     terms, there are a few issues with this method from the perspective of the lender. Since different
@@ -162,15 +162,15 @@ var About = React.createClass({
                 None of this guarantees you anything. Use your own discretion, research, thoughts, team
                 message boards, exchanges with Kiva's Customer Service, etc to help inform your lending habits.
             </p>
-            <ul>
+            <ul className='spacedList'>
                 <li>
-                    Institutional Risk: The "Risk Rating" for a partner is based on Kiva's assessment on whether or not
+                    <b>Institutional Risk:</b> The "Risk Rating" for a partner is based on Kiva's assessment on whether or not
                     a partner will fail (institutional default) based on a huge formula as well as some good old fashioned
                     gut feelings. The higher the star rating, the less likely it is for the partner to fail.
                     This is not any indication on whether or not the borrower is risky and is no guarantee.
                 </li>
                 <li>
-                    Currency Exchange Risk: Even if a borrower pays back in full, if they are paying back in a currency
+                    <b>Currency Exchange Risk:</b> Even if a borrower pays back in full, if they are paying back in a currency
                     other than USD, there is a risk that you can lose some money due to the exchange rate. Using the
                     Currency Exchange Loss % Partner slider, you can use history as an indicator of the future for
                     how much you may lose (but there's no guarantee). Some partners cover more of the currency loss
@@ -178,13 +178,13 @@ var About = React.createClass({
                     loss is possible.
                 </li>
                 <li>
-                    Default Rates: All partners will have defaults, some partners choose to cover the losses of defaulted
+                    <b>Default Rates:</b> All partners will have defaults, some partners choose to cover the losses of defaulted
                     borrowers in order to pay back Kiva lenders as a part of doing business. Choosing partners with 0%
                     default means you are most likely choosing a partner that is covering losses, which if you have
                     large amounts of money in, may be exactly what you're looking for.
                 </li>
                 <li>
-                    Portfolio Yield: Reducing organizations down to a number and then making assumptions based off
+                    <b>Portfolio Yield:</b> Reducing organizations down to a number and then making assumptions based off
                     that number can actually unintentionally exclude the very partners you would actually most like
                     if you knew more about them. One of the most significant learnings I had when I worked at Kiva was
                     regarding Portfolio Yield. PY values are based on costs charged to the borrower over the amount
@@ -197,7 +197,7 @@ var About = React.createClass({
                     the most needy borrowers.
                 </li>
                 <li>
-                    Profitability: When I initially wrote KivaLens (prior to working at Kiva), I incorrectly assumed
+                    <b>Profitability:</b> When I initially wrote KivaLens (prior to working at Kiva), I incorrectly assumed
                     that a partner with a negative profitability naturally meant they were at greater risk for
                     institutional collapse and thus causing all outstanding loans to fail. This is not always true!
                     There are a number of partners that receive money from outside sources and this money is not
@@ -209,7 +209,7 @@ var About = React.createClass({
                     sources, the "safest" bet is to choose partners with positive profitability.
                 </li>
                 <li>
-                    Group Loans: Due to the high variability with how group loans are organized by partner, you cannot
+                    <b>Group Loans:</b> Due to the high variability with how group loans are organized by partner, you cannot
                     necessarily make assumptions about group loans versus individual. Some partners group riskier
                     borrowers together so they can prove themselves and graduate to individual loans and the grouping
                     is arbitrary just to make repayment collections simpler to lower the cost of servicing the loan.
@@ -219,7 +219,7 @@ var About = React.createClass({
                     loan data to help you find more.
                 </li>
                 <li>
-                    Repeat Borrowers: A borrower coming back for a second or third loan does NOT mean
+                    <b>Repeat Borrowers:</b> A borrower coming back for a second or third loan does NOT mean
                     they are more risky. In fact, it can mean the opposite. If a borrower has completed a loan
                     successfully and the partner has chosen to give them another loan, then many times that means
                     they are more likely to repay. Repeat borrowing does not necessarily mean they are in a cycle
@@ -235,7 +235,7 @@ var About = React.createClass({
                     check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715" title="View KivaLens team message board">this message</KivaLink>.
                 </li>
                 <li>
-                    Diversify! When searching for loans, your criteria may keep bringing up loans from the same partners
+                    <b>Diversify!</b> When searching for loans, your criteria may keep bringing up loans from the same partners
                     over and over again. Having too much money with a handful partner means that if those partners have
                     institutional default, you could lose all of your outstanding balance. Diversity among countries
                     can also be beneficial because it protects you from your portfolio being as impacted by natural
@@ -246,7 +246,7 @@ var About = React.createClass({
                     of active loans, you may need to increase the percentage to allow for more per partner.
                 </li>
                 <li>
-                    Something to consider: Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I
+                    <b>Something to consider:</b> Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I
                     changed the name from kivabank to kivalens years ago). Over time, even the most cautious lenders
                     are very likely to lose money to default or currency exchange unless you are extremely lucky.
                     You should lend with the expectation of some loss and be happy when it everything goes perfectly.

@@ -32,7 +32,7 @@ const LabeledNumber = ({number, label}) => <div key={label} className="labeledNu
 const TopTen = React.createClass({
     render(){
         let {title, data = [], field = 'count'} = this.props
-        return <Col md={4} className="topTen">
+        return <Col md={4}>
             <Panel header={title}>
                 <If condition={data.length == 0}>
                     <p>Waiting for more activity</p>
@@ -65,9 +65,9 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
 }
 
 const Live = React.createClass({
-    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin,
-        DelayStateTriggerMixin('maxMinutes','recalcTop', 1000),
-        DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop',1000)],
+    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
+        //DelayStateTriggerMixin('maxMinutes','recalcTop', 1000),
+        //DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop',1000)],
     getInitialState() {
         return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
     },

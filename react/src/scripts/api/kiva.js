@@ -663,7 +663,7 @@ class Loans {
     }
     refreshLoans(loan_arr){
         var kl = this
-        new LoanBatch(loan_arr).start().done(loans => {
+        return new LoanBatch(loan_arr).start().then(loans => {
             loans.forEach(loan => {
                 var existing = kl.indexed_loans[loan.id]
                 if (existing) {
