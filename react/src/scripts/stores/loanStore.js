@@ -379,22 +379,27 @@ var loanStore = Reflux.createStore({
         var linq_loans = loans_to_test.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
 
         //loans are default ordered by 50 back, 75 back, last repayment
-        if (linq_loans.length > 1)
-        switch (c.loan.sort) {
-            case 'final_repayment':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
-                break
-            case 'popularity':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
-                break
-            case 'newest':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_newest_sort, basicReverseOrder).thenByDescending(loan => loan.id)
-                break
-            case 'expiring':
-                linq_loans = linq_loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
-                break
-            default:
-                linq_loans = linq_loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
+        //sort options needs to be in a function... and applied again after limits applied.
+
+        const sort = (loans, sort) => {
+            if (loans.length > 1)
+                switch (sort) {
+                    case 'final_repayment':
+                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
+                        break
+                    case 'popularity':
+                        loans = loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
+                        break
+                    case 'newest':
+                        loans = loans.orderBy(loan => loan.kl_newest_sort, basicReverseOrder).thenByDescending(loan => loan.id)
+                        break
+                    case 'expiring':
+                        loans = loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
+                        break
+                    default:
+                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
+                }
+            return loans
         }
 
         //limits.
@@ -415,10 +420,13 @@ var loanStore = Reflux.createStore({
                     selector = l => l.sector
                     break
             }
-            if (selector) //todo: make the following a util function
-                linq_loans = linq_loans.groupBySelectWithTake(selector, count).select(g=>g.taken).flatten()
+
+            if (selector)  //group by the field, sort each grouping of loans, then take the first x of those, then flatten all loans back to a regular array
+                linq_loans = linq_loans.groupBy(selector).select(g => sort(g, c.loan.sort).take(count)).flatten()
+            //these then go and get sorted again so that the result list is fully sorted.
         }
 
+        linq_loans = sort(linq_loans, c.loan.sort)
 
         if (cacheResults)
             last_filtered = linq_loans

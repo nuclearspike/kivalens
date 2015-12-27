@@ -72,7 +72,13 @@ var criteriaStore = Reflux.createStore({
                     "portfolio": {"exclude_portfolio_loans": 'true'}
                 },
                 "Countries I Don't Have":{
-                    "loan":{},
+                    "loan":{
+                        "limit_to": {
+                            "enabled": true,
+                            "count": 1,
+                            "limit_by": "Country"
+                        }
+                    },
                     "partner":{},
                     "portfolio": {
                         "exclude_portfolio_loans": "true",
