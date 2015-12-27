@@ -57,17 +57,17 @@ const Options = React.createClass({
                         <p className="ample-padding-top">
                             This is used for:
                         </p>
-                        <ul>
-                            <li>Excluding Fundraising Loans: Fetches your loans from Kiva so it can remove
+                        <ul className='spacedList'>
+                            <li><b>Excluding Fundraising Loans:</b> Fetches your loans from Kiva so it can remove
                                 fundraising loans that are already in your portfolio to prevent accidentally
                                 lending to the same borrower more than once.</li>
-                            <li>Portfolio Balancing: On the "Your Portfolio" Criteria tab, KivaLens will pull
+                            <li><b>Portfolio Balancing:</b> On the "Your Portfolio" Criteria tab, KivaLens will pull
                                 summary data of your portfolio for Partners, Countries, Sectors and Activities
                                 so that you can exclude or include loans that match your criteria (ex: only find
                                 Sectors that aren't like any in your total portfolio to collect all sectors
                                 OR only find Partners that don't have more than 5% of your active portfolio
                                 to balance your risk).</li>
-                            <li>Basket Pruning: By default, your basket will not clear when returning to the site.
+                            <li><b>Basket Pruning:</b> By default, your basket will not clear when returning to the site.
                                 If your Lender ID is set, when you come back to KivaLens, your basket will
                                 have the loans that completed removed. Otherwise, you'll either need
                                 to click the "Return to 3rd party app" at the end of your Kiva

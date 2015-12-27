@@ -29,7 +29,7 @@ var Search = React.createClass({
         })
         //if we enter the page and loans are not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
-        if (s.loans.syncHasLoadedLoans()) a.loans.filter() //triggers the graphs. //should this be the way??
+        if (kivaloans.isReady()) a.loans.filter() //triggers the graphs. //should this be the way??
     },
     showNotification(message){
         this.setState({notification: {active: true, message: message}})
@@ -50,7 +50,7 @@ var Search = React.createClass({
         var style = {height:'100%', width: '100%'};
         return (
             <div style={style} >
-                <LoadingLoansModal show={!s.loans.syncHasLoadedLoans()}/>
+                <LoadingLoansModal show={!kivaloans.isReady()}/>
                 <If condition={this.state.showBulkAdd}>
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>

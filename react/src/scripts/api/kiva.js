@@ -170,13 +170,12 @@ class ResultProcessors {
             addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
             addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
 
-            var today = new Date();
+            var today = new Date().clearTime();
             addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
             addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
-            //addIt.kl_repaid_in = (addIt.kl_final_repayment - new Date()) / (30 * 24 * 60 * 60 * 1000)
-            addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
-            addIt.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - new Date()) / (24 * 60 * 60 * 1000) }.bind(loan)
+            addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
+            addIt.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - today) / (24 * 60 * 60 * 1000) }.bind(loan)
 
             addIt.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
@@ -419,6 +418,135 @@ class LoanBatch {
     }
 }
 
+
+class CritTester {
+    constructor(crit_group){
+        this.crit_group = crit_group
+        this.testers = []
+        this.fail_all = false
+    }
+    addRangeTesters(crit_name, selector, overrideIf = null, overrideFunc = null){
+        var min = this.crit_group[`${crit_name}_min`]
+        if (min !== undefined) {
+            var low_test = (entity) => {
+                if (overrideIf && overrideIf(entity))
+                    return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
+                return min <= selector(entity)
+            }
+            this.testers.push(low_test)
+        }
+        var max = this.crit_group[`${crit_name}_max`]
+        if (max !== undefined) {
+            var high_test = (entity) => {
+                if (overrideIf && overrideIf(entity))
+                    return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
+                return selector(entity) <= max
+            }
+            this.testers.push(high_test)
+        }
+    }
+    addAnyAllNoneTester(crit_name, values, def_value, selector, entityFieldIsArray = false){
+        if (!values)
+            values = this.crit_group[crit_name]
+        if (values && values.length > 0) {
+            var all_any_none = this.crit_group[`${crit_name}_all_any_none`] || def_value
+            //if (all_any_none == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
+            switch (all_any_none) {
+                case 'any':
+                    if (entityFieldIsArray)
+                        this.addArrayAnyTester(values, selector)
+                    else
+                        this.addFieldContainsOneOfArrayTester(values, selector)
+                    break;
+                case 'all':
+                    this.addArrayAllTester(values, selector)
+                    break;
+                case 'none':
+                    if (entityFieldIsArray)
+                        this.addArrayNoneTester(values, selector)
+                    else
+                        this.addFieldNotContainsOneOfArrayTester(values, selector)
+                    break
+            }
+        }
+    }
+    addArrayAllTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && terms_arr.all(term => selector(entity).contains(term)))
+        }
+    }
+    addArrayAnyTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && terms_arr.any(term => selector(entity).contains(term)))
+        }
+    }
+    addArrayNoneTester(crit, selector) {
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => selector(entity) && !terms_arr.any(term => selector(entity).contains(term)))
+        }
+    }
+    addBalancer(crit, selector){
+        if (crit && crit.enabled){
+            if (crit.hideshow == 'show') {
+                if (Array.isArray(crit.values) && crit.values.length == 0)
+                    this.fail_all = true
+                else
+                    this.addFieldContainsOneOfArrayTester(crit.values, selector)
+            } else
+                this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
+        }
+    }
+    addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty = false){
+        if (crit){
+            if (crit.length > 0) {
+                var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+                this.testers.push(entity => terms_arr.contains(selector(entity)))
+            } else {
+                if (fail_if_empty) this.fail_all = true
+            }
+        }
+    }
+    addFieldNotContainsOneOfArrayTester(crit, selector){
+        if (crit && crit.length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
+            this.testers.push(entity => !terms_arr.contains(selector(entity)))
+        }
+    }
+    addArrayAllStartWithTester(crit, selector){
+        if (crit && crit.trim().length > 0) {
+            var terms_arr = (Array.isArray(crit)) ? crit : crit.match(/(\w+)/g)
+            terms_arr = terms_arr.select(term => term.toUpperCase())
+            this.testers.push(entity => terms_arr.all(search_term => selector(entity).any(w => w.startsWith(search_term))))
+        }
+    }
+    addSimpleEquals(crit, selector){
+        if (crit && crit.trim().length > 0) {
+            this.testers.push(entity => selector(entity) == crit)
+        }
+    }
+    addSimpleContains(crit, selector){ //no longer used
+        var search = (crit && crit.trim().length > 0) ? crit.match(/(\w+)/g).distinct().select(word => word.toUpperCase()) : []
+        if (search.length)
+            this.testers.push(entity => search.all(search_text => selector(entity).toUpperCase().indexOf(search_text) > -1))
+    }
+    addThreeStateTester(crit, selector){
+        //'', 'true', 'false'
+        if (crit === 'true'){
+            this.testers.push(entity => selector(entity) === true)
+        } else if (crit === 'false') {
+            this.testers.push(entity => selector(entity) === false)
+        }
+    }
+    allPass(entity) {
+        if (this.fail_all) return false //must happen first
+        if (this.testers.length == 0) return true
+        return this.testers.all(func => func(entity))
+    }
+}
+
 const llUnknown = 0, llDownloading = 1, llComplete = 2
 
 //not super robust. just a simple way to have things queue up until either a time passes between
@@ -458,6 +586,9 @@ class QueuedActions {
 //processes
 class Loans {
     constructor(update_interval = 0){
+        this.last_partner_search_count = 0
+        this.last_partner_search = {}
+        this.last_filtered = []
         this.loans_from_kiva = []
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
@@ -504,6 +635,166 @@ class Loans {
     }
     notify(message){
         this.notify_promise.notify(message)
+    }
+    checkHotLoans(){
+        //get ids for top 20 most popular, soon-to-expire (within minutes), and close to funding, and get updates on them.
+        //can't do this here yet because this unit doesn't know how to filter loans yet!p
+    }
+    filterPartners(c){
+        if (this.last_partner_search_count > 10) {
+            this.last_partner_search = {}
+            this.last_partner_search_count = 0
+        }
+        var useCache = true
+
+        var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, {balancing: c.portfolio.pb_partner}))
+        var partner_ids
+        if (useCache && this.last_partner_search[partner_criteria_json]){
+            partner_ids = this.last_partner_search[partner_criteria_json]
+        } else {
+            this.last_partner_search_count++
+
+            //typeof string is temporary
+            var sp_arr
+            try {
+                sp_arr = (typeof c.partner.social_performance === 'string') ? c.partner.social_performance.split(',').where(sp => sp && !isNaN(sp)).select(sp => parseInt(sp)) : []  //cannot be reduced to select(parseInt) :(
+            }catch(e){
+                sp_arr = []
+            }
+
+            var partners_given = []
+            if (c.partner.partners) { //explicitly given by user.
+                partners_given = c.partner.partners.split(',').select(id => parseInt(id)) //cannot be reduced to select(parseInt) :(
+            }
+
+            var ct = new CritTester(c.partner)
+
+            ct.addAnyAllNoneTester('region',null,'any',       partner=>partner.kl_regions, true)
+            ct.addAnyAllNoneTester('social_performance',sp_arr,'all',  partner=>partner.kl_sp, true)
+            ct.addAnyAllNoneTester('partners', partners_given,'any',   partner=>partner.id)
+            ct.addRangeTesters('partner_default',             partner=>partner.default_rate)
+            ct.addRangeTesters('partner_arrears',             partner=>partner.delinquency_rate)
+            ct.addRangeTesters('portfolio_yield',             partner=>partner.portfolio_yield)
+            ct.addRangeTesters('profit',                      partner=>partner.profitability)
+            ct.addRangeTesters('loans_at_risk_rate',          partner=>partner.loans_at_risk_rate)
+            ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
+            ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
+            ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner=>partner.charges_fees_and_interest)
+            if (this.atheist_list_processed && lsj.get('Options').mergeAtheistList) {
+                ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
+                ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
+            }
+            ct.addBalancer(c.portfolio.pb_partner, partner=>partner.id)
+
+            ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
+            cl('crit:partner:testers', ct.testers)
+
+            //if (ct.testers.length == 0)
+            //    partner_ids = 'all' or null and [] means none match.
+
+            //filter the partners
+            partner_ids = this.partners_from_kiva.where(p => ct.allPass(p)).select(p => p.id)
+
+            this.last_partner_search[partner_criteria_json] = partner_ids
+        }
+        return partner_ids
+    }
+    filter(c, cacheResults = true, loans_to_filter = null){
+        if (!this.isReady()) return []
+        //needs a copy of it and to guarantee the groups are there.
+        $.extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
+
+        console.time("filter")
+
+        //break this into another unit --store? LoansAPI.filter(loans, criteria)
+
+        var ct = new CritTester(c.loan)
+
+        ct.addAnyAllNoneTester('sector',      null,'any',loan=>loan.sector)
+        ct.addAnyAllNoneTester('activity',    null,'any',loan=>loan.activity)
+        ct.addAnyAllNoneTester('country_code',null,'any',loan=>loan.location.country_code)
+        ct.addAnyAllNoneTester('tags',        null,'all',loan=>loan.kl_tags, true)
+        ct.addAnyAllNoneTester('themes',      null,'all',loan=>loan.themes, true)
+
+        ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
+        ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
+        ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
+        ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
+        ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
+        ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
+        ct.addRangeTesters('percent_funded',      loan=>loan.kl_percent_funded)
+        ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
+        ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
+        ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
+        ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
+        ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
+        if (c.portfolio.exclude_portfolio_loans == 'true' && this.lender_loans  && this.lender_loans.length)
+            ct.addFieldNotContainsOneOfArrayTester(this.lender_loans, loan=>loan.id)
+        ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
+        ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
+        ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
+        ct.addThreeStateTester(c.loan.bonus_credit_eligibility, loan=>loan.bonus_credit_eligibility)
+        ct.testers.push(loan => loan.status == 'fundraising')
+        cl('crit:loan:testers', ct.testers)
+
+        if (!loans_to_filter) loans_to_filter = this.loans_from_kiva
+
+        loans_to_filter = loans_to_filter.where(loan => ct.allPass(loan)) //can't reduce. (not even with bind???)
+
+        //loans are default ordered by 50 back, 75 back, last repayment
+        //sort options needs to be in a function... and applied again after limits applied.
+
+        const sort = (loans, sort) => {
+            if (loans.length > 1)
+                switch (sort) {
+                    case 'final_repayment':
+                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
+                        break
+                    case 'popularity':
+                        loans = loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
+                        break
+                    case 'newest':
+                        loans = loans.orderBy(loan => loan.kl_newest_sort, basicReverseOrder).thenByDescending(loan => loan.id)
+                        break
+                    case 'expiring':
+                        loans = loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
+                        break
+                    default:
+                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
+                }
+            return loans
+        }
+
+        //limits.
+        if (c.loan.limit_to && c.loan.limit_to.enabled) {
+            var count = isNaN(c.loan.limit_to.count) ? 1 : c.loan.limit_to.count
+            var selector
+            switch(c.loan.limit_to.limit_by) {
+                case 'Partner':
+                    selector = l => l.partner_id
+                    break
+                case 'Country':
+                    selector = l => l.location.country_code
+                    break
+                case "Activity":
+                    selector = l => l.activity
+                    break
+                case "Sector":
+                    selector = l => l.sector
+                    break
+            }
+
+            if (selector)  //group by the field, sort each grouping of loans, then take the first x of those, then flatten all loans back to a regular array
+                loans_to_filter = loans_to_filter.groupBy(selector).select(g => sort(g, c.loan.sort).take(count)).flatten()
+            //these then go and get sorted again so that the result list is fully sorted (otherwise it is still grouped)
+        }
+
+        loans_to_filter = sort(loans_to_filter, c.loan.sort)
+
+        if (cacheResults)
+            this.last_filtered = loans_to_filter
+        console.timeEnd("filter")
+        return loans_to_filter
     }
     getAtheistList(){
         var CSVToArray = function(strData) {

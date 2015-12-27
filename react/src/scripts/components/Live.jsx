@@ -8,7 +8,6 @@ import {KivaLink} from '.'
 import a from '../actions'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
-import {setWatchedPot} from '../stores/liveStore'
 import LocalStorageMixin from 'react-localstorage'
 
 //move this out and import once used elsewhere.
@@ -73,7 +72,6 @@ const Live = React.createClass({
     },
     getStateFilterKeys() {return ['maxMinutes']},
     componentDidMount() {
-        setWatchedPot(true)
         this.listenTo(a.loans.live.statsChanged, this.newRunningTotals)
         this.recalcTop()
         this.topInterval = setInterval(this.recalcTop, 1000)
@@ -108,7 +106,6 @@ const Live = React.createClass({
 
     },
     componentWillUnmount(){
-        setWatchedPot(false)
         clearInterval(this.topInterval)
     },
     render() {
