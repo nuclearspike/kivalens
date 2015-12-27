@@ -396,6 +396,30 @@ var loanStore = Reflux.createStore({
             default:
                 linq_loans = linq_loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
         }
+
+        //limits.
+        if (c.loan.limit_to && c.loan.limit_to.enabled) {
+            var count = isNaN(c.loan.limit_to.count) ? 1 : c.loan.limit_to.count
+            var selector
+            switch(c.loan.limit_to.limit_by) {
+                case 'Partner':
+                    selector = l => l.partner_id
+                    break
+                case 'Country':
+                    selector = l => l.location.country_code
+                    break
+                case "Activity":
+                    selector = l => l.activity
+                    break
+                case "Sector":
+                    selector = l => l.sector
+                    break
+            }
+            if (selector) //todo: make the following a util function
+                linq_loans = linq_loans.groupBySelectWithTake(selector, count).select(g=>g.taken).flatten()
+        }
+
+
         if (cacheResults)
             last_filtered = linq_loans
         console.timeEnd("filter")

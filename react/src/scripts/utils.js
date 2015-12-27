@@ -40,6 +40,10 @@ Array.prototype.groupBySelectWithCount = function(selector){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
 }
 
+Array.prototype.groupBySelectWithTake = function(selector, take_count = 1){
+    return this.groupBy(selector).select(g => ({name: selector(g[0]), taken: g.take(take_count)}))
+}
+
 Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
 }

@@ -200,6 +200,7 @@ class ResultProcessors {
             delete loan.terms.local_payments //we don't care
 
         }
+        //add kivalens specific fields to the loan.
         $.extend(loan, addIt)
 
         //do memory clean up of larger pieces of the loan object.

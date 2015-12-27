@@ -19,6 +19,7 @@ var timeoutHandle=0
 const AllAnyNoneButton = React.createClass({
     mixins: [ImmutableOptimizations(['cursor'])],
     onSelect(selected){
+        this.props.cursor.set(selected)
         this.props.onChange(selected)
     },
     render(){
@@ -85,6 +86,7 @@ const SelectRow = React.createClass({
         this.props.onChange()
     },
     render(){
+        //causing issues. is If wrapping in a <span>?
         var options = this.props.options
         return <Row>
             <Col md={3}>
@@ -160,7 +162,7 @@ const BalancingRow = React.createClass({
         var c = this.props.group
         if (val) {
             c.set(val)
-            this.props.onChange()
+            this.props.onChange() //todo: remove change events
         } else
             return c
     },
@@ -241,6 +243,71 @@ const BalancingRow = React.createClass({
                 </Row>
             </Col>
             </Row>
+    }
+})
+
+const HasCursorMixin = {
+    cursor(val){
+        var c = this.props.cursor
+        if (val) {
+            c.set(val)
+        } else
+            return c
+    },
+    getCursorFieldValue(name, defVal){
+        var c = this.cursor()
+        var f
+        if (c.value) f = c.refine(name) //this seems hoaky
+        return (!c || !f || !f.value) ? defVal : f.value
+    }
+}
+
+const LimitResult = React.createClass({
+    mixins: [HasCursorMixin],
+    delayChanged(){
+        setTimeout(this.changed, 20)
+    },
+    changed(){
+        var enabled = this.refs.enabled.getChecked()
+        var newVal = {enabled: enabled}
+        if (enabled){
+            newVal.count = parseInt(this.refs.limitCount.getValue())
+            newVal.limit_by = this.refs.limitBy.refs.value.value
+        }
+        this.cursor(newVal)
+        this.props.onChange()
+    },
+    render(){
+        return <Row>
+            <Col md={3}>
+                <Input
+                    type="checkbox" label={<b>Limit to</b>}
+                    ref='enabled'
+                    defaultChecked={this.getCursorFieldValue('enabled')}
+                    onChange={this.changed} />
+            </Col>
+            <Col md={9}>
+                <table style={{width:'100%'}}>
+                    <tbody>
+                        <tr>
+                            <td style={{width:'auto'}}>
+                                <Input type="text" label='' style={{height:'38px'}}
+                                    className='col-xs-2'
+                                    onChange={this.changed}
+                                    ref='limitCount'
+                                    defaultValue={this.getCursorFieldValue('count',1)} />
+                            </td>
+                            <td style={{padding: '5px',fontSize:'x-small'}}>loans per</td>
+                            <td style={{width:'80%'}}>
+                                <Select ref='limitBy' value={this.getCursorFieldValue('limit_by', "Partner")}
+                                    options={[{value:"Partner",label:"Partner"},{value:'Country',label:'Country'},{value:'Sector',label:'Sector'},{value:'Activity',label:'Activity'}]} multi={false}
+                                    placeholder='' clearable={false} onChange={this.delayChanged}/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </Col>
+        </Row>
     }
 })
 
@@ -401,7 +468,7 @@ const CriteriaTabs = React.createClass({
     performSearch(){
         var criteria = this.buildCriteria()
         this.state_count++
-        this.setState({state_count: this.state_count})
+        this.setState({state_count: this.state_count}) //hack
         cl("######### buildCriteria: criteria", criteria)
         a.criteria.change(criteria)
     },
@@ -549,6 +616,9 @@ const CriteriaTabs = React.createClass({
                         <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
                             <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
                         </For>
+
+                        <LimitResult cursor={cLoan.refine('limit_to')} onChange={this.criteriaChanged}/>
+
                         <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','percent_funded','expiring_in_days', 'disbursal_in_days']}>
                             <SliderRow key={`${this.state.tab_flips}_${i}`} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
                         </For>
@@ -611,11 +681,10 @@ const CriteriaTabs = React.createClass({
                                         fresh the data is.
                                     </li>
                                     <li>
-                                        It's not recommended that you use Bulk Add in conjunction with balancing without
-                                        caution because it's very possible that all of the loans in the results are there
-                                        because you don't yet have only a couple partners/countries/etc, and bulk
-                                        adding loans that come from just a few partners/countries/etc without reviewing
-                                        them would result in a lop-sided portfolio.
+                                        If you plan to use Bulk Add in conjunction with the balancing tools then
+                                        you may also want to look at the "Limit to" option on the Loan criteria tab.
+                                        This will prevent too many from a given Partner/Country/Sector/Activity from
+                                        getting into your basket to keep your portfolio from getting lopsided.
                                     </li>
                                     <li>
                                         Fetching the data from Kiva can sometimes take a few seconds. If you don't see

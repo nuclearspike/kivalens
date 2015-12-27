@@ -87,7 +87,13 @@ var criteriaStore = Reflux.createStore({
                     }
                 },
                 "Balance Partner Risk":{
-                    "loan":{},
+                    "loan": {
+                        "limit_to": {
+                            "enabled": true,
+                            "count": 1,
+                            "limit_by": "Partner"
+                        }
+                    },
                     "partner":{},
                     "portfolio": {
                         "exclude_portfolio_loans": "true",
