@@ -428,7 +428,7 @@ class CritTester {
     addRangeTesters(crit_name, selector, overrideIf = null, overrideFunc = null){
         var min = this.crit_group[`${crit_name}_min`]
         if (min !== undefined) {
-            var low_test = (entity) => {
+            var low_test = entity => {
                 if (overrideIf && overrideIf(entity))
                     return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
                 return min <= selector(entity)
@@ -437,7 +437,7 @@ class CritTester {
         }
         var max = this.crit_group[`${crit_name}_max`]
         if (max !== undefined) {
-            var high_test = (entity) => {
+            var high_test = entity => {
                 if (overrideIf && overrideIf(entity))
                     return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
                 return selector(entity) <= max
@@ -612,6 +612,7 @@ class Loans {
         //fetch partners.
         setAPIOptions(api_options)
         crit = $.extend(crit, {})
+        setInterval(this.checkHotLoans.bind(this), 60*1000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(partners => {
             var max_repayment_date = null
@@ -637,15 +638,21 @@ class Loans {
         this.notify_promise.notify(message)
     }
     checkHotLoans(){
+        if (!this.isReady()) return
         //get ids for top 20 most popular, soon-to-expire (within minutes), and close to funding, and get updates on them.
-        //can't do this here yet because this unit doesn't know how to filter loans yet!p
+        //can't do this here yet because this unit doesn't know how to filter loans yet!
+        var mostPopular = this.filter({loan:{sort:'popular', limit_results: 20}}, false).select(l=>l.id)
+        var aboutToExpire = this.filter({loan:{sort:'expiring', expiring_in_days_max: .1}}, false).select(l => l.id)
+        var closeToFunded = this.filter({loan:{still_needed_max: 100}}, false).select(l=>l.id)
+        var allToCheck = mostPopular.concat(aboutToExpire).concat(closeToFunded).distinct()
+        cl("checkHotLoans",allToCheck)
+        this.refreshLoans(allToCheck)
     }
-    filterPartners(c){
+    filterPartners(c, useCache = true){
         if (this.last_partner_search_count > 10) {
             this.last_partner_search = {}
             this.last_partner_search_count = 0
         }
-        var useCache = true
 
         var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, {balancing: c.portfolio.pb_partner}))
         var partner_ids
@@ -788,11 +795,15 @@ class Loans {
                 loans_to_filter = loans_to_filter.groupBy(selector).select(g => sort(g, c.loan.sort).take(count)).flatten()
             //these then go and get sorted again so that the result list is fully sorted (otherwise it is still grouped)
         }
-
+        //apply sort
         loans_to_filter = sort(loans_to_filter, c.loan.sort)
+
+        if (c.loan.limit_results)
+            loans_to_filter = loans_to_filter.take(c.loan.limit_results)
 
         if (cacheResults)
             this.last_filtered = loans_to_filter
+
         console.timeEnd("filter")
         return loans_to_filter
     }
