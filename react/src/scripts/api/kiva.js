@@ -5,6 +5,10 @@ var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
+//this is the heart of KL. all downloading, filtering, sorting, etc is done in here.
+
+//todo: move socket.io channel stuff into this unit from LiveStore.
+
 
 //turns {json: 'object', app_id: 'com.me'} into ?json=object&app_id=com.me
 function serialize(obj, prefix) {
@@ -154,6 +158,11 @@ class ResultProcessors {
         addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
+        addIt.getPartner = function(){
+            //todo: this should not reference kivaloans...
+            if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
+            return this.kl_partner
+        }.bind(loan)
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
             var descr_arr
             var use_arr
@@ -170,8 +179,9 @@ class ResultProcessors {
             addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
             addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
 
-            var today = new Date().clearTime();
-            addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
+            var today = new Date().clearTime()
+            if (addIt.kl_final_repayment)//when looking at really old loans.
+                addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
             addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
             addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
@@ -362,7 +372,8 @@ class LenderLoans extends PagedKiva {
         if (this.fundraising_only && !loans.any(loan => loan.status == 'fundraising')){
             //if all loans on the page would have expired. this could miss some mega-mega lenders in corner cases.
             var today = Date.today()
-            if (loans.all(loan => new Date(loan.planned_expiration_date).isBefore(today)))
+            //older loans do not have a planned_expiration_date field.
+            if (loans.all(loan => !loan.planned_expiration_date || new Date(loan.planned_expiration_date).isBefore(today)))
                 return false
         }
         return true
@@ -458,7 +469,7 @@ class CritTester {
                     else
                         this.addFieldContainsOneOfArrayTester(values, selector)
                     break;
-                case 'all':
+                case 'all': //field is always an array for an 'all'
                     this.addArrayAllTester(values, selector)
                     break;
                 case 'none':
@@ -540,10 +551,11 @@ class CritTester {
             this.testers.push(entity => selector(entity) === false)
         }
     }
+    //this is the main event.
     allPass(entity) {
         if (this.fail_all) return false //must happen first
-        if (this.testers.length == 0) return true
-        return this.testers.all(func => func(entity))
+        if (this.testers.length == 0) return true //all on 0-length array will fail :(
+        return this.testers.all(func => func(entity)) //pass the entity to all of the tester functions, all must pass
     }
 }
 
@@ -586,6 +598,7 @@ class QueuedActions {
 //processes
 class Loans {
     constructor(update_interval = 0){
+        this.startupTime = new Date()
         this.last_partner_search_count = 0
         this.last_partner_search = {}
         this.last_filtered = []
@@ -641,10 +654,11 @@ class Loans {
         if (!this.isReady()) return
         //get ids for top 20 most popular, soon-to-expire (within minutes), and close to funding, and get updates on them.
         //can't do this here yet because this unit doesn't know how to filter loans yet!
-        var mostPopular = this.filter({loan:{sort:'popular', limit_results: 20}}, false).select(l=>l.id)
+        var mostPopular   = this.filter({loan:{sort:'popular', limit_results: 20}}, false).select(l=>l.id)
         var aboutToExpire = this.filter({loan:{sort:'expiring', expiring_in_days_max: .1}}, false).select(l => l.id)
         var closeToFunded = this.filter({loan:{still_needed_max: 100}}, false).select(l=>l.id)
-        var allToCheck = mostPopular.concat(aboutToExpire).concat(closeToFunded).distinct()
+        var showing = this.last_filtered.select(l=>l.id).take(20)
+        var allToCheck = mostPopular.concat(aboutToExpire).concat(closeToFunded).concat(showing).distinct()
         cl("checkHotLoans",allToCheck)
         this.refreshLoans(allToCheck)
     }
@@ -765,6 +779,10 @@ class Loans {
                         break
                     case 'expiring':
                         loans = loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
+                        break
+                    case 'still_needed':
+                        loans = loans.orderBy(loan => loan.kl_still_needed)
+                    case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
                         loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
@@ -925,7 +943,7 @@ class Loans {
     setLender(lender_id){
         if (lender_id) {
             this.lender_id = lender_id
-        } else { return }
+        } else return
         this.lender_loans = []
         if (this.lender_loans_state == llDownloading) return null ///not the right pattern. UI code in the API
         this.lender_loans_message = `Loading fundraising loans for ${this.lender_id} (Please wait...)`
@@ -940,7 +958,7 @@ class Loans {
             cl('LENDER LOAN IDS:', ids)
         })
     }
-    refreshLoan(loan){ //returns a promise todo: who uses this?
+    refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
         //since this object was what was already in our arrays and index, then it will just update, return can be ignored.
         return this.getLoanFromKiva(loan.id).then(k_loan => {
             this.mergeLoanAndNotify(loan, k_loan)
@@ -948,20 +966,22 @@ class Loans {
         })
     }
     mergeLoanAndNotify(existing, refreshed, extra = {}){
-        if (existing.funded_amount != refreshed.funded_amount) {
-            this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
-            cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
+        if (existing.status == 'fundraising') {
+            if (existing.funded_amount != refreshed.funded_amount) {
+                this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
+                cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
+            }
         }
         var old_status = existing.status
         $.extend(true, existing, refreshed, extra)
         if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
-            this.running_totals.funded_loans++
+            this.running_totals.funded_loans++  //todo: this will also be counting expired loans... need to separate.
             this.notify({loan_funded: existing})
         }
-        this.notify({running_totals_change: this.running_totals})
+        this.notify({running_totals_change: this.running_totals}) //todo: only if changed??
         this.notify({loan_updated: existing})
     }
-    getLoanFromKiva(id){
+    getLoanFromKiva(id){ //used?
         return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
     }
     refreshLoans(loan_arr){
@@ -991,7 +1011,7 @@ class Loans {
         var kl = this
         new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
-            kl.running_totals.new_loans += loans.length
+            kl.running_totals.new_loans += loans.where(l=>l.kl_posted_date.isAfter(this.startupTime)).length
             this.notify({running_totals_change: kl.running_totals})
             this.setKivaLoans(loans, false)
         })

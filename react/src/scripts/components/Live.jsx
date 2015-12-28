@@ -98,10 +98,10 @@ const Live = React.createClass({
         //generic splattening of the payloads to get the loan objects
         var loans_during = messages.select(p=>p.loans).flatten()
 
-        var top_sectors = loans_during.groupBySelectWithCount(l=>l.sector.name).orderBy(g=>g.count, basicReverseOrder).take(10)
-        var top_countries = loans_during.groupBySelectWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
+        var top_sectors = loans_during.groupByWithCount(l=>l.sector.name).orderBy(g=>g.count, basicReverseOrder).take(10)
+        var top_countries = loans_during.groupByWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
 
-        if (top_lending_countries.sum(g=>g.sum) >= 20)
+        if (this.state.running_totals.funded_amount >= 500)
             this.setState({top_lending_countries: top_lending_countries, top_sectors: top_sectors, top_countries: top_countries})
 
     },
@@ -149,7 +149,7 @@ const Live = React.createClass({
                 </Row>
                 <Row>
                     <h2>How Does KivaLens Stay Fresh{'?'}</h2>
-                    <ul>
+                    <ul className='spacedList'>
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
                             browser downloads the entire KivaLens app and after that doesn't talk to the KivaLens
@@ -174,6 +174,12 @@ const Live = React.createClass({
                         <li>
                             Every time you visit the Basket page, KivaLens will make sure all of the loans in your
                             basket have the most recent funded/basket amounts.
+                        </li>
+                        <li>
+                            Every minute, KivaLens looks at it's list of loans and it gathers 1) Loans that are popular
+                            with a high velocity 2) Loans that are about to expire 3) Loans that are close to being
+                            fully funded 4) Some of the loans that are currently displaying in your search and it checks
+                            with Kiva to get the most recent data on them.
                         </li>
                         <li>
                             Once every 10 minutes, KivaLens silently performs a resync of it's data to catch any changes

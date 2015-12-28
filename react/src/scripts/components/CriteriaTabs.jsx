@@ -1,6 +1,7 @@
 'use strict'
 
 import React from 'react'
+import {Link} from 'react-router'
 import Select from 'react-select'
 import Slider from 'react-slider' // 'multi-slider' is incompatible with .14 presently
 import Reflux from 'reflux'
@@ -262,12 +263,21 @@ const HasCursorMixin = {
     }
 }
 
-const LimitResult = React.createClass({
-    mixins: [HasCursorMixin],
-    delayChanged(){
-        setTimeout(this.changed, 20)
+//UGH. you're doing it wrong if you need this.
+const ForceRebuildMixin = {
+    getInitialState(){
+        return {cycle: 0}
     },
+    forceRebuild(){
+        this.setState({cycle: Math.random()})
+    }
+}
+
+const LimitResult = React.createClass({
+    mixins: [HasCursorMixin, ImmutableOptimizations(['cursor'])],
+    delayChanged(){setTimeout(this.changed, 20)},
     changed(){
+        //this doesn't seem like the right way to do it.
         var enabled = this.refs.enabled.getChecked()
         var newVal = {enabled: enabled}
         if (enabled){
@@ -281,7 +291,7 @@ const LimitResult = React.createClass({
         return <Row>
             <Col md={3}>
                 <Input
-                    type="checkbox" label={<b>Limit to</b>}
+                    type="checkbox" label={<b>Limit to top</b>}
                     ref='enabled'
                     defaultChecked={this.getCursorFieldValue('enabled')}
                     onChange={this.changed} />
@@ -291,17 +301,17 @@ const LimitResult = React.createClass({
                     <tbody>
                         <tr>
                             <td style={{width:'auto'}}>
-                                <Input type="text" label='' style={{height:'38px'}}
+                                <Input type="text" label='' style={{height:'38px',minWidth:'50px'}}
                                     className='col-xs-2'
                                     onChange={this.changed}
-                                    ref='limitCount'
+                                    ref='limitCount' disabled={!this.getCursorFieldValue('enabled')}
                                     defaultValue={this.getCursorFieldValue('count',1)} />
                             </td>
                             <td style={{padding: '5px',fontSize:'x-small'}}>loans per</td>
                             <td style={{width:'80%'}}>
                                 <Select ref='limitBy' value={this.getCursorFieldValue('limit_by', "Partner")}
                                     options={[{value:"Partner",label:"Partner"},{value:'Country',label:'Country'},{value:'Sector',label:'Sector'},{value:'Activity',label:'Activity'}]} multi={false}
-                                    placeholder='' clearable={false} onChange={this.delayChanged}/>
+                                    placeholder='' disabled={!this.getCursorFieldValue('enabled')} clearable={false} onChange={this.delayChanged}/>
                             </td>
                         </tr>
                     </tbody>
@@ -363,7 +373,7 @@ const SliderRow = React.createClass({
 const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState: function () {
-        return { activeTab: 1, state_count: 0, tab_flips: 0, portfolioTab: '', helper_charts: {}, criteria: s.criteria.syncGetLast()}
+        return { activeTab: 1, state_count: 0, tab_flips: 0, portfolioTab: '', helper_charts: {}, needLenderID: false, criteria: s.criteria.syncGetLast()}
     },
     componentWillMount(){
         this.state_count = 0
@@ -407,7 +417,7 @@ const CriteriaTabs = React.createClass({
     loansReady(){
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p => p.status == "active").orderBy(p=>p.name).select(p => ({ label: p.name, value: p.id }))
+        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id}))
         this.setState({loansReady : true})
         this.figureAtheistList()
         this.criteriaChanged()
@@ -422,7 +432,7 @@ const CriteriaTabs = React.createClass({
         this.options.currency_exchange_loss_liability = {label: "Currency Loss", multi: false, select_options:[{value: '', label:"Show All"}, {value:'shared', label:"Shared Loss"},{value:'none', label:"No Currency Exchange Loss"}]}
         this.options.bonus_credit_eligibility = {label: "Bonus Credit", multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only loans eligible"},{value:'false', label:"Only loans NOT eligible"}]}
         this.options.repayment_interval = {label: "Repayment Interval", multi: true, select_options:[{value:'Monthly', label:"Monthly"},{value:"Irregularly", label:"Irregularly"},{value:"At end of term", label:"At end of term"}]}
-        this.options.sort = {label: 'Sort', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'}]}
+        this.options.sort = {label: 'Sort', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'},{value: 'still_needed', label: "$ Still Needed"}]}
 
         //partner selects
         this.options.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, select_options: [{"value":1,"label":"Anti-Poverty Focus"},{"value":3,"label":"Client Voice"},{"value":5,"label":"Entrepreneurial Support"},{"value":6,"label":"Facilitation of Savings"},{"value":4,"label":"Family and Community Empowerment"},{"value":7,"label":"Innovation"},{"value":2,"label":"Vulnerable Group Focus"}]}
@@ -465,8 +475,15 @@ const CriteriaTabs = React.createClass({
         clearTimeout(timeoutHandle);
         timeoutHandle = setTimeout(this.performSearch, 150)
     },
+    figureNeedLender(criteria){
+        var por = criteria.portfolio
+        //por.exclude_portfolio_loans == 'true' ||
+        var needLenderID = (por.pb_country.enabled || por.pb_partner.enabled || por.pb_activity.enabled || por.pb_sector.enabled)
+        this.setState({needLenderID: (needLenderID && !kivaloans.lender_id)})
+    },
     performSearch(){
         var criteria = this.buildCriteria()
+        this.figureNeedLender(criteria)
         this.state_count++
         this.setState({state_count: this.state_count}) //hack
         cl("######### buildCriteria: criteria", criteria)
@@ -496,46 +513,46 @@ const CriteriaTabs = React.createClass({
 
         switch (key){
             case 'country_code':
-                data = loans.groupBySelectWithCount(l=>l.location.country)
+                data = loans.groupByWithCount(l=>l.location.country)
                 break
             case 'sector':
-                data = loans.groupBySelectWithCount(l=>l.sector)
+                data = loans.groupByWithCount(l=>l.sector)
                 break
             case 'activity':
-                data = loans.groupBySelectWithCount(l=>l.activity)
+                data = loans.groupByWithCount(l=>l.activity)
                 break
             case 'tags':
-                data = loans.select(l => l.kl_tags).flatten().groupBySelectWithCount(t => humanize(t))
+                data = loans.select(l => l.kl_tags).flatten().groupByWithCount(t => humanize(t))
                 break
             case 'themes':
-                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupBySelectWithCount(t => t)
+                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupByWithCount()
                 break
             case 'currency_exchange_loss_liability':
-                data = loans.groupBySelectWithCount(l=>l.terms.loss_liability.currency_exchange)
+                data = loans.groupByWithCount(l=>l.terms.loss_liability.currency_exchange)
                 break
             case 'bonus_credit_eligibility':
-                data = loans.groupBySelectWithCount(l=>l.bonus_credit_eligibility)
+                data = loans.groupByWithCount(l=>l.bonus_credit_eligibility)
                 break
             case 'repayment_interval':
-                data = loans.groupBySelectWithCount(l=>l.terms.repayment_interval)
+                data = loans.groupByWithCount(l=>l.terms.repayment_interval)
                 break
             case 'social_performance':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).social_performance_strengths).flatten().where(sp => sp != undefined).select(sp => sp.name).groupBySelectWithCount(t => t)
+                data = loans.select(l => l.getPartner().social_performance_strengths).flatten().where(sp => sp != undefined).groupByWithCount(sp => sp.name)
                 break
             case 'partners':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).name).flatten().groupBySelectWithCount(t => t)
+                data = loans.groupByWithCount(l => l.getPartner().name)
                 break
             case 'region':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).countries).flatten().select(c => c.region).groupBySelectWithCount(t => t)
+                data = loans.select(l => l.getPartner().countries).flatten().select(c => c.region).groupByWithCount()
                 break
             case 'charges_fees_and_interest':
-                data = loans.select(l => kivaloans.getPartner(l.partner_id).charges_fees_and_interest).groupBySelectWithCount(t => t)
+                data = loans.select(l => l.getPartner().charges_fees_and_interest).groupByWithCount()
                 break
             default:
                 return
         }
 
-        data = data.orderBy(d => d.count, basicReverseOrder)
+        data = data.orderBy(d=>d.count, basicReverseOrder)
 
         var config = {
             chart: {type: 'bar',
@@ -608,6 +625,10 @@ const CriteriaTabs = React.createClass({
                     <pre>{JSON.stringify(this.state, null, 2)}</pre>
                 </If>
 
+                <If condition={this.state.needLenderID}>
+                    <Alert bsStyle="danger">This criteria requires your Lender ID. Go to the Options page to set it.</Alert>
+                </If>
+
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">
                     <Col lg={8}>
                         <InputRow label='Use or Description' group={cLoan} name='use' onChange={this.criteriaChanged}/>
@@ -657,7 +678,7 @@ const CriteriaTabs = React.createClass({
                     <Row>
                         <Col md={10}>
                             <If condition={!this.state.kiva_lender_id}>
-                                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the Options tab. These functions won't work until you do.</Alert>
+                                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link to="options">Options</Link> page. These functions won't work until you do.</Alert>
                             </If>
 
                             To prevent you from accidentally lending to the same borrower twice if their loan is
@@ -675,7 +696,7 @@ const CriteriaTabs = React.createClass({
                                 <ul>
                                     <li>
                                         The summary data that KivaLens pulls for your account is not "live" data.
-                                        It should never be over 24 hours old, however. This means if you complete a
+                                        It should never be over 6 hours old, however. This means if you complete a
                                         bunch of loans and come back for more right away, the completed loans will
                                         not be accounted for in the balancing. Look for "Last Updated" to know how
                                         fresh the data is.

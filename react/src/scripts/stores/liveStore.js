@@ -2,6 +2,7 @@
 
 import Reflux from 'reflux'
 import a from '../actions'
+//this unit assumes socket.io.js is loaded (script on index)
 
 class KivaChannel {
     constructor(channelName){

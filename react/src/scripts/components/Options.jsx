@@ -1,28 +1,37 @@
 'use strict';
 
 import React from 'react'
+import Reflux from 'reflux'
 import {Grid,Input,Row,Col,Panel,Alert,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import LocalStorageMixin from 'react-localstorage'
 import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
+import a from '../actions'
 
 const Options = React.createClass({
-    mixins: [LinkedStateMixin, LocalStorageMixin],
+    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 120, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
-    componentDidMount(){
-        this.setState({missingPartners: this.getMissingPartners()})
-    },
-    componentWillUnmount(){
-        setDebugging()
-        if (this.state.mergeAtheistList && !kivaloans.atheist_list_processed)
-            kivaloans.getAtheistList()
-    },
-    showLenderIDModal(){this.setState({ showLenderModal: true })},
-    hideLenderIDModal(){this.setState({ showLenderModal: false })},
-    setLenderID(new_lender_id){this.setState({kiva_lender_id: new_lender_id})},
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging']
     },
+    componentDidMount(){
+        this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistStuff)
+        this.figureAtheistStuff()
+    },
+    figureAtheistStuff(){
+        this.setState({atheist_list_processed: kivaloans.atheist_list_processed, missingPartners: this.getMissingPartners()})
+    },
+    componentDidUpdate(prevProps, {mergeAtheistList}){
+        //user just switched it on, after loans already loaded and list has not been downloaded yet, then process it.
+        if (!mergeAtheistList && this.state.mergeAtheistList && !kivaloans.atheist_list_processed && kivaloans.isReady())
+            kivaloans.getAtheistList()
+    },
+    componentWillUnmount(){
+        setDebugging()
+    },
+    showLenderIDModal(){this.setState({ showLenderModal: true })},
+    hideLenderIDModal(){this.setState({ showLenderModal: false })},
+    setLenderID(new_lender_id){ this.setState({kiva_lender_id: new_lender_id}) },
     getMissingPartners(){
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
@@ -89,7 +98,7 @@ const Options = React.createClass({
                             tab for Criteria and a section displaying and explaining the ratings to the Partner tab
                             of the loan. If a partner is not present in the MFI Research Data, it will pass by default.
                         </p>
-                        <If condition={kivaloans.atheist_list_processed}>
+                        <If condition={this.state.atheist_list_processed}>
                             <div><b>Partners not included in Atheist Data:</b>
                                 <If condition={this.state.missingPartners.length==0}>
                                     <span> None</span>

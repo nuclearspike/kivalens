@@ -168,7 +168,7 @@ var Loan = React.createClass({
 
                         </Col>
                         <ReactCSSTransitionGroup transitionName="simpleFade" transitionEnterTimeout={500} transitionLeaveTimeout={300} >
-                            <If condition={activeTab == 2 && showGraphs}>
+                            <If condition={activeTab == 2 && showGraphs && loan.kl_half_back}>
                                 <Col lg={4} style={{height: '500px'}} id='graph_container'>
                                     <Highcharts config={this.produceChart(loan)} />
                                     <dl className="dl-horizontal">

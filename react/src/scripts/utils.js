@@ -35,11 +35,13 @@ window.cl = function() {
         console.trace(arguments)
 }
 
+//MORE LINQ GOODNESS
 //this is a common enough pattern in KL that it makes sense to standardize and shorten.
-Array.prototype.groupBySelectWithCount = function(selector){
+Array.prototype.groupByWithCount = function(selector=e=>e){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
 }
 
+//no longer used...
 Array.prototype.groupBySelectWithTake = function(selector, take_count = 1){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), taken: g.take(take_count)}))
 }
@@ -50,8 +52,12 @@ Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
 
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
-//flatten takes a complex array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
+//flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
+
+Array.prototype.count = function(predicate) {
+    return typeof predicate == 'function'? this.where(predicate).length: this.length
+}
 
 //turns var a = [1,2,3,4,5,6,7,8,9,10,11]; a.chunk(5); into => [[1,2,3,4,5],[6,7,8,9,10],[11]]
 //added for taking arrays of loan ids and breaking them into the max kiva allows for a request
