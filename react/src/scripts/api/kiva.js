@@ -245,7 +245,7 @@ class PagedKiva {
 
     processFirstResponse(request, response){
         this.total_object_count = request.raw_result.paging.total
-        for (var page = 2; page <= request.raw_result.paging.pages; page++) { this.setupRequest(page) }
+        Array.range(2,request.raw_result.paging.pages-1).forEach(this.setupRequest.bind(this))
         this.processPage(request, response)
         if (request.continuePaging) {
             this.requests.skip(1).forEach(req => {
@@ -301,8 +301,7 @@ class PagedKiva {
 
     wrapUp() {
         this.promise.notify({label: 'Processing...'})
-        var result_objects = [] //can't I not do the forEach but just a select & flatten?
-        this.requests.where(req => req.state == sDONE).forEach(req => result_objects = result_objects.concat(req.results))
+        var result_objects = this.requests.where(req=>req.state==sDONE).select(req=>req.results).flatten()
         this.promise.notify({complete: true})
         this.promise.resolve(result_objects)
     }
@@ -613,7 +612,7 @@ class Loans {
         this.lender_loans_state = llUnknown
         this.indexed_loans = {}
         this.base_kiva_params = {}
-        this.running_totals = {funded_amount:0, funded_loans: 0, new_loans: 0}
+        this.running_totals = {funded_amount:0, funded_loans: 0, new_loans: 0, expired_loans: 0}
         this.background_resync = 0
         this.notify_promise = $.Deferred()
         this.update_interval = update_interval
@@ -625,7 +624,7 @@ class Loans {
         //fetch partners.
         setAPIOptions(api_options)
         crit = $.extend(crit, {})
-        setInterval(this.checkHotLoans.bind(this), 60*1000)
+        setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(partners => {
             var max_repayment_date = null
@@ -654,9 +653,9 @@ class Loans {
         if (!this.isReady()) return
         //get ids for top 20 most popular, soon-to-expire (within minutes), and close to funding, and get updates on them.
         //can't do this here yet because this unit doesn't know how to filter loans yet!
-        var mostPopular   = this.filter({loan:{sort:'popular', limit_results: 20}}, false).select(l=>l.id)
-        var aboutToExpire = this.filter({loan:{sort:'expiring', expiring_in_days_max: .1}}, false).select(l => l.id)
-        var closeToFunded = this.filter({loan:{still_needed_max: 100}}, false).select(l=>l.id)
+        var mostPopular   = this.filter({loan:{sort:'popular',limit_results: 20}}, false).select(l=>l.id)
+        var aboutToExpire = this.filter({loan:{sort:'none',expiring_in_days_max: .1}}, false).select(l => l.id)
+        var closeToFunded = this.filter({loan:{sort:'none',still_needed_max: 100}}, false).select(l=>l.id)
         var showing = this.last_filtered.select(l=>l.id).take(20)
         var allToCheck = mostPopular.concat(aboutToExpire).concat(closeToFunded).concat(showing).distinct()
         cl("checkHotLoans",allToCheck)
@@ -796,16 +795,16 @@ class Loans {
             var selector
             switch(c.loan.limit_to.limit_by) {
                 case 'Partner':
-                    selector = l => l.partner_id
+                    selector = l=>l.partner_id
                     break
                 case 'Country':
-                    selector = l => l.location.country_code
+                    selector = l=>l.location.country_code
                     break
                 case "Activity":
-                    selector = l => l.activity
+                    selector = l=>l.activity
                     break
                 case "Sector":
-                    selector = l => l.sector
+                    selector = l=>l.sector
                     break
             }
 
@@ -899,6 +898,7 @@ class Loans {
         this.base_kiva_params = base_kiva_params
     }
     setKivaLoans(loans, reset = true){
+        if (!loans.length) return
         if (reset) {
             this.loans_from_kiva = []
             this.indexed_loans = {}
@@ -975,8 +975,9 @@ class Loans {
         var old_status = existing.status
         $.extend(true, existing, refreshed, extra)
         if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
-            this.running_totals.funded_loans++  //todo: this will also be counting expired loans... need to separate.
-            this.notify({loan_funded: existing})
+            if (refreshed.status == "funded" || refreshed.status == 'in_repayment') this.running_totals.funded_loans++
+            if (refreshed.status == "expired") this.running_totals.expired_loans++
+            this.notify({loan_not_fundraising: existing})
         }
         this.notify({running_totals_change: this.running_totals}) //todo: only if changed??
         this.notify({loan_updated: existing})
@@ -987,6 +988,7 @@ class Loans {
     refreshLoans(loan_arr){
         var kl = this
         return new LoanBatch(loan_arr).start().then(loans => {
+            var newLoans = []
             loans.forEach(loan => {
                 var existing = kl.indexed_loans[loan.id]
                 if (existing) {
@@ -994,9 +996,10 @@ class Loans {
                 } else {
                     kl.running_totals.funded_amount += 25
                     this.notify({running_totals_change: kl.running_totals})
-                    kl.setKivaLoans([loan], false) //todo: do we want this?
+                    newLoans.push(loan)
                 }
             })
+            kl.setKivaLoans(newLoans, false) //todo: do we want this?
             //cl("############### refreshLoans:", loan_arr.length, loans)
         })
     }

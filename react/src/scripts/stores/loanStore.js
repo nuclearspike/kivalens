@@ -37,9 +37,9 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
         a.loans.live.statsChanged(progress.running_totals_change)
     if (progress.loan_updated)
         a.loans.live.updated(progress.loan_updated) //have basket respond?
-    if (progress.loan_funded) {
-        a.loans.live.funded(progress.loan_funded)
-        loanStore.onBasketRemove(progress.loan_funded.id) //todo: should be in response to the action
+    if (progress.loan_not_fundraising) {
+        a.loans.live.loanNotFundraising(progress.loan_not_fundraising)
+        loanStore.onBasketRemove(progress.loan_not_fundraising.id) //todo: should be in response to the action
     }
 })
 

@@ -7,6 +7,7 @@ import Slider from 'react-slider' // 'multi-slider' is incompatible with .14 pre
 import Reflux from 'reflux'
 import numeral from 'numeral'
 import a from '../actions'
+import {LinkedComplexCursorMixin,DelayStateTriggerMixin} from './Mixins'
 import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
@@ -27,7 +28,7 @@ const AllAnyNoneButton = React.createClass({
         let {canAll} = this.props
         var selected = this.props.cursor.value || (canAll ? 'all' : 'any')
         var styles = (canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
-        return <DropdownButton style={{padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
+        return <DropdownButton style={{height:'34px',padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
             <If condition={canAll}>
                 <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All of these</MenuItem>
             </If>
@@ -38,53 +39,74 @@ const AllAnyNoneButton = React.createClass({
 })
 
 const InputRow = React.createClass({
-    mixins: [ImmutableOptimizations(['group'])],
+    mixins: [ImmutableOptimizations(['cursor'])],
     propTypes: {
         label: React.PropTypes.string.isRequired,
-        group: React.PropTypes.instanceOf(Cursor).isRequired,
-        name: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired
+        cursor: React.PropTypes.instanceOf(Cursor).isRequired
+    },
+    componentDidMount(){
+        this.cycle=0 //hack...
+    },
+    componentWillReceiveProps({cursor}){
+        //should only happen when switching to a saved search or clearing.
+        //don't force a cycle if we're focused and receive new props.
+        if (!this.focused && cursor.value != this.props.cursor.value)
+            this.cycle++
+    },
+    nowNotFocused(){
+        this.focused = false
+    },
+    nowFocused(){
+        this.focused = true
     },
     inputChange(){
-        this.props.group.refine(this.props.name).set(this.refs.input.getValue())
-        this.props.onChange()
+        clearTimeout(this.changeTimeout)
+        this.changeTimeout = setTimeout(function(){
+            var value = this.refs.input.getValue()
+            if (this.props.cursor.value != value)
+                this.props.cursor.set(value)
+        }.bind(this),200)
     },
     render(){
-        return <Row>
-            <Input type='text' label={this.props.label} labelClassName='col-md-3' wrapperClassName='col-md-9' ref='input' defaultValue={this.props.group.refine(this.props.name).value} onKeyUp={this.inputChange} />
+        return <Row key={this.cycle}>
+            <Input type='text' label={this.props.label} labelClassName='col-md-3' wrapperClassName='col-md-9' ref='input'
+                defaultValue={this.props.cursor.value} onChange={this.inputChange}
+                onFocus={this.nowFocused} onBlur={this.nowNotFocused}/>
         </Row>
     }
 })
 
 const SelectRow = React.createClass({
-    mixins: [ImmutableOptimizations(['group'])],
+    //mixins: [ImmutableOptimizations(['group'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         group: React.PropTypes.instanceOf(Cursor).isRequired,
         name: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired,
         onFocus: React.PropTypes.func
     },
-    cursorValue(){
+    subCursor(){
         return this.props.group.refine(this.props.name)
     },
-    //defaultAllAnyNone(){
-    //    return this.props.options.canAll ? 'all' : 'any'
-    //},
-    selectChange(value, values){
-        this.cursorValue().set(value)
-
-        //if (value && this.props.options.allAnyNone && !this.cursorAllAnyNone().value) //todo: this is wrong!!
-        //    this.cursorAllAnyNone().set(this.defaultAllAnyNone())
-
-        this.props.onChange()
+    shouldComponentUpdateOFF(nextProps, nextState){
+        if (this.subCursor().value != nextProps.group.refine(this.props.name).value
+            || this.cursorAllAnyNone().value != nextProps.group.refine(`${this.props.name}_all_any_none`).value){
+            return true
+        } else return false
+    },
+    selectChange(value){
+        var values = (value && this.props.options.intArray) ? value.split(',').select(s=>parseInt(s)).join(',') : value
+        this.subCursor().set(values)
+    },
+    selectValues(){
+        var values = this.subCursor().value
+        if (!values) return null
+        return this.props.options.intArray ? values.split(',').select(i=>`${i}`).join(',') : values
     },
     cursorAllAnyNone(){
         return this.props.group.refine(`${this.props.name}_all_any_none`)
     },
     allAnyNoneChange(value){
         this.cursorAllAnyNone().set(value)
-        this.props.onChange()
     },
     render(){
         //causing issues. is If wrapping in a <span>?
@@ -94,13 +116,16 @@ const SelectRow = React.createClass({
                 <label className="control-label">{options.label}</label>
             </Col>
             <Col md={9}>
-                <table style={{width:'100%'}}>
+                <table style={{width:'100%',borderCollapse:'separate'}}>
                     <tbody>
                     <tr>
                         <If condition={options.allAnyNone}>
-                            <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()} onChange={this.allAnyNoneChange} canAll={options.canAll}/></td>
+                            <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()}
+                                onChange={this.allAnyNoneChange} canAll={options.canAll}/></td>
                         </If>
-                        <td style={{width:'100%'}}><Select multi={options.multi} style={{display:'table-cell', width:'auto'}} ref='select' value={this.cursorValue().value} options={options.select_options} placeholder='' clearable={options.multi} onChange={this.selectChange} onFocus={this.props.onFocus} onBlur={this.props.onBlur} /></td>
+                        <td style={{width:'100%'}}><Select simpleValue multi={options.multi} ref='select'
+                            value={this.selectValues()} options={options.select_options} placeholder='' clearable={options.multi}
+                            onChange={this.selectChange} onFocus={this.props.onFocus} onBlur={this.props.onBlur} /></td>
                     </tr>
                     </tbody>
                 </table>
@@ -110,101 +135,102 @@ const SelectRow = React.createClass({
 })
 
 const BalancingRow = React.createClass({
-    mixins: [Reflux.ListenerMixin], //ImmutableOptimizations(['group']), <-- bad when component has it's own state
+    mixins: [LinkedComplexCursorMixin(), Reflux.ListenerMixin], //ImmutableOptimizations(['cursor']), <-- bad when component has it's own state
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
-        group: React.PropTypes.instanceOf(Cursor).isRequired,
-        name: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired
+        cursor: React.PropTypes.instanceOf(Cursor).isRequired
     },
     getInitialState(){
-        return $.extend({cycle: '1', enabled: false, hideshow: 'hide', ltgt: 'gt', percent: '5', allactive: 'active', slices: [], slices_count: 0}, this.cursor().value)
+        return {cycle:'1',slices:[],slices_count:0}
     },
+    getDefaultCursor(){return {enabled:false,hideshow:'hide',ltgt:'gt',percent:5,allactive:'active'}},
     componentDidMount(){
         this.lastResult = {}
-        this.lastCursorValue = {}
+        this.cycle=0
         this.listenTo(a.criteria.balancing.get.completed, this.receivedKivaSlices)
-        this.changed()
+        this.performBalanceQuery(this.props.cursor)
     },
-    changed(){
-        setTimeout(function(){
-            if (!this.refs.enabled) return
-            this.lastCursorValue = {
-                enabled: this.refs.enabled.getChecked(),
-                hideshow: this.refs.hideshow.refs.value.value,
-                ltgt: this.refs.ltgt.refs.value.value,
-                percent: parseFloat(this.refs.percent.getValue()),
-                allactive: this.refs.allactive.refs.value.value
+    performBalanceQuery(cursor){
+        if (cursor.value && cursor.refine('enabled').value) {
+            var newReq = JSON.stringify(cursor.value)
+            if (newReq == this.lastRequest) return //we've done it already!
+            this.lastRequest = newReq
+            s.criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, function(){this.setState({loading:true})}.bind(this))
+        }
+    },
+    compareButIgnore(obj1, obj2, property){
+        var obj1c = $.extend(true,{},obj1)
+        var obj2c = $.extend(true,{},obj2)
+        delete obj1c[property]
+        delete obj2c[property]
+        return JSON.stringify(obj1c) == JSON.stringify(obj2c)
+    },
+    componentWillReceiveProps({cursor}){ //a criteria is loaded (or flows back down??)
+        if (cursor != this.props.cursor) {
+            if (!this.compareButIgnore(cursor.value, this.props.cursor.value, 'values')) {
+                if (!this.percentFocused) //if focused, then the the props change is probably because user is typing.
+                    this.cycle++
+                this.performBalanceQuery(cursor)
             }
-            this.setState(this.lastCursorValue)
-
-            if (this.lastCursorValue.enabled) {
-                s.criteria.onBalancingGet(this.props.options.slice_by, this.lastCursorValue, function(){this.setState({loading:true})}.bind(this))
-            } else
-                this.cursor({enabled: false})
-        }.bind(this), 50) //or the values haven't changed and the controls will be locked.
+        }
     },
-    receivedKivaSlices(sliceBy, crit, result){
+    percentChange(){
+        clearTimeout(this.percentChangeTimeout)
+        this.percentChangeTimeout = setTimeout(function(){
+            var value = parseFloat(this.refs.percent.getValue())
+            if (!isNaN(value)) {
+                this.props.cursor.refine('percent').set(value)
+            }
+        }.bind(this),200)
+    },
+    percentFocus(){
+        this.percentFocused=true
+    },
+    percentBlur(){
+        this.percentFocused=false
+    },
+    receivedKivaSlices(lastRequest, sliceBy, crit, result){
         //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
-        if (this.props.options.slice_by == sliceBy &&  this.lastCursorValue == crit){
+        if (this.lastRequest == lastRequest){
             this.setState({loading: false})
             this.lastResult = result
 
-            if (!Array.isArray(this.lastResult.slices)) return
-            var slices = this.lastResult.slices
+            if (!Array.isArray(result.slices)) return
+            var slices = result.slices
             //'values' are what is passed through to the filtering. slices is for display.
-            this.lastCursorValue.values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+            var values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+            this.cursor().refine('values').set(values)
             this.setState({slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
-            this.cursor(this.lastCursorValue)
-            cl("cursorChunk:", this.lastCursorValue)
         }
-    },
-    cursor(val){
-        var c = this.props.group
-        if (val) {
-            c.set(val)
-            this.props.onChange() //todo: remove change events
-        } else
-            return c
     },
     render(){
         var options = this.props.options
+        let {loading, slices, slices_count, lastUpdated} = this.state
+        let {enabled, percent=5} = (this.cursor().value || {})
         //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
+        var lcHS = this.linkCursor('hideshow')
+        var lcLG = this.linkCursor('ltgt')
+        var lcAA = this.linkCursor('allactive')
         return <Row>
             <Col md={2}>
                 <label className="control-label">{options.label}</label>
             </Col>
             <Col md={10}>
-                <Input
-                    type="checkbox" label='Enable filter'
-                    ref='enabled'
-                    defaultChecked={this.state.enabled}
-                    onChange={this.changed} />
+                <Input type="checkbox" label='Enable filter' checkedLink={this.linkCursor('enabled')}/>
                 <Row>
-                    <Select multi={false} ref='hideshow'
-                        options={[{label: 'Show only', value: 'show'}, {label: "Hide all", value: 'hide'}]}
-                        clearable={false}
-                        value={this.state.hideshow}
-                        className='col-xs-4'
-                        onChange={this.changed} />
+                    <Select simpleValue clearable={false} options={[{label: 'Show only', value: 'show'}, {label: "Hide all", value: 'hide'}]}
+                        value={lcHS.value} onChange={lcHS.requestChange} className='col-xs-4' />
                     <Col xs={4}>
                         {options.label.toLowerCase()} that have
                     </Col>
                 </Row>
                 <Row>
-                    <Select multi={false} ref='ltgt'
-                        options={[{label: '< Less than', value: 'lt'}, {label: "> More than", value: 'gt'}]}
-                        clearable={false}
-                        value={this.state.ltgt}
-                        className='col-xs-4'
-                        onChange={this.changed} />
+                    <Select simpleValue clearable={false} value={lcLG.value} onChange={lcLG.requestChange} className='col-xs-4'
+                        options={[{label: '< Less than', value: 'lt'}, {label: "> More than", value: 'gt'}]}/>
                     <Col xs={4}>
-                        <Input
-                            type="text" label=''
-                            className='col-xs-2'
-                            onChange={this.changed}
-                            ref='percent'
-                            defaultValue={this.state.percent} />
+                        <Input key={this.cycle} type="text" label='' ref="percent" className='col-xs-2'
+                            defaultValue={percent} onChange={this.percentChange}
+                            onFocus={this.percentFocus} onBlur={this.percentBlur}/>
                     </Col>
                     <Col xs={3}>
                         %
@@ -214,30 +240,26 @@ const BalancingRow = React.createClass({
                     <Col xs={3}>
                         of my
                     </Col>
-                    <Select multi={false} ref='allactive'
-                        options={[{label: 'Active Portfolio', value: 'active'}, {label: "Total Portfolio", value: 'all'}]}
-                        clearable={false}
-                        value={this.state.allactive}
-                        className='col-xs-5'
-                        onChange={this.changed} />
+                    <Select simpleValue clearable={false} value={lcAA.value} onChange={lcAA.requestChange} className='col-xs-5'
+                        options={[{label:'Active Portfolio',value:'active'},{label:"Total Portfolio",value:'all'}]}/>
                 </Row>
 
                 <Row>
-                    <If condition={this.state.loading}>
+                    <If condition={loading}>
                         <Alert>Loading data from Kiva...</Alert>
                     </If>
-                    <If condition={this.state.enabled && !this.state.loading}>
+                    <If condition={enabled && !loading}>
                         <div>
-                            Matching: {this.state.slices_count}. Loans from these <b>{options.label.toLowerCase()}</b> will be <b>{this.state.hideshow == 'show' ? 'shown' : 'hidden'}</b>.
+                            Matching: {slices_count}. Loans from these <b>{options.label.toLowerCase()}</b> will be <b>{this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'}</b>.
                             <ul style={{overflowY:'auto',maxHeight:'200px'}}>
-                                <For index='i' each='slice' of={this.state.slices}>
+                                <For index='i' each='slice' of={slices}>
                                     <li key={i}>
                                         {numeral(slice.percent).format('0.000')}%: {slice.name}
                                     </li>
                                 </For>
                             </ul>
-                            <If condition={this.state.lastUpdated}>
-                                <p>Last Updated: <TimeAgo date={new Date(this.state.lastUpdated).toISOString()}/></p>
+                            <If condition={lastUpdated}>
+                                <p>Last Updated: <TimeAgo date={new Date(lastUpdated).toISOString()}/></p>
                             </If>
                         </div>
                     </If>
@@ -274,44 +296,29 @@ const ForceRebuildMixin = {
 }
 
 const LimitResult = React.createClass({
-    mixins: [HasCursorMixin, ImmutableOptimizations(['cursor'])],
-    delayChanged(){setTimeout(this.changed, 20)},
-    changed(){
-        //this doesn't seem like the right way to do it.
-        var enabled = this.refs.enabled.getChecked()
-        var newVal = {enabled: enabled}
-        if (enabled){
-            newVal.count = parseInt(this.refs.limitCount.getValue())
-            newVal.limit_by = this.refs.limitBy.refs.value.value
-        }
-        this.cursor(newVal)
-        this.props.onChange()
-    },
+    mixins: [LinkedComplexCursorMixin(), ImmutableOptimizations(['cursor'])],
+    getDefaultCursor(){return {enabled: false, count: 1, limit_by: 'Partner'}},
     render(){
+        var lcLB = this.linkCursor('limit_by')
         return <Row>
             <Col md={3}>
-                <Input
-                    type="checkbox" label={<b>Limit to top</b>}
-                    ref='enabled'
-                    defaultChecked={this.getCursorFieldValue('enabled')}
-                    onChange={this.changed} />
+                <Input type="checkbox" label={<b>Limit to top</b>} checkedLink={this.linkCursor('enabled')}/>
             </Col>
             <Col md={9}>
-                <table style={{width:'100%'}}>
+                <table style={{width:'100%',borderCollapse:'separate'}}>
                     <tbody>
                         <tr>
                             <td style={{width:'auto'}}>
                                 <Input type="text" label='' style={{height:'38px',minWidth:'50px'}}
                                     className='col-xs-2'
-                                    onChange={this.changed}
-                                    ref='limitCount' disabled={!this.getCursorFieldValue('enabled')}
-                                    defaultValue={this.getCursorFieldValue('count',1)} />
+                                    disabled={!this.linkCursor('enabled').value}
+                                    valueLink={this.linkCursor('count',{type:'integer'})} />
                             </td>
                             <td style={{padding: '5px',fontSize:'x-small'}}>loans per</td>
                             <td style={{width:'80%'}}>
-                                <Select ref='limitBy' value={this.getCursorFieldValue('limit_by', "Partner")}
-                                    options={[{value:"Partner",label:"Partner"},{value:'Country',label:'Country'},{value:'Sector',label:'Sector'},{value:'Activity',label:'Activity'}]} multi={false}
-                                    placeholder='' disabled={!this.getCursorFieldValue('enabled')} clearable={false} onChange={this.delayChanged}/>
+                                <Select simpleValue value={lcLB.value} onChange={lcLB.requestChange}
+                                    options={[{value:"Partner",label:"Partner"},{value:'Country',label:'Country'},{value:'Sector',label:'Sector'},{value:'Activity',label:'Activity'}]}
+                                    placeholder='' disabled={!this.linkCursor('enabled').value} clearable={false}/>
                             </td>
                         </tr>
                     </tbody>
@@ -322,66 +329,103 @@ const LimitResult = React.createClass({
 })
 
 const SliderRow = React.createClass({
-    mixins: [ImmutableOptimizations(['group'])],
+    //mixins: [ImmutableOptimizations(['group'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         group: React.PropTypes.instanceOf(Cursor).isRequired,
-        name: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired
+        name: React.PropTypes.string.isRequired
+    },
+    getInitialState(){
+        //return {min:this.props.group.refine(`${this.props.name}_min`).value, max:this.props.group.refine(`${this.props.name}_max`).value}
+        var s = this.fillMissing({c_min:this.props.group.refine(`${this.props.name}_min`).value,
+                                  c_max:this.props.group.refine(`${this.props.name}_max`).value})
+        return s
     },
     pickValue(crit_facet, defaultValue){
         return (crit_facet === null || crit_facet === undefined) ? defaultValue : crit_facet
     },
-    sliderChange(){
-        var arr = this.refs.slider.state.value.slice(0);
-        if (arr.length == 2) {
-            if (arr[0] == this.props.options.min) arr[0] = null
-            if (arr[1] == this.props.options.max) arr[1] = null
-            //todo: only set if different
-            //if (this.props.group.refine(`${this.props.name}_min`) )
+    componentWillReceiveProps({group}, newState){
+        var name = this.props.name
+        if ((this.props.group.refine(`${name}_min`).value !== group.refine(`${name}_min`)) ||
+            (this.props.group.refine(`${name}_max`).value !== group.refine(`${name}_max`))) {
+            this.setState(this.fillMissing({c_min: group.refine(`${name}_min`).value, c_max: group.refine(`${name}_max`).value}))
+        }
+        return true
+    },
+    fillMissing(s){
+        //a_ absolute. no nulls, o_ options, c_ cursor/criteria with nulls, d_ display
+        s.o_min = this.props.options.min
+        s.o_max = this.props.options.max
 
-            this.props.group.refine(`${this.props.name}_min`).set(arr[0])
-            this.props.group.refine(`${this.props.name}_max`).set(arr[1])
-            this.props.onChange()
+        //if the slider values are set, set the criteria to match
+        if (s.a_min !== null && s.a_min !== undefined) s.c_min = s.a_min
+        if (s.a_max !== null && s.a_max !== undefined) s.c_max = s.a_max
+
+        //if the criteria is set, set the values for the sliders.
+        if (s.c_min !== null && s.c_min !== undefined) s.a_min = s.c_min
+        if (s.c_max !== null && s.c_max !== undefined) s.a_max = s.c_max
+
+        //if the criteria is at upper/lower bound (missing), take the upper lower from options.
+        if (s.c_min === null || s.c_min === undefined || isNaN(s.c_min))
+            s.a_min = s.o_min
+        if (s.c_max === null || s.c_max === undefined || isNaN(s.c_max))
+            s.a_max = s.o_max
+
+        //if the criteria is at upper/lower bound set it to null
+        if (s.c_min == s.o_min) s.c_min = null
+        if (s.c_max == s.o_max) s.c_max = null
+
+        //set the display to the control settings, unless it's at the upper/lower boundary
+        s.d_min = s.a_min
+        s.d_max = s.a_max
+        if (s.c_min===null || s.c_min===undefined || s.c_min == s.o_min) s.d_min='min'
+        if (s.c_max===null || s.c_max===undefined || s.c_max == s.o_max) s.d_max='max'
+
+        return s
+    },
+    sliderChange(arr){
+        if (arr.length == 2) {
+            var ns = this.fillMissing({a_min:arr[0],a_max:arr[1]})
+            this.setState(ns)
+
+            //after a quick breath, set the cursor
+            clearTimeout(this.changeTimeout)
+            this.changeTimeout = setTimeout(function(){
+                this.props.group.refine(`${this.props.name}_min`).set(ns.c_min)
+                this.props.group.refine(`${this.props.name}_max`).set(ns.c_max)
+            }.bind(this), 250)
         }
     },
     render() {
-        var ref = this.props.name
         var options = this.props.options
-        var c_group = this.props.group.value
-
-        var min = this.pickValue(c_group[`${ref}_min`], options.min)
-        var max = this.pickValue(c_group[`${ref}_max`], options.max)
-        var display_min = min == options.min ? 'min' : min
-        var display_max = max == options.max ? 'max' : max
-        var defaults = [min, max]
+        let {a_min,a_max,d_min,d_max,o_min,o_max}=this.state
         var step = options.step || 1
         return (<Row>
             <Col md={3}>
-                <OverlayTrigger rootClose={true} trigger={options.helpText ? ["hover","focus","click"] : "none"} placement="top" overlay={<Popover id={options.label} title={options.label}>{options.helpText}</Popover>}>
+                <OverlayTrigger rootClose={true} trigger={options.helpText ? ["hover","focus","click"] : "none"}
+                    placement="top" overlay={<Popover id={options.label} title={options.label}>{options.helpText}</Popover>}>
                     <label style={{'borderBottom': '#333 1px dotted'}} className="control-label">{options.label}</label>
                 </OverlayTrigger>
-                <p>{display_min}-{display_max}</p>
+                <p>{d_min}-{d_max}</p>
             </Col>
             <Col md={9}>
-                <Slider ref='slider' className='horizontal-slider' min={options.min} max={options.max} defaultValue={defaults} step={step} withBars onChange={this.sliderChange} />
+                <Slider className='horizontal-slider' min={o_min} max={o_max}
+                    value={[a_min,a_max]} step={step} withBars onChange={this.sliderChange} />
             </Col>
         </Row>)
     }
 })
 
 const CriteriaTabs = React.createClass({
-    mixins: [Reflux.ListenerMixin],
+    mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState: function () {
-        return { activeTab: 1, state_count: 0, tab_flips: 0, portfolioTab: '', helper_charts: {}, needLenderID: false, criteria: s.criteria.syncGetLast()}
+        return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false, criteria: s.criteria.syncGetLast()}
     },
     componentWillMount(){
-        this.state_count = 0
-        this.tab_flips = 0
         this.options = {}
         this.setKnownOptions()
     },
-    componentDidMount: function () {
+    componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
@@ -389,7 +433,6 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.loans.filter.completed, this.filteredDone)
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
         if (kivaloans.isReady()) this.loansReady()
-        this.criteriaChanged()
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -405,22 +448,20 @@ const CriteriaTabs = React.createClass({
     },
     reloadCriteria(criteria = {}){
         this.setState({criteria: $.extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})
-        this.criteriaChanged()
     },
     lenderLoansEvent(event){
         //can be either started or done.
         var newState = {}
         newState.portfolioTab = (event == 'started') ? " (loading...)" : ""
         this.setState(newState)
-        this.criteriaChanged()
+        this.performSearch()
     },
     loansReady(){
         //this.options.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //this.options.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id}))
+        this.options.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id.toString()}))
         this.setState({loansReady : true})
         this.figureAtheistList()
-        this.criteriaChanged()
     },
     setKnownOptions(){
         //loan selects
@@ -435,9 +476,9 @@ const CriteriaTabs = React.createClass({
         this.options.sort = {label: 'Sort', multi: false, select_options: [{"value": null, label: "Date half is paid back, then 75%, then full (default)"},{value: "final_repayment", label: "Final repayment date"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'},{value: 'still_needed', label: "$ Still Needed"}]}
 
         //partner selects
-        this.options.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, select_options: [{"value":1,"label":"Anti-Poverty Focus"},{"value":3,"label":"Client Voice"},{"value":5,"label":"Entrepreneurial Support"},{"value":6,"label":"Facilitation of Savings"},{"value":4,"label":"Family and Community Empowerment"},{"value":7,"label":"Innovation"},{"value":2,"label":"Vulnerable Group Focus"}]}
+        this.options.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, intArray:true, select_options: [{"value":'1',"label":"Anti-Poverty Focus"},{"value":'3',"label":"Client Voice"},{"value":'5',"label":"Entrepreneurial Support"},{"value":'6',"label":"Facilitation of Savings"},{"value":'4',"label":"Family and Community Empowerment"},{"value":'7',"label":"Innovation"},{"value":'2',"label":"Vulnerable Group Focus"}]}
         this.options.region = {label: 'Region', allAnyNone: true, multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
-        this.options.partners = {label: "Partners", allAnyNone: true, multi: true, select_options: []}
+        this.options.partners = {label: "Partners", allAnyNone: true, multi: true, intArray:true, select_options: []}
         this.options.charges_fees_and_interest = {label: "Charges Interest",  multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only partners that charge fees & interest"},{value:'false', label:"Only partners that do NOT charge fees & interest"}]}
 
         //portfolio selects
@@ -471,26 +512,21 @@ const CriteriaTabs = React.createClass({
         this.options.secular_rating = {min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda."}
         this.options.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)."}
     },
-    criteriaChanged(){
-        clearTimeout(timeoutHandle);
-        timeoutHandle = setTimeout(this.performSearch, 150)
-    },
-    figureNeedLender(criteria){
-        var por = criteria.portfolio
-        //por.exclude_portfolio_loans == 'true' ||
-        var needLenderID = (por.pb_country.enabled || por.pb_partner.enabled || por.pb_activity.enabled || por.pb_sector.enabled)
+    figureNeedLender(crit){
+        var por = crit.portfolio
+        //if any of the balancers are present and enabled, show message that they need to have their lender id
+        var needLenderID = ['pb_country','pb_partner','pb_activity','pb_sector'].any(n => por[n] && por[n].enabled)
         this.setState({needLenderID: (needLenderID && !kivaloans.lender_id)})
     },
     performSearch(){
         var criteria = this.buildCriteria()
         this.figureNeedLender(criteria)
-        this.state_count++
-        this.setState({state_count: this.state_count}) //hack
-        cl("######### buildCriteria: criteria", criteria)
         a.criteria.change(criteria)
     },
     buildCriteria(){
-        return s.criteria.stripNullValues($.extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
+        var criteria = s.criteria.stripNullValues($.extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
+        cl("######### buildCriteria: criteria", criteria)
+        return criteria
     },
     buildCriteriaWithout(group, key){
         var crit = this.buildCriteria()
@@ -502,15 +538,12 @@ const CriteriaTabs = React.createClass({
     },
     tabSelect(selectedKey){
         if (this.state.activeTab != selectedKey) {
-            this.tab_flips++
-            this.setState({activeTab: selectedKey, tab_flips: this.tab_flips})
-            //todo: tab_flips is a hack. it is used in the key of the sliders to force a re-mounting when flipping tabs
-            //otherwise it only renders one knob which is locked in position.
+            this.setState({activeTab: selectedKey})
         }
     },
     genHelperGraphs(group, key, loans){
+        //helper graphs are the bars that show down the right side of the page.
         var data
-
         switch (key){
             case 'country_code':
                 data = loans.groupByWithCount(l=>l.location.country)
@@ -542,7 +575,7 @@ const CriteriaTabs = React.createClass({
             case 'partners':
                 data = loans.groupByWithCount(l => l.getPartner().name)
                 break
-            case 'region':
+            case 'region': //this won't come out with the right number of loans....
                 data = loans.select(l => l.getPartner().countries).flatten().select(c => c.region).groupByWithCount()
                 break
             case 'charges_fees_and_interest':
@@ -621,27 +654,27 @@ const CriteriaTabs = React.createClass({
 
         return (<div>
             <Tabs animation={false} activeKey={this.state.activeTab} onSelect={this.tabSelect}>
-                <If condition={location.hostname == '~~localhost'}>
-                    <pre>{JSON.stringify(this.state, null, 2)}</pre>
+                <If condition={location.hostname == '$$localhost'}>
+                    <pre>{JSON.stringify(this.state.criteria, null, 2)}</pre>
                 </If>
 
                 <If condition={this.state.needLenderID}>
-                    <Alert bsStyle="danger">This criteria requires your Lender ID. Go to the Options page to set it.</Alert>
+                    <Alert bsStyle="danger">The options in your criteria require your Lender ID. Go to the Options page to set it.</Alert>
                 </If>
 
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">
                     <Col lg={8}>
-                        <InputRow label='Use or Description' group={cLoan} name='use' onChange={this.criteriaChanged}/>
-                        <InputRow label='Name' group={cLoan} name='name' onChange={this.criteriaChanged}/>
+                        <InputRow label='Use or Description' cursor={cLoan.refine('use')}/>
+                        <InputRow label='Name' cursor={cLoan.refine('name')} />
 
                         <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
-                            <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+                            <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
                         </For>
 
-                        <LimitResult cursor={cLoan.refine('limit_to')} onChange={this.criteriaChanged}/>
+                        <LimitResult cursor={cLoan.refine('limit_to')}/>
 
                         <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','percent_funded','expiring_in_days', 'disbursal_in_days']}>
-                            <SliderRow key={`${this.state.tab_flips}_${i}`} group={cLoan} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
+                            <SliderRow key={i} group={cLoan} name={name} options={this.options[name]}/>
                         </For>
                     </Col>
 
@@ -655,14 +688,14 @@ const CriteriaTabs = React.createClass({
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
                     <Col lg={8}>
                         <For each='name' index='i' of={['region','partners','social_performance','charges_fees_and_interest']}>
-                            <SelectRow key={i} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
+                            <SelectRow key={i} group={cPartner} name={name} options={this.options[name]} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>
-                            <SliderRow key={`${this.state.tab_flips}_${i}`} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
+                            <SliderRow key={i} group={cPartner} name={name} options={this.options[name]}/>
                         </For>
                         <If condition={this.state.displayAtheistOptions}>
                             <For each='name' index='i' of={['secular_rating','social_rating']}>
-                                <SliderRow key={`${this.state.tab_flips}_${i}_atheist`} group={cPartner} name={name} options={this.options[name]} onChange={this.criteriaChanged}/>
+                                <SliderRow key={`${i}_atheist`} group={cPartner} name={name} options={this.options[name]}/>
                             </For>
                         </If>
                     </Col>
@@ -685,7 +718,8 @@ const CriteriaTabs = React.createClass({
                             still fundraising, just exclude those loans. {`(${lender_loans_message})`}
 
                             <For each='name' index='i' of={['exclude_portfolio_loans']}>
-                                <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]} onChange={this.criteriaChanged} onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}/>
+                                <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]}
+                                    onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}  />
                             </For>
                         </Col>
                     </Row>
@@ -715,7 +749,7 @@ const CriteriaTabs = React.createClass({
                                 </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                                    <BalancingRow key={i} group={cPorfolio.refine(name)} name={name} options={this.options[name]} onChange={this.criteriaChanged} />
+                                    <BalancingRow key={i} cursor={cPorfolio.refine(name)} options={this.options[name]}/>
                                 </For>
                             </Panel>
                         </Col>

@@ -45,24 +45,6 @@ const TopTen = React.createClass({
     }
 })
 
-//watches for state change on what is defined by the selector/field, it triggers the function (given as string) after delay
-const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 200) {
-    //invent a new handle name.
-    var handleName = 'DelayTriggerChangedHandle' + Math.random().toString()
-    var stateSelectorFunc = typeof stateSelector == 'string' ? state=>state[stateSelector] : stateSelector
-
-    return {
-        componentDidUpdate(prevProps, prevState){
-            if (JSON.stringify(stateSelectorFunc(prevState)) != JSON.stringify(stateSelectorFunc(this.state))) {
-                clearTimeout(this[handleName])
-                this[handleName] = setTimeout(eval(`this.${onTrigger}`)(), delayTime)
-            }
-            return true //this is not in the docs, but not having a return true doesn't update the page? bad assumption?
-        },
-        componentWillUnmount(){clearTimeout(this[handleName])}
-    }
-}
-
 const Live = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
         //DelayStateTriggerMixin('maxMinutes','recalcTop', 1000),
@@ -109,7 +91,7 @@ const Live = React.createClass({
         clearInterval(this.topInterval)
     },
     render() {
-        let {new_loans, funded_loans, funded_amount} = this.state.running_totals
+        let {new_loans, funded_loans, funded_amount, expired_loans} = this.state.running_totals
         return <Grid>
                 <Row>
                     <h1>Kiva Lending</h1>
@@ -124,6 +106,7 @@ const Live = React.createClass({
                         <dl className="dl-horizontal" style={{fontSize: 'large'}}>
                             <dt>New Loans</dt><dd><AnimInt value={new_loans}/></dd>
                             <dt>Fully Funded</dt><dd><AnimInt value={funded_loans}/></dd>
+                            <dt>Expired</dt><dd><AnimInt value={expired_loans}/></dd>
                             <dt>Lending Total</dt><dd>$<AnimInt value={funded_amount}/></dd>
                         </dl>
                     </Col>
@@ -176,7 +159,7 @@ const Live = React.createClass({
                             basket have the most recent funded/basket amounts.
                         </li>
                         <li>
-                            Every minute, KivaLens looks at it's list of loans and it gathers 1) Loans that are popular
+                            Every 2 minutes, KivaLens looks at it's list of loans and it gathers 1) Loans that are popular
                             with a high velocity 2) Loans that are about to expire 3) Loans that are close to being
                             fully funded 4) Some of the loans that are currently displaying in your search and it checks
                             with Kiva to get the most recent data on them.

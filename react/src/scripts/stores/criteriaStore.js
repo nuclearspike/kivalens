@@ -7,6 +7,7 @@ var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
     init(){
         this.last_known = lsj.get('last_criteria')
+        if (!this.last_known) this.last_known = this.syncBlankCriteria()
         a.criteria.reload(this.last_known) //??
         this.all = lsj.get('all_criteria')
         if (Object.keys(this.all).length == 0) {
@@ -117,7 +118,6 @@ var criteriaStore = Reflux.createStore({
             }
             this.syncSavedAll()
         }
-        if (!this.last_known) this.last_known = {loan:{},partner:{},portfolio:{}}
     },
     onChange(criteria){
         cl("criteriaStore:onChange", criteria)
@@ -188,12 +188,12 @@ var criteriaStore = Reflux.createStore({
         this.onChange(new_c)
         a.criteria.savedSearchListChanged()
     },
-    onBalancingGet(sliceBy, crit, fetchNotifyFunc){
+    onBalancingGet(requestId, sliceBy, crit, fetchNotifyFunc){
         //pull from cache if available, otherwise
         get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive, fetchNotifyFunc).done(result => {
             cl('onBalancingGet.get_verse_data.done',result)
             result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
-            a.criteria.balancing.get.completed(sliceBy, crit, result)
+            a.criteria.balancing.get.completed(requestId, sliceBy, crit, result)
         })
     },
     syncGetLastSwitch(){

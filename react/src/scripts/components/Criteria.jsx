@@ -10,7 +10,7 @@ import s from '../stores/'
 
 const Criteria = React.createClass({
     mixins: [Reflux.ListenerMixin, LocalStorageMixin],
-    getInitialState() { return {show_graphs: false, saved_searches: s.criteria.syncGetAllNames()} },
+    getInitialState() { return {show_graphs: false, lastSaved: 'initial', saved_searches: s.criteria.syncGetAllNames()} },
     getStateFilterKeys() { return ['show_graphs']},
     componentDidMount(){
         this.listenTo(a.criteria.savedSearchListChanged, this._savedSearchListChanged )
@@ -35,7 +35,6 @@ const Criteria = React.createClass({
     },
     toggleGraph(){ this.setState({ show_graphs: !this.state.show_graphs }) },
     render() {
-        var tab_key = this.state.lastSaved + this.state.cycle
         return (
             <div>
                 <h1 style={{marginTop:'0px'}}>Criteria
@@ -65,7 +64,7 @@ const Criteria = React.createClass({
                 <If condition={this.state.show_graphs}>
                     <ChartDistribution/>
                 </If>
-                <CriteriaTabs key={tab_key} criteria='pass a cursor'/>
+                <CriteriaTabs criteria='pass a cursor'/>
             </div>
         );
     }
