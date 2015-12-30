@@ -120,7 +120,7 @@ const SelectRow = React.createClass({
 })
 
 const BalancingRow = React.createClass({
-    mixins: [LinkedComplexCursorMixin(), Reflux.ListenerMixin,ImmutableOptimizations(['cursor'])],
+    mixins: [LinkedComplexCursorMixin(), Reflux.ListenerMixin, ImmutableOptimizations(['cursor'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         cursor: React.PropTypes.instanceOf(Cursor).isRequired
@@ -142,7 +142,7 @@ const BalancingRow = React.createClass({
             this.lastRequest = newReq
             s.criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, function(){
                 this.setState({loading:true})
-                this.forceUpdate()
+                this.forceUpdate() //wouldn't happen otherwise due to optimizations
             }.bind(this))
         }
     },
@@ -169,7 +169,7 @@ const BalancingRow = React.createClass({
             if (!isNaN(value)) {
                 this.props.cursor.refine('percent').set(value)
             }
-        }.bind(this),200)
+        }.bind(this),50)
     },
     percentFocus(){
         this.percentFocused=true
@@ -190,7 +190,7 @@ const BalancingRow = React.createClass({
             var values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
             this.cursor().refine('values').set(values)
             this.setState({slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
-            this.forceUpdate()
+            this.forceUpdate() //necessary
         }
     },
     render(){
@@ -293,7 +293,7 @@ const LimitResult = React.createClass({
 })
 
 const SliderRow = React.createClass({
-    mixins: [ImmutableOptimizations(['cursorMin','cursorMax','cycle'])],
+    mixins: [ImmutableOptimizations(['cursorMin','cursorMax','cycle'])], //'cycle' is to force a redraw on tab flips.
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         cursorMin: React.PropTypes.instanceOf(Cursor).isRequired,
@@ -701,7 +701,7 @@ const CriteriaTabs = React.createClass({
                                     </li>
                                     <li>
                                         If you plan to use Bulk Add in conjunction with the balancing tools then
-                                        you may also want to look at the "Limit to" option on the Loan criteria tab.
+                                        you may also want to look at the "Limit to top" option on the Loan criteria tab.
                                         This will prevent too many from a given Partner/Country/Sector/Activity from
                                         getting into your basket to keep your portfolio from getting lopsided.
                                     </li>

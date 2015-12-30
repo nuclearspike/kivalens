@@ -72,7 +72,6 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
 }
 
 //NOT USED
-
 const HasCursorMixin = {
     cursor(val){
         var c = this.props.cursor

@@ -244,7 +244,7 @@ var About = React.createClass({
                     there's a pre-set Saved Search of "Balance Partner Risk" which sets the Portfolio Balancing options
                     to hide loans from any partner where they have > 0% of your active portfolio. If you have a lot
                     of active loans, you may need to increase the percentage to allow for more per partner. Also use the
-                    "Limit to" option to only show 1 loan (or a couple if you're doing large volume) per Partner.
+                    "Limit to top" option to only show 1 loan (or a couple if you're doing large volume) per Partner.
                 </li>
                 <li>
                     <b>Something to consider:</b> Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I

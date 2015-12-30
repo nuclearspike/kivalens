@@ -10,9 +10,9 @@ import Basket from './Basket.jsx'
 import Options from './Options.jsx'
 import About from './About.jsx'
 import Live from './Live.jsx'
-import NotFound from './NotFound.jsx'
 import ClearBasket from './ClearBasket.jsx'
 
+const NotFound = () => <h1>Not Found</h1>
 
 //SIMPLE STATE-LESS COMPONENTS
 import React from 'react'

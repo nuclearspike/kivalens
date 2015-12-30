@@ -58,9 +58,6 @@ const Live = React.createClass({
         this.recalcTop()
         this.topInterval = setInterval(this.recalcTop, 1000)
     },
-    //shouldComponentUpdate(){
-    //    return true
-    //},
     newRunningTotals(rt){
         this.setState({running_totals: rt, force: Math.random().toString()})
         this.forceUpdate()
