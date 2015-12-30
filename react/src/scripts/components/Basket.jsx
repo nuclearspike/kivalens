@@ -88,7 +88,9 @@ const Basket = React.createClass({
     },
     refresh(){
         this.setState({refreshing: true})
-        s.loans.syncRefreshBasket().always(()=> this.setState({refreshing: false}))
+        s.loans.syncRefreshBasket().always(()=> {
+            if (this.isMounted()) this.setState({refreshing: false})
+        })
     },
     render() {
         let {basket_count,selected_item_id,amount_sum,basket_items,refreshing,showGoodbye} = this.state

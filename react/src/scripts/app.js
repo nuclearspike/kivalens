@@ -18,9 +18,8 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
 import ga from 'react-ga';
 import a from './actions'
 
-import Perf from 'react-addons-perf'
-
-window.Perf = Perf
+//import Perf from 'react-addons-perf'
+//window.Perf = Perf
 
 window.rga = ga //react google analytics, ga is already defined
 
