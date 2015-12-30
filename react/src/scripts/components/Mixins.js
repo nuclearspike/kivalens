@@ -71,4 +71,32 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
     }
 }
 
+//NOT USED
+
+const HasCursorMixin = {
+    cursor(val){
+        var c = this.props.cursor
+        if (val) {
+            c.set(val)
+        } else
+            return c
+    },
+    getCursorFieldValue(name, defVal){
+        var c = this.cursor()
+        var f
+        if (c.value) f = c.refine(name) //this seems hoaky
+        return (!c || !f || !f.value) ? defVal : f.value
+    }
+}
+
+//UGH. you're doing it wrong if you need this.
+const ForceRebuildMixin = {
+    getInitialState(){
+        return {cycle: 0}
+    },
+    forceRebuild(){
+        this.setState({cycle: Math.random()})
+    }
+}
+
 export {LinkedComplexCursorMixin,DelayStateTriggerMixin}

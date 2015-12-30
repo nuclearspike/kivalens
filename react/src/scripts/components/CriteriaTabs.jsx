@@ -22,7 +22,6 @@ const AllAnyNoneButton = React.createClass({
     mixins: [ImmutableOptimizations(['cursor'])],
     onSelect(selected){
         this.props.cursor.set(selected)
-        this.props.onChange(selected)
     },
     render(){
         let {canAll} = this.props
@@ -77,36 +76,21 @@ const InputRow = React.createClass({
 })
 
 const SelectRow = React.createClass({
-    //mixins: [ImmutableOptimizations(['group'])],
+    mixins: [ImmutableOptimizations(['cursor','aanCursor'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
-        group: React.PropTypes.instanceOf(Cursor).isRequired,
-        name: React.PropTypes.string.isRequired,
+        cursor: React.PropTypes.instanceOf(Cursor).isRequired,
+        aanCursor: React.PropTypes.instanceOf(Cursor).isRequired,
         onFocus: React.PropTypes.func
-    },
-    subCursor(){
-        return this.props.group.refine(this.props.name)
-    },
-    shouldComponentUpdateOFF(nextProps, nextState){
-        if (this.subCursor().value != nextProps.group.refine(this.props.name).value
-            || this.cursorAllAnyNone().value != nextProps.group.refine(`${this.props.name}_all_any_none`).value){
-            return true
-        } else return false
     },
     selectChange(value){
         var values = (value && this.props.options.intArray) ? value.split(',').select(s=>parseInt(s)).join(',') : value
-        this.subCursor().set(values)
+        this.props.cursor.set(values)
     },
     selectValues(){
-        var values = this.subCursor().value
+        var values = this.props.cursor.value
         if (!values) return null
         return this.props.options.intArray ? values.split(',').select(i=>`${i}`).join(',') : values
-    },
-    cursorAllAnyNone(){
-        return this.props.group.refine(`${this.props.name}_all_any_none`)
-    },
-    allAnyNoneChange(value){
-        this.cursorAllAnyNone().set(value)
     },
     render(){
         //causing issues. is If wrapping in a <span>?
@@ -120,8 +104,9 @@ const SelectRow = React.createClass({
                     <tbody>
                     <tr>
                         <If condition={options.allAnyNone}>
-                            <td style={{width:'auto'}}><AllAnyNoneButton cursor={this.cursorAllAnyNone()}
-                                onChange={this.allAnyNoneChange} canAll={options.canAll}/></td>
+                            <td style={{width:'auto'}}>
+                                <AllAnyNoneButton cursor={this.props.aanCursor} canAll={options.canAll}/>
+                            </td>
                         </If>
                         <td style={{width:'100%'}}><Select simpleValue multi={options.multi} ref='select'
                             value={this.selectValues()} options={options.select_options} placeholder='' clearable={options.multi}
@@ -135,13 +120,13 @@ const SelectRow = React.createClass({
 })
 
 const BalancingRow = React.createClass({
-    mixins: [LinkedComplexCursorMixin(), Reflux.ListenerMixin], //ImmutableOptimizations(['cursor']), <-- bad when component has it's own state
+    mixins: [LinkedComplexCursorMixin(), Reflux.ListenerMixin,ImmutableOptimizations(['cursor'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
         cursor: React.PropTypes.instanceOf(Cursor).isRequired
     },
     getInitialState(){
-        return {cycle:'1',slices:[],slices_count:0}
+        return {slices:[],slices_count:0}
     },
     getDefaultCursor(){return {enabled:false,hideshow:'hide',ltgt:'gt',percent:5,allactive:'active'}},
     componentDidMount(){
@@ -155,7 +140,10 @@ const BalancingRow = React.createClass({
             var newReq = JSON.stringify(cursor.value)
             if (newReq == this.lastRequest) return //we've done it already!
             this.lastRequest = newReq
-            s.criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, function(){this.setState({loading:true})}.bind(this))
+            s.criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, function(){
+                this.setState({loading:true})
+                this.forceUpdate()
+            }.bind(this))
         }
     },
     compareButIgnore(obj1, obj2, property){
@@ -193,6 +181,7 @@ const BalancingRow = React.createClass({
         //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
         if (this.lastRequest == lastRequest){
             this.setState({loading: false})
+            this.forceUpdate()
             this.lastResult = result
 
             if (!Array.isArray(result.slices)) return
@@ -201,6 +190,7 @@ const BalancingRow = React.createClass({
             var values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
             this.cursor().refine('values').set(values)
             this.setState({slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
+            this.forceUpdate()
         }
     },
     render(){
@@ -269,32 +259,6 @@ const BalancingRow = React.createClass({
     }
 })
 
-const HasCursorMixin = {
-    cursor(val){
-        var c = this.props.cursor
-        if (val) {
-            c.set(val)
-        } else
-            return c
-    },
-    getCursorFieldValue(name, defVal){
-        var c = this.cursor()
-        var f
-        if (c.value) f = c.refine(name) //this seems hoaky
-        return (!c || !f || !f.value) ? defVal : f.value
-    }
-}
-
-//UGH. you're doing it wrong if you need this.
-const ForceRebuildMixin = {
-    getInitialState(){
-        return {cycle: 0}
-    },
-    forceRebuild(){
-        this.setState({cycle: Math.random()})
-    }
-}
-
 const LimitResult = React.createClass({
     mixins: [LinkedComplexCursorMixin(), ImmutableOptimizations(['cursor'])],
     getDefaultCursor(){return {enabled: false, count: 1, limit_by: 'Partner'}},
@@ -329,26 +293,25 @@ const LimitResult = React.createClass({
 })
 
 const SliderRow = React.createClass({
-    //mixins: [ImmutableOptimizations(['group'])],
+    mixins: [ImmutableOptimizations(['cursorMin','cursorMax','cycle'])],
     propTypes: {
         options: React.PropTypes.instanceOf(Object).isRequired,
-        group: React.PropTypes.instanceOf(Cursor).isRequired,
-        name: React.PropTypes.string.isRequired
+        cursorMin: React.PropTypes.instanceOf(Cursor).isRequired,
+        cursorMax: React.PropTypes.instanceOf(Cursor).isRequired
     },
     getInitialState(){
-        //return {min:this.props.group.refine(`${this.props.name}_min`).value, max:this.props.group.refine(`${this.props.name}_max`).value}
-        var s = this.fillMissing({c_min:this.props.group.refine(`${this.props.name}_min`).value,
-                                  c_max:this.props.group.refine(`${this.props.name}_max`).value})
+        var s = this.fillMissing({c_min:this.props.cursorMin.value, c_max:this.props.cursorMax.value})
         return s
     },
     pickValue(crit_facet, defaultValue){
         return (crit_facet === null || crit_facet === undefined) ? defaultValue : crit_facet
     },
-    componentWillReceiveProps({group}, newState){
-        var name = this.props.name
-        if ((this.props.group.refine(`${name}_min`).value !== group.refine(`${name}_min`)) ||
-            (this.props.group.refine(`${name}_max`).value !== group.refine(`${name}_max`))) {
-            this.setState(this.fillMissing({c_min: group.refine(`${name}_min`).value, c_max: group.refine(`${name}_max`).value}))
+    shouldComponentUpdateOLD(np,{d_min,d_max}){
+        return (d_min != this.state.d_min || d_max != this.state.d_max)
+    },
+    componentWillReceiveProps({cursorMin,cursorMax}, newState){
+        if ((this.props.cursorMin.value !== cursorMin.value) || (this.props.cursorMax.value !== cursorMax.value)) {
+            this.setState(this.fillMissing({c_min: cursorMin.value, c_max: cursorMax.value})) //not forceUpdate needed because it will re-render
         }
         return true
     },
@@ -387,12 +350,13 @@ const SliderRow = React.createClass({
         if (arr.length == 2) {
             var ns = this.fillMissing({a_min:arr[0],a_max:arr[1]})
             this.setState(ns)
+            this.forceUpdate()
 
             //after a quick breath, set the cursor
             clearTimeout(this.changeTimeout)
             this.changeTimeout = setTimeout(function(){
-                this.props.group.refine(`${this.props.name}_min`).set(ns.c_min)
-                this.props.group.refine(`${this.props.name}_max`).set(ns.c_max)
+                this.props.cursorMin.set(ns.c_min)
+                this.props.cursorMax.set(ns.c_max)
             }.bind(this), 250)
         }
     },
@@ -649,7 +613,7 @@ const CriteriaTabs = React.createClass({
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
-        var cPorfolio = cursor.refine('portfolio')
+        var cPortfolio = cursor.refine('portfolio')
         var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
 
         return (<div>
@@ -668,13 +632,13 @@ const CriteriaTabs = React.createClass({
                         <InputRow label='Name' cursor={cLoan.refine('name')} />
 
                         <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
-                            <SelectRow key={i} group={cLoan} name={name} options={this.options[name]} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+                            <SelectRow key={i} cursor={cLoan.refine(name)} aanCursor={cLoan.refine(`${name}_all_any_none`)} options={this.options[name]} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
                         </For>
 
                         <LimitResult cursor={cLoan.refine('limit_to')}/>
 
                         <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','percent_funded','expiring_in_days', 'disbursal_in_days']}>
-                            <SliderRow key={i} group={cLoan} name={name} options={this.options[name]}/>
+                            <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)} cursorMax={cLoan.refine(`${name}_max`)} cycle={this.state.activeTab} options={this.options[name]}/>
                         </For>
                     </Col>
 
@@ -688,14 +652,14 @@ const CriteriaTabs = React.createClass({
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
                     <Col lg={8}>
                         <For each='name' index='i' of={['region','partners','social_performance','charges_fees_and_interest']}>
-                            <SelectRow key={i} group={cPartner} name={name} options={this.options[name]} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
+                            <SelectRow key={i} cursor={cPartner.refine(name)} aanCursor={cPartner.refine(`${name}_all_any_none`)}  options={this.options[name]} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>
-                            <SliderRow key={i} group={cPartner} name={name} options={this.options[name]}/>
+                            <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={this.state.activeTab} options={this.options[name]}/>
                         </For>
                         <If condition={this.state.displayAtheistOptions}>
                             <For each='name' index='i' of={['secular_rating','social_rating']}>
-                                <SliderRow key={`${i}_atheist`} group={cPartner} name={name} options={this.options[name]}/>
+                                <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={this.state.activeTab} options={this.options[name]}/>
                             </For>
                         </If>
                     </Col>
@@ -718,7 +682,7 @@ const CriteriaTabs = React.createClass({
                             still fundraising, just exclude those loans. {`(${lender_loans_message})`}
 
                             <For each='name' index='i' of={['exclude_portfolio_loans']}>
-                                <SelectRow key={i} group={cPorfolio} name={name} options={this.options[name]}
+                                <SelectRow key={i} cursor={cPortfolio.refine(name)} aanCursor={cPortfolio.refine(`${name}_all_any_none`)} options={this.options[name]}
                                     onFocus={this.focusSelect.bind(this, 'portfolio', name)} onBlur={this.removeGraphs}  />
                             </For>
                         </Col>
@@ -749,7 +713,7 @@ const CriteriaTabs = React.createClass({
                                 </ul>
 
                                 <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                                    <BalancingRow key={i} cursor={cPorfolio.refine(name)} options={this.options[name]}/>
+                                    <BalancingRow key={i} cursor={cPortfolio.refine(name)} options={this.options[name]}/>
                                 </For>
                             </Panel>
                         </Col>
