@@ -33,7 +33,9 @@ const Options = React.createClass({
     hideLenderIDModal(){this.setState({ showLenderModal: false })},
     setLenderID(new_lender_id){ this.setState({kiva_lender_id: new_lender_id}) },
     getMissingPartners(){
+        //get active partners without any score
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
+        //look at the partner ids with loans, intersect them with partners without a score to be able to show which have loans.
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
         return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },

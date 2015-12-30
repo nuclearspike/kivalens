@@ -9,6 +9,7 @@ import a from '../actions'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
 import LocalStorageMixin from 'react-localstorage'
+import TimeAgo from 'react-timeago'
 
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
@@ -95,7 +96,7 @@ const Live = React.createClass({
                     <b>Beta</b>
                     <p>To keep data up-to-the-second fresh, KivaLens subscribes to the same live data-stream
                         that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses and adds new loans and updates existing
-                        loans accordingly. Since starting your current KivaLens session, the following activity has occurred
+                        loans accordingly. Since starting your current KivaLens session (<TimeAgo date={kivaloans.startupTime.toISOString()}/>), the following activity has occurred
                         on Kiva.org.</p>
                 </Row>
                 <Row>
@@ -128,7 +129,7 @@ const Live = React.createClass({
                     </Col>
                 </Row>
                 <Row>
-                    <h2>How Does KivaLens Stay Fresh{'?'}</h2>
+                    <h2>How is KivaLens so Fast and Fresh{'?'}</h2>
                     <ul className='spacedList'>
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
@@ -137,7 +138,7 @@ const Live = React.createClass({
                             app was pre-loaded in your browser.
                         </li>
                         <li>
-                            Once the app has loaded, KivaLens pulls it's listing of Loans from Kiva's API and
+                            Once the app has loaded, KivaLens pulls it's listing of loans from Kiva's API and
                             keeps all of the loan and partner data in your browser's memory.
                         </li>
                         <li>
@@ -147,9 +148,11 @@ const Live = React.createClass({
                             search, it's searching the most recent data.
                         </li>
                         <li>
-                            Every time you click on a loan, KivaLens will get the newest version of it, just in case
-                            anything has changed. For example, there is no data-stream notice for other lenders
-                            adding the loan to their basket.
+                            Every time you click on a loan, KivaLens will first immediately display what it has while
+                            simultaneously requesting the most recent version of the loan and will seamlessly merge
+                            any changes once it has the data. What could change{'?'} The amount other lenders have in
+                            their baskets is one example of data that changes over time that doesn't get published in
+                            the live data stream.
                         </li>
                         <li>
                             Every time you visit the Basket page, KivaLens will make sure all of the loans in your

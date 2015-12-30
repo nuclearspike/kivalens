@@ -22,7 +22,7 @@ window.setDebugging = function() {
     window.kl_debugging = lsj.get("Options").debugging
 }
 
-window.basicReverseOrder = function(a,b) { //this is a hack. OrderBy has issues! Not sure what the conditions are.
+window.basicReverseOrder = function(a,b) { //this is a hack. OrderByDescending has issues! Not sure what the conditions are.
     if (a > b) return -1
     if (a < b) return 1
     return 0
@@ -40,7 +40,6 @@ window.cl = function() {
 Array.prototype.groupByWithCount = function(selector=e=>e){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
 }
-
 //no longer used...
 Array.prototype.groupBySelectWithTake = function(selector, take_count = 1){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), taken: g.take(take_count)}))
@@ -55,6 +54,7 @@ Array.prototype.percentWhere = function(predicate) {return this.where(predicate)
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
+//either count() or count(l=>l.status='fundraising') work
 Array.prototype.count = function(predicate) {
     return typeof predicate == 'function'? this.where(predicate).length: this.length
 }

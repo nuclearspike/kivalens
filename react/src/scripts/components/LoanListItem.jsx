@@ -3,23 +3,37 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {ListGroupItem} from 'react-bootstrap'
+import {ImmutableOptimizations} from 'react-cursor'
 import {KivaImage} from '.'
 import cx from 'classnames'
 import a from '../actions'
 import s from '../stores/'
 
 const LoanListItem = React.createClass({
-    mixins: [Reflux.ListenerMixin],
+    mixins: [Reflux.ListenerMixin,ImmutableOptimizations(['loan'])],
     getInitialState() {
-        return { inBasket: s.loans.syncInBasket(this.props.id) }
+        return this.isInBasket()
     },
     componentDidMount() {
-        this.listenTo(a.loans.basket.changed, ()=>{ this.setState({inBasket: s.loans.syncInBasket(this.props.id)}) })
+        this.listenTo(a.loans.basket.changed, this.basketChanged)
         this.listenTo(a.loans.live.loanNotFundraising, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
         this.loanUpdated(this.props)
     },
+    basketChanged(){
+        var st = this.isInBasket()
+        if (st.inBasket != this.state.inBasket) {
+            this.setState(st)
+            this.forceUpdate()
+        }
+    },
+    isInBasket(){
+        return { inBasket: s.loans.syncInBasket(this.props.id) }
+    },
     loanUpdated(loan){
-        if (loan.status != 'fundraising') this.setState({loanNotFundraising: true})
+        if (loan.status != 'fundraising') {
+            this.setState({loanNotFundraising: true})
+            this.forceUpdate()
+        }
     },
     render() {
         var loan = this.props

@@ -40,6 +40,7 @@
     "node-gyp": "^3.1.0",
     "node-notifier": "^4.3.1",
     "node-sass": "^3.4.2",
+    "react-addons-perf": "^0.14.5",
     "run-sequence": "^1.1.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-ftp": "^0.4.5",

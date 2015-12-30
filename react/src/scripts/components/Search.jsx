@@ -50,7 +50,7 @@ var Search = React.createClass({
         var style = {height:'100%', width: '100%'};
         return (
             <div style={style} >
-                <LoadingLoansModal show={!kivaloans.isReady()}/>
+                <LoadingLoansModal/>
                 <If condition={this.state.showBulkAdd}>
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>

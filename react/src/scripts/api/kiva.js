@@ -180,7 +180,7 @@ class ResultProcessors {
             addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
 
             var today = new Date().clearTime()
-            if (addIt.kl_final_repayment)//when looking at really old loans.
+            if (addIt.kl_final_repayment)//when looking at really old loans, can be null
                 addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
             addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)

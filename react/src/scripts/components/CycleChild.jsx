@@ -6,6 +6,7 @@ const CycleChild = React.createClass({
     getInitialState(){
         return {index: 0}
     },
+    shouldComponentUpdate(){return false},
     componentDidMount(){
         var index
         index = parseInt(localStorage.getItem(this.props.name))
@@ -16,6 +17,7 @@ const CycleChild = React.createClass({
         if (index == undefined) //if browser doesn't have localStorage ... todo: WTF?
             Math.floor(Math.random() * (this.props.children.length - 1))
         this.setState({index: index})
+        this.forceUpdate()
     },
     render() {
         return (<span>{this.props.children[this.state.index]}</span>)

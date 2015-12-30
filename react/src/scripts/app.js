@@ -18,6 +18,10 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
 import ga from 'react-ga';
 import a from './actions'
 
+import Perf from 'react-addons-perf'
+
+window.Perf = Perf
+
 window.rga = ga //react google analytics, ga is already defined
 
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
