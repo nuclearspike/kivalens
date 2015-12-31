@@ -742,7 +742,7 @@ class Loans {
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
-        ct.addRangeTesters('percent_funded',      loan=>loan.kl_percent_funded)
+        ct.addRangeTesters('percent_funded',    loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
@@ -810,12 +810,12 @@ class Loans {
 
             if (selector)  //group by the field, sort each grouping of loans, then take the first x of those, then flatten all loans back to a regular array
                 loans_to_filter = loans_to_filter.groupBy(selector).select(g => sort(g, c.loan.sort).take(count)).flatten()
-            //these then go and get sorted again so that the result list is fully sorted (otherwise it is still grouped)
+            //these then go and get sorted again so that the result list is fully sorted (otherwise it is still clustered, only matters when limit is more than 1)
         }
         //apply sort
         loans_to_filter = sort(loans_to_filter, c.loan.sort)
 
-        if (c.loan.limit_results)
+        if (c.loan.limit_results) //not used in the UI, just for calls behind the scenes.
             loans_to_filter = loans_to_filter.take(c.loan.limit_results)
 
         if (cacheResults)

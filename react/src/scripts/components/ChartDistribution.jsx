@@ -86,7 +86,7 @@ const ChartDistribution = React.createClass({
         var countryData  = this.groupByForChart(loans, l=>l.location.country)
         var sectorData   = this.groupByForChart(loans, l=>l.sector)
         var activityData = this.groupByForChart(loans, l=>l.activity)
-        this.setState({countryData: countryData, sectorData: sectorData, activityData: activityData})
+        this.setState({countryData, sectorData, activityData})
    },
     render() {
         return (<div className="hidden-xs hidden-sm">

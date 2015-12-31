@@ -5,6 +5,7 @@ import LinkedStateMixin from 'react-addons-linked-state-mixin'
 
 import {Grid,Col,Row,Panel} from 'react-bootstrap'
 import {KivaLink} from '.'
+import {DelayStateTriggerMixin} from './Mixins'
 import a from '../actions'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
@@ -47,8 +48,7 @@ const TopTen = React.createClass({
 })
 
 const Live = React.createClass({
-    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
-        //DelayStateTriggerMixin('maxMinutes','recalcTop', 1000),
+    mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin,DelayStateTriggerMixin('maxMinutes','recalcTop', 200)],
         //DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop',1000)],
     getInitialState() {
         return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
@@ -70,10 +70,16 @@ const Live = React.createClass({
         //get recent message payloads
         var messages = c.data.where(d=>d.received.isAfter(x_mins_ago)).select(d => d.data.p)
 
+        const selectLocation = p => {
+            var country = '(Undisclosed)'
+            if (p.lender.public) //this still gets garbage data  ("AK" "Front Porch")
+                country = p.lender.lenderPage.whereabouts.split(',').last().trim() || country
+            return {country, loan_count: p.loans.length}
+        }
+
         //top lending countries
-        var top_lending_countries = messages.where(p => p.lender.public)
-            .select(p => ({country: p.lender.lenderPage.whereabouts.split(',').last().trim() || "(Undisclosed)", loan_count: p.loans.length}))
-            .groupBySelectWithSum(c=>c.country, c=>c.loan_count).orderBy(g=>g.sum, basicReverseOrder).take(10)
+        var top_lending_countries = messages.select(selectLocation).groupBySelectWithSum(c=>c.country, c=>c.loan_count)
+            .orderBy(g=>g.sum, basicReverseOrder).take(10)
 
         //generic splattening of the payloads to get the loan objects
         var loans_during = messages.select(p=>p.loans).flatten()
@@ -82,7 +88,7 @@ const Live = React.createClass({
         var top_countries = loans_during.groupByWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
 
         if (this.state.running_totals.funded_amount >= 500)
-            this.setState({top_lending_countries: top_lending_countries, top_sectors: top_sectors, top_countries: top_countries})
+            this.setState({top_lending_countries, top_sectors, top_countries})
 
     },
     componentWillUnmount(){

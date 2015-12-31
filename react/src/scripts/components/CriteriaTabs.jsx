@@ -14,7 +14,7 @@ import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import TimeAgo from 'react-timeago'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+//import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
 var timeoutHandle=0
 
@@ -162,11 +162,10 @@ const SelectRow = React.createClass({
                 <table style={{width:'100%',borderCollapse:'separate'}}>
                     <tbody>
                     <tr>
-                        <If condition={options.allAnyNone}>
-                            <td style={{width:'auto'}}>
+                        {(options.allAnyNone) ?
+                            <td style={{width: 'auto'}}>
                                 <AllAnyNoneButton cursor={this.props.aanCursor} canAll={options.canAll}/>
-                            </td>
-                        </If>
+                            </td> : null}
                         <td style={{width:'100%'}}>
                             <Select simpleValue multi={options.multi} ref='select'
                                 options={options.select_options}
@@ -251,7 +250,7 @@ const BalancingRow = React.createClass({
             //'values' are what is passed through to the filtering. slices is for display.
             var values = (this.props.options.key == 'id') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
             this.cursor().refine('values').set(values)
-            this.setState({slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
+            this.setState({slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000})
             this.forceUpdate() //necessary
         }
     },

@@ -3,9 +3,7 @@
 import React from 'react';
 
 const CycleChild = React.createClass({
-    getInitialState(){
-        return {index: 0}
-    },
+    getInitialState(){return {index: 0}},
     shouldComponentUpdate(){return false},
     componentDidMount(){
         var index
@@ -14,9 +12,7 @@ const CycleChild = React.createClass({
         index++
         index = index % this.props.children.length
         localStorage.setItem(this.props.name, index)
-        if (index == undefined) //if browser doesn't have localStorage ... todo: WTF?
-            Math.floor(Math.random() * (this.props.children.length - 1))
-        this.setState({index: index})
+        this.setState({index})
         this.forceUpdate()
     },
     render() {

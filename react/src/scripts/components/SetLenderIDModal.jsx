@@ -9,7 +9,7 @@ import {Request} from '../api/kiva'
 const SetLenderIDModal = React.createClass({
     mixins: [LinkedStateMixin],
     getInitialState() { return {show: this.props.show, checking: false, failed: false} },
-    componentWillReceiveProps({show}){this.setState({show: show})},
+    componentWillReceiveProps({show}){this.setState({show})},
     setLenderID(){
         var lid = this.state.kiva_lender_id
         if (!lid) return

@@ -27,12 +27,12 @@ var Search = React.createClass({
             if (this.should_show_count)
                 this.showNotification(`${loans.length} loans`)
         })
-        //if we enter the page and loans are not done yet.
+        //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
-        if (kivaloans.isReady()) a.loans.filter() //triggers the graphs. //should this be the way??
+        //if (kivaloans.isReady()) a.loans.filter() //triggers the graphs. //should this be the way??
     },
     showNotification(message){
-        this.setState({notification: {active: true, message: message}})
+        this.setState({notification: {active: true, message}})
     },
     changeCriteria(e){
         //e.preventDefault()

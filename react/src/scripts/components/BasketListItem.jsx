@@ -9,8 +9,7 @@ const BasketListItem = React.createClass({
     getInitialState() {return { }},
     render() {
         var loan = this.props.loan;
-        return (
-            <ListGroupItem
+        return (<ListGroupItem
                 className={'loan_list_item'}
                 key={loan.id}
                 onClick={a.loans.basket.select.bind(null, loan.id)}
@@ -21,8 +20,7 @@ const BasketListItem = React.createClass({
                     {loan.location.country} | {loan.sector} <span className="hidden-md">| {loan.activity}</span>
                     <p className="hidden-md">{loan.use}</p>
                 </div>
-            </ListGroupItem>
-        )
+            </ListGroupItem>)
     }
 })
 

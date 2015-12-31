@@ -10,9 +10,15 @@ import {KivaImage, LoanLink, KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
-import {ImmutableOptimizations} from 'react-cursor'
+//import {ImmutableOptimizations} from 'react-cursor'
 
 const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
+
+//prevents components inside of this wrapper from being updated.
+const NoUpdate = React.createClass({
+    shouldComponentUpdate({cycle}){return cycle == this.props.cycle},
+    render(){return <div>{this.props.children}</div>}
+})
 
 //only update if the loan is different. terms aren't dynamic.
 //add ability for user to switch from $ borrower pays, % repaid, to $ lender gets
@@ -116,8 +122,7 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
-        this.setState({loan: loan, partner: partner, basket_perc: basket_perc, funded_perc: funded_perc,
-            inBasket: s.loans.syncInBasket(loan.id)})
+        this.setState({loan, partner, basket_perc, funded_perc, inBasket: s.loans.syncInBasket(loan.id)})
     },
     tabSelect(selectedKey){
         this.setState({activeTab: selectedKey})
@@ -182,10 +187,7 @@ var Loan = React.createClass({
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                             </Col>
-
-                            {(activeTab == 2 && loan.kl_half_back)?
-                                <RepaymentGraphs loan={loan}/>
-                                : <span/>}
+                            {(activeTab == 2 && loan.kl_half_back)? <RepaymentGraphs loan={loan}/> : <span/>}
                         </Grid>
                     </Tab>
 

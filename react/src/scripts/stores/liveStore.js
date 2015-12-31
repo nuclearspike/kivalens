@@ -2,7 +2,7 @@
 
 import Reflux from 'reflux'
 import a from '../actions'
-//this unit assumes socket.io.js is loaded (script on index)
+//this unit assumes socket.io.js is loaded outside of bundle (script on index)
 
 class KivaChannel {
     constructor(channelName){
@@ -21,9 +21,9 @@ class KivaChannel {
     }
     receivedMessage(data){
         data = JSON.parse(data)
-        this.data.push({received: new Date(), data: data})
+        this.data.push({received: new Date(), data})
         this.processData(data)
-        console.log(`Server message on channel ${this.channelName} data`, data)
+        console.log(`Server message on channel ${this.channelName}:`, data)
     }
     processData(data){}
 }
