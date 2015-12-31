@@ -121,7 +121,8 @@ var loanStore = Reflux.createStore({
         var checkThese = basket_loans.where(bi => !kivaloans.hasLoan(bi.loan_id)).select(bi => bi.loan_id)
         //fetch them to find out what they are. when no longer fundraising, remove from basket.
         new LoanBatch(checkThese).start().done(loans => {
-            //add fundraising loans in basket back to all loans
+            //add fundraising loans in basket back to all loans. this occurs when loans were in basket that
+            // are excluded by initial load
             kivaloans.setKivaLoans(loans.where(loan => loan.status == 'fundraising'), false)
             //for all non-fundraising loans that were in the basket, remove them.
             this.onBasketBatchRemove(loans.where(loan => loan.status != 'fundraising').select(loan => loan.id))

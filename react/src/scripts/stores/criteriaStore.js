@@ -150,7 +150,7 @@ var criteriaStore = Reflux.createStore({
             crit.partner.social_performance = crit.partner.social_performance.join(',')
         }
         // the reason these are strings is for display purposes. having the dropdown's value set to boolean true or
-        // false doesn't work. this is easier
+        // false doesn't work. this is easier for now, even though I hate it.
 
         if (crit.portfolio.exclude_portfolio_loans === true)
             crit.portfolio.exclude_portfolio_loans = 'true'
@@ -186,7 +186,7 @@ var criteriaStore = Reflux.createStore({
         this.last_switch = null
         a.criteria.reload(new_c)
         this.onChange(new_c)
-        a.criteria.savedSearchListChanged()
+        a.criteria.savedSearchListChanged() //?? what?
     },
     onBalancingGet(requestId, sliceBy, crit, fetchNotifyFunc){
         //pull from cache if available, otherwise

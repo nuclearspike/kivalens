@@ -8,15 +8,18 @@ import a from '../actions'
 const PromptModal = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin],
     getInitialState() {return {show: false} },
+    shouldComponentUpdate(){return false},
     componentDidMount() {
         this.listenTo(a.utils.prompt, this.showPrompt)
     },
     showPrompt(options){ //options of "title" and "label"
         this.callback = options.callback
         this.setState($.extend({}, options, {callback: null, show: true, return_value: ''}))
+        this.forceUpdate()
     },
     close(){
         this.setState({ show: false })
+        this.forceUpdate()
     },
     success(){
         this.callback(this.state.return_value)
