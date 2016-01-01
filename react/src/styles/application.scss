@@ -20,6 +20,26 @@
   }
 }
 
+.snowstack {
+  #caption
+  {
+    position: fixed;
+    top: 0; right: 0; left: 0;
+    font-size: 15pt;
+    text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+    padding: 10pt 10pt 10pt 20pt;
+    -webkit-transform: translate3d(0, 0, 2000px);
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-transition-property: opacity;
+    -webkit-transition-duration: 550ms;
+  }
+
+  #caption.hide
+  {
+    opacity: 0;
+  }
+}
+
 .labeledNumber {
   color: rgb(51, 51, 51);
   display: table;

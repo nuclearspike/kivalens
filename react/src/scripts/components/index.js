@@ -9,6 +9,7 @@ import Loan from './Loan.jsx'
 import Basket from './Basket.jsx'
 import Options from './Options.jsx'
 import About from './About.jsx'
+import SnowStack from './SnowStack.jsx'
 import Live from './Live.jsx'
 import ClearBasket from './ClearBasket.jsx'
 
@@ -47,4 +48,4 @@ export {NewTabLink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
     KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, RandomChild, CycleChild, PromptModal,
-    SetLenderIDModal}
+    SetLenderIDModal, SnowStack}

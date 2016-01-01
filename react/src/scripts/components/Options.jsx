@@ -5,6 +5,7 @@ import Reflux from 'reflux'
 import {Grid,Input,Row,Col,Panel,Alert,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import LocalStorageMixin from 'react-localstorage'
+import {Link} from 'react-router'
 import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
 import a from '../actions'
 
@@ -59,11 +60,12 @@ const Options = React.createClass({
                         need to use the final repayment date criteria option.
                     </Panel>
                     <Panel header='Who are you?'>
-                        <If condition={this.state.kiva_lender_id}>
-                            <span>Your Lender ID: <b>{this.state.kiva_lender_id}</b> <ClickLink onClick={this.showLenderIDModal}>Change</ClickLink></span>
-                        <Else/>
+                        {this.state.kiva_lender_id ?
+                            <span>Your Lender ID: <b>{this.state.kiva_lender_id}</b> <ClickLink
+                                onClick={this.showLenderIDModal}>Change</ClickLink></span>
+                            :
                             <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button>
-                        </If>
+                        }
                         <SetLenderIDModal show={this.state.showLenderModal} onSet={this.setLenderID} onHide={this.hideLenderIDModal}/>
                         <p className="ample-padding-top">
                             This is used for:

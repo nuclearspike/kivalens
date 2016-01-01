@@ -14,7 +14,7 @@ import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute} from 'react-router'
 import createHistory from 'history/lib/createHashHistory'
-import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal} from "./components"
+import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal, SnowStack} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 
@@ -60,7 +60,8 @@ var history = createHistory({queryKey: false})
 $(function() {
     if (document.getElementById("react-app")){
         ReactDOM.render((<Router history={history}>
-            <Route component={App} path="/">
+            <Route path="/portfolio" component={SnowStack}/>
+            <Route path="/" component={App} >
                 <Route path="search" component={Search}>
                     <Route path="loan/:id" component={Loan}/>
                     <IndexRoute component={Criteria}/>

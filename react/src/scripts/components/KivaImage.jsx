@@ -29,9 +29,7 @@ const KivaImage = React.createClass({
 //optionally wrap it in a link? not exported at this time.
 const KivaThumbnail = React.createClass({
     render(){
-        return (
-            <KivaImage image_width={113} {...this.props}/>
-        )
+        return (<KivaImage image_width={113} {...this.props}/>)
     }
 })
 

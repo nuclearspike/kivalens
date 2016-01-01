@@ -245,7 +245,9 @@ class PagedKiva {
 
     processFirstResponse(request, response){
         this.total_object_count = request.raw_result.paging.total
-        Array.range(2,request.raw_result.paging.pages-1).forEach(this.setupRequest.bind(this))
+        var pages_in_result = request.raw_result.paging.pages
+        var total_pages = this.max_pages ? Math.min(this.max_pages, pages_in_result) : pages_in_result
+        Array.range(2,total_pages-1).forEach(this.setupRequest.bind(this))
         this.processPage(request, response)
         if (request.continuePaging) {
             this.requests.skip(1).forEach(req => {
@@ -332,7 +334,7 @@ class LoansSearch extends PagedKiva {
     constructor(params, getDetails = true, max_repayment_date = null){
         params = $.extend({}, {status:'fundraising'}, params)
         if (max_repayment_date) $.extend(params, {sort_by: 'repayment_term'})
-        super('loans/search.json', params, 'loans')  //shows as red in ide. :( it's all good.
+        super('loans/search.json', params, 'loans')
         this.max_repayment_date = max_repayment_date
         //if (location.hostname == 'localhost') params.country_code = 'pe'
         this.twoStage = getDetails
@@ -360,9 +362,16 @@ class LoansSearch extends PagedKiva {
 }
 
 class LenderLoans extends PagedKiva {
-    constructor(lender_id, fundraising_only = true){
-        super(`lenders/${lender_id}/loans.json`, {}, 'loans') //shows as red in ide. :( it's all good.
-        this.fundraising_only = fundraising_only
+    constructor(lender_id, options){
+        super(`lenders/${lender_id}/loans.json`, {}, 'loans')
+        this.fundraising_only = options.fundraising_only
+        this.max_pages = options.max_pages
+    }
+}
+
+class LenderFundraisingLoans extends LenderLoans {
+    constructor(lender_id, options){
+        super(lender_id, $.extend(true, {}, options, {fundraising_only:true}))
     }
 
     continuePaging(loans) {
@@ -378,8 +387,7 @@ class LenderLoans extends PagedKiva {
         return true
     }
 
-    start(){
-        //return only an array of the ids of the loans (in a done())
+    fundraisingIds(){
         return super.start().then(loans => {
             if (this.fundraising_only)
                 loans = loans.where(loan => loan.status == 'fundraising')
@@ -940,7 +948,7 @@ class Loans {
         //todo: slightly slower than an indexed reference.
         return this.partners_from_kiva.first(p => p.id == id)
     }
-    setLender(lender_id){
+    setLender(lender_id){ //does this really make sense to return a promise?
         if (lender_id) {
             this.lender_id = lender_id
         } else return
@@ -950,7 +958,7 @@ class Loans {
         this.lender_loans_state = llDownloading
         this.notify({lender_loans_event: 'started'})
         var kl = this
-        return new LenderLoans(this.lender_id).start().done(ids => {
+        return new LenderFundraisingLoans(this.lender_id, true).fundraisingIds().done(ids => {
             kl.lender_loans = ids
             kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
             kl.lender_loans_state = llComplete
@@ -1054,7 +1062,7 @@ class Loans {
     }
 }
 
-export {LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
+export {LenderFundraisingLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
 
 //temp... verify that these aren't ever used before removal
 window.Request = Request
