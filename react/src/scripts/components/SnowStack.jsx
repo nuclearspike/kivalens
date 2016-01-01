@@ -11,16 +11,17 @@ const SnowStack = React.createClass({
     getInitialState(){return {message:'Waiting for fundraising loans to load...'}},
     shouldComponentUpdate(np, {message}){return message != this.state.message},
     produceImages(callback){
+        alreadyLoadedOnce = true
         var that = this
         const selectImage = loan => {
             var image_id = loan.image.id
             var thumb= `http://www.kiva.org/img/w800/${image_id}.jpg`
             var zoom = thumb //`http://www.kiva.org/img/w800/${image_id}.jpg`
             var link = `http://www.kiva.org/lend/${loan.id}`
-            return ({title:loan.name,thumb,zoom,link})
+            //title:loan.name,
+            return {thumb,zoom,link}
         }
-        alreadyLoadedOnce = true
-        var lid = lsj.get('Options').kiva_lender_id
+        var lid = this.getKivaID()
         if (lid) {
             that.setMessage(`Loading loans for ${lid}...`)
             new LenderLoans(lid, {max_pages: 10}).start().done(loans => {
@@ -28,7 +29,7 @@ const SnowStack = React.createClass({
                 callback(loans.select(selectImage))
             })
         } else {
-            that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.')
+            that.setMessage('Fundraising loans (Enter your Lender ID in Options to see your portfolio): arrow keys to move, space toggles magnify.')
             var interesting = kivaloans.filter({loan:{tags:['#InterestingPhoto']}},false)
             var popular     = kivaloans.filter({loan:{sort:'popular',limit_results: 300}},false)
             callback(interesting.concat(popular).distinct((a,b)=>a.id==b.id).take(201).select(selectImage))
@@ -39,19 +40,26 @@ const SnowStack = React.createClass({
         this.forceUpdate()
     },
     startIfReady(){
-        if (lsj.get('Options').kiva_lender_id || kivaloans.isReady())
+        if (this.getKivaID() || kivaloans.isReady())
             snowstack_init(this.produceImages.bind(this))
     },
+    getKivaID(){
+        return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id
+    },
     componentWillUnmount(){
-        $('body').removeAttr('style') //css({backgroundColor:'white'})
+        $('body').removeAttr('style')
     },
     componentDidMount() {
         $('body').css({backgroundColor:'black'})
+        if (navigator.userAgent.indexOf("WebKit") == -1){
+            this.setMessage('This feature only works with Safari and Google Chrome browsers.')
+            return
+        }
         if (alreadyLoadedOnce) {
             this.setMessage('This feature currently only works the first time you visit the page. Just click "Reload" to start over.')
             return
         }
-        if (!lsj.get('Options').kiva_lender_id)
+        if (!this.getKivaID())
             this.listenTo(a.loans.load.completed, this.startIfReady)
         this.startIfReady()
     },

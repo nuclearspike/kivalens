@@ -22,6 +22,7 @@ const Basket = React.createClass({
     generateState(){
         var basket_items = s.loans.syncGetBasket()
         return {
+            loans_ready: kivaloans.isReady(),
             basket_count: basket_items.length,
             basket_items: basket_items,
             loans: basket_items.select(bi => bi.loan),
@@ -93,7 +94,7 @@ const Basket = React.createClass({
         })
     },
     render() {
-        let {basket_count,selected_item_id,amount_sum,basket_items,refreshing,showGoodbye} = this.state
+        let {basket_count,selected_item_id,amount_sum,basket_items,refreshing,showGoodbye,loans_ready} = this.state
         return (
             <div style={{height:'100%', width: '100%'}}>
                 <Col md={4}>
@@ -120,6 +121,11 @@ const Basket = React.createClass({
                         </form>
                         <Button bsStyle='primary' disabled={basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
                     </Panel>
+                    <If condition={!loans_ready}>
+                        <Alert bsStyle="warning">
+                            Loans from Kiva are not yet finished loading.
+                        </Alert>
+                    </If>
                     <If condition={refreshing}>
                         <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
