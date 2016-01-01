@@ -15,7 +15,7 @@ const SnowStack = React.createClass({
         const selectImage = loan => {
             var image_id = loan.image.id
             var thumb= `http://www.kiva.org/img/w800/${image_id}.jpg`
-            var zoom = `http://www.kiva.org/img/w800/${image_id}.jpg`
+            var zoom = thumb //`http://www.kiva.org/img/w800/${image_id}.jpg`
             var link = `http://www.kiva.org/lend/${loan.id}`
             return ({title:loan.name,thumb,zoom,link})
         }
@@ -29,7 +29,9 @@ const SnowStack = React.createClass({
             })
         } else {
             that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.')
-            callback(kivaloans.filter({loan:{sort:'popular',limit_results: 200}}, false).select(selectImage))
+            var interesting = kivaloans.filter({loan:{tags:['#InterestingPhoto']}},false)
+            var popular     = kivaloans.filter({loan:{sort:'popular',limit_results: 300}},false)
+            callback(interesting.concat(popular).distinct((a,b)=>a.id==b.id).take(201).select(selectImage))
         }
     },
     setMessage(message){
@@ -40,7 +42,11 @@ const SnowStack = React.createClass({
         if (lsj.get('Options').kiva_lender_id || kivaloans.isReady())
             snowstack_init(this.produceImages.bind(this))
     },
+    componentWillUnmount(){
+        $('body').removeAttr('style') //css({backgroundColor:'white'})
+    },
     componentDidMount() {
+        $('body').css({backgroundColor:'black'})
         if (alreadyLoadedOnce) {
             this.setMessage('This feature currently only works the first time you visit the page. Just click "Reload" to start over.')
             return
@@ -57,7 +63,7 @@ const SnowStack = React.createClass({
                     </div>
                 </div>
             <div id="caption" className="caption">
-                <Link to="/search">Return to KivaLens</Link> {this.state.message}
+                <Link to="/search">Return to KivaLens</Link> Experimental Feature. {this.state.message}
             </div>
         </div>)
     }
