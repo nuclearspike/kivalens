@@ -123,7 +123,7 @@ const Basket = React.createClass({
                     </Panel>
                     <If condition={!loans_ready}>
                         <Alert bsStyle="warning">
-                            Loans from Kiva are not yet finished loading.
+                            Loans from Kiva are still loading. Please wait...
                         </Alert>
                     </If>
                     <If condition={refreshing}>
