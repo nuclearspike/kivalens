@@ -246,7 +246,7 @@ class PagedKiva {
     processFirstResponse(request, response){
         this.total_object_count = request.raw_result.paging.total
         var pages_in_result = request.raw_result.paging.pages
-        var total_pages = this.max_pages ? Math.min(this.max_pages, pages_in_result) : pages_in_result
+        var total_pages = (this.options && this.options.max_pages) ? Math.min(this.options.max_pages, pages_in_result) : pages_in_result
         Array.range(2,total_pages-1).forEach(this.setupRequest.bind(this))
         this.processPage(request, response)
         if (request.continuePaging) {
@@ -364,20 +364,34 @@ class LoansSearch extends PagedKiva {
 class LenderLoans extends PagedKiva {
     constructor(lender_id, options){
         super(`lenders/${lender_id}/loans.json`, {}, 'loans')
-        this.fundraising_only = options.fundraising_only
-        this.max_pages = options.max_pages
+        this.options = options
     }
 }
 
-class LenderFundraisingLoans extends LenderLoans {
+class LenderStatusLoans extends LenderLoans {
     constructor(lender_id, options){
-        super(lender_id, $.extend(true, {}, options, {fundraising_only:true}))
+        //test for options.status... then can remove test in result()
+        super(lender_id, $.extend(true, {}, options))
+    }
+
+    result(){ //returns actual loan objects.
+        return super.start().then(loans => {
+            if (this.options.status)
+                loans = loans.where(loan => loan.status == this.options.status)
+            return loans
+        })
+    }
+}
+
+class LenderFundraisingLoans extends LenderStatusLoans {
+    constructor(lender_id, options){
+        super(lender_id, $.extend(true, {}, options, {status:'fundraising', fundraising_only:true}))
     }
 
     continuePaging(loans) {
         //only do this stuff if we are only wanting fundraising which is what we want now. but if open-sourced other
         //projects may want it for different reasons.
-        if (this.fundraising_only && !loans.any(loan => loan.status == 'fundraising')){
+        if (this.options.fundraising_only && !loans.any(loan => loan.status == 'fundraising')){
             //if all loans on the page would have expired. this could miss some mega-mega lenders in corner cases.
             var today = Date.today()
             //older loans do not have a planned_expiration_date field.
@@ -386,13 +400,12 @@ class LenderFundraisingLoans extends LenderLoans {
         }
         return true
     }
-
+    //assumed start() function in here
+    fundraisingLoans(){
+        return super.result()
+    }
     fundraisingIds(){
-        return super.start().then(loans => {
-            if (this.fundraising_only)
-                loans = loans.where(loan => loan.status == 'fundraising')
-            return loans.select(loan => loan.id)
-        })
+        return this.fundraisingLoans().then(loans => loans.select(loan => loan.id))
     }
 }
 
@@ -1062,9 +1075,10 @@ class Loans {
     }
 }
 
-export {LenderFundraisingLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
+export {LenderFundraisingLoans, LenderStatusLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
 
 //temp... verify that these aren't ever used before removal
 window.Request = Request
+window.LenderStatusLoans = LenderStatusLoans
 window.LoansSearch = LoansSearch
 window.LenderLoans = LenderLoans

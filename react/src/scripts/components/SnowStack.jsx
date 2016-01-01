@@ -52,7 +52,7 @@ const SnowStack = React.createClass({
     componentDidMount() {
         $('body').css({backgroundColor:'black'})
         if (navigator.userAgent.indexOf("WebKit") == -1){
-            this.setMessage('This feature only works with Safari and Google Chrome browsers.')
+            this.setMessage('Sorry! This feature only works with Safari and Google Chrome browsers. The rest of KivaLens works for everyone!')
             return
         }
         if (alreadyLoadedOnce) {
