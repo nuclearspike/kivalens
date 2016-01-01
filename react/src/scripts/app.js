@@ -28,14 +28,12 @@ window.rga = ga //react google analytics, ga is already defined
 const App = React.createClass({
     getInitialState(){ return { } },
     componentDidMount(){
-        ga.initialize('UA-10202885-1');
+        ga.initialize('UA-10202885-1')
         //this only happens during startup of the app. don't allow #/ but
         if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
     logPageChange(){
-        var r_page = window.location.hash.replace('#','')
-        if (r_page.indexOf("?") > -1)
-            r_page = r_page.substr(0, r_page.indexOf('?'));
+        var r_page = this.props.location.pathname
         if (r_page != this.last_ga_page) {
             cl("ga:pageview", r_page)
             ga.pageview(r_page)

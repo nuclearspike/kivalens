@@ -41,7 +41,7 @@ const SnowStack = React.createClass({
     },
     startIfReady(){
         if (this.getKivaID() || kivaloans.isReady())
-            snowstack_init(this.produceImages.bind(this))
+            snowstack_init(this.produceImages)
     },
     getKivaID(){
         return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id
@@ -51,6 +51,8 @@ const SnowStack = React.createClass({
     },
     componentDidMount() {
         $('body').css({backgroundColor:'black'})
+        rga.initialize('UA-10202885-1')
+        rga.pageview(this.props.location.search ? '/snowstackWithUser': '/snowstack')
         if (navigator.userAgent.indexOf("WebKit") == -1){
             this.setMessage('Sorry! This feature only works with Safari and Google Chrome browsers. The rest of KivaLens works for everyone!')
             return
