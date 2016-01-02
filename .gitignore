@@ -1,4 +1,7 @@
 .gitignore
 .DS_Store
 node_modules/
-javascript/
+javascript/build.js
+javascript/build.js.map
+css/application.css
+css/application.min.css
