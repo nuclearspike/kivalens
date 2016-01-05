@@ -37,8 +37,8 @@ const LoanListItem = React.createClass({
     },
     render() {
         var loan = this.props
-        return (
-            <ListGroupItem
+        return <ListGroupItem
+                onDoubleClick={a.loans.basket.add.bind(this, loan.id, 25)}
                 className={cx('loan_list_item', {in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>
@@ -51,7 +51,6 @@ const LoanListItem = React.createClass({
                     </p>
                 </div>
             </ListGroupItem>
-        )
     }
 })
 

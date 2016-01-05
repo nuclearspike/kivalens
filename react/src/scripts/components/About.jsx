@@ -3,9 +3,7 @@ import React from 'react'
 import {Grid} from 'react-bootstrap'
 import {NewTabLink, LenderLink, KivaLink, EmailLink} from '.'
 
-var About = React.createClass({
-    render() {
-        return (<Grid>
+const About = () => <Grid>
             <h1>About</h1>
             <h3>Rebuilt and Rethought</h3>
             <p>
@@ -46,7 +44,7 @@ var About = React.createClass({
                     an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already have
                     repayments underway. While the same repayment terms on a <i>post</i>-disbursed loan that just posted today
                     could end up with a final repayment date <i>months</i> different from the first loan mentioned. Yet
-                    Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Also, since
+                    Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Since
                     Kiva only allows you to sort by repayment terms but not filter by them, it still shows you all
                     loans. KivaLens lets you remove loans that don't match your selection for final repayment. Also,
                     KivaLens doesn't sort by the term for the borrower, but the final repayment date relative to today,
@@ -283,8 +281,6 @@ var About = React.createClass({
                 the source code on github (developers wanted!)</NewTabLink>
             </p>
 
-        </Grid>)
-    }
-})
+        </Grid>
 
 export default About

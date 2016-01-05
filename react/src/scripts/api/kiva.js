@@ -135,6 +135,7 @@ class ResultProcessors {
     }
 
     static processLoan(loan){
+        if (typeof loan != 'object') return //for an ids_only search...
         var processText = function(text, ignore_words){
             if (text && text.length > 0){
                 //remove common words.
@@ -354,8 +355,10 @@ class LoansSearch extends PagedKiva {
         //this seems problematic, break this into a "post process" function, support it in the base class?
         return super.start().fail(this.promise.reject).then(loans => {
             //after the download process is complete, if a max final payment date was specified, then remove all that don't match.
-            if (this.max_repayment_date)
-                loans = loans.where(loan => loan.kl_final_repayment.isBefore(this.max_repayment_date))
+            //may want to re-enable this at some point but right now, it's a waste to throw any loans away.
+            //could make this an option to be strict.
+            //if (this.max_repayment_date)
+            //    loans = loans.where(loan => loan.kl_final_repayment.isBefore(this.max_repayment_date))
             return loans
         })
     }
@@ -582,8 +585,7 @@ class CritTester {
 const llUnknown = 0, llDownloading = 1, llComplete = 2
 
 //not super robust. just a simple way to have things queue up until either a time passes between
-//events or the queue reaches a given max. behavior, if it waits 5 seconds and another event happens,
-//the timer restarts and it can continue like this over and over until the max queue is reached.
+//events or the queue reaches a given max.
 class QueuedActions {
     constructor(){
         this.queue = []
@@ -647,13 +649,16 @@ class Loans {
         crit = $.extend(crit, {})
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
-        this.getAllPartners().done(partners => {
+        this.getAllPartners().done(() => {
             var max_repayment_date = null
+            var needSecondary = false
             var base_options = $.extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, options)
             if (base_options.mergeAtheistList)
                 this.getAtheistList()
-            if (base_options.maxRepaymentTerms_on)
+            if (base_options.maxRepaymentTerms_on) {
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
+                needSecondary = true
+            }
             if (base_options.kiva_lender_id)
                 this.setLender(base_options.kiva_lender_id)
 
@@ -663,6 +668,7 @@ class Loans {
             this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
                 .progress(progress => this.notify({loan_load_progress: progress}))
                 .done(()=> this.notify({loans_loaded: true}))
+                .done(()=> {if (needSecondary) this.secondaryLoad()})
         }).fail(xhr=>this.notify({failed: xhr.responseJSON.message}))
         //used saved partner filter
         return this.notify_promise
@@ -721,6 +727,7 @@ class Loans {
             ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
             ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
             ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner=>partner.charges_fees_and_interest)
+            //should have the merge option passed in... or stored somewhere else.
             if (this.atheist_list_processed && lsj.get('Options').mergeAtheistList) {
                 ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
                 ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
@@ -1032,45 +1039,59 @@ class Loans {
     }
     newLoanNotice(id_arr){
         if (!this.isReady()) return
-        var kl = this
-        new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
+        var that = this
+        return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
-            kl.running_totals.new_loans += loans.where(l=>l.kl_posted_date.isAfter(this.startupTime)).length
-            this.notify({running_totals_change: kl.running_totals})
+            that.running_totals.new_loans += loans.where(l=>l.kl_posted_date.isAfter(that.startupTime)).length
+            this.notify({running_totals_change: that.running_totals})
             this.setKivaLoans(loans, false)
         })
     }
+    secondaryLoad(){
+        var $def = $.Deferred()
+        this.secondary_load = 'started'
+        this.notify({secondary_load: 'started'})
+        new LoansSearch({ids_only: 'true'}, false).start().then(loans => {
+            //fetch the full details for the new loans and add them to the list.
+            loans.removeAll(id=>this.hasLoan(id))
+            this.newLoanNotice(loans).done($def.resolve).done(()=>{
+                this.secondary_load = ''
+                this.notify({secondary_load: 'complete'})
+            })
+        })
+        return $def
+    }
     backgroundResync(){
         this.background_resync++
-        var kl = this
+        var that = this
 
         new LoansSearch(this.base_kiva_params, false).start().done(loans => {
             var loans_added = [], loans_updated = 0
             //for every loan found in a search from Kiva... these are not full details!
             loans.forEach(loan => {
-                var existing = kl.indexed_loans[loan.id]
+                var existing = that.indexed_loans[loan.id]
                 if (existing) {
                     if (existing.status != loan.status
                         || existing.basket_amount != loan.basket_amount || existing.funded_amount != loan.funded_amount)
                         loans_updated++
-                    kl.mergeLoanAndNotify(existing, loan,  {kl_background_resync: kl.background_resync})
+                    that.mergeLoanAndNotify(existing, loan,  {kl_background_resync: that.background_resync})
                 } else {
                     //gather all ids for new loans to fetch the details
                     loans_added.push(loan.id)
                 }
             })
             cl("############### LOANS UPDATED:", loans_updated)
-            if (loans_updated > 0) kl.notify({background_updated: loans_updated})
+            if (loans_updated > 0) that.notify({background_updated: loans_updated})
 
             //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
-            var mia_loans = kl.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
-                        loan.kl_background_resync != kl.background_resync).select(loan => loan.id)
+            var mia_loans = that.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
+                        loan.kl_background_resync != that.background_resync).select(loan => loan.id)
 
             //these need refreshing.
-            kl.refreshLoans(mia_loans)
+            that.refreshLoans(mia_loans)
 
             //fetch the full details for the new loans and add them to the list.
-            kl.newLoanNotice(loans_added)
+            that.newLoanNotice(loans_added)
         })
     }
 }

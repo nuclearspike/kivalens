@@ -14,9 +14,6 @@ import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import TimeAgo from 'react-timeago'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
-//import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-
-var timeoutHandle=0
 
 var allOptions = {}
 
@@ -444,16 +441,27 @@ const SliderRow = React.createClass({
 const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState: function () {
-        return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false, criteria: s.criteria.syncGetLast()}
+        return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false,
+            show_secondary_load: false, criteria: s.criteria.syncGetLast()}
     },
     componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
         this.listenTo(a.loans.load.completed, this.loansReady)
+        this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
         this.listenTo(a.loans.filter.completed, this.filteredDone)
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
         if (kivaloans.isReady()) this.loansReady()
+        if (kivaloans.secondary_load == 'started') this.setState({show_secondary_load: true})
+    },
+    secondaryLoad(status){
+        if (status == 'started')
+            this.setState({show_secondary_load: true})
+        if (status == 'complete') {
+            this.setState({show_secondary_load: false})
+            this.performSearch()
+        }
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -481,8 +489,8 @@ const CriteriaTabs = React.createClass({
         //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
         if (allOptions.partners.select_options.length == 0)
-        allOptions.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id.toString()}))
-        this.setState({loansReady : true})
+            allOptions.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id.toString()}))
+        this.setState({loansReady: true})
         this.figureAtheistList()
     },
     figureNeedLender(crit){
@@ -633,6 +641,10 @@ const CriteriaTabs = React.createClass({
 
                 <If condition={this.state.needLenderID}>
                     <Alert bsStyle="danger">The options in your criteria require your Lender ID. Go to the Options page to set it.</Alert>
+                </If>
+
+                <If condition={this.state.show_secondary_load}>
+                    <Alert className="ample-padding-top" bsStyle="warning">More loans are still loading...</Alert>
                 </If>
 
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">

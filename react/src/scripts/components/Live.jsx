@@ -51,7 +51,11 @@ const Live = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin,DelayStateTriggerMixin('maxMinutes','recalcTop', 200)],
         //DelayStateTriggerMixin(s=>s.running_totals.funded_amount,'recalcTop',1000)],
     getInitialState() {
-        return {running_totals: kivaloans.running_totals, maxMinutes: 30, top_lending_countries: [], top_sectors: [], top_countries: []}
+        return {
+            running_totals: kivaloans.running_totals, maxMinutes: 30,
+            top_lending_countries: [], top_sectors: [], top_countries: [],
+            funded_sum:0, still_needed:0, basket_amount:0, fundraising_amount:0, avg_percent_funded: 0
+        }
     },
     getStateFilterKeys() {return ['maxMinutes']},
     componentDidMount() {
@@ -87,6 +91,17 @@ const Live = React.createClass({
         var top_sectors = loans_during.groupByWithCount(l=>l.sector.name).orderBy(g=>g.count, basicReverseOrder).take(10)
         var top_countries = loans_during.groupByWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
 
+        var fundraising_loans = kivaloans.loans_from_kiva.where(l=>l.status=='fundraising')
+        var funded_sum    = fundraising_loans.sum(l=>l.funded_amount)
+        var still_needed  = fundraising_loans.sum(l=>l.kl_still_needed)
+        var basket_amount = fundraising_loans.sum(l=>l.basket_amount)
+        var fundraising_amount = fundraising_loans.sum(l=>l.loan_amount)
+        var avg_percent_funded = 0
+        if (fundraising_loans.length)
+            avg_percent_funded = fundraising_loans.sum(l=>l.kl_percent_funded) / fundraising_loans.length
+
+        this.setState({funded_sum, still_needed, basket_amount, fundraising_amount, avg_percent_funded})
+
         if (this.state.running_totals.funded_amount >= 500)
             this.setState({top_lending_countries, top_sectors, top_countries})
 
@@ -96,6 +111,7 @@ const Live = React.createClass({
     },
     render() {
         let {new_loans, funded_loans, funded_amount, expired_loans} = this.state.running_totals
+        let {funded_sum, still_needed, basket_amount, fundraising_amount,avg_percent_funded} = this.state
         return <Grid>
                 <Row>
                     <h1>Kiva Lending</h1>
@@ -107,12 +123,26 @@ const Live = React.createClass({
                 </Row>
                 <Row>
                     <Col md={3}>
+                        <h3>Since session start</h3>
                         <dl className="dl-horizontal" style={{fontSize: 'large'}}>
                             <dt>New Loans</dt><dd><AnimInt value={new_loans}/></dd>
                             <dt>Fully Funded</dt><dd><AnimInt value={funded_loans}/></dd>
                             <dt>Expired</dt><dd><AnimInt value={expired_loans}/></dd>
                             <dt>Lending Total</dt><dd>$<AnimInt value={funded_amount}/></dd>
                         </dl>
+                        <h3>Fundraising Loans</h3>
+                        <dl className="dl-horizontal" style={{fontSize: 'large'}}>
+                            <dt>Fundraising</dt><dd>$<AnimInt value={fundraising_amount}/></dd>
+                            <dt>Funded Amount</dt><dd>$<AnimInt value={funded_sum}/></dd>
+                            <dt>In Baskets</dt><dd>$<AnimInt value={basket_amount}/></dd>
+                            <dt>Still Needed</dt><dd>$<AnimInt value={still_needed}/></dd>
+                            <dt>Average Funded</dt><dd><AnimInt value={avg_percent_funded}/>%</dd>
+                        </dl>
+                        <If condition={false && lsj.get("Options").maxRepaymentTerms_on}>
+                            <p>
+                                * These totals only include the loans KivaLens has pulled from Kiva.
+                            </p>
+                        </If>
                     </Col>
 
                     <Col md={9}>

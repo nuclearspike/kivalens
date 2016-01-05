@@ -45,19 +45,18 @@ const Options = React.createClass({
             <Grid>
                 <h1>Options</h1>
                 <Col md={12}>
-                    <Panel header='Final Repayment Date'>
+                    <Panel header='Start Using the Search Sooner'>
                         <Input
                             type="checkbox"
-                            label={`Ignore loans with more than ${this.state.maxRepaymentTerms} months before final repayment (stop downloading)`}
+                            label={`Allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
                             checkedLink={this.linkState('maxRepaymentTerms_on')} />
                         <input
                             type="range"
                             min={8}
                             max={120}
                             valueLink={this.linkState('maxRepaymentTerms')}/>
-                        This setting will be used the next time you load the site. After the initial load of loans,
-                        if you keep the page open long enough, the rest of the loans will get loaded so you'll still
-                        need to use the final repayment date criteria option.
+                        After the initial load of loans, the rest of the loans will get loaded so you'll still need to
+                        use the final repayment date criteria option if you want to hide longer term loans.
                     </Panel>
                     <Panel header='Who are you?'>
                         {this.state.kiva_lender_id ?

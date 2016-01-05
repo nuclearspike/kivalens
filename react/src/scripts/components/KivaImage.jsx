@@ -3,7 +3,7 @@ import React from 'react';
 
 const KivaImage = React.createClass({
     getDefaultProps(){
-        return {type : 'width'}
+        return {type: 'width'}
     },
     render(){
         //if loan={loan} is set to a valid API loan object, it knows how to get the image id

@@ -4,7 +4,7 @@ import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
-import {Tabs,Tab,Grid,Col,Row,ProgressBar,Button} from 'react-bootstrap'
+import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, LoanLink, KivaLink} from '.'
 import a from '../actions'
@@ -122,14 +122,17 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
-        this.setState({loan, partner, basket_perc, funded_perc, inBasket: s.loans.syncInBasket(loan.id)})
+        var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        window.currentLoan = loan
+        this.setState({loan, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)})
     },
     tabSelect(selectedKey){
         this.setState({activeTab: selectedKey})
         localStorage.loan_active_tab = selectedKey
     },
     render() {
-        let {loan, partner, activeTab, inBasket, funded_perc, basket_perc, showAtheistResearch} = this.state
+        let {loan, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch} = this.state
         if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -145,6 +148,11 @@ var Loan = React.createClass({
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top">
                         <KivaImage loan={loan} type="width" image_width={800} width="100%"/>
+                        <Panel>
+                            <p>In no particular order:</p>
+                            <p>Pictured: {pictured} </p>
+                            <p>Not Pictured: {not_pictured} </p>
+                        </Panel>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
                         <Grid fluid>
@@ -157,7 +165,7 @@ var Loan = React.createClass({
                                     <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
                                 </Row>
                                 <Row>
-                                    <LoanLink id={loan.id}>View on Kiva.org</LoanLink>
+                                    <LoanLink loan={loan}>View on Kiva.org</LoanLink>
                                 </Row>
                                 <dl className="dl-horizontal">
                                     <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>

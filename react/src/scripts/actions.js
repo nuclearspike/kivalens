@@ -6,7 +6,7 @@ var a = {loans: null, criteria: null, partners: null, notifications: null, utils
 
 a.loans = Reflux.createActions({
     "live": {children: ['statsChanged','updated','loanNotFundraising']},
-    "load": {children: ["progressed", "completed", "failed"]},
+    "load": {children: ["progressed", "completed", "failed", "secondaryLoad"]},
     "filter": {children: ["completed"]},
     "detail": {children: ["completed"]},
     "basket": {children: ["add", "remove","select","changed","batchAdd","clear"]},
