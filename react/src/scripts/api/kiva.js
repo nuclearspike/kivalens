@@ -770,6 +770,7 @@ class Loans {
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
+        ct.addRangeTesters('dollars_per_hour',  loan=>loan.kl_dollars_per_hour())
         ct.addRangeTesters('percent_funded',    loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
