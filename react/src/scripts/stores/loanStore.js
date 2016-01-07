@@ -41,9 +41,10 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
         a.loans.live.loanNotFundraising(progress.loan_not_fundraising)
         loanStore.onBasketRemove(progress.loan_not_fundraising.id) //todo: should be in response to the action
     }
-    if (progress.secondary_load){
+    if (progress.secondary_load)
         a.loans.load.secondaryLoad(progress.secondary_load)
-    }
+    if (progress.secondary_load_label)
+        a.loans.load.secondaryStatus(progress.secondary_load_label)
 })
 
 //a.loans.load.failed

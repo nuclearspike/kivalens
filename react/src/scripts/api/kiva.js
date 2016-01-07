@@ -356,7 +356,7 @@ class LoansSearch extends PagedKiva {
         return super.start().fail(this.promise.reject).then(loans => {
             //after the download process is complete, if a max final payment date was specified, then remove all that don't match.
             //may want to re-enable this at some point but right now, it's a waste to throw any loans away.
-            //could make this an option to be strict.
+            //could make this
             //if (this.max_repayment_date)
             //    loans = loans.where(loan => loan.kl_final_repayment.isBefore(this.max_repayment_date))
             return loans
@@ -1054,7 +1054,9 @@ class Loans {
         new LoansSearch({ids_only: 'true'}, false).start().then(loans => {
             //fetch the full details for the new loans and add them to the list.
             loans.removeAll(id=>this.hasLoan(id))
-            this.newLoanNotice(loans).done($def.resolve).done(()=>{
+            this.newLoanNotice(loans).progress(n=>{
+                if (n.label) this.notify({secondary_load_label: n.label})
+            }).done($def.resolve).done(()=>{
                 this.secondary_load = ''
                 this.notify({secondary_load: 'complete'})
             })

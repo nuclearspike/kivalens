@@ -64,6 +64,28 @@ allOptions.average_loan_size_percent_per_capita_income = {min: 0, max: 300, labe
 allOptions.secular_rating = {min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda."}
 allOptions.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)."}
 
+//<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value}/>
+const DropSelectButton = React.createClass({
+    getInitialState(){
+        return {value: this.props.value}
+    },
+    onSelect(selected){
+        this.setState({value:selected})
+        this.props.onChange(selected)
+    },
+    render(){
+        let {options, defaultValue, style = {}} = this.props
+        var value = this.state.value
+        var oSel = options.first(o=>o.value == value)
+        oSel = oSel || options.first(o=>o.value == defaultValue) || {}
+        $.extend(style, {float:'left',padding:'4px',marginRight:'2px',marginLeft:'2px'})
+        return <DropdownButton style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
+            <For each="option" index="i" of={options}>
+                <MenuItem onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
+            </For>
+        </DropdownButton>
+    }
+})
 
 const AllAnyNoneButton = React.createClass({
     mixins: [ImmutableOptimizations(['cursor'])],
@@ -220,10 +242,10 @@ const BalancingRow = React.createClass({
             }
         }
     },
-    percentChange(){
+    percentChange(text){
         clearTimeout(this.percentChangeTimeout)
         this.percentChangeTimeout = setTimeout(function(){
-            var value = parseFloat(this.refs.percent.getValue())
+            var value = parseFloat(this.refs.percent.value)
             if (!isNaN(value)) {
                 this.props.cursor.refine('percent').set(value)
             }
@@ -265,31 +287,16 @@ const BalancingRow = React.createClass({
             </Col>
             <Col md={10}>
                 <Input type="checkbox" label='Enable filter' checkedLink={this.linkCursor('enabled')}/>
-                <Row>
-                    <Select simpleValue clearable={false} options={[{label: 'Show only', value: 'show'}, {label: "Hide all", value: 'hide'}]}
-                        value={lcHS.value} onChange={lcHS.requestChange} className='col-xs-4' />
-                    <Col xs={4}>
-                        {options.label.toLowerCase()} that have
-                    </Col>
-                </Row>
-                <Row>
-                    <Select simpleValue clearable={false} value={lcLG.value} onChange={lcLG.requestChange} className='col-xs-4'
-                        options={[{label: '< Less than', value: 'lt'}, {label: "> More than", value: 'gt'}]}/>
-                    <Col xs={4}>
-                        <Input key={this.cycle} type="text" label='' ref="percent" className='col-xs-2'
+                <Row className="spacedChildren">
+                    <DropSelectButton onChange={lcHS.requestChange} value={lcHS.value} options={[{label: 'Only Show', buttonDisplay: 'Show', value: 'show'}, {label: "Hide all", buttonDisplay: 'Hide', value: 'hide'}]} defaultValue='hide'/>
+                        &nbsp;{options.label.toLowerCase()} that have&nbsp;
+
+                    <DropSelectButton onChange={lcLG.requestChange} value={lcLG.value} options={[{label: '< Less than',buttonDisplay: '<', value: 'lt'}, {label: "> More than", buttonDisplay: '>', value: 'gt'}]} defaultValue='lt'/>
+                    <input style={{width:'50px'}} key={this.cycle} type="number" ref="percent"
                             defaultValue={percent} onChange={this.percentChange}
                             onFocus={this.percentFocus} onBlur={this.percentBlur}/>
-                    </Col>
-                    <Col xs={3}>
-                        %
-                    </Col>
-                </Row>
-                <Row>
-                    <Col xs={3}>
-                        of my
-                    </Col>
-                    <Select simpleValue clearable={false} value={lcAA.value} onChange={lcAA.requestChange} className='col-xs-5'
-                        options={[{label:'Active Portfolio',value:'active'},{label:"Total Portfolio",value:'all'}]}/>
+                    &nbsp; % of my &nbsp;
+                    <DropSelectButton onChange={lcAA.requestChange} value={lcAA.value} options={[{label:'Active Portfolio',value:'active'},{label:"Total Portfolio",value:'all'}]} defaultValue='active'/>
                 </Row>
 
                 <Row>
@@ -440,28 +447,19 @@ const SliderRow = React.createClass({
 
 const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
-    getInitialState: function () {
+    getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false,
-            show_secondary_load: false, criteria: s.criteria.syncGetLast()}
+             criteria: s.criteria.syncGetLast()}
     },
     componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
         this.listenTo(a.loans.load.completed, this.loansReady)
-        this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
         this.listenTo(a.loans.filter.completed, this.filteredDone)
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
+        this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
-        if (kivaloans.secondary_load == 'started') this.setState({show_secondary_load: true})
-    },
-    secondaryLoad(status){
-        if (status == 'started')
-            this.setState({show_secondary_load: true})
-        if (status == 'complete') {
-            this.setState({show_secondary_load: false})
-            this.performSearch()
-        }
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -643,10 +641,6 @@ const CriteriaTabs = React.createClass({
                     <Alert bsStyle="danger">The options in your criteria require your Lender ID. Go to the Options page to set it.</Alert>
                 </If>
 
-                <If condition={this.state.show_secondary_load}>
-                    <Alert className="ample-padding-top" bsStyle="warning">More loans are still loading...</Alert>
-                </If>
-
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">
                     <Col lg={8}>
                         <InputRow label='Use or Description' cursor={cLoan.refine('use')}/>
@@ -709,7 +703,7 @@ const CriteriaTabs = React.createClass({
                         </Col>
                     </Row>
                     <Row className="ample-padding-top">
-                        <Col md={10}>
+                        <Col md={12}>
                             <Panel header='Portfolio Balancing'>
                                 Notes:
                                 <ul>

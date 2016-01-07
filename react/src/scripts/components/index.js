@@ -18,14 +18,14 @@ const NotFound = () => <h1>Not Found</h1>
 //SIMPLE STATE-LESS COMPONENTS
 import React from 'react'
 
-const ClickLink = ({onClick,children}) => <a href="#" onClick={(e)=>{e.preventDefault(); onClick(e)}}>{children}</a>
-const NewTabLink = ({href, title, children}) => <a href={href} onClick={e=>rga.outboundLink(href,c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
+const ClickLink = ({onClick,children}) => <a href="#" onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
+const NewTabLink = ({href, title, children}) => <a href={href} onClick={e=>rga.outboundLink({label: href},c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
 const KivaLink = ({path, title, children, secure = false}) => <NewTabLink href={`http${secure ? 's': ''}://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
 const LenderLink = ({lender, title, children}) => <KivaLink path={`lender/${lender}?super_graphs=1`} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>
 const LoanLink = ({id, title, children, loan}) => {
     if (loan){
         id = loan.id
-        title = `View loan for ${loan.name} in a new tab on Kiva.org`
+        title = `View loan for ${loan.name} on Kiva.org in a new tab`
     }
     return <KivaLink path={`lend/${id}`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
 }

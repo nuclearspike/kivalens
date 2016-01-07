@@ -6,7 +6,7 @@ var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 import {History} from 'react-router'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
-import {KivaImage, LoanLink, KivaLink} from '.'
+import {KivaImage, NewTabLink, LoanLink, KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
@@ -97,20 +97,26 @@ const RepaymentGraphs= React.createClass({
 
 var Loan = React.createClass({
     mixins:[Reflux.ListenerMixin, History], //, ImmutableOptimizations(['params'])
-    getInitialState(){ return this.savedActiveTab() },
+    getInitialState(){
+        var loan = kivaloans.getById(this.props.params.id)
+        var ls = (loan)? this.loanToState(loan): {}
+        var at = this.savedActiveTab()
+        return $.extend({},at,ls)
+    },
     componentWillUnmount(){ clearInterval(this.refreshInterval) },
     componentDidMount(){
-        this.listenTo(a.loans.detail.completed, this.displayLoan)
+        this.listenTo(a.loans.detail.completed, this.displayLoan) //when loan gets refreshed or switched
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
         this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
-        this.listenTo(a.loans.live.updated, loan => {if (loan.id == this.props.params.id) this.displayLoan(loan)})
+        this.listenTo(a.loans.live.updated, this.displayLoan)
 
         this.refreshLoan() //happens always even if we have it, to cause a refresh.
         this.refreshInterval = setInterval(this.refreshLoan, 5*60000)  //every 5 minutes just for fun
         this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
     componentWillReceiveProps({params}){
-        if (params.id != this.props.params.id) a.loans.detail(params.id)
+        if (params.id != this.props.params.id)
+            a.loans.detail(params.id)
     },
     savedActiveTab(){
         return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1}
@@ -118,14 +124,18 @@ var Loan = React.createClass({
     refreshLoan(){
         a.loans.detail(this.props.params.id)
     },
-    displayLoan(loan){
+    loanToState(loan){
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        return {loan, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)}
+    },
+    displayLoan(loan){
+        if (loan.id != this.props.params.id) return
         window.currentLoan = loan
-        this.setState({loan, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)})
+        this.setState(this.loanToState(loan))
     },
     tabSelect(selectedKey){
         this.setState({activeTab: selectedKey})
@@ -188,7 +198,7 @@ var Loan = React.createClass({
                                         <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</dd>
                                         <dt>Loan Amount</dt><dd>${loan.loan_amount}</dd>
                                         <dt>Funded Amount</dt><dd>${loan.funded_amount}</dd>
-                                        <dt>Basket Amount</dt><dd>${loan.basket_amount}</dd>
+                                        <dt>In Baskets</dt><dd>${loan.basket_amount}</dd>
                                         <dt>Still Needed</dt><dd>${loan.kl_still_needed}</dd>
                                     </dl>
                                 </If>
@@ -222,7 +232,7 @@ var Loan = React.createClass({
                                 <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
                                 <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
                                 <If condition={partner.url}>
-                                    <span><dt>Website</dt><dd><a href={partner.url} target='_blank'>{partner.url}</a></dd></span>
+                                    <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
                                 </If>
                             </dl>
 

@@ -3,7 +3,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import Notification from 'react-notification'
-import {Grid,Row,Col,Input,ButtonGroup,Button} from 'react-bootstrap'
+import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
 import {LoanListItem, LoadingLoansModal, BulkAddModal} from '.'
 import a from '../actions'
 import s from '../stores'
@@ -15,7 +15,8 @@ var Search = React.createClass({
         var filtered_loans = s.loans.syncFilterLoansLast()
         if (filtered_loans.length == 0)
             filtered_loans = s.loans.syncFilterLoans()
-        return {filtered_loans: filtered_loans, loan_count: filtered_loans.length, notification: {active: false, message: ''}}
+        var show_secondary_load = (kivaloans.secondary_load == 'started')
+        return {filtered_loans, show_secondary_load, loan_count: filtered_loans.length, notification: {active: false, message: ''}}
     },
     componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
@@ -29,7 +30,17 @@ var Search = React.createClass({
         })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
-        //if (kivaloans.isReady()) a.loans.filter() //triggers the graphs. //should this be the way??
+        this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
+        this.listenTo(a.loans.load.secondaryStatus, this.secondaryStatus)
+    },
+    secondaryStatus(status){
+        this.setState({secondary_load_status: status})
+    },
+    secondaryLoad(status){
+        if (status == 'started')
+            this.setState({show_secondary_load: true})
+        if (status == 'complete')
+            this.setState({show_secondary_load: false})
     },
     showNotification(message){
         this.setState({notification: {active: true, message}})
@@ -60,6 +71,11 @@ var Search = React.createClass({
                         <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                         <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
                     </ButtonGroup>
+                    <If condition={this.state.show_secondary_load}>
+                        <Alert style={{marginBottom:'0px'}} bsStyle="warning">
+                            More loans are still loading. Carry on. {this.state.secondary_load_status}
+                        </Alert>
+                    </If>
                     <InfiniteList
                         className="loan_list_container"
                         items={this.state.filtered_loans}
