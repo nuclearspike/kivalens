@@ -40,6 +40,7 @@ const SetLenderIDModal = React.createClass({
                         <Row>
                             <Col md={12}>
                                 <Input
+                                    autoFocus
                                     type='text'
                                     label='Kiva Lender ID'
                                     labelClassName='col-lg-4'

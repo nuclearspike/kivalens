@@ -6,6 +6,7 @@ import Select from 'react-select'
 import Slider from 'react-slider' // 'multi-slider' is incompatible with .14 presently
 import Reflux from 'reflux'
 import numeral from 'numeral'
+import cx from 'classnames'
 import a from '../actions'
 import {LinkedComplexCursorMixin,DelayStateTriggerMixin} from './Mixins'
 import s from '../stores/'
@@ -66,20 +67,21 @@ allOptions.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)'
 
 //<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value}/>
 const DropSelectButton = React.createClass({
-    getInitialState(){
-        return {value: this.props.value}
-    },
+    getInitialState(){return {value: this.props.value}},
     onSelect(selected){
         this.setState({value:selected})
         this.props.onChange(selected)
+    },
+    componentWillReceiveProps({value}){
+        this.setState({value: value})
     },
     render(){
         let {options, defaultValue, style = {}} = this.props
         var value = this.state.value
         var oSel = options.first(o=>o.value == value)
         oSel = oSel || options.first(o=>o.value == defaultValue) || {}
-        $.extend(style, {float:'left',padding:'4px',marginRight:'2px',marginLeft:'2px'})
-        return <DropdownButton style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
+        $.extend(true, style, {padding:'4px',marginRight:'2px',marginLeft:'2px'})
+        return <DropdownButton bsStyle="primary" style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
             <For each="option" index="i" of={options}>
                 <MenuItem onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
             </For>
@@ -281,16 +283,16 @@ const BalancingRow = React.createClass({
         var lcHS = this.linkCursor('hideshow')
         var lcLG = this.linkCursor('ltgt')
         var lcAA = this.linkCursor('allactive')
+        var lcE = this.linkCursor('enabled')
         return <Row>
             <Col md={2}>
                 <label className="control-label">{options.label}</label>
             </Col>
             <Col md={10}>
-                <Input type="checkbox" label='Enable filter' checkedLink={this.linkCursor('enabled')}/>
-                <Row className="spacedChildren">
-                    <DropSelectButton onChange={lcHS.requestChange} value={lcHS.value} options={[{label: 'Only Show', buttonDisplay: 'Show', value: 'show'}, {label: "Hide all", buttonDisplay: 'Hide', value: 'hide'}]} defaultValue='hide'/>
-                        &nbsp;{options.label.toLowerCase()} that have&nbsp;
-
+                <Input type="checkbox" label='Enable filter' checkedLink={lcE}/>
+                <Row className={cx('spacedChildren', {notEnabled: !lcE.value})}>
+                    <DropSelectButton style={{width:'53px'}} onChange={lcHS.requestChange} value={lcHS.value} options={[{label: 'Only Show', buttonDisplay: 'Show', value: 'show'}, {label: "Hide all", buttonDisplay: 'Hide', value: 'hide'}]} defaultValue='hide'/>
+                    <div style={{minWidth:'125px',margin:'5px'}}>{options.label.toLowerCase()} that have</div>
                     <DropSelectButton onChange={lcLG.requestChange} value={lcLG.value} options={[{label: '< Less than',buttonDisplay: '<', value: 'lt'}, {label: "> More than", buttonDisplay: '>', value: 'gt'}]} defaultValue='lt'/>
                     <input style={{width:'50px'}} key={this.cycle} type="number" ref="percent"
                             defaultValue={percent} onChange={this.percentChange}
@@ -299,7 +301,7 @@ const BalancingRow = React.createClass({
                     <DropSelectButton onChange={lcAA.requestChange} value={lcAA.value} options={[{label:'Active Portfolio',value:'active'},{label:"Total Portfolio",value:'all'}]} defaultValue='active'/>
                 </Row>
 
-                <Row>
+                <Row className="ample-padding-top">
                     <If condition={loading}>
                         <Alert>Loading data from Kiva...</Alert>
                     </If>

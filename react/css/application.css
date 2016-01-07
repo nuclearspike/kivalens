@@ -95,6 +95,12 @@ ul.spacedList li {
 .ample-padding-top {
   padding-top: 15px; }
 
+.spacedChildren > * {
+  display: inline-block; }
+
+.spacedChildren.notEnabled > div.btn-group > button.btn {
+  background-color: #aaaaaa !important; }
+
 .in_basket {
   background-color: #93C54B !important; }
 

@@ -115,8 +115,15 @@ ul.spacedList li {padding-top: 10px}
   padding-top: 15px;
 }
 
-.spacedChildren > div {
+.spacedChildren > * {
+  display: inline-block;
+  //float:left;
+  //height: 50px;
   //margin-right: 15px;
+}
+
+.spacedChildren.notEnabled > div.btn-group > button.btn {
+  background-color: #aaaaaa !important;
 }
 
 .in_basket {
