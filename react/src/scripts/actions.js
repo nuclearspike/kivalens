@@ -34,5 +34,9 @@ a.utils = Reflux.createAction({
     children: ["prompt"]
 })
 
+a.utils.modal = Reflux.createActions({
+    "partnerDisplay": {children: ["completed"]}
+})
+
 window.kl_actions = a
 export default a

@@ -13,6 +13,7 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
+import {ClickLink, PartnerDisplayModal} from '.'
 import TimeAgo from 'react-timeago'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 
@@ -85,7 +86,7 @@ const DropSelectButton = React.createClass({
         $.extend(true, style, {padding:'4px',marginRight:'2px',marginLeft:'2px'})
         return <DropdownButton bsStyle="primary" style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
             <For each="option" index="i" of={options}>
-                <MenuItem onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
+                <MenuItem key={i} onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
             </For>
         </DropdownButton>
     }
@@ -681,6 +682,9 @@ const CriteriaTabs = React.createClass({
                                 <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={this.state.activeTab} options={allOptions[name]}/>
                             </For>
                         </If>
+
+                        <ClickLink onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</ClickLink>
+                        <PartnerDisplayModal/>
                     </Col>
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
