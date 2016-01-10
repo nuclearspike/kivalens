@@ -15,7 +15,8 @@ const PartnerDisplayModal = React.createClass({
     show(){
         this.setState({show: true})
         var ids = kivaloans.filterPartners(s.criteria.syncGetLast())
-        var partners = kivaloans.partners_from_kiva.where(p => ids.contains(p.id))
+        var partners = kivaloans.partners_from_kiva.where(p => p.status == "active" && ids.contains(p.id))
+        ids = partners.select(p => p.id)
         var names = partners.select(p => `"${p.name}"`)
         this.setState({ids,partners,names})
     },
@@ -47,7 +48,7 @@ const PartnerDisplayModal = React.createClass({
                                 <li>In Chrome or Firefox, right click the page and select "Inspect/Inspect Element" and click on the "Console" tab.</li>
                                 <li>Paste in the following code and press "Enter". This will select the partners listed, it will not unselect partners that do not match, you can unselect all of those first using the links on Kiva.</li>
                             </ul>
-                            <textarea style={sta} value={"["+ ids.join(',') + "].forEach(id=>$(`input[value=${id}]`)[0].checked=true)"}/>
+                            <textarea style={sta} value={"["+ ids.join(',') + "].forEach(id=>{var $el = $(`input[value=${id}]`)[0]; $el.checked=false; $el.click()})"}/>
                         </Tab>
                         <Tab eventKey={2} title="IDs">
                             IDs of matching partners, separated by ','
