@@ -468,7 +468,7 @@ const CriteriaTabs = React.createClass({
         if (kivaloans.isReady()) this.loansReady()
 
 
-        if (chrome) {
+        if (typeof chrome != "undefined") {
             chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
                 reply => {
                     if (reply && reply.features) {
@@ -625,17 +625,17 @@ const CriteriaTabs = React.createClass({
         ids = partners.select(p => p.id).orderBy(e=>e)
 
         a.utils.modal.alert({title:"KivaLens/Kiva Lender Assistant integration",
-            message:<div><p>By clicking OK, KivaLens will instruct the Kiva Lender Assistant Chrome Extension to</p>
+            message:<div><p>By continuing, KivaLens will instruct the Kiva Lender Assistant Chrome Extension to</p>
                 <ul>
-                    <li>Open a new tab to your Auto-Lending settings, which may require you to log in.</li>
+                    <li>Open a new tab to your Kiva Auto-Lending settings, which may require you to log in.</li>
                     <li>Check to make sure Auto-Lending is turned on, and if it isn't then abort.<br/>
                         <KivaLink path="settings/credit">Turn on Auto-Lending</KivaLink> if
                         you haven't already.</li>
-                    <li>Deselect any partners already have selected.</li>
+                    <li>Deselect all selected partners.</li>
                     <li>Select the {ids.length} partners that match the current criteria.</li>
                     <li>Save your new settings.</li>
             </ul></div>,
-            oKButton:{callback:()=>{
+            oKButton:{label:'Set Auto-Lending Preferences on Kiva',callback:()=>{
                 chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPartners: ids},
                     reply => {
                         if (reply && reply.received) {

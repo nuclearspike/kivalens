@@ -41,8 +41,7 @@ const Options = React.createClass({
         return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },
     render() {
-        return (
-            <Grid>
+        return (<Grid>
                 <h1>Options</h1>
                 <Col md={12}>
                     <Panel header='Start Using the Search Sooner'>
@@ -95,7 +94,7 @@ const Options = React.createClass({
                             checkedLink={this.linkState('mergeAtheistList')} />
                         <p>
                             KivaLens server pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
-                            MFI List from this <NewTabLink href="http://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv" title="Download CSV">Google Doc</NewTabLink> once
+                            MFI List from this <NewTabLink href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1" title="View Google Doc">Google Doc</NewTabLink> once
                             a day and merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
                             means that it is religion based. When activated, this will add 2 new sliders to the Partner
