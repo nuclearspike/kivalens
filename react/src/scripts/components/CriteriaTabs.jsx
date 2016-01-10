@@ -13,10 +13,11 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
-import {ClickLink, PartnerDisplayModal} from '.'
+import {ClickLink, KivaLink, PartnerDisplayModal} from '.'
 import TimeAgo from 'react-timeago'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 
+var KLA_Extension = 'egniipplnomjpdlhmmbpmdfbhemdioje'
 var allOptions = {}
 
 //borrower selects
@@ -465,6 +466,16 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
+
+
+        if (chrome) {
+            chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
+                reply => {
+                    if (reply && reply.features) {
+                        this.setState({setAutoLendPartners: reply.features.contains('setAutoLendPartners')})
+                    }
+                })
+        }
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -608,6 +619,34 @@ const CriteriaTabs = React.createClass({
         newState.helper_charts[group] = config
         this.setState(newState)
     },
+    setAutoLendingPartners(){
+        var ids = kivaloans.filterPartners(s.criteria.syncGetLast())
+        var partners = kivaloans.partners_from_kiva.where(p => p.status == "active" && ids.contains(p.id))
+        ids = partners.select(p => p.id).orderBy(e=>e)
+
+        a.utils.modal.alert({title:"KivaLens/Kiva Lender Assistant integration",
+            message:<div><p>By clicking OK, KivaLens will instruct the Kiva Lender Assistant Chrome Extension to</p>
+                <ul>
+                    <li>Open a new tab to your Auto-Lending settings, which may require you to log in.</li>
+                    <li>Check to make sure Auto-Lending is turned on, and if it isn't then abort.<br/>
+                        <KivaLink path="settings/credit">Turn on Auto-Lending</KivaLink> if
+                        you haven't already.</li>
+                    <li>Deselect any partners already have selected.</li>
+                    <li>Select the {ids.length} partners that match the current criteria.</li>
+                    <li>Save your new settings.</li>
+            </ul></div>,
+            oKButton:{callback:()=>{
+                chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPartners: ids},
+                    reply => {
+                        if (reply && reply.received) {
+                            //alert("Successfully Set!")
+                        }
+                    })
+        }}})
+
+
+
+    },
     focusSelect(group, key){
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
@@ -683,7 +722,10 @@ const CriteriaTabs = React.createClass({
                             </For>
                         </If>
 
-                        <ClickLink onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</ClickLink>
+                        <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
+                        <If condition={this.state.setAutoLendPartners}>
+                            <Button style={{marginLeft:'10px'}} onClick={this.setAutoLendingPartners}>Set Auto-Lending Partners</Button>
+                        </If>
                         <PartnerDisplayModal/>
                     </Col>
 

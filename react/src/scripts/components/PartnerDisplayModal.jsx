@@ -1,7 +1,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Modal,Button,Tabs,Tab} from 'react-bootstrap'
-import {KivaLink} from '.'
+import {KivaLink,NewTabLink} from '.'
 import a from '../actions'
 import s from '../stores/'
 
@@ -16,8 +16,8 @@ const PartnerDisplayModal = React.createClass({
         this.setState({show: true})
         var ids = kivaloans.filterPartners(s.criteria.syncGetLast())
         var partners = kivaloans.partners_from_kiva.where(p => p.status == "active" && ids.contains(p.id))
-        ids = partners.select(p => p.id)
-        var names = partners.select(p => `"${p.name}"`)
+        ids = partners.select(p => p.id).orderBy(e=>e)
+        var names = partners.select(p => `"${p.name}"`).orderBy(e=>e)
         this.setState({ids,partners,names})
     },
     close(){
@@ -34,35 +34,39 @@ const PartnerDisplayModal = React.createClass({
         return (
             <Modal show={this.state.show} onHide={this.close}>
                 <Modal.Header closeButton>
-                    Export Partners
+                    <Modal.Title>Export Partners</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
-
                     <Tabs defaultActiveKey={1}>
                         <Tab eventKey={1} title="For Auto-lending">
+                            <p>
+                                If you are using Chrome and the <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">Kiva Lender Assistant Chrome Browser Extension</NewTabLink>,
+                                then you can skip this manual process and use the "Set Auto-Lending Partners" button
+                                which fully automates the process of synchronizing your Auto-Lending partners with what
+                                you have currently selected. To do it manually, follow the steps below...
+                            </p>
                             <ul>
-                                <li>Open <KivaLink path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva.</li>
+                                <li>Open <KivaLink path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
                                 <li>Make sure that "Automatically lend my Kiva Credit" is checked to expose the options.</li>
                                 <li>In the "Partners" area, click the "edit" link so that the huge listing of all active Partners displays.</li>
-                                <li>In Chrome or Firefox, right click the page and select "Inspect/Inspect Element" and click on the "Console" tab.</li>
+                                <li>In Chrome or Firefox, right click the page and select "Inspect"/"Inspect Element" then once it's open, click on the "Console" tab.</li>
                                 <li>Paste in the following code and press "Enter". This will select the partners listed, it will not unselect partners that do not match, you can unselect all of those first using the links on Kiva.</li>
                             </ul>
-                            <textarea style={sta} value={"["+ ids.join(',') + "].forEach(id=>{var $el = $(`input[value=${id}]`)[0]; $el.checked=false; $el.click()})"}/>
+                            <textarea style={sta} value={"["+ ids.join(',') + "].forEach(id=>{var el = $(`input[value=${id}]`)[0]; if (!el) return; el.checked=false; el.click()})"}/>
                         </Tab>
                         <Tab eventKey={2} title="IDs">
-                            IDs of matching partners, separated by ','
-                            <textarea style={sta} value={ids.join(',')}/>
+                            IDs of matching partners, separated by ',' in numerical order
+                            <textarea readOnly style={sta} value={ids.join(',')}/>
                         </Tab>
                         <Tab eventKey={3} title="Names">
-                            Names of matching partners, quoted, separated by ','
-                            <textarea style={sta} value={names.join(',')}/>
+                            Names of matching partners, quoted, separated by ',' in alphabetical order
+                            <textarea readOnly style={sta} value={names.join(',')}/>
                         </Tab>
                         <Tab eventKey={4} title="JSON">
                             As JSON (JavaScript Object Notation)
-                            <textarea style={sta} value={JSON.stringify(partners,2)}/>
+                            <textarea readOnly style={sta} value={JSON.stringify(partners,2)}/>
                         </Tab>
-
                     </Tabs>
                 </Modal.Body>
 

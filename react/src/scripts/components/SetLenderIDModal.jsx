@@ -32,7 +32,7 @@ const SetLenderIDModal = React.createClass({
     render() {
         let {show, checking, failed} = this.state
         return (<Modal show={show} onHide={()=>this.onHide()}>
-                    <Modal.Header>
+                    <Modal.Header closeButton>
                         <Modal.Title>Set Kiva Lender ID</Modal.Title>
                     </Modal.Header>
 

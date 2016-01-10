@@ -50,9 +50,10 @@ import CycleChild from './CycleChild.jsx'
 import PromptModal from './PromptModal.jsx'
 import SetLenderIDModal from './SetLenderIDModal.jsx'
 import PartnerDisplayModal from './PartnerDisplayModal.jsx'
+import AlertModal from './AlertModal.jsx'
 
 export {NewTabLink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
     KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
-    SetLenderIDModal, SnowStack, PartnerDisplayModal}
+    SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal}

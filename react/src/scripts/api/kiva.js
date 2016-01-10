@@ -427,7 +427,7 @@ class LoanBatch {
         var r_loans = []
 
         chunks.forEach(chunk => {
-            $def.notify({task: 'details', done: 0, total: 1, label: 'Preparing to download...'})
+            $def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
             Request.sem_get(`loans/${chunk.join(',')}.json`, {}, 'loans', false)
                 .then(ResultProcessors.processLoans).done(loans => {
                     r_loans = r_loans.concat(loans)
