@@ -3,6 +3,7 @@ import Reflux from 'reflux'
 import {Grid,Col,Row,Modal,Button} from 'react-bootstrap'
 import a from '../actions'
 
+//a.utils.modal.alert({title:"Cannot Continue", message: "Please have at least one box checked to continue."})
 const AlertModal = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {

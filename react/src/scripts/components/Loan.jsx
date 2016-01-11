@@ -159,7 +159,9 @@ var Loan = React.createClass({
                     <Tab eventKey={1} title="Image" className="ample-padding-top">
                         <KivaImage loan={loan} type="width" image_width={800} width="100%"/>
                         <Panel>
-                            <p>In no particular order:</p>
+                            <If condition={loan.borrowers.length}>
+                                <p>In no particular order:</p>
+                            </If>
                             <p>Pictured: {pictured} </p>
                             <p>Not Pictured: {not_pictured} </p>
                         </Panel>

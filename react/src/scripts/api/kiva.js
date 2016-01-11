@@ -615,6 +615,34 @@ class QueuedActions {
     }
 }
 
+var defaultKivaData = {}
+defaultKivaData.sectors = ["Agriculture","Arts","Clothing","Construction","Education","Entertainment","Food","Health",
+    "Housing","Manufacturing","Personal Use","Retail","Services","Transportation","Wholesale"]
+defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","name":"Armenia"},
+    {"code":"AZ","name":"Azerbaijan"},{"code":"BZ","name":"Belize"},{"code":"BJ","name":"Benin"},{"code":"BO","name":"Bolivia"},
+    {"code":"BA","name":"Bosnia and Herzegovina"},{"code":"BR","name":"Brazil"},{"code":"BG","name":"Bulgaria"},
+    {"code":"BF","name":"Burkina Faso"},{"code":"BI","name":"Burundi"},{"code":"KH","name":"Cambodia"},{"code":"CM","name":"Cameroon"},
+    {"code":"TD","name":"Chad"},{"code":"CL","name":"Chile"},{"code":"CN","name":"China"},{"code":"CO","name":"Colombia"},
+    {"code":"CG","name":"Congo (Rep.)"},{"code":"CR","name":"Costa Rica"},{"code":"CI","name":"Cote D'Ivoire"},{"code":"DO","name":"Dominican Republic"},
+    {"code":"EC","name":"Ecuador"},{"code":"EG","name":"Egypt"},{"code":"SV","name":"El Salvador"},{"code":"GZ","name":"Gaza"},
+    {"code":"GE","name":"Georgia"},{"code":"GH","name":"Ghana"},{"code":"GT","name":"Guatemala"},{"code":"HT","name":"Haiti"},
+    {"code":"HN","name":"Honduras"},{"code":"IN","name":"India"},{"code":"ID","name":"Indonesia"},{"code":"IQ","name":"Iraq"},
+    {"code":"IL","name":"Israel"},{"code":"JO","name":"Jordan"},{"code":"KE","name":"Kenya"},{"code":"XK","name":"Kosovo"},
+    {"code":"KG","name":"Kyrgyzstan"},{"code":"LA","name":"Lao PDR"},{"code":"LB","name":"Lebanon"},
+    {"code":"LS","name":"Lesotho"},{"code":"LR","name":"Liberia"},{"code":"MG","name":"Madagascar"},{"code":"AL","name":"Albania"},
+    {"code":"MW","name":"Malawi"},{"code":"ML","name":"Mali"},{"code":"MR","name":"Mauritania"},{"code":"MX","name":"Mexico"},{"code":"MD","name":"Moldova"},
+    {"code":"MN","name":"Mongolia"},{"code":"MZ","name":"Mozambique"},{"code":"MM","name":"Myanmar (Burma)"},{"code":"NA","name":"Namibia"},
+    {"code":"NP","name":"Nepal"},{"code":"NI","name":"Nicaragua"},{"code":"NG","name":"Nigeria"},{"code":"PK","name":"Pakistan"},
+    {"code":"PS","name":"Palestine"},{"code":"PA","name":"Panama"},{"code":"PG","name":"Papua New Guinea"},{"code":"PY","name":"Paraguay"},
+    {"code":"PE","name":"Peru"},{"code":"PH","name":"Philippines"},{"code":"RW","name":"Rwanda"},
+    {"code":"VC","name":"St Vincent"},{"code":"WS","name":"Samoa"},{"code":"SN","name":"Senegal"},
+    {"code":"SL","name":"Sierra Leone"},{"code":"SB","name":"Solomon Islands"},{"code":"SO","name":"Somalia"},
+    {"code":"ZA","name":"South Africa"},{"code":"QS","name":"South Sudan"},{"code":"LK","name":"Sri Lanka"},
+    {"code":"SR","name":"Suriname"},{"code":"TJ","name":"Tajikistan"},{"code":"TZ","name":"Tanzania"},
+    {"code":"TH","name":"Thailand"},{"code":"CD","name":"Congo (Dem. Rep.)"},{"code":"TL","name":"Timor-Leste"},
+    {"code":"TG","name":"Togo"},{"code":"TR","name":"Turkey"},{"code":"UG","name":"Uganda"},{"code":"UA","name":"Ukraine"},
+    {"code":"US","name":"United States"},{"code":"VU","name":"Vanuatu"},{"code":"VN","name":"Vietnam"},{"code":"YE","name":"Yemen"},
+    {"code":"ZM","name":"Zambia"},{"code":"ZW","name":"Zimbabwe"}].orderBy(c=>c.name)
 
 //rename this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
 //processes
@@ -624,6 +652,7 @@ class Loans {
         this.last_partner_search_count = 0
         this.last_partner_search = {}
         this.last_filtered = []
+        this.active_partners = []
         this.loans_from_kiva = []
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
@@ -687,6 +716,46 @@ class Loans {
         var allToCheck = mostPopular.concat(aboutToExpire).concat(closeToFunded).concat(showing).distinct()
         cl("checkHotLoans",allToCheck)
         this.refreshLoans(allToCheck)
+    }
+    getListOfPartners(crit){
+        //this isn't going to change
+        var ids = this.filterPartners(crit)
+        var partners = this.active_partners.where(p => ids.contains(p.id))
+        return partners.select(p => p.id).orderBy(e=>e)
+    }
+    getListOfSectors(crit){
+        //explicitly listing or suppressing
+        var sectors = defaultKivaData.sectors
+        var values, predicate
+
+        if (crit.loan.sector){
+            values = crit.loan.sector.split(',')
+            predicate = crit.loan.sector_all_any_none == 'none'? s=>!values.includes(s): s=>values.includes(s)
+            sectors = sectors.where(predicate)
+        }
+        if (crit.portfolio.pb_sector && crit.portfolio.pb_sector.enabled && crit.portfolio.pb_sector.values && crit.portfolio.pb_sector.values.length){
+            values = crit.portfolio.pb_sector.values
+            predicate = crit.portfolio.pb_sector.hideshow == 'hide'? n=>!values.includes(n): n=>values.includes(n)
+            sectors = sectors.where(predicate)
+        }
+        return sectors
+    }
+    getListOfCountries(crit){
+        var countries = defaultKivaData.countries
+        var cnames = countries.select(c=>c.name)
+        var values, predicate
+
+        if (crit.loan.country_code){
+            values = crit.loan.country_code.split(',')
+            predicate = crit.loan.country_code_all_any_none == 'none'? c=>!values.includes(c.code): c=>values.includes(c.code)
+            cnames = countries.where(predicate).select(c=>c.name)
+        }
+        if (crit.portfolio.pb_country && crit.portfolio.pb_country.enabled && crit.portfolio.pb_country.values && crit.portfolio.pb_country.values.length){
+            values = crit.portfolio.pb_country.values
+            predicate = crit.portfolio.pb_country.hideshow == 'hide'? n=>!values.includes(n): n=>values.includes(n)
+            cnames = cnames.where(predicate)
+        }
+        return cnames
     }
     filterPartners(c, useCache = true){
         if (this.last_partner_search_count > 10) {
@@ -958,6 +1027,7 @@ class Loans {
     getAllPartners(){
         return Request.sem_get('partners.json', {}, 'partners', false).then(ResultProcessors.processPartners).then(partners => {
             this.partners_from_kiva = partners
+            this.active_partners = partners.where(p => p.status == "active")
             //todo: temp. for debugging
             window.partners = this.partners_from_kiva
             //gather all country objects where partners operate, flatten and remove dupes.
@@ -1099,7 +1169,8 @@ class Loans {
     }
 }
 
-export {LenderFundraisingLoans, LenderStatusLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request, LoanBatch, Loans}
+export {LenderFundraisingLoans, LenderStatusLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request,
+    LoanBatch, Loans, defaultKivaData}
 
 //temp... verify that these aren't ever used before removal
 window.Request = Request

@@ -14,7 +14,7 @@ import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute} from 'react-router'
 import createHistory from 'history/lib/createHashHistory'
-import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack} from "./components"
+import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack, SetAutoLendModal} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 
@@ -48,6 +48,7 @@ const App = React.createClass({
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
+                    <SetAutoLendModal/>
                     {this.props.children}
                 <KLFooter/>
             </div>

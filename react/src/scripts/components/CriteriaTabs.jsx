@@ -13,16 +13,16 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
-import {ClickLink, KivaLink, PartnerDisplayModal} from '.'
+import {ClickLink, KivaLink, PartnerDisplayModal, AutoLendSettings} from '.'
 import TimeAgo from 'react-timeago'
+import {defaultKivaData} from '../api/kiva'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 
-var KLA_Extension = 'egniipplnomjpdlhmmbpmdfbhemdioje'
 var allOptions = {}
 
 //borrower selects
-allOptions.country_code = {label: 'Countries', allAnyNone: true, multi: true, select_options: [{"label":"Afghanistan","value":"AF"},{"label":"Albania","value":"AL"},{"label":"Armenia","value":"AM"},{"label":"Azerbaijan","value":"AZ"},{"label":"Belize","value":"BZ"},{"label":"Benin","value":"BJ"},{"label":"Bolivia","value":"BO"},{"label":"Bosnia and Herzegovina","value":"BA"},{"label":"Brazil","value":"BR"},{"label":"Bulgaria","value":"BG"},{"label":"Burkina Faso","value":"BF"},{"label":"Burundi","value":"BI"},{"label":"Cambodia","value":"KH"},{"label":"Cameroon","value":"CM"},{"label":"Chad","value":"TD"},{"label":"Chile","value":"CL"},{"label":"China","value":"CN"},{"label":"Colombia","value":"CO"},{"label":"Congo","value":"CG"},{"label":"Costa Rica","value":"CR"},{"label":"Cote D'Ivoire","value":"CI"},{"label":"Dominican Republic","value":"DO"},{"label":"Ecuador","value":"EC"},{"label":"Egypt","value":"EG"},{"label":"El Salvador","value":"SV"},{"label":"Gaza","value":"GZ"},{"label":"Georgia","value":"GE"},{"label":"Ghana","value":"GH"},{"label":"Guatemala","value":"GT"},{"label":"Haiti","value":"HT"},{"label":"Honduras","value":"HN"},{"label":"India","value":"IN"},{"label":"Indonesia","value":"ID"},{"label":"Iraq","value":"IQ"},{"label":"Israel","value":"IL"},{"label":"Jordan","value":"JO"},{"label":"Kenya","value":"KE"},{"label":"Kosovo","value":"XK"},{"label":"Kyrgyzstan","value":"KG"},{"label":"Lao People's Democratic Republic","value":"LA"},{"label":"Lebanon","value":"LB"},{"label":"Lesotho","value":"LS"},{"label":"Liberia","value":"LR"},{"label":"Madagascar","value":"MG"},{"label":"Malawi","value":"MW"},{"label":"Mali","value":"ML"},{"label":"Mauritania","value":"MR"},{"label":"Mexico","value":"MX"},{"label":"Moldova","value":"MD"},{"label":"Mongolia","value":"MN"},{"label":"Mozambique","value":"MZ"},{"label":"Myanmar (Burma)","value":"MM"},{"label":"Namibia","value":"NA"},{"label":"Nepal","value":"NP"},{"label":"Nicaragua","value":"NI"},{"label":"Nigeria","value":"NG"},{"label":"Pakistan","value":"PK"},{"label":"Palestine","value":"PS"},{"label":"Panama","value":"PA"},{"label":"Papua New Guinea","value":"PG"},{"label":"Paraguay","value":"PY"},{"label":"Peru","value":"PE"},{"label":"Philippines","value":"PH"},{"label":"Rwanda","value":"RW"},{"label":"Saint Vincent and the Grenadines","value":"VC"},{"label":"Samoa","value":"WS"},{"label":"Senegal","value":"SN"},{"label":"Sierra Leone","value":"SL"},{"label":"Solomon Islands","value":"SB"},{"label":"Somalia","value":"SO"},{"label":"South Africa","value":"ZA"},{"label":"South Sudan","value":"QS"},{"label":"Sri Lanka","value":"LK"},{"label":"Suriname","value":"SR"},{"label":"Tajikistan","value":"TJ"},{"label":"Tanzania","value":"TZ"},{"label":"Thailand","value":"TH"},{"label":"The Democratic Republic of the Congo","value":"CD"},{"label":"Timor-Leste","value":"TL"},{"label":"Togo","value":"TG"},{"label":"Turkey","value":"TR"},{"label":"Uganda","value":"UG"},{"label":"Ukraine","value":"UA"},{"label":"United States","value":"US"},{"label":"Vanuatu","value":"VU"},{"label":"Vietnam","value":"VN"},{"label":"Yemen","value":"YE"},{"label":"Zambia","value":"ZM"},{"label":"Zimbabwe","value":"ZW"}]}
-allOptions.sector = {label: 'Sectors', allAnyNone: true, multi: true, select_options: ["Agriculture","Arts","Clothing","Construction","Education","Entertainment","Food","Health","Housing","Manufacturing","Personal Use","Retail","Services","Transportation","Wholesale"].select(n=>({"label":n,"value":n}))}
+allOptions.country_code = {label: 'Countries', allAnyNone: true, multi: true, select_options: defaultKivaData.countries.select(n=>({"label":n.name,"value":n.code}))}
+allOptions.sector = {label: 'Sectors', allAnyNone: true, multi: true, select_options: defaultKivaData.sectors.select(n=>({"label":n,"value":n}))}
 allOptions.activity = {label: 'Activities', allAnyNone: true, multi: true, select_options: ["Agriculture","Air Conditioning","Animal Sales","Arts","Auto Repair","Bakery","Balut-Making","Barber Shop","Beauty Salon","Bicycle Repair","Bicycle Sales","Blacksmith","Bookbinding","Bookstore","Bricks","Butcher Shop","Cafe","Call Center","Carpentry","Catering","Cattle","Cement","Cereals","Charcoal Sales","Cheese Making","Child Care","Cloth & Dressmaking Supplies","Clothing","Clothing Sales","Cobbler","Computers","Construction","Construction Supplies","Consumer Goods","Cosmetics Sales","Crafts","Dairy","Decorations Sales","Dental","Education provider","Electrical Goods","Electrician","Electronics Repair","Electronics Sales","Embroidery","Entertainment","Farm Supplies","Farming","Film","Fish Selling","Fishing","Flowers","Food","Food Market","Food Production/Sales","Food Stall","Fruits & Vegetables","Fuel/Firewood","Funeral Expenses","Furniture Making","Games","General Store","Goods Distribution","Grocery Store","Hardware","Health","Higher education costs","Home Appliances","Home Energy","Home Products Sales","Hotel","Internet Cafe","Jewelry","Knitting","Land Rental","Laundry","Liquor Store / Off-License","Livestock","Machine Shop","Machinery Rental","Manufacturing","Medical Clinic","Metal Shop","Milk Sales","Mobile Phones","Motorcycle Repair","Motorcycle Transport","Movie Tapes & DVDs","Music Discs & Tapes","Musical Instruments","Musical Performance","Natural Medicines","Office Supplies","Paper Sales","Party Supplies","Patchwork","Perfumes","Personal Housing Expenses","Personal Medical Expenses","Personal Products Sales","Personal Purchases","Pharmacy","Phone Accessories","Phone Repair","Phone Use Sales","Photography","Pigs","Plastics Sales","Poultry","Primary/secondary school costs","Printing","Property","Pub","Quarrying","Recycled Materials","Recycling","Religious Articles","Renewable Energy Products","Restaurant","Retail","Rickshaw","Secretarial Services","Services","Sewing","Shoe Sales","Soft Drinks","Souvenir Sales","Spare Parts","Sporting Good Sales","Tailoring","Taxi","Textiles","Timber Sales","Tourism","Transportation","Traveling Sales","Upholstery","Used Clothing","Used Shoes","Utilities","Vehicle","Vehicle Repairs","Veterinary Sales","Waste Management","Water Distribution","Weaving","Wedding Expenses","Well digging","Wholesale"].select(n=>({"label":n,"value":n}))}
 allOptions.tags = {label: 'Tags', canAll: true, allAnyNone: true, multi: true, select_options: [{"value":"user_favorite","label":"User Favorite"},{"value":"volunteer_like","label":"Volunteer Like"},{"value":"volunteer_pick","label":"Volunteer Pick"},{"value":"#Animals","label":"#Animals"},{"value":"#Eco-friendly","label":"#Eco-friendly"},{"value":"#Elderly","label":"#Elderly"},{"value":"#Fabrics","label":"#Fabrics"},{"value":"#FemaleEducation","label":"#FemaleEducation"},{"value":"#FirstLoan","label":"#FirstLoan"},{"value":"#HealthAndSanitation","label":"#HealthAndSanitation"},{"value":"#IncomeProducingDurableAsset","label":"#IncomeProducingDurableAsset"},{"value":"#InspiringStory","label":"#InspiringStory"},{"value":"#InterestingPhoto","label":"#InterestingPhoto"},{"value":"#JobCreator","label":"#JobCreator"},{"value":"#Low-profitFP","label":"#Low-profitFP"},{"value":"#Orphan","label":"#Orphan"},{"value":"#Parent","label":"#Parent"},{"value":"#Refugee","label":"#Refugee"},{"value":"#RepeatBorrower","label":"#RepeatBorrower"},{"value":"#Schooling","label":"#Schooling"},{"value":"#Single","label":"#Single"},{"value":"#SingleParent","label":"#SingleParent"},{"value":"#SupportingFamily","label":"#SupportingFamily"},{"value":"#SustainableAg","label":"#SustainableAg"},{"value":"#Technology","label":"#Technology"},{"value":"#Trees","label":"#Trees"},{"value":"#Unique","label":"#Unique"},{"value":"#Vegan","label":"#Vegan"},{"value":"#Widowed","label":"#Widowed"},{"value":"#WomanOwnedBiz","label":"#WomanOwnedBiz"}]}
 allOptions.themes = {label: 'Themes', canAll: true, allAnyNone: true, multi: true, select_options: ["Arab Youth","Conflict Zones","Disaster recovery","Fair Trade","Flexible Credit Study","Green","Growing Businesses","Health","Higher Education","Innovative Loans","Islamic Finance","Job Creation","Kiva City Detroit","Kiva City LA","Mobile Technology","Rural Exclusion","SME","Start-Up","Underfunded Areas","Vulnerable Groups","Water and Sanitation","Youth"].select(n=>({"label":n,"value":n}))}
@@ -455,7 +455,7 @@ const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false,
-             criteria: s.criteria.syncGetLast()}
+             criteria: s.criteria.syncGetLast(), KLA: {}}
     },
     componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
@@ -467,15 +467,7 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
 
-
-        if (typeof chrome != "undefined") {
-            chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
-                reply => {
-                    if (reply && reply.features) {
-                        this.setState({setAutoLendPartners: reply.features.contains('setAutoLendPartners')})
-                    }
-                })
-        }
+        KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -620,32 +612,7 @@ const CriteriaTabs = React.createClass({
         this.setState(newState)
     },
     setAutoLendingPartners(){
-        var ids = kivaloans.filterPartners(s.criteria.syncGetLast())
-        var partners = kivaloans.partners_from_kiva.where(p => p.status == "active" && ids.contains(p.id))
-        ids = partners.select(p => p.id).orderBy(e=>e)
-
-        a.utils.modal.alert({title:"KivaLens/Kiva Lender Assistant integration",
-            message:<div><p>By continuing, KivaLens will instruct the Kiva Lender Assistant Chrome Extension to</p>
-                <ul>
-                    <li>Open a new tab to your Kiva Auto-Lending settings, which may require you to log in.</li>
-                    <li>Check to make sure Auto-Lending is turned on, and if it isn't then abort.<br/>
-                        <KivaLink path="settings/credit">Turn on Auto-Lending</KivaLink> if
-                        you haven't already.</li>
-                    <li>Deselect all selected partners.</li>
-                    <li>Select the {ids.length} partners that match the current criteria.</li>
-                    <li>Save your new settings.</li>
-            </ul></div>,
-            oKButton:{label:'Set Auto-Lending Preferences on Kiva',callback:()=>{
-                chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPartners: ids},
-                    reply => {
-                        if (reply && reply.received) {
-                            //alert("Successfully Set!")
-                        }
-                    })
-        }}})
-
-
-
+        a.utils.modal.setAutoLend()
     },
     focusSelect(group, key){
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
@@ -723,9 +690,7 @@ const CriteriaTabs = React.createClass({
                         </If>
 
                         <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
-                        <If condition={this.state.setAutoLendPartners}>
-                            <Button style={{marginLeft:'10px'}} onClick={this.setAutoLendingPartners}>Set Auto-Lending Partners</Button>
-                        </If>
+                        <Button style={{marginLeft:'10px'}} onClick={this.setAutoLendingPartners}>Set Auto-Lending Partners</Button>
                         <PartnerDisplayModal/>
                     </Col>
 
@@ -783,6 +748,12 @@ const CriteriaTabs = React.createClass({
                             </Panel>
                         </Col>
                     </Row>
+                </Tab>
+
+                <Tab eventKey={4} title="Auto-Lend">
+                    <Col lg={12}>
+                        <AutoLendSettings showing={this.state.activeTab == 4} />
+                    </Col>
                 </Tab>
             </Tabs>
             </div>

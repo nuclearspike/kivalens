@@ -1,3 +1,5 @@
+'use strict'
+
 class lsj { //localStorage JSON
     static get(key, default_result = {}){
         return $.extend(true, {}, default_result, JSON.parse(localStorage.getItem(key)))
@@ -16,6 +18,54 @@ window.perf = function(func){ //need separate for async
     func();
     var t1 = performance.now();
     console.log("Call took " + (t1 - t0) + " milliseconds.")
+}
+
+window.KLA_Extension = 'egniipplnomjpdlhmmbpmdfbhemdioje'
+
+window.getKLAFeatures = function(){
+    //either returns the feature array or fails.
+    var $d = $.Deferred()
+    if (typeof chrome != "undefined") {
+        chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
+            reply => {
+                if (reply && reply.features) {
+                    $d.resolve(reply.features)
+                } else {
+                    $d.reject()
+                }
+            })
+    } else {
+        $d.reject()
+    }
+    return $d
+}
+
+window.KLAFeatureCheck = function(featureArr){
+    var $d = $.Deferred()
+
+    var result = {}
+    featureArr.forEach(feature => result[feature] = false)
+
+    getKLAFeatures()
+        .done(features => {
+            featureArr.forEach(feature => {
+                result[feature] = features.contains(feature)
+            })
+            $d.resolve(result)
+        })
+        .fail(()=>$d.resolve(result))
+
+    return $d
+}
+
+window.KLAHasFeature = function(featureName) {
+    var $d = $.Deferred()
+
+    getKLAFeatures()
+        .done(features => $d.resolve(features.contains(featureName)))
+        .fail(()=>$d.resolve(false))
+
+    return $d
 }
 
 window.setDebugging = function() {
