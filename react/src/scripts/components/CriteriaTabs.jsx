@@ -223,7 +223,7 @@ const BalancingRow = React.createClass({
     },
     performBalanceQuery(cursor){
         if (cursor.value && cursor.refine('enabled').value) {
-            var newReq = JSON.stringify(cursor.value)
+            var newReq = JSON.stringify(cursor.value) + this.props.options.slice_by
             if (newReq == this.lastRequest) return //we've done it already!
             this.lastRequest = newReq
             s.criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, function(){
