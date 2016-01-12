@@ -20,7 +20,9 @@ window.perf = function(func){ //need separate for async
     console.log("Call took " + (t1 - t0) + " milliseconds.")
 }
 
-window.KLA_Extension = 'egniipplnomjpdlhmmbpmdfbhemdioje'
+window.KLAdev  = 'egniipplnomjpdlhmmbpmdfbhemdioje'
+window.KLAprod = 'jkljjpdljndblihlcoenjbmdakaomhgo'
+window.KLA_Extension = window.location.hostname == 'localhost' ? KLAdev : KLAprod
 
 window.getKLAFeatures = function(){
     //either returns the feature array or fails.

@@ -455,7 +455,7 @@ const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false,
-             criteria: s.criteria.syncGetLast(), KLA: {}}
+             criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false}
     },
     componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
@@ -467,6 +467,7 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
 
+        this.setState({betaTester: lsj.get('Options').betaTester})
         KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
     },
     figureAtheistList(){
@@ -492,10 +493,11 @@ const CriteriaTabs = React.createClass({
         this.performSearch()
     },
     loansReady(){
+        //this runs twice during load and every time you switch to the tab
         //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
         //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
         if (allOptions.partners.select_options.length == 0)
-            allOptions.partners.select_options = kivaloans.partners_from_kiva.where(p=>p.status=="active").orderBy(p=>p.name).select(p=>({label:p.name,value:p.id.toString()}))
+            allOptions.partners.select_options = kivaloans.active_partners.orderBy(p=>p.name).select(p=>({label:p.name,value:p.id.toString()}))
         this.setState({loansReady: true})
         this.figureAtheistList()
     },
@@ -636,6 +638,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
+        let {betaTester, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -643,12 +646,12 @@ const CriteriaTabs = React.createClass({
         var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
 
         return (<div>
-            <Tabs animation={false} activeKey={this.state.activeTab} onSelect={this.tabSelect}>
+            <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
                 <If condition={location.hostname == '$$localhost'}>
-                    <pre>{JSON.stringify(this.state.criteria, null, 2)}</pre>
+                    <pre>{JSON.stringify(criteria, null, 2)}</pre>
                 </If>
 
-                <If condition={this.state.needLenderID}>
+                <If condition={needLenderID}>
                     <Alert bsStyle="danger">The options in your criteria require your Lender ID. Go to the Options page to set it.</Alert>
                 </If>
 
@@ -664,13 +667,13 @@ const CriteriaTabs = React.createClass({
                         <LimitResult cursor={cLoan.refine('limit_to')}/>
 
                         <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','still_needed','dollars_per_hour','percent_funded','expiring_in_days', 'disbursal_in_days']}>
-                            <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)} cursorMax={cLoan.refine(`${name}_max`)} cycle={this.state.activeTab} options={allOptions[name]}/>
+                            <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)} cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab} options={allOptions[name]}/>
                         </For>
                     </Col>
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-                        <If condition={this.state.helper_charts.loan}>
-                            <Highcharts style={{height: '800px'}} config={this.state.helper_charts.loan}/>
+                        <If condition={helper_charts.loan}>
+                            <Highcharts style={{height: '800px'}} config={helper_charts.loan}/>
                         </If>
                     </Col>
                 </Tab>
@@ -681,11 +684,11 @@ const CriteriaTabs = React.createClass({
                             <SelectRow key={i} name={name} cursor={cPartner.refine(name)} aanCursor={cPartner.refine(`${name}_all_any_none`)} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>
                         <For each='name' index='i' of={['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income']}>
-                            <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={this.state.activeTab} options={allOptions[name]}/>
+                            <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab} options={allOptions[name]}/>
                         </For>
-                        <If condition={this.state.displayAtheistOptions}>
+                        <If condition={displayAtheistOptions}>
                             <For each='name' index='i' of={['secular_rating','social_rating']}>
-                                <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={this.state.activeTab} options={allOptions[name]}/>
+                                <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)} cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab} options={allOptions[name]}/>
                             </For>
                         </If>
 
@@ -695,16 +698,16 @@ const CriteriaTabs = React.createClass({
                     </Col>
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-                        <If condition={this.state.helper_charts.partner}>
-                            <Highcharts style={{height: '600px'}} config={this.state.helper_charts.partner} />
+                        <If condition={helper_charts.partner}>
+                            <Highcharts style={{height: '600px'}} config={helper_charts.partner} />
                         </If>
                     </Col>
                 </Tab>
 
-                <Tab eventKey={3} title={`Your Portfolio${this.state.portfolioTab}`} className="ample-padding-top">
+                <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
                     <Row>
                         <Col md={10}>
-                            <If condition={!this.state.kiva_lender_id && !this.state.needLenderID}>
+                            <If condition={!kiva_lender_id && !needLenderID}>
                                 <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link to="options">Options</Link> page. These functions won't work until you do.</Alert>
                             </If>
 
@@ -750,11 +753,15 @@ const CriteriaTabs = React.createClass({
                     </Row>
                 </Tab>
 
-                <Tab eventKey={4} title="Auto-Lend">
-                    <Col lg={12}>
-                        <AutoLendSettings showing={this.state.activeTab == 4} />
-                    </Col>
-                </Tab>
+                <If condition={betaTester}>
+                    <Tab eventKey={4} title="Auto-Lend" disabled={loansReady != true}>
+                        <Col lg={12}>
+                            <If condition={activeTab == 4}>
+                                <AutoLendSettings />
+                            </If>
+                        </Col>
+                    </Tab>
+                </If>
             </Tabs>
             </div>
         );

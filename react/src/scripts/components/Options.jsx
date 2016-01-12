@@ -13,7 +13,7 @@ const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging']
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester']
     },
     componentDidMount(){
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistStuff)
@@ -120,6 +120,10 @@ const Options = React.createClass({
                         </If>
                     </Panel>
                     <Panel header='Debug'>
+                        <Input
+                            type="checkbox"
+                            label="Show me features that are being tested"
+                            checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
                             label="Output debugging console messages"

@@ -9,12 +9,17 @@ import {defaultKivaData} from '../api/kiva'
 const AutoLendSettings = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
-        return {cycle: 0, pids: [], sectors:[], countries:[], sector_count: 0, country_count: 0, partner_count: 0, setAutoLendPartners: false}
+        return {cycle: 0, pids: [], sectors:[], countries:[], sector_count: 0, country_count: 0, partner_count: 0, setAutoLendPCS: true, KLAversion: 'none'}
     },
     componentDidMount() {
         this.listenTo(a.criteria.change, this.receiveCriteria)
-        this.receiveCriteria(s.criteria.syncGetLast()) //pointless on mount?
-        KLAFeatureCheck(['setAutoLendPCS']).done(state => this.setState(state))
+        this.receiveCriteria(s.criteria.syncGetLast())
+        KLAFeatureCheck(['setAutoLendPCS','getVersion']).done(state => {
+            this.setState(state)
+            if (state.getVersion) {
+                chrome.runtime.sendMessage(KLA_Extension, {getVersion: true}, reply => this.setState({KLAversion:reply.version}))
+            }
+        })
         var sector_count = defaultKivaData.sectors.length
         var country_count = defaultKivaData.countries.length
         this.setState({sector_count, country_count})
@@ -40,10 +45,12 @@ const AutoLendSettings = React.createClass({
         if (!this.refs.countries.getChecked()) countries = []
         if (!this.refs.sectors.getChecked()) sectors = []
         var setAutoLendPCS = {partners, countries, sectors}
+        window.rga.event({category: 'autolend', action: 'pushToKiva'})
+
         chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPCS}, reply => console.log(reply))
     },
     render() {
-        let {cycle,pids,sectors,countries,setAutoLendPCS,sector_count,country_count,partner_count} = this.state
+        let {cycle,pids,sectors,countries,KLAversion,setAutoLendPCS,sector_count,country_count,partner_count} = this.state
         return (
             <div className="ample-padding-top">
                 <h4>Alpha Testing... Double-check it's actions. Report any problems.</h4>
@@ -56,7 +63,7 @@ const AutoLendSettings = React.createClass({
                 <p>
                     Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> tucked away on
                     it's site for years. Use this tab to automatically set your preferences for Sectors,
-                    Countries and Partners on Kiva so you can take advantage of the portfolio balancing and
+                    Countries and Partners on Kiva so you can take advantage of KivaLens' portfolio balancing and
                     many additional options for selecting partners that are not included in the Auto-Lend settings.
                     As your portfolio changes and as stats on partners shift over time, you'll want to come back
                     and perform this function again on a regular basis to keep Kiva up-to-date,
@@ -64,7 +71,7 @@ const AutoLendSettings = React.createClass({
                     Sectors, Country, or Partner filtering from the currently criteria. It is recommended that you
                     create a "Saved Search" just for your Auto-Lending preferences so you can easily return
                     to your selections whenever you want. If nothing happens when you click the button, make sure
-                    your extension is up to date (it needs to be v1.0.5, released Jan 11).
+                    your extension is up to date (it needs to be v1.0.5 or higher, released Jan 11<If condition={KLAversion != 'none'}><span>, your version is {KLAversion}</span></If>).
                 </p>
                 <p>
                     To use this KivaLens feature, make sure Auto-Lending is enabled on Kiva or it will fail.
@@ -77,7 +84,7 @@ const AutoLendSettings = React.createClass({
                     <li>Open a new tab to your Kiva Auto-Lending settings, which may require you to log in.</li>
                     <li>Check to make sure Auto-Lending is turned on, and if it isn't then abort.</li>
                     <li><Input key={cycle} type="checkbox" ref="partners" defaultChecked={pids.length != partner_count} label={<span>Set the <b>{pids.length}/{partner_count} partners</b> that match the current criteria.</span>}/></li>
-                    <li><Input key={cycle} type="checkbox" ref="sectors" defaultChecked={sectors.length != sector_count} label={<span>Set the <b>{sectors.length}/{sector_count} sectors</b> that match the current criteria.</span>}/></li>
+                    <li><Input key={cycle} type="checkbox" ref="sectors"  defaultChecked={sectors.length != sector_count} label={<span>Set the <b>{sectors.length}/{sector_count} sectors</b> that match the current criteria.</span>}/></li>
                     <li><Input key={cycle} type="checkbox" ref="countries" defaultChecked={countries.length != country_count} label={<span>Set the <b>{countries.length}/{country_count} countries</b> that match the current criteria.</span>}/></li>
                     <li>Save your new settings.</li>
                 </ul>
