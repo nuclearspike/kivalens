@@ -8,6 +8,7 @@ import LocalStorageMixin from 'react-localstorage'
 import {Link} from 'react-router'
 import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
 import a from '../actions'
+import {WatchLocalStorage} from '../api/syncStorage'
 
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
@@ -15,8 +16,12 @@ const Options = React.createClass({
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester']
     },
+    reload(){
+        this.setState(lsj.get("Options"))
+    },
     componentDidMount(){
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistStuff)
+        this.watcher = new WatchLocalStorage('Options', this.reload.bind(this))
         this.figureAtheistStuff()
     },
     figureAtheistStuff(){

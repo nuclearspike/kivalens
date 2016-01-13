@@ -3,6 +3,7 @@ require("../utils")
 require('linqjs')
 import Reflux from 'reflux'
 import a from '../actions'
+import {WatchLocalStorage} from '../api/syncStorage'
 
 var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
@@ -11,6 +12,7 @@ var criteriaStore = Reflux.createStore({
         if (!this.last_known) this.last_known = this.syncBlankCriteria()
         a.criteria.reload(this.last_known) //??
         this.all = lsj.get('all_criteria')
+        this.watcher = new WatchLocalStorage('all_criteria', this.reloadAll.bind(this))
         if (Object.keys(this.all).length == 0) {
             //default lists.
             this.all = {
@@ -122,6 +124,10 @@ var criteriaStore = Reflux.createStore({
             this.syncSavedAll()
         }
         this.syncUpdateBalancers()
+    },
+    reloadAll(){
+        this.all = lsj.get('all_criteria')
+        a.criteria.savedSearchListChanged()
     },
     onChange(criteria){
         cl("criteriaStore:onChange", criteria)

@@ -130,14 +130,14 @@ const About = () => <Grid>
 
                 <li>
                     Hide Loans you've already loaned money to so that you don't accidentally lend to them more
-                    than you want. To use this, go to "Options" to input your kiva lender-id, then you'll need
-                    to refresh the page for the change to take effect. From the Criteria "Portfolio" tab and
-                    check the appropriate box.
+                    than you want. To use this, go to "Options" to input your kiva lender-id.
+                    From the Criteria "Portfolio" tab and select the appropriate option.
                 </li>
 
                 <li>
                     Saved Searches: Save your favorite searches to quickly jump back to them. The site will start
-                    you out with some default saved searches to give you an idea of how to use them.
+                    you out with some default saved searches to give you an idea of how to use them. As you view
+                    loan details, the "Matches" line will show you which Saved Searches have that loan in their results.
                 </li>
 
                 <li>

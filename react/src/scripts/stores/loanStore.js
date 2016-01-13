@@ -4,6 +4,7 @@ import Reflux from 'reflux'
 import {Loans, LoanBatch} from '../api/kiva'
 import a from '../actions'
 import criteriaStore from './criteriaStore'
+import {WatchLocalStorage} from '../api/syncStorage'
 
 //array of api loan objects that are sorted in the order they were returned.
 var basket_loans = []
@@ -53,11 +54,15 @@ window.kivaloans = kivaloans //todo: not just for debugging. ?
 
 var loanStore = Reflux.createStore({
     listenables: [a.loans],
-    init:function(){
+    init(){
+        this.watcher = new WatchLocalStorage('basket', this.reloadBasket.bind(this))
+        this.reloadBasket()
+    },
+    reloadBasket(){
         basket_loans = lsj.getA('basket')
         if (!Array.isArray(basket_loans)) basket_loans = []
         if (basket_loans.length > 0 && !basket_loans[0].loan_id) basket_loans = []
-        a.loans.basket.changed();
+        a.loans.basket.changed()
     },
 
     //BASKET

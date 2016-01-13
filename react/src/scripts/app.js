@@ -8,6 +8,7 @@ require('datejs')
 require('numeral')
 require('./utils')
 require('./stores/liveStore')
+require('./api/syncStorage')
 
 import React from 'react'
 import ReactDOM from 'react-dom'

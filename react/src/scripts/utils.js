@@ -150,3 +150,4 @@ window.humanize = function (str) {
     }
     return frags.join(' ');
 }
+
