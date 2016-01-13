@@ -12,5 +12,8 @@
 import criteria from './criteriaStore'
 import loans from './loanStore'
 import live from './liveStore'
+var s = {criteria: criteria, loans: loans, live: live}
 
-export default {criteria: criteria, loans: loans, live: live}
+export default s
+
+window.kl_stores = s

@@ -30,6 +30,7 @@ kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).
     if (progress.atheist_list_loaded)
         a.criteria.atheistListLoaded()
     if (progress.lender_loans_event) {
+        criteriaStore.syncUpdateBalancers()
         a.criteria.lenderLoansEvent(progress.lender_loans_event)
         loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: should be in response to the action
     }

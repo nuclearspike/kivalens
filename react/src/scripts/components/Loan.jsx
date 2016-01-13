@@ -128,9 +128,10 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
+        var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        return {loan, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
         if (loan.id != this.props.params.id) return
@@ -142,7 +143,7 @@ var Loan = React.createClass({
         localStorage.loan_active_tab = selectedKey
     },
     render() {
-        let {loan, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch} = this.state
+        let {loan, matching, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch} = this.state
         if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -180,6 +181,7 @@ var Loan = React.createClass({
                                     <LoanLink loan={loan}>View on Kiva.org</LoanLink>
                                 </Row>
                                 <dl className="dl-horizontal">
+                                    <dt>Matches</dt><dd>{matching}</dd>
                                     <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
                                     <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                     <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>

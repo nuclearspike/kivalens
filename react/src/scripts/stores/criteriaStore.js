@@ -1,5 +1,6 @@
 'use strict';
 require("../utils")
+require('linqjs')
 import Reflux from 'reflux'
 import a from '../actions'
 
@@ -33,7 +34,9 @@ var criteriaStore = Reflux.createStore({
                 "Popular": {
                     "loan": {
                         "sort": "popularity",
-                        "still_needed_min": 25
+                        "still_needed_min": 25,
+                        "dollars_per_hour_min": 50
+
                     },
                     "partner": {},
                     "portfolio": {"exclude_portfolio_loans": 'true'}
@@ -118,6 +121,7 @@ var criteriaStore = Reflux.createStore({
             }
             this.syncSavedAll()
         }
+        this.syncUpdateBalancers()
     },
     onChange(criteria){
         cl("criteriaStore:onChange", criteria)
@@ -132,6 +136,19 @@ var criteriaStore = Reflux.createStore({
     },
     syncBlankCriteria(){
         return {loan: {}, partner: {}, portfolio: {}}
+    },
+
+    syncGetMatchingCriteria(loan){
+        var results = []
+        this.syncGetAllNames().forEach(name => {
+            var crit = this.all[name]
+            if (kivaloans.filter(crit, false, [loan]).length) {
+                var hasBalancer = ['sector','activity','partner','country'].any(slice => crit.portfolio[`pb_${slice}`] && crit.portfolio[`pb_${slice}`].enabled)
+                if ((!hasBalancer)  || (hasBalancer && lsj.get("Options").kiva_lender_id)) //
+                    results.push(name)
+            }
+        })
+        return results
     },
 
     stripNullValues(crit){
@@ -151,13 +168,11 @@ var criteriaStore = Reflux.createStore({
         }
         // the reason these are strings is for display purposes. having the dropdown's value set to boolean true or
         // false doesn't work. this is easier for now, even though I hate it.
-
         if (crit.portfolio.exclude_portfolio_loans === true)
             crit.portfolio.exclude_portfolio_loans = 'true'
 
         if (crit.portfolio.exclude_portfolio_loans === false)
             crit.portfolio.exclude_portfolio_loans = 'false'
-
 
         return crit
     },
@@ -188,13 +203,35 @@ var criteriaStore = Reflux.createStore({
         this.onChange(new_c)
         a.criteria.savedSearchListChanged() //?? what?
     },
+    syncUpdateBalancers(){
+        if (!lsj.get("Options").kiva_lender_id) return
+        var that = this
+        this.syncGetAllNames().forEach(name => {
+            var c = that.syncGetByName(name)
+            var slices = ['sector','activity','partner','country']
+            slices.forEach(slice => {
+                var bal = c.portfolio[`pb_${slice}`]
+                if (bal && bal.enabled){
+                    //this is duplicated logic both from what is in the balancer row which keys by id for partner, and onBalancingGet.
+                    get_verse_data('lender', lsj.get("Options").kiva_lender_id, slice, bal.allactive).done(result => {
+                        var slices = (bal.ltgt == 'gt') ? result.slices.where(s => s.percent > bal.percent) : result.slices.where(s => s.percent < bal.percent)
+                        bal.values = (slice == 'partner') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+                        lsj.set('all_criteria', that.all)
+                    })
+                }
+            })
+        })
+    },
     onBalancingGet(requestId, sliceBy, crit, fetchNotifyFunc){
         //pull from cache if available, otherwise
-        get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive, fetchNotifyFunc).done(result => {
-            cl('onBalancingGet.get_verse_data.done',result)
-            result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
-            a.criteria.balancing.get.completed(requestId, sliceBy, crit, result)
-        })
+        //fetchNotifyFunc should really be a notify on the promise.
+        get_verse_data('lender', lsj.get("Options").kiva_lender_id, sliceBy, crit.allactive)
+            .progress(status => fetchNotifyFunc())
+            .done(result => {
+                cl('onBalancingGet.get_verse_data.done',result)
+                result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
+                a.criteria.balancing.get.completed(requestId, sliceBy, crit, result)
+            })
     },
     syncGetLastSwitch(){
         return this.last_switch
@@ -227,11 +264,14 @@ var criteriaStore = Reflux.createStore({
         if (this.last_switch == name) this.last_switch = ''
         this.syncSavedAll()
     },
+    syncGetAllSaved(){
+        return Object.keys(this.all).select(saved => this.all[saved])
+    },
     syncGenMetaSearch(){
         var meta = {loan:{}, partner: {}, portfolio: {}}
         var ranges = {'partner': ['partner_risk_rating','partner_arrears','partner_default','portfolio_yield','profit','loans_at_risk_rate','currency_exchange_loss_rate']}
         var groups = Object.keys(ranges)
-        var all = Object.keys(this.all).select(saved => this.all[saved])
+        var all = this.syncGetAllSaved()
 
         groups.forEach(group => {
             //cycle over ranges, finding highs and lows
@@ -256,11 +296,11 @@ var criteriaStore = Reflux.createStore({
     }
 })
 
-function get_verse_data(subject_type, subject_id, slice_by, all_active, fetchNotifyFunc){
+function get_verse_data(subject_type, subject_id, slice_by, all_active){
     var def = $.Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
-    var url = location.protocol + "//www.kivalens.org/kiva.php/ajax/getSuperGraphData?sliceBy="+ slice_by +"&include="+ all_active +"&measure=count&subject_id=" + subject_id + "&type=" + subject_type + "&granularity=" + granularity
+    var url = location.protocol + `//www.kivalens.org/kiva.php/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
     var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${granularity}`
 
     var result = get_cache(cache_key)
@@ -270,7 +310,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active, fetchNot
         def.resolve(result)
     } else {
         cl(`cache_miss: ${cache_key}`)
-        if (fetchNotifyFunc) fetchNotifyFunc()
+        def.notify({fetching: true})
         $.ajax({
             url: url,
             type: "GET",

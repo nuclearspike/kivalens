@@ -43,7 +43,7 @@ allOptions.exclude_portfolio_loans = {label: "Exclude My Loans", multi: false, s
 //balancing
 allOptions.pb_partner  = {label: "Partners", key: 'id', slice_by: 'partner'}
 allOptions.pb_country  = {label: "Countries", slice_by: 'country'}
-allOptions.pb_region   = {label: "Regions", slice_by: 'region'}
+allOptions.pb_region   = {label: "Regions", slice_by: 'region'} //not used.
 allOptions.pb_sector   = {label: "Sectors", slice_by: 'sector'}
 allOptions.pb_activity = {label: "Activites", slice_by: 'activity'}
 
@@ -52,7 +52,7 @@ allOptions.repaid_in = {min: 2, max: 90, label: 'Repaid In (months)', helpText: 
 allOptions.borrower_count = {min: 1, max: 20, label: 'Borrower Count', helpText: "The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right."}
 allOptions.percent_female = {min: 0, max: 100, label: 'Percent Female', helpText: "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed."}
 allOptions.still_needed = {min: 0, max: 1000, step: 25, label: 'Still Needed ($)', helpText: "How much is still needed to fully fund the loan. Loan Amount - Funded Amount - Basket Amount. Set the lower bound to $25 to exclude loans that are fully funded with basket amounts. Set both the lower and upper bound to $25 to find loans where they just need one more lender."} //min: 25? otherwise it bounces back to 25 if set to min
-allOptions.dollars_per_hour = {min: 0, max: 1000, label: '$/Hour', helpText: "Funded Amounts + Basket Amounts / Time since posting. Find the fastest funding loans."}
+allOptions.dollars_per_hour = {min: 0, max: 500, label: '$/Hour', helpText: "Funded Amounts + Basket Amounts / Time since posting. Find the fastest funding loans."}
 allOptions.percent_funded = {min: 0, max: 100, step: 1, label: 'Funded (%)', helpText: "What percent of the loan has already been funded (includes amounts in baskets)"}
 allOptions.expiring_in_days = {min: 0, max: 35, label: 'Expiring In (days)', helpText: "The number of days left before the loan expires if not funded."}
 allOptions.disbursal_in_days = {min: -90, max: 90, label: 'Disbursal (days)', helpText: "Relative to today, when does the borrower get the money? Negative days mean the borrower already has the money and the Kiva loan is used to back-fill the loan from the MFI rather than making the borrower wait for fundraising. Positive days mean the borrower does not yet have the money."}
