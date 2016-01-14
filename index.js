@@ -1,5 +1,13 @@
 var express = require('express');
 var app = express();
+var proxy = require('express-http-proxy');
+
+app.use('/proxy', proxy('www.kiva.org', {
+  forwardPath: function(req, res) {
+    return require('url').parse(req.url).path;
+  }
+}));
+
 
 app.set('port', (process.env.PORT || 5000));
 

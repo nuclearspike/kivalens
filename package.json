@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "ejs": "2.3.3",
-    "express": "4.13.3"
+    "express": "4.13.3",
+    "express-http-proxy": "^0.6.0"
   },
   "engines": {
     "node": "0.12.7"

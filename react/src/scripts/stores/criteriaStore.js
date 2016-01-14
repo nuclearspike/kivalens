@@ -306,7 +306,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
     var def = $.Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
-    var url = location.protocol + `http://nuclearspik.web707.discountasp.net/kivalens_org/kiva.php/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
+    var url = `/proxy/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
     var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${granularity}`
 
     var result = get_cache(cache_key)
