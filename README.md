@@ -10,4 +10,4 @@ Contact me if you're interested in contributing.
 This is my first React app and there are a number of things that I'd do differently now... and will
 eventually change. Don't judge too harshly. :D
 
-[See the live version](http://www.kivalens.org/react/#/search)
+[See the live version](http://www.kivalens.org/#/search)
