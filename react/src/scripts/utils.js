@@ -153,15 +153,21 @@ window.humanize = function (str) {
 
 window.waitFor = function(test, interval = 200) {
     var $d = $.Deferred()
-    if (test) {
+    if (test()) {
         $d.resolve()
     } else {
         var handle = setInterval(()=> {
-            if (test) {
+            if (test()) {
                 $d.resolve()
                 clearInterval(handle)
             }
         }, interval)
     }
+    return $d
+}
+
+window.wait = ms => {
+    var $d = $.Deferred()
+    setTimeout($d.resolve,ms)
     return $d
 }

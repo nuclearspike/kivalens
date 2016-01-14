@@ -10,20 +10,24 @@ require('./utils')
 require('./stores/liveStore')
 require('./api/syncStorage')
 
+import Q from 'q'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute} from 'react-router'
 import createHistory from 'history/lib/createHashHistory'
+
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack, SetAutoLendModal} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 
+window.Q = Q
 //window.Perf = require('react-addons-perf')
 
 window.rga = ga //react google analytics, ga is already defined
 
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
+
 
 
 const App = React.createClass({

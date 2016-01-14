@@ -10,11 +10,16 @@ import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
 import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
 
+$(function() {
+    if (lsj.get("Options").useLargeLocalStorage)
+        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+})
+
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester']
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'useLargeLocalStorage']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -27,10 +32,12 @@ const Options = React.createClass({
     figureAtheistStuff(){
         this.setState({atheist_list_processed: kivaloans.atheist_list_processed, missingPartners: this.getMissingPartners()})
     },
-    componentDidUpdate(prevProps, {mergeAtheistList}){
+    componentDidUpdate(prevProps, {mergeAtheistList,useLargeLocalStorage}){
         //user just switched it on, after loans already loaded and list has not been downloaded yet, then process it.
         if (!mergeAtheistList && this.state.mergeAtheistList && !kivaloans.atheist_list_processed && kivaloans.isReady())
             kivaloans.getAtheistList()
+        if (!useLargeLocalStorage && this.state.useLargeLocalStorage)
+            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
     },
     componentWillUnmount(){
         setDebugging()
@@ -124,11 +131,15 @@ const Options = React.createClass({
                             </div>
                         </If>
                     </Panel>
-                    <Panel header='Debug'>
+                    <Panel header='Debug/Beta Testing'>
                         <Input
                             type="checkbox"
-                            label="Show me features that are being tested"
+                            label="Show me features that are being beta-tested"
                             checkedLink={this.linkState('betaTester')} />
+                        <Input
+                            type="checkbox"
+                            label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading (previous option must be checked as well)"
+                            checkedLink={this.linkState('useLargeLocalStorage')} />
                         <Input
                             type="checkbox"
                             label="Output debugging console messages"

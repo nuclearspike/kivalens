@@ -47,18 +47,8 @@ const Basket = React.createClass({
         if (this.state.basket_count > 0) {
             this.setState({showGoodbye: true})
 
-            if (['xs','sm','md'].contains(findBootstrapEnv())) {
-                this.refs.basket_form.submit()
-            } else {
-                //there's currently a bug on kiva with expired sessions throwing a 404 when adding to basket.
-                // opening a tiny window to kiva starts the session and seems to prevent the 404's from happening.
-                // if kiva fixes the bug, this can just be a submit without a little window and timeout
-                var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
-                setTimeout(()=> {
-                    this.refs.basket_form.submit()
-                    w.close()
-                }, 2500)
-            }
+            kivaloans.saveLoansToLLSAfterDelay()
+
             window.rga.event({category: 'basket', action: 'basket:transfer', value: this.state.amount_sum})
 
             window.rga.modalview('/baskettransfer');
@@ -85,6 +75,19 @@ const Basket = React.createClass({
                 })
             })
             window.ga('ecommerce:send')
+
+            if (['xs','sm','md'].contains(findBootstrapEnv())) {
+                this.refs.basket_form.submit()
+            } else {
+                //there's currently a bug on kiva with expired sessions throwing a 404 when adding to basket.
+                // opening a tiny window to kiva starts the session and seems to prevent the 404's from happening.
+                // if kiva fixes the bug, this can just be a submit without a little window and timeout
+                var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
+                setTimeout(()=> {
+                    this.refs.basket_form.submit()
+                    w.close()
+                }, 2500)
+            }
         }
     },
     refresh(){

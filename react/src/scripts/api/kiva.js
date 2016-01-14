@@ -685,39 +685,73 @@ class Loans {
         if (this.update_interval > 0)
             setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
+    saveLoansToLLS(){
+        var $d = $.Deferred()
+        var that = this
+        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+        var toStore = {saved: Date.now(), loans: ResultProcessors.unprocessLoans(that.loans_from_kiva.where(l=>l.status == 'fundraising'))}
+        llstorage.initialized.then(g => {llstorage.setContents('loans', JSON.stringify(toStore)).then(r => $d.resolve())})
+        return $d
+    }
+    getLoansFromLLS(){
+        var $d = $.Deferred()
+        // Create a 125MB key-value store
+        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+        llstorage.initialized.then(g => {
+            $d.notify({readyToRead:true})
+            //ugh notif inside???
+            llstorage.getContents('loans').then(response => {
+                let {loans,saved} = JSON.parse(response)
+                $d.resolve(loans,saved)
+            })
+        })
+        return $d
+    }
     init(crit, options, api_options){
         //fetch partners.
         setAPIOptions(api_options)
         crit = $.extend(crit, {})
 
         //listen for request. tab can become the boss even if it starts out as a client.
-        this.interComm.filter('boss','gimmeLoans').progress(m => {
-            if (this.interComm.isBoss) {
+        if (lsj.get("Options").useLargeLocalStorage) {
+            this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
                 var that = this
-                that.interComm.sendMessage('client', 'gimmeLoans', {started: true})
                 waitFor(()=>that.allLoansLoaded).done(()=> {
-                    var allLoans = that.loans_from_kiva.where(l=>l.status == 'fundraising')
-                    that.interComm.sendMessage('client', 'gimmeLoans', {total: allLoans.length})
-                    var chunks = allLoans.chunk(500)
-                    if (chunks.length) {
-                        var handle = setInterval(()=> {
-                            //break off the next chunk
-                            var chunk = chunks[0]
-                            chunks = chunks.slice(1)
-
-                            //if we're done, stop the timer
-                            that.interComm.sendMessage('client', 'gimmeLoans', {loans: ResultProcessors.unprocessLoans(chunk)})
-
-                            if (!chunks.length) {
-                                clearInterval(handle)
-                                that.interComm.sendMessage('client', 'gimmeLoans',{},'close')
-                            }
-                        }, 20)
-
-                    }
+                    that.saveLoansToLLS().then(()=> {
+                        that.interComm.sendMessage('client', 'gimmeLoansLLS', {ready: true})
+                        that.interComm.sendMessage('client', 'gimmeLoansLLS', {}, 'close') //test combination
+                    })
                 })
-            }
-        })
+            })
+        } else {
+            this.interComm.filter('boss', 'gimmeLoans').progress(m => {
+                if (this.interComm.isBoss) {
+                    var that = this
+                    that.interComm.sendMessage('client', 'gimmeLoans', {started: true})
+                    waitFor(()=>that.allLoansLoaded).done(()=> {
+                        var allLoans = that.loans_from_kiva.where(l=>l.status == 'fundraising')
+                        that.interComm.sendMessage('client', 'gimmeLoans', {total: allLoans.length})
+                        var chunks = allLoans.chunk(500)
+                        if (chunks.length) {
+                            var handle = setInterval(()=> {
+                                //break off the next chunk
+                                var chunk = chunks[0]
+                                chunks = chunks.slice(1)
+
+                                //if we're done, stop the timer
+                                that.interComm.sendMessage('client', 'gimmeLoans', {loans: ResultProcessors.unprocessLoans(chunk)})
+
+                                if (!chunks.length) {
+                                    clearInterval(handle)
+                                    that.interComm.sendMessage('client', 'gimmeLoans', {}, 'close')
+                                }
+                            }, 20)
+
+                        }
+                    })
+                }
+            })
+        }
 
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
@@ -738,8 +772,9 @@ class Loans {
             //if (crit && crit.loan && crit.loan.repaid_in_max)
             //    max_repayment_date = (crit.loan.repaid_in_max).months().fromNow()
             var hasStarted = false
+            var handle
             //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
-            var handle = setInterval(function(){
+            const StartGettingLoans = function(){
                 if (hasStarted) {
                     clearInterval(handle)
                     return
@@ -750,41 +785,74 @@ class Loans {
                             this.notify({loan_load_progress: progress})
                             hasStarted = true
                         })
-                        .done(()=> this.notify({loans_loaded: true}))
                         .done(()=> {
+                            this.notify({loans_loaded: true})
                             if (needSecondary)
                                 this.secondaryLoad()
-                            else
+                            else {
                                 this.allLoansLoaded = true
+                                this.saveLoansToLLSAfterDelay()
+                            }
                         })
                 } else {
                     //this.promise.notify({task: 'details', done: this.result_object_count, total: this.total_object_count, label: `${this.result_object_count}/${this.total_object_count} downloaded`}
-                    this.notify({loan_load_progress: {label: 'Attempting to connect to another KivaLens tab...'}})
-                    var done = 0
-                    var total = 0
+                    if (lsj.get("Options").useLargeLocalStorage) {
+                        wait(20).done(r=> {
+                            this.getLoansFromLLS().then((loans,saved)=> {
+                                if (saved && (Date.now() - new Date(saved) < 10 * 60000)) {
+                                    hasStarted = true
+                                    this.notify({loan_load_progress: {label: 'Processing...'}})
+                                    this.setKivaLoans(ResultProcessors.processLoans(loans), false)
+                                    this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                                    this.backgroundResync()
+                                } else {
+                                    this.interComm.filter('client', 'gimmeLoansLLS').progress(m => {
+                                        //the only message is to start
+                                        hasStarted = true
+                                        this.getLoansFromLLS()
+                                            .progress(rtr=>this.notify({
+                                                loan_load_progress: {
+                                                    title: 'Transferring loans from another KivaLens tab',
+                                                    label: 'This will be quick...'
+                                                }
+                                            }))
+                                            .then(loans=> {
+                                                this.notify({loan_load_progress: {label: 'Processing...'}})
+                                                this.setKivaLoans(ResultProcessors.processLoans(loans), false)
+                                                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                                            })
+                                    })
+                                    this.interComm.sendMessage("boss", "gimmeLoansLLS", {start: true})
+                                }
+                            })
+                        })
+                    } else {
+                        this.notify({loan_load_progress: {label: 'Attempting to connect to another KivaLens tab...'}})
+                        var done = 0
+                        var total = 0
 
-                    this.interComm.filter('client','gimmeLoans').progress(m => {
-                        hasStarted = true
-                        if (m.total) {
-                            total = m.total
-                            this.notify({loan_load_progress: {title: 'Transferring loans from another KivaLens tab'}})
-                        }
+                        this.interComm.filter('client', 'gimmeLoans').progress(m => {
+                            hasStarted = true
+                            if (m.total) {
+                                total = m.total
+                                this.notify({loan_load_progress: {title: 'Transferring loans from another KivaLens tab'}})
+                            }
 
-                        if (m.loans){
-                            done += m.loans.length
-                            this.setKivaLoans(ResultProcessors.processLoans(m.loans), false)
-                            this.notify({loan_load_progress: {task: 'details', singlePass: true, done, total,label: `Received: ${done}/${total}`}})
-                        }
+                            if (m.loans) {
+                                done += m.loans.length
+                                this.setKivaLoans(ResultProcessors.processLoans(m.loans), false)
+                                this.notify({loan_load_progress: {task: 'details', singlePass: true, done, total, label: `Received: ${done}/${total}`}})
+                            }
 
-                        if (done && (done == total)) {
-                            this.notify({loan_load_progress: {complete: true}})
-                            this.notify({loans_loaded: true})
-                        }
-                    })
-                    this.interComm.sendMessage("boss","gimmeLoans",{start:true})
+                            if (done && (done == total))
+                                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                        })
+                        this.interComm.sendMessage("boss", "gimmeLoans", {start: true})
+                    }
                 }
-            }.bind(this), 5000)
-
+            }.bind(this)
+            setTimeout(StartGettingLoans,500)
+            handle = setInterval(StartGettingLoans, 10000)
 
         }).fail(xhr=>this.notify({failed: xhr.responseJSON.message}))
         //used saved partner filter
@@ -926,6 +994,7 @@ class Loans {
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
+        ct.addRangeTesters('loan_amount',       loan=>loan.loan_amount)
         ct.addRangeTesters('dollars_per_hour',  loan=>loan.kl_dollars_per_hour())
         ct.addRangeTesters('percent_funded',    loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
@@ -1218,9 +1287,14 @@ class Loans {
                 this.secondary_load = ''
                 this.allLoansLoaded = true
                 this.notify({secondary_load: 'complete'})
+                this.saveLoansToLLSAfterDelay()
             })
         })
         return $def
+    }
+    saveLoansToLLSAfterDelay(){
+        if (lsj.get("Options").useLargeLocalStorage)
+            wait(20).done(this.saveLoansToLLS.bind(this))
     }
     backgroundResync(){
         this.background_resync++
@@ -1253,6 +1327,8 @@ class Loans {
 
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
+
+            that.saveLoansToLLSAfterDelay()
         })
     }
 }
