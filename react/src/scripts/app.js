@@ -35,7 +35,7 @@ const App = React.createClass({
     componentDidMount(){
         ga.initialize('UA-10202885-1')
         //this only happens during startup of the app. don't allow #/ but
-        if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
+        //if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
     logPageChange(){
         var r_page = this.props.location.pathname
