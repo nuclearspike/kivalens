@@ -688,21 +688,30 @@ class Loans {
     saveLoansToLLS(){
         var $d = $.Deferred()
         var that = this
-        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
-        var toStore = {saved: Date.now(), loans: ResultProcessors.unprocessLoans(that.loans_from_kiva.where(l=>l.status == 'fundraising'))}
-        llstorage.initialized.then(g => {llstorage.setContents('loans', JSON.stringify(toStore)).then(r => $d.resolve())})
+        waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
+            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+            var toStore = {
+                saved: Date.now(),
+                loans: ResultProcessors.unprocessLoans(that.loans_from_kiva.where(l=>l.status == 'fundraising'))
+            }
+            llstorage.initialized.then(g => {
+                llstorage.setContents('loans', JSON.stringify(toStore)).then(r => $d.resolve())
+            })
+        })
         return $d
     }
     getLoansFromLLS(){
         var $d = $.Deferred()
         // Create a 125MB key-value store
-        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
-        llstorage.initialized.then(g => {
-            $d.notify({readyToRead:true})
-            //ugh notif inside???
-            llstorage.getContents('loans').then(response => {
-                let {loans,saved} = JSON.parse(response)
-                $d.resolve(loans,saved)
+        waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
+            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+            llstorage.initialized.then(g => {
+                $d.notify({readyToRead: true})
+                //ugh notif inside???
+                llstorage.getContents('loans').then(response => {
+                    let {loans,saved} = JSON.parse(response)
+                    $d.resolve(loans, saved)
+                })
             })
         })
         return $d
@@ -799,11 +808,12 @@ class Loans {
                     if (lsj.get("Options").useLargeLocalStorage) {
                         wait(20).done(r=> {
                             this.getLoansFromLLS().then((loans,saved)=> {
-                                if (saved && (Date.now() - new Date(saved) < 10 * 60000)) {
+                                if (saved && (Date.now() - new Date(saved) < 360 * 60000)) {
                                     hasStarted = true
                                     this.notify({loan_load_progress: {label: 'Processing...'}})
                                     this.setKivaLoans(ResultProcessors.processLoans(loans), false)
                                     this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                                    this.checkHotLoans()
                                     this.backgroundResync()
                                 } else {
                                     this.interComm.filter('client', 'gimmeLoansLLS').progress(m => {
@@ -1021,8 +1031,8 @@ class Loans {
         const sort = (loans, sort) => {
             if (loans.length > 1)
                 switch (sort) {
-                    case 'final_repayment':
-                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
+                    case 'half_back':
+                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
                         break
                     case 'popularity':
                         loans = loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
@@ -1038,7 +1048,7 @@ class Loans {
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
-                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
+                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
                 }
             return loans
         }

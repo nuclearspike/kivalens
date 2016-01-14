@@ -12,7 +12,9 @@ import {WatchLocalStorage} from '../api/syncStorage'
 
 $(function() {
     if (lsj.get("Options").useLargeLocalStorage)
-        window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+        waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
+            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+        })
 })
 
 const Options = React.createClass({
@@ -37,7 +39,12 @@ const Options = React.createClass({
         if (!mergeAtheistList && this.state.mergeAtheistList && !kivaloans.atheist_list_processed && kivaloans.isReady())
             kivaloans.getAtheistList()
         if (!useLargeLocalStorage && this.state.useLargeLocalStorage)
-            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
+            waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
+                window.llstorage = window.llstorage || new LargeLocalStorage({
+                        size: 125 * 1024 * 1024,
+                        name: 'KivaLens'
+                    })
+            })
     },
     componentWillUnmount(){
         setDebugging()
