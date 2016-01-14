@@ -17,11 +17,11 @@ const Options = React.createClass({
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester']
     },
     reload(){
-        this.setState(lsj.get("Options"))
+        //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
     },
     componentDidMount(){
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistStuff)
-        this.watcher = new WatchLocalStorage('Options', this.reload.bind(this))
+        //this.watcher = new WatchLocalStorage('Options', this.reload.bind(this))
         this.figureAtheistStuff()
     },
     figureAtheistStuff(){

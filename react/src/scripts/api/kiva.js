@@ -4,6 +4,8 @@ require('datejs')
 var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
 
+import {InterTabComm} from './syncStorage'
+
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
 //this is the heart of KL. all downloading, filtering, sorting, etc is done in here.
 
@@ -132,6 +134,16 @@ class ResultProcessors {
         //this alters the loans in the array. no need to return the array ?
         loans.forEach(ResultProcessors.processLoan) //where(loan => loan.kl_downloaded == undefined) ??
         return loans
+    }
+
+    static unprocessLoans(loans){
+        return loans.select(ResultProcessors.unprocessLoan) //where(loan => loan.kl_downloaded == undefined) ??
+    }
+
+    static unprocessLoan(loan){
+        loan = $.extend(true, {}, loan) //make a copy, strip it out
+        Object.keys(loan).where(f=>f.indexOf('kl_') == 0).forEach(field => delete loan[field])
+        return loan
     }
 
     static processLoan(loan){
@@ -452,7 +464,6 @@ class LoanBatch {
     }
 }
 
-
 class CritTester {
     constructor(crit_group){
         this.crit_group = crit_group
@@ -648,6 +659,7 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
 //processes
 class Loans {
     constructor(update_interval = 0){
+        this.interComm = new InterTabComm('KL')
         this.startupTime = new Date()
         this.last_partner_search_count = 0
         this.last_partner_search = {}
@@ -657,6 +669,7 @@ class Loans {
         this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
+        this.allLoansLoaded = false
         this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.is_ready = false
@@ -676,6 +689,36 @@ class Loans {
         //fetch partners.
         setAPIOptions(api_options)
         crit = $.extend(crit, {})
+
+        //listen for request. tab can become the boss even if it starts out as a client.
+        this.interComm.filter('boss','gimmeLoans').progress(m => {
+            if (this.interComm.isBoss) {
+                var that = this
+                that.interComm.sendMessage('client', 'gimmeLoans', {started: true})
+                waitFor(()=>that.allLoansLoaded).done(()=> {
+                    var allLoans = that.loans_from_kiva.where(l=>l.status == 'fundraising')
+                    that.interComm.sendMessage('client', 'gimmeLoans', {total: allLoans.length})
+                    var chunks = allLoans.chunk(500)
+                    if (chunks.length) {
+                        var handle = setInterval(()=> {
+                            //break off the next chunk
+                            var chunk = chunks[0]
+                            chunks = chunks.slice(1)
+
+                            //if we're done, stop the timer
+                            that.interComm.sendMessage('client', 'gimmeLoans', {loans: ResultProcessors.unprocessLoans(chunk)})
+
+                            if (!chunks.length) {
+                                clearInterval(handle)
+                                that.interComm.sendMessage('client', 'gimmeLoans',{},'close')
+                            }
+                        }, 20)
+
+                    }
+                })
+            }
+        })
+
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
         this.getAllPartners().done(() => {
@@ -694,10 +737,55 @@ class Loans {
             //todo: switch over to using the meta criteria
             //if (crit && crit.loan && crit.loan.repaid_in_max)
             //    max_repayment_date = (crit.loan.repaid_in_max).months().fromNow()
-            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
-                .progress(progress => this.notify({loan_load_progress: progress}))
-                .done(()=> this.notify({loans_loaded: true}))
-                .done(()=> {if (needSecondary) this.secondaryLoad()})
+            var hasStarted = false
+            //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
+            var handle = setInterval(function(){
+                if (hasStarted) {
+                    clearInterval(handle)
+                    return
+                }
+                if (this.interComm.isBoss || !lsj.get("Options").betaTester) { //todo: shouldn't reference lsj!!
+                    this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
+                        .progress(progress => {
+                            this.notify({loan_load_progress: progress})
+                            hasStarted = true
+                        })
+                        .done(()=> this.notify({loans_loaded: true}))
+                        .done(()=> {
+                            if (needSecondary)
+                                this.secondaryLoad()
+                            else
+                                this.allLoansLoaded = true
+                        })
+                } else {
+                    //this.promise.notify({task: 'details', done: this.result_object_count, total: this.total_object_count, label: `${this.result_object_count}/${this.total_object_count} downloaded`}
+                    this.notify({loan_load_progress: {label: 'Attempting to connect to another KivaLens tab...'}})
+                    var done = 0
+                    var total = 0
+
+                    this.interComm.filter('client','gimmeLoans').progress(m => {
+                        hasStarted = true
+                        if (m.total) {
+                            total = m.total
+                            this.notify({loan_load_progress: {title: 'Transferring loans from another KivaLens tab'}})
+                        }
+
+                        if (m.loans){
+                            done += m.loans.length
+                            this.setKivaLoans(ResultProcessors.processLoans(m.loans), false)
+                            this.notify({loan_load_progress: {task: 'details', singlePass: true, done, total,label: `Received: ${done}/${total}`}})
+                        }
+
+                        if (done && (done == total)) {
+                            this.notify({loan_load_progress: {complete: true}})
+                            this.notify({loans_loaded: true})
+                        }
+                    })
+                    this.interComm.sendMessage("boss","gimmeLoans",{start:true})
+                }
+            }.bind(this), 5000)
+
+
         }).fail(xhr=>this.notify({failed: xhr.responseJSON.message}))
         //used saved partner filter
         return this.notify_promise
@@ -779,9 +867,8 @@ class Loans {
             }
 
             var partners_given = []
-            if (c.partner.partners) { //explicitly given by user.
+            if (c.partner.partners) //explicitly given by user.
                 partners_given = c.partner.partners.split(',').select(id => parseInt(id)) //cannot be reduced to select(parseInt) :(
-            }
 
             var ct = new CritTester(c.partner)
 
@@ -1129,6 +1216,7 @@ class Loans {
                 if (n.label) this.notify({secondary_load_label: n.label})
             }).done($def.resolve).done(()=>{
                 this.secondary_load = ''
+                this.allLoansLoaded = true
                 this.notify({secondary_load: 'complete'})
             })
         })
@@ -1173,6 +1261,7 @@ export {LenderFundraisingLoans, LenderStatusLoans, LenderLoans, LoansSearch, Pag
     LoanBatch, Loans, defaultKivaData}
 
 //temp... verify that these aren't ever used before removal
+window.ResultProcessors = ResultProcessors
 window.Request = Request
 window.LenderStatusLoans = LenderStatusLoans
 window.LoansSearch = LoansSearch

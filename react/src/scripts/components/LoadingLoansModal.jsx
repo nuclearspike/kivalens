@@ -9,7 +9,7 @@ import a from '../actions'
 var LoadingLoansModal = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState(){
-        return {progress_label: 'Please Wait', show: !kivaloans.isReady(), error_message: ''}
+        return {progress_label: 'Please Wait', title: 'Loading Fundraising Loans from Kiva.org', show: !kivaloans.isReady(), error_message: ''}
     },
     shouldComponentUpdate(np, ns) { //does this actually help anything?
         return (this.state.show != ns.show)
@@ -18,9 +18,10 @@ var LoadingLoansModal = React.createClass({
         this.hasSentGAView = false
 
         this.listenTo(a.loans.load.progressed, progress => {
-            var new_state = {show: !kivaloans.isReady()}
-            if (progress.done) new_state[`${progress.task}_progress`] = (progress.done * 100) / progress.total * (progress.task == 'ids'? .33 : .67)
+            var new_state = {show: true}
+            if (progress.done) new_state[`${progress.task}_progress`] = progress.singlePass ? (progress.done * 100) / progress.total : (progress.done * 100) / progress.total * (progress.task == 'ids'? .33 : .67)
             if (progress.label) new_state.progress_label = progress.label
+            if (progress.title) new_state.title = progress.title
             if (progress.complete) new_state.show = false
             this.setState(new_state)
             this.forceUpdate()
@@ -34,7 +35,7 @@ var LoadingLoansModal = React.createClass({
         })
     },
     render() {
-        let {ids_progress, details_progress, show, progress_label, error_message} = this.state
+        let {ids_progress, details_progress, show, title, progress_label, error_message} = this.state
         if (show && !this.hasSentGAView) {
             this.hasSentGAView = true
             window.rga.modalview('/loading')
@@ -43,7 +44,7 @@ var LoadingLoansModal = React.createClass({
             <div className="static-modal">
                 <Modal show={show} onHide={()=>{}}>
                     <Modal.Header>
-                        <Modal.Title>Loading Fundraising Loans from Kiva.org</Modal.Title>
+                        <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body>
@@ -55,7 +56,7 @@ var LoadingLoansModal = React.createClass({
                             <p>To greatly reduce load time, check out the "Options" tab if you rarely consider longer term loans.</p>
                             <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet... and there are a bunch of other things you can do, check it out!</p>
                             <p>Did you know that KivaLens now works on smart-phones and tablets (iPad, Kindle, etc), too{'?'}</p>
-                            <p>Click the "Saved Search" button to see some samples of couple of the types of queries you do.</p>
+                            <p>Click the "Saved Search" button to see some samples of the types of queries you do.</p>
                             <p>When typing into one of the drop-downs, as soon as it highlights the one you want, you can press Tab or Enter, ESC closes the dropdown.</p>
                             <p>Do you know any software developers{'?'} KivaLens is open-source and will accept quality contributions (check out the About page for more information).</p>
                             <p>You can hide loans you've already loaned to by adding your Lender ID in the Options tab, then checking the "Exclude My Loans" option on the "Your Portfolio" tab.</p>

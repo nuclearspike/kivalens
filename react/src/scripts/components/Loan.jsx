@@ -181,7 +181,7 @@ var Loan = React.createClass({
                                     <LoanLink loan={loan}>View on Kiva.org</LoanLink>
                                 </Row>
                                 <dl className="dl-horizontal">
-                                    <dt>Matches</dt><dd>{matching}</dd>
+                                    <dt>Saved Searches</dt><dd>{matching}</dd>
                                     <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
                                     <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                     <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>

@@ -151,3 +151,17 @@ window.humanize = function (str) {
     return frags.join(' ');
 }
 
+window.waitFor = function(test, interval = 200) {
+    var $d = $.Deferred()
+    if (test) {
+        $d.resolve()
+    } else {
+        var handle = setInterval(()=> {
+            if (test) {
+                $d.resolve()
+                clearInterval(handle)
+            }
+        }, interval)
+    }
+    return $d
+}

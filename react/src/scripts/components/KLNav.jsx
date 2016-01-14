@@ -11,7 +11,11 @@ const KLNav = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() { return { basket_count: 0 } },
     componentDidMount(){
-        this.listenTo(a.loans.basket.changed, ()=>{ this.setState({basket_count: s.loans.syncBasketCount()}) })
+        this.listenTo(a.loans.basket.changed, this.basketChange)
+        this.basketChange()
+    },
+    basketChange(){
+        this.setState({basket_count: s.loans.syncBasketCount()})
     },
     render() {
         return (
