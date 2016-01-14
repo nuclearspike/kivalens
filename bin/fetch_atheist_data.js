@@ -1,3 +1,4 @@
+#! /app/bin/node
 var http = require('https');
 var fs = require('fs');
 
