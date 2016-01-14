@@ -47,10 +47,10 @@ gulp.task('styles', function(){
     .pipe(sass())
     //.pipe(postcss([autoprefixer]).process())
     .pipe(gulpif(production, autoprefixer('last 5 versions')))
-    .pipe(gulp.dest('css/'))
+    .pipe(gulp.dest('../public/stylesheets/'))
     .pipe(rename({suffix: '.min'}))
     .pipe(gulpif(production, minifycss())) //skip minification, it still goes into the .min unminified if non-prod
-    .pipe(gulp.dest('css/'))
+    .pipe(gulp.dest('../public/stylesheets/'))
     .pipe(browserSync.reload({stream:true}))
 });
 
@@ -76,7 +76,7 @@ function compile(watch) {
             .pipe(gulpif(production, uglify({output: {ascii_only:true}})))
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('./javascript'))
+            .pipe(gulp.dest('../public/javascript'))
             .pipe(browserSync.reload({stream:true}))
     }
 
