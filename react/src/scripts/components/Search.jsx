@@ -72,7 +72,7 @@ var Search = React.createClass({
                 </If>
                 <If condition={outdatedUrl}>
                     <Alert bsStyle="warning">
-                        <p>The link or bookmark you used is outdated. Please bookmark this page.</p>
+                        <p>The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.</p>
                     </Alert>
                 </If>
                 <Col md={4}>
