@@ -10,6 +10,9 @@ class lsj { //localStorage JSON
     static set(key, value){
         localStorage.setItem(key, JSON.stringify(value))
     }
+    static setMerge(key, newStuff){
+        lsj.set(key,$.extend(true, {}, lsj.get(key), newStuff))
+    }
 }
 window.lsj = lsj
 
@@ -18,6 +21,18 @@ window.perf = function(func){ //need separate for async
     func();
     var t1 = performance.now();
     console.log("Call took " + (t1 - t0) + " milliseconds.")
+}
+
+window.callKLAFeature = function(feature){
+    var $d = $.Deferred()
+    KLAFeatureCheck([feature]).done(opt => {
+        if (opt[feature]) {
+            var message = {}
+            message[feature] = true
+            chrome.runtime.sendMessage(KLA_Extension, message, reply => $d.resolve(reply))
+        }
+    })
+    return $d
 }
 
 window.KLAdev  = 'egniipplnomjpdlhmmbpmdfbhemdioje'
