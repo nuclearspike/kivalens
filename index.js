@@ -13,6 +13,7 @@ app.use('/proxy/gdocs', proxy('https://docs.google.com', {
         return require('url').parse(req.url).path;
     },
     intercept: function(rsp, data, req, res, callback){
+        //console.log(JSON.stringify(data))
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
@@ -20,8 +21,7 @@ app.use('/proxy/gdocs', proxy('https://docs.google.com', {
         // intercept OPTIONS method
         if ('OPTIONS' == req.method) {
             res.send(200);
-        }
-        else {
+        } else {
             callback(null,data);
         }
     }
@@ -39,8 +39,9 @@ app.get('/', function(request, response) {
   response.render('pages/index');
 });
 
+//any page not defined in this file gets routed to everything which redirects to /#/search
 app.get('/*', function(request, response) {
-    response.render('pages/everything');
+    response.render('pages/everything'); //can i do permanent redirect?
 });
 
 app.listen(app.get('port'), function() {
