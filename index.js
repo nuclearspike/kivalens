@@ -13,7 +13,6 @@ app.use('/proxy/gdocs', proxy('https://docs.google.com', {
         return require('url').parse(req.url).path;
     },
     intercept: function(rsp, data, req, res, callback){
-        //console.log(JSON.stringify(data))
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');

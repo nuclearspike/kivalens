@@ -113,8 +113,8 @@ const Options = React.createClass({
                             checkedLink={this.linkState('mergeAtheistList')} />
                         <p>
                             KivaLens server pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
-                            MFI List from this <NewTabLink href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1" title="View Google Doc">Google Doc</NewTabLink> once
-                            a day and merges some of the data which allows you to search using their Secular (1-4)
+                            MFI List from <NewTabLink href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1" title="View Google Doc">this Google Doc</NewTabLink> and
+                            merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
                             means that it is religion based. When activated, this will add 2 new sliders to the Partner
                             tab for Criteria and a section displaying and explaining the ratings to the Partner tab

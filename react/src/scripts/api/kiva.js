@@ -986,7 +986,7 @@ class Loans {
         //needs a copy of it and to guarantee the groups are there.
         $.extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
 
-        console.time("filter")
+        if (!loans_to_filter) console.time("filter")
 
         //break this into another unit --store? LoansAPI.filter(loans, criteria)
 
@@ -1085,7 +1085,7 @@ class Loans {
         if (cacheResults)
             this.last_filtered = loans_to_filter
 
-        console.timeEnd("filter")
+        if (!loans_to_filter) console.timeEnd("filter")
         return loans_to_filter
     }
     getAtheistList(){
@@ -1135,9 +1135,8 @@ class Loans {
 
         if (this.startedAtheistDownload || this.atheist_list_processed) return
         this.startedAtheistDownload = true
-        //$.get('/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv')
+
         var csv_file = '/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
-        //var csv_file = '/data/atheist_data.csv'
 
         $.get(csv_file)
             .fail(()=>{cl("failed to retrieve Atheist list")})

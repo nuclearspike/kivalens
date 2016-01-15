@@ -14,8 +14,10 @@ import Q from 'q'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
-import {Route, Redirect, IndexRoute} from 'react-router'
+import {Route, Redirect, IndexRoute, browserHistory} from 'react-router'
 import createHistory from 'history/lib/createHashHistory'
+//import { createHistory } from 'history'
+//import createHistory from 'history/lib/createBrowserHistory'
 
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
     Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack,
