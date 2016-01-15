@@ -1,19 +1,9 @@
-/**
- * this unit being required/imported anywhere will instantiate all stores listed below (only once)
- * it's important to note that some stores have 'init' functions that make requests on app start up.
- * EX: the partnerStore will fetch all partners at start up.
- *
- * import s from '../stores'
- *
- * s.loans (ex: s.loans.syncGetBasket())
- *
-**/
-
 import criteria from './criteriaStore'
 import loans from './loanStore'
 import live from './liveStore'
-var s = {criteria: criteria, loans: loans, live: live}
+import utils from './utilsStore'
+
+var s = {criteria: criteria, loans: loans, live: live, utils: utils}
 
 export default s
-
 window.kl_stores = s

@@ -32,6 +32,10 @@ var Search = React.createClass({
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.loans.load.secondaryStatus, this.secondaryStatus)
+        a.utils.var.get('outdatedUrl', outdatedUrl => {if (outdatedUrl) this.setState({outdatedUrl})})
+    },
+    componentWillUnmount(){
+        a.utils.var.set('outdatedUrl', null)
     },
     secondaryStatus(status){
         this.setState({secondary_load_status: status})
@@ -58,22 +62,28 @@ var Search = React.createClass({
         this.setState({showBulkAdd: false})
     },
     render()  {
-        var style = {height:'100%', width: '100%'};
+        var style = {height:'100%', width: '100%'}
+        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, secondary_load_status} = this.state
         return (
             <div style={style} >
                 <LoadingLoansModal/>
-                <If condition={this.state.showBulkAdd}>
+                <If condition={showBulkAdd}>
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>
+                <If condition={outdatedUrl}>
+                    <Alert bsStyle="warning">
+                        <p>The link or bookmark you used is outdated. Please bookmark this page.</p>
+                    </Alert>
+                </If>
                 <Col md={4}>
-                    <Notification dismissAfter={5000} isActive={this.state.notification.active} message={this.state.notification.message} action={''} />
+                    <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
                     <ButtonGroup justified>
                         <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                         <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
                     </ButtonGroup>
-                    <If condition={this.state.show_secondary_load}>
+                    <If condition={show_secondary_load}>
                         <Alert style={{marginBottom:'0px'}} bsStyle="warning">
-                            More loans are still loading. Carry on. {this.state.secondary_load_status}
+                            More loans are still loading. Carry on. {secondary_load_status}
                         </Alert>
                     </If>
                     <InfiniteList
@@ -87,7 +97,7 @@ var Search = React.createClass({
                     {this.props.children}
                 </Col>
             </div>
-        );
+        )
     }
 })
 

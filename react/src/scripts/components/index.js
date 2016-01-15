@@ -12,6 +12,7 @@ import About from './About.jsx'
 import SnowStack from './SnowStack.jsx'
 import Live from './Live.jsx'
 import ClearBasket from './ClearBasket.jsx'
+import Outdated from './Outdated.jsx'
 
 const NotFound = () => <h1>Not Found</h1>
 
@@ -59,4 +60,4 @@ export {NewTabLink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal, SetAutoLendModal,
-    AutoLendSettings}
+    AutoLendSettings, Outdated}

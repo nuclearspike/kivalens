@@ -17,7 +17,9 @@ import Router from 'react-router'
 import {Route, Redirect, IndexRoute} from 'react-router'
 import createHistory from 'history/lib/createHashHistory'
 
-import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule, Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack, SetAutoLendModal} from "./components"
+import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
+    Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack,
+    SetAutoLendModal, Outdated} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 
@@ -25,10 +27,7 @@ window.Q = Q
 //window.Perf = require('react-addons-perf')
 
 window.rga = ga //react google analytics, ga is already defined
-
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
-
-
 
 const App = React.createClass({
     getInitialState(){ return { } },
@@ -76,6 +75,7 @@ $(function() {
                 <Route path="about" component={About}/>
                 <Route path="live" component={Live}/>
                 <Route path="clear-basket" component={ClearBasket}/>
+                <Route path="outdated" component={Outdated}/>
                 <Redirect from="*" to="/search"/>
                 <Redirect from="" to="/search"/>
             </Route>

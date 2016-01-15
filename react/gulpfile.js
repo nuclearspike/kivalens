@@ -119,6 +119,7 @@ gulp.task("delete_rogue_react", function(){ //todo: temp fix!
 })
 
 gulp.task('scripts', function() { return compile(false); });
+gulp.task('watch', function() { return compile(true); });
 
 //deploy~: gulp d --u 'gjgjgjg' --pw djfjffj
 gulp.task('prod', ['production','styles','scripts'])
