@@ -1136,7 +1136,10 @@ class Loans {
         if (this.startedAtheistDownload || this.atheist_list_processed) return
         this.startedAtheistDownload = true
 
-        $.get('data/atheist_data.csv')
+        //var csv_file = '/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
+        var csv_file = '/data/atheist_data.csv'
+
+        $.get(csv_file)
             .fail(()=>{cl("failed to retrieve Atheist list")})
             .then(CSV2JSON).done(mfis => {
                 mfis.forEach(mfi => {
