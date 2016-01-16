@@ -2,7 +2,6 @@
   "name": "KivaLens Server",
   "description": "KivaLens Node.js server using Express 4",
   "repository": "https://github.com/nuclearspike/kivalensjs",
-  "logo": "http://node-js-sample.herokuapp.com/node.svg",
   "keywords": ["kiva","kivalens","microfinance"],
   "image": "heroku/nodejs"
 }

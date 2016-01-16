@@ -47,10 +47,11 @@ const SnowStack = React.createClass({
         return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id
     },
     componentWillUnmount(){
-        $('body').removeAttr('style')
+        //todo: save what it was??
+        document.getElementsByTagName('body')[0].removeAttribute('style')
     },
     componentDidMount() {
-        $('body').css({backgroundColor:'black'})
+        document.getElementsByTagName('body')[0].setAttribute('style','background-color: black;')
         rga.initialize('UA-10202885-1')
         rga.pageview(this.props.location.search ? '/snowstackWithUser': '/snowstack')
         if (navigator.userAgent.indexOf("WebKit") == -1){

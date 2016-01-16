@@ -9,8 +9,9 @@ import {Link} from 'react-router'
 import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
 import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
+import extend from 'extend'
 
-$(function() {
+domready.done(function() {
     if (lsj.get("Options").useLargeLocalStorage)
         waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
             window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
@@ -57,7 +58,7 @@ const Options = React.createClass({
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
         //look at the partner ids with loans, intersect them with partners without a score to be able to show which have loans.
         var m_p_with_loans = kivaloans.partner_ids_from_loans.intersect(m_partners.select(p=>p.id))
-        return m_partners.select(p => $.extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
+        return m_partners.select(p => extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },
     render() {
         return (<Grid>

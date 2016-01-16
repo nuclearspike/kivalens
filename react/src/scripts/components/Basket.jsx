@@ -7,11 +7,12 @@ import {BasketListItem,Loan} from '.';
 import a from '../actions'
 import s from '../stores'
 import InfiniteList from 'react-infinite-list'
+import extend from 'extend'
 
 const Basket = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
-        return $.extend(true, this.generateState(), {showGoodbye: false, refreshing: false})
+        return extend(true, this.generateState(), {showGoodbye: false, refreshing: false})
     },
     componentDidMount(){
         this.listenTo(a.loans.load.completed,()=>{ this.setState(this.generateState()) })

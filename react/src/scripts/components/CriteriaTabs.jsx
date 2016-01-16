@@ -16,6 +16,7 @@ import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {ClickLink, KivaLink, PartnerDisplayModal, AutoLendSettings} from '.'
 import TimeAgo from 'react-timeago'
 import {defaultKivaData} from '../api/kiva'
+import extend from 'extend'
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 
 var allOptions = {}
@@ -85,7 +86,7 @@ const DropSelectButton = React.createClass({
         var value = this.state.value
         var oSel = options.first(o=>o.value == value)
         oSel = oSel || options.first(o=>o.value == defaultValue) || {}
-        $.extend(true, style, {padding:'4px',marginRight:'2px',marginLeft:'2px'})
+        extend(true, style, {padding:'4px',marginRight:'2px',marginLeft:'2px'})
         return <DropdownButton bsStyle="primary" style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
             <For each="option" index="i" of={options}>
                 <MenuItem key={i} onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
@@ -234,8 +235,8 @@ const BalancingRow = React.createClass({
         }
     },
     compareButIgnore(obj1, obj2, property){
-        var obj1c = $.extend(true,{},obj1)
-        var obj2c = $.extend(true,{},obj2)
+        var obj1c = extend(true,{},obj1)
+        var obj2c = extend(true,{},obj2)
         delete obj1c[property]
         delete obj2c[property]
         return JSON.stringify(obj1c) == JSON.stringify(obj2c)
@@ -484,7 +485,7 @@ const CriteriaTabs = React.createClass({
         }
     },
     reloadCriteria(criteria = {}){
-        this.setState({criteria: $.extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})
+        this.setState({criteria: extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})
     },
     lenderLoansEvent(event){
         //can be either started or done.
@@ -514,7 +515,7 @@ const CriteriaTabs = React.createClass({
         a.criteria.change(criteria)
     },
     buildCriteria(){
-        var criteria = s.criteria.stripNullValues($.extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
+        var criteria = s.criteria.stripNullValues(extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
         cl("######### buildCriteria: criteria", criteria)
         return criteria
     },
@@ -728,7 +729,7 @@ const CriteriaTabs = React.createClass({
                                 <ul>
                                     <li>
                                         The summary data that KivaLens pulls for your account is not "live" data.
-                                        It should never be over 6 hours old, however. This means if you complete a
+                                        It should rarely be over 6 hours old, however. This means if you complete a
                                         bunch of loans and come back for more right away, the completed loans will
                                         not be accounted for in the balancing. Look for "Last Updated" to know how
                                         fresh the data is.

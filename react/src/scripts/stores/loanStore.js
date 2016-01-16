@@ -11,44 +11,44 @@ var basket_loans = []
 
 var kivaloans = new Loans(10*60*1000)
 
-var options = lsj.get("Options") //not how it should be done. this is app-specific options going into a generic init()
+var getOptions = ()=>lsj.get("Options")
 
-$.ajaxSetup({ cache: false })
-//bridge the downloading/processing generic API class with the React app. convert Deferred notify -> Reflux actions
-kivaloans.init(null, options, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
-    if (progress.background_added)
-        a.loans.backgroundResync.added(progress.background_added)
-    if (progress.background_updated)
-        a.loans.backgroundResync.updated(progress.background_updated)
-    if (progress.loans_loaded) {
-        a.loans.load.completed(kivaloans.loans_from_kiva)
-        //window.startChannels()
-    }
-    if (progress.loan_load_progress)
-        a.loans.load.progressed(progress.loan_load_progress)
-    if (progress.failed)
-        a.loans.load.failed(progress.failed)
-    if (progress.atheist_list_loaded)
-        a.criteria.atheistListLoaded()
-    if (progress.lender_loans_event) {
-        criteriaStore.syncUpdateBalancers()
-        a.criteria.lenderLoansEvent(progress.lender_loans_event)
-        loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: should be in response to the action
-    }
-    if (progress.running_totals_change)
-        a.loans.live.statsChanged(progress.running_totals_change)
-    if (progress.loan_updated)
-        a.loans.live.updated(progress.loan_updated) //have basket respond?
-    if (progress.loan_not_fundraising) {
-        a.loans.live.loanNotFundraising(progress.loan_not_fundraising)
-        loanStore.onBasketRemove(progress.loan_not_fundraising.id) //todo: should be in response to the action
-    }
-    if (progress.secondary_load)
-        a.loans.load.secondaryLoad(progress.secondary_load)
-    if (progress.secondary_load_label)
-        a.loans.load.secondaryStatus(progress.secondary_load_label)
+domready.done(()=> {
+    //bridge the downloading/processing generic API class with the React app. convert Deferred notify -> Reflux actions
+    kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
+        if (progress.background_added)
+            a.loans.backgroundResync.added(progress.background_added)
+        if (progress.background_updated)
+            a.loans.backgroundResync.updated(progress.background_updated)
+        if (progress.loans_loaded) {
+            a.loans.load.completed(kivaloans.loans_from_kiva)
+            //window.startChannels()
+        }
+        if (progress.loan_load_progress)
+            a.loans.load.progressed(progress.loan_load_progress)
+        if (progress.failed)
+            a.loans.load.failed(progress.failed)
+        if (progress.atheist_list_loaded)
+            a.criteria.atheistListLoaded()
+        if (progress.lender_loans_event) {
+            criteriaStore.syncUpdateBalancers()
+            a.criteria.lenderLoansEvent(progress.lender_loans_event)
+            loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: should be in response to the action
+        }
+        if (progress.running_totals_change)
+            a.loans.live.statsChanged(progress.running_totals_change)
+        if (progress.loan_updated)
+            a.loans.live.updated(progress.loan_updated) //have basket respond?
+        if (progress.loan_not_fundraising) {
+            a.loans.live.loanNotFundraising(progress.loan_not_fundraising)
+            loanStore.onBasketRemove(progress.loan_not_fundraising.id) //todo: should be in response to the action
+        }
+        if (progress.secondary_load)
+            a.loans.load.secondaryLoad(progress.secondary_load)
+        if (progress.secondary_load_label)
+            a.loans.load.secondaryStatus(progress.secondary_load_label)
+    })
 })
-
 //a.loans.load.failed
 window.kivaloans = kivaloans //todo: not just for debugging. ?
 

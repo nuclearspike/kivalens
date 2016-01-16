@@ -4,6 +4,9 @@ require('linqjs')
 import Reflux from 'reflux'
 import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
+import extend from 'extend'
+import {Deferred} from 'jquery-deferred'
+import {getUrl} from '../api/kiva'
 
 var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
@@ -138,7 +141,7 @@ var criteriaStore = Reflux.createStore({
         lsj.set('last_criteria', this.last_known)
     },
     syncGetLast(){
-        return $.extend(true, {}, this.syncBlankCriteria(), this.last_known)
+        return extend(true, {}, this.syncBlankCriteria(), this.last_known)
     },
     syncBlankCriteria(){
         return {loan: {}, partner: {}, portfolio: {}}
@@ -214,7 +217,7 @@ var criteriaStore = Reflux.createStore({
         var that = this
         this.syncGetAllNames().forEach(name => {
             var c = that.syncGetByName(name)
-            var slices = ['sector','activity','partner','country']
+            var slices = ['sector','activity','partner','country'] //ugh
             slices.forEach(slice => {
                 var bal = c.portfolio[`pb_${slice}`]
                 if (bal && bal.enabled){
@@ -303,10 +306,10 @@ var criteriaStore = Reflux.createStore({
 })
 
 function get_verse_data(subject_type, subject_id, slice_by, all_active){
-    var def = $.Deferred()
+    var def = Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
-    var url = `/proxy/kiva/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
+    var url = `${location.protocol}//${location.host}/proxy/kiva/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
     var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${granularity}`
 
     var result = get_cache(cache_key)
@@ -317,12 +320,8 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
     } else {
         cl(`cache_miss: ${cache_key}`)
         def.notify({fetching: true})
-        $.ajax({
-            url: url,
-            type: "GET",
-            dataType: "json",
-            cache: false
-        }).success(result => {
+
+        getUrl(url, true).done(result => {
             var slices = [], total_sum = 0
             if (result.data) {
                 total_sum = result.data.sum(d => parseInt(d.value))

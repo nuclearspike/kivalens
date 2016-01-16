@@ -4,6 +4,7 @@ import Reflux from 'reflux'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {Modal, Button, Input} from 'react-bootstrap'
 import a from '../actions'
+import extend from 'extend'
 
 const PromptModal = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin],
@@ -12,7 +13,7 @@ const PromptModal = React.createClass({
     componentDidMount() {this.listenTo(a.utils.prompt, this.showPrompt)},
     showPrompt(options){ //options of "title" and "label"
         this.callback = options.callback
-        this.setState($.extend({}, options, {callback:null,show:true,return_value:''}))
+        this.setState(extend({}, options, {callback:null,show:true,return_value:''}))
         this.forceUpdate()
     },
     close(){

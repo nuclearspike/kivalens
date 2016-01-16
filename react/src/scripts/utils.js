@@ -1,8 +1,11 @@
 'use strict'
 
+var extend = require('extend')
+var Deferred = require("jquery-deferred").Deferred
+
 class lsj { //localStorage JSON
     static get(key, default_result = {}){
-        return $.extend(true, {}, default_result, JSON.parse(localStorage.getItem(key)))
+        return extend(true, {}, default_result, JSON.parse(localStorage.getItem(key)))
     }
     static getA(key, default_result = []){
         return JSON.parse(localStorage.getItem(key)) || default_result
@@ -11,7 +14,7 @@ class lsj { //localStorage JSON
         localStorage.setItem(key, JSON.stringify(value))
     }
     static setMerge(key, newStuff){
-        lsj.set(key,$.extend(true, {}, lsj.get(key), newStuff))
+        lsj.set(key,extend(true, {}, lsj.get(key), newStuff))
     }
 }
 window.lsj = lsj
@@ -24,15 +27,15 @@ window.perf = function(func){ //need separate for async
 }
 
 window.callKLAFeature = function(feature){
-    var $d = $.Deferred()
+    var def = Deferred()
     KLAFeatureCheck([feature]).done(opt => {
         if (opt[feature]) {
             var message = {}
             message[feature] = true
-            chrome.runtime.sendMessage(KLA_Extension, message, reply => $d.resolve(reply))
+            chrome.runtime.sendMessage(KLA_Extension, message, reply => def.resolve(reply))
         }
     })
-    return $d
+    return def
 }
 
 window.KLAdev  = 'egniipplnomjpdlhmmbpmdfbhemdioje'
@@ -41,24 +44,24 @@ window.KLA_Extension = window.location.hostname == 'localhost' ? KLAdev : KLApro
 
 window.getKLAFeatures = function(){
     //either returns the feature array or fails.
-    var $d = $.Deferred()
+    var def = Deferred()
     if (typeof chrome != "undefined") {
         chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
             reply => {
                 if (reply && reply.features) {
-                    $d.resolve(reply.features)
+                    def.resolve(reply.features)
                 } else {
-                    $d.reject()
+                    def.reject()
                 }
             })
     } else {
-        $d.reject()
+        def.reject()
     }
-    return $d
+    return def
 }
 
 window.KLAFeatureCheck = function(featureArr){
-    var $d = $.Deferred()
+    var def = Deferred()
 
     var result = {}
     featureArr.forEach(feature => result[feature] = false)
@@ -68,21 +71,29 @@ window.KLAFeatureCheck = function(featureArr){
             featureArr.forEach(feature => {
                 result[feature] = features.contains(feature)
             })
-            $d.resolve(result)
+            def.resolve(result)
         })
-        .fail(()=>$d.resolve(result))
+        .fail(()=>def.resolve(result))
 
-    return $d
+    return def
 }
 
+//with the promise, it will only fire once, domcontent loaded
+window.domready = (function(){
+    var d = Deferred()
+    window.onload = ()=>d.resolve()
+    document.addEventListener("DOMContentLoaded",()=>d.resolve())
+    return d
+})()
+
 window.KLAHasFeature = function(featureName) {
-    var $d = $.Deferred()
+    var def = Deferred()
 
     getKLAFeatures()
-        .done(features => $d.resolve(features.contains(featureName)))
-        .fail(()=>$d.resolve(false))
+        .done(features => def.resolve(features.contains(featureName)))
+        .fail(()=>def.resolve(false))
 
-    return $d
+    return def
 }
 
 window.setDebugging = function() {
@@ -116,7 +127,6 @@ Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
     return this.groupBy(selector).select(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
 }
 
-Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
@@ -167,22 +177,22 @@ window.humanize = function (str) {
 }
 
 window.waitFor = function(test, interval = 200) {
-    var $d = $.Deferred()
+    var def = Deferred()
     if (test()) {
-        $d.resolve()
+        def.resolve()
     } else {
         var handle = setInterval(()=> {
             if (test()) {
-                $d.resolve()
+                def.resolve()
                 clearInterval(handle)
             }
         }, interval)
     }
-    return $d
+    return def
 }
 
 window.wait = ms => {
-    var $d = $.Deferred()
-    setTimeout($d.resolve,ms)
-    return $d
+    var def = Deferred()
+    setTimeout(def.resolve,ms)
+    return def
 }

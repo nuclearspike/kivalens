@@ -44,7 +44,7 @@ app.get('/*', function(request, response) {
 });
 
 app.listen(app.get('port'), function() {
-  console.log('KivaLens app is running on port', app.get('port'));
+  console.log('KivaLens Server is running on port', app.get('port'));
 });
 
-
+//require("./MongoTest")

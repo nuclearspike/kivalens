@@ -35,6 +35,7 @@ const App = React.createClass({
     getInitialState(){ return { } },
     componentDidMount(){
         ga.initialize('UA-10202885-1')
+        if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
         //this only happens during startup of the app. don't allow #/ but
         //if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
@@ -63,7 +64,7 @@ const App = React.createClass({
 
 var history = createHistory({queryKey: false})
 
-$(function() {
+domready.done(()=>{
     if (document.getElementById("react-app")){
         ReactDOM.render((<Router history={history}>
             <Route path="/portfolio" component={SnowStack}/>

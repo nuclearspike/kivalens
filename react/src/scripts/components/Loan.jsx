@@ -10,6 +10,7 @@ import {KivaImage, NewTabLink, LoanLink, KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
+import extend from 'extend'
 //import {ImmutableOptimizations} from 'react-cursor'
 
 const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
@@ -101,7 +102,7 @@ var Loan = React.createClass({
         var loan = kivaloans.getById(this.props.params.id)
         var ls = (loan)? this.loanToState(loan): {}
         var at = this.savedActiveTab()
-        return $.extend({},at,ls)
+        return extend({},at,ls)
     },
     componentWillUnmount(){ clearInterval(this.refreshInterval) },
     componentDidMount(){
@@ -160,7 +161,7 @@ var Loan = React.createClass({
                     <Tab eventKey={1} title="Image" className="ample-padding-top">
                         <KivaImage loan={loan} type="width" image_width={800} width="100%"/>
                         <Panel>
-                            <If condition={loan.borrowers.length}>
+                            <If condition={loan.borrowers.length > 1}>
                                 <p>In no particular order:</p>
                             </If>
                             <p>Pictured: {pictured} </p>

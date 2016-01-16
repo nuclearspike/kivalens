@@ -4,6 +4,7 @@ import {Grid,Col,Row,Modal,Alert,Button} from 'react-bootstrap'
 import {NewTabLink,KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
+import extend from 'extend'
 
 const SetAutoLendModal = React.createClass({
     mixins: [Reflux.ListenerMixin],
@@ -22,7 +23,7 @@ const SetAutoLendModal = React.createClass({
         var partners = activePartners.where(p => ids.contains(p.id))
         ids = partners.select(p => p.id).orderBy(e=>e)
         var badPartnerSelection = ((activePartners.length - ids.length < 10) || (ids.length == 0))
-        KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState($.extend(state,{ids,badPartnerSelection, show: true})))
+        KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState(extend(state,{ids,badPartnerSelection, show: true})))
     },
     close(){
         this.setState({show: false})

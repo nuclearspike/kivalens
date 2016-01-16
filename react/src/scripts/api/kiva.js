@@ -1,10 +1,30 @@
 'use strict'
+
 require('linqjs')
 require('datejs')
+var extend = require('extend')
+var request = require('request')
+var Deferred = require("jquery-deferred").Deferred
+var when = require("jquery-deferred").when
 var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
+var InterTabComm = require('./syncStorage').InterTabComm
 
-import {InterTabComm} from './syncStorage'
+Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
+Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
+
+const getUrl = function(url,parseJSON){
+    var d = Deferred()
+    request.get(url,(error,response,body)=>{
+        if (!error && response.statusCode == 200) {
+            if (parseJSON) body = JSON.parse(body)
+            d.resolve(body)
+        } else {
+            d.fail(error)
+        }
+    })
+    return d
+}
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
 //this is the heart of KL. all downloading, filtering, sorting, etc is done in here.
@@ -28,14 +48,14 @@ function serialize(obj, prefix) {
 var api_options = {}
 
 function setAPIOptions(options){
-    $.extend(api_options, {max_concurrent: 8}, options)
+    extend(api_options, {max_concurrent: 8}, options)
     if (api_options.max_concurrent)
         sem_one.capacity = api_options.max_concurrent
 }
 
 const sREADY = 1, sDOWNLOADING = 2, sDONE = 3, sFAILED = 4, sCANCELLED = 5
 class Request {
-    constructor(url, params, page = null, collection = null, isSingle = false) {
+    constructor(url, params, page, collection, isSingle) {
         this.url = url
         this.params = params
         this.page = page || 1
@@ -49,30 +69,30 @@ class Request {
     }
 
     fetch(){
-        var $def = $.Deferred()
+        var def = Deferred()
 
         sem_one.take(function(){
             if (this.state == sCANCELLED) { //this only works with single stage.
                 sem_one.leave()
-                //$def.reject() //failing the process is dangerous, done() won't fire!
-                return $def
+                //def.reject() //failing the process is dangerous, done() won't fire!
+                return def
             } else {
                 if (this.page)
-                    $.extend(this.params, {page: this.page})
-                $def.fail(()=> this.state = sFAILED)
+                    extend(this.params, {page: this.page})
+                def.fail(()=> this.state = sFAILED)
                 Request.get(this.url, this.params)
                     .always(()=> sem_one.leave(1))
                     .done(result => this.raw_result = result) //cannot pass the func itself since it takes params.
-                    .done($def.resolve)
-                    //.fail($def.reject)
-                    .progress($def.notify)
+                    .done(def.resolve)
+                    //.fail(def.reject)
+                    .progress(def.notify)
             }
         }.bind(this))
 
         if (this.collection){ //'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
-            return $def.then(result => this.isSingle ? result[this.collection][0] : result[this.collection] )
+            return def.then(result => this.isSingle ? result[this.collection][0] : result[this.collection] )
         } else {
-            return $def
+            return def
         }
     }
 
@@ -80,47 +100,45 @@ class Request {
         this.state = sDOWNLOADING
         this.ids = ids
 
-        var $def = $.Deferred()
+        var def = Deferred()
 
         sem_two.take(function(){ //this pattern happens several times, it should be a function.
             if (this.state == sCANCELLED) { //this only works with single stage.
                 sem_two.leave()
-                //$def.reject() bad idea
-                return $def
+                //def.reject() bad idea
+                return def
             } else {
-                $def.fail(()=> this.state = sFAILED)
+                def.fail(()=> this.state = sFAILED)
                 Request.get(`${this.collection}/${ids.join(',')}.json`, {})
                     .always(() => sem_two.leave(1))
-                    .done($def.resolve)
-                    .fail($def.reject) //does this really fire properly? no one is listening for this
-                    .progress($def.notify)
+                    .done(result => def.resolve(result[this.collection]))
+                    .fail(def.reject) //does this really fire properly? no one is listening for this
+                    .progress(def.notify)
             }
         }.bind(this))
 
-        return $def.then(result => result[this.collection])
+        return def
     }
 
     //fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
     static get(path, params){
-        params = $.extend({}, params, {app_id: api_options.app_id})
-        //console.log('get():', path, params)
-        return $.getJSON(`http://api.kivaws.org/v1/${path}?${serialize(params)}`)
-            //.done(result => console.log(result) )
-            .fail((xhr, status, err) => cl(status, err, xhr, err.toString()) )
+        params = extend({}, params, {app_id: api_options.app_id})
+        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true)
+            .fail(e => cl(e) )
     }
 
     //semaphored access to kiva api to not overload it. also, it handles collections.
     static sem_get(url, params, collection, isSingle){
-        var $def = $.Deferred()
+        var def = Deferred()
         sem_one.take(function(){
-            this.get(url, params).always(()=> sem_one.leave()).done($def.resolve).fail($def.reject).progress($def.notify)
+            this.get(url, params).always(()=> sem_one.leave()).done(def.resolve).fail(def.reject).progress(def.notify)
         }.bind(this))
 
         //should this be a wrapping function?
         if (collection){ //'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
-            return $def.then(result => isSingle ? result[collection][0] : result[collection] )
+            return def.then(result => isSingle ? result[collection][0] : result[collection] )
         } else {
-            return $def
+            return def
         }
     }
 }
@@ -141,7 +159,7 @@ class ResultProcessors {
     }
 
     static unprocessLoan(loan){
-        loan = $.extend(true, {}, loan) //make a copy, strip it out
+        loan = extend(true, {}, loan) //make a copy, strip it out
         Object.keys(loan).where(f=>f.indexOf('kl_') == 0).forEach(field => delete loan[field])
         return loan
     }
@@ -171,11 +189,15 @@ class ResultProcessors {
         addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
+        addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
+
         addIt.getPartner = function(){
             //todo: this should not reference kivaloans...
             if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
             return this.kl_partner
         }.bind(loan)
+
+
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
             var descr_arr
             var use_arr
@@ -188,11 +210,10 @@ class ResultProcessors {
             }
 
             use_arr = processText(loan.use, common_use)
-            addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
             addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
             addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
 
-            var today = new Date().clearTime()
+            var today = Date.today()
             if (addIt.kl_final_repayment)//when looking at really old loans, can be null
                 addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
@@ -223,7 +244,7 @@ class ResultProcessors {
 
         }
         //add kivalens specific fields to the loan.
-        $.extend(loan, addIt)
+        extend(loan, addIt)
 
         //do memory clean up of larger pieces of the loan object.
         delete loan.journal_totals
@@ -247,9 +268,9 @@ class ResultProcessors {
 class PagedKiva {
     constructor(url, params, collection){
         this.url = url
-        this.params = $.extend({}, {per_page: 100, app_id: api_options.app_id}, params)
+        this.params = extend({}, {per_page: 100, app_id: api_options.app_id}, params)
         this.collection = collection
-        this.promise = $.Deferred()
+        this.promise = Deferred()
         this.requests = []
         this.twoStage = false
         this.visitorFunct = null
@@ -329,7 +350,7 @@ class PagedKiva {
 
     start(){
         if (this.twoStage) {
-            $.extend(this.params, {ids_only: 'true'})
+            extend(this.params, {ids_only: 'true'})
             sem_one.capacity = Math.round(api_options.max_concurrent * .3)
             sem_two.capacity = Math.round(api_options.max_concurrent * .7) + 1
         } else {
@@ -344,12 +365,12 @@ class PagedKiva {
 }
 
 class LoansSearch extends PagedKiva {
-    constructor(params, getDetails = true, max_repayment_date = null){
-        params = $.extend({}, {status:'fundraising'}, params)
-        if (max_repayment_date) $.extend(params, {sort_by: 'repayment_term'})
+    constructor(params, getDetails, max_repayment_date){
+        if (getDetails === undefined) getDetails = true
+        params = extend({}, {status:'fundraising'}, params)
+        if (max_repayment_date) extend(params, {sort_by: 'repayment_term'})
         super('loans/search.json', params, 'loans')
         this.max_repayment_date = max_repayment_date
-        //if (location.hostname == 'localhost') params.country_code = 'pe'
         this.twoStage = getDetails
         this.visitorFunct = ResultProcessors.processLoan
     }
@@ -386,7 +407,7 @@ class LenderLoans extends PagedKiva {
 class LenderStatusLoans extends LenderLoans {
     constructor(lender_id, options){
         //test for options.status... then can remove test in result()
-        super(lender_id, $.extend(true, {}, options))
+        super(lender_id, extend(true, {}, options))
     }
 
     result(){ //returns actual loan objects.
@@ -400,7 +421,7 @@ class LenderStatusLoans extends LenderLoans {
 
 class LenderFundraisingLoans extends LenderStatusLoans {
     constructor(lender_id, options){
-        super(lender_id, $.extend(true, {}, options, {status:'fundraising', fundraising_only:true}))
+        super(lender_id, extend(true, {}, options, {status:'fundraising', fundraising_only:true}))
     }
 
     continuePaging(loans) {
@@ -435,32 +456,32 @@ class LoanBatch {
         //kiva does not allow more than 100 loans in a batch. break the list into chunks of up to 100 and process them.
         // this will send progress messages with individual loan objects or just wait for the .done()
         var chunks = this.ids.chunk(100) //breaks into an array of arrays of 100.
-        var $def = $.Deferred()
+        var def = Deferred()
         var r_loans = []
 
         chunks.forEach(chunk => {
-            $def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
+            def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
             Request.sem_get(`loans/${chunk.join(',')}.json`, {}, 'loans', false)
                 .then(ResultProcessors.processLoans).done(loans => {
                     r_loans = r_loans.concat(loans)
 
-                    $def.notify({
+                    def.notify({
                         task: 'details', done: r_loans.length, total: this.ids.length,
                         label: `${r_loans.length}/${this.ids.length} downloaded`
                     })
 
                     if (r_loans.length >= this.ids.length) {
-                        $def.notify({done: true})
-                        $def.resolve(r_loans)
+                        def.notify({done: true})
+                        def.resolve(r_loans)
                     }
                 })
         })
         if (chunks.length == 0){
-            $def.notify({done: true})
-            $def.reject() //prevent done() processing on an empty set.
+            def.notify({done: true})
+            def.reject() //prevent done() processing on an empty set.
         }
 
-        return $def
+        return def
     }
 }
 
@@ -470,7 +491,7 @@ class CritTester {
         this.testers = []
         this.fail_all = false
     }
-    addRangeTesters(crit_name, selector, overrideIf = null, overrideFunc = null){
+    addRangeTesters(crit_name, selector, overrideIf, overrideFunc){
         var min = this.crit_group[`${crit_name}_min`]
         if (min !== undefined) {
             var low_test = entity => {
@@ -490,7 +511,7 @@ class CritTester {
             this.testers.push(high_test)
         }
     }
-    addAnyAllNoneTester(crit_name, values, def_value, selector, entityFieldIsArray = false){
+    addAnyAllNoneTester(crit_name, values, def_value, selector, entityFieldIsArray){
         if (!values)
             values = this.crit_group[crit_name]
         if (values && values.length > 0) {
@@ -544,7 +565,7 @@ class CritTester {
                 this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
         }
     }
-    addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty = false){
+    addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty){
         if (crit){
             if (crit.length > 0) {
                 var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
@@ -604,7 +625,7 @@ class QueuedActions {
     }
     init(options){
         var defaults = {action:()=>{},isReady:()=>true,maxQueue:10,waitFor:5000}
-        $.extend(true, this, defaults, options)
+        extend(true, this, defaults, options)
         this.queueInterval = setInterval(this.processQueue.bind(this), this.waitFor)
         return this
     }
@@ -658,7 +679,8 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
 //rename this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
 //processes
 class Loans {
-    constructor(update_interval = 0){
+    constructor(update_interval){
+        if (update_interval === undefined) update_interval = 0
         this.interComm = new InterTabComm('KL')
         this.startupTime = new Date()
         this.last_partner_search_count = 0
@@ -679,14 +701,14 @@ class Loans {
         this.base_kiva_params = {}
         this.running_totals = {funded_amount:0, funded_loans: 0, new_loans: 0, expired_loans: 0}
         this.background_resync = 0
-        this.notify_promise = $.Deferred()
+        this.notify_promise = Deferred()
         this.update_interval = update_interval
         this.atheist_list_processed = false
         if (this.update_interval > 0)
             setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
     saveLoansToLLS(){
-        var $d = $.Deferred()
+        var def = Deferred()
         var that = this
         waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
             window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
@@ -695,34 +717,35 @@ class Loans {
                 loans: ResultProcessors.unprocessLoans(that.loans_from_kiva.where(l=>l.status == 'fundraising'))
             }
             llstorage.initialized.then(g => {
-                llstorage.setContents('loans', JSON.stringify(toStore)).then(r => $d.resolve())
+                llstorage.setContents('loans', JSON.stringify(toStore)).then(r => def.resolve())
             })
         })
-        return $d
+        return def
     }
     getLoansFromLLS(){
-        var $d = $.Deferred()
+        var def = Deferred()
         // Create a 125MB key-value store
-        waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
+        if (typeof LargeLocalStorage == 'function') {
             window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
-            llstorage.initialized.then(g => {
-                $d.notify({readyToRead: true})
-                //ugh notif inside???
-                llstorage.getContents('loans').then(response => {
-                    let {loans,saved} = JSON.parse(response)
-                    $d.resolve(loans, saved)
+            llstorage.initialized.done(x => {
+                def.notify({readyToRead: true}) //?
+                llstorage.getContents('loans').done(response => {
+                    var r = JSON.parse(response)
+                    def.resolve(r.loans, r.saved)
                 })
             })
-        })
-        return $d
+        }
+        return def
     }
-    init(crit, options, api_options){
+    init(crit, getOptions, api_options){
         //fetch partners.
         setAPIOptions(api_options)
-        crit = $.extend(crit, {})
+        crit = extend(crit, {})
+        this.getOptions = getOptions
+        this.options = this.getOptions()
 
         //listen for request. tab can become the boss even if it starts out as a client.
-        if (lsj.get("Options").useLargeLocalStorage) {
+        if (this.options.useLargeLocalStorage) {
             this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
                 var that = this
                 waitFor(()=>that.allLoansLoaded).done(()=> {
@@ -764,12 +787,24 @@ class Loans {
 
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
-        this.getAllPartners().done(() => {
-            var max_repayment_date = null
-            var needSecondary = false
-            var base_options = $.extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, options)
-            if (base_options.mergeAtheistList)
-                this.getAtheistList()
+
+        var max_repayment_date = null
+        var needSecondary = false
+        var base_options = extend({}, {maxRepaymentTerms: 120,maxRepaymentTerms_on: false}, this.options)
+        this.partner_download = this.getAllPartners().fail(e=>this.notify({failed: e}))
+        this.loan_download = Deferred()
+        this.loan_download.done(loans=>{
+            this.notify({loan_load_progress: {label: 'Processing...'}})
+            this.setKivaLoans(ResultProcessors.processLoans(loans), false)
+            this.partner_download.done(()=>{ //all must be done.
+                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+            })
+        })
+
+        if (base_options.mergeAtheistList)
+            this.getAtheistList()
+
+        //this.partner_download.done(()=> {
             if (base_options.maxRepaymentTerms_on) {
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
                 needSecondary = true
@@ -777,18 +812,15 @@ class Loans {
             if (base_options.kiva_lender_id)
                 this.setLender(base_options.kiva_lender_id)
 
-            //todo: switch over to using the meta criteria
-            //if (crit && crit.loan && crit.loan.repaid_in_max)
-            //    max_repayment_date = (crit.loan.repaid_in_max).months().fromNow()
             var hasStarted = false
             var handle
             //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
-            const StartGettingLoans = function(){
+            const StartGettingLoans = function () {
                 if (hasStarted) {
                     clearInterval(handle)
                     return
                 }
-                if (this.interComm.isBoss || !lsj.get("Options").betaTester) { //todo: shouldn't reference lsj!!
+                if (this.interComm.isBoss || !this.options.betaTester) { //todo: shouldn't reference lsj!!
                     this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
                         .progress(progress => {
                             this.notify({loan_load_progress: progress})
@@ -805,14 +837,12 @@ class Loans {
                         })
                 } else {
                     //this.promise.notify({task: 'details', done: this.result_object_count, total: this.total_object_count, label: `${this.result_object_count}/${this.total_object_count} downloaded`}
-                    if (lsj.get("Options").useLargeLocalStorage) {
+                    if (this.options.useLargeLocalStorage) {
                         wait(20).done(r=> {
-                            this.getLoansFromLLS().then((loans,saved)=> {
+                            this.getLoansFromLLS().done((loans, saved)=> {
                                 if (saved && (Date.now() - new Date(saved) < 360 * 60000)) {
                                     hasStarted = true
-                                    this.notify({loan_load_progress: {label: 'Processing...'}})
-                                    this.setKivaLoans(ResultProcessors.processLoans(loans), false)
-                                    this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                                    this.loan_download.resolve(loans)
                                     this.checkHotLoans()
                                     this.backgroundResync()
                                 } else {
@@ -826,11 +856,7 @@ class Loans {
                                                     label: 'This will be quick...'
                                                 }
                                             }))
-                                            .then(loans=> {
-                                                this.notify({loan_load_progress: {label: 'Processing...'}})
-                                                this.setKivaLoans(ResultProcessors.processLoans(loans), false)
-                                                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
-                                            })
+                                            .then(this.loan_download.resolve)
                                     })
                                     this.interComm.sendMessage("boss", "gimmeLoansLLS", {start: true})
                                 }
@@ -840,6 +866,7 @@ class Loans {
                         this.notify({loan_load_progress: {label: 'Attempting to connect to another KivaLens tab...'}})
                         var done = 0
                         var total = 0
+                        var loans = []
 
                         this.interComm.filter('client', 'gimmeLoans').progress(m => {
                             hasStarted = true
@@ -850,21 +877,28 @@ class Loans {
 
                             if (m.loans) {
                                 done += m.loans.length
-                                this.setKivaLoans(ResultProcessors.processLoans(m.loans), false)
-                                this.notify({loan_load_progress: {task: 'details', singlePass: true, done, total, label: `Received: ${done}/${total}`}})
+                                loans = loans.concat(m.loans)
+                                this.notify({
+                                    loan_load_progress: {
+                                        task: 'details',
+                                        singlePass: true,
+                                        done: done,
+                                        total: total,
+                                        label: `Received: ${done}/${total}`
+                                    }
+                                })
                             }
 
                             if (done && (done == total))
-                                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
+                                this.loan_download.resolve(loans)
                         })
                         this.interComm.sendMessage("boss", "gimmeLoans", {start: true})
                     }
                 }
             }.bind(this)
-            setTimeout(StartGettingLoans,500)
+            setTimeout(StartGettingLoans, 10)
             handle = setInterval(StartGettingLoans, 10000)
-
-        }).fail(xhr=>this.notify({failed: xhr.responseJSON.message}))
+        //}).fail(e=>this.notify({failed: e}))
         //used saved partner filter
         return this.notify_promise
     }
@@ -923,13 +957,14 @@ class Loans {
         }
         return cnames
     }
-    filterPartners(c, useCache = true){
+    filterPartners(c, useCache){
+        if (useCache === undefined) useCache = true
         if (this.last_partner_search_count > 10) {
             this.last_partner_search = {}
             this.last_partner_search_count = 0
         }
 
-        var partner_criteria_json = JSON.stringify($.extend(true, {}, c.partner, {balancing: c.portfolio.pb_partner}))
+        var partner_criteria_json = JSON.stringify(extend(true, {}, c.partner, {balancing: c.portfolio.pb_partner}))
         var partner_ids
         if (useCache && this.last_partner_search[partner_criteria_json]){
             partner_ids = this.last_partner_search[partner_criteria_json]
@@ -962,7 +997,7 @@ class Loans {
             ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
             ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner=>partner.charges_fees_and_interest)
             //should have the merge option passed in... or stored somewhere else.
-            if (this.atheist_list_processed && lsj.get('Options').mergeAtheistList) {
+            if (this.atheist_list_processed && this.getOptions().mergeAtheistList) {
                 ct.addRangeTesters('secular_rating', partner=>partner.atheistScore.secularRating, partner=>!partner.atheistScore)
                 ct.addRangeTesters('social_rating',  partner=>partner.atheistScore.socialRating, partner=>!partner.atheistScore)
             }
@@ -981,10 +1016,11 @@ class Loans {
         }
         return partner_ids
     }
-    filter(c, cacheResults = true, loans_to_filter = null){
+    filter(c, cacheResults, loans_to_filter){
+        if (cacheResults === undefined) cacheResults = true
         if (!this.isReady()) return []
         //needs a copy of it and to guarantee the groups are there.
-        $.extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
+        extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
 
         if (!loans_to_filter) console.time("filter")
 
@@ -1136,24 +1172,34 @@ class Loans {
         if (this.startedAtheistDownload || this.atheist_list_processed) return
         this.startedAtheistDownload = true
 
-        var csv_file = '/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
+        var csv_file
+        if (typeof document == 'undefined') { //running on server, don't proxy
+            csv_file = `https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
+        } else { //running in browser
+            //todo: this is not generic... shouldn't reference kivalens server though.
+            csv_file = `${location.protocol}//${location.host}/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
+        }
 
-        $.get(csv_file)
-            .fail(()=>{cl("failed to retrieve Atheist list")})
+        getUrl(csv_file)
+            .fail(e=>{cl(`failed to retrieve Atheist list: ${e}`)})
             .then(CSV2JSON).done(mfis => {
-                mfis.forEach(mfi => {
-                    var kivaMFI = this.getPartner(parseInt(mfi.id))
-                    if (kivaMFI){
-                        kivaMFI.atheistScore = {"secularRating": parseInt(mfi.secularRating),
-                            "religiousAffiliation": mfi.religiousAffiliation,
-                            "commentsOnSecularRating": mfi.commentsOnSecularRating,
-                            "socialRating": parseInt(mfi.socialRating),
-                            "commentsOnSocialRating": mfi.commentsOnSocialRating,
-                            "reviewComments": mfi.reviewComments}
-                    }
+                this.partner_download.done(()=> {
+                    mfis.forEach(mfi => {
+                            var kivaMFI = this.getPartner(parseInt(mfi.id))
+                            if (kivaMFI) {
+                                kivaMFI.atheistScore = {
+                                    "secularRating": parseInt(mfi.secularRating),
+                                    "religiousAffiliation": mfi.religiousAffiliation,
+                                    "commentsOnSecularRating": mfi.commentsOnSecularRating,
+                                    "socialRating": parseInt(mfi.socialRating),
+                                    "commentsOnSocialRating": mfi.commentsOnSocialRating,
+                                    "reviewComments": mfi.reviewComments
+                                }
+                            }
+                    })
+                    this.atheist_list_processed = true
+                    this.notify({atheist_list_loaded: true})
                 })
-                this.atheist_list_processed = true
-                this.notify({atheist_list_loaded: true})
             })
     }
     convertCriteriaToKivaParams(crit) { //started to implement this on the criteriaStore
@@ -1163,7 +1209,8 @@ class Loans {
     setBaseKivaParams(base_kiva_params){
         this.base_kiva_params = base_kiva_params
     }
-    setKivaLoans(loans, reset = true){
+    setKivaLoans(loans, reset){
+        if (reset === undefined) reset = true
         if (!loans.length) return
         if (reset) {
             this.loans_from_kiva = []
@@ -1199,7 +1246,7 @@ class Loans {
             //todo: temp. for debugging
             window.partners = this.partners_from_kiva
             //gather all country objects where partners operate, flatten and remove dupes.
-            this.countries = [].concat.apply([], this.partners_from_kiva.select(p => p.countries)).distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
+            this.countries = this.partners_from_kiva.select(p => p.countries).flatten().distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
             return this.partners_from_kiva
         })
     }
@@ -1232,7 +1279,8 @@ class Loans {
             return loan
         })
     }
-    mergeLoanAndNotify(existing, refreshed, extra = {}){
+    mergeLoanAndNotify(existing, refreshed, extra){
+        if (extra === undefined) extra = {}
         if (existing.status == 'fundraising') {
             if (existing.funded_amount != refreshed.funded_amount) {
                 this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
@@ -1240,7 +1288,7 @@ class Loans {
             }
         }
         var old_status = existing.status
-        $.extend(true, existing, refreshed, extra)
+        extend(true, existing, refreshed, extra)
         if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
             if (refreshed.status == "funded" || refreshed.status == 'in_repayment') this.running_totals.funded_loans++
             if (refreshed.status == "expired") this.running_totals.expired_loans++
@@ -1287,7 +1335,7 @@ class Loans {
         })
     }
     secondaryLoad(){
-        var $def = $.Deferred()
+        var def = Deferred()
         this.secondary_load = 'started'
         this.notify({secondary_load: 'started'})
         new LoansSearch({ids_only: 'true'}, false).start().then(loans => {
@@ -1295,17 +1343,17 @@ class Loans {
             loans.removeAll(id=>this.hasLoan(id))
             this.newLoanNotice(loans).progress(n=>{
                 if (n.label) this.notify({secondary_load_label: n.label})
-            }).done($def.resolve).done(()=>{
+            }).done(def.resolve).done(()=>{
                 this.secondary_load = ''
                 this.allLoansLoaded = true
                 this.notify({secondary_load: 'complete'})
                 this.saveLoansToLLSAfterDelay()
             })
         })
-        return $def
+        return def
     }
     saveLoansToLLSAfterDelay(){
-        if (lsj.get("Options").useLargeLocalStorage)
+        if (this.getOptions().useLargeLocalStorage)
             wait(20).done(this.saveLoansToLLS.bind(this))
     }
     backgroundResync(){
@@ -1345,12 +1393,25 @@ class Loans {
     }
 }
 
-export {LenderFundraisingLoans, LenderStatusLoans, LenderLoans, LoansSearch, PagedKiva, ResultProcessors, Request,
-    LoanBatch, Loans, defaultKivaData}
+
+
+exports.LenderFundraisingLoans = LenderFundraisingLoans
+exports.LenderStatusLoans = LenderStatusLoans
+exports.LenderLoans = LenderLoans
+exports.LoansSearch = LoansSearch
+exports.PagedKiva = PagedKiva
+exports.ResultProcessors = ResultProcessors
+exports.Request = Request
+exports.LoanBatch = LoanBatch
+exports.Loans = Loans
+exports.defaultKivaData = defaultKivaData
+exports.setAPIOptions = setAPIOptions
+exports.getUrl = getUrl
+
 
 //temp... verify that these aren't ever used before removal
-window.ResultProcessors = ResultProcessors
-window.Request = Request
-window.LenderStatusLoans = LenderStatusLoans
-window.LoansSearch = LoansSearch
-window.LenderLoans = LenderLoans
+global.ResultProcessors = ResultProcessors
+global.Request = Request
+global.LenderStatusLoans = LenderStatusLoans
+global.LoansSearch = LoansSearch
+global.LenderLoans = LenderLoans

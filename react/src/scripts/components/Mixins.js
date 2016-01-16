@@ -1,13 +1,14 @@
 'use strict'
 
 var ReactLink = require('react/lib/ReactLink')
+var extend = require('extend')
 
 //this is sloppy and too app-specific
 var LinkedComplexCursorMixin = (cursorName='cursor')=> {
     return {
         ensureGoodCursor(cursor){
             var val = typeof this.getDefaultCursor == 'function'? this.getDefaultCursor() : {}
-            this.cursor($.extend(true,{},val,cursor.value))
+            this.cursor(extend(true,{},val,cursor.value))
         },
         componentDidMount(){
             this.ensureGoodCursor(this.cursor())
