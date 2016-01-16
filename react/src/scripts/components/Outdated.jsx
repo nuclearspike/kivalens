@@ -1,13 +1,8 @@
 import React from 'react'
-import Reflux from 'reflux'
-import {Grid,Alert} from 'react-bootstrap'
+import {Grid} from 'react-bootstrap'
 import a from '../actions'
 
 const Outdated = React.createClass({
-    mixins: [Reflux.ListenerMixin],
-    getInitialState() {
-        return {}
-    },
     componentDidMount() {
         var url = decodeURIComponent(this.props.location.query.attempt)
         a.utils.var.set('outdatedUrl', url)

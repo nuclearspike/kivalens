@@ -11,7 +11,7 @@ const About = () => <Grid>
                 to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools that weren't available when KivaLens
                 was first written. Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me know</EmailLink> your
                 what else you'd like to be able to do. You can also join
-                the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Team</KivaLink> to discuss.
+                the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss.
             </p>
 
             <h3>Questions/Problems{'?'}</h3>

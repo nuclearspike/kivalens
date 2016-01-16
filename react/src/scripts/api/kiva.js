@@ -145,7 +145,16 @@ class Request {
 
 var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
 var common_use = ["PURCHASE", "FOR", "AND", "BUY", "OTHER", "HER", "BUSINESS", "SELL", "MORE", "HIS", "THE", "PAY"]
+var ageRegEx1 = new RegExp(/([2-9]\d)[ |-]years?[ |-](?:of age|old)/i)
+var ageRegEx2 = new RegExp(/(?:aged?|is) ([2-9]\d)/i) //reduce to a single regex?
 
+const getAge = text => {
+    var ageMatch = ageRegEx1.exec(text)
+    ageMatch = ageMatch || ageRegEx2.exec(text)
+    return (Array.isArray(ageMatch) && ageMatch.length == 2) ? parseInt(ageMatch[1]) : null
+}
+
+//also: age(d) 34, 50 years of age
 //static class to hold standard functions that prepare kiva api objects for use with kiva lens.
 class ResultProcessors {
     static processLoans(loans){
@@ -216,6 +225,8 @@ class ResultProcessors {
             var today = Date.today()
             if (addIt.kl_final_repayment)//when looking at really old loans, can be null
                 addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
+
+            addIt.kl_age = getAge(loan.description.texts.en)
 
             addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
             addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
@@ -840,7 +851,7 @@ class Loans {
                     if (this.options.useLargeLocalStorage) {
                         wait(20).done(r=> {
                             this.getLoansFromLLS().done((loans, saved)=> {
-                                if (saved && (Date.now() - new Date(saved) < 360 * 60000)) {
+                                if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
                                     hasStarted = true
                                     this.loan_download.resolve(loans)
                                     this.checkHotLoans()
@@ -1039,6 +1050,7 @@ class Loans {
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
+        ct.addRangeTesters('age',               loan=>loan.kl_age)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
         ct.addRangeTesters('loan_amount',       loan=>loan.loan_amount)
         ct.addRangeTesters('dollars_per_hour',  loan=>loan.kl_dollars_per_hour())

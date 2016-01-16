@@ -52,6 +52,7 @@ allOptions.pb_activity = {label: "Activites", slice_by: 'activity'}
 allOptions.repaid_in = {min: 2, max: 90, label: 'Repaid In (months)', helpText: "The number of months between today and the final scheduled repayment. Kiva's sort by repayment terms, which is how many months the borrower has to pay back, creates sorting and filtering issues due to when the loan was posted and the disbursal date. KivaLens just looks at the final scheduled repayment date relative to today."}
 allOptions.borrower_count = {min: 1, max: 20, label: 'Borrower Count', helpText: "The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right."}
 allOptions.percent_female = {min: 0, max: 100, label: 'Percent Female', helpText: "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed."}
+allOptions.age = {min: 19, max: 100, label: 'Age', helpText: "KivaLens looks for the variations of the pattern '20-99 year(s) old' in the description and uses the first one mentioned... which may be the borrower's mother's age. Read the description to double-check it!"}
 allOptions.still_needed = {min: 0, max: 1000, step: 25, label: 'Still Needed ($)', helpText: "How much is still needed to fully fund the loan. Loan Amount - Funded Amount - Basket Amount. Set the lower bound to $25 to exclude loans that are fully funded with basket amounts. Set both the lower and upper bound to $25 to find loans where they just need one more lender."} //min: 25? otherwise it bounces back to 25 if set to min
 allOptions.loan_amount = {min: 0, max: 10000, step: 25, label: 'Loan Amount ($)', helpText: "How much is the loan for? Smaller loans are given to poorer people, so this can help you to focus on either large loans from established borrowers or smaller loans."}
 allOptions.dollars_per_hour = {min: 0, max: 500, label: '$/Hour', helpText: "Funded Amounts + Basket Amounts / Time since posting. Find the fastest funding loans."}
@@ -668,7 +669,7 @@ const CriteriaTabs = React.createClass({
 
                         <LimitResult cursor={cLoan.refine('limit_to')}/>
 
-                        <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','loan_amount','still_needed','dollars_per_hour','percent_funded','expiring_in_days', 'disbursal_in_days']}>
+                        <For each='name' index='i' of={['repaid_in','borrower_count','percent_female','age','loan_amount','still_needed','dollars_per_hour','percent_funded','expiring_in_days', 'disbursal_in_days']}>
                             <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)} cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab} options={allOptions[name]}/>
                         </For>
                     </Col>
