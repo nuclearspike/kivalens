@@ -131,6 +131,10 @@ var criteriaStore = Reflux.createStore({
                         still_needed_min: 25,
                         tags: "#Parent,#SingleParent",
                         tags_all_any_none: "any"
+                    },
+                    "partner":{},
+                    "portfolio": {
+                        "exclude_portfolio_loans": "true",
                     }
                 }
             }
