@@ -25,6 +25,9 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
 import ga from 'react-ga';
 import a from './actions'
 
+//do not wait for it app mount
+if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
+
 window.Q = Q
 //window.Perf = require('react-addons-perf')
 
@@ -35,7 +38,6 @@ const App = React.createClass({
     getInitialState(){ return { } },
     componentDidMount(){
         ga.initialize('UA-10202885-1')
-        if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
         //this only happens during startup of the app. don't allow #/ but
         //if (location.hostname != 'localhost' && location.pathname != "/react/") location.pathname = "/react/" //corrects for kivalens_org/react
     },
