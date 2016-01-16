@@ -32,10 +32,13 @@ var Search = React.createClass({
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.loans.load.secondaryStatus, this.secondaryStatus)
-        a.utils.var.get('outdatedUrl', outdatedUrl => {if (outdatedUrl) this.setState({outdatedUrl})})
-    },
-    componentWillUnmount(){
-        a.utils.var.set('outdatedUrl', null)
+        a.utils.var.get('outdatedUrl', outdatedUrl => {
+            if (outdatedUrl) {
+                this.setState({outdatedUrl})
+                window.rga.event({category: 'outdatedLink', action: 'redirect', label: outdatedUrl})
+                a.utils.var.set('outdatedUrl', null) //todo: better with url state.
+            }
+        })
     },
     secondaryStatus(status){
         this.setState({secondary_load_status: status})
