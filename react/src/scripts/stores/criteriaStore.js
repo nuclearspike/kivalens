@@ -121,8 +121,18 @@ var criteriaStore = Reflux.createStore({
                             "values": []
                         }
                     }
+                },
+                "Young Parent": {
+                    loan: {
+                        age_min: 20,
+                        age_max: 23,
+                        borrower_max_count: 1,
+                        sort: "popularity",
+                        still_needed_min: 25,
+                        tags: "#Parent,#SingleParent",
+                        tags_all_any_none: "any"
+                    }
                 }
-
             }
             this.syncSavedAll()
         }
