@@ -8,7 +8,8 @@ const About = () => <Grid>
             <h3>What is KivaLens?</h3>
             <p>
                 KivaLens is an alternative way to search for Kiva loans offering a lot of options that Kiva does not.
-                After you've found the loans you want, you will check out on Kiva.
+                After you've found your loans and put them in your KivaLens basket, you then transfer it to
+                Kiva and complete your loan purchases there.
             </p>
     
             <h3>Rebuilt and Rethought</h3>
