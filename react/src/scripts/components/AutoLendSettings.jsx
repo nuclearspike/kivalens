@@ -4,12 +4,13 @@ import {Grid,Col,Row,Input,Alert,Button} from 'react-bootstrap'
 import {NewTabLink,KivaLink} from '.'
 import a from '../actions'
 import s from '../stores/'
+import detect from 'detect-mobile-browser'
 import {defaultKivaData} from '../api/kiva'
 
 const AutoLendSettings = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
-        return {cycle: 0, pids: [], sectors:[], countries:[], sector_count: 0, country_count: 0, partner_count: 0, setAutoLendPCS: true, KLAversion: 'none'}
+        return {cycle: 0, pids: [], probs:[], sectors:[], countries:[], sector_count: 0, country_count: 0, partner_count: 0, setAutoLendPCS: true, KLAversion: 'none'}
     },
     componentDidMount() {
         this.listenTo(a.criteria.change, this.receiveCriteria)
@@ -22,7 +23,8 @@ const AutoLendSettings = React.createClass({
         })
         var sector_count = defaultKivaData.sectors.length
         var country_count = defaultKivaData.countries.length
-        this.setState({sector_count, country_count})
+        var mobileCheck = mobileAndTabletCheck()
+        this.setState({sector_count, country_count, mobileCheck})
     },
     receiveCriteria(crit){
         if (!kivaloans.isReady()) return
@@ -46,18 +48,32 @@ const AutoLendSettings = React.createClass({
         if (!this.refs.sectors.getChecked()) sectors = []
         var setAutoLendPCS = {partners, countries, sectors}
         window.rga.event({category: 'autolend', action: 'pushToKiva'})
-
+        //can only get here if they have chrome
         chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPCS}, reply => console.log(reply))
     },
     render() {
-        let {cycle,pids,sectors,countries,KLAversion,setAutoLendPCS,sector_count,country_count,partner_count} = this.state
+        let {cycle,pids,sectors,countries,setAutoLendPCS,sector_count,country_count,partner_count,mobileCheck} = this.state
+
+        var probs = []
+        if (typeof chrome == 'undefined')
+            probs.push(<li key="1">You are not using Google Chrome Browser. <NewTabLink href="https://www.google.com/chrome/browser/">Download Chrome</NewTabLink>. In order for KivaLens to automate the process of setting your options on Kiva, it requires using a browser extension which is written for Chrome.</li>)
+        else if (!setAutoLendPCS)
+            probs.push(<li key="2">You do not have Kiva Lender Assistant (for Chrome) installed. <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US">Install Extension</NewTabLink>.</li>)
+
+        if (mobileCheck) //can't even get to this component currently if mobile.
+            probs.push(<li key="3">You are on a mobile device or tablet. Chrome only supports extensions on their desktop/laptop versions of their browser.</li>)
+        if (pids.length == partner_count && sectors.length == sector_count && countries.length == country_count)
+            probs.push(<li key="4">Your criteria is so broad that there's nothing to set. Try looking at the Portfolio Balancing options on the "Your Portfolio" tab.</li>)
+
         return (
             <div className="ample-padding-top">
-                <h4>Alpha Testing... Double-check it's actions. Report any problems.</h4>
-                <If condition={!setAutoLendPCS}>
+                <h4>Push your Auto-Lending preferences to Kiva</h4>
+                <If condition={probs.length}>
                     <Alert bsStyle="danger">
-                        You either aren't using Chrome, haven't installed the Kiva Lender Assistant Extension,
-                        or the extension hasn't been updated to support the needed functionality.
+                        There are problems preventing you from continuing:
+                        <ul>
+                            {probs.map(prob => prob)}
+                        </ul>
                     </Alert>
                 </If>
                 <p>
@@ -65,16 +81,17 @@ const AutoLendSettings = React.createClass({
                     it's site for years. Use this tab to automatically set your preferences for Sectors,
                     Countries and Partners on Kiva so you can take advantage of KivaLens' portfolio balancing and
                     many additional options for selecting partners that are not included in the Auto-Lend settings.
+                </p>
+                <p>
                     As your portfolio changes and as stats on partners shift over time, you'll want to come back
-                    and perform this function again on a regular basis to keep Kiva up-to-date,
+                    and perform this function again on a regular basis to keep your settings on Kiva up-to-date,
                     it is not automatic. KivaLens only uses the criteria options that impact
                     Sectors, Country, or Partner filtering from the currently criteria. It is recommended that you
                     create a "Saved Search" just for your Auto-Lending preferences so you can easily return
-                    to your selections whenever you want. If nothing happens when you click the button, make sure
-                    your extension is up to date (it needs to be v1.0.5 or higher, released Jan 11<If condition={KLAversion != 'none'}><span>, your version is {KLAversion}</span></If>).
+                    to your selections whenever you want.
                 </p>
                 <p>
-                    To use this KivaLens feature, make sure Auto-Lending is enabled on Kiva or it will fail.
+                    Before using this KivaLens feature, make sure <KivaLink path="settings/credit">Auto-Lending</KivaLink> is enabled on Kiva.
                 </p>
                 <p>
                     By continuing, KivaLens will instruct the <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">
@@ -89,7 +106,7 @@ const AutoLendSettings = React.createClass({
                     <li>Save your new settings.</li>
                 </ul>
 
-                <Button bsStyle="primary" onClick={this.success} disabled={!setAutoLendPCS}>Set Auto-Lending Options on Kiva</Button>
+                <Button bsStyle="primary" onClick={this.success} disabled={probs.length > 0}>Set Auto-Lending Options on Kiva</Button>
             </div>
         )
     }

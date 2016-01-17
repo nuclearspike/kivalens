@@ -5,6 +5,12 @@ import {NewTabLink, LenderLink, KivaLink, EmailLink} from '.'
 
 const About = () => <Grid>
             <h1>About</h1>
+            <h3>What is KivaLens?</h3>
+            <p>
+                KivaLens is an alternative way to search for Kiva loans offering a lot of options that Kiva does not.
+                After you've found the loans you want, you will check out on Kiva.
+            </p>
+    
             <h3>Rebuilt and Rethought</h3>
             <p>
                 KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly stopped being able
@@ -14,7 +20,7 @@ const About = () => <Grid>
                 the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss.
             </p>
 
-            <h3>Questions/Problems{'?'}</h3>
+            <h3>Questions/Problems?</h3>
             <p>
                 All of the data that KivaLens displays is either a direct presentation of or computation from data that
                 is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the exception
@@ -70,7 +76,7 @@ const About = () => <Grid>
                 </li>
 
                 <li>
-                    Any/All/None Filtering: What is the difference between "Any" and "All"{'?'} "All" is only available
+                    Any/All/None Filtering: What is the difference between "Any" and "All"? "All" is only available
                     for properties of a loan where it can have multiple. So, a loan can only have one country, but
                     it can have multiple tags so there won't be an "All" option for Country since a loan couldn't be
                     in multiple countries and you'd get no results. If you select "All" then the loan must have

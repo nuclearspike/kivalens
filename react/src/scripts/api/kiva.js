@@ -778,12 +778,11 @@ class Loans {
                         if (chunks.length) {
                             var handle = setInterval(()=> {
                                 //break off the next chunk
-                                var chunk = chunks[0]
-                                chunks = chunks.slice(1)
+                                var chunk = chunks.shift()
 
-                                //if we're done, stop the timer
                                 that.interComm.sendMessage('client', 'gimmeLoans', {loans: ResultProcessors.unprocessLoans(chunk)})
 
+                                //if we're done, stop the timer
                                 if (!chunks.length) {
                                     clearInterval(handle)
                                     that.interComm.sendMessage('client', 'gimmeLoans', {}, 'close')

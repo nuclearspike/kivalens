@@ -72,7 +72,7 @@ allOptions.average_loan_size_percent_per_capita_income = {min: 0, max: 300, labe
 allOptions.secular_rating = {min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda."}
 allOptions.social_rating = {min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)."}
 
-//<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value}/>
+//<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value} onChange={this.blah}/>
 const DropSelectButton = React.createClass({
     getInitialState(){return {value: this.props.value}},
     onSelect(selected){
@@ -217,7 +217,7 @@ const BalancingRow = React.createClass({
     getInitialState(){
         return {slices:[],slices_count:0}
     },
-    getDefaultCursor(){return {enabled:false,hideshow:'hide',ltgt:'gt',percent:5,allactive:'active'}},
+    getDefaultCursor(){return {enabled:false,hideshow:'hide',ltgt:'gt',percent:0,allactive:'active'}},
     componentDidMount(){
         this.lastResult = {}
         this.cycle=0
@@ -470,7 +470,7 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
 
-        this.setState({betaTester: lsj.get('Options').betaTester})
+        this.setState({isMobile: mobileAndTabletCheck()})
         KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
     },
     figureAtheistList(){
@@ -641,7 +641,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {betaTester, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, portfolioTab, displayAtheistOptions} = this.state
+        let {isMobile, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -727,7 +727,7 @@ const CriteriaTabs = React.createClass({
                         <Col md={12}>
                             <Panel header='Portfolio Balancing'>
                                 Notes:
-                                <ul>
+                                <ul className="spacedList">
                                     <li>
                                         The summary data that KivaLens pulls for your account is not "live" data.
                                         It should rarely be over 6 hours old, however. This means if you complete a
@@ -755,8 +755,7 @@ const CriteriaTabs = React.createClass({
                         </Col>
                     </Row>
                 </Tab>
-
-                <If condition={betaTester}>
+                <If condition={!isMobile}>
                     <Tab eventKey={4} title="Auto-Lend" disabled={loansReady != true}>
                         <Col lg={12}>
                             <If condition={activeTab == 4}>
