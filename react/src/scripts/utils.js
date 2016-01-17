@@ -26,12 +26,13 @@ window.perf = function(func){ //need separate for async
     console.log("Call took " + (t1 - t0) + " milliseconds.")
 }
 
-window.callKLAFeature = function(feature){
+window.callKLAFeature = function(feature, params){
     var def = Deferred()
     KLAFeatureCheck([feature]).done(opt => {
         if (opt[feature]) {
             var message = {}
             message[feature] = true
+            message.params = params
             chrome.runtime.sendMessage(KLA_Extension, message, reply => def.resolve(reply))
         }
     })
@@ -73,10 +74,11 @@ window.mobileAndTabletCheck = function() {
     return check;
 }
 
+//returns an array of objects of {featureName: bool}
 window.KLAFeatureCheck = function(featureArr){
     var def = Deferred()
-
     var result = {}
+    if (!Array.isArray(featureArr)) featureArr = [featureArr]
     featureArr.forEach(feature => result[feature] = false)
 
     getKLAFeatures()
@@ -99,6 +101,7 @@ window.domready = (function(){
     return d
 })()
 
+//returns just a bool if a single feature is turned on
 window.KLAHasFeature = function(featureName) {
     var def = Deferred()
 

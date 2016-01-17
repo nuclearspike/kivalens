@@ -160,7 +160,7 @@ var criteriaStore = Reflux.createStore({
     syncBlankCriteria(){
         return {loan: {}, partner: {}, portfolio: {}}
     },
-
+    //returns the names only!
     syncGetMatchingCriteria(loan){
         var results = []
         this.syncGetAllNames().forEach(name => {

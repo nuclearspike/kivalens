@@ -12,6 +12,7 @@ require('./api/syncStorage')
 
 import Q from 'q'
 import React from 'react'
+import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute, browserHistory} from 'react-router'
@@ -24,6 +25,7 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
     SetAutoLendModal, Outdated} from "./components"
 import ga from 'react-ga';
 import a from './actions'
+import s from './stores'
 
 //do not wait for it app mount
 if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
@@ -35,9 +37,21 @@ window.rga = ga //react google analytics, ga is already defined
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
 
 const App = React.createClass({
+    mixins: [Reflux.ListenerMixin],
     getInitialState(){ return { } },
     componentDidMount(){
         ga.initialize('UA-10202885-1')
+        this.listenTo(a.loans.live.new, this.newLoansTest)
+    },
+    newLoansTest(loans){
+        if (lsj.get('Options').notifyOfNewMatchingLoans) {
+            KLAHasFeature('newLoansInList').done(result => {
+                if (result) {
+                    var SS = loans.select(l => s.criteria.syncGetMatchingCriteria(l)).flatten().distinct()
+                    if (SS.length) callKLAFeature('newLoansInList', SS)
+                }
+            })
+        }
     },
     logPageChange(){
         var r_page = this.props.location.pathname

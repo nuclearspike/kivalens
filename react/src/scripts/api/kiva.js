@@ -238,7 +238,9 @@ class ResultProcessors {
             var amount_75 = loan.loan_amount * 0.75
             var running_total = 0
 
+            //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
             loan.terms.scheduled_payments.groupBySelectWithSum(p=>p.due_date, p=>p.amount).some(payment => {
+                //there's got to be a more accurate algorithm to handle this efficiently...
                 running_total += payment.sum
                 if (!addIt.kl_half_back && running_total >= amount_50) {
                     addIt.kl_half_back = new Date(payment.name)
@@ -272,6 +274,7 @@ class ResultProcessors {
         partners.forEach(p => {
             p.kl_sp = p.social_performance_strengths ? p.social_performance_strengths.select(sp => sp.id) : []
             p.kl_regions = p.countries.select(c => regions_lu[c.region]).distinct()
+            p.kl_years_on_kiva = (Date.today().getTime() - new Date(p.start_date).getTime()) / (365.25 * 24 * 60 * 60000) // in years.
         })
         return partners
     }
@@ -970,7 +973,7 @@ class Loans {
         return cnames
     }
     filterPartners(c, useCache){
-        if (useCache === undefined) useCache = true
+        if (useCache === undefined) useCache = false
         if (this.last_partner_search_count > 10) {
             this.last_partner_search = {}
             this.last_partner_search_count = 0
@@ -1007,6 +1010,8 @@ class Loans {
             ct.addRangeTesters('loans_at_risk_rate',          partner=>partner.loans_at_risk_rate)
             ct.addRangeTesters('currency_exchange_loss_rate', partner=>partner.currency_exchange_loss_rate)
             ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner=>partner.average_loan_size_percent_per_capita_income)
+            ct.addRangeTesters('years_on_kiva',               partner=>partner.kl_years_on_kiva)
+            ct.addRangeTesters('loans_posted',                partner=>partner.loans_posted)
             ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner=>partner.charges_fees_and_interest)
             //should have the merge option passed in... or stored somewhere else.
             if (this.atheist_list_processed && this.getOptions().mergeAtheistList) {
@@ -1327,7 +1332,7 @@ class Loans {
                     newLoans.push(loan)
                 }
             })
-            kl.setKivaLoans(newLoans, false) //todo: do we want this?
+            kl.setKivaLoans(newLoans, false)
             //cl("############### refreshLoans:", loan_arr.length, loans)
         })
     }
@@ -1343,6 +1348,7 @@ class Loans {
         return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
             that.running_totals.new_loans += loans.where(l=>l.kl_posted_date.isAfter(that.startupTime)).length
+            this.notify({new_loans: loans})
             this.notify({running_totals_change: that.running_totals})
             this.setKivaLoans(loans, false)
         })

@@ -22,7 +22,7 @@ const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'useLargeLocalStorage']
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'useLargeLocalStorage','notifyOfNewMatchingLoans']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -31,6 +31,7 @@ const Options = React.createClass({
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistStuff)
         //this.watcher = new WatchLocalStorage('Options', this.reload.bind(this))
         this.figureAtheistStuff()
+        KLAFeatureCheck('newLoansInList').done(state => this.setState(state))
     },
     figureAtheistStuff(){
         this.setState({atheist_list_processed: kivaloans.atheist_list_processed, missingPartners: this.getMissingPartners()})
@@ -140,6 +141,12 @@ const Options = React.createClass({
                         </If>
                     </Panel>
                     <Panel header='Debug/Beta Testing'>
+                        <If condition={this.state.newLoansInList}>
+                            <Input
+                                type="checkbox"
+                                label="Notify me of new matching loans (Chrome & Extension required)"
+                                checkedLink={this.linkState('notifyOfNewMatchingLoans')} />
+                        </If>
                         <Input
                             type="checkbox"
                             label="Show me features that are being beta-tested"
