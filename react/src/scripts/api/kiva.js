@@ -238,13 +238,15 @@ class ResultProcessors {
             var amount_75 = loan.loan_amount * 0.75
             var running_total = 0
 
-            loan.terms.scheduled_payments.some(payment => {
-                running_total += payment.amount
+            loan.terms.scheduled_payments.groupBySelectWithSum(p=>p.due_date, p=>p.amount).some(payment => {
+                running_total += payment.sum
                 if (!addIt.kl_half_back && running_total >= amount_50) {
-                    addIt.kl_half_back = new Date(payment.due_date)
+                    addIt.kl_half_back = new Date(payment.name)
+                    addIt.kl_half_back_actual = (running_total * 100) / loan.loan_amount
                 }
                 if (running_total >= amount_75){
-                    addIt.kl_75_back = new Date(payment.due_date)
+                    addIt.kl_75_back = new Date(payment.name)
+                    addIt.kl_75_back_actual = (running_total * 100) / loan.loan_amount
                     return true //quit
                 }
             })
@@ -1079,7 +1081,7 @@ class Loans {
             if (loans.length > 1)
                 switch (sort) {
                     case 'half_back':
-                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_final_repayment)
+                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_half_back_actual, basicReverseOrder).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_75_back_actual, basicReverseOrder).thenBy(loan => loan.kl_final_repayment)
                         break
                     case 'popularity':
                         loans = loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
@@ -1095,7 +1097,7 @@ class Loans {
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
-                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_75_back)
+                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_half_back_actual, basicReverseOrder).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_75_back_actual, basicReverseOrder)
                 }
             return loans
         }
