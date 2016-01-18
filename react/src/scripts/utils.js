@@ -93,6 +93,14 @@ window.KLAFeatureCheck = function(featureArr){
     return def
 }
 
+//the more modern way to do this... faster too!
+window.kla_features_arr = []
+window.kla_features = {}
+getKLAFeatures().done(features_arr => {
+    window.kla_features_arr = features_arr
+    kla_features_arr.forEach(feature => kla_features[feature] = true)
+})
+
 //with the promise, it will only fire once, domcontent loaded
 window.domready = (function(){
     var d = Deferred()

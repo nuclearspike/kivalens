@@ -44,13 +44,9 @@ const App = React.createClass({
         this.listenTo(a.loans.live.new, this.newLoansTest)
     },
     newLoansTest(loans){
-        if (lsj.get('Options').notifyOfNewMatchingLoans) {
-            KLAHasFeature('notify').done(result => {
-                if (result) {
-                    var SS = loans.select(l => s.criteria.syncGetMatchingCriteria(l,true)).flatten().distinct()
-                    if (SS.length) callKLAFeature('notify', "The following saved searches have new loans: " + SS.join(', ') )
-                }
-            })
+        if (kla_features.notify) {
+            var SS = loans.select(l => s.criteria.syncGetMatchingCriteria(l,true)).flatten().distinct()
+            if (SS.length) callKLAFeature('notify', "The following saved searches have new loans: " + SS.join(', ') )
         }
     },
     logPageChange(){
