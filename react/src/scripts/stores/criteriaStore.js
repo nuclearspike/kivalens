@@ -160,10 +160,12 @@ var criteriaStore = Reflux.createStore({
     syncBlankCriteria(){
         return {loan: {}, partner: {}, portfolio: {}}
     },
+
     //returns the names only!
-    syncGetMatchingCriteria(loan){
+    syncGetMatchingCriteria(loan,onlyMarkedForNotice=false){
         var results = []
-        this.syncGetAllNames().forEach(name => {
+        var predicate = onlyMarkedForNotice? c=>this.syncGetByName(c).notifyOnNew : c=>true
+        this.syncGetAllNames().where(predicate).forEach(name => {
             var crit = this.all[name]
             if (kivaloans.filter(crit, false, [loan]).length) {
                 var hasBalancer = ['sector','activity','partner','country'].any(slice => crit.portfolio[`pb_${slice}`] && crit.portfolio[`pb_${slice}`].enabled)
@@ -174,7 +176,15 @@ var criteriaStore = Reflux.createStore({
         return results
     },
 
+    toggleNotifyOnNew(name){
+        if (!name) return
+        if (!this.all[name]) return
+        this.all[name].notifyOnNew = !this.all[name].notifyOnNew
+        this.syncSavedAll()
+    },
+
     stripNullValues(crit){
+        if (!crit) return
         ['loan','partner','portfolio'].forEach(group => {
             if (crit[group]) {
                 Object.keys(crit[group]).forEach(key => {
@@ -217,7 +227,7 @@ var criteriaStore = Reflux.createStore({
         new_c.loan.name = ''
         new_c.loan.use = ''
         new_c.portfolio.exclude_portfolio_loans = 'true'
-        new_c.portfolio.pb_sector   = {enabled: false} //does this help???
+        new_c.portfolio.pb_sector   = {enabled: false}
         new_c.portfolio.pb_activity = {enabled: false}
         new_c.portfolio.pb_partner  = {enabled: false}
         new_c.portfolio.pb_country  = {enabled: false}

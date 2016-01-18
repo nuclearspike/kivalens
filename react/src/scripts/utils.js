@@ -112,6 +112,17 @@ window.KLAHasFeature = function(featureName) {
     return def
 }
 
+window.KLAOnlyIfFeature = function(feature){
+    var def = Deferred()
+    KLAHasFeature(feature).done(result => {
+        if (result)
+            def.resolve()
+        else
+            def.fail()
+    })
+    return def
+}
+
 window.setDebugging = function() {
     window.kl_debugging = lsj.get("Options").debugging
 }
