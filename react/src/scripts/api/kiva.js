@@ -131,7 +131,11 @@ class Request {
     static sem_get(url, params, collection, isSingle){
         var def = Deferred()
         sem_one.take(function(){
-            this.get(url, params).always(()=> sem_one.leave()).done(def.resolve).fail(def.reject).progress(def.notify)
+            this.get(url, params)
+                .always(()=> sem_one.leave())
+                .done(def.resolve)
+                .fail(def.reject)
+                .progress(def.notify)
         }.bind(this))
 
         //should this be a wrapping function?
@@ -1315,8 +1319,14 @@ class Loans {
         this.notify({running_totals_change: this.running_totals}) //todo: only if changed??
         this.notify({loan_updated: existing})
     }
-    getLoanFromKiva(id){ //used?
-        return Request.sem_get(`loans/${id}.json`, {}, 'loans', true).then(ResultProcessors.processLoan)
+    getLoanFromKiva(id){
+        //don't use sem_get. this is only used rarely and when it is, it doesn't want to be queued
+        var def = Request.get(`loans/${id}.json`, {})
+            .then(result => result.loans[0])
+            .then(ResultProcessors.processLoan)
+
+        //this will only return once both the loan and all partners have been downloaded
+        return when(def, this.partner_download).then(loan => loan)
     }
     refreshLoans(loan_arr){
         var kl = this

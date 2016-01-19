@@ -69,7 +69,6 @@ var Search = React.createClass({
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, secondary_load_status} = this.state
         return (
             <div style={style} >
-                <LoadingLoansModal/>
                 <If condition={showBulkAdd}>
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>
@@ -89,6 +88,7 @@ var Search = React.createClass({
                             More loans are still loading. Carry on. {secondary_load_status}
                         </Alert>
                     </If>
+                    <LoadingLoansModal/>
                     <InfiniteList
                         className="loan_list_container"
                         items={this.state.filtered_loans}

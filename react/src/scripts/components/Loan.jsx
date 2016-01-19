@@ -110,10 +110,17 @@ var Loan = React.createClass({
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
         this.listenTo(a.loans.load.completed, this.refreshLoan) //waits until page has finished loading... todo: if later make loader non-modal, change this.
         this.listenTo(a.loans.live.updated, this.displayLoan)
+        this.listenTo(a.criteria.atheistListLoaded, x=> {
+            this.figureAtheistDisplay()
+            this.refreshLoan()
+        })
+
+        if (!this.state.loan) //if loan is displaying during initial load.
+            kivaloans.getLoanFromKiva(this.props.params.id).done(this.displayLoan)
 
         this.refreshLoan() //happens always even if we have it, to cause a refresh.
         this.refreshInterval = setInterval(this.refreshLoan, 5*60000)  //every 5 minutes just for fun
-        this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
+        this.figureAtheistDisplay()
     },
     componentWillReceiveProps({params}){
         if (params.id != this.props.params.id)
@@ -122,6 +129,9 @@ var Loan = React.createClass({
     savedActiveTab(){
         return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1}
     },
+    figureAtheistDisplay(){
+        this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
+    },
     refreshLoan(){
         a.loans.detail(this.props.params.id)
     },
@@ -129,6 +139,11 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
+        //if (!partner) {
+            //this is a hack... it only happens if your first page is a loan page and partners aren't downloaded yet.
+            //there's surely a better way like getLoanFromKiva shouldn't return until partner download done.
+            //kivaloans.partner_download.done(x=>this.displayLoan(loan))
+        //}
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')

@@ -1,15 +1,15 @@
 'use strict'
 import React from 'react'
 import Reflux from 'reflux'
-import {Modal,ProgressBar} from 'react-bootstrap'
+import {Modal,Panel,ProgressBar} from 'react-bootstrap'
 import {CycleChild} from '.'
 import a from '../actions'
 
 //this really shouldn't be receiving notice of whether to show from outside. it knows
-var LoadingLoansModal = React.createClass({
+const LoadingLoansModal = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState(){
-        return {progress_label: 'Please Wait', title: 'Loading Fundraising Loans from Kiva.org', show: !kivaloans.isReady(), error_message: ''}
+        return {progress_label: 'Please Wait...', title: 'Loading Fundraising Loans from Kiva.org', show: !kivaloans.isReady(), error_message: ''}
     },
     shouldComponentUpdate(np, ns) { //does this actually help anything?
         return (this.state.show != ns.show)
@@ -40,9 +40,8 @@ var LoadingLoansModal = React.createClass({
             this.hasSentGAView = true
             window.rga.modalview('/loading')
         }
-        return (
-            <div className="static-modal">
-                <Modal show={show} onHide={()=>{}}>
+        return (<If condition={show}>
+            <Panel>
                     <Modal.Header>
                         <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>
@@ -78,9 +77,10 @@ var LoadingLoansModal = React.createClass({
                         {progress_label}<br/>
                         {error_message}
                     </Modal.Footer>
-                </Modal>
-            </div>
-        )
+                </Panel>
+            <Else/>
+                <span/>
+            </If>)
     }
 })
 
