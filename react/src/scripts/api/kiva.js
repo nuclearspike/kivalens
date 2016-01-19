@@ -1062,7 +1062,7 @@ class Loans {
         ct.addRangeTesters('dollars_per_hour',  loan=>loan.kl_dollars_per_hour())
         ct.addRangeTesters('percent_funded',    loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
-        ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days)
+        ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days())
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
         ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
