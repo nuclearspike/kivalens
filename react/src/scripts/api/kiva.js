@@ -20,7 +20,10 @@ const getUrl = function(url,parseJSON){
             if (parseJSON) body = JSON.parse(body)
             d.resolve(body)
         } else {
-            d.fail(error)
+            if (response && response.statusCode == 503) { //this is a non-universal place to put this. kiva api specific?
+                d.fail(JSON.parse(response.body).message)
+            } else
+                d.fail(error)
         }
     })
     return d
@@ -812,7 +815,7 @@ class Loans {
         var base_options = extend({}, {maxRepaymentTerms: 120,maxRepaymentTerms_on: false}, this.options)
         this.partner_download = this.getAllPartners().fail(e=>this.notify({failed: e}))
         this.loan_download = Deferred()
-        this.loan_download.done(loans=>{
+        this.loan_download.fail(e=>this.notify({failed: e})).done(loans=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
             this.setKivaLoans(ResultProcessors.processLoans(loans), false)
             this.partner_download.done(()=>{ //all must be done.

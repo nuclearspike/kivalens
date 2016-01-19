@@ -18,6 +18,7 @@ const LoadingLoansModal = React.createClass({
         this.hasSentGAView = false
 
         this.listenTo(a.loans.load.progressed, progress => {
+            if (this.state.failed) return
             var new_state = {show: true}
             if (progress.done) new_state[`${progress.task}_progress`] = progress.singlePass ? (progress.done * 100) / progress.total : (progress.done * 100) / progress.total * (progress.task == 'ids'? .33 : .67)
             if (progress.label) new_state.progress_label = progress.label
@@ -30,7 +31,7 @@ const LoadingLoansModal = React.createClass({
             this.setState({show: false}) //should() handles the update
         })
         this.listenTo(a.loans.load.failed, status => {
-            this.setState({progress_label: 'Download Failed! Error Message from Kiva:', error_message: status })
+            this.setState({failed: true, progress_label: 'Download Failed! Error Message from Kiva:', error_message: status })
             this.forceUpdate()
         })
     },
