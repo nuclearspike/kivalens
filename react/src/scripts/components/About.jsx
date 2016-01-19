@@ -333,7 +333,7 @@ const About = React.createClass({
                 Check out screenshots, a detailed description and install Kiva Lender Assistant here</NewTabLink> or&nbsp;
                 <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
                     the source code on github (developers wanted!)</NewTabLink>.
-                <If condition={KLAVersion}><span> You have KLA installed on version {KLAVersion}. Chrome does a good job
+                <If condition={KLAVersion}><span> You have KLA version {KLAVersion} installed. Chrome does a good job
                     of keeping your extensions up to date automatically, but to check for upgrades manually,
                     go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
                     then click the button to update your extensions.</span></If>

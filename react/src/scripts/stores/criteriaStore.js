@@ -181,6 +181,7 @@ var criteriaStore = Reflux.createStore({
         if (!this.all[name]) return
         this.all[name].notifyOnNew = !this.all[name].notifyOnNew
         this.syncSavedAll()
+        return this.all[name].notifyOnNew
     },
 
     stripNullValues(crit){

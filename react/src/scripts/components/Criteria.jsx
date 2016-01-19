@@ -35,6 +35,10 @@ const Criteria = React.createClass({
     promptForName(){
         a.utils.prompt({title: "Enter Name for Search Criteria", label: 'Name', callback: s.criteria.syncSaveLastByName})
     },
+    toggleNotify(name){
+        if (s.criteria.toggleNotifyOnNew(name))
+            callKLAFeature("notify", `You have switched on notifications for '${name}'! Listen for the sound played with this popup!`)
+    },
     toggleGraph(){ this.setState({ show_graphs: !this.state.show_graphs }) },
     render() {
         let {lastSaved,saved_searches,canNotify} = this.state
@@ -58,7 +62,7 @@ const Criteria = React.createClass({
                                 <MenuItem divider />
                             </If>
                             <If condition={lastSaved && canNotify}>
-                                <MenuItem eventKey={1000} key='notify_on_new' onClick={s.criteria.toggleNotifyOnNew.bind(this, lastSaved)}>{shouldNotifyOnNew ? 'Do NOT ':''}Notify on New for '{lastSaved}'</MenuItem>
+                                <MenuItem eventKey={1000} key='notify_on_new' onClick={this.toggleNotify.bind(this, lastSaved)}>{shouldNotifyOnNew ? 'Do NOT ':''}Notify on New for '{lastSaved}'</MenuItem>
                             </If>
                             <If condition={lastSaved}>
                                 <MenuItem eventKey={1001} key='save_current' onClick={s.criteria.syncSaveLastByName.bind(this, lastSaved)}>Re-save '{lastSaved}'</MenuItem>
