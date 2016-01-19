@@ -42,12 +42,13 @@ const PartnerDisplayModal = React.createClass({
                         <Tab eventKey={1} title="For Auto-lending">
                             <p>
                                 If you are using Chrome and the <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">Kiva Lender Assistant Chrome Browser Extension</NewTabLink>,
-                                then you can skip this manual process and use the "Set Auto-Lending Partners" button
-                                which fully automates the process of synchronizing your Auto-Lending partners with what
-                                matches your current criteria. To do it manually, follow the steps below...
+                                then you can skip this manual process and use the "Auto-Lend" tab which fully automates
+                                the process of synchronizing your Auto-Lending Partners, Countries and Sectors with
+                                what matches your current criteria. To synchronize your partners manually,
+                                follow the steps below...
                             </p>
                             <ul>
-                                <li>Open <KivaLink path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
+                                <li>Open <KivaLink secure path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
                                 <li>Make sure that "Automatically lend my Kiva Credit" is checked to expose the options.</li>
                                 <li>In the "Partners" area, click the "edit" link so that the huge listing of all active Partners displays.</li>
                                 <li>In Chrome or Firefox, right-click the Auto-Lending page on Kiva and select "Inspect"/"Inspect Element" then once it's open, click on the "Console" tab.</li>

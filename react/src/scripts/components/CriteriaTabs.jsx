@@ -618,9 +618,6 @@ const CriteriaTabs = React.createClass({
         newState.helper_charts[group] = config
         this.setState(newState)
     },
-    setAutoLendingPartners(){
-        a.utils.modal.setAutoLend()
-    },
     focusSelect(group, key){
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
@@ -698,7 +695,6 @@ const CriteriaTabs = React.createClass({
                         </If>
 
                         <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
-                        <Button style={{marginLeft:'10px'}} onClick={this.setAutoLendingPartners}>Set Auto-Lending Partners</Button>
                         <PartnerDisplayModal/>
                     </Col>
 

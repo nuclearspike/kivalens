@@ -22,7 +22,7 @@ import createHistory from 'history/lib/createHashHistory'
 
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
     Criteria, ClearBasket, Live, NotFound, PromptModal, AlertModal, SnowStack,
-    SetAutoLendModal, Outdated} from "./components"
+    Outdated} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
@@ -46,7 +46,12 @@ const App = React.createClass({
     newLoansTest(loans){
         if (kla_features.notify) {
             var SS = loans.select(l => s.criteria.syncGetMatchingCriteria(l,true)).flatten().distinct()
-            if (SS.length) callKLAFeature('notify', "The following saved searches have new loans: " + SS.join(', ') )
+            if (SS.length) {
+                callKLAFeature('notify', "The following saved searches have new loans: " + SS.join(', ') )
+                if (kla_features.speak) {
+                    callKLAFeature('speak', "New loans have just posted that match a saved search of yours.")
+                }
+            }
         }
     },
     logPageChange(){
@@ -65,7 +70,6 @@ const App = React.createClass({
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
-                    <SetAutoLendModal/>
                     {this.props.children}
                 <KLFooter/>
             </div>

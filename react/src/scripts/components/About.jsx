@@ -3,7 +3,18 @@ import React from 'react'
 import {Grid} from 'react-bootstrap'
 import {NewTabLink, LenderLink, KivaLink, EmailLink} from '.'
 
-const About = () => <Grid>
+const About = React.createClass({
+    getInitialState(){
+        return {KLAVersion: ''}
+    },
+    componentDidMount(){
+        callKLAFeature('getVersion').done(result => {
+            this.setState({KLAVersion: result.version})
+        })
+    },
+    render(){
+        let {KLAVersion} = this.state
+        return <Grid>
             <h1>About</h1>
             <h3>What is KivaLens?</h3>
             <p>
@@ -11,12 +22,14 @@ const About = () => <Grid>
                 After you've found your loans and put them in your KivaLens basket, you then transfer it to
                 Kiva and complete your loan purchases there.
             </p>
-    
+
             <h3>Rebuilt and Rethought</h3>
             <p>
                 KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly stopped being able
-                to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools that weren't available when KivaLens
-                was first written. Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me know</EmailLink> your
+                to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools
+                that weren't available when KivaLens
+                was first written. Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me
+                know</EmailLink> your
                 what else you'd like to be able to do. You can also join
                 the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss.
             </p>
@@ -24,15 +37,20 @@ const About = () => <Grid>
             <h3>Questions/Problems?</h3>
             <p>
                 All of the data that KivaLens displays is either a direct presentation of or computation from data that
-                is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the exception
+                is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the
+                exception
                 of data from the Atheist Team's research. If you have any questions about why a loan is showing
                 certain data (where you have confirmed that it's the same on Kiva's own site) or if you have questions
-                about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's Help Center or contact Kiva Customer Service</KivaLink>.
+                about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's
+                Help Center or contact Kiva Customer Service</KivaLink>.
             </p>
             <p>
                 If you find a discrepancy between Kiva's site and what KivaLens' displays for loans or partners or if
-                you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is working
-                then <EmailLink subject="KivaLens Bug" body="I found a bug! The problem is... The steps to reproduce it are..." title="Report a bug">let me know</EmailLink> and
+                you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is
+                working
+                then <EmailLink subject="KivaLens Bug"
+                                body="I found a bug! The problem is... The steps to reproduce it are..."
+                                title="Report a bug">let me know</EmailLink> and
                 include as many details about what loan/partner and information you can so that I can reproduce the
                 problem.
             </p>
@@ -45,11 +63,15 @@ const About = () => <Grid>
             <h3>Features</h3>
             <ul className='spacedList'>
                 <li>
-                    Sorting/Filtering by Final Repayment Date vs Repayment Terms. While Kiva allows you to sort by repayment
+                    Sorting/Filtering by Final Repayment Date vs Repayment Terms. While Kiva allows you to sort by
+                    repayment
                     terms, there are a few issues with this method from the perspective of the lender. Since different
-                    loans have different dates on which they posted to Kiva and the disbursal dates can have wide-ranges as well,
-                    an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already have
-                    repayments underway. While the same repayment terms on a <i>post</i>-disbursed loan that just posted today
+                    loans have different dates on which they posted to Kiva and the disbursal dates can have wide-ranges
+                    as well,
+                    an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already
+                    have
+                    repayments underway. While the same repayment terms on a <i>post</i>-disbursed loan that just posted
+                    today
                     could end up with a final repayment date <i>months</i> different from the first loan mentioned. Yet
                     Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Since
                     Kiva only allows you to sort by repayment terms but not filter by them, it still shows you all
@@ -58,7 +80,8 @@ const About = () => <Grid>
                     erasing the issues created by pre/post disbursed loans and different post dates. In Kiva's system
                     (and the API, so also KivaLens), all repayment dates are shown at the first of the month, while
                     many/most partners will actually settle the payments on the 17th of the <i>prior</i> month. So,
-                    many times you'll actually get your repayments about 2 weeks <i>sooner</i> than what KivaLens displays,
+                    many times you'll actually get your repayments about 2 weeks <i>sooner</i> than what KivaLens
+                    displays,
                     assuming the partners settle early (as is common) and the borrower and partner are not delinquent.
                 </li>
 
@@ -128,11 +151,13 @@ const About = () => <Grid>
 
                 <li>
                     Always Fresh! KivaLens subscribes to the same live data-stream
-                    that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new loan
+                    that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new
+                    loan
                     posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your browser
                     are kept exactly up-to-date without needing to reload the page. These updates do not cause
                     your criteria to re-filter, but you'll see the impact of any new loans, funded loans or lending
-                    activity altering the funded amounts the next time you return to the Criteria tab or alter your filter.
+                    activity altering the funded amounts the next time you return to the Criteria tab or alter your
+                    filter.
                 </li>
 
                 <li>
@@ -155,7 +180,8 @@ const About = () => <Grid>
                 </li>
 
                 <li>
-                    Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too many
+                    Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too
+                    many
                     active loans from only a few partners, or if you want to find more sectors like your favorites, use
                     the Portfolio Balancing tools to help you accomplish your lending goals. Just make sure you have
                     your Lender ID filled out on the Options tab first.
@@ -169,13 +195,16 @@ const About = () => <Grid>
             </p>
             <ul className='spacedList'>
                 <li>
-                    <b>Institutional Risk:</b> The "Risk Rating" for a partner is based on Kiva's assessment on whether or not
-                    a partner will fail (institutional default) based on a huge formula as well as some good old fashioned
+                    <b>Institutional Risk:</b> The "Risk Rating" for a partner is based on Kiva's assessment on whether
+                    or not
+                    a partner will fail (institutional default) based on a huge formula as well as some good old
+                    fashioned
                     gut feelings. The higher the star rating, the less likely it is for the partner to fail.
                     This is not any indication on whether or not the borrower is risky and is no guarantee.
                 </li>
                 <li>
-                    <b>Currency Exchange Risk:</b> Even if a borrower pays back in full, if they are paying back in a currency
+                    <b>Currency Exchange Risk:</b> Even if a borrower pays back in full, if they are paying back in a
+                    currency
                     other than USD, there is a risk that you can lose some money due to the exchange rate. Using the
                     Currency Exchange Loss % Partner slider, you can use history as an indicator of the future for
                     how much you may lose (but there's no guarantee). Some partners cover more of the currency loss
@@ -183,13 +212,15 @@ const About = () => <Grid>
                     loss is possible.
                 </li>
                 <li>
-                    <b>Default Rates:</b> All partners will have defaults, some partners choose to cover the losses of defaulted
+                    <b>Default Rates:</b> All partners will have defaults, some partners choose to cover the losses of
+                    defaulted
                     borrowers in order to pay back Kiva lenders as a part of doing business. Choosing partners with 0%
                     default means you are most likely choosing a partner that is covering losses, which if you have
                     large amounts of money in, may be exactly what you're looking for.
                 </li>
                 <li>
-                    <b>Portfolio Yield:</b> Reducing organizations down to a number and then making assumptions based off
+                    <b>Portfolio Yield:</b> Reducing organizations down to a number and then making assumptions based
+                    off
                     that number can actually unintentionally exclude the very partners you would actually most like
                     if you knew more about them. One of the most significant learnings I had when I worked at Kiva was
                     regarding Portfolio Yield. PY values are based on costs charged to the borrower over the amount
@@ -202,19 +233,22 @@ const About = () => <Grid>
                     the most needy borrowers.
                 </li>
                 <li>
-                    <b>Profitability:</b> When I initially wrote KivaLens (prior to working at Kiva), I incorrectly assumed
+                    <b>Profitability:</b> When I initially wrote KivaLens (prior to working at Kiva), I incorrectly
+                    assumed
                     that a partner with a negative profitability naturally meant they were at greater risk for
                     institutional collapse and thus causing all outstanding loans to fail. This is not always true!
                     There are a number of partners that receive money from outside sources and this money is not
                     factored in when calculating their profitability. So, just because your borrower is getting a
                     loan from a partner that has a large negative profit, they're necessarily more likely to collapse
-                    and you'll lose your money. It's not that simple. However, if they are not receiving money from outside
+                    and you'll lose your money. It's not that simple. However, if they are not receiving money from
+                    outside
                     sources and are operating a loss for extended periods, they may be at higher risk of institutional
                     default. Since there is no way to tell which MFIs are or are not receiving money from outside
                     sources, the "safest" bet is to choose partners with positive profitability.
                 </li>
                 <li>
-                    <b>Group Loans:</b> Due to the high variability with how group loans are organized by partner, you cannot
+                    <b>Group Loans:</b> Due to the high variability with how group loans are organized by partner, you
+                    cannot
                     necessarily make assumptions about group loans versus individual. Some partners group riskier
                     borrowers together so they can prove themselves and graduate to individual loans and the grouping
                     is arbitrary just to make repayment collections simpler to lower the cost of servicing the loan.
@@ -233,14 +267,19 @@ const About = () => <Grid>
                     Use the {'#'}RepeatBorrower tag search to help find them.
 
                     KivaLens user (<LenderLink lender='thomas85717133'>Thomas</LenderLink>) has
-                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data snapshots</NewTabLink> and
-                    compared repayment rates for ended loans tagged {'#'}FirstLoan vs {'#'}RepeatBorrower and found loans
+                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data
+                    snapshots</NewTabLink> and
+                    compared repayment rates for ended loans tagged {'#'}FirstLoan vs {'#'}RepeatBorrower and found
+                    loans
                     tagged with {'#'}RepeatBorrower had a repayment rate of 99.16% vs loans tagged with {'#'}FirstLoan
-                    of 98.55% (using data current as of Dec 8, 2015). To get more information and see the code used to calculate,
-                    check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715" title="View KivaLens team message board">this message</KivaLink>.
+                    of 98.55% (using data current as of Dec 8, 2015). To get more information and see the code used to
+                    calculate,
+                    check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715"
+                                        title="View KivaLens team message board">this message</KivaLink>.
                 </li>
                 <li>
-                    <b>Diversify!</b> When searching for loans, your criteria may keep bringing up loans from the same partners
+                    <b>Diversify!</b> When searching for loans, your criteria may keep bringing up loans from the same
+                    partners
                     over and over again. Having too much money with a handful partner means that if those partners have
                     institutional default, you could lose all of your outstanding balance. Diversity among countries
                     can also be beneficial because it protects you from your portfolio being as impacted by natural
@@ -252,7 +291,8 @@ const About = () => <Grid>
                     "Limit to top" option to only show 1 loan (or a couple if you're doing large volume) per Partner.
                 </li>
                 <li>
-                    <b>Something to consider:</b> Ultimately, you shouldn't be considering Kiva as a "bank" (which is why I
+                    <b>Something to consider:</b> Ultimately, you shouldn't be considering Kiva as a "bank" (which is
+                    why I
                     changed the name from kivabank to kivalens years ago). Over time, even the most cautious lenders
                     are very likely to lose money to default or currency exchange unless you are extremely lucky.
                     You should lend with the expectation of some loss and be happy when it everything goes perfectly.
@@ -263,11 +303,14 @@ const About = () => <Grid>
 
             <h3>Open-source</h3>
             <p>
-                Kiva Lens is now open-source, so feel free to <EmailLink subject="KivaLens Developer">email me</EmailLink> about
+                Kiva Lens is now open-source, so feel free to <EmailLink subject="KivaLens Developer">email
+                me</EmailLink> about
                 working on it. It uses React, Reflux, react-bootstrap, gulp,
-                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, jquery and more. You can check out
+                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, jquery and more. You
+                can check out
                 the source code (in progress)
-                at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github repository</NewTabLink>.
+                at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github
+                repository</NewTabLink>.
             </p>
 
             <h3>History</h3>
@@ -279,15 +322,25 @@ const About = () => <Grid>
                 do that are handy and fun!
             </p>
 
-            <h3>Kiva Lender Assistant Chrome Extension</h3>
+            <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
             <p>
                 There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
-                on the Lend tab along with other repayment info, talks to you about things it notices about the loan, details about lenders and
-                teams you hover over, etc. <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">
-                Check out screenshots, a detailed description and install Kiva Lender Assistant here.</NewTabLink> or <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
-                the source code on github (developers wanted!)</NewTabLink>
+                on the Lend tab along with other repayment info, talks to you about things it notices about the loan,
+                details about lenders and teams you hover over, etc. There are also a number of features that KivaLens
+                has that require KLA to work. <NewTabLink
+                href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US"
+                title="Go to Google Chrome WebStore">
+                Check out screenshots, a detailed description and install Kiva Lender Assistant here</NewTabLink> or&nbsp;
+                <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
+                    the source code on github (developers wanted!)</NewTabLink>.
+                <If condition={KLAVersion}><span> You have KLA installed on version {KLAVersion}. Chrome does a good job
+                    of keeping your extensions up to date automatically, but to check for upgrades manually,
+                    go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
+                    then click the button to update your extensions.</span></If>
             </p>
 
         </Grid>
+    }
+})
 
 export default About

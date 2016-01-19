@@ -33,7 +33,9 @@ window.callKLAFeature = function(feature, params){
             var message = {}
             message[feature] = true
             message.params = params
-            chrome.runtime.sendMessage(KLA_Extension, message, reply => def.resolve(reply))
+            chrome.runtime.sendMessage(KLA_Extension, message, reply => {
+                def.resolve(reply)
+            })
         }
     })
     return def
@@ -112,11 +114,9 @@ window.domready = (function(){
 //returns just a bool if a single feature is turned on
 window.KLAHasFeature = function(featureName) {
     var def = Deferred()
-
     getKLAFeatures()
         .done(features => def.resolve(features.contains(featureName)))
         .fail(()=>def.resolve(false))
-
     return def
 }
 

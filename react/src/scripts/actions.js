@@ -38,7 +38,6 @@ a.utils.var = Reflux.createActions(["set","get"])
 
 a.utils.modal = Reflux.createActions({
     "partnerDisplay": {children: ["completed"]},
-    "setAutoLend": {children: ["completed"]},
     "alert": {children: ["completed"]}
 })
 
