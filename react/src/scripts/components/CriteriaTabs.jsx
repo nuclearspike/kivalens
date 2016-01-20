@@ -385,7 +385,7 @@ const SliderRow = React.createClass({
     shouldComponentUpdateOLD(np,{d_min,d_max}){
         return (d_min != this.state.d_min || d_max != this.state.d_max)
     },
-    componentWillReceiveProps({cursorMin,cursorMax}, newState){
+    componentWillReceiveProps({cursorMin,cursorMax}){
         if ((this.props.cursorMin.value !== cursorMin.value) || (this.props.cursorMax.value !== cursorMax.value)) {
             this.setState(this.fillMissing({c_min: cursorMin.value, c_max: cursorMax.value})) //not forceUpdate needed because it will re-render
         }
