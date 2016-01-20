@@ -866,7 +866,7 @@ class Loans {
                                     hasStarted = true
                                     this.loan_download.resolve(loans)
                                     this.checkHotLoans()
-                                    this.backgroundResync()
+                                    this.backgroundResync(true)
                                 } else {
                                     this.interComm.filter('client', 'gimmeLoansLLS').progress(m => {
                                         //the only message is to start
@@ -1388,10 +1388,11 @@ class Loans {
         if (this.getOptions().useLargeLocalStorage)
             wait(20).done(this.saveLoansToLLS.bind(this))
     }
-    backgroundResync(){
+    backgroundResync(notify){
         this.background_resync++
         var that = this
 
+        if (notify) this.notify({backgroundResync:{state: 'started'}})
         new LoansSearch(this.base_kiva_params, false).start().done(loans => {
             var loans_added = [], loans_updated = 0
             //for every loan found in a search from Kiva... these are not full details!
@@ -1419,7 +1420,7 @@ class Loans {
 
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
-
+            if (notify) this.notify({backgroundResync:{state: 'done'}})
             that.saveLoansToLLSAfterDelay()
         })
     }

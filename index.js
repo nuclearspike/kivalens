@@ -15,19 +15,15 @@ const CORSHandler = function(rsp, data, req, res, callback){
     }
 }
 
-app.use('/proxy/kiva', proxy('https://www.kiva.org', {
+const proxyHandler = {
     forwardPath: function(req, res) {
         return require('url').parse(req.url).path;
     },
     intercept: CORSHandler
-}));
+}
 
-app.use('/proxy/gdocs', proxy('https://docs.google.com', {
-    forwardPath: function(req, res) {
-        return require('url').parse(req.url).path;
-    },
-    intercept: CORSHandler
-}));
+app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
+app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler));
 
 app.set('port', (process.env.PORT || 3000));
 

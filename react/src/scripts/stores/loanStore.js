@@ -49,6 +49,8 @@ domready.done(()=> {
             a.loans.load.secondaryStatus(progress.secondary_load_label)
         if (progress.new_loans)
             a.loans.live.new(progress.new_loans)
+        if (progress.backgroundResync && progress.backgroundResync.state)
+            a.loans.load.backgroundResyncState(progress.backgroundResync.state)
     })
 })
 //a.loans.load.failed

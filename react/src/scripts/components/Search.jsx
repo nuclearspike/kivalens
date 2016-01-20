@@ -32,6 +32,7 @@ var Search = React.createClass({
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.loans.load.secondaryStatus, this.secondaryStatus)
+        this.listenTo(a.loans.load.backgroundResyncState, this.backgroundResyncState)
         a.utils.var.get('outdatedUrl', outdatedUrl => {
             if (outdatedUrl) {
                 this.setState({outdatedUrl})
@@ -39,6 +40,9 @@ var Search = React.createClass({
                 a.utils.var.set('outdatedUrl', null) //todo: better with url state.
             }
         })
+    },
+    backgroundResyncState(backgroundResyncState){
+        this.setState({backgroundResyncState})
     },
     secondaryStatus(status){
         this.setState({secondary_load_status: status})
@@ -66,7 +70,7 @@ var Search = React.createClass({
     },
     render()  {
         var style = {height:'100%', width: '100%'}
-        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, secondary_load_status} = this.state
+        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status} = this.state
         return (
             <div style={style} >
                 <If condition={showBulkAdd}>
@@ -86,6 +90,11 @@ var Search = React.createClass({
                     <If condition={show_secondary_load}>
                         <Alert style={{marginBottom:'0px'}} bsStyle="warning">
                             More loans are still loading. Carry on. {secondary_load_status}
+                        </Alert>
+                    </If>
+                    <If condition={backgroundResyncState == 'started'}>
+                        <Alert style={{marginBottom:'0px'}} >
+                            Loans loaded from storage. Refreshing...
                         </Alert>
                     </If>
                     <LoadingLoansModal/>
