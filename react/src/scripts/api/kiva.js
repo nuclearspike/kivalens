@@ -20,10 +20,25 @@ const getUrl = function(url,parseJSON){
             if (parseJSON) body = JSON.parse(body)
             d.resolve(body)
         } else {
-            if (response && response.statusCode == 503) { //this is a non-universal place to put this. kiva api specific?
-                d.fail(JSON.parse(response.body).message)
+            //should i break out an api-specific response handler for this?
+            if (response) {
+                switch (response.statusCode) {
+                    case 503:
+                    case 404:
+                    case 400:
+                        var msg
+                        try {
+                            msg = JSON.parse(response.body).message
+                        } catch (e) {
+                            msg = ''
+                        }
+                        d.reject(msg,response.statusCode)
+                        break
+                    default:
+                        d.reject()
+                }
             } else
-                d.fail(error)
+                d.reject(error)
         }
     })
     return d

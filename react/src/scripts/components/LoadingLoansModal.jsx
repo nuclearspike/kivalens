@@ -53,8 +53,8 @@ const LoadingLoansModal = React.createClass({
                             <ProgressBar active label={details_progress > 10 ? 'details': ''} now={details_progress} />
                         </ProgressBar>
                         <CycleChild name='didYouKnow_loading'>
-                            <p>To greatly reduce load time, check out the "Options" tab if you rarely consider longer term loans.</p>
-                            <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet... and there are a bunch of other things you can do, check it out!</p>
+                            <p>To greatly reduce load time, check out the "Options" tab if you rarely consider longer term loans. (You can do that now, the loans will keep downloading.)</p>
+                            <p>There are new Portfolio Balancing tools available on the "Your Portfolio" criteria tab. Use them to either balance your risk by diversifying across partners or let them help you find countries and sectors you don't have yet... and there are a bunch of other things you can do, check it out right now while you're waiting for the loans to load!</p>
                             <p>Did you know that KivaLens now works on smart-phones and tablets (iPad, Kindle, etc), too?</p>
                             <p>Did you know that you can go check out other pages while the loans load? KivaLens is not a normal website.</p>
                             <p>Click the "Saved Search" button to see some samples of the types of queries you do.</p>

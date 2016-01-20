@@ -17,7 +17,7 @@ const SetLenderIDModal = React.createClass({
 
         this.setState({checking: true, failed: false})
         Request.get(`lenders/${lid}.json`)
-            .fail(() => this.setState({failed: true}))
+            .fail(x => this.setState({failed: true}))
             .done(()=>{
                 kivaloans.setLender(lid)
                 this.props.onSet(lid)
