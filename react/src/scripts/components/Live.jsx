@@ -165,7 +165,7 @@ const Live = React.createClass({
                     </Col>
                 </Row>
                 <Row>
-                    <h2>How is KivaLens so Fast and Fresh{'?'}</h2>
+                    <h2>How is KivaLens so Fast and Fresh?</h2>
                     <ul className='spacedList'>
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
@@ -186,7 +186,7 @@ const Live = React.createClass({
                         <li>
                             Every time you click on a loan, KivaLens will first immediately display what it has while
                             simultaneously requesting the most recent version of the loan and will seamlessly merge
-                            any changes once it has the data. What could change{'?'} The amount other lenders have in
+                            any changes once it has the data. What could change? The amount other lenders have in
                             their baskets is one example of data that changes over time that doesn't get published in
                             the live data stream.
                         </li>

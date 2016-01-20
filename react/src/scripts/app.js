@@ -10,7 +10,6 @@ require('./utils')
 require('./stores/liveStore')
 require('./api/syncStorage')
 
-import Q from 'q'
 import React from 'react'
 import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
@@ -30,7 +29,6 @@ import s from './stores'
 //do not wait for it app mount
 if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
 
-window.Q = Q
 //window.Perf = require('react-addons-perf')
 
 window.rga = ga //react google analytics, ga is already defined
