@@ -88,8 +88,8 @@ const RepaymentGraphs= React.createClass({
             <Highcharts config={this.state.config} />
             <dl className="dl-horizontal">
                 <dt>Interval</dt><dd>{loan.terms.repayment_interval}</dd>
-                <dt>50% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>
-                <dt>75% back by</dt><dd>{loan.kl_75_back.toString("MMM d, yyyy")}</dd>
+                <dt>{Math.round(loan.kl_half_back_actual)}% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>
+                <dt>{Math.round(loan.kl_75_back_actual)}% back by</dt><dd>{loan.kl_75_back.toString("MMM d, yyyy")}</dd>
                 <dt>Final repayment</dt><dd>{loan.kl_final_repayment.toString("MMM d, yyyy")}</dd>
             </dl>
         </Col>

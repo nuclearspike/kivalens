@@ -2,24 +2,22 @@ var express = require('express');
 var app = express();
 var proxy = require('express-http-proxy');
 
-const CORSHandler = function(rsp, data, req, res, callback){
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
-
-    // intercept OPTIONS method
-    if ('OPTIONS' == req.method) {
-        res.send(200);
-    } else {
-        callback(null,data);
-    }
-}
-
 const proxyHandler = {
     forwardPath: function(req, res) {
         return require('url').parse(req.url).path;
     },
-    intercept: CORSHandler
+    intercept: function(rsp, data, req, res, callback){
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+        res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
+
+        // intercept OPTIONS method
+        if ('OPTIONS' == req.method) {
+            res.send(200);
+        } else {
+            callback(null,data);
+        }
+    }
 }
 
 app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
