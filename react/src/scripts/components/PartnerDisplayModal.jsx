@@ -14,9 +14,8 @@ const PartnerDisplayModal = React.createClass({
     shouldComponentUpdate(np,{show}){return show},
     show(){
         this.setState({show: true})
-        var ids = kivaloans.filterPartners(s.criteria.syncGetLast())
-        var partners = kivaloans.partners_from_kiva.where(p => p.status == "active" && ids.contains(p.id))
-        ids = partners.select(p => p.id).orderBy(e=>e)
+        var partners = kivaloans.filterPartners(s.criteria.syncGetLast(),true,false)
+        var ids = partners.select(p => p.id).orderBy(e=>e)
         var names = partners.select(p => `"${p.name}"`).orderBy(e=>e)
         this.setState({ids,partners,names})
     },
@@ -48,7 +47,7 @@ const PartnerDisplayModal = React.createClass({
                                 follow the steps below...
                             </p>
                             <ul>
-                                <li>Open <KivaLink secure path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
+                                <li>Open <KivaLink path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
                                 <li>Make sure that "Automatically lend my Kiva Credit" is checked to expose the options.</li>
                                 <li>In the "Partners" area, click the "edit" link so that the huge listing of all active Partners displays.</li>
                                 <li>In Chrome or Firefox, right-click the Auto-Lending page on Kiva and select "Inspect"/"Inspect Element" then once it's open, click on the "Console" tab.</li>

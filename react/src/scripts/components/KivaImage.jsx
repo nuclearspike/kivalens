@@ -20,7 +20,7 @@ const KivaImage = React.createClass({
         var image_dir = (this.props.type == 'square') ? `s${this.props.image_width}` : `w${this.props.image_width}`
 
         //build the URL
-        var image_url = `//www.kiva.org/img/${image_dir}/${image_id}.jpg`;
+        var image_url = `https://www.kiva.org/img/${image_dir}/${image_id}.jpg`;
 
         return (<img {...this.props} alt={alt_text} src={image_url} />)
     }

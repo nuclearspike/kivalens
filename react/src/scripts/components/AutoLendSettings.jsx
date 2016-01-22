@@ -1,7 +1,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Input,Alert,Button} from 'react-bootstrap'
-import {NewTabLink,KivaLink} from '.'
+import {NewTabLink,KivaLink,KLALink} from '.'
 import a from '../actions'
 import s from '../stores/'
 import detect from 'detect-mobile-browser'
@@ -58,7 +58,7 @@ const AutoLendSettings = React.createClass({
         if (typeof chrome == 'undefined')
             probs.push(<li key="1">You are not using Google Chrome Browser. <NewTabLink href="https://www.google.com/chrome/browser/">Download Chrome</NewTabLink>. In order for KivaLens to automate the process of setting your options on Kiva, it requires using a browser extension which is written for Chrome.</li>)
         else if (!setAutoLendPCS)
-            probs.push(<li key="2">You do not have Kiva Lender Assistant (for Chrome) installed. <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US">Install Extension</NewTabLink>.</li>)
+            probs.push(<li key="2">You do not have Kiva Lender Assistant (for Chrome) installed. <KLALink>Install Extension</KLALink>.</li>)
 
         if (mobileCheck) //can't even get to this component currently if mobile.
             probs.push(<li key="3">You are on a mobile device or tablet. Chrome only supports extensions on their desktop/laptop versions of their browser.</li>)
@@ -77,7 +77,7 @@ const AutoLendSettings = React.createClass({
                     </Alert>
                 </If>
                 <p>
-                    Kiva has had <KivaLink secure path="settings/credit">Auto-Lending</KivaLink> tucked away on
+                    Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> tucked away on
                     it's site for years. Use this tab to automatically set your preferences for Sectors,
                     Countries and Partners on Kiva so you can take advantage of KivaLens' portfolio balancing and
                     many additional options for selecting partners that are not included in the Auto-Lend settings.
@@ -91,11 +91,10 @@ const AutoLendSettings = React.createClass({
                     to your selections whenever you want.
                 </p>
                 <p>
-                    Before using this KivaLens feature, make sure <KivaLink secure path="settings/credit">Auto-Lending</KivaLink> is enabled on Kiva.
+                    Before using this KivaLens feature, make sure <KivaLink path="settings/credit">Auto-Lending</KivaLink> is enabled on Kiva.
                 </p>
                 <p>
-                    By continuing, KivaLens will instruct the <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">
-                    Kiva Lender Assistant Chrome Extension</NewTabLink> to:
+                    By continuing, KivaLens will instruct the <KLALink/> to:
                 </p>
                 <ul>
                     <li>Open a new tab to your Kiva Auto-Lending settings, which may require you to log in.</li>

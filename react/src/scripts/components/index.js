@@ -21,7 +21,7 @@ import React from 'react'
 
 const ClickLink = ({onClick,children}) => <a href="#" onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
 const NewTabLink = ({href, title, children}) => <a href={href} onClick={e=>rga.outboundLink({label: href},c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
-const KivaLink = ({path, title, children, secure = false}) => <NewTabLink href={`http${secure ? 's': ''}://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
+const KivaLink = ({path, title, children}) => <NewTabLink href={`https://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
 const LenderLink = ({lender, title, children}) => <KivaLink path={`lender/${lender}?super_graphs=1`} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>
 const LoanLink = ({id, title, children, loan}) => {
     if (loan){
@@ -36,7 +36,9 @@ const EmailLink = ({email, subject, body, title, children}) => {
     if (body) params.push(`body=${encodeURI(body)}`)
     return <NewTabLink href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
 }
-
+const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>}) => {
+    return <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
+}
 //COMPONENTS
 import KLNav from './KLNav.jsx'
 import KLFooter from './KLFooter.jsx'
@@ -54,7 +56,7 @@ import PartnerDisplayModal from './PartnerDisplayModal.jsx'
 import AlertModal from './AlertModal.jsx'
 import AutoLendSettings from './AutoLendSettings.jsx'
 
-export {NewTabLink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
+export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
     KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,

@@ -1,7 +1,7 @@
 'use strict'
 import React from 'react'
 import {Grid} from 'react-bootstrap'
-import {NewTabLink, LenderLink, KivaLink, EmailLink} from '.'
+import {NewTabLink, LenderLink, KivaLink, KLALink, EmailLink} from '.'
 
 const About = React.createClass({
     getInitialState(){
@@ -327,10 +327,8 @@ const About = React.createClass({
                 There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
                 on the Lend tab along with other repayment info, talks to you about things it notices about the loan,
                 details about lenders and teams you hover over, etc. There are also a number of features that KivaLens
-                has that require KLA to work. <NewTabLink
-                href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US"
-                title="Go to Google Chrome WebStore">
-                Check out screenshots, a detailed description and install Kiva Lender Assistant here</NewTabLink> or&nbsp;
+                has that require KLA to work. <KLALink>Check out screenshots, a detailed description and
+                install Kiva Lender Assistant here</KLALink> or&nbsp;
                 <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
                     the source code on github (developers wanted!)</NewTabLink>.
                 <If condition={KLAVersion}><span> You have KLA version {KLAVersion} installed. Chrome does a good job

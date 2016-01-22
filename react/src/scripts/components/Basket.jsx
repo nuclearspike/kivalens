@@ -83,7 +83,7 @@ const Basket = React.createClass({
                 //there's currently a bug on kiva with expired sessions throwing a 404 when adding to basket.
                 // opening a tiny window to kiva starts the session and seems to prevent the 404's from happening.
                 // if kiva fixes the bug, this can just be a submit without a little window and timeout
-                var w = window.open('http://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
+                var w = window.open('https://www.kiva.org/about', "kiva", "width=200, height=100, top=200, left=200")
                 setTimeout(()=> {
                     this.refs.basket_form.submit()
                     w.close()

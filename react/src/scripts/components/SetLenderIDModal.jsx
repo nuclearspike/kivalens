@@ -6,7 +6,7 @@ import {KivaLink} from '.'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {Request} from '../api/kiva'
 
-var lenderIdTester = new RegExp(/^[a-z0-9]*$/i)
+var lenderIdTester = new RegExp(/^[a-z0-9]*$/i) //missing the upper limit of 24 characters
 
 const SetLenderIDModal = React.createClass({
     mixins: [LinkedStateMixin],
@@ -55,7 +55,7 @@ const SetLenderIDModal = React.createClass({
                                     wrapperClassName='col-lg-8'
                                     valueLink={this.linkState('kiva_lender_id')} />
                                     Your Kiva Lender ID is not your email address.&nbsp;
-                                <KivaLink secure path="myLenderId">Click here if you don't know yours</KivaLink>
+                                <KivaLink path="myLenderId">Click here if you don't know yours</KivaLink>
                                 <If condition={checking}>
                                     <Alert>Checking with Kiva...</Alert>
                                 </If>
