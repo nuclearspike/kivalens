@@ -37,14 +37,14 @@ const EmailLink = ({email, subject, body, title, children}) => {
     return <NewTabLink href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
 }
 const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>}) => {
-    return <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
+    return <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
 }
 //COMPONENTS
 import KLNav from './KLNav.jsx'
 import KLFooter from './KLFooter.jsx'
 import LoanListItem from './LoanListItem.jsx'
 import BasketListItem from './BasketListItem.jsx'
-import LoadingLoansModal from './LoadingLoansModal.jsx'
+import LoadingLoansPanel from './LoadingLoansPanel.jsx'
 import BulkAddModal from './BulkAddModal.jsx'
 import KivaImage from './KivaImage.jsx'
 import ChartDistribution from './ChartDistribution.jsx'
@@ -58,7 +58,7 @@ import AutoLendSettings from './AutoLendSettings.jsx'
 
 export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
-    KLNav, KLFooter, LoadingLoansModal, BulkAddModal, LoanListItem, BasketListItem,
+    KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,
     AutoLendSettings, Outdated}

@@ -8,9 +8,7 @@ const About = React.createClass({
         return {KLAVersion: ''}
     },
     componentDidMount(){
-        callKLAFeature('getVersion').done(result => {
-            this.setState({KLAVersion: result.version})
-        })
+        callKLAFeature('getVersion').done(result => this.setState({KLAVersion: result.version}))
     },
     render(){
         let {KLAVersion} = this.state
@@ -19,8 +17,8 @@ const About = React.createClass({
             <h3>What is KivaLens?</h3>
             <p>
                 KivaLens is an alternative way to search for Kiva loans offering a lot of options that Kiva does not.
-                After you've found your loans and put them in your KivaLens basket, you then transfer it to
-                Kiva and complete your loan purchases there.
+                After you've found your loans and put them in your KivaLens basket, you just click a button and the
+                loans will be transferred to Kiva where you'll complete your purchase.
             </p>
 
             <h3>Rebuilt and Rethought</h3>

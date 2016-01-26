@@ -108,11 +108,11 @@ const Basket = React.createClass({
                     </ButtonGroup>
                     <If condition={basket_count == 0}>
                         <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
-                            There are no loans in your basket. To put loans into your basket:
+                            There are no loans in your basket. To add loans to your basket:
                             <ul>
                                 <li>Click the "Add to Basket" button when viewing a loan.</li>
                                 <li>Double-click a loan in the results.</li>
-                                <li>Use the "Bulk Add" button to add many loans to your basket at once.</li>
+                                <li>Use the "Bulk Add" button to add many loans at once.</li>
                             </ul>
                         </Alert>
                     </If>

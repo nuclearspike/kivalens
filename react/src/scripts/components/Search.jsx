@@ -4,7 +4,7 @@ import React from 'react'
 import Reflux from 'reflux'
 import Notification from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
-import {LoanListItem, LoadingLoansModal, BulkAddModal} from '.'
+import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
 import a from '../actions'
 import s from '../stores'
 import InfiniteList from 'react-infinite-list'
@@ -78,7 +78,10 @@ var Search = React.createClass({
                 </If>
                 <If condition={outdatedUrl}>
                     <Alert bsStyle="warning">
-                        <p>The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.</p>
+                        <p>
+                            The link or bookmark you used is outdated. To ensure faster page loading and that you can
+                            always get back to the right place, please bookmark this page.
+                        </p>
                     </Alert>
                 </If>
                 <Col md={4}>
@@ -99,10 +102,11 @@ var Search = React.createClass({
                     </If>
                     <If condition={hasHadLoans && loan_count == 0}>
                         <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
-                            There are no matching loans for your current criteria. Click the "Clear" button to start over.
+                            There are no matching loans for your current criteria. Loosen the criteria, select a
+                            different Saved Search or click the "Clear" button to start over.
                         </Alert>
                     </If>
-                    <LoadingLoansModal/>
+                    <LoadingLoansPanel/>
                     <InfiniteList
                         className="loan_list_container"
                         items={this.state.filtered_loans}

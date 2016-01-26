@@ -6,7 +6,7 @@ import {CycleChild} from '.'
 import a from '../actions'
 
 //this really shouldn't be receiving notice of whether to show from outside. it knows
-const LoadingLoansModal = React.createClass({
+const LoadingLoansPanel = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState(){
         return {progress_label: 'Please Wait...', title: 'Loading Fundraising Loans from Kiva.org', show: !kivaloans.isReady(), error_message: ''}
@@ -86,4 +86,4 @@ const LoadingLoansModal = React.createClass({
     }
 })
 
-export default LoadingLoansModal
+export default LoadingLoansPanel
