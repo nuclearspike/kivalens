@@ -1,7 +1,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Modal,Button,Tabs,Tab} from 'react-bootstrap'
-import {KivaLink,NewTabLink} from '.'
+import {KivaLink,NewTabLink,KLALink} from '.'
 import a from '../actions'
 import s from '../stores/'
 
@@ -13,11 +13,10 @@ const PartnerDisplayModal = React.createClass({
     },
     shouldComponentUpdate(np,{show}){return show},
     show(){
-        this.setState({show: true})
         var partners = kivaloans.filterPartners(s.criteria.syncGetLast(),true,false)
         var ids = partners.select(p => p.id).orderBy(e=>e)
         var names = partners.select(p => `"${p.name}"`).orderBy(e=>e)
-        this.setState({ids,partners,names})
+        this.setState({show: true,ids,partners,names})
     },
     close(){
         this.setState({show: false})
@@ -40,7 +39,7 @@ const PartnerDisplayModal = React.createClass({
                     <Tabs defaultActiveKey={1}>
                         <Tab eventKey={1} title="For Auto-lending">
                             <p>
-                                If you are using Chrome and the <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant-bet/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">Kiva Lender Assistant Chrome Browser Extension</NewTabLink>,
+                                If you are using Chrome and the <KLALink>Kiva Lender Assistant Chrome Browser Extension</KLALink>,
                                 then you can skip this manual process and use the "Auto-Lend" tab which fully automates
                                 the process of synchronizing your Auto-Lending Partners, Countries and Sectors with
                                 what matches your current criteria. To synchronize your partners manually,
@@ -50,8 +49,15 @@ const PartnerDisplayModal = React.createClass({
                                 <li>Open <KivaLink path="settings/credit">Auto-Lending Settings</KivaLink> on Kiva. (Link opens a new tab).</li>
                                 <li>Make sure that "Automatically lend my Kiva Credit" is checked to expose the options.</li>
                                 <li>In the "Partners" area, click the "edit" link so that the huge listing of all active Partners displays.</li>
-                                <li>In Chrome or Firefox, right-click the Auto-Lending page on Kiva and select "Inspect"/"Inspect Element" then once it's open, click on the "Console" tab.</li>
-                                <li>Copy the following code, Paste into the Console input and press "Enter". This will select the partners listed, it will not unselect partners that do not match, you can unselect all of those first using the links on Kiva.</li>
+                                <li>
+                                    In Chrome or Firefox, right-click the Auto-Lending page on Kiva and select
+                                     "Inspect"/"Inspect Element" then once it's open, click on the "Console" tab.
+                                </li>
+                                <li>
+                                    Copy the following code, Paste into the Console input and press "Enter".
+                                    This will select the partners listed, it will not unselect partners that do not
+                                    match, you can unselect all of those first using the links on Kiva.
+                                </li>
                             </ul>
                             <textarea style={sta} value={"["+ ids.join(',') + "].forEach(id=>{var el = $(`input[value=${id}]`)[0]; if (!el) return; el.checked=false; el.click()})"}/>
                         </Tab>

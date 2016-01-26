@@ -15,9 +15,9 @@ const Basket = React.createClass({
         return extend(true, this.generateState(), {showGoodbye: false, refreshing: false})
     },
     componentDidMount(){
-        this.listenTo(a.loans.load.completed,()=>{ this.setState(this.generateState()) })
-        this.listenTo(a.loans.basket.changed,()=>{ this.setState(this.generateState()) })
-        this.listenTo(a.loans.basket.select, id => this.setState({selected_item_id: id}))
+        this.listenTo(a.loans.load.completed, x=> this.setState(this.generateState()) )
+        this.listenTo(a.loans.basket.changed, x=> this.setState(this.generateState()) )
+        this.listenTo(a.loans.basket.select,  id=> this.setState({selected_item_id: id}))
         if (kivaloans.isReady()) this.refresh()
     },
     generateState(){
@@ -102,10 +102,20 @@ const Basket = React.createClass({
         return (
             <div style={{height:'100%', width: '100%'}}>
                 <Col md={4}>
-                    <ButtonGroup justified>
+                    <ButtonGroup justified className="top-only">
                         <Button href="#" key={1} disabled={basket_count == 0} onClick={this.clear}>Empty Basket</Button>
                         <Button href="#" key={3} disabled={!selected_item_id} onClick={this.remove}>Remove Selected</Button>
                     </ButtonGroup>
+                    <If condition={basket_count == 0}>
+                        <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
+                            There are no loans in your basket. To put loans into your basket:
+                            <ul>
+                                <li>Click the "Add to Basket" button when viewing a loan.</li>
+                                <li>Double-click a loan in the results.</li>
+                                <li>Use the "Bulk Add" button to add many loans to your basket at once.</li>
+                            </ul>
+                        </Alert>
+                    </If>
                     <InfiniteList
                         className="loan_list_container"
                         items={basket_items}

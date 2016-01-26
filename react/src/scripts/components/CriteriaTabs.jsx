@@ -735,7 +735,7 @@ const CriteriaTabs = React.createClass({
                                     </li>
                                     <li>
                                         If you plan to use Bulk Add in conjunction with the balancing tools then
-                                        you may also want to look at the "Limit to top" option on the Loan criteria tab.
+                                        you may also want to look at the "Limit to top" option on the Borrower criteria tab.
                                         This will prevent too many from a given Partner/Country/Sector/Activity from
                                         getting into your basket to keep your portfolio from getting lopsided.
                                     </li>

@@ -42,7 +42,7 @@ const LoadingLoansModal = React.createClass({
             window.rga.modalview('/loading')
         }
         return (<If condition={show}>
-            <Panel>
+            <Panel className="not-rounded-top">
                     <Modal.Header>
                         <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>

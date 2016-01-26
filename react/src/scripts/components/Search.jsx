@@ -22,11 +22,11 @@ var Search = React.createClass({
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
         this.listenTo(a.loans.filter.completed, loans => {
-            this.setState({filtered_loans: loans, loan_count: loans.length})
-            if (loans.length > 0) //once it's on it's on.
-                this.should_show_count = true
-            if (this.should_show_count)
+            this.setState({filtered_loans: loans, loan_count: loans.length, })
+            if (kivaloans.isReady()) {
                 this.showNotification(`${loans.length} loans`)
+                this.setState({hasHadLoans: true})
+            }
         })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
@@ -70,7 +70,7 @@ var Search = React.createClass({
     },
     render()  {
         var style = {height:'100%', width: '100%'}
-        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status} = this.state
+        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
         return (
             <div style={style} >
                 <If condition={showBulkAdd}>
@@ -83,18 +83,23 @@ var Search = React.createClass({
                 </If>
                 <Col md={4}>
                     <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
-                    <ButtonGroup justified>
+                    <ButtonGroup justified className="top-only">
                         <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                         <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
                     </ButtonGroup>
                     <If condition={show_secondary_load}>
-                        <Alert style={{marginBottom:'0px'}} bsStyle="warning">
+                        <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
                             More loans are still loading. Carry on. {secondary_load_status}
                         </Alert>
                     </If>
                     <If condition={backgroundResyncState == 'started'}>
-                        <Alert style={{marginBottom:'0px'}} >
-                            Loans loaded from storage. Refreshing...
+                        <Alert className="not-rounded" style={{marginBottom:'0px'}} >
+                            Loans loaded from storage. Continue using the site while the loans are updated...
+                        </Alert>
+                    </If>
+                    <If condition={hasHadLoans && loan_count == 0}>
+                        <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
+                            There are no matching loans for your current criteria. Click the "Clear" button to start over.
                         </Alert>
                     </If>
                     <LoadingLoansModal/>

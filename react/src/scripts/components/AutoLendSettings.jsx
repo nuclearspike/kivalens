@@ -4,7 +4,6 @@ import {Grid,Col,Row,Input,Alert,Button} from 'react-bootstrap'
 import {NewTabLink,KivaLink,KLALink} from '.'
 import a from '../actions'
 import s from '../stores/'
-import detect from 'detect-mobile-browser'
 import {defaultKivaData} from '../api/kiva'
 
 const AutoLendSettings = React.createClass({
@@ -17,9 +16,8 @@ const AutoLendSettings = React.createClass({
         this.receiveCriteria(s.criteria.syncGetLast())
         KLAFeatureCheck(['setAutoLendPCS','getVersion']).done(state => {
             this.setState(state)
-            if (state.getVersion) {
+            if (state.getVersion)
                 chrome.runtime.sendMessage(KLA_Extension, {getVersion: true}, reply => this.setState({KLAversion:reply.version}))
-            }
         })
         var sector_count = defaultKivaData.sectors.length
         var country_count = defaultKivaData.countries.length
