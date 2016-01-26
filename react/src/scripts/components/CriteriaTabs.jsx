@@ -459,7 +459,7 @@ const SliderRow = React.createClass({
 const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
-        return { activeTab: 1, portfolioTab: '', helper_charts: {}, needLenderID: false,
+        return { activeTab: 1, portfolioTab: '', helper_charts: {}, helper_chart_height: 400, needLenderID: false,
              criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false}
     },
     componentDidMount() {
@@ -613,8 +613,8 @@ const CriteriaTabs = React.createClass({
                 data: data.select(d => d.count)
             }]
         }
-
-        var newState = {helper_charts: {}}
+        var helper_chart_height = Math.max(300, Math.min(data.length * 20, 1300))
+        var newState = {helper_charts: {}, helper_chart_height}
         newState.helper_charts[group] = config
         this.setState(newState)
     },
@@ -640,7 +640,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, portfolioTab, displayAtheistOptions} = this.state
+        let {isMobile, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -675,7 +675,7 @@ const CriteriaTabs = React.createClass({
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
                         <If condition={helper_charts.loan}>
-                            <Highcharts style={{height: '800px'}} config={helper_charts.loan}/>
+                            <Highcharts style={{height: `${helper_chart_height}px`}} config={helper_charts.loan}/>
                         </If>
                     </Col>
                 </Tab>
@@ -700,7 +700,7 @@ const CriteriaTabs = React.createClass({
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
                         <If condition={helper_charts.partner}>
-                            <Highcharts style={{height: '600px'}} config={helper_charts.partner} />
+                            <Highcharts style={{height: `${helper_chart_height}px`}} config={helper_charts.partner} />
                         </If>
                     </Col>
                 </Tab>

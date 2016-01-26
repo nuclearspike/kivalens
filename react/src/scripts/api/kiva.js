@@ -52,21 +52,21 @@ const getUrl = function(url,parseJSON){
 
 //turns {json: 'object', app_id: 'com.me'} into ?json=object&app_id=com.me
 function serialize(obj, prefix) {
-    var str = [];
+    var str = []
     for (var p in obj) {
         if (obj.hasOwnProperty(p)) {
             var k = prefix ? prefix + "[" + p + "]" : p,
-                v = obj[p];
+                v = obj[p]
             str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v));
         }
     }
     return str.join("&");
 }
 
-var api_options = {}
+var api_options = {max_concurrent: 8}
 
 function setAPIOptions(options){
-    extend(api_options, {max_concurrent: 8}, options)
+    extend(api_options, options)
     if (api_options.max_concurrent)
         sem_one.capacity = api_options.max_concurrent
 }
@@ -141,8 +141,7 @@ class Request {
     //fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
     static get(path, params){
         params = extend({}, params, {app_id: api_options.app_id})
-        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true)
-            .fail(e => cl(e) )
+        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true).fail(e => cl(e) )
     }
 
     //semaphored access to kiva api to not overload it. also, it handles collections.
@@ -150,7 +149,7 @@ class Request {
         var def = Deferred()
         sem_one.take(function(){
             this.get(url, params)
-                .always(()=> sem_one.leave())
+                .always(x => sem_one.leave())
                 .done(def.resolve)
                 .fail(def.reject)
                 .progress(def.notify)
@@ -189,6 +188,7 @@ class ResultProcessors {
         return loans.select(ResultProcessors.unprocessLoan) //where(loan => loan.kl_downloaded == undefined) ??
     }
 
+    //remove any KivaLens-added fields/functions
     static unprocessLoan(loan){
         loan = extend(true, {}, loan) //make a copy, strip it out
         Object.keys(loan).where(f=>f.indexOf('kl_') == 0).forEach(field => delete loan[field])
@@ -211,7 +211,7 @@ class ResultProcessors {
             }
         }
 
-        var addIt = { kl_downloaded: new Date() }
+        var addIt = { kl_processed: new Date() }
         addIt.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
         addIt.kl_posted_date = new Date(loan.posted_date)
         addIt.kl_newest_sort = addIt.kl_posted_date.getTime()
@@ -242,11 +242,6 @@ class ResultProcessors {
 
             use_arr = processText(loan.use, common_use)
             addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
-            addIt.kl_final_repayment = (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) ? new Date(loan.terms.scheduled_payments.last().due_date) : null
-
-            var today = Date.today()
-            if (addIt.kl_final_repayment)//when looking at really old loans, can be null
-                addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
 
             addIt.kl_age = getAge(loan.description.texts.en)
 
@@ -256,24 +251,52 @@ class ResultProcessors {
 
             addIt.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
+
+            ///REPAYMENT STUFF: START
             var amount_50 = loan.loan_amount  * 0.5
             var amount_75 = loan.loan_amount * 0.75
             var running_total = 0
+            addIt.kl_repayments = []
 
-            //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
-            loan.terms.scheduled_payments.groupBySelectWithSum(p=>p.due_date, p=>p.amount).some(payment => {
-                //there's got to be a more accurate algorithm to handle this efficiently...
-                running_total += payment.sum
-                if (!addIt.kl_half_back && running_total >= amount_50) {
-                    addIt.kl_half_back = new Date(payment.name)
-                    addIt.kl_half_back_actual = (running_total * 100) / loan.loan_amount
+            if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) {
+                var today = Date.today()
+
+                var repayments = loan.terms.scheduled_payments.groupBySelectWithSum(p=>new Date(p.due_date), p=>p.amount).select(p => ({
+                    date: p.name,
+                    display: p.name.toString("MMM-yyyy"),
+                    amount: p.sum
+                }))
+                var nextDate = new Date(Math.min(Date.next().month().set({day: 1}), repayments.first().date))
+                var lastDate = repayments.last().date
+                while (nextDate <= lastDate) {
+                    var displayToTest = nextDate.toString("MMM-yyyy")
+                    var repayment = repayments.first(r => r.display == displayToTest)
+                    if (!repayment)
+                        repayments.push({date: new Date(nextDate.getTime()), display: displayToTest, amount: 0})
+                    nextDate = nextDate.next().month().set({day: 1})
                 }
-                if (running_total >= amount_75){
-                    addIt.kl_75_back = new Date(payment.name)
-                    addIt.kl_75_back_actual = (running_total * 100) / loan.loan_amount
-                    return true //quit
-                }
-            })
+                addIt.kl_repayments = repayments.orderBy(p=>p.date).skipWhile(p=>p.amount==0)
+
+                //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
+                addIt.kl_repayments.forEach(payment => {
+                    //there's got to be a more accurate algorithm to handle this efficiently...
+                    running_total += payment.amount
+                    payment.percent = (running_total * 100) / loan.loan_amount
+                    if (!addIt.kl_half_back && running_total >= amount_50) {
+                        addIt.kl_half_back = payment.date
+                        addIt.kl_half_back_actual = (running_total * 100) / loan.loan_amount
+                    }
+                    if (!addIt.kl_75_back && running_total >= amount_75) {
+                        addIt.kl_75_back = payment.date
+                        addIt.kl_75_back_actual = (running_total * 100) / loan.loan_amount
+                    }
+                })
+                addIt.kl_final_repayment =  addIt.kl_repayments.last().date
+                if (addIt.kl_final_repayment)//when looking at really old loans, can be null
+                    addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
+
+            }
+            ///REPAYMENT STUFF: END
 
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])

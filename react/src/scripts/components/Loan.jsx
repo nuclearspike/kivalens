@@ -26,25 +26,25 @@ const NoUpdate = React.createClass({
 const RepaymentGraphs= React.createClass({
     getInitialState(){
         let {loan} = this.props
-        this.ensureRepaymentsGraph(loan)
-        return {config: this.produceConfig(loan)}
+        return {loan, config: this.produceConfig(loan)}
     },
-    shouldComponentUpdate({loan}){return (loan.id != this.props.loan.id)},
+    //shouldComponentUpdate({loan}){return (loan.id != this.props.loan.id)},
     componentWillReceiveProps({loan}){this.rebuildGraph(loan)},
     rebuildGraph(loan){
-        this.ensureRepaymentsGraph(loan)
-        this.setState({config: this.produceConfig(loan)})
+        this.setState({loan, config: this.produceConfig(loan)})
     },
     ensureRepaymentsGraph(loan){
         if (loan.kl_repay_categories || !loan.terms.scheduled_payments) return
-        var payments = loan.terms.scheduled_payments.select(payment => ({due_date: new Date(payment.due_date).toString("MMM-yyyy"), amount: payment.amount}))
-        var grouped_payments     = payments.groupBy(p => p.due_date).map(g => { return {due_date: g[0].due_date, amount: g.sum(r => r.amount)} })
-        loan.kl_repay_categories = grouped_payments.select(payment => payment.due_date)
-        loan.kl_repay_data       = grouped_payments.select(payment => payment.amount)
+        loan.kl_repay_categories = loan.kl_repayments.select(payment => payment.display)
+        loan.kl_repay_data       = loan.kl_repayments.select(payment => payment.amount)
+        loan.kl_repay_percent    = loan.kl_repayments.select(payment => payment.percent)
     },
     produceConfig(loan){
+        this.ensureRepaymentsGraph(loan)
         var result = {
-            chart: {type: 'bar',
+            chart: {
+                alignTicks: false,
+                type: 'bar',
                 animation: false,
                 renderTo: 'graph_container'
             },
@@ -53,39 +53,64 @@ const RepaymentGraphs= React.createClass({
                 categories: loan.kl_repay_categories,
                 title: {text: null}
             },
-            yAxis: {
-                min: 0,
-                dataLabels: {enabled: false},
-                labels: {overflow: 'justify'},
-                title: {text: 'USD'}
-            },
+            yAxis: [{
+                    min: 0,
+                    dataLabels: {enabled: false},
+                    labels: {overflow: 'justify'},
+                    title: {text: 'USD'}
+                },
+                {
+                    min: 0,
+                    max: 100,
+                    dataLabels: {enabled: false},
+                    labels: {overflow: 'justify'},
+                    title: {text: 'Percent'}
+                }],
             tooltip: {
-                valueDecimals: 2,
-                valueSuffix: ' USD'
+                valueDecimals: 2
             },
             plotOptions: {
                 bar: {
                     dataLabels: {
                         enabled: true,
-                        format: '${y:.2f}'
+                        valueDecimals: 2,
+                        format: '${y:.2f} USD'
+                    }
+                },
+                area: {
+                    marker: {enabled: false},
+                    dataLabels: {
+                        enabled: false,
+                        valueDecimals: 0,
+                        format: '{y:.0f}%'
                     }
                 }
             },
             legend: {enabled: false},
             credits: {enabled: false},
             series: [{
+                type: 'column',
                 animation: false,
+                zIndex: 6,
                 name: 'Repayment',
                 data: loan.kl_repay_data
+            }, {
+                type: 'area',
+                animation: false,
+                yAxis: 1,
+                zIndex: 5,
+                name: 'Percentage',
+                data: loan.kl_repay_percent
             }]
         }
 
         return result
     },
     render(){
-        let {loan} = this.props
-        return <Col key="graph_container" lg={4} style={{height: '500px'}} id='graph_container'>
-            <Highcharts config={this.state.config} />
+        let {loan, config} = this.state
+        var height = Math.max(400, Math.min(loan.kl_repay_categories.length * 50, 1000))
+        return <Col key="graph_container" lg={4} id='graph_container'>
+            <Highcharts style={{height: `${height}px`}} config={config} />
             <dl className="dl-horizontal">
                 <dt>Interval</dt><dd>{loan.terms.repayment_interval}</dd>
                 <dt>{Math.round(loan.kl_half_back_actual)}% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>

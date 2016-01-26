@@ -304,7 +304,7 @@ const About = React.createClass({
                 Kiva Lens is now open-source, so feel free to <EmailLink subject="KivaLens Developer">email
                 me</EmailLink> about
                 working on it. It uses React, Reflux, react-bootstrap, gulp,
-                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, jquery and more. You
+                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts and more. You
                 can check out
                 the source code (in progress)
                 at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github
