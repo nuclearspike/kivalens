@@ -93,7 +93,7 @@ const Options = React.createClass({
                                 fundraising loans that are already in your portfolio to prevent accidentally
                                 lending to the same borrower more than once.</li>
                             <li><b>Portfolio Balancing:</b> On the "Your Portfolio" Criteria tab, KivaLens will pull
-                                summary data of your portfolio for Partners, Countries, Sectors and Activities
+                                public summary data of your portfolio for Partners, Countries, Sectors and Activities
                                 so that you can exclude or include loans that match your criteria (ex: only find
                                 Sectors that aren't like any in your total portfolio to collect them all
                                 OR hide Partners that have more than 5% of your active portfolio

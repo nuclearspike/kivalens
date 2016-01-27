@@ -675,7 +675,7 @@ const CriteriaTabs = React.createClass({
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
                         <If condition={helper_charts.loan}>
-                            <Highcharts style={{height: `${helper_chart_height}px`}} config={helper_charts.loan}/>
+                            <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}} config={helper_charts.loan}/>
                         </If>
                     </Col>
                 </Tab>
@@ -700,7 +700,7 @@ const CriteriaTabs = React.createClass({
 
                     <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
                         <If condition={helper_charts.partner}>
-                            <Highcharts style={{height: `${helper_chart_height}px`}} config={helper_charts.partner} />
+                            <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}} config={helper_charts.partner} />
                         </If>
                     </Col>
                 </Tab>
