@@ -87,11 +87,11 @@ const About = React.createClass({
                     New Sort! You still have the ability to sort by final repayment date, but I've added a new sort
                     that will sort by when the loan is scheduled to repay -- by percentages. Let me explain. Let's
                     say you have 3 loans, all with a final repayment date 3 months away. The new sort will prioritize
-                    which pays more sooner. So, let's say loan {'#'}1 has a equal amount you get back each month.
-                    {'#'}2 has a larger amount on the first repayment then by the final it's very little and {'#'}3
+                    which pays more sooner. So, let's say loan #1 has a equal amount you get back each month.
+                    #2 has a larger amount on the first repayment then by the final it's very little and #3
                     only has one single repayment at the very end. The new sorts will prioritize by how quickly you
-                    get 50%, then 75% then 100% back. So for the loans above, {'#'}2 would be the first, then {'#'}1,
-                    then {'#'}3. With pre-disbursed loans that start paying back right away, the first repayment to
+                    get 50%, then 75% then 100% back. So for the loans above, #2 would be the first, then #1,
+                    then #3. With pre-disbursed loans that start paying back right away, the first repayment to
                     the lender can actually be a combination of multiple repayments made by the borrower. Using this
                     sort will help find the loans that will allow the quickest turnaround for your money, if that's
                     what your goal is.
@@ -150,9 +150,8 @@ const About = React.createClass({
                 <li>
                     Always Fresh! KivaLens subscribes to the same live data-stream
                     that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new
-                    loan
-                    posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your browser
-                    are kept exactly up-to-date without needing to reload the page. These updates do not cause
+                    loan posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your
+                    browser are kept exactly up-to-date without needing to reload the page. These updates do not cause
                     your criteria to re-filter, but you'll see the impact of any new loans, funded loans or lending
                     activity altering the funded amounts the next time you return to the Criteria tab or alter your
                     filter.
@@ -167,7 +166,8 @@ const About = React.createClass({
                 <li>
                     Saved Searches: Save your favorite searches to quickly jump back to them. The site will start
                     you out with some default saved searches to give you an idea of how to use them. As you view
-                    loan details, the "Matches" line will show you which Saved Searches have that loan in their results.
+                    loan details, the "Saved Searches" line will show you which Saved Searches have that
+                    loan in their results.
                 </li>
 
                 <li>
@@ -179,10 +179,32 @@ const About = React.createClass({
 
                 <li>
                     Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too
-                    many
-                    active loans from only a few partners, or if you want to find more sectors like your favorites, use
-                    the Portfolio Balancing tools to help you accomplish your lending goals. Just make sure you have
-                    your Lender ID filled out on the Options tab first.
+                    many active loans from only a few partners, or if you want to find more sectors like your
+                    favorites, use the Portfolio Balancing tools to help you accomplish your lending goals.
+                    Just make sure you have your Lender ID filled out on the Options tab first.
+                </li>
+
+                <li>
+                    Auto-Lending Preferences: Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> for
+                    years but the options are a bit anemic. Since browser extensions have far more permissions than
+                    a web page does, KivaLens is able to tell the extension to alter your auto-lending settings on Kiva.
+                    KivaLens offers extensive partner criteria as well as portfolio balancing for Sector, Country and
+                    Activity. When you use KivaLens in conjunction with <KLALink/> you can easily set your auto-lending
+                    preferences and take full advantage of Kiva's feature.
+                </li>
+
+                <li>
+                    Notifications: When you have the <KLALink/> installed, you can set your Saved Searches to play a
+                    sound if a new loan is added. There are some types of loans (especially the ultra-short term loans)
+                    that can fully fund within less than a 1-2 hours. Install the extension, set your criteria,
+                    select that you want to be notified on the menu option on the Saved Search menu, leave KivaLens
+                    open and you won't even have to have the browser showing and KivaLens will tell the extension to
+                    display a notification visible outside of the browser and play a sound. The loan must be posted
+                    with all criteria matching or the notification won't fire. So, a notification set up with
+                    restrictions for funding amounts that don't include 0 would never fire. Tags on loans are added
+                    by other users after the loan has already posted, so any criteria with Tags won't fire. Filters
+                    with expiration, $/hour or details that change after the loan posts will also not ever get a
+                    notification.
                 </li>
             </ul>
 
@@ -193,11 +215,12 @@ const About = React.createClass({
             </p>
             <ul className='spacedList'>
                 <li>
-                    <b>Institutional Risk:</b> The "Risk Rating" for a partner is based on Kiva's assessment on whether
-                    or not
-                    a partner will fail (institutional default) based on a huge formula as well as some good old
-                    fashioned
-                    gut feelings. The higher the star rating, the less likely it is for the partner to fail.
+                    <b>Institutional Risk:</b> The "Risk Rating" for a partner is based on Kiva's assessment on how
+                    likely it is that a partner will fail (institutional default) based on a huge formula as well
+                    as some good old-fashioned gut feelings. Example: Some MFIs are running their business from
+                    a spreadsheet while others have a comprehensive software package (MIS). There are many things
+                    that together give an indication of how sustainable they are over time.
+                    The higher the star rating, the less likely it is for the partner to fail.
                     This is not any indication on whether or not the borrower is risky and is no guarantee.
                 </li>
                 <li>
@@ -232,22 +255,21 @@ const About = React.createClass({
                 </li>
                 <li>
                     <b>Profitability:</b> When I initially wrote KivaLens (prior to working at Kiva), I incorrectly
-                    assumed
-                    that a partner with a negative profitability naturally meant they were at greater risk for
-                    institutional collapse and thus causing all outstanding loans to fail. This is not always true!
-                    There are a number of partners that receive money from outside sources and this money is not
-                    factored in when calculating their profitability. So, just because your borrower is getting a
-                    loan from a partner that has a large negative profit, they're necessarily more likely to collapse
-                    and you'll lose your money. It's not that simple. However, if they are not receiving money from
-                    outside
-                    sources and are operating a loss for extended periods, they may be at higher risk of institutional
-                    default. Since there is no way to tell which MFIs are or are not receiving money from outside
-                    sources, the "safest" bet is to choose partners with positive profitability.
+                    assumed that a partner with a negative profitability naturally meant they were at greater risk for
+                    institutional collapse and thus causing all outstanding loans to fail. While this is not only a
+                    logical conclusion, it is also stated as a risk for negative profitability on Kiva's site.
+                    However, this is not always true. There are a number of partners that receive money from
+                    outside sources where this money is not factored in when calculating their profitability.
+                    So, just because your borrower is getting a loan from a partner that has a large negative profit,
+                    they're not necessarily more likely to collapse; it's not that simple.
+                    However, if they are not receiving money from outside sources and are operating a loss
+                    for extended periods, they may be at higher risk of institutional default. Since there is no
+                    way to tell which MFIs are or are not receiving money from outside sources, the "safest"
+                    bet is to choose partners with positive profitability.
                 </li>
                 <li>
                     <b>Group Loans:</b> Due to the high variability with how group loans are organized by partner, you
-                    cannot
-                    necessarily make assumptions about group loans versus individual. Some partners group riskier
+                    cannot necessarily make assumptions about group loans versus individual. Some partners group riskier
                     borrowers together so they can prove themselves and graduate to individual loans and the grouping
                     is arbitrary just to make repayment collections simpler to lower the cost of servicing the loan.
                     Some groups are "solidarity" groups where group members have committed to pay for individuals who
@@ -262,16 +284,14 @@ const About = React.createClass({
                     they are more likely to repay. Repeat borrowing does not necessarily mean they are in a cycle
                     of debt, but instead that they've shown that their previous loan was successful in improving
                     their business that another (usually larger) loan can help them to continue to grow their business.
-                    Use the {'#'}RepeatBorrower tag search to help find them.
+                    Use the #RepeatBorrower tag search to help find them.
 
                     KivaLens user (<LenderLink lender='thomas85717133'>Thomas</LenderLink>) has
-                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots" target="_blank">data
-                    snapshots</NewTabLink> and
-                    compared repayment rates for ended loans tagged {'#'}FirstLoan vs {'#'}RepeatBorrower and found
-                    loans
-                    tagged with {'#'}RepeatBorrower had a repayment rate of 99.16% vs loans tagged with {'#'}FirstLoan
-                    of 98.55% (using data current as of Dec 8, 2015). To get more information and see the code used to
-                    calculate,
+                    used Kiva's <NewTabLink href="http://build.kiva.org/docs/data/snapshots">data
+                    snapshots</NewTabLink> and compared repayment rates for ended loans tagged #FirstLoan vs
+                    #RepeatBorrower and found loans tagged with #RepeatBorrower had a repayment rate of
+                    99.16% vs loans tagged with #FirstLoan of 98.55% (using data current as of Dec 8, 2015).
+                    To get more information and see the code used to calculate,
                     check out <KivaLink path="team/kivalens/messages?msgID=443715#msg_443715"
                                         title="View KivaLens team message board">this message</KivaLink>.
                 </li>
