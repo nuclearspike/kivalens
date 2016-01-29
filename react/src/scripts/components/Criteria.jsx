@@ -26,8 +26,8 @@ const Criteria = React.createClass({
         this.setState(newState)
         //a.loans.filter() //todo: temp??? graphs disappearing.
     },
-    criteriaReloaded(crit){
-        this.setState({cycle: Math.random().toString(), criteria: crit})  //HACK!!
+    criteriaReloaded(criteria){
+        this.setState({criteria})
     },
     clearCriteria(){
         a.criteria.startFresh()
@@ -41,13 +41,30 @@ const Criteria = React.createClass({
     },
     toggleGraph(){ this.setState({ show_graphs: !this.state.show_graphs }) },
     render() {
-        let {lastSaved,saved_searches,canNotify} = this.state
+        let {lastSaved,saved_searches,canNotify,show_graphs} = this.state
         let shouldNotifyOnNew = false
         if (lastSaved) {
             var c = s.criteria.syncGetByName(lastSaved)
             if (c)
                 shouldNotifyOnNew = c.notifyOnNew
         }
+
+        //SAVED SEARCH MENU ITEMS
+        var menuItems = saved_searches.map((saved,i) => {
+            return <MenuItem eventKey={i} key={i} className={cx({'menu_selected': lastSaved == saved})} onClick={a.criteria.switchToSaved.bind(this, saved)}>{saved}</MenuItem>
+        })
+        if (menuItems.length) {
+            menuItems.push(<MenuItem divider />)
+        }
+        if (lastSaved) {
+            if (canNotify)
+                menuItems.push(<MenuItem eventKey={1000} key='notify_on_new' onClick={this.toggleNotify.bind(this, lastSaved)}>{shouldNotifyOnNew ? 'Do NOT ':''}Notify on New for '{lastSaved}'</MenuItem>)
+            menuItems.push(<MenuItem eventKey={1001} key='save_current' onClick={s.criteria.syncSaveLastByName.bind(this, lastSaved)}>Re-save '{lastSaved}'</MenuItem>)
+            menuItems.push(<MenuItem eventKey={1002} key='delete_saved' onClick={s.criteria.syncDelete.bind(this, lastSaved)}>Delete '{lastSaved}'</MenuItem>)
+            menuItems.push(<MenuItem divider />)
+        }
+        menuItems.push(<MenuItem eventKey={1003} key='save_current_as' onClick={this.promptForName}>Save Current Criteria As...</MenuItem>)
+
         return (
             <div>
                 <h1 style={{marginTop:'0px'}}>Criteria
@@ -55,29 +72,11 @@ const Criteria = React.createClass({
                         <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button>
                         <Button onClick={this.clearCriteria}>Clear</Button>
                         <DropdownButton title={`Saved Search ${lastSaved ? `'${lastSaved}'` : ''}`} id='saved_search' pullRight>
-                            <For each='saved' index='i' of={saved_searches}>
-                                <MenuItem eventKey={i} key={i} className={cx({'menu_selected': lastSaved == saved})} onClick={a.criteria.switchToSaved.bind(this, saved)}>{saved}</MenuItem>
-                            </For>
-                            <If condition={saved_searches.length > 0}>
-                                <MenuItem divider />
-                            </If>
-                            <If condition={lastSaved && canNotify}>
-                                <MenuItem eventKey={1000} key='notify_on_new' onClick={this.toggleNotify.bind(this, lastSaved)}>{shouldNotifyOnNew ? 'Do NOT ':''}Notify on New for '{lastSaved}'</MenuItem>
-                            </If>
-                            <If condition={lastSaved}>
-                                <MenuItem eventKey={1001} key='save_current' onClick={s.criteria.syncSaveLastByName.bind(this, lastSaved)}>Re-save '{lastSaved}'</MenuItem>
-                            </If>
-                            <If condition={lastSaved}>
-                                <MenuItem eventKey={1002} key='delete_saved' onClick={s.criteria.syncDelete.bind(this, lastSaved)}>Delete '{lastSaved}'</MenuItem>
-                            </If>
-                            <If condition={lastSaved}>
-                                <MenuItem divider />
-                            </If>
-                            <MenuItem eventKey={1003} key='save_current_as' onClick={this.promptForName}>Save Current Criteria As...</MenuItem>
+                            {menuItems}
                         </DropdownButton>
                     </ButtonGroup>
                 </h1>
-                <If condition={this.state.show_graphs}>
+                <If condition={show_graphs}>
                     <ChartDistribution/>
                 </If>
                 <CriteriaTabs criteria='pass a cursor'/>

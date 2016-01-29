@@ -44,9 +44,7 @@ const BulkAddModal = React.createClass({
         this.close()
     },
     render() {
-        return (
-            <div className="static-modal">
-                <Modal show={this.state.show} onHide={this.close}>
+        return (<Modal show={this.state.show} onHide={this.close}>
                     <Modal.Header closeButton>
                         <Modal.Title>Bulk Add</Modal.Title>
                     </Modal.Header>
@@ -67,9 +65,7 @@ const BulkAddModal = React.createClass({
                     <Modal.Footer>
                         <Button bsStyle="primary" onClick={this.doIt}>Add a bunch!</Button><Button onClick={this.close}>Close</Button>
                     </Modal.Footer>
-                </Modal>
-            </div>
-        );
+                </Modal>)
     }
 })
 

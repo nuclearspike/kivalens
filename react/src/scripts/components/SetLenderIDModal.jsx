@@ -6,7 +6,7 @@ import {KivaLink} from '.'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {Request} from '../api/kiva'
 
-var lenderIdTester = new RegExp(/^[a-z0-9]*$/i) //missing the upper limit of 24 characters
+var lenderIdTester = new RegExp(/^[a-z0-9]{0,24}$/i)
 
 const SetLenderIDModal = React.createClass({
     mixins: [LinkedStateMixin],
@@ -26,7 +26,7 @@ const SetLenderIDModal = React.createClass({
         this.setState({checking: true, failed: false})
         Request.get(`lenders/${lid}.json`)
             .always(x=>this.setState({checking: false}))
-            .fail(x => this.setState({failed: true}))
+            .fail(x=>this.setState({failed: true}))
             .done(x=>{
                 kivaloans.setLender(lid)
                 this.props.onSet(lid)
@@ -39,7 +39,7 @@ const SetLenderIDModal = React.createClass({
     },
     render() {
         let {show, checking, failed, badRegEx} = this.state
-        return (<Modal show={show} onHide={()=>this.onHide()}>
+        return (<Modal show={show} onHide={this.onHide}>
                     <Modal.Header closeButton>
                         <Modal.Title>Set Kiva Lender ID</Modal.Title>
                     </Modal.Header>
@@ -60,7 +60,7 @@ const SetLenderIDModal = React.createClass({
                                     <Alert>Checking with Kiva...</Alert>
                                 </If>
                                 <If condition={failed || badRegEx}>
-                                    <Alert bsStyle="danger">Invalid Lender ID {badRegEx? ': Only letters and numbers allowed.': ''}</Alert>
+                                    <Alert bsStyle="danger">Invalid Lender ID {badRegEx? ': Only letters and numbers up to 24 characters allowed.': ''}</Alert>
                                 </If>
                             </Col>
                         </Row>

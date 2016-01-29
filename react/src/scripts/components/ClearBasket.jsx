@@ -11,7 +11,7 @@ const ClearBasket = React.createClass({
         a.loans.basket.clear()
         location.replace(`http://${location.host}${location.pathname}#/search`)
     },
-    render() {return <div></div>}
+    render() {return <div><span>One moment...</span></div>}
 })
 
 export default ClearBasket
