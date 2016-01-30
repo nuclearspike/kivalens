@@ -16,9 +16,10 @@ const Teams = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
         this.graph_type = ''
+        this.querying = 0
         this.checkedTeams = []
         this.teamData = {} //hmm
-        return {teams:[],config:{}}
+        return {teams:[],config:{},querying:0}
     },
     componentDidMount() {
         //this.listenTo(loanActions.filter.completed, this.redoCharts)
@@ -26,9 +27,9 @@ const Teams = React.createClass({
         if (!lender_id) {
             this.setState({error: "You do not have your Kiva Lender ID set on the Options page."})
         } else {
-            this.setState({alert:"Loading teams..."})
+            this.setState({loadingTeams:true})
             new LenderTeams(lender_id).start()
-                .always(x => this.setState({alert:null}))
+                .always(x => this.setState({loadingTeams:false}))
                 .done(teams => this.setState({teams}))
         }
     },
@@ -57,11 +58,16 @@ const Teams = React.createClass({
             this.produceChart()
             return
         }
-        getUrl(`${location.protocol}//${location.host}/proxy/kiva/ajax/getGraphData?graphName=${graphName}&id=${teamId}`, true).done(result=>{
-            if (!this.teamData[teamId]) this.teamData[teamId] = {}
-            this.teamData[teamId][graphName] = result.graphData.select(d=>([parseInt(d[0]),d[1]]))
-            this.produceChart()
-        }).fail(error => this.setState({error}))
+        this.querying++
+        this.setState({querying: this.querying})
+        getUrl(`${location.protocol}//${location.host}/proxy/kiva/ajax/getGraphData?graphName=${graphName}&id=${teamId}`, true)
+            .done(result=>{
+                this.querying--
+                this.setState({querying: this.querying})
+                if (!this.teamData[teamId]) this.teamData[teamId] = {}
+                this.teamData[teamId][graphName] = result.graphData.select(d=>([parseInt(d[0]),d[1]]))
+                this.produceChart()
+            }).fail(error => this.setState({error}))
     },
     produceChart(){
         var series = []
@@ -104,25 +110,25 @@ const Teams = React.createClass({
         this.setState({config})
     },
     render() {
-        let {error,alert,teams,config} = this.state
+        let {error,alert,teams,config,querying,loadingTeams} = this.state
         if (error)
             return <Grid><Alert bsStyle="danger">{error}</Alert></Grid>
+
+        var yt_message = querying > 0 ? ` - Waiting on ${querying} results...`: ''
+        if (loadingTeams && !yt_message)
+            yt_message = '- Loading teams...'
 
         return (<Grid>
                 <h1>Compare Teams - Beta</h1>
                 <p>There are still many improvements that can be made to this feature. Contact me (see About) with ideas.</p>
                 <Col md={4}>
-                    <If condition={alert}>
-                        <Alert>{alert}</Alert>
-                    </If>
-
                     <form ref="graph_options" name="graph_options" action="">
                         <Panel header="Compare">
                             <Input type="radio" label="Membership"  name="graph_type" onChange={this.refigureChart} value="team_new_users" defaultChecked={true} />
                             <Input type="radio" label="Loan Count"  name="graph_type" onChange={this.refigureChart} value="team_loan_count" />
                             <Input type="radio" label="Loan Amount" name="graph_type" onChange={this.refigureChart} value="team_loan_total" />
                         </Panel>
-                        <Panel header="Your Teams">
+                        <Panel header={`Your Teams ${yt_message}`}>
                             <ul style={{listStyleType: 'none'}}>
                                 <For each="team" index="i" of={teams}>
                                     <li key={i}><Input type="checkbox" name="teams[]" label={team.name} value={team.id} onChange={this.refigureChart} /></li>
