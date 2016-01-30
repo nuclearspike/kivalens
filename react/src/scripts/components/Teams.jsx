@@ -93,7 +93,7 @@ const Teams = React.createClass({
             tooltip: {
                 formatter() {
                     return  '<b>' + this.series.name +'</b><br/>' + new Date(this.x).toString('MMM d, yyyy')
-                        + ', ' + numeral(this.y).format('0,0')
+                        + ' - ' + numeral(this.y).format('0,0')
                 }
             },
             legend: {enabled: true},
