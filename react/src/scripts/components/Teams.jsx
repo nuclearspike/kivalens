@@ -4,6 +4,7 @@ import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Alert,Input,Panel} from 'react-bootstrap'
 import {Request,getUrl,LenderTeams} from '../api/kiva'
+import numeral from 'numeral'
 
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
 
@@ -83,21 +84,21 @@ const Teams = React.createClass({
             xAxis: {
                 type: 'datetime',
                 dateTimeLabelFormats: {
-                    month: '%e. %b',
-                    year: '%b %Y'
+                    month: '%b `%y',
+                    year: '%b `%y'
                 },
-                title: {
-                    text: 'Date'
-                }
+                title: {text: 'Date'}
             },
             yAxis: {title: {text: ''}},
+            tooltip: {
+                formatter() {
+                    return  '<b>' + this.series.name +'</b><br/>' + new Date(this.x).toString('MMM d, yyyy')
+                        + ', ' + numeral(this.y).format('0,0')
+                }
+            },
             legend: {enabled: true},
             credits: {enabled: false},
-            plotOptions: {
-                    line: {
-                        animation: false
-                    }
-                },
+            plotOptions: {line: {animation: false}},
             series
         }
         this.setState({config})
