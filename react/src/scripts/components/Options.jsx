@@ -104,6 +104,8 @@ const Options = React.createClass({
                                 to click the "Return to 3rd party app" at the end of your Kiva
                                 checkout (which will clear your basket) or manually clear the basket when you come back
                                 for loans that are still fundraising.</li>
+                            <li><b>Team Comparision:</b> On the "Team" page, KivaLens will allow you to compare membership, loan count and total
+                                lending on all of the teams you're on.</li>
                         </ul>
 
                     </Panel>

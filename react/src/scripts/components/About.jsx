@@ -359,4 +359,10 @@ const About = React.createClass({
     }
 })
 
+/**
+ * Projects I worked on at Kiva: Super Graphs for lenders and teams, /Live, Zip, Leader boards, Message board search
+ * and time-line, Home page, Estimated Repayments,
+ *
+ */
+
 export default About

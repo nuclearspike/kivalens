@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Reflux from 'reflux'
-import {Grid,Col,Row,Alert,Input} from 'react-bootstrap'
+import {Grid,Col,Row,Alert,Input,Panel} from 'react-bootstrap'
 import {Request,getUrl,LenderTeams} from '../api/kiva'
 
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
@@ -108,24 +108,26 @@ const Teams = React.createClass({
             return <Grid><Alert bsStyle="danger">{error}</Alert></Grid>
 
         return (<Grid>
-                <h1>Teams - Beta</h1>
+                <h1>Compare Teams - Beta</h1>
+                <p>There are still many improvements that can be made to this feature. Contact me (see About) with ideas.</p>
                 <Col md={4}>
                     <If condition={alert}>
                         <Alert>{alert}</Alert>
                     </If>
 
-                    Compare:
                     <form ref="graph_options" name="graph_options" action="">
-                        <Input type="radio" label="Membership" name="graph_type" onChange={this.refigureChart} value="team_new_users" defaultChecked={true} />
-                        <Input type="radio" label="Loan Count" name="graph_type" onChange={this.refigureChart} value="team_loan_count" />
-                        <Input type="radio" label="Loan Amount" name="graph_type" onChange={this.refigureChart} value="team_loan_total" />
-
-                        <p>Your Teams</p>
-                        <ul style={{listStyleType: 'none'}}>
-                            <For each="team" index="i" of={teams}>
-                                <li key={i}><Input type="checkbox" name="teams[]" label={team.name} value={team.id} onChange={this.refigureChart} /></li>
-                            </For>
-                        </ul>
+                        <Panel header="Compare">
+                            <Input type="radio" label="Membership"  name="graph_type" onChange={this.refigureChart} value="team_new_users" defaultChecked={true} />
+                            <Input type="radio" label="Loan Count"  name="graph_type" onChange={this.refigureChart} value="team_loan_count" />
+                            <Input type="radio" label="Loan Amount" name="graph_type" onChange={this.refigureChart} value="team_loan_total" />
+                        </Panel>
+                        <Panel header="Your Teams">
+                            <ul style={{listStyleType: 'none'}}>
+                                <For each="team" index="i" of={teams}>
+                                    <li key={i}><Input type="checkbox" name="teams[]" label={team.name} value={team.id} onChange={this.refigureChart} /></li>
+                                </For>
+                            </ul>
+                        </Panel>
                     </form>
                 </Col>
                 <Col md={8}>
