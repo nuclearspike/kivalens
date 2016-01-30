@@ -11,6 +11,7 @@ import Options from './Options.jsx'
 import About from './About.jsx'
 import SnowStack from './SnowStack.jsx'
 import Live from './Live.jsx'
+import Teams from './Teams.jsx'
 import ClearBasket from './ClearBasket.jsx'
 import Outdated from './Outdated.jsx'
 
@@ -57,7 +58,7 @@ import AlertModal from './AlertModal.jsx'
 import AutoLendSettings from './AutoLendSettings.jsx'
 
 export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
-    Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live,
+    Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live, Teams,
     KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,

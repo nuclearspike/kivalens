@@ -45,10 +45,10 @@ const getUrl = function(url,parseJSON){
 }
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
-//this is the heart of KL. all downloading, filtering, sorting, etc is done in here.
+//this is the heart of KL. all downloading, filtering, sorting, etc is done in here. this unit needs to be able to
+//be used in a nodejs server, with no babel magic so no default params or import/export statements.
 
 //todo: move socket.io channel stuff into this unit from LiveStore.
-
 
 //turns {json: 'object', app_id: 'com.me'} into ?json=object&app_id=com.me
 function serialize(obj, prefix) {
@@ -99,10 +99,9 @@ class Request {
                     extend(this.params, {page: this.page})
                 def.fail(()=> this.state = sFAILED)
                 Request.get(this.url, this.params)
-                    .always(()=> sem_one.leave(1))
+                    .always(x => sem_one.leave(1))
                     .done(result => this.raw_result = result) //cannot pass the func itself since it takes params.
                     .done(def.resolve)
-                    //.fail(def.reject)
                     .progress(def.notify)
             }
         }.bind(this))
@@ -128,7 +127,7 @@ class Request {
             } else {
                 def.fail(()=> this.state = sFAILED)
                 Request.get(`${this.collection}/${ids.join(',')}.json`, {})
-                    .always(() => sem_two.leave(1))
+                    .always(x => sem_two.leave(1))
                     .done(result => def.resolve(result[this.collection]))
                     .fail(def.reject) //does this really fire properly? no one is listening for this
                     .progress(def.notify)
@@ -180,12 +179,12 @@ const getAge = text => {
 class ResultProcessors {
     static processLoans(loans){
         //this alters the loans in the array. no need to return the array ?
-        loans.forEach(ResultProcessors.processLoan) //where(loan => loan.kl_downloaded == undefined) ??
+        loans.forEach(ResultProcessors.processLoan)
         return loans
     }
 
     static unprocessLoans(loans){
-        return loans.select(ResultProcessors.unprocessLoan) //where(loan => loan.kl_downloaded == undefined) ??
+        return loans.select(ResultProcessors.unprocessLoan)
     }
 
     //remove any KivaLens-added fields/functions
@@ -251,14 +250,14 @@ class ResultProcessors {
 
             addIt.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
-
             ///REPAYMENT STUFF: START
             var amount_50 = loan.loan_amount  * 0.5
             var amount_75 = loan.loan_amount * 0.75
             var running_total = 0
             addIt.kl_repayments = []
 
-            if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length > 0) {
+            //very old loans can not have scheduled payments.
+            if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
                 var today = Date.today()
 
                 var repayments = loan.terms.scheduled_payments.groupBySelectWithSum(p=>new Date(p.due_date), p=>p.amount).select(p => ({
@@ -301,7 +300,6 @@ class ResultProcessors {
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
             delete loan.terms.local_payments //we don't care
-
         }
         //add kivalens specific fields to the loan.
         extend(loan, addIt)
@@ -325,7 +323,7 @@ class ResultProcessors {
     }
 }
 
-//generic class for handling any of kiva's paged responses in a data-type agnostic way. create subclasses to specialize, see LoanSearch below
+//generic class for handling any of kiva's paged responses in a data-type agnostic way. create subclasses to specialize, see LoansSearch below
 class PagedKiva {
     constructor(url, params, collection){
         this.url = url
@@ -465,6 +463,12 @@ class LenderLoans extends PagedKiva {
     }
 }
 
+class LenderTeams extends PagedKiva {
+    constructor(lender_id){
+        super(`lenders/${lender_id}/teams.json`, {}, 'teams')
+    }
+}
+
 class LenderStatusLoans extends LenderLoans {
     constructor(lender_id, options){
         //test for options.status... then can remove test in result()
@@ -546,6 +550,13 @@ class LoanBatch {
     }
 }
 
+//instantiate one of these to test your partner/loan criteria against the data. all functions are very generic.
+//the idea behind it is you take all of the criteria, and for anything that is set, it adds a "tester" function
+//to it's array of testers. All testers must pass or the entity fails to match the criteria. so, the criteria
+//has a lower range for age set of 20 and an upper range is set to 30. The addRangeTesters() func will add a separate
+//tester for each the lower and upper bound, then when testing a loan to see if it matches it runs the tester funcs
+//in the order they were added (unless one fails). So it barely takes any time to set up the testers then it can quickly
+//run. It sets up highly targeted anon funcs to test exactly what the criteria specifies.
 class CritTester {
     constructor(crit_group){
         this.crit_group = crit_group
@@ -1477,6 +1488,7 @@ exports.Loans = Loans
 exports.defaultKivaData = defaultKivaData
 exports.setAPIOptions = setAPIOptions
 exports.getUrl = getUrl
+exports.LenderTeams = LenderTeams
 
 
 //temp... verify that these aren't ever used before removal
@@ -1485,3 +1497,4 @@ global.Request = Request
 global.LenderStatusLoans = LenderStatusLoans
 global.LoansSearch = LoansSearch
 global.LenderLoans = LenderLoans
+global.LenderTeams = LenderTeams

@@ -145,7 +145,7 @@ setDebugging()
 
 window.cl = function() {
     if (window.kl_debugging)
-        console.trace(arguments)
+        console.trace(...arguments)
 }
 
 //MORE LINQ GOODNESS
