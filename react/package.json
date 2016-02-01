@@ -69,7 +69,7 @@
     "react-infinite-list": "^0.3.1",
     "react-input-autosize": "^0.6.1",
     "react-localstorage": "^0.2.8",
-    "react-motion": "^0.3.1",
+    "react-motion": "^0.4.1",
     "react-notification": "^4.0.0",
     "react-router": "^1.0.2",
     "react-select": "^1.0.0-beta8",

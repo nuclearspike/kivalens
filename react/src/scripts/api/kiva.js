@@ -165,6 +165,7 @@ class Request {
 
 var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
 var common_use = ["PURCHASE", "FOR", "AND", "BUY", "OTHER", "HER", "BUSINESS", "SELL", "MORE", "HIS", "THE", "PAY"]
+
 var ageRegEx1 = new RegExp(/([2-9]\d)[ |-]years?[ |-](?:of age|old)/i)
 var ageRegEx2 = new RegExp(/(?:aged?|is) ([2-9]\d)/i) //reduce to a single regex?
 
@@ -510,6 +511,106 @@ class LenderFundraisingLoans extends LenderStatusLoans {
     }
 }
 
+//intended to catch multiple requests for the same information. should there be a there a TTL on it?
+//used for ManualPagedKiva so that prefetching and next() calls wouldn't make two separate calls
+class SharedAPIRequest {
+    constructor(){
+        this.requests = {}
+    }
+
+    request(url, params) {
+        var key = url + JSON.stringify(params)
+        if (this.requests[key])
+            return this.requests[key]
+        else {
+            let p = Request.sem_get(url, params)
+            this.requests[key] = p
+            return p
+        }
+    }
+}
+
+/**
+ * Allows for specific control over fetching the results. The PagedKiva class waits until all pages have been
+ * downloaded and processed before returning an array of all the results. ManualPagedKiva was created
+ * for the ability to do a team search (but obviously can do more) where you can perform the search,
+ * get the results, prefetch to make paging really fast without downloading EVERYTHING before it can
+ * respond. it's also possible to start on a page other than 1.
+ *
+ *
+ * var pk = new ManualPagedKiva('lenders/nuclearspike/loans.json',{},'loans')
+ * pk.start().done(page1=>console.log(page1))
+ * pk.prefetch() //defaults to 3 pages
+ * pk.next().done(page=>console.log(page)) //next() will share the same request that prefetch started and get that promise
+ * pk.getPage(4).done(page=>console.log(page))
+ * pk.pageCount, pk.objectCount, accessible for display
+ */
+class ManualPagedKiva {
+    constructor(url, params, collection){
+        this.url = url
+        this.params = extend({}, {page: 1, per_page: 100, app_id: api_options.app_id}, params)
+        this.collection = collection
+        this.pages = {}
+        this.pageCount = 0
+        this.objectCount = 0
+        this.currentPage = 0
+        this.sharedReq = new SharedAPIRequest()
+    }
+
+    processPage(page){
+        this.pages[page.paging.page] = page[this.collection]
+        return page[this.collection]
+    }
+
+    start(){
+        return Request.sem_get(this.url, this.params)
+            .then(result => {
+                this.currentPage = result.paging.page
+                this.pageCount   = result.paging.pages
+                this.objectCount = result.paging.total
+                return result
+            }).then(this.processPage.bind(this))
+    }
+
+    getPage(pageNum){
+        if (pageNum > this.pageCount || pageNum < 1)
+            return Deferred().reject()
+        if (this.pages[pageNum]) {
+            return Deferred().resolve(this.pages[pageNum])
+        } else {
+            return this.sharedReq.request(this.url, extend({},this.params,{page:pageNum})).then(this.processPage.bind(this))
+        }
+    }
+
+    next() {
+        if (this.currentPage >= this.pageCount)
+            return Deferred().reject()
+        this.currentPage++
+        return this.getPage(this.currentPage)
+    }
+
+    prev() {
+        if (this.currentPage <= 1)
+            return Deferred().reject()
+        this.currentPage--
+        return this.getPage(this.currentPage)
+    }
+
+    prefetch(maxPages){
+        if (!maxPages) maxPages = 3
+        let startPage = this.currentPage + 1
+        Array.range(startPage, Math.min(maxPages, this.pageCount - startPage + 1)).forEach(this.getPage.bind(this))
+    }
+
+    canNext(){
+        return this.currentPage < this.pageCount
+    }
+
+    canPrev(){
+        return this.currentPage > 1
+    }
+}
+
 //pass in an array of ids, it will break the array into 100 max chunks (kiva restriction) fetch them all, then returns
 //them together (very possible that they'll get out of order if more than one page, if order is important then order
 // the results yourself. this could be made more generic where it doesn't know they are loans if needed in the future)
@@ -556,7 +657,7 @@ class LoanBatch {
 //has a lower range for age set of 20 and an upper range is set to 30. The addRangeTesters() func will add a separate
 //tester for each the lower and upper bound, then when testing a loan to see if it matches it runs the tester funcs
 //in the order they were added (unless one fails). So it barely takes any time to set up the testers then it can quickly
-//run. It sets up highly targeted anon funcs to test exactly what the criteria specifies.
+//run. It sets up highly targeted anon funcs to test exactly what the criteria specifies. used in filter() and filterPartners()
 class CritTester {
     constructor(crit_group){
         this.crit_group = crit_group
@@ -1474,8 +1575,6 @@ class Loans {
     }
 }
 
-
-
 exports.LenderFundraisingLoans = LenderFundraisingLoans
 exports.LenderStatusLoans = LenderStatusLoans
 exports.LenderLoans = LenderLoans
@@ -1489,6 +1588,7 @@ exports.defaultKivaData = defaultKivaData
 exports.setAPIOptions = setAPIOptions
 exports.getUrl = getUrl
 exports.LenderTeams = LenderTeams
+exports.ManualPagedKiva = ManualPagedKiva
 
 
 //temp... verify that these aren't ever used before removal
@@ -1498,3 +1598,4 @@ global.LenderStatusLoans = LenderStatusLoans
 global.LoansSearch = LoansSearch
 global.LenderLoans = LenderLoans
 global.LenderTeams = LenderTeams
+global.ManualPagedKiva = ManualPagedKiva

@@ -206,6 +206,11 @@ const About = React.createClass({
                     with expiration, $/hour or details that change after the loan posts will also not ever get a
                     notification.
                 </li>
+
+                <li>
+                    Compare Teams: On the "Teams" page, you can compare the membership count, loan count, and total
+                    amount loaned for your teams.
+                </li>
             </ul>
 
             <h3>Reducing Risk</h3>

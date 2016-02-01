@@ -72,6 +72,7 @@ const Teams = React.createClass({
     produceChart(){
         var series = []
 
+        //where -> map??
         this.checkedTeams.forEach(id => {
             if (!this.teamData[id]) return //happens when multiple are loading and not all are finished.
             series.push({type: 'line', name: this.state.teams.first(t=>t.id == id).name, data: this.teamData[id][this.graph_type]})

@@ -99,15 +99,24 @@ const Options = React.createClass({
                                 OR hide Partners that have more than 5% of your active portfolio
                                 to balance your risk... and much more).</li>
                             <li><b>Basket Pruning:</b> By default, your basket will not clear when returning to the site.
-                                If your Lender ID is set, when you come back to KivaLens, your basket will
-                                have the loans that completed removed. Otherwise, you'll either need
+                                If your Lender ID is set, when you come back to KivaLens, your completed loans
+                                will be removed from your basket. If not set, you'll either need
                                 to click the "Return to 3rd party app" at the end of your Kiva
-                                checkout (which will clear your basket) or manually clear the basket when you come back
-                                for loans that are still fundraising.</li>
-                            <li><b>Team Comparision:</b> On the "Team" page, KivaLens will allow you to compare membership, loan count and total
+                                checkout (which will clear your basket) or manually clear the basket when you come back.</li>
+                            <li><b>Team Comparison:</b> On the "Teams" page, KivaLens will allow you to compare membership, loan count and total
                                 lending on all of the teams you're on.</li>
+                            <li><b>3D Loan Wall:</b> Once your lender-id is set, you can see your own&nbsp;
+                                <a href="#/portfolio">3D Loan Wall</a> based off your portfolio.</li>
                         </ul>
-
+                        <p>What this isn't:</p>
+                        <ul className='spacedList'>
+                            <li>This does not log you in to Kiva. When you transfer your loans to Kiva,
+                                you'll still have to log in to your account.</li>
+                            <li>This does not allow KivaLens to view any private information on your account.
+                                KivaLens only pulls information publicly available, what's viewable from your lender page.
+                                While it can know that you made a loan to a borrower, it does not know how much you
+                                loaned or what team you attributed the loan to.</li>
+                        </ul>
                     </Panel>
                     <Panel header='External Research'>
                         <Input
@@ -115,7 +124,7 @@ const Options = React.createClass({
                             label={`Merge Atheist Team's MFI Research Data for Secular and Social ratings`}
                             checkedLink={this.linkState('mergeAtheistList')} />
                         <p>
-                            KivaLens server pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
+                            KivaLens pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
                             MFI List from <NewTabLink href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1" title="View Google Doc">this Google Doc</NewTabLink> and
                             merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
