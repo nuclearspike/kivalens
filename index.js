@@ -79,9 +79,11 @@ app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
 
+var k = require('./react/src/scripts/api/kiva')
+
 //get all loans.
 function fetchLoans() {
-    var k = require('./react/src/scripts/api/kiva')
+
 
     const LoansSearch = k.LoansSearch
     k.setAPIOptions({app_id: 'org.kiva.kivalens'})

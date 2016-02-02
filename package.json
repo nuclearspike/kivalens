@@ -16,8 +16,10 @@
     "jquery": "^2.2.0",
     "jquery-deferred": "^0.3.0",
     "mongodb": "^2.1.4",
+    "datejs": "^1.0.0-rc3",
     "linqjs": "0.0.6",
-    "request": "^2.67.0"
+    "request": "^2.67.0",
+    "semaphore": "^1.0.3"
   },
   "engines": {
     "node": "5.4.1"
