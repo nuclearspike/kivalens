@@ -991,7 +991,7 @@ class Loans {
         if (this.options.useLargeLocalStorage) {
             this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
                 var that = this
-                waitFor(()=>that.allLoansLoaded).done(()=> {
+                waitFor(x => that.allLoansLoaded).done(()=> {
                     that.saveLoansToLLS().then(()=> {
                         that.interComm.sendMessage('client', 'gimmeLoansLLS', {ready: true})
                         that.interComm.sendMessage('client', 'gimmeLoansLLS', {}, 'close') //test combination
