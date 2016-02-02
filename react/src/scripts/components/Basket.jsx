@@ -69,9 +69,9 @@ const Basket = React.createClass({
                 window.ga('ecommerce:addItem', {
                     'id': transaction,                // Transaction ID. Required.
                     'name': bi.loan.location.country, // Product name. Required.
-                    'sku': bi.loan.activity,          // SKU/code.
+                    'sku':  bi.loan.activity,         // SKU/code.
                     'category': bi.loan.sector,       // Category or variation.
-                    'price': bi.amount.toString(),    // Unit price.
+                    'price':    bi.amount.toString(), // Unit price.
                     'quantity': '1'                   // Quantity.
                 })
             })
@@ -93,7 +93,8 @@ const Basket = React.createClass({
     },
     refresh(){
         this.setState({refreshing: true})
-        s.loans.syncRefreshBasket().always(()=> {
+        s.loans.syncRefreshBasket().always(x => {
+            //if user had switched off the page before results came back, this was causing a console error
             if (this.isMounted()) this.setState({refreshing: false})
         })
     },
@@ -126,7 +127,7 @@ const Basket = React.createClass({
                 <Col md={8}>
                     <Panel>
                         <h1>Basket: {basket_count} loans ${amount_sum}</h1>
-                        <form method="POST" ref='basket_form' action="http://www.kiva.org/basket/set">
+                        <form method="POST" ref='basket_form' action="https://www.kiva.org/basket/set">
                             <p>Note: Checking out will replace your current basket on Kiva.</p>
                             <input name="callback_url" value={`${location.protocol}//${location.host}${location.pathname}#clear-basket`} type="hidden" />
                             <input name="loans" value={this.makeBasket()} type="hidden" />

@@ -28,7 +28,7 @@ const Teams = React.createClass({
             this.setState({error: "You do not have your Kiva Lender ID set on the Options page."})
         } else {
             this.setState({loadingTeams:true})
-            new LenderTeams(lender_id).start()
+            new LenderTeams(lender_id).start() //should this be kiva.lender.teams().done(
                 .always(x => this.setState({loadingTeams:false}))
                 .done(teams => this.setState({teams}))
         }

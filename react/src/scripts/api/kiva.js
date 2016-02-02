@@ -257,27 +257,31 @@ class ResultProcessors {
             var running_total = 0
             addIt.kl_repayments = []
 
-            //very old loans can not have scheduled payments.
+            //some very old loans do not have scheduled payments.
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
                 var today = Date.today()
 
+                //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
                 var repayments = loan.terms.scheduled_payments.groupBySelectWithSum(p=>new Date(p.due_date), p=>p.amount).select(p => ({
                     date: p.name,
                     display: p.name.toString("MMM-yyyy"),
                     amount: p.sum
                 }))
-                var nextDate = new Date(Math.min(Date.next().month().set({day: 1}), repayments.first().date))
-                var lastDate = repayments.last().date
+
+                //fill in the gaps for southern-toothy-shaped repayments.
+                var nextDate = new Date(Math.min(Date.next().month().set({day: 1}).clearTime(), repayments.first().date)).clearTime()
+                var lastDate = repayments.last().date.clearTime()
                 while (nextDate <= lastDate) {
-                    var displayToTest = nextDate.toString("MMM-yyyy")
-                    var repayment = repayments.first(r => r.display == displayToTest)
-                    if (!repayment)
+                    let displayToTest = nextDate.toString("MMM-yyyy")
+                    let repayment = repayments.first(r => r.display == displayToTest)
+                    if (!repayment) //new Date() because it needs to make a copy of the date object or they all hold a ref.
                         repayments.push({date: new Date(nextDate.getTime()), display: displayToTest, amount: 0})
-                    nextDate = nextDate.next().month().set({day: 1})
+                    nextDate = nextDate.next().month().set({day: 1}).clearTime() //clearTime() to correct for DST bs?
                 }
+                //remove the leading 0 payment months. ordering needed to get the newly added ones in their proper spot.
                 addIt.kl_repayments = repayments.orderBy(p=>p.date).skipWhile(p=>p.amount==0)
 
-                //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
+                //two fold purpose: added a running percentage for all the repayments and track when the payments hit 50 and 75%
                 addIt.kl_repayments.forEach(payment => {
                     //there's got to be a more accurate algorithm to handle this efficiently...
                     running_total += payment.amount
@@ -535,11 +539,15 @@ class SharedAPIRequest {
  * downloaded and processed before returning an array of all the results. ManualPagedKiva was created
  * for the ability to do a team search (but obviously can do more) where you can perform the search,
  * get the results, prefetch to make paging really fast without downloading EVERYTHING before it can
- * respond. it's also possible to start on a page other than 1.
+ * respond. it's also possible to start on a page other than 1. It's designed with the intention of being used for UI
+ * results. PagedKiva does not care about results coming back out of order as it assembles them all once
+ * they are either all done or it has been told to stop paging past a certain point. It's therefore
+ * a much faster option (~6-8 concurrent requests since waiting on Kiva is the slowest part). This could
+ * still be used where you pull a bunch of stuff then prefetch a ton of pages (prefetching does parallel requests)
  *
- *
- * var pk = new ManualPagedKiva('lenders/nuclearspike/loans.json',{},'loans')
- * pk.start().done(page1=>console.log(page1))
+ * Example use
+ * var pk = new ManualPagedKiva('lenders/nuclearspike/teams.json',{},'teams')
+ * pk.start().done(page1=>console.log(page1)) //you'd probably just have something like "done(this.displayTeams.bind(this))"
  * pk.prefetch() //defaults to 3 pages
  * pk.next().done(page=>console.log(page)) //next() will share the same request that prefetch started and get that promise
  * pk.getPage(4).done(page=>console.log(page))
@@ -611,16 +619,25 @@ class ManualPagedKiva {
     }
 }
 
-//pass in an array of ids, it will break the array into 100 max chunks (kiva restriction) fetch them all, then returns
-//them together (very possible that they'll get out of order if more than one page, if order is important then order
-// the results yourself. this could be made more generic where it doesn't know they are loans if needed in the future)
+/**
+ * Pass in an array of ids, it will break the array into 100 max chunks (kiva restriction) fetch them all, then returns
+ * them together (very possible that they'll get out of order if more than one page; if order is important then order
+ * the results yourself using a linqjs join against the original array request. this could be made more generic where
+ * it doesn't know they are loans if needed in the future)
+ *
+ * Example use:
+ *
+ * var loans = new LoanBatch([1000,2000])
+ * loans.start().done(results => console.log(results))
+ *
+ */
+
 class LoanBatch {
     constructor(id_arr){
         this.ids = id_arr
     }
     start(){
         //kiva does not allow more than 100 loans in a batch. break the list into chunks of up to 100 and process them.
-        // this will send progress messages with individual loan objects or just wait for the .done()
         var chunks = this.ids.chunk(100) //breaks into an array of arrays of 100.
         var def = Deferred()
         var r_loans = []
@@ -628,25 +645,21 @@ class LoanBatch {
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
             Request.sem_get(`loans/${chunk.join(',')}.json`, {}, 'loans', false)
-                .then(ResultProcessors.processLoans).done(loans => {
+                .then(ResultProcessors.processLoans)
+                .done(loans => {
                     r_loans = r_loans.concat(loans)
-
                     def.notify({
-                        task: 'details', done: r_loans.length, total: this.ids.length,
+                        task: 'details',
+                        done: r_loans.length,
+                        total: this.ids.length,
                         label: `${r_loans.length}/${this.ids.length} downloaded`
                     })
-
-                    if (r_loans.length >= this.ids.length) {
-                        def.notify({done: true})
+                    if (r_loans.length >= this.ids.length)
                         def.resolve(r_loans)
-                    }
                 })
         })
-        if (chunks.length == 0){
-            def.notify({done: true})
+        if (chunks.length == 0)
             def.reject() //prevent done() processing on an empty set.
-        }
-
         return def
     }
 }
@@ -848,6 +861,63 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
     {"code":"TG","name":"Togo"},{"code":"TR","name":"Turkey"},{"code":"UG","name":"Uganda"},{"code":"UA","name":"Ukraine"},
     {"code":"US","name":"United States"},{"code":"VU","name":"Vanuatu"},{"code":"VN","name":"Vietnam"},{"code":"YE","name":"Yemen"},
     {"code":"ZM","name":"Zambia"},{"code":"ZW","name":"Zimbabwe"}].orderBy(c=>c.name)
+
+/**
+ *
+ * I'd like to move toward this structure... not a class but just an anon object.
+ *
+ * kiva.settings.set({updateInterval:100000,_getter:()=>lsj.get("Options")})
+ * kiva.settings.get().useLargeLocalStorage
+ *
+ * kiva.api.req('partners').done(Array<Object>...
+ * kiva.www.req('ajax/getGraphData',params).done(variant...
+ *
+ * kiva.processors.loan / loans / undo
+ * kiva.processors.partners
+ *
+ * kiva.teams.remote.search(params).done(Array<Team>...
+ *
+ * kiva.lenders.remote.search(params).done(Array<Lender>...
+ *
+ * kiva.lender.remote.teams().done(Array<Team>...
+ * kiva.lender.remote.loans().done(Array<Loan>...
+ *
+ * kiva.lender.set(lender_id)
+ * kiva.lender.ready: promise? have a ready:bool and readyPromise:Deferred?
+ * kiva.lender.fundraisingIds().done(Array<int>...
+ *
+ * kiva.loans.remote.search(params).done(Array<Loan>...  //from Kiva.
+ * kiva.loans.remote.resync(): null
+ * kiva.loans.remote.refresh(loan).done(Loan...
+ * kiva.loans.remote.refreshByIds(Array<int>)
+ * kiva.loans.remote.checkHotLoans()
+ *
+ * kiva.loan.remote.get(id).done(Loan...
+ *
+ * kiva.loans.set(Array<Loans>,replace:bool)
+ * kiva.loans.mergeAndNotify(newLoan)
+ * kiva.loans.filter(criteria): Array<Loan>
+ * kiva.loans.all: Array<Loan>
+ * kiva.loans.ready: boolean
+ * kiva.loans.where( //just all.where( needed?
+ * kiva.loans.saveToLLS() / loadFromLLS()
+ *
+ * kiva.loan.get(id): Loan
+ * kiva.loan.exists(id): bool //only tells if it's locally here, not exist in kiva db
+ *
+ * kiva.partners.remote.fetch().done(Array<Partner>...
+ * kiva.partners.ready
+ * kiva.partners.all
+ * kiva.partners.active
+ * kiva.partners.filter(criteria): Array<Partner>
+ * kiva.partners.atheist.remote.fetch().done() //?
+ * kiva.partners.get(id)
+ *
+ */
+
+class LoansArray extends Array {
+    //?
+}
 
 //rename this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
 //processes
@@ -1054,8 +1124,8 @@ class Loans {
                                 loan_load_progress: {
                                     task: 'details',
                                     singlePass: true,
-                                    done: done,
-                                    total: total,
+                                    done,
+                                    total,
                                     label: `Received: ${done}/${total}`
                                 }
                             })
@@ -1355,7 +1425,7 @@ class Loans {
         }
 
         getUrl(csv_file)
-            .fail(e=>{cl(`failed to retrieve Atheist list: ${e}`)})
+            .fail(e=>cl(`failed to retrieve Atheist list: ${e}`))
             .then(CSV2JSON).done(mfis => {
                 this.partner_download.done(x => {
                     mfis.forEach(mfi => {
@@ -1403,9 +1473,6 @@ class Loans {
     searchKiva(kiva_params, max_repayment_date){
         if (!kiva_params) kiva_params = this.base_kiva_params
         return new LoansSearch(kiva_params, true, max_repayment_date).start().done(loans => this.setKivaLoans(loans))
-    }
-    searchLocal(kl_criteria){
-        ///move filter code from
     }
     getById(id){
         return this.indexed_loans[id]
@@ -1509,7 +1576,7 @@ class Loans {
         var that = this
         return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
-            that.running_totals.new_loans += loans.where(l=>l.kl_posted_date.isAfter(that.startupTime)).length
+            that.running_totals.new_loans += loans.count(l=>l.kl_posted_date.isAfter(that.startupTime))
             this.notify({new_loans: loans})
             this.notify({running_totals_change: that.running_totals})
             this.setKivaLoans(loans, false)
