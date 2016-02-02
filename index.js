@@ -66,6 +66,11 @@ app.get('/loans', function(request, response) {
     response.send(loans)
 })
 
+app.get('/fetchLoans'), function(request, response){
+    fetchLoans()
+    response.send("started")
+}
+
 //any page not defined in this file gets routed to everything which redirects to /#/search
 app.get('/*', function(request, response) {
     response.render('pages/everything') //can i do permanent redirect?
@@ -76,20 +81,21 @@ app.listen(app.get('port'), function() {
 })
 
 //get all loans.
-const LoansSearch = k.LoansSearch
-k.setAPIOptions({app_id: 'org.kiva.kivalens'})
+function fetchLoans() {
+    const LoansSearch = k.LoansSearch
+    k.setAPIOptions({app_id: 'org.kiva.kivalens'})
 
-new LoansSearch({},true,null,true).start().done(allLoans => {
-    console.log("Loans received!")
-    allLoans.forEach(loan => {
-        loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
-        delete loan.terms.local_payments
-        delete loan.journal_totals
-        delete loan.translator
-        delete loan.location.geo
+    new LoansSearch({}, true, null, true).start().done(allLoans => {
+        console.log("Loans received!")
+        allLoans.forEach(loan => {
+            loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
+            delete loan.terms.local_payments
+            delete loan.journal_totals
+            delete loan.translator
+            delete loan.location.geo
+        })
+        loans = JSON.stringify(allLoans)
+        console.log("Loans ready!")
     })
-    loans = JSON.stringify(allLoans)
-    console.log("Loans ready!")
-})
-
+}
 //require("./MongoTest")
