@@ -22,7 +22,8 @@ const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'useLargeLocalStorage']
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
+            'debugging', 'betaTester', 'useLargeLocalStorage', 'noStream']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -159,6 +160,10 @@ const Options = React.createClass({
                             type="checkbox"
                             label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading (previous option must be checked as well)"
                             checkedLink={this.linkState('useLargeLocalStorage')} />
+                        <Input
+                            type="checkbox"
+                            label="Do not subscribe to live data stream from Kiva (takes effect next app reload)"
+                            checkedLink={this.linkState('noStream')} />
                         <Input
                             type="checkbox"
                             label="Output debugging console messages"

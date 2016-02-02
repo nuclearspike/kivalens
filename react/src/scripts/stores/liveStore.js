@@ -53,7 +53,8 @@ class LoanPurchasedChannel extends KivaChannel {
 window.channels = {}
 
 domready.done(()=>{
-    ([new LoanPostedChannel(), new LoanPurchasedChannel()]).forEach(chan => channels[chan.channelName] = chan)
+    if (!lsj.get('Options').noStream)
+        ([new LoanPostedChannel(), new LoanPurchasedChannel()]).forEach(chan => channels[chan.channelName] = chan)
 })
 
 //

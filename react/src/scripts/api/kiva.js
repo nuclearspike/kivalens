@@ -429,14 +429,15 @@ class PagedKiva {
 }
 
 class LoansSearch extends PagedKiva {
-    constructor(params, getDetails, max_repayment_date){
+    constructor(params, getDetails, max_repayment_date, preventVisitor){
         if (getDetails === undefined) getDetails = true
         params = extend({}, {status:'fundraising'}, params)
         if (max_repayment_date) extend(params, {sort_by: 'repayment_term'})
         super('loans/search.json', params, 'loans')
         this.max_repayment_date = max_repayment_date
         this.twoStage = getDetails
-        this.visitorFunct = ResultProcessors.processLoan
+        if (!preventVisitor)
+            this.visitorFunct = ResultProcessors.processLoan
     }
 
     continuePaging(loans){
