@@ -65,7 +65,7 @@ app.get('/loans', function(request, response) {
     response.send(loans)
 })
 
-app.get('/fetchLoans'), function(request, response){
+app.get('/fetchloans'), function(request, response){
     fetchLoans()
     response.send("started")
 }
