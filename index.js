@@ -65,10 +65,10 @@ app.get('/loans', function(request, response) {
     response.send(loans)
 })
 
-app.get('/fetchloans'), function(request, response){
+app.get('/fetch', function(request, response){
     fetchLoans()
     response.send("started")
-}
+})
 
 //any page not defined in this file gets routed to everything which redirects to /#/search
 app.get('/*', function(request, response) {
@@ -83,8 +83,6 @@ var k = require('./react/src/scripts/api/kiva')
 
 //get all loans.
 function fetchLoans() {
-
-
     const LoansSearch = k.LoansSearch
     k.setAPIOptions({app_id: 'org.kiva.kivalens'})
 
