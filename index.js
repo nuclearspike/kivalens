@@ -5,7 +5,6 @@ var app = express()
 var proxy = require('express-http-proxy')
 var helmet = require('helmet')
 var session = require('express-session')
-var k = require('./react/src/scripts/api/kiva')
 
 //some security
 app.use(helmet())
@@ -82,6 +81,8 @@ app.listen(app.get('port'), function() {
 
 //get all loans.
 function fetchLoans() {
+    var k = require('./react/src/scripts/api/kiva')
+
     const LoansSearch = k.LoansSearch
     k.setAPIOptions({app_id: 'org.kiva.kivalens'})
 
