@@ -75,7 +75,7 @@ app.get('/', function(request, response) {
 
 //old site bad urls.
 app.get('/feed.svc/rss/*', function(request, response){
-    response.send(404)
+    response.sendStatus(404)
 })
 
 //API
@@ -92,7 +92,7 @@ app.get('/loans/get', function(request, response) {
     var page = parseInt(request.param('page'))
     if (page) {
         if (page > KLPageSplits) {
-            response.send(404)
+            response.sendStatus(404)
             return
         }
         response.send(JSON.stringify(loanChunks[page - 1]))
