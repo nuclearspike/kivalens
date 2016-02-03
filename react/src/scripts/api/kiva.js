@@ -1060,13 +1060,14 @@ class Loans {
         const loadFromKL = function() {
             getKLUrl('loans/start', true).done(response => { //this tells us if the loans have loaded on the server.
                 if (response.pages) {
-                    this.notify({loan_load_progress: {label: 'Loading loans from KivaLens server...'}})
+                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
                     var received = 0
                     var loansToAdd = []
                     hasStarted = true
+                    //todo: this needs to use a semaphored request.
                     Array.range(1, response.pages).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
                         received++
-                        this.notify({loan_load_progress: {task: 'details', done: received, total: response.pages, label: `Loading loans from KivaLens server ${received} of ${response.pages}...`}})
+                        this.notify({loan_load_progress: {label: `Loading loans from KivaLens server ${received} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                         if (received == response.pages)
                             this.loan_download.resolve(loansToAdd, true)
