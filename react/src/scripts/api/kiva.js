@@ -1017,13 +1017,12 @@ class Loans {
         var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
         this.partner_download = this.getAllPartners().fail(failed=>this.notify({failed}))
         this.loan_download = Deferred()
+        //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
         this.loan_download.fail(e=>this.notify({failed: e})).done((loans,skipProcessing)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
             if (!skipProcessing) ResultProcessors.processLoans(loans)
             this.setKivaLoans(loans, false)
             this.allLoansLoaded = true
-            this.checkHotLoans()
-            this.saveLoansToLLSAfterDelay()
             this.backgroundResync(true)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
         })
@@ -1047,7 +1046,7 @@ class Loans {
                     this.notify({loan_load_progress: progress})
                     hasStarted = true
                 })
-                .done(()=> {
+                .done(x => {
                     this.notify({loans_loaded: true})
                     if (needSecondary)
                         this.secondaryLoad()
@@ -1069,10 +1068,8 @@ class Loans {
                         received++
                         this.notify({loan_load_progress: {task: 'details', done: received, total: response.pages, label: `Loading loans from KivaLens server ${received} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                        if (received == response.pages) {
-                            this.loan_download.resolve(loansToAdd,true)
-                            this.saveLoansToLLSAfterDelay()
-                        }
+                        if (received == response.pages)
+                            this.loan_download.resolve(loansToAdd, true)
                     }))
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
