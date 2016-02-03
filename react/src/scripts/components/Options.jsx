@@ -154,23 +154,23 @@ const Options = React.createClass({
                     <Panel header='Debug/Beta Testing'>
                         <Input
                             type="checkbox"
-                            label="Show me features that are being beta-tested (this option does nothing currently)"
+                            label="Show me features that are being beta-tested (this option currently does nothing)"
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading"
+                            label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading or if opening KL after navigating away relatively recently."
                             checkedLink={this.linkState('useLargeLocalStorage')} />
                         <Input
                             type="checkbox"
-                            label="Do not subscribe to live data stream from Kiva (takes effect next app reload)"
+                            label="Do not subscribe to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster."
                             checkedLink={this.linkState('noStream')} />
                         <Input
                             type="checkbox"
-                            label="Download loans from KivaLens server instead of Kiva"
+                            label="Download loans from KivaLens server instead of Kiva (significantly faster but with almost no feedback as to how far along you are)"
                             checkedLink={this.linkState('loansFromKL')} />
                         <Input
                             type="checkbox"
-                            label="Output debugging console messages"
+                            label="Output debugging messages to the console"
                             checkedLink={this.linkState('debugging')} />
                     </Panel>
 

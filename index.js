@@ -38,6 +38,7 @@ app.use(express.cookieParser())
 var loans = []
 var loanChunks = []
 
+//TODO: RESTRICT TO SAME SERVER?
 const proxyHandler = {
     forwardPath: function(req, res) {
         return require('url').parse(req.url).path;
@@ -56,6 +57,7 @@ const proxyHandler = {
     }
 }
 
+//PASSTHROUGH
 app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
 app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
@@ -71,6 +73,21 @@ app.get('/', function(request, response) {
   response.render('pages/index')
 })
 
+//old site bad urls.
+app.get('/feed.svc/rss/*', function(request, response){
+    response.send(404)
+})
+
+//API
+app.get('/loans/start', function(request, response){
+    response.send(JSON.stringify({pages: loanChunks.length, total: loans.length}))
+})
+
+app.get('/loans/fetch', function(request, response){
+    response.send("Started fetch from Kiva")
+    fetchLoans()
+})
+
 app.get('/loans/get', function(request, response) {
     var page = parseInt(request.param('page'))
     if (page) {
@@ -84,15 +101,7 @@ app.get('/loans/get', function(request, response) {
     }
 })
 
-app.get('/loans/start', function(request, response){
-    response.send(JSON.stringify({pages: loanChunks.length, total: loans.length}))
-})
-
-app.get('/loans/fetch', function(request, response){
-    response.send("Started fetch from Kiva")
-    fetchLoans()
-})
-
+//CATCH ALL
 //any page not defined in this file gets routed to everything which redirects to /#/search
 app.get('/*', function(request, response) {
     response.render('pages/everything') //can i do permanent redirect?

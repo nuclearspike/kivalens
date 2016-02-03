@@ -329,8 +329,8 @@ const About = React.createClass({
                 Kiva Lens is now open-source, so feel free to <EmailLink subject="KivaLens Developer">email
                 me</EmailLink> about
                 working on it. It uses React, Reflux, react-bootstrap, gulp,
-                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts and more. You
-                can check out
+                browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express node js server
+                and more. You can check out
                 the source code (in progress)
                 at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github
                 repository</NewTabLink>.
@@ -342,7 +342,10 @@ const About = React.createClass({
                 in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years
                 and helped incorporate a lot of the search features directly into Kiva's site which also then made
                 their way into the API as well. There are still some great things KivaLens does that Kiva does not
-                do that are handy and fun!
+                do that are handy and fun! Some projects I worked on at Kiva: Super Graphs for lenders and teams,
+                /Live, Zip, Leader boards, Message board search and time-line, the Home page, and Estimated Repayments
+                are some of the ones I enjoyed the most, many of which were "Innovation Iteration" projects
+                where engineers implement their own ideas.
             </p>
 
             <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
@@ -363,11 +366,5 @@ const About = React.createClass({
         </Grid>
     }
 })
-
-/**
- * Projects I worked on at Kiva: Super Graphs for lenders and teams, /Live, Zip, Leader boards, Message board search
- * and time-line, Home page, Estimated Repayments,
- *
- */
 
 export default About

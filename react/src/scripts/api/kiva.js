@@ -1067,7 +1067,7 @@ class Loans {
                     //todo: this needs to use a semaphored request.
                     Array.range(1, response.pages).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
                         received++
-                        this.notify({loan_load_progress: {label: `Loading loans from KivaLens server ${received} of ${response.pages}...`}})
+                        this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${received} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                         if (received == response.pages)
                             this.loan_download.resolve(loansToAdd, true)
