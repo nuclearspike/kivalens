@@ -97,7 +97,7 @@ var Search = React.createClass({
                     </If>
                     <If condition={backgroundResyncState == 'started'}>
                         <Alert className="not-rounded" style={{marginBottom:'0px'}} >
-                            Loans loaded from storage. Continue using the site while the loans are updated...
+                            Continue using the site while the loans are refreshed...
                         </Alert>
                     </If>
                     <If condition={hasHadLoans && loan_count == 0}>

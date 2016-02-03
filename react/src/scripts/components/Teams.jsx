@@ -3,7 +3,7 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Alert,Input,Panel} from 'react-bootstrap'
-import {Request,getUrl,LenderTeams} from '../api/kiva'
+import {Request,getKLUrl,LenderTeams} from '../api/kiva'
 import numeral from 'numeral'
 
 var Highcharts = require('react-highcharts/dist/bundle/highcharts')
@@ -60,7 +60,7 @@ const Teams = React.createClass({
         }
         this.querying++
         this.setState({querying: this.querying})
-        getUrl(`${location.protocol}//${location.host}/proxy/kiva/ajax/getGraphData?graphName=${graphName}&id=${teamId}`, true)
+        getKLUrl(`proxy/kiva/ajax/getGraphData?graphName=${graphName}&id=${teamId}`, true)
             .done(result=>{
                 this.querying--
                 this.setState({querying: this.querying})

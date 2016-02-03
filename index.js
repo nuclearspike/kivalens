@@ -63,10 +63,12 @@ app.get('/', function(request, response) {
 })
 
 app.get('/loans/get', function(request, response) {
-    console.log(request.params)
     var page = parseInt(request.param('page'))
-
     if (page) {
+        if (page > 4) {
+            response.send(404)
+            return
+        }
         response.send(JSON.stringify(loanChunks[page - 1]))
     } else {
         response.send(loans)
@@ -90,7 +92,6 @@ app.get('/*', function(request, response) {
 app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
-
 
 //shouldn't be in server file.
 var k = require('./react/src/scripts/api/kiva')
@@ -125,4 +126,7 @@ function fetchLoans() {
         console.log("Loans ready!")
     })
 }
+
+setInterval(fetchLoans,5*60000)
+
 //require("./MongoTest")

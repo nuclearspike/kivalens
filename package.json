@@ -1,7 +1,7 @@
 {
   "name": "KivaLensServer",
   "version": "0.5.0",
-  "description": "KivaLens Server NodeJS",
+  "description": "KivaLens NodeJS Server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

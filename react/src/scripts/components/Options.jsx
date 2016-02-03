@@ -23,7 +23,7 @@ const Options = React.createClass({
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
-            'debugging', 'betaTester', 'useLargeLocalStorage', 'noStream']
+            'debugging', 'betaTester', 'useLargeLocalStorage', 'noStream', 'loansFromKL']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -154,16 +154,20 @@ const Options = React.createClass({
                     <Panel header='Debug/Beta Testing'>
                         <Input
                             type="checkbox"
-                            label="Show me features that are being beta-tested"
+                            label="Show me features that are being beta-tested (this option does nothing currently)"
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading (previous option must be checked as well)"
+                            label="Store loans in my browser's database; used when opening multiple tabs to prevent re-downloading"
                             checkedLink={this.linkState('useLargeLocalStorage')} />
                         <Input
                             type="checkbox"
                             label="Do not subscribe to live data stream from Kiva (takes effect next app reload)"
                             checkedLink={this.linkState('noStream')} />
+                        <Input
+                            type="checkbox"
+                            label="Download loans from KivaLens server instead of Kiva"
+                            checkedLink={this.linkState('loansFromKL')} />
                         <Input
                             type="checkbox"
                             label="Output debugging console messages"

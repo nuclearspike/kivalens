@@ -6,7 +6,7 @@ import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
 import extend from 'extend'
 import {Deferred} from 'jquery-deferred'
-import {getUrl} from '../api/kiva'
+import {getKLUrl} from '../api/kiva'
 
 var criteriaStore = Reflux.createStore({
     listenables: [a.criteria],
@@ -334,7 +334,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
     var def = Deferred()
     var granularity = 'cumulative' //for now
     if (!subject_id) return def
-    var url = `${location.protocol}//${location.host}/proxy/kiva/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
+    var url = `proxy/kiva/ajax/getSuperGraphData?sliceBy=${slice_by}&include=${all_active}&measure=count&subject_id=${subject_id}&type=${subject_type}&granularity=${granularity}`
     var cache_key = `get_verse_data_${subject_type}_${subject_id}_${slice_by}_${all_active}_${granularity}`
 
     var result = get_cache(cache_key)
@@ -346,7 +346,7 @@ function get_verse_data(subject_type, subject_id, slice_by, all_active){
         cl(`cache_miss: ${cache_key}`)
         def.notify({fetching: true})
 
-        getUrl(url, true).done(result => {
+        getKLUrl(url, true).done(result => {
             var slices = [], total_sum = 0
             if (result.data) {
                 total_sum = result.data.sum(d => parseInt(d.value))

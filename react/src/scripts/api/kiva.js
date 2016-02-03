@@ -13,6 +13,7 @@ var InterTabComm = require('./syncStorage').InterTabComm
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
+//not really robust...
 const getUrl = function(url,parseJSON){
     var d = Deferred()
     request.get(url,(error,response,body)=>{
@@ -42,6 +43,10 @@ const getUrl = function(url,parseJSON){
         }
     })
     return d
+}
+
+const getKLUrl = function(url,parseJSON) {
+    return getUrl(`${location.protocol}//${location.host}/${url}`,parseJSON)
 }
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
@@ -989,6 +994,7 @@ class Loans {
         this.options = this.getOptions()
 
         //listen for request. tab can become the boss even if it starts out as a client.
+        
         if (this.options.useLargeLocalStorage) {
             this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
                 var that = this
@@ -999,49 +1005,20 @@ class Loans {
                     })
                 })
             })
-        } else {
-            this.interComm.filter('boss', 'gimmeLoans').progress(m => {
-                if (this.interComm.isBoss) {
-                    var that = this
-                    that.interComm.sendMessage('client', 'gimmeLoans', {started: true})
-                    waitFor(()=>that.allLoansLoaded).done(()=> {
-                        var allLoans = that.loans_from_kiva.where(l=>l.status == 'fundraising')
-                        that.interComm.sendMessage('client', 'gimmeLoans', {total: allLoans.length})
-                        var chunks = allLoans.chunk(500)
-                        if (chunks.length) {
-                            var handle = setInterval(()=> {
-                                //break off the next chunk
-                                var chunk = chunks.shift()
-
-                                that.interComm.sendMessage('client', 'gimmeLoans', {loans: ResultProcessors.unprocessLoans(chunk)})
-
-                                //if we're done, stop the timer
-                                if (!chunks.length) {
-                                    clearInterval(handle)
-                                    that.interComm.sendMessage('client', 'gimmeLoans', {}, 'close')
-                                }
-                            }, 20)
-
-                        }
-                    })
-                }
-            })
-        }
-
+        } 
+    
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
 
         var max_repayment_date = null
         var needSecondary = false
-        var base_options = extend({}, {maxRepaymentTerms: 120,maxRepaymentTerms_on: false}, this.options)
-        this.partner_download = this.getAllPartners().fail(e=>this.notify({failed: e}))
+        var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
+        this.partner_download = this.getAllPartners().fail(failed=>this.notify({failed}))
         this.loan_download = Deferred()
         this.loan_download.fail(e=>this.notify({failed: e})).done(loans=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
             this.setKivaLoans(ResultProcessors.processLoans(loans), false)
-            this.partner_download.done(x =>{ //all must be done.
-                this.notify({loans_loaded: true, loan_load_progress: {complete: true}})
-            })
+            this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
         })
 
         if (base_options.mergeAtheistList)
@@ -1057,89 +1034,76 @@ class Loans {
         var hasStarted = false
         var handle
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
-        const StartGettingLoans = function () {
+        const loadFromKiva = function() {
+            this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
+                .progress(progress => {
+                    this.notify({loan_load_progress: progress})
+                    hasStarted = true
+                })
+                .done(()=> {
+                    this.notify({loans_loaded: true})
+                    if (needSecondary)
+                        this.secondaryLoad()
+                    else {
+                        this.allLoansLoaded = true
+                        this.saveLoansToLLSAfterDelay()
+                    }
+                })
+        }.bind(this)
+
+        const loadFromKL = function() {
+            getKLUrl('loans/start', true).done(response => { //this tells us if the loans have loaded on the server.
+                if (response.pages == 4) {
+                    this.notify({loan_load_progress: {label: 'Loading loans from KivaLens server...'}})
+                    var received = 0
+                    var loansToAdd = []
+                    hasStarted = true
+                    Array.range(1,4).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
+                        received++
+                        loansToAdd = loansToAdd.concat(loans)
+                        if (received == 4) {
+                            this.loan_download.resolve(loansToAdd)
+                            this.checkHotLoans()
+                            this.backgroundResync(true)
+                        }
+                    }))
+                } else
+                    loadFromKiva()
+            })
+        }.bind(this)
+
+        const loadFromSource = function () {
+            if (this.options.loansFromKL)
+                loadFromKL()
+            else
+                loadFromKiva()
+        }.bind(this)
+        
+        const startGettingLoans = function () {
             if (hasStarted) {
                 clearInterval(handle)
                 return
             }
-            if (this.interComm.isBoss || !this.options.betaTester) { //todo: shouldn't reference lsj!!
-                this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
-                    .progress(progress => {
-                        this.notify({loan_load_progress: progress})
-                        hasStarted = true
-                    })
-                    .done(()=> {
-                        this.notify({loans_loaded: true})
-                        if (needSecondary)
-                            this.secondaryLoad()
-                        else {
-                            this.allLoansLoaded = true
-                            this.saveLoansToLLSAfterDelay()
-                        }
-                    })
-            } else {
-                //this.promise.notify({task: 'details', done: this.result_object_count, total: this.total_object_count, label: `${this.result_object_count}/${this.total_object_count} downloaded`}
-                if (this.options.useLargeLocalStorage) {
-                    wait(20).done(r=> {
-                        this.getLoansFromLLS().done((loans, saved)=> {
-                            if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
-                                hasStarted = true
-                                this.loan_download.resolve(loans)
-                                this.checkHotLoans()
-                                this.backgroundResync(true)
-                            } else {
-                                this.interComm.filter('client', 'gimmeLoansLLS').progress(m => {
-                                    //the only message is to start
-                                    hasStarted = true
-                                    this.getLoansFromLLS()
-                                        .progress(rtr=>this.notify({
-                                            loan_load_progress: {
-                                                title: 'Transferring loans from another KivaLens tab',
-                                                label: 'This will be quick...'
-                                            }
-                                        }))
-                                        .then(this.loan_download.resolve)
-                                })
-                                this.interComm.sendMessage("boss", "gimmeLoansLLS", {start: true})
-                            }
-                        })
-                    })
-                } else {
-                    this.notify({loan_load_progress: {label: 'Attempting to connect to another KivaLens tab...'}})
-                    var done = 0
-                    var total = 0
-                    var loans = []
 
-                    this.interComm.filter('client', 'gimmeLoans').progress(m => {
-                        hasStarted = true
-                        if (m.total) {
-                            total = m.total
-                            this.notify({loan_load_progress: {title: 'Transferring loans from another KivaLens tab'}})
-                        }
-
-                        if (m.loans) {
-                            done += m.loans.length
-                            loans = loans.concat(m.loans)
-                            this.notify({
-                                loan_load_progress: {
-                                    task: 'details',
-                                    singlePass: true,
-                                    done,
-                                    total,
-                                    label: `Received: ${done}/${total}`
-                                }
-                            })
-                        }
-
-                        if (done && (done == total))
+            if (this.options.useLargeLocalStorage) {
+                wait(20).done(r => {
+                    this.getLoansFromLLS().done((loans, saved)=> {
+                        if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
+                            hasStarted = true
                             this.loan_download.resolve(loans)
+                            this.checkHotLoans()
+                            this.backgroundResync(true)
+                        } else {
+                            loadFromSource()
+                        }
                     })
-                    this.interComm.sendMessage("boss", "gimmeLoans", {start: true})
-                }
+                })
+            } else {
+                loadFromSource()
             }
         }.bind(this)
-        setTimeout(StartGettingLoans, 10)
-        handle = setInterval(StartGettingLoans, 10000)
+        setTimeout(startGettingLoans, 10)
+        handle = setInterval(startGettingLoans, 10000)
 
         return this.notify_promise
     }
@@ -1654,6 +1618,7 @@ exports.Loans = Loans
 exports.defaultKivaData = defaultKivaData
 exports.setAPIOptions = setAPIOptions
 exports.getUrl = getUrl
+exports.getKLUrl = getKLUrl
 exports.LenderTeams = LenderTeams
 exports.ManualPagedKiva = ManualPagedKiva
 
