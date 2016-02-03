@@ -6,6 +6,11 @@ var proxy = require('express-http-proxy')
 var helmet = require('helmet')
 var session = require('express-session')
 
+var compression = require('compression')
+
+// compress all requests
+app.use(compression())
+
 //some security
 app.use(helmet())
 

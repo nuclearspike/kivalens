@@ -7,6 +7,8 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "compression": "^1.6.1",
+    "datejs": "^1.0.0-rc3",
     "ejs": "^2.3.4",
     "express": "4.13.3",
     "express-http-proxy": "^0.6.0",
@@ -15,9 +17,8 @@
     "helmet": "^1.1.0",
     "jquery": "^2.2.0",
     "jquery-deferred": "^0.3.0",
-    "mongodb": "^2.1.4",
-    "datejs": "^1.0.0-rc3",
     "linqjs": "0.0.6",
+    "mongodb": "^2.1.4",
     "request": "^2.67.0",
     "semaphore": "^1.0.3"
   },

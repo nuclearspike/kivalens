@@ -1067,7 +1067,7 @@ class Loans {
                             this.backgroundResync(true)
                         }
                     }))
-                } else
+                } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
             })
         }.bind(this)
