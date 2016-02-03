@@ -14,6 +14,10 @@ app.use(compression())
 //some security
 app.use(helmet())
 
+//shouldn't be in server file.
+var k = require('./react/src/scripts/api/kiva')
+const KLPageSplits = k.KLPageSplits
+
 /**
 app.use(express.compress())
 app.use(express.json())
@@ -70,7 +74,7 @@ app.get('/', function(request, response) {
 app.get('/loans/get', function(request, response) {
     var page = parseInt(request.param('page'))
     if (page) {
-        if (page > 4) {
+        if (page > KLPageSplits) {
             response.send(404)
             return
         }
@@ -98,9 +102,6 @@ app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
 
-//shouldn't be in server file.
-var k = require('./react/src/scripts/api/kiva')
-
 Array.prototype.chunk = function(chunkSize) {
     var R = []
     for (var i=0; i<this.length; i+=chunkSize)
@@ -125,7 +126,7 @@ function fetchLoans() {
             delete loan.location.geo
         })
         loans = allLoans
-        var chunkSize = Math.ceil(allLoans.length / 4)
+        var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
         loanChunks = allLoans.chunk(chunkSize)
 
         console.log("Loans ready!")

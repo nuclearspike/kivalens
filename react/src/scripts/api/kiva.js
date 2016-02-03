@@ -13,6 +13,8 @@ var InterTabComm = require('./syncStorage').InterTabComm
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
+const KLPageSplits = 5
+
 //not really robust...
 const getUrl = function(url,parseJSON){
     var d = Deferred()
@@ -1015,9 +1017,14 @@ class Loans {
         var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
         this.partner_download = this.getAllPartners().fail(failed=>this.notify({failed}))
         this.loan_download = Deferred()
-        this.loan_download.fail(e=>this.notify({failed: e})).done(loans=>{
+        this.loan_download.fail(e=>this.notify({failed: e})).done((loans,skipProcessing)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
-            this.setKivaLoans(ResultProcessors.processLoans(loans), false)
+            if (!skipProcessing) ResultProcessors.processLoans(loans)
+            this.setKivaLoans(loans, false)
+            this.allLoansLoaded = true
+            this.checkHotLoans()
+            this.saveLoansToLLSAfterDelay()
+            this.backgroundResync(true)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
         })
 
@@ -1053,18 +1060,18 @@ class Loans {
 
         const loadFromKL = function() {
             getKLUrl('loans/start', true).done(response => { //this tells us if the loans have loaded on the server.
-                if (response.pages == 4) {
+                if (response.pages) {
                     this.notify({loan_load_progress: {label: 'Loading loans from KivaLens server...'}})
                     var received = 0
                     var loansToAdd = []
                     hasStarted = true
-                    Array.range(1,4).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
+                    Array.range(1, response.pages).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
                         received++
-                        loansToAdd = loansToAdd.concat(loans)
-                        if (received == 4) {
-                            this.loan_download.resolve(loansToAdd)
-                            this.checkHotLoans()
-                            this.backgroundResync(true)
+                        this.notify({loan_load_progress: {task: 'details', done: received, total: response.pages, label: `Loading loans from KivaLens server ${received} of ${response.pages}...`}})
+                        loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
+                        if (received == response.pages) {
+                            this.loan_download.resolve(loansToAdd,true)
+                            this.saveLoansToLLSAfterDelay()
                         }
                     }))
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
@@ -1091,8 +1098,6 @@ class Loans {
                         if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
                             hasStarted = true
                             this.loan_download.resolve(loans)
-                            this.checkHotLoans()
-                            this.backgroundResync(true)
                         } else {
                             loadFromSource()
                         }
@@ -1469,12 +1474,14 @@ class Loans {
         this.lender_loans_state = llDownloading
         this.notify({lender_loans_event: 'started'})
         var kl = this
-        return new LenderFundraisingLoans(this.lender_id, true).fundraisingIds().done(ids => {
-            kl.lender_loans = ids
-            kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
-            kl.lender_loans_state = llComplete
-            kl.notify({lender_loans_event: 'done'})
-            cl('LENDER LOAN IDS:', ids)
+        waitFor(x => kl.allLoansLoaded).done(x => {
+            new LenderFundraisingLoans(this.lender_id, true).fundraisingIds().done(ids => {
+                kl.lender_loans = ids
+                kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
+                kl.lender_loans_state = llComplete
+                kl.notify({lender_loans_event: 'done'})
+                cl('LENDER LOAN IDS:', ids)
+            })
         })
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
@@ -1621,6 +1628,7 @@ exports.getUrl = getUrl
 exports.getKLUrl = getKLUrl
 exports.LenderTeams = LenderTeams
 exports.ManualPagedKiva = ManualPagedKiva
+exports.KLPageSplits = KLPageSplits
 
 
 //temp... verify that these aren't ever used before removal
