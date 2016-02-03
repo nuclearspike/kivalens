@@ -63,7 +63,7 @@ app.get('/', function(request, response) {
 })
 
 app.get('/loans/get', function(request, response) {
-    console.log(request.param)
+    console.log(request.params)
     var page = request.param('page')
 
     if (page) {
@@ -119,7 +119,8 @@ function fetchLoans() {
             delete loan.location.geo
         })
         loans = allLoans
-        loanChunks = allLoans.chunk(500)
+        var chunkSize = Math.ceil(allLoans.length / 4)
+        loanChunks = allLoans.chunk(chunkSize)
 
         console.log("Loans ready!")
     })
