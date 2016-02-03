@@ -64,10 +64,10 @@ app.get('/', function(request, response) {
 
 app.get('/loans/get', function(request, response) {
     console.log(request.params)
-    var page = request.param('page')
+    var page = parseInt(request.param('page'))
 
     if (page) {
-        response.send(JSON.stringify(loanChunks[page]))
+        response.send(JSON.stringify(loanChunks[page - 1]))
     } else {
         response.send(loans)
     }
