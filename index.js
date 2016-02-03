@@ -26,7 +26,8 @@ app.use(express.cookieParser())
     })
 )**/
 
-var loans = JSON.stringify([])
+var loans = []
+var loanChunks = []
 
 const proxyHandler = {
     forwardPath: function(req, res) {
@@ -61,13 +62,24 @@ app.get('/', function(request, response) {
   response.render('pages/index')
 })
 
-app.get('/loans', function(request, response) {
-    response.send(loans)
+app.get('/loans/get', function(request, response) {
+    console.log(request.param)
+    var page = request.param('page')
+
+    if (page) {
+        response.send(JSON.stringify(loanChunks[page]))
+    } else {
+        response.send(loans)
+    }
 })
 
-app.get('/fetch', function(request, response){
+app.get('/loans/start', function(request, response){
+    response.send(JSON.stringify({pages: loanChunks.length, total: loans.length}))
+})
+
+app.get('/loans/fetch', function(request, response){
+    response.send("Started fetch from Kiva")
     fetchLoans()
-    response.send("started")
 })
 
 //any page not defined in this file gets routed to everything which redirects to /#/search
@@ -79,7 +91,18 @@ app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
 
+
+//shouldn't be in server file.
 var k = require('./react/src/scripts/api/kiva')
+
+Array.prototype.chunk = function(chunkSize) {
+    var R = []
+    for (var i=0; i<this.length; i+=chunkSize)
+        R.push(this.slice(i,i+chunkSize))
+    return R
+}
+
+fetchLoans()
 
 //get all loans.
 function fetchLoans() {
@@ -95,7 +118,9 @@ function fetchLoans() {
             delete loan.translator
             delete loan.location.geo
         })
-        loans = JSON.stringify(allLoans)
+        loans = allLoans
+        loanChunks = allLoans.chunk(500)
+
         console.log("Loans ready!")
     })
 }

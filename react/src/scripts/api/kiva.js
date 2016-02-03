@@ -1047,7 +1047,6 @@ class Loans {
         if (base_options.mergeAtheistList)
             this.getAtheistList()
 
-
         if (base_options.maxRepaymentTerms_on) {
             max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
             needSecondary = true
@@ -1667,3 +1666,4 @@ global.LoansSearch = LoansSearch
 global.LenderLoans = LenderLoans
 global.LenderTeams = LenderTeams
 global.ManualPagedKiva = ManualPagedKiva
+global.getUrl = getUrl
