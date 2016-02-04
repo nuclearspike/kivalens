@@ -4,7 +4,7 @@ import React from 'react'
 import {Grid,Row,Col,Modal,Input,Button,Alert} from 'react-bootstrap'
 import {KivaLink} from '.'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
-import {Request} from '../api/kiva'
+import {req} from '../api/kiva'
 
 var lenderIdTester = new RegExp(/^[a-z0-9]{0,24}$/i)
 
@@ -24,7 +24,8 @@ const SetLenderIDModal = React.createClass({
         lid = lid.trim()
 
         this.setState({checking: true, failed: false})
-        Request.get(`lenders/${lid}.json`)
+
+        req.api.get(`lenders/${lid}.json`)
             .always(x=>this.setState({checking: false}))
             .fail(x=>this.setState({failed: true}))
             .done(x=>{

@@ -170,6 +170,68 @@ class Request {
     }
 }
 
+/**
+ * semaphored access to a server. this is to replace Request.sem_get
+ */
+class SemRequest {
+    constructor(serverAndBasePath,asJSON,defaultParams,ttlMins){
+        if (asJSON === undefined) asJSON = true
+        this.serverAndBasePath = serverAndBasePath
+        this.defaultParams = defaultParams
+        this.asJSON = asJSON
+        this.ttlMins = ttlMins || 0
+        this.requests = {}
+    }
+
+    _get(path, params){
+        var def = Deferred()
+        sem_one.take(function(){
+            params = extend({}, this.defaultParams, params)
+            return getUrl(`${this.serverAndBasePath}${path}?${serialize(params)}`,this.asJSON)
+                .fail(e => cl(e) )
+                .always(x => sem_one.leave())
+                .done(def.resolve)
+                .fail(def.reject)
+                .progress(def.notify)
+        }.bind(this))
+        return def
+    }
+
+    get(path, params){
+        var key = path + '?' + JSON.stringify(params)
+        if (this.requests[key]) {
+            var req = this.requests[key]
+            if (req) {
+                if ((Date.now() - req.requested) > req.ttlMins * 60000)
+                    delete this.requests[key]
+                else
+                    return req.promise
+            }
+        }
+
+        let p = this._get(path, params)
+        if (this.ttlMins > 0)
+            this.requests[key] = {promise: p, requested: Date.now()}
+        return p
+    }
+}
+
+var req = {
+    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: api_options.app_id},0)
+}
+
+if (typeof location != 'undefined') { //should use something more descriptive "isNodeServer" "isBrowser" etc.
+    //some of these can be switched to direct kiva/gdocs calls if needed on the server.
+    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5)
+    //req.proxy = new SemRequest(`${location.protocol}//${location.host}/proxy/`,true,{},5) //never used directly
+    req.kiva = new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/`,false,{},5)
+    req.kivaAjax = new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/ajax/`,true,{},5)
+} else {
+    req.kiva = new SemRequest('https://www.kiva.org/',false,{},5)
+    req.kivaAjax = new SemRequest('https://www.kiva.org/ajax/',true,{},5)
+}
+
+
 var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
 var common_use = ["PURCHASE", "FOR", "AND", "BUY", "OTHER", "HER", "BUSINESS", "SELL", "MORE", "HIS", "THE", "PAY"]
 
@@ -523,6 +585,16 @@ class LenderFundraisingLoans extends LenderStatusLoans {
     }
 }
 
+class Partners extends PagedKiva {
+    constructor(){
+        super(`partners.json`, {per_page: 500}, 'partners')
+    }
+
+    start(){
+        return super.start().then(ResultProcessors.processPartners)
+    }
+}
+
 //intended to catch multiple requests for the same information. should there be a there a TTL on it?
 //used for ManualPagedKiva so that prefetching and next() calls wouldn't make two separate calls
 class SharedAPIRequest {
@@ -652,7 +724,7 @@ class LoanBatch {
 
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
-            Request.sem_get(`loans/${chunk.join(',')}.json`, {}, 'loans', false)
+            req.api.get(`loans/${chunk.join(',')}.json`).then(res => res.loans)
                 .then(ResultProcessors.processLoans)
                 .done(loans => {
                     r_loans = r_loans.concat(loans)
@@ -1060,7 +1132,7 @@ class Loans {
         }.bind(this)
 
         const loadFromKL = function() {
-            getKLUrl('loans/start', true).done(response => { //this tells us if the loans have loaded on the server.
+            req.kl.get('loans/start').done(response => { //this tells us if the loans have loaded on the server.
                 if (response.pages) {
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
                     var received = 0
@@ -1080,10 +1152,10 @@ class Loans {
         }.bind(this)
 
         const loadFromSource = function () {
-            if (this.options.loansFromKL)
-                loadFromKL()
-            else
+            if (this.options.loansFromKiva)
                 loadFromKiva()
+            else
+                loadFromKL()
         }.bind(this)
         
         const startGettingLoans = function () {
@@ -1453,7 +1525,8 @@ class Loans {
         return this.indexed_loans[id] != undefined
     }
     getAllPartners(){
-        return Request.sem_get('partners.json', {}, 'partners', false).then(ResultProcessors.processPartners).then(partners => {
+        //does not return the partners. just the promise so you know if it's done.
+        return new Partners().start().then(partners => {
             this.partners_from_kiva = partners
             this.active_partners = partners.where(p => p.status == "active")
             //todo: temp. for debugging
@@ -1632,6 +1705,7 @@ exports.getKLUrl = getKLUrl
 exports.LenderTeams = LenderTeams
 exports.ManualPagedKiva = ManualPagedKiva
 exports.KLPageSplits = KLPageSplits
+exports.req = req
 
 
 //temp... verify that these aren't ever used before removal
@@ -1644,3 +1718,4 @@ global.LenderTeams = LenderTeams
 global.ManualPagedKiva = ManualPagedKiva
 global.getUrl = getUrl
 global.getKLUrl = getKLUrl
+global.req = req
