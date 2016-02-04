@@ -24,7 +24,7 @@ if (cluster.isMaster) {
     console.log("*** CPUs: " + numCPUs)
 
 
-    Array.range(1,numCPUs).forEach(x=>cluster.fork())
+    Array.range(1,Math.min(numCPUs,3)).forEach(x=>cluster.fork())
 
     /**
      * issues: partners don't get updated after initial load.

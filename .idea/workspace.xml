@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="filter only returns ids">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -135,14 +134,14 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.6008584">
+    <splitter split-orientation="horizontal" split-proportion="0.46995708">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.49312976">
-                  <caret line="1434" column="65" selection-start-line="1434" selection-start-column="8" selection-end-line="1434" selection-end-column="65" />
+                <state vertical-scroll-proportion="-0.5832061">
+                  <caret line="1439" column="25" selection-start-line="1439" selection-start-column="25" selection-end-line="1439" selection-end-column="25" />
                   <folding />
                 </state>
               </provider>
@@ -192,7 +191,7 @@
             <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="-8.125">
-                  <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+                  <caret line="16" column="23" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
                   <folding />
                 </state>
               </provider>
@@ -800,7 +799,7 @@
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="-5.3703704">
-                  <caret line="1619" column="1" selection-start-line="1619" selection-start-column="1" selection-end-line="1619" selection-end-column="1" />
+                  <caret line="1616" column="1" selection-start-line="1616" selection-start-column="1" selection-end-line="1616" selection-end-column="1" />
                   <folding>
                     <element signature="n#!!block;n#continuePaging#0;n#PagedKiva#0" expanded="false" />
                     <element signature="n#!!block;n#wrapUp#0;n#PagedKiva#0" expanded="false" />
@@ -838,9 +837,11 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.49312976">
-                  <caret line="155" column="55" selection-start-line="155" selection-start-column="55" selection-end-line="155" selection-end-column="55" />
-                  <folding />
+                <state vertical-scroll-proportion="0.35877863">
+                  <caret line="26" column="37" selection-start-line="26" selection-start-column="37" selection-end-line="26" selection-end-column="37" />
+                  <folding>
+                    <element signature="e#3872#4546#0" expanded="false" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -948,8 +949,8 @@
         <option value="$PROJECT_DIR$/react/src/scripts/linqextras.js" />
         <option value="$PROJECT_DIR$/public/javascript/socket.io.js" />
         <option value="$PROJECT_DIR$/package.json" />
-        <option value="$PROJECT_DIR$/index.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/index.js" />
       </list>
     </option>
   </component>
@@ -1544,7 +1545,19 @@
       <option name="project" value="LOCAL" />
       <updated>1454548032811</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="make a reset faster (no distinct, clears the loans). make server faster, store pre-stringified chunks">
+      <created>1454570601487</created>
+      <option name="number" value="00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1454570601487</updated>
+    </task>
+    <task id="LOCAL-00044" summary="run server as a cluster... let's hope the cpu usage isn't as crazy as my computer...">
+      <created>1454575018830</created>
+      <option name="number" value="00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1454575018830</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1585,8 +1598,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="stopped using cdn for q. it was slow and never spit back that it wasn't modified... worthless!" />
-    <MESSAGE value="minimized versions of referenced js" />
     <MESSAGE value="async load the bundle, display a &quot;please wait&quot; message since the bundle is 2MB" />
     <MESSAGE value="beefing up server... intro of server fetching loans." />
     <MESSAGE value="fix for missing node package" />
@@ -1610,7 +1621,9 @@
     <MESSAGE value="kl api can now filter. switched to using kivaloans full class with all of it's goodies. added socket.io client to server so it can update it's list of loans. loans pulled from KL should only be at most 10 seconds stale." />
     <MESSAGE value="typo" />
     <MESSAGE value="filter only returns ids" />
-    <option name="LAST_COMMIT_MESSAGE" value="filter only returns ids" />
+    <MESSAGE value="make a reset faster (no distinct, clears the loans). make server faster, store pre-stringified chunks" />
+    <MESSAGE value="run server as a cluster... let's hope the cpu usage isn't as crazy as my computer..." />
+    <option name="LAST_COMMIT_MESSAGE" value="run server as a cluster... let's hope the cpu usage isn't as crazy as my computer..." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2538,7 +2551,7 @@
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-8.125">
-          <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+          <caret line="16" column="23" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
           <folding />
         </state>
       </provider>
@@ -2583,19 +2596,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.js">
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.49312976">
-          <caret line="155" column="55" selection-start-line="155" selection-start-column="55" selection-end-line="155" selection-end-column="55" />
-          <folding />
+        <state vertical-scroll-proportion="-5.3703704">
+          <caret line="1616" column="1" selection-start-line="1616" selection-start-column="1" selection-end-line="1616" selection-end-column="1" />
+          <folding>
+            <element signature="n#!!block;n#continuePaging#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#!!block;n#wrapUp#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#!!block;n#setupRequest#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#LenderLoans#0" expanded="false" />
+            <element signature="n#LenderTeams#0" expanded="false" />
+            <element signature="n#LenderStatusLoans#0" expanded="false" />
+            <element signature="n#LenderFundraisingLoans#0" expanded="false" />
+            <element signature="n#CritTester#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+    <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.49312976">
-          <caret line="1434" column="65" selection-start-line="1434" selection-start-column="8" selection-end-line="1434" selection-end-column="65" />
-          <folding />
+        <state vertical-scroll-proportion="0.35877863">
+          <caret line="26" column="37" selection-start-line="26" selection-start-column="37" selection-end-line="26" selection-end-column="37" />
+          <folding>
+            <element signature="e#3872#4546#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
