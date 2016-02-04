@@ -26,7 +26,7 @@ if (cluster.isMaster) {
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
 
-    var loanChunks = []
+    //var loanChunks = []
 
     Array.range(1,Math.min(numCPUs,1)).forEach(x=>cluster.fork())
 
@@ -40,7 +40,15 @@ if (cluster.isMaster) {
             reply({pages: loanChunks.length})
         if (msg.getPage)
             reply(loanChunks[msg.getPage - 1])
-    });
+    })
+
+    // Listen for dying workers
+    cluster.on('exit', function (worker) {
+        // Replace the dead worker,
+        // we're not sentimental
+        console.log('Worker %d died :(', worker.id)
+        cluster.fork()
+    })
 
     /**
      * issues: partners don't get updated after initial load.
