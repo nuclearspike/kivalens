@@ -95,14 +95,13 @@ if (cluster.isMaster) {
         loansChanged = false //hot loans &
         var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.filter({}, false))
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
-        var loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-        notifyAllWorkers({loanChunks})
+        notifyAllWorkers({loanChunks: allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))})
         //todo: loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         console.log("Loan chunks ready!")
     }
 
-    //prep it every 10 seconds
-    setInterval(prepForRequests, 10000)
+    //prep it every 30 seconds
+    setInterval(prepForRequests, 30000)
 
     const connectChannel = function(channelName, onEvent) {
         var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});

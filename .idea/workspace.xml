@@ -133,7 +133,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46995708">
+    <splitter split-orientation="horizontal" split-proportion="0.42274678">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
@@ -149,10 +149,10 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6818182">
+                <state vertical-scroll-proportion="0.6378299">
                   <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
                   <folding>
-                    <element signature="e#4946#5620#0" expanded="false" />
+                    <element signature="e#5070#5744#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -799,8 +799,8 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-5.3703704">
-                  <caret line="1616" column="1" selection-start-line="1616" selection-start-column="1" selection-end-line="1616" selection-end-column="1" />
+                <state vertical-scroll-proportion="-8.62963">
+                  <caret line="945" column="96" selection-start-line="945" selection-start-column="96" selection-end-line="945" selection-end-column="96" />
                   <folding>
                     <element signature="n#!!block;n#continuePaging#0;n#PagedKiva#0" expanded="false" />
                     <element signature="n#!!block;n#wrapUp#0;n#PagedKiva#0" expanded="false" />
@@ -838,10 +838,10 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.7221374">
-                  <caret line="45" column="42" selection-start-line="45" selection-start-column="42" selection-end-line="45" selection-end-column="42" />
+                <state vertical-scroll-proportion="0.3816794">
+                  <caret line="96" column="65" selection-start-line="96" selection-start-column="65" selection-end-line="96" selection-end-column="65" />
                   <folding>
-                    <element signature="e#4946#5620#0" expanded="false" />
+                    <element signature="e#5070#5744#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -1570,7 +1570,19 @@
       <option name="project" value="LOCAL" />
       <updated>1454579194685</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="handle worker that exits">
+      <created>1454579872741</created>
+      <option name="number" value="00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1454579872741</updated>
+    </task>
+    <task id="LOCAL-00048" summary="handle worker that exits">
+      <created>1454581962816</created>
+      <option name="number" value="00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1454581962816</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1611,7 +1623,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="fix for missing node package" />
     <MESSAGE value="busted it" />
     <MESSAGE value="fix for weirdness with repayment dates at certain times of day." />
     <MESSAGE value="let's try this again." />
@@ -1636,7 +1647,8 @@
     <MESSAGE value="run server as a cluster... let's hope the cpu usage isn't as crazy as my computer..." />
     <MESSAGE value="only spawn 3 workers." />
     <MESSAGE value="only spawn 1 worker" />
-    <option name="LAST_COMMIT_MESSAGE" value="only spawn 1 worker" />
+    <MESSAGE value="handle worker that exits" />
+    <option name="LAST_COMMIT_MESSAGE" value="handle worker that exits" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2611,18 +2623,27 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="14.148149">
-          <caret line="1439" column="25" selection-start-line="1439" selection-start-column="25" selection-end-line="1439" selection-end-column="25" />
-          <folding />
+        <state vertical-scroll-proportion="-8.62963">
+          <caret line="945" column="96" selection-start-line="945" selection-start-column="96" selection-end-line="945" selection-end-column="96" />
+          <folding>
+            <element signature="n#!!block;n#continuePaging#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#!!block;n#wrapUp#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#!!block;n#setupRequest#0;n#PagedKiva#0" expanded="false" />
+            <element signature="n#LenderLoans#0" expanded="false" />
+            <element signature="n#LenderTeams#0" expanded="false" />
+            <element signature="n#LenderStatusLoans#0" expanded="false" />
+            <element signature="n#LenderFundraisingLoans#0" expanded="false" />
+            <element signature="n#CritTester#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6818182">
-          <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.3816794">
+          <caret line="96" column="65" selection-start-line="96" selection-start-column="65" selection-end-line="96" selection-end-column="65" />
           <folding>
-            <element signature="e#4946#5620#0" expanded="false" />
+            <element signature="e#5070#5744#0" expanded="false" />
           </folding>
         </state>
       </provider>
