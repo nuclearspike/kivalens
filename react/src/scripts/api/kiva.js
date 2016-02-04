@@ -1021,12 +1021,11 @@ class Loans {
         this.loan_download = Deferred()
 
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
-        this.loan_download.fail(e=>this.notify({failed: e})).done((loans,skipProcessing)=>{
+        this.loan_download.fail(e=>this.notify({failed: e})).done((loans,notify)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
-            if (!skipProcessing) ResultProcessors.processLoans(loans)
             this.setKivaLoans(loans, false)
             this.allLoansLoaded = true
-            this.backgroundResync(true)
+            this.backgroundResync(notify)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
         })
 
@@ -1073,7 +1072,7 @@ class Loans {
                         this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${received} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                         if (received == response.pages)
-                            this.loan_download.resolve(loansToAdd, true)
+                            this.loan_download.resolve(loansToAdd, false)
                     }))
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
@@ -1098,7 +1097,7 @@ class Loans {
                     this.getLoansFromLLS().done((loans, saved)=> {
                         if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
                             hasStarted = true
-                            this.loan_download.resolve(loans)
+                            this.loan_download.resolve(loans, true)
                         } else {
                             loadFromSource()
                         }
@@ -1424,6 +1423,9 @@ class Loans {
         this.base_kiva_params = base_kiva_params
     }
     setKivaLoans(loans, reset){
+        if (loans.length && !loans[0].kl_processed)
+            ResultProcessors.processLoans(loans)
+
         if (reset === undefined) reset = true
         if (!loans.length) return
         if (reset) {
@@ -1641,3 +1643,4 @@ global.LenderLoans = LenderLoans
 global.LenderTeams = LenderTeams
 global.ManualPagedKiva = ManualPagedKiva
 global.getUrl = getUrl
+global.getKLUrl = getKLUrl
