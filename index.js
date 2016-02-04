@@ -96,7 +96,7 @@ if (cluster.isMaster) {
         kivaloans.loans_from_kiva.removeAll(l=>l.status!='fundraising')
         var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.filter({}, false))
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
-        notifyAllWorkers({loanChunks: allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))})
+        notifyAllWorkers({loanChunks: allLoans.chunk(chunkSize)}) //.select(chunk => JSON.stringify(chunk))})
         //todo: loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         console.log("Loan chunks ready!")
     }
@@ -199,7 +199,7 @@ if (cluster.isMaster) {
                 response.sendStatus(404)
                 return
             }
-            response.send(loanChunks[page - 1])
+            response.send(JSON.stringify(loanChunks[page - 1]))
             /**sock.send({getPage:page}, result => {
                 response.send(result)
             })**/

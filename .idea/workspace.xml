@@ -152,7 +152,7 @@
                 <state vertical-scroll-proportion="-3.2668622">
                   <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
                   <folding>
-                    <element signature="e#5142#5816#0" expanded="false" />
+                    <element signature="e#5147#5821#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -838,10 +838,10 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.3816794">
-                  <caret line="95" column="71" selection-start-line="95" selection-start-column="71" selection-end-line="95" selection-end-column="71" />
+                <state vertical-scroll-proportion="0.6335878">
+                  <caret line="196" column="19" selection-start-line="196" selection-start-column="19" selection-end-line="196" selection-end-column="19" />
                   <folding>
-                    <element signature="e#5142#5816#0" expanded="false" />
+                    <element signature="e#5147#5821#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -1294,12 +1294,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00001" summary="removed rounded borders when butted up against another. Added a message in basket about how to get loans in basket when 0.  added message when no loans match the current criteria.">
-      <created>1453784222531</created>
-      <option name="number" value="00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1453784222531</updated>
-    </task>
     <task id="LOCAL-00002" summary="wording changes">
       <created>1453795506106</created>
       <option name="number" value="00002" />
@@ -1588,7 +1582,13 @@
       <option name="project" value="LOCAL" />
       <updated>1454582758914</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="attempts to reduce memory usage">
+      <created>1454583586234</created>
+      <option name="number" value="00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1454583586243</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -2646,10 +2646,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3816794">
-          <caret line="95" column="71" selection-start-line="95" selection-start-column="71" selection-end-line="95" selection-end-column="71" />
+        <state vertical-scroll-proportion="0.6335878">
+          <caret line="196" column="19" selection-start-line="196" selection-start-column="19" selection-end-line="196" selection-end-column="19" />
           <folding>
-            <element signature="e#5142#5816#0" expanded="false" />
+            <element signature="e#5147#5821#0" expanded="false" />
           </folding>
         </state>
       </provider>
