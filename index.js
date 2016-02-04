@@ -97,12 +97,14 @@ app.get('/loans/get', function(request, response) {
 })
 
 app.get('/loans/filter', function(req, resp){
+    //getUrl("http://www.kivalens.org/loans/filter?crit=" + encodeURIComponent(JSON.stringify({loan:{name:"Paul"}})),true).done(r => console.log(r))
     var crit = req.param("crit")
     if (crit)
         crit = JSON.parse(decodeURIComponent(crit))
-    var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
+    //var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
+    var results = kivaloans.filter(crit, false).select(l=>l.id)
     resp.send(JSON.stringify(results))
-    console.log(crit,results)
+    //console.log(crit,results)
 })
 
 //CATCH ALL
