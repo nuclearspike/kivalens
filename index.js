@@ -3,6 +3,7 @@
 const cluster = require('cluster')
 const k = require('./react/src/scripts/api/kiva')
 const KLPageSplits = k.KLPageSplits
+var axon = require('axon');
 require('./react/src/scripts/linqextras')
 //to satisfy kiva.js
 global.cl = function(){}
@@ -15,6 +16,8 @@ global.cl = function(){}
     })
  )**/
 
+const axonPort = 3005
+
 function notifyAllWorkers(msg){
     Object.keys(cluster.workers).forEach(id => cluster.workers[id].send(msg))
 }
@@ -23,8 +26,21 @@ if (cluster.isMaster) {
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
 
+    var loanChunks = []
 
-    Array.range(1,Math.min(numCPUs,3)).forEach(x=>cluster.fork())
+    Array.range(1,Math.min(numCPUs,1)).forEach(x=>cluster.fork())
+
+    var sock = axon.socket('rep')
+    sock.connect(axonPort)
+
+    //not used
+    sock.on('message', function(msg, reply){
+        console.log("sock.on('message'): ", msg)
+        if (msg.getStart)
+            reply({pages: loanChunks.length})
+        if (msg.getPage)
+            reply(loanChunks[msg.getPage - 1])
+    });
 
     /**
      * issues: partners don't get updated after initial load.
@@ -33,6 +49,15 @@ if (cluster.isMaster) {
 
     var kivaloans
     var loansChanged = false
+
+    //todo: not used
+    cluster.on('message',(msg,handle,callback)=>{
+        console.log("cluster.on(message):", msg,handle,callback)
+        if (msg.getStart)
+            callback({pages: loanChunks.length})
+        if (msg.getPage)
+            callback(loanChunks[msg.getPage - 1])
+    })
 
     const tempFixReInitKivaLoans = function(){
         kivaloans = new k.Loans(5*60*1000)
@@ -60,6 +85,7 @@ if (cluster.isMaster) {
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
         var loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         notifyAllWorkers({loanChunks})
+        //todo: loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         console.log("Loan chunks ready!")
     }
 
@@ -96,6 +122,9 @@ if (cluster.isMaster) {
     var proxy = require('express-http-proxy')
     var helmet = require('helmet')
     //var session = require('express-session')
+
+    var sock = axon.socket('req')
+    sock.bind(axonPort)
 
     var compression = require('compression')
     // compress all requests
@@ -145,6 +174,9 @@ if (cluster.isMaster) {
     app.get('/loans/start', function(request, response){
         var data = {pages: loanChunks.length}
         response.send(JSON.stringify(data))
+        /**todo:sock.send({getStart:true}, result => {
+            response.send(JSON.stringify(result))
+        })**/
     })
 
     app.get('/loans/get', function(request, response) {
@@ -155,6 +187,9 @@ if (cluster.isMaster) {
                 return
             }
             response.send(loanChunks[page - 1])
+            /**sock.send({getPage:page}, result => {
+                response.send(result)
+            })**/
         } else {
             response.sendStatus(404)
         }
@@ -169,7 +204,6 @@ if (cluster.isMaster) {
         //var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
         var results = kivaloans.filter(crit, false).select(l=>l.id)
         resp.send(JSON.stringify(results))
-        //console.log(crit,results)
     })
 
     //CATCH ALL
@@ -182,10 +216,11 @@ if (cluster.isMaster) {
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
+
     process.on("message", msg => {
         if (msg.loanChunks){
             loanChunks = msg.loanChunks
-            console.log("received loan ready message")
+            console.log("received loanChunks message")
         }
     })
 }
