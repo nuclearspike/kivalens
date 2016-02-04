@@ -7,6 +7,7 @@ require('linqjs')
 require('datejs')
 require('numeral')
 require('./utils')
+require('./linqextras')
 require('./stores/liveStore')
 require('./api/syncStorage')
 

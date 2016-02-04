@@ -35,7 +35,6 @@ app.use(express.cookieParser())
     })
 )**/
 
-var loans = []
 var loanChunks = []
 
 //TODO: RESTRICT TO SAME SERVER?
@@ -80,25 +79,30 @@ app.get('/feed.svc/rss/*', function(request, response){
 
 //API
 app.get('/loans/start', function(request, response){
-    response.send(JSON.stringify({pages: loanChunks.length, total: loans.length}))
-})
-
-app.get('/loans/fetch', function(request, response){
-    response.send("Started fetch from Kiva")
-    fetchLoans()
+    var data = {pages: loanChunks.length}
+    response.send(JSON.stringify(data))
 })
 
 app.get('/loans/get', function(request, response) {
     var page = parseInt(request.param('page'))
     if (page) {
-        if (page > KLPageSplits) {
+        if (page > KLPageSplits || page < 1) {
             response.sendStatus(404)
             return
         }
         response.send(JSON.stringify(loanChunks[page - 1]))
     } else {
-        response.send(loans)
+        response.sendStatus(404)
     }
+})
+
+app.get('/loans/filter', function(req, resp){
+    var crit = request.param("crit")
+    if (crit)
+        crit = JSON.parse(decodeURIComponent(crit))
+    var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
+    resp.send(JSON.stringify(results))
+    console.log(crit,results)
 })
 
 //CATCH ALL
@@ -111,37 +115,71 @@ app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
 
-Array.prototype.chunk = function(chunkSize) {
-    var R = []
-    for (var i=0; i<this.length; i+=chunkSize)
-        R.push(this.slice(i,i+chunkSize))
-    return R
-}
+//to satisfy kiva.js
+global.cl = function(){}
 
-fetchLoans()
 
-//get all loans.
-function fetchLoans() {
-    const LoansSearch = k.LoansSearch
-    k.setAPIOptions({app_id: 'org.kiva.kivalens'})
+require('./react/src/scripts/linqextras')
 
-    new LoansSearch({}, true, null, true).start().done(allLoans => {
-        console.log("Loans received!")
-        allLoans.forEach(loan => {
-            loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
-            delete loan.terms.local_payments
-            delete loan.journal_totals
-            delete loan.translator
-            delete loan.location.geo
-        })
-        loans = allLoans
-        var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
-        loanChunks = allLoans.chunk(chunkSize)
+/**
+ * issues: partners don't get updated after initial load.
+ * so it just reinitializes after 24 hours of constant running
+ */
 
-        console.log("Loans ready!")
+var kivaloans
+var loansChanged = false
+
+setInterval(tempFixReInitKivaLoans, 24*60*60000)
+tempFixReInitKivaLoans()
+
+function tempFixReInitKivaLoans(){
+    kivaloans = new k.Loans(5*60*1000)
+    var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true}) //todo:second is not implemented yet.
+    kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
+        if (progress.loan_load_progress && progress.loan_load_progress.label)
+            console.log(progress.loan_load_progress.label)
+        if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
+            loansChanged = true
+        if (progress.loans_loaded)
+            prepForRequests()
     })
 }
 
-setInterval(fetchLoans,5*60000)
+function prepForRequests(){
+    if (!loansChanged) {
+        console.log("Nothing changed")
+        return
+    }
+    loansChanged = false //hot loans &
+    var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.filter({}, false))
+    var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
+    loanChunks = allLoans.chunk(chunkSize)
+    console.log("Loan chunks ready!")
+}
 
-//require("./MongoTest")
+setInterval(prepForRequests, 15000)
+
+function connectChannel(channelName, onEvent) {
+    var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});
+    channel.on('connect', function () {console.log(`socket.io channel connect: ${channelName}`)})
+    channel.on('error', function (data) {console.log(`socket.io channel error: ${channelName}: ${data}`)})
+    channel.on('event', onEvent)
+    channel.on('message', onEvent)
+    channel.on('disconnect', function () {console.log(`socket.io channel disconnect: ${channelName}`)})
+}
+
+connectChannel('loan.posted', function(data){
+    data = JSON.parse(data)
+    console.log("!!! loan.posted")
+    loansChanged = true
+    if (kivaloans)
+        kivaloans.queueNewLoanNotice(data.p.loan.id)
+})
+
+connectChannel('loan.purchased', function(data){
+    data = JSON.parse(data)
+    console.log("!!! loan.purchased")
+    loansChanged = true
+    if (kivaloans)
+        kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
+})

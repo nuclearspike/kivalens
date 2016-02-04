@@ -932,7 +932,7 @@ class LoansArray extends Array {
 class Loans {
     constructor(update_interval){
         if (update_interval === undefined) update_interval = 0
-        this.interComm = new InterTabComm('KL')
+        //this.interComm = new InterTabComm('KL')
         this.startupTime = new Date()
         this.last_partner_search_count = 0
         this.last_partner_search = {}
@@ -993,11 +993,12 @@ class Loans {
         setAPIOptions(api_options)
         crit = extend(crit, {})
         this.getOptions = getOptions
-        this.options = this.getOptions()
+        this.options = getOptions()
 
         //listen for request. tab can become the boss even if it starts out as a client.
         
-        if (this.options.useLargeLocalStorage) {
+        if (false && this.options.useLargeLocalStorage) {
+            //what?? is this gone completely?
             this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
                 var that = this
                 waitFor(x => that.allLoansLoaded).done(()=> {
@@ -1014,9 +1015,11 @@ class Loans {
 
         var max_repayment_date = null
         var needSecondary = false
+        //why doesn't this merge with this.options??
         var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
         this.partner_download = this.getAllPartners().fail(failed=>this.notify({failed}))
         this.loan_download = Deferred()
+
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
         this.loan_download.fail(e=>this.notify({failed: e})).done((loans,skipProcessing)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
@@ -1452,7 +1455,7 @@ class Loans {
             this.partners_from_kiva = partners
             this.active_partners = partners.where(p => p.status == "active")
             //todo: temp. for debugging
-            window.partners = this.partners_from_kiva
+            global.partners = this.partners_from_kiva
             //gather all country objects where partners operate, flatten and remove dupes.
             this.countries = this.active_partners.select(p => p.countries).flatten().distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
         })

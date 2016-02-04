@@ -20,7 +20,8 @@
     "linqjs": "0.0.6",
     "mongodb": "^2.1.4",
     "request": "^2.67.0",
-    "semaphore": "^1.0.3"
+    "semaphore": "^1.0.3",
+    "socket.io-client": "^0.9.1"
   },
   "engines": {
     "node": "5.4.1"
