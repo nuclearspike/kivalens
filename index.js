@@ -84,8 +84,12 @@ if (cluster.isMaster) {
     tempFixReInitKivaLoans()
 
     const prepForRequests = function(){
+        if (!kivaloans.isReady()){
+            console.log("kivaloans not ready")
+            return
+        }
         if (!loansChanged) {
-            console.log("Nothing changed")
+            //console.log("Nothing changed")
             return
         }
         loansChanged = false //hot loans &
@@ -97,15 +101,16 @@ if (cluster.isMaster) {
         console.log("Loan chunks ready!")
     }
 
+    //prep it every 10 seconds
     setInterval(prepForRequests, 10000)
 
     const connectChannel = function(channelName, onEvent) {
         var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});
-        channel.on('connect', function () {console.log(`socket.io channel connect: ${channelName}`)})
+        //channel.on('connect', function () {console.log(`socket.io channel connect: ${channelName}`)})
         channel.on('error', function (data) {console.log(`socket.io channel error: ${channelName}: ${data}`)})
         channel.on('event', onEvent)
         channel.on('message', onEvent)
-        channel.on('disconnect', function () {console.log(`socket.io channel disconnect: ${channelName}`)})
+        //channel.on('disconnect', function () {console.log(`socket.io channel disconnect: ${channelName}`)})
     }
 
     connectChannel('loan.posted', function(data){
@@ -223,7 +228,6 @@ if (cluster.isMaster) {
     app.listen(app.get('port'), function() {
         console.log('KivaLens Server is running on port', app.get('port'))
     })
-
 
     process.on("message", msg => {
         if (msg.loanChunks){
