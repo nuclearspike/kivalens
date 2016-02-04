@@ -93,6 +93,7 @@ if (cluster.isMaster) {
             return
         }
         loansChanged = false //hot loans &
+        kivaloans.loans_from_kiva.removeAll(l=>l.status!='fundraising')
         var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.filter({}, false))
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
         notifyAllWorkers({loanChunks: allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))})
