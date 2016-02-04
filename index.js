@@ -97,7 +97,7 @@ app.get('/loans/get', function(request, response) {
 })
 
 app.get('/loans/filter', function(req, resp){
-    var crit = request.param("crit")
+    var crit = req.param("crit")
     if (crit)
         crit = JSON.parse(decodeURIComponent(crit))
     var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
