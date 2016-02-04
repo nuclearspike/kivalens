@@ -1023,7 +1023,7 @@ class Loans {
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
         this.loan_download.fail(e=>this.notify({failed: e})).done((loans,notify)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
-            this.setKivaLoans(loans, false)
+            this.setKivaLoans(loans)
             this.allLoansLoaded = true
             this.backgroundResync(notify)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
@@ -1433,7 +1433,10 @@ class Loans {
             this.indexed_loans = {}
         }
         //loans added through this method will always be distinct
-        this.loans_from_kiva = this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
+        if (reset)
+            this.loans_from_kiva = loans
+        else
+            this.loans_from_kiva = this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
         this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
         loans.forEach(loan => this.indexed_loans[loan.id] = loan)

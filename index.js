@@ -90,7 +90,7 @@ app.get('/loans/get', function(request, response) {
             response.sendStatus(404)
             return
         }
-        response.send(JSON.stringify(loanChunks[page - 1]))
+        response.send(loanChunks[page - 1])
     } else {
         response.sendStatus(404)
     }
@@ -155,7 +155,7 @@ function prepForRequests(){
     loansChanged = false //hot loans &
     var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.filter({}, false))
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
-    loanChunks = allLoans.chunk(chunkSize)
+    loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
     console.log("Loan chunks ready!")
 }
 
