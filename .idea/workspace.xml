@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server.">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" afterPath="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -136,14 +134,24 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.50572246">
+    <splitter split-orientation="horizontal" split-proportion="0.5143061">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.38931298">
-                  <caret line="1151" column="97" selection-start-line="1151" selection-start-column="97" selection-end-line="1151" selection-end-column="97" />
+                <state vertical-scroll-proportion="-6.962963">
+                  <caret line="733" column="33" selection-start-line="733" selection-start-column="33" selection-end-line="733" selection-end-column="33" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.41788855">
+                  <caret line="29" column="259" selection-start-line="29" selection-start-column="259" selection-end-line="29" selection-end-column="259" />
                   <folding />
                 </state>
               </provider>
@@ -236,8 +244,8 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6076336">
-                  <caret line="235" column="0" selection-start-line="235" selection-start-column="0" selection-end-line="235" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.37862596">
+                  <caret line="230" column="8" selection-start-line="230" selection-start-column="8" selection-end-line="230" selection-end-column="8" />
                   <folding />
                 </state>
               </provider>
@@ -367,7 +375,6 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/ClearBasket.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Criteria.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/BulkAddModal.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/index.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/loans.js" />
@@ -394,6 +401,7 @@
         <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
       </list>
     </option>
   </component>
@@ -752,12 +760,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00005" summary="ide settings">
-      <created>1453893196603</created>
-      <option name="number" value="00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1453893196603</updated>
-    </task>
     <task id="LOCAL-00006" summary="fix for charts not redrawing when resized in certain pattern of focusing.">
       <created>1453934778353</created>
       <option name="number" value="00006" />
@@ -1046,7 +1048,13 @@
       <option name="project" value="LOCAL" />
       <updated>1454628483820</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="restructured req,">
+      <created>1454639052762</created>
+      <option name="number" value="00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1454639052762</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1087,7 +1095,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="try again" />
     <MESSAGE value="break loans into chunks" />
     <MESSAGE value="fix" />
     <MESSAGE value="chunks into 4" />
@@ -1112,7 +1119,8 @@
     <MESSAGE value="attempts to reduce memory usage" />
     <MESSAGE value="reverted clustering to single process until i get it working right. too much memory used, too much CPU, and sometimes horrible load times." />
     <MESSAGE value="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server." />
-    <option name="LAST_COMMIT_MESSAGE" value="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server." />
+    <MESSAGE value="restructured req," />
+    <option name="LAST_COMMIT_MESSAGE" value="restructured req," />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1252,14 +1260,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="31" column="71" selection-start-line="31" selection-start-column="71" selection-end-line="31" selection-end-column="71" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.021994134">
-          <caret line="596" column="45" selection-start-line="596" selection-start-column="45" selection-end-line="596" selection-end-column="45" />
           <folding />
         </state>
       </provider>
@@ -2090,8 +2090,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38931298">
-          <caret line="1151" column="97" selection-start-line="1151" selection-start-column="97" selection-end-line="1151" selection-end-column="97" />
+        <state vertical-scroll-proportion="-6.962963">
+          <caret line="733" column="33" selection-start-line="733" selection-start-column="33" selection-end-line="733" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.41788855">
+          <caret line="29" column="259" selection-start-line="29" selection-start-column="259" selection-end-line="29" selection-end-column="259" />
           <folding />
         </state>
       </provider>
