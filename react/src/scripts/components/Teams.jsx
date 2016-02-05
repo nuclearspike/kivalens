@@ -60,7 +60,7 @@ const Teams = React.createClass({
         }
         this.querying++
         this.setState({querying: this.querying})
-        req.kivaAjax.get('getGraphData',{graphName,id:teamId})
+        req.kiva.ajax.get('getGraphData',{graphName,id:teamId})
             .done(result=>{
                 this.querying--
                 this.setState({querying: this.querying})

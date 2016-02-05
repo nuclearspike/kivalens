@@ -345,7 +345,7 @@ function get_verse_data(subject_type, subject_id, sliceBy, include){
         cl(`cache_miss: ${cache_key}`)
         def.notify({fetching: true})
 
-        req.kivaAjax.get('getSuperGraphData',{sliceBy,include,measure:'count',subject_id,'type':subject_type,granularity})
+        req.kiva.ajax.get('getSuperGraphData',{sliceBy,include,measure:'count',subject_id,'type':subject_type,granularity})
             .done(result => {
                 var slices = [], total_sum = 0
                 if (result.data) {

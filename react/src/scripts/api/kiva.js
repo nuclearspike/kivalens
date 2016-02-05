@@ -224,11 +224,15 @@ if (typeof location != 'undefined') { //should use something more descriptive "i
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
     req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5)
     //req.proxy = new SemRequest(`${location.protocol}//${location.host}/proxy/`,true,{},5) //never used directly
-    req.kiva = new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/`,false,{},5)
-    req.kivaAjax = new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/ajax/`,true,{},5)
+    req.kiva = {
+        page: new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/`,false,{},5),
+        ajax: new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/ajax/`,true,{},5)
+    }
 } else {
-    req.kiva = new SemRequest('https://www.kiva.org/',false,{},5)
-    req.kivaAjax = new SemRequest('https://www.kiva.org/ajax/',true,{},5)
+    req.kiva = {
+        page: new SemRequest('https://www.kiva.org/',false,{},5),
+        ajax: new SemRequest('https://www.kiva.org/ajax/',true,{},5)
+    }
 }
 
 
@@ -585,6 +589,10 @@ class LenderFundraisingLoans extends LenderStatusLoans {
     }
 }
 
+/**
+ * Even though Kiva currently returns all partners on a single page, using this class
+ * will ensure that once Kiva hits > 500 partners it'll start paging
+ */
 class Partners extends PagedKiva {
     constructor(){
         super(`partners.json`, {per_page: 500}, 'partners')
@@ -595,6 +603,7 @@ class Partners extends PagedKiva {
     }
 }
 
+//should be deprecated now that there's req.api.get
 //intended to catch multiple requests for the same information. should there be a there a TTL on it?
 //used for ManualPagedKiva so that prefetching and next() calls wouldn't make two separate calls
 class SharedAPIRequest {
@@ -724,7 +733,8 @@ class LoanBatch {
 
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
-            req.api.get(`loans/${chunk.join(',')}.json`).then(res => res.loans)
+            req.api.get(`loans/${chunk.join(',')}.json`)
+                .then(res => res.loans)
                 .then(ResultProcessors.processLoans)
                 .done(loans => {
                     r_loans = r_loans.concat(loans)
@@ -1139,7 +1149,7 @@ class Loans {
                     var loansToAdd = []
                     hasStarted = true
                     //todo: this needs to use a semaphored request.
-                    Array.range(1, response.pages).forEach(page => getKLUrl(`loans/get?page=${page}`, true).done(loans => {
+                    Array.range(1, response.pages).forEach(page => req.kl.get('loans/get', {page}).done(loans => {
                         received++
                         this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${received} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
