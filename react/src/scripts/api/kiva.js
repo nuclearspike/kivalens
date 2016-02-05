@@ -1514,8 +1514,8 @@ class Loans {
             this.loans_from_kiva = []
             this.indexed_loans = {}
         }
-        //loans added through this method will always be distinct
-        this.loans_from_kiva = reset ? loans : this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
+        //loans added through this method will always be distinct. it's possible to get duplicates when paging if new loans added
+        this.loans_from_kiva = this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
         this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
         loans.forEach(loan => this.indexed_loans[loan.id] = loan)

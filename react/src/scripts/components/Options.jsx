@@ -75,6 +75,7 @@ const Options = React.createClass({
                             min={8}
                             max={120}
                             valueLink={this.linkState('maxRepaymentTerms')}/>
+                        This option only has an impact when loading loans from Kiva rather than KivaLens.
                         After the initial load of loans, the rest of the loans will get loaded so you'll still need to
                         use the final repayment date criteria option if you want to hide longer term loans.
                     </Panel>
