@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="added &quot;partner&quot; for currency loss liability">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/Kivabank.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/KivabankLender.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/KivabankRepay.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/LenderAnalysis.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/SampleSearchOutput.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/SampleSearchScreen.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/kivabank.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/old/kivabankpartner.jpg" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -134,54 +141,24 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5143061">
+    <splitter split-orientation="horizontal" split-proportion="0.63286716">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-6.962963">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="733" column="33" selection-start-line="733" selection-start-column="33" selection-end-line="733" selection-end-column="33" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="true">
+          <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.41788855">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="29" column="259" selection-start-line="29" selection-start-column="259" selection-end-line="29" selection-end-column="259" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="criteriaStore.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="344" column="22" selection-start-line="344" selection-start-column="22" selection-end-line="344" selection-end-column="22" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/index.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="172" column="6" selection-start-line="172" selection-start-column="6" selection-end-line="172" selection-end-column="6" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="Teams.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Teams.jsx">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-6.111111">
-                  <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
                   <folding />
                 </state>
               </provider>
@@ -191,61 +168,73 @@
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="160" column="189" selection-start-line="160" selection-start-column="189" selection-end-line="160" selection-end-column="189" />
+                  <caret line="94" column="0" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/package.json">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-8.125">
-                  <caret line="18" column="23" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
-                  <folding />
-                </state>
+          <file leaf-file-name="LenderAnalysis.jpg" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/old/LenderAnalysis.jpg">
+              <provider selected="true" editor-type-id="images">
+                <state />
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="loanStore.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/loanStore.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-5.5555553">
-                  <caret line="24" column="25" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="25" />
-                  <folding />
-                </state>
+          <file leaf-file-name="KivabankRepay.jpg" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/old/KivabankRepay.jpg">
+              <provider selected="true" editor-type-id="images">
+                <state />
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="utils.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/utils.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="143" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="143" selection-end-column="0" />
-                  <folding />
-                </state>
+          <file leaf-file-name="kivabankpartner.jpg" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/old/kivabankpartner.jpg">
+              <provider selected="true" editor-type-id="images">
+                <state />
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="liveStore.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="34" column="26" selection-start-line="34" selection-start-column="26" selection-end-line="34" selection-end-column="26" />
-                  <folding />
-                </state>
+          <file leaf-file-name="KivabankLender.jpg" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/old/KivabankLender.jpg">
+              <provider selected="true" editor-type-id="images">
+                <state />
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="kivabank.png" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/old/kivabank.png">
+              <provider selected="true" editor-type-id="images">
+                <state />
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Kivabank.jpg" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/public/old/Kivabank.jpg">
+              <provider selected="true" editor-type-id="images">
+                <state />
               </provider>
             </entry>
           </file>
         </leaf>
       </split-first>
       <split-second>
-        <leaf>
-          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.37862596">
-                  <caret line="230" column="8" selection-start-line="230" selection-start-column="8" selection-end-line="230" selection-end-column="8" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="1516" column="129" selection-start-line="1516" selection-start-column="129" selection-end-line="1516" selection-end-column="129" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="LoadingLoansPanel.jsx" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/LoadingLoansPanel.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.36308622">
+                  <caret line="62" column="14" selection-start-line="62" selection-start-column="14" selection-end-line="62" selection-end-column="14" />
                   <folding />
                 </state>
               </provider>
@@ -274,12 +263,9 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="3.5185184">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="6" column="39" selection-start-line="0" selection-start-column="0" selection-end-line="191" selection-end-column="2" />
-                  <folding>
-                    <marker date="1454592465000" expanded="true" signature="180:6117" placeholder="{...}" />
-                    <marker date="1454592465000" expanded="false" signature="1228:1398" placeholder="{...}" />
-                  </folding>
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -296,51 +282,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="gulpfile.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="89" column="50" selection-start-line="89" selection-start-column="4" selection-end-line="89" selection-end-column="50" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="Basket.jsx" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Basket.jsx">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
                   <caret line="71" column="54" selection-start-line="71" selection-start-column="54" selection-end-line="71" selection-end-column="54" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="23" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="app.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/app.json">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-0.0">
-                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="linqextras.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-2.7777777">
-                  <caret line="15" column="69" selection-start-line="15" selection-start-column="69" selection-end-line="15" selection-end-column="69" />
                   <folding />
                 </state>
               </provider>
@@ -387,7 +333,6 @@
         <option value="$PROJECT_DIR$/react/src/scripts/stores/liveStore.js" />
         <option value="$PROJECT_DIR$/MongoTest.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Search.jsx" />
-        <option value="$PROJECT_DIR$/views/pages/index.ejs" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/utils.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/app.js" />
@@ -396,12 +341,14 @@
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/cluster.js" />
         <option value="$PROJECT_DIR$/index.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
+        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/LoadingLoansPanel.jsx" />
+        <option value="$PROJECT_DIR$/views/pages/index.ejs" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
       </list>
     </option>
   </component>
@@ -471,6 +418,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -589,7 +537,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="javascript" />
+              <option name="myItemId" value="old" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -609,7 +557,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -637,6 +584,11 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="936" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/public/old" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration default="true" type="CucumberRunConfigurationType" factoryName="Cucumber">
@@ -759,18 +711,6 @@
       <created>1441543243255</created>
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
-    </task>
-    <task id="LOCAL-00006" summary="fix for charts not redrawing when resized in certain pattern of focusing.">
-      <created>1453934778353</created>
-      <option name="number" value="00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1453934778353</updated>
-    </task>
-    <task id="LOCAL-00007" summary="added link to lender page with super graphs to drop down menu">
-      <created>1453934868293</created>
-      <option name="number" value="00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1453934868293</updated>
     </task>
     <task id="LOCAL-00008" summary="added link to lender page with super graphs to drop down menu">
       <created>1454102149285</created>
@@ -1054,19 +994,29 @@
       <option name="project" value="LOCAL" />
       <updated>1454639052762</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="added &quot;partner&quot; for currency loss liability">
+      <created>1454660865598</created>
+      <option name="number" value="00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1454660865598</updated>
+    </task>
+    <task id="LOCAL-00056" summary="redid fav-icon. loaded loans should always be distinct for some corner cases.">
+      <created>1454703977161</created>
+      <option name="number" value="00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1454703977161</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="825" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18168813" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21959943" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297568" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30136988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1074,10 +1024,12 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1095,8 +1047,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="break loans into chunks" />
-    <MESSAGE value="fix" />
     <MESSAGE value="chunks into 4" />
     <MESSAGE value="page problem" />
     <MESSAGE value="can optionally load from KL server." />
@@ -1120,7 +1070,9 @@
     <MESSAGE value="reverted clustering to single process until i get it working right. too much memory used, too much CPU, and sometimes horrible load times." />
     <MESSAGE value="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server." />
     <MESSAGE value="restructured req," />
-    <option name="LAST_COMMIT_MESSAGE" value="restructured req," />
+    <MESSAGE value="added &quot;partner&quot; for currency loss liability" />
+    <MESSAGE value="redid fav-icon. loaded loans should always be distinct for some corner cases." />
+    <option name="LAST_COMMIT_MESSAGE" value="redid fav-icon. loaded loans should always be distinct for some corner cases." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1129,98 +1081,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider editor-type-id="MultiMarkdownFxPreviewEditor">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="split-provider[text-editor;MultiMarkdownPreviewEditor]">
-        <state split_layout="FIRST">
-          <first_editor vertical-scroll-proportion="0.0">
-            <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-            <folding />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/styles/application.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="15" column="1" selection-start-line="15" selection-start-column="1" selection-end-line="15" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="82" column="37" selection-start-line="82" selection-start-column="37" selection-end-line="82" selection-end-column="37" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="77" column="89" selection-start-line="77" selection-start-column="33" selection-end-line="77" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="4" selection-start-line="0" selection-start-column="4" selection-end-line="0" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_start.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="403" column="9" selection-start-line="403" selection-start-column="9" selection-end-line="403" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/oauth.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_common_start.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/live_globe.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_end.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_idle.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="55" column="156" selection-start-line="55" selection-start-column="156" selection-end-line="55" selection-end-column="156" />
-          <folding>
-            <marker date="1453933542000" expanded="true" signature="2600:2611" placeholder="..." />
-            <marker date="1453933542000" expanded="true" signature="2891:2902" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1228,7 +1092,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="13" column="52" selection-start-line="13" selection-start-column="52" selection-end-line="13" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1236,7 +1099,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="67" column="24" selection-start-line="67" selection-start-column="24" selection-end-line="67" selection-end-column="24" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1244,7 +1106,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-21.148148">
           <caret line="78" column="31" selection-start-line="78" selection-start-column="31" selection-end-line="78" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1252,7 +1113,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="55" column="59" selection-start-line="55" selection-start-column="59" selection-end-line="55" selection-end-column="59" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1260,7 +1120,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="31" column="71" selection-start-line="31" selection-start-column="71" selection-end-line="31" selection-end-column="71" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1268,7 +1127,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="2.4669604">
           <caret line="112" column="6" selection-start-line="112" selection-start-column="6" selection-end-line="112" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1276,7 +1134,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="15810" selection-start-line="0" selection-start-column="15810" selection-end-line="0" selection-end-column="15810" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1284,7 +1141,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.2639296">
           <caret line="12" column="20" selection-start-line="0" selection-start-column="0" selection-end-line="2048" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1292,7 +1148,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="26702" selection-start-line="0" selection-start-column="26702" selection-end-line="0" selection-end-column="26702" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1300,7 +1155,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1308,9 +1162,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.3079179">
           <caret line="14" column="18" selection-start-line="14" selection-start-column="18" selection-end-line="14" selection-end-column="18" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1318,7 +1169,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4893617">
           <caret line="23" column="38" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1326,7 +1176,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1334,7 +1183,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-25.0">
           <caret line="79" column="25" selection-start-line="79" selection-start-column="4" selection-end-line="79" selection-end-column="25" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1342,9 +1190,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.59574467">
           <caret line="149" column="8" selection-start-line="149" selection-start-column="8" selection-end-line="149" selection-end-column="8" />
-          <folding>
-            <marker date="1454129020000" expanded="true" signature="6611:6622" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1352,7 +1197,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-17.25926">
           <caret line="99" column="81" selection-start-line="99" selection-start-column="81" selection-end-line="99" selection-end-column="81" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1360,23 +1204,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.045592707">
           <caret line="2" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.0">
-          <caret line="16" column="93" selection-start-line="16" selection-start-column="93" selection-end-line="16" selection-end-column="93" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/LoadingLoansPanel.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="64" column="38" selection-start-line="64" selection-start-column="38" selection-end-line="64" selection-end-column="38" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1384,7 +1211,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="351" column="15" selection-start-line="351" selection-start-column="15" selection-end-line="351" selection-end-column="15" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1408,7 +1234,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1416,7 +1241,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-2.7777777">
           <caret line="15" column="69" selection-start-line="15" selection-start-column="69" selection-end-line="15" selection-end-column="69" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1424,7 +1248,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="89" column="50" selection-start-line="89" selection-start-column="4" selection-end-line="89" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1432,567 +1255,12 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="440" column="0" selection-start-line="441" selection-start-column="42" selection-end-line="441" selection-end-column="48" />
-          <folding>
-            <marker date="1454544645000" expanded="true" signature="110:199" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="221:1891" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="226:275" placeholder="/** IO namespace. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="300:354" placeholder="/** Socket.IO version ...*/" />
-            <marker date="1454544645000" expanded="true" signature="383:441" placeholder="/** Protocol implemented. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="465:577" placeholder="/** Available transports, these will be populated with the available transports ...*/" />
-            <marker date="1454544645000" expanded="true" signature="604:672" placeholder="/** Keep track of jsonp callbacks. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="690:756" placeholder="/** Keep track of our io.Sockets ...*/" />
-            <marker date="1454544645000" expanded="true" signature="780:942" placeholder="/** Manages connections to hosts. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="984:1887" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="1093:1277" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="1333:1497" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="1600:1646" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="1700:1740" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="1959:2048" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="2078:9292" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="2083:2139" placeholder="/** Utilities namespace. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="2176:2290" placeholder="/** Parses an URI ...*/" />
-            <marker date="1454544645000" expanded="true" signature="2514:2687" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="2723:2868" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="2806:2847" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="2873:2996" placeholder="/** Produces a unique url that identifies a Socket.IO connection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="3032:3509" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3146:3317" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3323:3435" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3400:3429" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3514:3661" placeholder="/** Mergest 2 query strings in to once unique query string ...*/" />
-            <marker date="1454544645000" expanded="true" signature="3704:4035" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3860:3966" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="3900:3960" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4040:4141" placeholder="/** Transforms a querystring in to an object ...*/" />
-            <marker date="1454544645000" expanded="true" signature="4177:4445" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4305:4422" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4357:4416" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4450:4638" placeholder="/** Executes the given function when the page is loaded. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="4695:4850" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4779:4805" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4855:4907" placeholder="/** Adds an event. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="4960:5142" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="4991:5043" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5079:5138" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5147:5414" placeholder="/** Generates the correct `XMLHttpRequest` for regular and cross domain requests. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="5452:5859" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5493:5837" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5539:5585" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5653:5699" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5721:5831" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5735:5810" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="5864:5951" placeholder="/** XHR based transport constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="5955:6007" placeholder="/** Change the internal pageLoaded value. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="6045:6111" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6073:6105" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6115:6247" placeholder="/** Defers a function to ensure a spinner is not displayed by the browser ...*/" />
-            <marker date="1454544645000" expanded="true" signature="6278:6399" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6305:6331" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6359:6393" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6404:6460" placeholder="/** Merges two objects. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="6531:7015" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6661:6991" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6738:6985" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6796:6889" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="6895:6977" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="7020:7087" placeholder="/** Merges prototypes from objects ...*/" />
-            <marker date="1454544645000" expanded="true" signature="7129:7183" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="7188:7275" placeholder="/** Shortcut for prototypical and static inheritance. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="7317:7406" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="7411:7592" placeholder="/** Checks if the given object is an Array. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="7643:7717" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="7722:7803" placeholder="/** Intersects values of two arrays into a third ...*/" />
-            <marker date="1454544645000" expanded="true" signature="7845:8138" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="8032:8117" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="8142:8231" placeholder="/** Array indexOf compatibility. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="8271:8513" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="8306:8367" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="8518:8585" placeholder="/** Converts enumerables to array. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="8619:8732" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="8737:8806" placeholder="/** UA / engines detection namespace. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="8827:8901" placeholder="/** Whether the UA supports CORS for XHR. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="8995:9134" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9005:9048" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9059:9086" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9142:9193" placeholder="/** Detect webkit. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="9363:9452" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="9478:12640" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9483:9517" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="9561:9625" placeholder="/** Event emitter constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="9661:9713" placeholder="/** Adds a listener ...*/" />
-            <marker date="1454544645000" expanded="true" signature="9765:10068" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9790:9822" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9853:9891" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9938:9980" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="9986:10046" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10140:10202" placeholder="/** Adds a volatile listener. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="10256:10445" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10299:10376" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10450:10506" placeholder="/** Removes a listener. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="10570:11220" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10616:11198" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10689:11082" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10767:10911" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10848:10901" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="10934:10968" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11026:11074" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11148:11192" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11225:11297" placeholder="/** Removes all listeners for an event. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="11361:11607" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11367:11499" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="11545:11585" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11612:11688" placeholder="/** Gets all listeners for a certain event. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="11743:12009" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11768:11800" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11831:11869" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="11917:11973" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12014:12066" placeholder="/** Emits an event. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="12116:12636" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12141:12168" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12227:12254" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12352:12392" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12428:12581" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12526:12575" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12587:12614" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="12756:12845" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="12847:12903" placeholder="/** Based on JSON2 (http://www.JSON.org/js.html). ...*/" />
-            <marker date="1454544645000" expanded="true" signature="12937:22877" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="13032:13139" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="13060:13135" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="13190:13284" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="13310:13590" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="13892:14101" placeholder="{&quot;\b&quot;: '\\b'...}" />
-            <marker date="1454544645000" expanded="true" signature="14141:14685" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="14144:14382" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="14498:14652" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="14716:18221" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="15086:15124" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="15126:15229" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="15268:15325" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="15406:18217" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="15653:15840" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="15875:15961" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="15985:16089" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="16113:16155" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="16390:16989" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="16393:16493" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="16578:16651" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="16653:16743" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="17118:17507" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17201:17495" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17253:17479" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17359:17459" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17513:17901" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17609:17889" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17681:17873" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17753:17853" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="17903:17995" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="18350:19619" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="18353:18709" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="18760:18852" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="18891:19063" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="18934:18976" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="19100:19135" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="19137:19228" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="19407:19461" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="19463:19579" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="19732:22873" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="19736:19872" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="19921:20567" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="19926:20036" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="20129:20508" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20162:20496" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20234:20480" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20321:20386" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20392:20460" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20572:20810" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="20888:21058" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="20937:21048" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="21062:21360" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="21364:21917" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="22179:22754" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="22184:22460" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="22503:22659" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="22986:23075" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23101:28076" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="23106:23159" placeholder="/** Parser namespace. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23200:23228" placeholder="/** Packet types. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23263:23403" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="23408:23438" placeholder="/** Errors reasons. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23473:23561" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="23566:23595" placeholder="/** Errors advice. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23628:23651" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="23656:23681" placeholder="/** Shortcuts. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23740:23795" placeholder="/** Encodes a packet. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="23839:25242" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="24028:24956" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="24521:24565" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="25024:25101" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="25247:25350" placeholder="/** Encodes multiple messages (payload). ...*/" />
-            <marker date="1454544645000" expanded="true" signature="25396:25658" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="25528:25633" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="25663:25717" placeholder="/** Decodes a packet ...*/" />
-            <marker date="1454544645000" expanded="true" signature="25822:27389" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="25968:26054" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="26118:26235" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="26299:27364" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="26578:26698" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="26802:26855" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27049:27278" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27141:27268" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27159:27242" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27394:27508" placeholder="/** Decodes data payload. Detects multiple messages ...*/" />
-            <marker date="1454544645000" expanded="true" signature="27551:28072" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27657:28013" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27737:27988" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27779:27927" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="27933:27980" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="28019:28068" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="28192:28281" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="28307:32859" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="28312:28346" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="28384:28506" placeholder="/** This is the transport template for all supported transport methods. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="28546:28603" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="28608:28648" placeholder="/** Apply EventEmitter mixin. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="28698:29004" placeholder="/** Handles the response from the server. When a new response is received ...*/" />
-            <marker date="1454544645000" expanded="true" signature="29053:29419" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29135:29397" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29283:29391" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29338:29383" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29424:29478" placeholder="/** Handles packets. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="29531:29758" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29569:29609" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29670:29701" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29763:29819" placeholder="/** Sets close timeout ...*/" />
-            <marker date="1454544645000" expanded="true" signature="29875:30056" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29905:30052" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="29980:30018" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30061:30133" placeholder="/** Called when transport disconnects. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="30184:30298" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30303:30371" placeholder="/** Called when transport connects ...*/" />
-            <marker date="1454544645000" expanded="true" signature="30419:30470" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30474:30532" placeholder="/** Clears close timeout ...*/" />
-            <marker date="1454544645000" expanded="true" signature="30588:30699" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30617:30695" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30704:30756" placeholder="/** Clear timeouts ...*/" />
-            <marker date="1454544645000" expanded="true" signature="30808:30920" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30869:30916" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="30925:31013" placeholder="/** Sends a packet ...*/" />
-            <marker date="1454544645000" expanded="true" signature="31064:31116" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="31121:31326" placeholder="/** Send the received heartbeat message back to server. So the server ...*/" />
-            <marker date="1454544645000" expanded="true" signature="31385:31430" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="31436:31506" placeholder="/** Called when the transport opens. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="31551:31634" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="31639:31768" placeholder="/** Notifies the base when the connection with the Socket.IO server ...*/" />
-            <marker date="1454544645000" expanded="true" signature="31814:32086" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="31842:32003" placeholder="/*...*/" />
-            <marker date="1454544645000" expanded="true" signature="32091:32305" placeholder="/** Generates a connection url based on the Socket.IO URL Protocol. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="32354:32570" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="32575:32778" placeholder="/** Checks if the transport is ready to start a connection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="32832:32856" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="32975:33064" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="33098:45084" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="33103:33137" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="33169:33319" placeholder="/** Create a new `Socket.IO client` which can establish a persistent ...*/" />
-            <marker date="1454544645000" expanded="true" signature="33349:34427" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="33370:33885" placeholder="{&quot;port&quot;: 80...}" />
-            <marker date="1454544645000" expanded="true" signature="34222:34356" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34301:34341" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34396:34425" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34432:34472" placeholder="/** Apply EventEmitter mixin. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="34519:34608" placeholder="/** Returns a namespace listener/emitter for this socket ...*/" />
-            <marker date="1454544645000" expanded="true" signature="34650:34889" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34684:34850" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34776:34844" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="34894:34986" placeholder="/** Emits the given event to the Socket and all namespaces ...*/" />
-            <marker date="1454544645000" expanded="true" signature="35029:35252" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35119:35248" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35166:35242" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35257:35317" placeholder="/** Performs the handshake ...*/" />
-            <marker date="1454544645000" expanded="true" signature="35390:36669" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35474:35616" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35509:35554" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35560:35610" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="35633:35858" placeholder="[...]" />
-            <marker date="1454544645000" expanded="true" signature="35897:36246" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36158:36238" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36252:36665" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36367:36636" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36402:36628" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36480:36533" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36539:36618" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36674:36789" placeholder="/** Find an available transport based on the options supplied in the constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="36845:37228" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="36968:37206" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="37125:37200" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="37233:37357" placeholder="/** Connects to the server. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="37402:39305" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="37429:37455" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="37543:39281" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="37815:39110" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38089:39100" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38265:39090" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38329:39043" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38366:39029" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38471:39013" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38522:38616" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38847:38912" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="38918:38995" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39168:39273" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39310:39423" placeholder="/** Sends a message. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="39469:39620" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39513:39555" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39561:39598" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39625:39680" placeholder="/** Sets buffer state ...*/" />
-            <marker date="1454544645000" expanded="true" signature="39726:39882" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39804:39878" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="39887:39985" placeholder="/** Disconnect the established connect. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="40031:40247" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="40057:40225" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="40080:40141" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="40252:40329" placeholder="/** Disconnects the socket with a sync XHR. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="40379:40623" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="40628:40816" placeholder="/** Check if we need to use cross domain enabled transports. Cross domain would ...*/" />
-            <marker date="1454544645000" expanded="true" signature="40861:41043" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41048:41108" placeholder="/** Called upon handshake. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="41153:41387" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41180:41383" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41268:41349" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41392:41461" placeholder="/** Called when the transport opens ...*/" />
-            <marker date="1454544645000" expanded="true" signature="41503:41530" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41535:41606" placeholder="/** Called when the transport closes. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="41649:41677" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41682:41769" placeholder="/** Called when the transport first opens a connection ...*/" />
-            <marker date="1454544645000" expanded="true" signature="41819:41871" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="41876:41931" placeholder="/** Handles an error. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="41977:42202" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42006:42132" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42064:42126" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42207:42283" placeholder="/** Called when the transport disconnects. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="42337:42718" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42482:42714" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42673:42708" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="42723:42786" placeholder="/** Called upon reconnection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="42831:45080" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43185:43860" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43213:43493" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43254:43402" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43317:43392" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43894:44899" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43926:43951" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="43979:44012" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44063:44146" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44202:44560" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44238:44472" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44478:44552" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44566:44893" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="44612:44686" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="45208:45297" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="45323:49835" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="45328:45362" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="45412:45496" placeholder="/** Socket namespace constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="45540:45705" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="45710:45750" placeholder="/** Apply EventEmitter mixin. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="45806:45876" placeholder="/** Copies emit since we override it ...*/" />
-            <marker date="1454544645000" expanded="true" signature="45949:46110" placeholder="/** Creates a new namespace, by proxying the request to the socket. This ...*/" />
-            <marker date="1454544645000" expanded="true" signature="46157:46219" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="46224:46277" placeholder="/** Sends a packet. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="46334:46442" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="46447:46499" placeholder="/** Sends a message ...*/" />
-            <marker date="1454544645000" expanded="true" signature="46556:46827" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="46575:46652" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="46688:46790" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="46832:46883" placeholder="/** Emits an event ...*/" />
-            <marker date="1454544645000" expanded="true" signature="46938:47370" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47053:47113" placeholder="{&quot;type&quot;: 'event'...}" />
-            <marker date="1454544645000" expanded="true" signature="47154:47308" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47375:47438" placeholder="/** Disconnects the namespace ...*/" />
-            <marker date="1454544645000" expanded="true" signature="47493:47670" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47521:47560" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47566:47648" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47675:47729" placeholder="/** Handles a packet ...*/" />
-            <marker date="1454544645000" expanded="true" signature="47788:49289" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47832:47961" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="47852:47953" placeholder="{&quot;type&quot;: 'ack'...}" />
-            <marker date="1454544645000" expanded="true" signature="47989:49285" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="48115:48189" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="48195:48257" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="48397:48436" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="48458:48527" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="48836:48949" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49012:49062" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49068:49264" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49117:49187" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49193:49254" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49294:49347" placeholder="/** Flag interface. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="49377:49430" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49435:49486" placeholder="/** Send a message ...*/" />
-            <marker date="1454544645000" expanded="true" signature="49524:49631" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49636:49686" placeholder="/** Emit an event ...*/" />
-            <marker date="1454544645000" expanded="true" signature="49724:49831" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="49951:50040" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50066:53399" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="50071:50105" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50136:50479" placeholder="/** The WebSocket transport uses the HTML5 WebSocket API to establish an ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50504:50550" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="50555:50594" placeholder="/** Inherits from Transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50636:50687" placeholder="/** Transport name ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50727:50943" placeholder="/** Initializes a new `WebSocket` connection with the Socket.IO server. We attach ...*/" />
-            <marker date="1454544645000" expanded="true" signature="50979:51608" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51092:51155" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51258:51322" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51369:51404" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51447:51511" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51555:51585" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51613:51793" placeholder="/** Send a message to the Socket.IO server. The message will automatically be ...*/" />
-            <marker date="1454544645000" expanded="true" signature="51833:51886" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="51891:51936" placeholder="/** Payload ...*/" />
-            <marker date="1454544645000" expanded="true" signature="51978:52083" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="52028:52062" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="52088:52201" placeholder="/** Disconnect the established `WebSocket` connection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="52238:52288" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="52293:52471" placeholder="/** Handle the errors that `WebSocket` might be giving when we ...*/" />
-            <marker date="1454544645000" expanded="true" signature="52511:52544" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="52549:52641" placeholder="/** Returns the appropriate scheme for the URI generation. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="52678:52737" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="52742:52934" placeholder="/** Checks if the browser has support for native `WebSockets` and that ...*/" />
-            <marker date="1454544645000" expanded="true" signature="52961:53071" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="53076:53208" placeholder="/** Check if the `WebSocket` transport support cross domain communications. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="53242:53264" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="53269:53360" placeholder="/** Add the transport to your public io.transports array. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="53525:53614" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="53648:57649" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="53653:53709" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="53737:53806" placeholder="/** XHR constructor ...*/" />
-            <marker date="1454544645000" expanded="true" signature="53832:53930" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="53935:53974" placeholder="/** Inherits from Transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="54017:54102" placeholder="/** Establish a connection ...*/" />
-            <marker date="1454544645000" expanded="true" signature="54139:54398" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="54215:54348" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="54403:54580" placeholder="/** Check if we need to send data to the Socket.IO server, if we have data in our ...*/" />
-            <marker date="1454544645000" expanded="true" signature="54627:54812" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="54701:54761" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="54817:54943" placeholder="/** Send data to the Socket.IO server. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="54984:55027" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55032:55163" placeholder="/** Posts a encoded message to the Socket.IO server. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="55230:55941" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55315:55562" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55349:55556" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55454:55505" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55511:55548" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55587:55657" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55775:55841" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55847:55907" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="55946:56055" placeholder="/** Disconnects the established `XHR` connection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="56093:56135" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56140:56367" placeholder="/** Generates a configured XHR request ...*/" />
-            <marker date="1454544645000" expanded="true" signature="56413:56910" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56640:56889" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56652:56870" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56688:56775" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56781:56862" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="56915:57002" placeholder="/** Returns the scheme to use for the transport URLs. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="57041:57104" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57109:57284" placeholder="/** Check if the XHR transports are supported ...*/" />
-            <marker date="1454544645000" expanded="true" signature="57327:57446" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57337:57411" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57375:57405" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57451:57571" placeholder="/** Check if the XHR transport supports corss domain requests. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="57606:57645" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57784:57873" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="57899:61543" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="57904:57938" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="57974:58352" placeholder="/** The HTMLFile transport creates a `forever iframe` based transport ...*/" />
-            <marker date="1454544645000" expanded="true" signature="58383:58433" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="58438:58481" placeholder="/** Inherits from XHR transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="58533:58584" placeholder="/** Transport name ...*/" />
-            <marker date="1454544645000" expanded="true" signature="58629:58863" placeholder="/** Creates a new ActiveX `htmlfile` with a forever loading iframe ...*/" />
-            <marker date="1454544645000" expanded="true" signature="58904:59515" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="59480:59509" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="59520:59797" placeholder="/** The Socket.IO server will write script tags inside the forever ...*/" />
-            <marker date="1454544645000" expanded="true" signature="59845:60006" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="59878:59988" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60011:60201" placeholder="/** Destroy the established connection, iframe and `htmlfile`. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="60246:60481" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60268:60477" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60280:60330" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60486:60598" placeholder="/** Disconnects the established connection. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="60641:60722" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60727:60895" placeholder="/** Checks if the browser supports this transport. The browser ...*/" />
-            <marker date="1454544645000" expanded="true" signature="60928:61117" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60964:61095" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="60976:61078" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="61122:61228" placeholder="/** Check if cross domain requests are supported. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="61268:61409" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="61274:61387" placeholder="//..." />
-            <marker date="1454544645000" expanded="true" signature="61414:61505" placeholder="/** Add the transport to your public io.transports array. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="61669:61758" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="61792:64629" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="61797:61831" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="61875:62044" placeholder="/** The XHR-polling transport uses long polling XHR requests to create a ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62071:62121" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="62126:62169" placeholder="/** Inherits from XHR transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62223:62277" placeholder="/** Merge the properties from XHR transport ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62329:62380" placeholder="/** Transport name ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62430:62598" placeholder="/** Establish a connection, for iPhone and Android this will be done once the page ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62642:62735" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="62740:62829" placeholder="/** Starts a XHR request to wait for incoming messages. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="62897:63590" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="62978:63220" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63012:63214" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63088:63163" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63169:63206" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63246:63336" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63440:63498" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63504:63560" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63595:63667" placeholder="/** Handle the unclean close behavior. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="63714:63938" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63786:63934" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63859:63894" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="63943:64349" placeholder="/** Webkit based browsers show a infinit spinner when you start a XHR request ...*/" />
-            <marker date="1454544645000" expanded="true" signature="64404:64492" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="64458:64486" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="64497:64588" placeholder="/** Add the transport to your public io.transports array. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="64764:64853" placeholder="/** socket.io ...*/" />
-            <marker date="1454544645000" expanded="true" signature="64879:69471" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="64884:64918" placeholder="/** Expose constructor. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="64966:65336" placeholder="/** The JSONP transport creates an persistent connection by dynamically ...*/" />
-            <marker date="1454544645000" expanded="true" signature="65371:65544" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="65512:65538" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="65549:65600" placeholder="/** Inherits from XHR polling transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="65667:65718" placeholder="/** Transport name ...*/" />
-            <marker date="1454544645000" expanded="true" signature="65772:66094" placeholder="/** Posts a encoded message to the Socket.IO server using an iframe. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="66144:67915" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="66319:66897" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="66975:67038" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67068:67540" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67093:67146" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67158:67326" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67337:67434" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67599:67632" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67679:67827" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67727:67820" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67779:67812" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67833:67877" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="67922:68056" placeholder="/** Creates a new JSONP poll that can be used to listen ...*/" />
-            <marker date="1454544645000" expanded="true" signature="68101:68698" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="68327:68415" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="68519:68548" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="68703:68855" placeholder="/** Callback function for the incoming message stream from the Socket.IO server. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="68901:68990" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="68944:68969" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="68995:69097" placeholder="/** Checks if browser supports this transport. ...*/" />
-            <marker date="1454544645000" expanded="true" signature="69134:69156" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="69161:69266" placeholder="/** Check if cross domain requests are supported ...*/" />
-            <marker date="1454544645000" expanded="true" signature="69310:69332" placeholder="{...}" />
-            <marker date="1454544645000" expanded="true" signature="69337:69428" placeholder="/** Add the transport to your public io.transports array. ...*/" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.125">
+        <state vertical-scroll-proportion="0.0">
           <caret line="18" column="23" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
           <folding />
         </state>
@@ -2002,7 +1270,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2035,14 +1302,14 @@
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="172" column="6" selection-start-line="172" selection-start-column="6" selection-end-line="172" selection-end-column="6" />
+          <caret line="6" column="39" selection-start-line="0" selection-start-column="0" selection-end-line="191" selection-end-column="2" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/loanStore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.5555553">
+        <state vertical-scroll-proportion="0.0">
           <caret line="24" column="25" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="25" />
           <folding />
         </state>
@@ -2052,14 +1319,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="34" column="26" selection-start-line="34" selection-start-column="26" selection-end-line="34" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="160" column="189" selection-start-line="160" selection-start-column="189" selection-end-line="160" selection-end-column="189" />
           <folding />
         </state>
       </provider>
@@ -2082,26 +1341,104 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Teams.jsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-6.111111">
+        <state vertical-scroll-proportion="0.0">
           <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-6.962963">
-          <caret line="733" column="33" selection-start-line="733" selection-start-column="33" selection-end-line="733" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.41788855">
+        <state vertical-scroll-proportion="0.0">
           <caret line="29" column="259" selection-start-line="29" selection-start-column="259" selection-end-line="29" selection-end-column="259" />
           <folding />
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="733" column="33" selection-start-line="733" selection-start-column="33" selection-end-line="733" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/browserconfig.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/manifest.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.20516717">
+          <caret line="9" column="5" selection-start-line="9" selection-start-column="5" selection-end-line="9" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/LoadingLoansPanel.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.36308622">
+          <caret line="62" column="14" selection-start-line="62" selection-start-column="14" selection-end-line="62" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/SampleSearchOutput.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/SampleSearchScreen.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="94" column="0" selection-start-line="94" selection-start-column="0" selection-end-line="94" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/LenderAnalysis.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/KivabankRepay.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/kivabankpartner.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/KivabankLender.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/kivabank.png">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/old/Kivabank.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
       </provider>
     </entry>
   </component>
