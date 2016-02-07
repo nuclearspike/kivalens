@@ -248,7 +248,7 @@ var criteriaStore = Reflux.createStore({
                 if (bal && bal.enabled){
                     //this is duplicated logic both from what is in the balancer row which keys by id for partner, and onBalancingGet.
                     //wait is added so that they don't fire immediately when starting KL since they take a long time and aren't needed right away.
-                    wait(2000).done(x=> get_verse_data('lender', lsj.get("Options").kiva_lender_id, slice, bal.allactive).done(result => {
+                    wait(1000).done(x=> get_verse_data('lender', lsj.get("Options").kiva_lender_id, slice, bal.allactive).done(result => {
                         var slices = (bal.ltgt == 'gt') ? result.slices.where(s => s.percent > bal.percent) : result.slices.where(s => s.percent < bal.percent)
                         bal.values = (slice == 'partner') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
                         lsj.set('all_criteria', that.all)
