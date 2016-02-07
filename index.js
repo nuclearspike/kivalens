@@ -38,10 +38,8 @@ app.use(express.cookieParser())
     })
 )**/
 
-const blankResponse = {ready: false, loanChunks:[], prepTime: null}
-var loansToServe = extend({},blankResponse)
-var prepping = extend({},blankResponse)
-var loanChunks = []
+const blankResponse = {loanChunks:[], partners: [], prepTime: null, descriptions:[]}
+var loansToServe = extend({},blankResponse) //start empty.
 
 //TODO: RESTRICT TO SAME SERVER?
 const proxyHandler = {
@@ -76,19 +74,36 @@ app.get('/feed.svc/rss/*', function(request, response){
 })
 
 //API
-app.get('/loans/start', function(request, response){
-    var data = {pages: loanChunks.length}
+app.get('/start', function(request, response){
+    var data = {pages: loansToServe.loanChunks.length}
     response.send(JSON.stringify(data))
 })
 
-app.get('/loans/get', function(request, response) {
+app.get('/loans', function(request, response) {
     var page = parseInt(request.param('page'))
     if (page) {
         if (page > KLPageSplits || page < 1) {
             response.sendStatus(404)
             return
         }
-        response.send(loanChunks[page - 1])
+        response.send(loansToServe.loanChunks[page - 1])
+    } else {
+        response.sendStatus(404)
+    }
+})
+
+app.get('/partners', function(request,response){
+    response.send(loansToServe.partners)
+})
+
+app.get('/loans/descriptions', function(request,response){
+    var page = parseInt(request.param('page'))
+    if (page) {
+        if (page > KLPageSplits || page < 1) {
+            response.sendStatus(404)
+            return
+        }
+        response.send(loansToServe.descriptions[page - 1])
     } else {
         response.sendStatus(404)
     }
@@ -155,11 +170,23 @@ function prepForRequests(){
         return
     }
     loansChanged = false //hot loans &
+    let prepping = extend({},blankResponse)
+
     kivaloans.loans_from_kiva.removeAll(l=>l.status!='fundraising')
     var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
+    //additional unprocessing and collecting descriptions
+    var descriptions = []
+    allLoans.forEach(loan => {
+        descriptions.push({id: loan.id, t: loan.description.texts.en})
+        delete loan.description.texts.en
+        delete loan.kls_use_or_descr_arr
+    })
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
-    loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-    console.log("Loan chunks ready!")
+    prepping.loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+    prepping.partners = JSON.stringify(kivaloans.partners_from_kiva)
+    prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+    loansToServe = prepping //must make a copy.
+    console.log("Loan chunks ready!", prepping.loanChunks.length)
 }
 
 setInterval(prepForRequests, 15000)

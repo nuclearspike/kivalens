@@ -266,8 +266,7 @@ class ResultProcessors {
         return loan
     }
 
-    static processLoan(loan){
-        if (typeof loan != 'object') return //for an ids_only search...
+    static processLoanDescription(loan){
         var processText = function(text, ignore_words){
             if (text && text.length > 0){
                 //remove common words.
@@ -281,6 +280,27 @@ class ResultProcessors {
                 return [] //no indexable words.
             }
         }
+
+        var descr_arr
+        var use_arr
+
+        if (loan.description.texts.en) {
+            descr_arr = processText(loan.description.texts.en, common_descr)
+        } else {
+            descr_arr = []
+            loan.description.texts.en = (loan.kls_use_or_descr_arr)? "Loading..." : "No English description available."
+        }
+
+        if (!loan.kls_use_or_descr_arr) {//this is present when downloaded from KL server
+            use_arr = processText(loan.use, common_use)
+            loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
+        }
+
+        if (!loan.kls_age)
+            loan.kls_age = getAge(loan.description.texts.en)
+    }
+    static processLoan(loan){
+        if (typeof loan != 'object') return //for an ids_only search...
 
         var addIt = { kl_processed: new Date() }
         addIt.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
@@ -301,20 +321,7 @@ class ResultProcessors {
 
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
-            var descr_arr
-            var use_arr
-
-            if (loan.description.texts.en) {
-                descr_arr = processText(loan.description.texts.en, common_descr)
-            } else {
-                descr_arr = []
-                loan.description.texts.en = "No English description available."
-            }
-
-            use_arr = processText(loan.use, common_use)
-            addIt.kl_use_or_descr_arr = use_arr.concat(descr_arr).distinct(),
-
-            addIt.kl_age = getAge(loan.description.texts.en)
+            ResultProcessors.processLoanDescription(loan)
 
             addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
             addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
@@ -1024,6 +1031,7 @@ class Loans {
         this.partners_from_kiva = []
         this.lender_loans = []
         this.allLoansLoaded = false
+        this.allDescriptionsLoaded = false
         this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.is_ready = false
@@ -1083,7 +1091,7 @@ class Loans {
         var needSecondary = false
         //why doesn't this merge with this.options??
         var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
-        this.partner_download = this.getAllPartners().fail(failed=>this.notify({failed}))
+        this.partner_download = Deferred()
         this.loan_download = Deferred()
 
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
@@ -1095,13 +1103,6 @@ class Loans {
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
         })
 
-        if (base_options.mergeAtheistList)
-            this.getAtheistList()
-
-        if (base_options.maxRepaymentTerms_on) {
-            max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
-            needSecondary = true
-        }
         if (base_options.kiva_lender_id)
             this.setLender(base_options.kiva_lender_id)
 
@@ -1109,6 +1110,15 @@ class Loans {
         var handle
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
         const loadFromKiva = function() {
+            this.getAllPartners().fail(failed=>this.notify({failed})).done(this.partner_download.resolve)
+            if (base_options.mergeAtheistList)
+                this.getAtheistList()
+
+            if (base_options.maxRepaymentTerms_on) {
+                max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
+                needSecondary = true
+            }
+
             this.searchKiva(this.convertCriteriaToKivaParams(crit), max_repayment_date)
                 .progress(progress => {
                     this.notify({loan_load_progress: progress})
@@ -1116,6 +1126,8 @@ class Loans {
                 })
                 .done(x => {
                     this.notify({loans_loaded: true})
+                    this.allDescriptionsLoaded = true
+                    this.notify({all_descriptions_loaded: true})
                     if (needSecondary)
                         this.secondaryLoad()
                     else {
@@ -1126,19 +1138,41 @@ class Loans {
         }.bind(this)
 
         const loadFromKL = function() {
-            req.kl.get('loans/start').done(response => { //this tells us if the loans have loaded on the server.
+            req.kl.get('start').done(response => { //this tells us if the loans have loaded on the server.
                 if (response.pages) {
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
-                    var received = 0
+                    var receivedLoans = 0
+                    var receivedDesc = 0
                     var loansToAdd = []
+                    var descToProc = []
                     hasStarted = true
                     //todo: this needs to use a semaphored request.
-                    Array.range(1, response.pages).forEach(page => req.kl.get('loans/get', {page}).done(loans => {
-                        received++
-                        this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${received} of ${response.pages}...`}})
+                    Array.range(1, response.pages).forEach(page => req.kl.get('loans', {page}).done(loans => {
+                        receivedLoans++
+                        this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                        if (received == response.pages)
+                        if (receivedLoans == response.pages)
                             this.loan_download.resolve(loansToAdd, false)
+                    }))
+                    req.kl.get("partners").done(partners => {
+                        this.processPartners(partners)
+                        this.atheist_list_processed = true //we always download the data.
+                        this.notify({atheist_list_loaded: true})
+                    })
+                    Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page}).done(descriptions => {
+                        receivedDesc++
+                        descToProc = descToProc.concat(descriptions)
+                        if (receivedDesc == response.pages) {
+                            waitFor(x=>this.allLoansLoaded).done(x => {
+                                descToProc.forEach(desc => {
+                                    var loan = this.getById(desc.id)
+                                    loan.description.texts.en = desc.t
+                                    ResultProcessors.processLoanDescription(loan)
+                                })
+                                this.allDescriptionsLoaded = true
+                                this.notify({all_descriptions_loaded: true})
+                            })
+                        }
                     }))
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
@@ -1151,14 +1185,15 @@ class Loans {
             else
                 loadFromKL()
         }.bind(this)
-        
+
+        //meh...
         const startGettingLoans = function () {
             if (hasStarted) {
                 clearInterval(handle)
                 return
             }
-
-            if (this.options.useLargeLocalStorage) {
+            ///todo: won't have partners!!
+            if (false && this.options.useLargeLocalStorage) {
                 wait(20).done(r => {
                     this.getLoansFromLLS().done((loans, saved)=> {
                         if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
@@ -1317,14 +1352,14 @@ class Loans {
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
-        ct.addRangeTesters('age',               loan=>loan.kl_age)
+        ct.addRangeTesters('age',               loan=>loan.kls_age)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)
         ct.addRangeTesters('loan_amount',       loan=>loan.loan_amount)
         ct.addRangeTesters('dollars_per_hour',  loan=>loan.kl_dollars_per_hour())
         ct.addRangeTesters('percent_funded',    loan=>loan.kl_percent_funded)
         ct.addRangeTesters('expiring_in_days',  loan=>loan.kl_expiring_in_days())
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days())
-        ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kl_use_or_descr_arr)
+        ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kls_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
         ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
         if (c.portfolio.exclude_portfolio_loans == 'true' && this.lender_loans  && this.lender_loans.length)
@@ -1452,6 +1487,7 @@ class Loans {
         this.startedAtheistDownload = true
 
         var csv_file
+
         if (typeof document == 'undefined') { //running on server, don't proxy
             csv_file = `https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
         } else { //running in browser
@@ -1518,16 +1554,18 @@ class Loans {
     hasLoan(id){
         return this.indexed_loans[id] != undefined
     }
+    processPartners(partners){
+        this.partners_from_kiva = partners
+        this.active_partners = partners.where(p => p.status == "active")
+        //todo: temp. for debugging
+        global.partners = this.partners_from_kiva
+        this.partner_download.resolve()
+        //gather all country objects where partners operate, flatten and remove dupes.
+        this.countries = this.active_partners.select(p => p.countries).flatten().distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
+    }
     getAllPartners(){
-        //does not return the partners. just the promise so you know if it's done.
-        return new Partners().start().then(partners => {
-            this.partners_from_kiva = partners
-            this.active_partners = partners.where(p => p.status == "active")
-            //todo: temp. for debugging
-            global.partners = this.partners_from_kiva
-            //gather all country objects where partners operate, flatten and remove dupes.
-            this.countries = this.active_partners.select(p => p.countries).flatten().distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
-        })
+        //NOTE: does not return the partners. just the promise so you know if it's done.
+        return new Partners().start().then(this.processPartners.bind(this))
     }
     getPartner(id){
         //todo: slightly slower than an indexed reference.
@@ -1544,7 +1582,7 @@ class Loans {
         this.lender_loans_state = llDownloading
         this.notify({lender_loans_event: 'started'})
         var kl = this
-        waitFor(x => kl.allLoansLoaded).done(x => {
+        wait(500).done(x => {
             new LenderFundraisingLoans(this.lender_id, true).fundraisingIds().done(ids => {
                 kl.lender_loans = ids
                 kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`

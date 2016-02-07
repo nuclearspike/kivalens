@@ -152,7 +152,7 @@ const InputRow = React.createClass({
     render(){
         return <Row key={this.state.cycle}>
             <Input type='text' label={this.props.label} labelClassName='col-md-3' wrapperClassName='col-md-9' ref='input'
-                defaultValue={this.props.cursor.value} onChange={this.inputChange}
+                defaultValue={this.props.cursor.value} onChange={this.inputChange} disabled={this.props.disabled}
                 onFocus={this.nowFocused} onBlur={this.nowNotFocused}/>
         </Row>
     }
@@ -460,7 +460,7 @@ const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, helper_chart_height: 400, needLenderID: false,
-             criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false}
+             criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false, descriptionsLoaded: false}
     },
     componentDidMount() {
         this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
@@ -469,11 +469,15 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.criteria.reload, this.reloadCriteria)
         this.listenTo(a.loans.filter.completed, this.filteredDone)
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
+        this.listenTo(a.loans.load.descriptions, this.checkDescriptionsLoaded)
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
-
+        this.checkDescriptionsLoaded()
         this.setState({isMobile: mobileAndTabletCheck()})
         KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
+    },
+    checkDescriptionsLoaded(){
+        this.setState({descriptionsLoaded: kivaloans.allDescriptionsLoaded})
     },
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
@@ -640,7 +644,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, activeTab, loansReady, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
+        let {isMobile, needLenderID, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -659,7 +663,7 @@ const CriteriaTabs = React.createClass({
 
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">
                     <Col lg={8}>
-                        <InputRow label='Use or Description' cursor={cLoan.refine('use')}/>
+                        <InputRow label='Use or Description' cursor={cLoan.refine('use')} disabled={!descriptionsLoaded} />
                         <InputRow label='Name' cursor={cLoan.refine('name')} />
 
                         <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
