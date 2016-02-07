@@ -1107,13 +1107,16 @@ class Loans {
         this.loan_download = Deferred()
 
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
-        this.loan_download.fail(e=>this.notify({failed: e})).done((loans,notify)=>{
-            this.notify({loan_load_progress: {label: 'Processing...'}})
-            this.setKivaLoans(loans, true, true)
-            this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
-            this.allLoansLoaded = true
-            wait(1000).done(x => this.backgroundResync(notify))
-        })
+        this.loan_download
+            .fail(e=>this.notify({failed: e}))
+            .done((loans,notify,waitBackgroundResync)=>{
+                if (!waitBackgroundResync) waitBackgroundResync = 1000
+                this.notify({loan_load_progress: {label: 'Processing...'}})
+                this.setKivaLoans(loans, true, true)
+                this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
+                this.allLoansLoaded = true
+                wait(waitBackgroundResync).done(x => this.backgroundResync(notify))
+            })
 
         if (base_options.kiva_lender_id)
             this.setLender(base_options.kiva_lender_id)
@@ -1157,15 +1160,21 @@ class Loans {
                     var receivedDesc = 0
                     var loansToAdd = []
                     var descToProc = []
+                    var batch = response.batch
+                    var newestTime = response.newestTime
                     hasStarted = true
                     //todo: this needs to use a semaphored request.
                     /** loans **/
-                    Array.range(1, response.pages).forEach(page => req.kl.get('loans', {page}).done(loans => {
+                    Array.range(1, response.pages).forEach(page => req.kl.get('loans', {page,batch}).done(loans => {
                         receivedLoans++
                         this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${response.pages}...`}})
                         loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                        if (receivedLoans == response.pages)
-                            this.loan_download.resolve(loansToAdd, false)
+                        if (receivedLoans == response.pages) {
+                            this.loan_download.resolve(loansToAdd, false, 5*60000)
+                            req.kl.get('loans/since',{newestTime}).done(loans => {
+                                this.setKivaLoans(loans, false)
+                            })
+                        }
                     }))
                     /** partners **/
                     req.kl.get("partners").done(partners => {
@@ -1175,7 +1184,7 @@ class Loans {
                     })
                     /** descriptions **/
                     if (!base_options.doNotDownloadDescriptions) {
-                        Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page}).done(descriptions => {
+                        Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page,batch}).done(descriptions => {
                             receivedDesc++
                             descToProc = descToProc.concat(descriptions)
                             if (receivedDesc == response.pages) {
@@ -1556,6 +1565,8 @@ class Loans {
                 if (!this.hasLoan(loan.id)) {
                     this.loans_from_kiva.push(loan)
                     this.indexed_loans[loan.id] = loan
+                } else {
+                    this.mergeLoanAndNotify(this.getById(loan.id), loan)
                 }
             })
         }

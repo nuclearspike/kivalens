@@ -38,8 +38,9 @@ app.use(express.cookieParser())
     })
 )**/
 
-const blankResponse = {loanChunks:[], partners: [], prepTime: null, descriptions:[]}
-var loansToServe = extend({},blankResponse) //start empty.
+const blankResponse = {loanChunks:[], partners: [], newestTime: null, descriptions:[]}
+var loansToServe = {0: extend({},blankResponse)} //start empty.
+var latest = 0
 
 //TODO: RESTRICT TO SAME SERVER?
 const proxyHandler = {
@@ -75,38 +76,53 @@ app.get('/feed.svc/rss/*', function(request, response){
 
 //API
 app.get('/start', function(request, response){
-    var data = {pages: loansToServe.loanChunks.length}
+    var data = {pages: loansToServe[latest].loanChunks.length, batch: latest, newestTime: loansToServe[latest].newestTime}
     response.send(JSON.stringify(data))
 })
 
 app.get('/loans', function(request, response) {
-    var page = parseInt(request.param('page'))
-    if (page) {
-        if (page > KLPageSplits || page < 1) {
-            response.sendStatus(404)
-            return
-        }
-        response.send(loansToServe.loanChunks[page - 1])
-    } else {
+    var batch = parseInt(request.query.batch)
+    if (!loansToServe[batch]) {
         response.sendStatus(404)
+        return
+    }
+    var page = parseInt(request.query.page)
+    var toServe = loansToServe[batch].loanChunks[page - 1]
+    if (!toServe) {
+        response.sendStatus(404)
+    } else {
+        response.send(toServe)
     }
 })
 
 app.get('/partners', function(request,response){
-    response.send(loansToServe.partners)
+    //don't use 'batch' since it just serves all at once and we want the most recent.
+    response.send(loansToServe[latest].partners)
 })
 
 app.get('/loans/descriptions', function(request,response){
-    var page = parseInt(request.param('page'))
-    if (page) {
-        if (page > KLPageSplits || page < 1) {
-            response.sendStatus(404)
-            return
-        }
-        response.send(loansToServe.descriptions[page - 1])
-    } else {
+    var batch = parseInt(request.query.batch)
+    if (!loansToServe[batch]) {
         response.sendStatus(404)
+        return
     }
+    var page = parseInt(request.query.page)
+    var toServe = loansToServe[batch].descriptions[page - 1]
+    if (!toServe) {
+        response.sendStatus(404)
+    } else {
+        response.send(toServe)
+    }
+})
+
+app.get('/loans/since', function(request, response){
+    var newestTime = parseInt(request.query.newestTime)
+    if (!newestTime){
+        response.sendStatus(404)
+        return
+    }
+    var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
+    response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
 })
 
 app.get('/loans/filter', function(req, resp){
@@ -182,14 +198,18 @@ function prepForRequests(){
         delete loan.kls_use_or_descr_arr
     })
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
+    prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
     prepping.loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
     prepping.partners = JSON.stringify(kivaloans.partners_from_kiva)
     prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-    loansToServe = prepping //must make a copy.
-    console.log("Loan chunks ready!", prepping.loanChunks.length)
+
+    loansToServe[++latest] = prepping //must make a copy.
+    //delete the old batches.
+    Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
+    console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 }
 
-setInterval(prepForRequests, 15000)
+setInterval(prepForRequests, 60000)
 
 //live data stream over socket.io
 function connectChannel(channelName, onEvent) {
