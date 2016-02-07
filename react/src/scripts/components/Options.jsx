@@ -162,8 +162,16 @@ const Options = React.createClass({
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems it's much slower!)"
+                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
                             checkedLink={this.linkState('loansFromKiva')} />
+                        <Input
+                            type="checkbox"
+                            label={`When loading loans from Kiva (option above), allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
+                            checkedLink={this.linkState('maxRepaymentTerms_on')} />
+                        <input type="range" min={8} max={120}  valueLink={this.linkState('maxRepaymentTerms')}/>
+                            This option only has an impact when loading loans from Kiva rather than KivaLens.
+                            After the initial load of loans, the rest of the loans will get loaded so you'll still need to
+                            use the final repayment date criteria option if you want to hide longer term loans.
                         <Input
                             type="checkbox"
                             label="Output debugging messages to the console"
@@ -178,14 +186,7 @@ const Options = React.createClass({
 
 /**
     <Panel header='Start Using the Search Sooner'>
-    <Input
-type="checkbox"
-label={`Allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
-checkedLink={this.linkState('maxRepaymentTerms_on')} />
-<input type="range" min={8} max={120}  valueLink={this.linkState('maxRepaymentTerms')}/>
-This option only has an impact when loading loans from Kiva rather than KivaLens.
-    After the initial load of loans, the rest of the loans will get loaded so you'll still need to
-use the final repayment date criteria option if you want to hide longer term loans.
+
 </Panel> **/
 
 export default Options;

@@ -25,7 +25,7 @@ const SetLenderIDModal = React.createClass({
 
         this.setState({checking: true, failed: false})
 
-        req.api.get(`lenders/${lid}.json`)
+        req.kiva.api.get(`lenders/${lid}.json`)
             .always(x=>this.setState({checking: false}))
             .fail(x=>this.setState({failed: true}))
             .done(x=>{

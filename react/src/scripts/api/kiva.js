@@ -186,8 +186,9 @@ class SemRequest {
     _get(path, params){
         var def = Deferred()
         sem_one.take(function(){
-            params = extend({}, this.defaultParams, params)
-            return getUrl(`${this.serverAndBasePath}${path}?${serialize(params)}`,this.asJSON)
+            params = serialize(extend({}, this.defaultParams, params))
+            params = params ? '?' + params : ''
+            return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON)
                 .fail(e => cl(e) )
                 .always(x => sem_one.leave())
                 .done(def.resolve)
@@ -198,6 +199,8 @@ class SemRequest {
     }
 
     get(path, params){
+        if (!path) path = ''
+        if (!params) params = {}
         var key = path + '?' + JSON.stringify(params)
         if (this.requests[key]) {
             var req = this.requests[key]
@@ -216,23 +219,27 @@ class SemRequest {
     }
 }
 
-var req = { //app_id is set at the beginning... need different pattern to make it variable :(
-    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},0)
-}
+var req = {}
 
+var kivaBase, gdocs
 if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
     req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5)
-    //req.proxy = new SemRequest(`${location.protocol}//${location.host}/proxy/`,true,{},5) //never used directly
-    req.kiva = {
-        page: new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/`,false,{},5),
-        ajax: new SemRequest(`${location.protocol}//${location.host}/proxy/kiva/ajax/`,true,{},5)
-    }
+    kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
+    gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
 } else {
-    req.kiva = {
-        page: new SemRequest('https://www.kiva.org/',false,{},5),
-        ajax: new SemRequest('https://www.kiva.org/ajax/',true,{},5)
-    }
+    kivaBase = 'https://www.kiva.org/'
+    gdocs = 'https://docs.google.com/'
+}
+
+req.kiva = {
+    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},0),
+    page: new SemRequest(`${kivaBase}`,false,{},5),
+    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5)
+}
+
+req.gdocs = {
+    atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`,false,{gid:1,format:'csv'},5)
 }
 
 var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
@@ -747,7 +754,7 @@ class LoanBatch {
 
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
-            req.api.get(`loans/${chunk.join(',')}.json`)
+            req.kiva.api.get(`loans/${chunk.join(',')}.json`)
                 .then(res => res.loans)
                 .then(ResultProcessors.processLoans)
                 .done(loans => {
@@ -927,7 +934,7 @@ class QueuedActions {
     }
     enqueue(objs){
         if (Array.isArray(objs))
-            this.queue = this.queue.concat(objs).distinct()
+            this.queue = this.queue.concat(objs).distinct((a,b)=>a.id==b.id) //todo: if ever used for anything other than loans this won't work
         else
             this.queue.push(objs)
 
@@ -1502,16 +1509,7 @@ class Loans {
         if (this.startedAtheistDownload || this.atheist_list_processed) return
         this.startedAtheistDownload = true
 
-        var csv_file
-
-        if (isServer()) { //running on server, don't proxy
-            csv_file = `https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
-        } else { //running in browser
-            //todo: this is not generic... shouldn't reference kivalens server though.
-            csv_file = `${location.protocol}//${location.host}/proxy/gdocs/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
-        }
-
-        getUrl(csv_file)
+        req.gdocs.atheist.get()
             .fail(e=>cl(`failed to retrieve Atheist list: ${e}`))
             .then(CSV2JSON).done(mfis => {
                 this.partner_download.done(x => {
@@ -1550,11 +1548,22 @@ class Loans {
             this.loans_from_kiva = []
             this.indexed_loans = {}
         }
-        //loans added through this method will always be distinct. it's possible to get duplicates when paging if new loans added
-        this.loans_from_kiva = (reset && trustNoDupes)? loans: this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
-        //this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
+
+        //loans added through this method will always be distinct.
+        //it's possible to get duplicates when paging if new loans added
+        if ((reset && trustNoDupes)){
+            this.loans_from_kiva = loans
+            loans.forEach(loan => this.indexed_loans[loan.id] = loan)
+        } else {
+            loans.forEach(loan => {
+                if (!this.hasLoan(loan.id)) {
+                    this.loans_from_kiva.push(loan)
+                    this.indexed_loans[loan.id] = loan
+                }
+            })
+        }
+
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
-        loans.forEach(loan => this.indexed_loans[loan.id] = loan)
         this.is_ready = true
     }
     isReady(){
@@ -1656,7 +1665,7 @@ class Loans {
                     newLoans.push(loan)
                 }
             })
-            kl.setKivaLoans(newLoans, false)
+            kl.setKivaLoans(newLoans, false) //why would this ever happen?
             //cl("############### refreshLoans:", loan_arr.length, loans)
         })
     }
