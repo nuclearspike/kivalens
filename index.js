@@ -4,6 +4,9 @@ var express = require('express')
 var app = express()
 var proxy = require('express-http-proxy')
 var helmet = require('helmet')
+var extend = require('extend')
+var zlib = require('zlib')
+
 //var session = require('express-session')
 
 var compression = require('compression')
@@ -35,6 +38,9 @@ app.use(express.cookieParser())
     })
 )**/
 
+const blankResponse = {ready: false, loanChunks:[], prepTime: null}
+var loansToServe = extend({},blankResponse)
+var prepping = extend({},blankResponse)
 var loanChunks = []
 
 //TODO: RESTRICT TO SAME SERVER?

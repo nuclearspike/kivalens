@@ -112,12 +112,17 @@ const Options = React.createClass({
                         </ul>
                         <p>What this isn't:</p>
                         <ul className='spacedList'>
-                            <li>This does not log you in to Kiva. When you transfer your loans to Kiva,
-                                you'll still have to log in to your account.</li>
-                            <li>This does not allow KivaLens to view any private information on your account.
+                            <li>
+                                This does not log you in to Kiva. When you transfer your loans to Kiva,
+                                you'll still have to log in to your account. As long as your profile is public, your
+                                lender id is public information and can be seen by anyone on Kiva. It's not a secret.
+                            </li>
+                            <li>
+                                This does not allow KivaLens to view any private information on your account.
                                 KivaLens only pulls information publicly available, what's viewable from your lender page.
                                 While it can know that you made a loan to a borrower, it does not know how much you
-                                loaned or what team you attributed the loan to.</li>
+                                loaned or what team you attributed the loan to.
+                            </li>
                         </ul>
                     </Panel>
                     <Panel header='External Research'>

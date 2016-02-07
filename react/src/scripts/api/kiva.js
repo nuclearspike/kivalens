@@ -709,6 +709,7 @@ class ManualPagedKiva {
 }
 
 /**
+ *
  * Pass in an array of ids, it will break the array into 100 max chunks (kiva restriction) fetch them all, then returns
  * them together (very possible that they'll get out of order if more than one page; if order is important then order
  * the results yourself using a linqjs join against the original array request. this could be made more generic where
@@ -954,13 +955,14 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
 
 /**
  *
- * I'd like to move toward this structure... not a class but just an anon object.
+ * I'd like to move toward this structure... not a class but just an anon object in a separate npm package.
  *
  * kiva.settings.set({updateInterval:100000,_getter:()=>lsj.get("Options")})
  * kiva.settings.get().useLargeLocalStorage
  *
- * kiva.api.req('partners').done(Array<Object>...
- * kiva.www.req('ajax/getGraphData',params).done(variant...
+ * kiva.api.get('partners').done(Array<Object>...
+ * kiva.www.ajax.get('getGraphData',params).done(variant...
+ * kiva.www.page.get('about').done(string
  *
  * kiva.processors.loan / loans / undo
  * kiva.processors.partners
@@ -1009,12 +1011,11 @@ class LoansArray extends Array {
     //?
 }
 
-//rename this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
+//restructure this. This is the interface to Kiva functions where it keeps the background resync going, indexes the results,
 //processes
 class Loans {
     constructor(update_interval){
         if (update_interval === undefined) update_interval = 0
-        //this.interComm = new InterTabComm('KL')
         this.startupTime = new Date()
         this.last_partner_search_count = 0
         this.last_partner_search = {}
@@ -1076,21 +1077,6 @@ class Loans {
         crit = extend(crit, {})
         this.getOptions = getOptions
         this.options = getOptions()
-
-        //listen for request. tab can become the boss even if it starts out as a client.
-        
-        if (false && this.options.useLargeLocalStorage) {
-            //what?? is this gone completely?
-            this.interComm.filter('boss', 'gimmeLoansLLS').progress(m => {
-                var that = this
-                waitFor(x => that.allLoansLoaded).done(()=> {
-                    that.saveLoansToLLS().then(()=> {
-                        that.interComm.sendMessage('client', 'gimmeLoansLLS', {ready: true})
-                        that.interComm.sendMessage('client', 'gimmeLoansLLS', {}, 'close') //test combination
-                    })
-                })
-            })
-        } 
     
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
