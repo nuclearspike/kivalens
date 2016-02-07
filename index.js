@@ -70,10 +70,6 @@ app.set('port', (process.env.PORT || 3000))
 
 app.use(express.static(__dirname + '/public'))
 
-// views is directory for all template files
-//app.set('views', __dirname + '/views')
-//app.set('view engine', 'ejs')
-
 //old site bad urls.
 app.get('/feed.svc/rss/*', function(request, response){
     response.sendStatus(404)
@@ -120,7 +116,6 @@ app.listen(app.get('port'), function() {
 
 //to satisfy kiva.js
 global.cl = function(){}
-
 
 require('./react/src/scripts/linqextras')
 

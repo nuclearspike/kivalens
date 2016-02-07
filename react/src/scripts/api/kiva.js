@@ -8,7 +8,6 @@ var Deferred = require("jquery-deferred").Deferred
 var when = require("jquery-deferred").when
 var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
-var InterTabComm = require('./syncStorage').InterTabComm
 
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
@@ -216,8 +215,8 @@ class SemRequest {
     }
 }
 
-var req = {
-    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: api_options.app_id},0)
+var req = { //app_id is set at the beginning... need different pattern to make it variable :(
+    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},0)
 }
 
 if (typeof location != 'undefined') { //should use something more descriptive "isNodeServer" "isBrowser" etc.
@@ -234,7 +233,6 @@ if (typeof location != 'undefined') { //should use something more descriptive "i
         ajax: new SemRequest('https://www.kiva.org/ajax/',true,{},5)
     }
 }
-
 
 var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
 var common_use = ["PURCHASE", "FOR", "AND", "BUY", "OTHER", "HER", "BUSINESS", "SELL", "MORE", "HIS", "THE", "PAY"]
