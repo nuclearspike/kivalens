@@ -4,7 +4,7 @@ var express = require('express')
 var app = express()
 var proxy = require('express-http-proxy')
 var helmet = require('helmet')
-var session = require('express-session')
+//var session = require('express-session')
 
 var compression = require('compression')
 
@@ -107,10 +107,9 @@ app.get('/loans/filter', function(req, resp){
     //console.log(crit,results)
 })
 
-//CATCH ALL
-//any page not defined in this file gets routed to everything which redirects to /#/search
+//CATCH ALL this will also redirect old image reqs to a page though...
 app.get('/*', function(request, response) {
-    response.render('pages/everything') //can i do permanent redirect?
+    response.redirect("/#/search")
 })
 
 app.listen(app.get('port'), function() {
@@ -126,6 +125,8 @@ require('./react/src/scripts/linqextras')
 /**
  * issues: partners don't get updated after initial load.
  * so it just reinitializes after 24 hours of constant running
+ * it should re-download partners and atheist list on some schedule
+ * in the client as well for long-running clients (some are open for weeks!)
  */
 
 var kivaloans
@@ -136,7 +137,7 @@ tempFixReInitKivaLoans()
 
 function tempFixReInitKivaLoans(){
     kivaloans = new k.Loans(5*60*1000)
-    var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true}) //todo:second is not implemented yet.
+    var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
     kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
         if (progress.loan_load_progress && progress.loan_load_progress.label)
             console.log(progress.loan_load_progress.label)
@@ -166,6 +167,7 @@ function prepForRequests(){
 
 setInterval(prepForRequests, 15000)
 
+//live data stream over socket.io
 function connectChannel(channelName, onEvent) {
     var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});
     //channel.on('connect', function () {console.log(`socket.io channel connect: ${channelName}`)})
