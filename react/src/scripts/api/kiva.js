@@ -1098,9 +1098,9 @@ class Loans {
         this.loan_download.fail(e=>this.notify({failed: e})).done((loans,notify)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
             this.setKivaLoans(loans, true, true)
-            this.allLoansLoaded = true
-            this.backgroundResync(notify)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
+            this.allLoansLoaded = true
+            wait(500).done(x => this.backgroundResync(notify))
         })
 
         if (base_options.kiva_lender_id)
@@ -1147,6 +1147,7 @@ class Loans {
                     var descToProc = []
                     hasStarted = true
                     //todo: this needs to use a semaphored request.
+                    /** loans **/
                     Array.range(1, response.pages).forEach(page => req.kl.get('loans', {page}).done(loans => {
                         receivedLoans++
                         this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${response.pages}...`}})
@@ -1154,23 +1155,27 @@ class Loans {
                         if (receivedLoans == response.pages)
                             this.loan_download.resolve(loansToAdd, false)
                     }))
+                    /** partners **/
                     req.kl.get("partners").done(partners => {
                         this.processPartners(partners)
                         this.atheist_list_processed = true //we always download the data.
                         this.notify({atheist_list_loaded: true})
                     })
+                    /** descriptions **/
                     Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page}).done(descriptions => {
                         receivedDesc++
                         descToProc = descToProc.concat(descriptions)
                         if (receivedDesc == response.pages) {
-                            waitFor(x=>this.allLoansLoaded).done(x => {
-                                descToProc.forEach(desc => {
-                                    var loan = this.getById(desc.id)
-                                    loan.description.texts.en = desc.t
-                                    ResultProcessors.processLoanDescription(loan)
+                            waitFor(x=>this.allLoansLoaded).done(x => { //cannot use loan_download because there are things it needs done in the other done.
+                                wait(500).done(x => {
+                                    descToProc.forEach(desc => {
+                                        var loan = this.getById(desc.id)
+                                        loan.description.texts.en = desc.t
+                                        ResultProcessors.processLoanDescription(loan)
+                                    })
+                                    this.allDescriptionsLoaded = true
+                                    this.notify({all_descriptions_loaded: true})
                                 })
-                                this.allDescriptionsLoaded = true
-                                this.notify({all_descriptions_loaded: true})
                             })
                         }
                     }))
@@ -1535,7 +1540,7 @@ class Loans {
             this.indexed_loans = {}
         }
         //loans added through this method will always be distinct. it's possible to get duplicates when paging if new loans added
-        this.loans_from_kiva = trustNoDupes? loans: this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
+        this.loans_from_kiva = (reset && trustNoDupes)? loans: this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
         //this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
         loans.forEach(loan => this.indexed_loans[loan.id] = loan)

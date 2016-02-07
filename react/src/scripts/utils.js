@@ -180,8 +180,8 @@ window.waitFor = function(test, interval = 200) {
     } else {
         var handle = setInterval(()=> {
             if (test()) {
-                def.resolve()
                 clearInterval(handle)
+                def.resolve()
             }
         }, interval)
     }
