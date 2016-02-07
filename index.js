@@ -177,7 +177,7 @@ function prepForRequests(){
     //additional unprocessing and collecting descriptions
     var descriptions = []
     allLoans.forEach(loan => {
-        descriptions.push({id: loan.id, t: loan.description.texts.en})
+        descriptions.push({id: loan.id, t: loan.kls_use_or_descr_arr}) //only need to do descr... use already there.
         delete loan.description.texts.en
         delete loan.kls_use_or_descr_arr
     })

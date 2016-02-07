@@ -23,7 +23,7 @@ const Options = React.createClass({
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
-            'debugging', 'betaTester', 'useLargeLocalStorage', 'noStream', 'loansFromKiva']
+            'debugging', 'betaTester', 'useLargeLocalStorage', 'noStream', 'loansFromKiva', 'doNotDownloadDescriptions']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -65,27 +65,25 @@ const Options = React.createClass({
         return (<Grid>
                 <h1>Options</h1>
                 <Col md={12}>
-                    <Panel header='Start Using the Search Sooner'>
+                    <Panel header="Speed!">
                         <Input
                             type="checkbox"
-                            label={`Allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
-                            checkedLink={this.linkState('maxRepaymentTerms_on')} />
-                        <input
-                            type="range"
-                            min={8}
-                            max={120}
-                            valueLink={this.linkState('maxRepaymentTerms')}/>
-                        This option only has an impact when loading loans from Kiva rather than KivaLens.
-                        After the initial load of loans, the rest of the loans will get loaded so you'll still need to
-                        use the final repayment date criteria option if you want to hide longer term loans.
+                            label={`I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions but you'll still be able to read them when you click on a loan. This speeds up the initial load. Will only take effect next app load.`}
+                            checkedLink={this.linkState('doNotDownloadDescriptions')} />
+                        <Input
+                            type="checkbox"
+                            label="Store loans in my browser's database. This is used when opening multiple tabs or if opening KivaLens after navigating away relatively recently to prevent re-downloading. Not recommended for Safari users."
+                            checkedLink={this.linkState('useLargeLocalStorage')} />
+                        <Input
+                            type="checkbox"
+                            label="Do not subscribe to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster."
+                            checkedLink={this.linkState('noStream')} />
                     </Panel>
                     <Panel header='Who are you?'>
                         {this.state.kiva_lender_id ?
                             <span>Your Lender ID: <b>{this.state.kiva_lender_id}</b> <ClickLink
                                 onClick={this.showLenderIDModal}>Change</ClickLink></span>
-                            :
-                            <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button>
-                        }
+                            : <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button> }
                         <SetLenderIDModal show={this.state.showLenderModal} onSet={this.setLenderID} onHide={this.hideLenderIDModal}/>
                         <p className="ample-padding-top">
                             This is used for:
@@ -164,15 +162,7 @@ const Options = React.createClass({
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Store loans in my browser's database; used when opening multiple tabs or if opening KL after navigating away relatively recently to prevent re-downloading."
-                            checkedLink={this.linkState('useLargeLocalStorage')} />
-                        <Input
-                            type="checkbox"
-                            label="Do not subscribe to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster."
-                            checkedLink={this.linkState('noStream')} />
-                        <Input
-                            type="checkbox"
-                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems)"
+                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems it's much slower!)"
                             checkedLink={this.linkState('loansFromKiva')} />
                         <Input
                             type="checkbox"
@@ -185,5 +175,17 @@ const Options = React.createClass({
         )
     }
 })
+
+/**
+    <Panel header='Start Using the Search Sooner'>
+    <Input
+type="checkbox"
+label={`Allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
+checkedLink={this.linkState('maxRepaymentTerms_on')} />
+<input type="range" min={8} max={120}  valueLink={this.linkState('maxRepaymentTerms')}/>
+This option only has an impact when loading loans from Kiva rather than KivaLens.
+    After the initial load of loans, the rest of the loans will get loaded so you'll still need to
+use the final repayment date criteria option if you want to hide longer term loans.
+</Panel> **/
 
 export default Options;

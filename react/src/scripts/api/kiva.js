@@ -9,6 +9,7 @@ var when = require("jquery-deferred").when
 var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
 
+const isServer = () => typeof location === 'undefined'
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
@@ -219,7 +220,7 @@ var req = { //app_id is set at the beginning... need different pattern to make i
     api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},0)
 }
 
-if (typeof location != 'undefined') { //should use something more descriptive "isNodeServer" "isBrowser" etc.
+if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
     req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5)
     //req.proxy = new SemRequest(`${location.protocol}//${location.host}/proxy/`,true,{},5) //never used directly
@@ -284,19 +285,26 @@ class ResultProcessors {
         var descr_arr
         var use_arr
 
-        if (loan.description.texts.en) {
-            descr_arr = processText(loan.description.texts.en, common_descr)
-        } else {
-            descr_arr = []
-            loan.description.texts.en = (loan.kls_use_or_descr_arr)? "Loading..." : "No English description available."
-        }
+        /**
+         * on the server, on the first-pass the kls will be empty, the description and use will be populated.
+         * on the client, the kls will be populated but no description.
+         */
 
-        if (!loan.kls_use_or_descr_arr) {//this is present when downloaded from KL server
+        if (isServer()) {
+            if (loan.description.texts.en) {
+                descr_arr = processText(loan.description.texts.en, common_descr)
+            } else {
+                descr_arr = []
+            }
             use_arr = processText(loan.use, common_use)
+            loan.kls_has_descr = loan.description.texts.en != undefined
             loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
+        } else {
+            if (!loan.description.texts.en)
+                loan.description.texts.en = loan.kls_has_descr ? "Loading..." : "No English description available."
         }
 
-        if (!loan.kls_age)
+        if (!loan.kls_age) //skip if populated from server since the description will be empty.
             loan.kls_age = getAge(loan.description.texts.en)
     }
     static processLoan(loan){
@@ -1162,23 +1170,26 @@ class Loans {
                         this.notify({atheist_list_loaded: true})
                     })
                     /** descriptions **/
-                    Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page}).done(descriptions => {
-                        receivedDesc++
-                        descToProc = descToProc.concat(descriptions)
-                        if (receivedDesc == response.pages) {
-                            waitFor(x=>this.allLoansLoaded).done(x => { //cannot use loan_download because there are things it needs done in the other done.
-                                wait(200).done(x => {
-                                    descToProc.forEach(desc => {
-                                        var loan = this.getById(desc.id)
-                                        loan.description.texts.en = desc.t
-                                        ResultProcessors.processLoanDescription(loan)
+                    if (!base_options.doNotDownloadDescriptions) {
+                        Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page}).done(descriptions => {
+                            receivedDesc++
+                            descToProc = descToProc.concat(descriptions)
+                            if (receivedDesc == response.pages) {
+                                waitFor(x=>this.allLoansLoaded).done(x => { //cannot use loan_download because there are things it needs done in the other done.
+                                    wait(200).done(x => {
+                                        descToProc.forEach(desc => {
+                                            var loan = this.getById(desc.id)
+                                            //loan.description.texts.en = desc.t
+                                            loan.kls_use_or_descr_arr = desc.t
+                                            ResultProcessors.processLoanDescription(loan)
+                                        })
+                                        this.allDescriptionsLoaded = true
+                                        this.notify({all_descriptions_loaded: true})
                                     })
-                                    this.allDescriptionsLoaded = true
-                                    this.notify({all_descriptions_loaded: true})
                                 })
-                            })
-                        }
-                    }))
+                            }
+                        }))
+                    }
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
             })
@@ -1493,7 +1504,7 @@ class Loans {
 
         var csv_file
 
-        if (typeof document == 'undefined') { //running on server, don't proxy
+        if (isServer()) { //running on server, don't proxy
             csv_file = `https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv`
         } else { //running in browser
             //todo: this is not generic... shouldn't reference kivalens server though.
