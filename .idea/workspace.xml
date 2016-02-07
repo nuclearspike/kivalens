@@ -5,7 +5,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/utils.js" afterPath="$PROJECT_DIR$/react/src/scripts/utils.js" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -204,14 +203,14 @@
                 <state vertical-scroll-proportion="-5.037037">
                   <caret line="1555" column="16" selection-start-line="1555" selection-start-column="16" selection-end-line="1555" selection-end-column="16" />
                   <folding>
-                    <marker date="1454840935000" expanded="true" signature="17778:21977" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="22015:23490" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="23528:23667" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="23705:23804" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="23850:24268" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="24325:25389" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="30325:31543" placeholder="{...}" />
-                    <marker date="1454840935000" expanded="true" signature="44074:44085" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="17778:21977" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="22015:23490" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="23528:23667" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="23705:23804" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="23850:24268" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="24325:25389" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="30325:31543" placeholder="{...}" />
+                    <marker date="1454841413000" expanded="true" signature="44074:44085" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -254,8 +253,8 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.092920355">
-                  <caret line="1147" column="32" selection-start-line="1147" selection-start-column="32" selection-end-line="1147" selection-end-column="32" />
+                <state vertical-scroll-proportion="0.06784661">
+                  <caret line="1090" column="24" selection-start-line="1090" selection-start-column="24" selection-end-line="1090" selection-end-column="24" />
                   <folding>
                     <element signature="e#39031#39218#0" expanded="false" />
                     <element signature="e#39247#42234#0" expanded="false" />
@@ -660,12 +659,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00016" summary="fix for weirdness with repayment dates at certain times of day.">
-      <created>1454445876893</created>
-      <option name="number" value="00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1454445876894</updated>
-    </task>
     <task id="LOCAL-00017" summary="stopped using cdn for q. it was slow and never spit back that it wasn't modified... worthless!">
       <created>1454447882921</created>
       <option name="number" value="00017" />
@@ -954,7 +947,13 @@
       <option name="project" value="LOCAL" />
       <updated>1454838111521</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="don't start the background resync until 500ms passes (let UI catch up), wait 500ms after all loans are loaded before processing all loan descriptions.">
+      <created>1454841250751</created>
+      <option name="number" value="00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1454841250751</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -995,7 +994,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="text changes on About, Options, and in API notifications, added a 404 response for /feed.svc/rss requests from the old way" />
     <MESSAGE value="is adding loan-related stuff to drop down on /lend ?? shouldn't even be pattern matching for injection. did something change?" />
     <MESSAGE value="switch to res.sendStatus rather than .send" />
     <MESSAGE value="kl api can now filter. switched to using kivaloans full class with all of it's goodies. added socket.io client to server so it can update it's list of loans. loans pulled from KL should only be at most 10 seconds stale." />
@@ -1020,7 +1018,8 @@
     <MESSAGE value="missing app_id from some api calls (the ones using req.api.get())" />
     <MESSAGE value="split the descriptions into separate downloads to allow for faster loading." />
     <MESSAGE value="trying to make processing faster by removing distinct on loan load when we can trust it." />
-    <option name="LAST_COMMIT_MESSAGE" value="trying to make processing faster by removing distinct on loan load when we can trust it." />
+    <MESSAGE value="don't start the background resync until 500ms passes (let UI catch up), wait 500ms after all loans are loaded before processing all loan descriptions." />
+    <option name="LAST_COMMIT_MESSAGE" value="don't start the background resync until 500ms passes (let UI catch up), wait 500ms after all loans are loaded before processing all loan descriptions." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1948,8 +1947,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.092920355">
-          <caret line="1147" column="32" selection-start-line="1147" selection-start-column="32" selection-end-line="1147" selection-end-column="32" />
+        <state vertical-scroll-proportion="0.06784661">
+          <caret line="1090" column="24" selection-start-line="1090" selection-start-column="24" selection-end-line="1090" selection-end-column="24" />
           <folding>
             <element signature="e#39031#39218#0" expanded="false" />
             <element signature="e#39247#42234#0" expanded="false" />

@@ -1100,7 +1100,7 @@ class Loans {
             this.setKivaLoans(loans, true, true)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
             this.allLoansLoaded = true
-            wait(500).done(x => this.backgroundResync(notify))
+            wait(1000).done(x => this.backgroundResync(notify))
         })
 
         if (base_options.kiva_lender_id)
@@ -1167,7 +1167,7 @@ class Loans {
                         descToProc = descToProc.concat(descriptions)
                         if (receivedDesc == response.pages) {
                             waitFor(x=>this.allLoansLoaded).done(x => { //cannot use loan_download because there are things it needs done in the other done.
-                                wait(500).done(x => {
+                                wait(200).done(x => {
                                     descToProc.forEach(desc => {
                                         var loan = this.getById(desc.id)
                                         loan.description.texts.en = desc.t
