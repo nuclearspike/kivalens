@@ -15,7 +15,7 @@ Array.prototype.percentWhere = function(predicate) {return this.where(predicate)
 
 const KLPageSplits = 5
 
-//not really robust...
+//not robust...
 const getUrl = function(url,parseJSON){
     var d = Deferred()
     request.get(url,(error,response,body)=>{
@@ -31,6 +31,7 @@ const getUrl = function(url,parseJSON){
                     case 400:
                         var msg
                         try {
+                            //todo: only when parseJSON? or just look at response type?
                             msg = JSON.parse(response.body).message
                         } catch (e) {
                             msg = ''
@@ -45,10 +46,6 @@ const getUrl = function(url,parseJSON){
         }
     })
     return d
-}
-
-const getKLUrl = function(url,parseJSON) {
-    return getUrl(`${location.protocol}//${location.host}/${url}`,parseJSON)
 }
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
@@ -148,6 +145,7 @@ class Request {
     static get(path, params){
         params = extend({}, params, {app_id: api_options.app_id})
         return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true).fail(e => cl(e) )
+        //can't use because this is semaphored... they stack up. return req.kiva.api.get(path, params).fail(e => cl(e) )
     }
 
     //semaphored access to kiva api to not overload it. also, it handles collections.
@@ -174,21 +172,19 @@ class Request {
  * semaphored access to a server. this is to replace Request.sem_get
  */
 class SemRequest {
-    constructor(serverAndBasePath,asJSON,defaultParams,ttlMins){
+    constructor(serverAndBasePath,asJSON,defaultParams,ttlSecs){
         if (asJSON === undefined) asJSON = true
         this.serverAndBasePath = serverAndBasePath
         this.defaultParams = defaultParams
         this.asJSON = asJSON
-        this.ttlMins = ttlMins || 0
+        this.ttlSecs = ttlSecs || 0
         this.requests = {}
     }
 
-    _get(path, params){
+    sem_get(path, params){
         var def = Deferred()
         sem_one.take(function(){
-            params = serialize(extend({}, this.defaultParams, params))
-            params = params ? '?' + params : ''
-            return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON)
+            return this.raw(path, params)
                 .fail(e => cl(e) )
                 .always(x => sem_one.leave())
                 .done(def.resolve)
@@ -198,22 +194,33 @@ class SemRequest {
         return def
     }
 
-    get(path, params){
+    raw(path, params){
+        params = serialize(extend({}, this.defaultParams, params))
+        params = params ? '?' + params : ''
+        return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON)
+            .fail(e => cl(e) )
+    }
+
+    get(path, params, semaphored, useCache){
         if (!path) path = ''
         if (!params) params = {}
+        if (!semaphored) semaphored = true
+        if (!useCache) useCache = true
+
         var key = path + '?' + JSON.stringify(params)
-        if (this.requests[key]) {
+        if (useCache && this.requests[key]) {
             var req = this.requests[key]
             if (req) {
-                if ((Date.now() - req.requested) > req.ttlMins * 60000)
+                if ((Date.now() - req.requested) > this.ttlSecs * 1000)
                     delete this.requests[key]
                 else
                     return req.promise
             }
         }
+        //should be some type of cleanup of old cached but dead requests.
 
-        let p = this._get(path, params)
-        if (this.ttlMins > 0)
+        let p = semaphored ? this.sem_get(path, params) : this.raw(path, params)
+        if (this.ttlSecs > 0) //not && useCache so that the result can be cached for another request
             this.requests[key] = {promise: p, requested: Date.now()}
         return p
     }
@@ -224,7 +231,7 @@ var req = {}
 var kivaBase, gdocs
 if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
-    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5)
+    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},5*60000)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
 } else {
@@ -233,9 +240,22 @@ if (!isServer()) {
 }
 
 req.kiva = {
-    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},0),
-    page: new SemRequest(`${kivaBase}`,false,{},5),
-    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5)
+    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},5),
+    page: new SemRequest(`${kivaBase}`,false,{},5*60000),
+    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5*60000)
+}
+
+//max of 100, not enforced.
+req.kiva.api.loans = ids => {
+    return req.kiva.api.get(`loans/${ids.join(',')}.json`)
+        .then(res => res.loans)
+        .then(ResultProcessors.processLoans)
+}
+//hmm... really need a way to invoke immediately? on site load to a given loan url.
+req.kiva.api.loan = id => {
+    return req.kiva.api.get(`loans/${id}.json`)
+        .then(res => res.loans[0])
+        .then(ResultProcessors.processLoan)
 }
 
 req.gdocs = {
@@ -389,8 +409,8 @@ class ResultProcessors {
                     }
                 })
                 addIt.kl_final_repayment =  addIt.kl_repayments.last().date
-                if (addIt.kl_final_repayment)//when looking at really old loans, can be null
-                    addIt.kl_repaid_in = Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth()))
+                //when looking at really old loans, can be null
+                addIt.kl_repaid_in = addIt.kl_final_repayment ? Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth())) : 0
 
             }
             ///REPAYMENT STUFF: END
@@ -623,26 +643,6 @@ class Partners extends PagedKiva {
     }
 }
 
-//should be deprecated now that there's req.api.get
-//intended to catch multiple requests for the same information. should there be a there a TTL on it?
-//used for ManualPagedKiva so that prefetching and next() calls wouldn't make two separate calls
-class SharedAPIRequest {
-    constructor(){
-        this.requests = {}
-    }
-
-    request(url, params) {
-        var key = url + JSON.stringify(params)
-        if (this.requests[key])
-            return this.requests[key]
-        else {
-            let p = Request.sem_get(url, params)
-            this.requests[key] = p
-            return p
-        }
-    }
-}
-
 /**
  * Allows for specific control over fetching the results. The PagedKiva class waits until all pages have been
  * downloaded and processed before returning an array of all the results. ManualPagedKiva was created
@@ -671,7 +671,6 @@ class ManualPagedKiva {
         this.pageCount = 0
         this.objectCount = 0
         this.currentPage = 0
-        this.sharedReq = new SharedAPIRequest()
     }
 
     processPage(page){
@@ -680,7 +679,7 @@ class ManualPagedKiva {
     }
 
     start(){
-        return Request.sem_get(this.url, this.params)
+        return req.kiva.api.get(this.url, this.params)
             .then(result => {
                 this.currentPage = result.paging.page
                 this.pageCount   = result.paging.pages
@@ -754,9 +753,7 @@ class LoanBatch {
 
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
-            req.kiva.api.get(`loans/${chunk.join(',')}.json`)
-                .then(res => res.loans)
-                .then(ResultProcessors.processLoans)
+            req.kiva.api.loans(chunk)
                 .done(loans => {
                     r_loans = r_loans.concat(loans)
                     def.notify({
@@ -1644,10 +1641,7 @@ class Loans {
     }
     getLoanFromKiva(id){
         //don't use sem_get. this is only used rarely and when it is, it doesn't want to be queued
-        var def = Request.get(`loans/${id}.json`, {})
-            .then(result => result.loans[0])
-            .then(ResultProcessors.processLoan)
-
+        var def = req.kiva.api.loan(id)
         //this will only return once both the loan and all partners have been downloaded
         return when(def, this.partner_download).then(loan => loan)
     }
@@ -1757,8 +1751,6 @@ exports.LoanBatch = LoanBatch
 exports.Loans = Loans
 exports.defaultKivaData = defaultKivaData
 exports.setAPIOptions = setAPIOptions
-exports.getUrl = getUrl
-exports.getKLUrl = getKLUrl
 exports.LenderTeams = LenderTeams
 exports.ManualPagedKiva = ManualPagedKiva
 exports.KLPageSplits = KLPageSplits
@@ -1773,6 +1765,4 @@ global.LoansSearch = LoansSearch
 global.LenderLoans = LenderLoans
 global.LenderTeams = LenderTeams
 global.ManualPagedKiva = ManualPagedKiva
-global.getUrl = getUrl
-global.getKLUrl = getKLUrl
 global.req = req
