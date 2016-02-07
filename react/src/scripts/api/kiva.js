@@ -1027,7 +1027,7 @@ class Loans {
         this.last_filtered = []
         this.active_partners = []
         this.loans_from_kiva = []
-        this.partner_ids_from_loans = []
+        //this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
         this.allLoansLoaded = false
@@ -1097,7 +1097,7 @@ class Loans {
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
         this.loan_download.fail(e=>this.notify({failed: e})).done((loans,notify)=>{
             this.notify({loan_load_progress: {label: 'Processing...'}})
-            this.setKivaLoans(loans)
+            this.setKivaLoans(loans, true, true)
             this.allLoansLoaded = true
             this.backgroundResync(notify)
             this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
@@ -1524,7 +1524,7 @@ class Loans {
     setBaseKivaParams(base_kiva_params){
         this.base_kiva_params = base_kiva_params
     }
-    setKivaLoans(loans, reset){
+    setKivaLoans(loans, reset, trustNoDupes){
         if (loans.length && !loans[0].kl_processed)
             ResultProcessors.processLoans(loans)
 
@@ -1535,8 +1535,8 @@ class Loans {
             this.indexed_loans = {}
         }
         //loans added through this method will always be distinct. it's possible to get duplicates when paging if new loans added
-        this.loans_from_kiva = this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
-        this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
+        this.loans_from_kiva = trustNoDupes? loans: this.loans_from_kiva.concat(loans).distinct((a,b)=> a.id == b.id)
+        //this.partner_ids_from_loans = this.loans_from_kiva.select(loan => loan.partner_id).distinct()
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
         loans.forEach(loan => this.indexed_loans[loan.id] = loan)
         this.is_ready = true
