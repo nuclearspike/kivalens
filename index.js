@@ -182,7 +182,8 @@ var kivaloans
 var loansChanged = false
 
 //temporary fix for memory issue. the restart is so fast and the client is usable before KL
-//has all loans loaded...
+//has all loans loaded... have this not do it every 24 hours, but on an interval check the time
+//or when it starts up have it calculate when midnight is and set a timeout.
 setInterval(()=>{
     console.log('INTERESTING: restart on interval')
     process.exit(1)

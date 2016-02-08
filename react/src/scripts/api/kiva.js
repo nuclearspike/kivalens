@@ -1091,6 +1091,10 @@ class Loans {
         }
         return def
     }
+    endDownloadTimer(name){
+        if (!isServer())
+            global.rga.event({category: 'timer', action: name, value: Math.round((Date.now() - this.startDownload.getTime()) / 1000)})
+    }
     init(crit, getOptions, api_options){
         //fetch partners.
         setAPIOptions(api_options)
@@ -1152,10 +1156,10 @@ class Loans {
                     this.allDescriptionsLoaded = true
                     this.notify({all_descriptions_loaded: true})
                     if (needSecondary) {
-                        endDownloadTimer('kivaDownloadStageOne')
+                        this.endDownloadTimer('kivaDownloadStageOne')
                         this.secondaryLoad()
                     } else {
-                        endDownloadTimer('kivaDownloadAll')
+                        this.endDownloadTimer('kivaDownloadAll')
                         this.loans_processed.resolve()
                         this.saveLoansToLLSAfterDelay()
                     }
@@ -1177,7 +1181,7 @@ class Loans {
                                 loan.kls_use_or_descr_arr = desc.t
                                 ResultProcessors.processLoanDescription(loan)
                             })
-                            endDownloadTimer('KLDescriptions')
+                            this.endDownloadTimer('KLDescriptions')
                             this.allDescriptionsLoaded = true
                             this.notify({all_descriptions_loaded: true})
                         })
@@ -1190,7 +1194,7 @@ class Loans {
             /** partners **/
             req.kl.get("partners").done(partners => {
                 this.processPartners(partners)
-                endDownloadTimer('KLPartners')
+                this.endDownloadTimer('KLPartners')
                 this.atheist_list_processed = true //we always download the data.
                 this.notify({atheist_list_loaded: true})
             })
@@ -1207,7 +1211,7 @@ class Loans {
                 loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                 if (receivedLoans == pages) {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
-                    endDownloadTimer('KLLoans')
+                    this.endDownloadTimer('KLLoans')
                     req.kl.get('loans/since', {batch}).done(loans => this.setKivaLoans(loans, false))
                 }
             }))
@@ -1230,10 +1234,6 @@ class Loans {
             }).fail(x=>loadFromKiva())
         }.bind(this)
 
-        const endDownloadTimer = function(name){
-            if (!isServer())
-                global.rga.event({category: 'timer', action: name, value: Math.round((Date.now() - this.startDownload.getTime()) / 1000)})
-        }.bind(this)
 
         const loadFromSource = function () {
             this.startDownload = new Date()
@@ -1737,13 +1737,13 @@ class Loans {
             loans.removeAll(id=>this.hasLoan(id))
             this.newLoanNotice(loans).progress(n=>{
                 if (n.label) this.notify({secondary_load_label: n.label})
-            }).done(def.resolve).done(()=>{
-                endDownload('kivaDownloadStageTwo')
+            }).done(()=>{
+                this.endDownloadTimer('kivaDownloadStageTwo')
                 this.secondary_load = ''
                 this.loans_processed.resolve()
                 this.notify({secondary_load: 'complete'})
                 this.saveLoansToLLSAfterDelay()
-            })
+            }).done(def.resolve)
         })
         return def
     }
@@ -1785,7 +1785,6 @@ class Loans {
 
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
-            //this.notify({backgroundResync})
             if (notify) this.notify({backgroundResync:{state: 'done'}})
             that.saveLoansToLLSAfterDelay()
         })
