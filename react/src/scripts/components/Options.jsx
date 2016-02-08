@@ -11,7 +11,7 @@ import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
 import extend from 'extend'
 
-domready.done(function() {
+domready.done(function() { //unnecessary now that
     if (lsj.get("Options").useLargeLocalStorage)
         waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
             window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
@@ -70,10 +70,6 @@ const Options = React.createClass({
                             type="checkbox"
                             label={`I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions ahead of time for searching but you'll still be able to read the loan description when you click on a loan. This speeds up the initial load. Will only take effect next app load.`}
                             checkedLink={this.linkState('doNotDownloadDescriptions')} />
-                        <Input
-                            type="checkbox"
-                            label="Store loans in my browser's database. This is used when opening multiple tabs or if opening KivaLens after navigating away relatively recently to prevent re-downloading. Not recommended for Safari users."
-                            checkedLink={this.linkState('useLargeLocalStorage')} />
                         <Input
                             type="checkbox"
                             label="Do not subscribe to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster, however, your data won't be as fresh."
@@ -185,8 +181,12 @@ const Options = React.createClass({
 })
 
 /**
-    <Panel header='Start Using the Search Sooner'>
+ * doesn't store partners currently. needs to be able to get partners from
+ <Input
+ type="checkbox"
+ label="Store loans in my browser's database. This is used when opening multiple tabs or if opening KivaLens after navigating away relatively recently to prevent re-downloading. Not recommended for Safari users."
+ checkedLink={this.linkState('useLargeLocalStorage')} />
 
-</Panel> **/
+ **/
 
 export default Options;

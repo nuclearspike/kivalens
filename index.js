@@ -205,7 +205,7 @@ function prepForRequests(){
 
     loansToServe[++latest] = prepping //must make a copy.
     //delete the old batches.
-    Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
+    Object.keys(loansToServe).where(key => key < latest - 3).forEach(key => delete loansToServe[key])
     console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 }
 

@@ -1042,7 +1042,6 @@ class Loans {
         //this.partner_ids_from_loans = []
         this.partners_from_kiva = []
         this.lender_loans = []
-        this.allLoansLoaded = false
         this.allDescriptionsLoaded = false
         this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
         this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
@@ -1105,18 +1104,19 @@ class Loans {
         var base_options = extend({}, {maxRepaymentTerms: 120, maxRepaymentTerms_on: false}, this.options)
         this.partner_download = Deferred()
         this.loan_download = Deferred()
+        this.loans_processed = Deferred()
 
         //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
         this.loan_download
             .fail(e=>this.notify({failed: e}))
-            .done((loans,notify,waitBackgroundResync)=>{
+            .then((loans,notify,waitBackgroundResync)=>{
                 if (!waitBackgroundResync) waitBackgroundResync = 1000
                 this.notify({loan_load_progress: {label: 'Processing...'}})
                 this.setKivaLoans(loans, true, true)
                 this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
-                this.allLoansLoaded = true
+                this.loans_processed.resolve()
                 wait(waitBackgroundResync).done(x => this.backgroundResync(notify))
-            })
+            }).done(this.loans_processed.resolve)
 
         if (base_options.kiva_lender_id)
             this.setLender(base_options.kiva_lender_id)
@@ -1146,66 +1146,74 @@ class Loans {
                     if (needSecondary)
                         this.secondaryLoad()
                     else {
-                        this.allLoansLoaded = true
+                        this.loans_processed.resolve()
                         this.saveLoansToLLSAfterDelay()
                     }
                 })
+        }.bind(this)
+
+        const kl_getDesc = function(batch, pages) {
+            var receivedDesc = 0
+            var descToProc = []
+            Array.range(1, pages).forEach(page => req.kl.get('loans/descriptions', {page, batch}).done(descriptions => {
+                receivedDesc++
+                descToProc = descToProc.concat(descriptions)
+                if (receivedDesc == pages) {
+                    this.loans_processed.done(x => {
+                        wait(200).done(x => {
+                            descToProc.forEach(desc => {
+                                var loan = this.getById(desc.id)
+                                //loan.description.texts.en = desc.t
+                                loan.kls_use_or_descr_arr = desc.t
+                                ResultProcessors.processLoanDescription(loan)
+                            })
+                            this.allDescriptionsLoaded = true
+                            this.notify({all_descriptions_loaded: true})
+                        })
+                    })
+                }
+            }))
+        }.bind(this)
+
+        const kl_getPartners=function() {
+            /** partners **/
+            req.kl.get("partners").done(partners => {
+                this.processPartners(partners)
+                this.atheist_list_processed = true //we always download the data.
+                this.notify({atheist_list_loaded: true})
+            })
+        }.bind(this)
+
+        const kl_getLoans = function(batch, pages, newestTime) {
+            /** loans **/
+            var receivedLoans = 0
+            var loansToAdd = []
+
+            Array.range(1, pages).forEach(page => req.kl.get('loans', {page, batch}).done(loans => {
+                receivedLoans++
+                this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
+                loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
+                if (receivedLoans == pages) {
+                    this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                    req.kl.get('loans/since', {newestTime}).done(loans => this.setKivaLoans(loans, false))
+                }
+            }))
         }.bind(this)
 
         const loadFromKL = function() {
             req.kl.get('start').done(response => { //this tells us if the loans have loaded on the server.
                 if (response.pages) {
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
-                    var receivedLoans = 0
-                    var receivedDesc = 0
-                    var loansToAdd = []
-                    var descToProc = []
-                    var batch = response.batch
-                    var newestTime = response.newestTime
                     hasStarted = true
-                    //todo: this needs to use a semaphored request.
-                    /** loans **/
-                    Array.range(1, response.pages).forEach(page => req.kl.get('loans', {page,batch}).done(loans => {
-                        receivedLoans++
-                        this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${response.pages}...`}})
-                        loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                        if (receivedLoans == response.pages) {
-                            this.loan_download.resolve(loansToAdd, false, 5*60000)
-                            req.kl.get('loans/since',{newestTime}).done(loans => {
-                                this.setKivaLoans(loans, false)
-                            })
-                        }
-                    }))
-                    /** partners **/
-                    req.kl.get("partners").done(partners => {
-                        this.processPartners(partners)
-                        this.atheist_list_processed = true //we always download the data.
-                        this.notify({atheist_list_loaded: true})
-                    })
+                    kl_getLoans(response.batch, response.pages, response.newestTime)
+                    kl_getPartners()
                     /** descriptions **/
                     if (!base_options.doNotDownloadDescriptions) {
-                        Array.range(1, response.pages).forEach(page => req.kl.get('loans/descriptions', {page,batch}).done(descriptions => {
-                            receivedDesc++
-                            descToProc = descToProc.concat(descriptions)
-                            if (receivedDesc == response.pages) {
-                                waitFor(x=>this.allLoansLoaded).done(x => { //cannot use loan_download because there are things it needs done in the other done.
-                                    wait(200).done(x => {
-                                        descToProc.forEach(desc => {
-                                            var loan = this.getById(desc.id)
-                                            //loan.description.texts.en = desc.t
-                                            loan.kls_use_or_descr_arr = desc.t
-                                            ResultProcessors.processLoanDescription(loan)
-                                        })
-                                        this.allDescriptionsLoaded = true
-                                        this.notify({all_descriptions_loaded: true})
-                                    })
-                                })
-                            }
-                        }))
+                        kl_getDesc(response.batch, response.pages)
                     }
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
-            })
+            }).fail(x=>loadFromKiva())
         }.bind(this)
 
         const loadFromSource = function () {
@@ -1702,7 +1710,7 @@ class Loans {
                 if (n.label) this.notify({secondary_load_label: n.label})
             }).done(def.resolve).done(()=>{
                 this.secondary_load = ''
-                this.allLoansLoaded = true
+                this.loans_processed.resolve()
                 this.notify({secondary_load: 'complete'})
                 this.saveLoansToLLSAfterDelay()
             })
