@@ -1187,7 +1187,7 @@ class Loans {
             })
         }.bind(this)
 
-        const kl_getLoans = function(batch, pages, newestTime) {
+        const kl_getLoans = function(batch, pages) {
             /** loans **/
             var receivedLoans = 0
             var loansToAdd = []
@@ -1199,7 +1199,7 @@ class Loans {
                 if (receivedLoans == pages) {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     endDownloadTimer('KLLoans')
-                    req.kl.get('loans/since', {newestTime}).done(loans => this.setKivaLoans(loans, false))
+                    req.kl.get('loans/since', {batch}).done(loans => this.setKivaLoans(loans, false))
                 }
             }))
         }.bind(this)
@@ -1209,7 +1209,7 @@ class Loans {
                 if (response.pages) {
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
                     hasStarted = true
-                    kl_getLoans(response.batch, response.pages, response.newestTime)
+                    kl_getLoans(response.batch, response.pages)
                     kl_getPartners()
                     /** descriptions **/
                     if (!base_options.doNotDownloadDescriptions) {

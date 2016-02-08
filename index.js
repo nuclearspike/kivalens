@@ -80,7 +80,7 @@ app.get('/feed.svc/rss/*', function(request, response){
 
 //API
 app.get('/start', function(request, response){
-    var data = {pages: loansToServe[latest].loanChunks.length, batch: latest, newestTime: loansToServe[latest].newestTime}
+    var data = {pages: loansToServe[latest].loanChunks.length, batch: latest}
     response.send(JSON.stringify(data))
 })
 
@@ -129,11 +129,12 @@ app.get('/loans/descriptions', function(request,response){
 })
 
 app.get('/loans/since', function(request, response){
-    var newestTime = parseInt(request.query.newestTime)
-    if (!newestTime){
+    var batch = parseInt(request.query.batch)
+    if (!batch || !loansToServe[batch]){
         response.sendStatus(404)
         return
     }
+    var newestTime = loansToServe[batch].newestTime
     var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
     console.log(`INTERESTING: loans/since count: ${loans.length}`)
     response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))

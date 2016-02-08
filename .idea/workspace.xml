@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="keep fewer">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/index.html" afterPath="$PROJECT_DIR$/public/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
     </list>
@@ -135,7 +135,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.4334764">
+    <splitter split-orientation="horizontal" split-proportion="0.4792561">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
@@ -194,10 +194,10 @@
                 <state vertical-scroll-proportion="0.0">
                   <caret line="45" column="63" selection-start-line="45" selection-start-column="63" selection-end-line="45" selection-end-column="63" />
                   <folding>
-                    <marker date="1454904344000" expanded="true" signature="2801:2992" placeholder="{...}" />
-                    <marker date="1454904344000" expanded="true" signature="2802:2840" placeholder="{...}" />
-                    <marker date="1454904344000" expanded="true" signature="4820:4858" placeholder="{...}" />
-                    <marker date="1454904344000" expanded="true" signature="5488:6144" placeholder="{...}" />
+                    <marker date="1454912797000" expanded="true" signature="2756:2947" placeholder="{...}" />
+                    <marker date="1454912797000" expanded="true" signature="2757:2795" placeholder="{...}" />
+                    <marker date="1454912797000" expanded="true" signature="4836:4874" placeholder="{...}" />
+                    <marker date="1454912797000" expanded="true" signature="5504:6160" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -206,8 +206,8 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-0.42290077">
-                  <caret line="174" column="4" selection-start-line="174" selection-start-column="4" selection-end-line="174" selection-end-column="4" />
+                <state vertical-scroll-proportion="0.8366412">
+                  <caret line="1211" column="62" selection-start-line="1211" selection-start-column="62" selection-end-line="1211" selection-end-column="62" />
                   <folding />
                 </state>
               </provider>
@@ -227,11 +227,11 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-3.7407408">
-                  <caret line="223" column="26" selection-start-line="223" selection-start-column="26" selection-end-line="223" selection-end-column="26" />
+                <state vertical-scroll-proportion="0.2870229">
+                  <caret line="82" column="76" selection-start-line="82" selection-start-column="76" selection-end-line="82" selection-end-column="76" />
                   <folding>
                     <element signature="e#1205#1819#0" expanded="false" />
                   </folding>
@@ -279,10 +279,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.42521995">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="1233" column="20" selection-start-line="1233" selection-start-column="20" selection-end-line="1233" selection-end-column="20" />
                   <folding />
                 </state>
@@ -387,9 +387,9 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
-        <option value="$PROJECT_DIR$/index.js" />
         <option value="$PROJECT_DIR$/public/index.html" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/index.js" />
       </list>
     </option>
   </component>
@@ -730,12 +730,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00028" summary="chunks into 4">
-      <created>1454461774193</created>
-      <option name="number" value="00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1454461774193</updated>
-    </task>
     <task id="LOCAL-00029" summary="page problem">
       <created>1454461944616</created>
       <option name="number" value="00029" />
@@ -1024,7 +1018,13 @@
       <option name="project" value="LOCAL" />
       <updated>1454904388092</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="added GA code to index so that i'll have more knowledge of failing-to-load conditions. added &quot;endDownloadTimer&quot; and calls to report how long various pieces took to complete">
+      <created>1454910939652</created>
+      <option name="number" value="00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1454910939652</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1065,7 +1065,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="reverted clustering to single process until i get it working right. too much memory used, too much CPU, and sometimes horrible load times." />
     <MESSAGE value="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server." />
     <MESSAGE value="restructured req," />
     <MESSAGE value="added &quot;partner&quot; for currency loss liability" />
@@ -1090,7 +1089,8 @@
     <MESSAGE value="keep fewer batches, track when user requests old batch." />
     <MESSAGE value="pre-gzip the responses for loans and partners... descriptions not yet." />
     <MESSAGE value="highest compression" />
-    <option name="LAST_COMMIT_MESSAGE" value="highest compression" />
+    <MESSAGE value="added GA code to index so that i'll have more knowledge of failing-to-load conditions. added &quot;endDownloadTimer&quot; and calls to report how long various pieces took to complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="added GA code to index so that i'll have more knowledge of failing-to-load conditions. added &quot;endDownloadTimer&quot; and calls to report how long various pieces took to complete" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2008,16 +2008,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.7407408">
-          <caret line="223" column="26" selection-start-line="223" selection-start-column="26" selection-end-line="223" selection-end-column="26" />
-          <folding>
-            <element signature="e#1205#1819#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2044,9 +2034,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.42521995">
+        <state vertical-scroll-proportion="0.0">
           <caret line="1233" column="20" selection-start-line="1233" selection-start-column="20" selection-end-line="1233" selection-end-column="20" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2870229">
+          <caret line="82" column="76" selection-start-line="82" selection-start-column="76" selection-end-line="82" selection-end-column="76" />
+          <folding>
+            <element signature="e#1205#1819#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
