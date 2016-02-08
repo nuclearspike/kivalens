@@ -157,6 +157,12 @@ app.get('/loans/filter', function(req, resp){
     //console.log(crit,results)
 })
 
+//testing...
+app.get('/restart', function (req, res, next) {
+    console.log('INTERESTING: restart')
+    process.exit(1)
+})
+
 //CATCH ALL this will also redirect old image reqs to a page though...
 app.get('/*', function(request, response) {
     response.redirect("/#/search")
