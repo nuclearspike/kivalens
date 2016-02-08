@@ -1126,6 +1126,8 @@ class Loans {
         var hasStarted = false
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
         const kiva_getPartners = function() {
+            if (isServer())
+                console.log('INTERESTING: kiva_getPartners()')
             this.getAllPartners().fail(failed=>this.notify({failed})).done(this.partner_download.resolve)
             if (base_options.mergeAtheistList)
                 this.getAtheistList()

@@ -181,7 +181,7 @@ require('./react/src/scripts/linqextras')
 var kivaloans
 var loansChanged = false
 
-setInterval(tempFixReInitKivaLoans, 24*60*60000)
+//setInterval(tempFixReInitKivaLoans, 24*60*60000)
 tempFixReInitKivaLoans()
 
 //won't the old kivaloans object still exist and keep downloading when a new one is instantiated?
