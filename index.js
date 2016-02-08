@@ -87,7 +87,7 @@ app.get('/start', function(request, response){
 app.get('/loans', function(request, response) {
     var batch = parseInt(request.query.batch)
     if (batch != latest)
-        console.log(`INTERESTING: desc batch: ${batch} latest: ${latest}`)
+        console.log(`INTERESTING: /loans batch: ${batch} latest: ${latest}`)
 
     if (!loansToServe[batch]) {
         response.sendStatus(404)
@@ -118,7 +118,7 @@ app.get('/loans/descriptions', function(request,response){
         return
     }
     if (batch != latest)
-        console.log(`INTERESTING: desc batch: ${batch} latest: ${latest}`)
+        console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${latest}`)
     var page = parseInt(request.query.page)
     var toServe = loansToServe[batch].descriptions[page - 1]
     if (!toServe) {

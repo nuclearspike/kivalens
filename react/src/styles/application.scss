@@ -4,6 +4,12 @@
   overflow-y: scroll;
 }
 
+div.panel.radioPanel {
+  div.radio {
+    margin-left: 40px;
+  }
+}
+
 .btn-group.top-only {
   .btn:first-child:not(:last-child) {
     border-bottom-left-radius: 0;
