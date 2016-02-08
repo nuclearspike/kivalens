@@ -7,6 +7,9 @@ var helmet = require('helmet')
 var extend = require('extend')
 var zlib = require('zlib')
 
+const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
+
+
 //var session = require('express-session')
 
 var compression = require('compression')
@@ -214,12 +217,12 @@ function prepForRequests(){
     prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>'')
     prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
 
-    zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), function(_, result) {
+    zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function(_, result) {
         partnersGzip = result
     })
 
     bigloanChunks.map((chunk,i) => {
-        zlib.gzip(chunk, function(_, result) {
+        zlib.gzip(chunk, gzipOpt, function(_, result) {
             prepping.loanChunks[i] = result
             if (prepping.loanChunks.all(c=>c !='') && partnersGzip){
                 loansToServe[++latest] = prepping //must make a copy.
