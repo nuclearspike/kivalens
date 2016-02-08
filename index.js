@@ -157,12 +157,6 @@ app.get('/loans/filter', function(req, resp){
     //console.log(crit,results)
 })
 
-//testing...
-app.get('/restart', function (req, res, next) {
-    console.log('INTERESTING: restart')
-    process.exit(1)
-})
-
 //CATCH ALL this will also redirect old image reqs to a page though...
 app.get('/*', function(request, response) {
     response.redirect("/#/search")
@@ -187,7 +181,13 @@ require('./react/src/scripts/linqextras')
 var kivaloans
 var loansChanged = false
 
-//setInterval(tempFixReInitKivaLoans, 24*60*60000)
+//temporary fix for memory issue. the restart is so fast and the client is usable before KL
+//has all loans loaded...
+setInterval(()=>{
+    console.log('INTERESTING: restart on interval')
+    process.exit(1)
+}, 24*60*60000)
+
 tempFixReInitKivaLoans()
 
 //won't the old kivaloans object still exist and keep downloading when a new one is instantiated?

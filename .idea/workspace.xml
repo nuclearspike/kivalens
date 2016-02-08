@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="don't cycle kivaloans object every 24 hours. just redownload the partners.">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -193,10 +192,10 @@
                 <state vertical-scroll-proportion="0.0">
                   <caret line="45" column="63" selection-start-line="45" selection-start-column="63" selection-end-line="45" selection-end-column="63" />
                   <folding>
-                    <marker date="1454973247000" expanded="true" signature="2758:2949" placeholder="{...}" />
-                    <marker date="1454973247000" expanded="true" signature="2759:2797" placeholder="{...}" />
-                    <marker date="1454973247000" expanded="true" signature="5267:5305" placeholder="{...}" />
-                    <marker date="1454973247000" expanded="true" signature="6035:6767" placeholder="{...}" />
+                    <marker date="1454973536000" expanded="true" signature="2758:2949" placeholder="{...}" />
+                    <marker date="1454973536000" expanded="true" signature="2759:2797" placeholder="{...}" />
+                    <marker date="1454973536000" expanded="true" signature="5142:5180" placeholder="{...}" />
+                    <marker date="1454973536000" expanded="true" signature="6084:6816" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -239,8 +238,8 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.3816794">
-                  <caret line="159" column="12" selection-start-line="159" selection-start-column="12" selection-end-line="159" selection-end-column="12" />
+                <state vertical-scroll-proportion="0.70229006">
+                  <caret line="186" column="49" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
                   <folding>
                     <element signature="e#1205#1819#0" expanded="false" />
                   </folding>
@@ -291,8 +290,8 @@
           <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-11.25">
-                  <caret line="18" column="23" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+                <state vertical-scroll-proportion="-10.0">
+                  <caret line="16" column="23" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
                   <folding />
                 </state>
               </provider>
@@ -704,12 +703,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00033" summary="meta tags">
-      <created>1454470823065</created>
-      <option name="number" value="00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1454470823065</updated>
-    </task>
     <task id="LOCAL-00034" summary="too many saves">
       <created>1454473991435</created>
       <option name="number" value="00034" />
@@ -998,7 +991,13 @@
       <option name="project" value="LOCAL" />
       <updated>1454970409215</updated>
     </task>
-    <option name="localTasksCounter" value="82" />
+    <task id="LOCAL-00082" summary="added temporary &quot;restart&quot; to see if i can use this">
+      <created>1454973281156</created>
+      <option name="number" value="00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1454973281156</updated>
+    </task>
+    <option name="localTasksCounter" value="83" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1039,7 +1038,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="added old pics" />
     <MESSAGE value="do a proper redirect on bad requests. :O" />
     <MESSAGE value="wait for 2s to do initial loading of verse data, removed all references to intercomm" />
     <MESSAGE value="removed ejs view engine, made index a static page." />
@@ -1064,7 +1062,8 @@
     <MESSAGE value="fix Teams page to style the radios better." />
     <MESSAGE value="server doesn't need getPartner, added 24 hour cycle for partner pull (untested), if loans/since returns too many, it skips it." />
     <MESSAGE value="don't cycle kivaloans object every 24 hours. just redownload the partners." />
-    <option name="LAST_COMMIT_MESSAGE" value="don't cycle kivaloans object every 24 hours. just redownload the partners." />
+    <MESSAGE value="added temporary &quot;restart&quot; to see if i can use this" />
+    <option name="LAST_COMMIT_MESSAGE" value="added temporary &quot;restart&quot; to see if i can use this" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1994,8 +1993,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.25">
-          <caret line="18" column="23" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+        <state vertical-scroll-proportion="-10.0">
+          <caret line="16" column="23" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
           <folding />
         </state>
       </provider>
@@ -2010,8 +2009,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3816794">
-          <caret line="159" column="12" selection-start-line="159" selection-start-column="12" selection-end-line="159" selection-end-column="12" />
+        <state vertical-scroll-proportion="0.70229006">
+          <caret line="186" column="49" selection-start-line="186" selection-start-column="49" selection-end-line="186" selection-end-column="49" />
           <folding>
             <element signature="e#1205#1819#0" expanded="false" />
           </folding>
