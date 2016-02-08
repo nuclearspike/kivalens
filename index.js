@@ -38,7 +38,8 @@ app.use(express.cookieParser())
     })
 )**/
 
-const blankResponse = {loanChunks:[], partners: [], newestTime: null, descriptions:[]}
+const blankResponse = {loanChunks:'', newestTime: null, descriptions:''}
+var partnersGzip
 var loansToServe = {0: extend({},blankResponse)} //start empty.
 var latest = 0
 
@@ -94,13 +95,17 @@ app.get('/loans', function(request, response) {
     if (!toServe) {
         response.sendStatus(404)
     } else {
+        response.header('Content-Type', 'text/html');
+        response.header('Content-Encoding', 'gzip');
         response.send(toServe)
     }
 })
 
 app.get('/partners', function(request,response){
     //don't use 'batch' since it just serves all at once and we want the most recent.
-    response.send(loansToServe[latest].partners)
+    response.header('Content-Type', 'text/html');
+    response.header('Content-Encoding', 'gzip');
+    response.send(partnersGzip)
 })
 
 app.get('/loans/descriptions', function(request,response){
@@ -127,12 +132,13 @@ app.get('/loans/since', function(request, response){
         return
     }
     var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
+    console.log(`INTERESTING: loans/since count: ${loans.length}`)
     response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
 })
 
 app.get('/loans/filter', function(req, resp){
     //getUrl("http://www.kivalens.org/loans/filter?crit=" + encodeURIComponent(JSON.stringify({loan:{name:"Paul"}})),true).done(r => console.log(r))
-    var crit = req.param("crit")
+    var crit = req.query.crit
     if (crit)
         crit = JSON.parse(decodeURIComponent(crit))
     //var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
@@ -191,7 +197,7 @@ function prepForRequests(){
         return
     }
     loansChanged = false //hot loans &
-    let prepping = extend({},blankResponse)
+    var prepping = extend({},blankResponse)
 
     kivaloans.loans_from_kiva.removeAll(l=>l.status!='fundraising')
     var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
@@ -204,15 +210,25 @@ function prepForRequests(){
     })
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
     prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
-    prepping.loanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-    prepping.partners = JSON.stringify(kivaloans.partners_from_kiva)
+    var bigloanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+    prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>'')
     prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
 
-    loansToServe[++latest] = prepping //must make a copy.
-    //delete the old batches.
-    Object.keys(loansToServe).where(key => key < latest - 2).forEach(key => delete loansToServe[key])
-    Object.keys(loansToServe).where(key => key < latest).forEach(key=> delete loansToServe[key].partners)
-    console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
+    zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), function(_, result) {
+        partnersGzip = result
+    })
+
+    bigloanChunks.map((chunk,i) => {
+        zlib.gzip(chunk, function(_, result) {
+            prepping.loanChunks[i] = result
+            if (prepping.loanChunks.all(c=>c !='') && partnersGzip){
+                loansToServe[++latest] = prepping //must make a copy.
+                //delete the old batches.
+                Object.keys(loansToServe).where(key => key < latest - 2).forEach(key => delete loansToServe[key])
+                console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
+            }
+        })
+    })
 }
 
 setInterval(prepForRequests, 60000)
