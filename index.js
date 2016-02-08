@@ -82,6 +82,9 @@ app.get('/start', function(request, response){
 
 app.get('/loans', function(request, response) {
     var batch = parseInt(request.query.batch)
+    if (batch != latest)
+        console.log(`INTERESTING: desc batch: ${batch} latest: ${latest}`)
+
     if (!loansToServe[batch]) {
         response.sendStatus(404)
         return
@@ -106,6 +109,8 @@ app.get('/loans/descriptions', function(request,response){
         response.sendStatus(404)
         return
     }
+    if (batch != latest)
+        console.log(`INTERESTING: desc batch: ${batch} latest: ${latest}`)
     var page = parseInt(request.query.page)
     var toServe = loansToServe[batch].descriptions[page - 1]
     if (!toServe) {
@@ -205,7 +210,8 @@ function prepForRequests(){
 
     loansToServe[++latest] = prepping //must make a copy.
     //delete the old batches.
-    Object.keys(loansToServe).where(key => key < latest - 3).forEach(key => delete loansToServe[key])
+    Object.keys(loansToServe).where(key => key < latest - 2).forEach(key => delete loansToServe[key])
+    Object.keys(loansToServe).where(key => key < latest).forEach(key=> delete loansToServe[key].partners)
     console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 }
 
