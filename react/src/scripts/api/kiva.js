@@ -1094,7 +1094,6 @@ class Loans {
         crit = extend(crit, {})
         this.getOptions = getOptions
         this.options = getOptions()
-    
         setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
 
@@ -1143,9 +1142,11 @@ class Loans {
                     this.notify({loans_loaded: true})
                     this.allDescriptionsLoaded = true
                     this.notify({all_descriptions_loaded: true})
-                    if (needSecondary)
+                    if (needSecondary) {
+                        endDownloadTimer('kivaDownloadStageOne')
                         this.secondaryLoad()
-                    else {
+                    } else {
+                        endDownloadTimer('kivaDownloadAll')
                         this.loans_processed.resolve()
                         this.saveLoansToLLSAfterDelay()
                     }
@@ -1167,6 +1168,7 @@ class Loans {
                                 loan.kls_use_or_descr_arr = desc.t
                                 ResultProcessors.processLoanDescription(loan)
                             })
+                            endDownloadTimer('KLDescriptions')
                             this.allDescriptionsLoaded = true
                             this.notify({all_descriptions_loaded: true})
                         })
@@ -1179,6 +1181,7 @@ class Loans {
             /** partners **/
             req.kl.get("partners").done(partners => {
                 this.processPartners(partners)
+                endDownloadTimer('KLPartners')
                 this.atheist_list_processed = true //we always download the data.
                 this.notify({atheist_list_loaded: true})
             })
@@ -1195,6 +1198,7 @@ class Loans {
                 loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                 if (receivedLoans == pages) {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                    endDownloadTimer('KLLoans')
                     req.kl.get('loans/since', {newestTime}).done(loans => this.setKivaLoans(loans, false))
                 }
             }))
@@ -1216,7 +1220,13 @@ class Loans {
             }).fail(x=>loadFromKiva())
         }.bind(this)
 
+        const endDownloadTimer = function(name){
+            if (!isServer())
+                global.rga.event({category: 'timer', action: name, value: Math.round((Date.now() - this.startDownload.getTime()) / 1000)})
+        }.bind(this)
+
         const loadFromSource = function () {
+            this.startDownload = new Date()
             if (this.options.loansFromKiva)
                 loadFromKiva()
             else
@@ -1709,6 +1719,7 @@ class Loans {
             this.newLoanNotice(loans).progress(n=>{
                 if (n.label) this.notify({secondary_load_label: n.label})
             }).done(def.resolve).done(()=>{
+                endDownload('kivaDownloadStageTwo')
                 this.secondary_load = ''
                 this.loans_processed.resolve()
                 this.notify({secondary_load: 'complete'})
