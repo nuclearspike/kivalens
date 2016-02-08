@@ -111,7 +111,7 @@ const Teams = React.createClass({
         this.setState({config})
     },
     render() {
-        let {error,alert,teams,config,querying,loadingTeams} = this.state
+        let {error,teams,config,querying,loadingTeams} = this.state
         if (error)
             return <Grid><Alert bsStyle="danger">{error}</Alert></Grid>
 

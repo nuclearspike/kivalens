@@ -348,12 +348,13 @@ class ResultProcessors {
         addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
         addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
 
-        addIt.getPartner = function(){
-            //todo: this should not reference kivaloans...
-            if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
-            return this.kl_partner
-        }.bind(loan)
-
+        if (!isServer()) {
+            addIt.getPartner = function () {
+                //todo: this should not reference kivaloans...
+                if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
+                return this.kl_partner
+            }.bind(loan)
+        }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
             ResultProcessors.processLoanDescription(loan)
@@ -1056,9 +1057,10 @@ class Loans {
         this.update_interval = update_interval
         this.atheist_list_processed = false
         if (this.update_interval > 0)
-            setInterval(this.backgroundResync.bind(this), this.update_interval)
+           this.update_interval_handle = setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
     saveLoansToLLS(){
+        if (isServer()) return Deferred().reject()
         var def = Deferred()
         var that = this
         waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
@@ -1074,6 +1076,7 @@ class Loans {
         return def
     }
     getLoansFromLLS(){
+        if (isServer()) return Deferred().reject()
         var def = Deferred()
         // Create a 125MB key-value store
         if (typeof LargeLocalStorage == 'function') {
@@ -1094,7 +1097,7 @@ class Loans {
         crit = extend(crit, {})
         this.getOptions = getOptions
         this.options = getOptions()
-        setInterval(this.checkHotLoans.bind(this), 2*60000)
+        this.hot_loans_interval_handle = setInterval(this.checkHotLoans.bind(this), 2*60000)
         this.notify({loan_load_progress: {done: 0, total: 1, label: 'Fetching Partners...'}})
 
         var max_repayment_date = null
@@ -1121,12 +1124,16 @@ class Loans {
             this.setLender(base_options.kiva_lender_id)
 
         var hasStarted = false
-        var handle
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
-        const loadFromKiva = function() {
+        const kiva_getPartners = function() {
             this.getAllPartners().fail(failed=>this.notify({failed})).done(this.partner_download.resolve)
             if (base_options.mergeAtheistList)
                 this.getAtheistList()
+        }.bind(this)
+
+        const loadFromKiva = function() {
+            kiva_getPartners()
+            setInterval(kiva_getPartners, 24*60*60000)
 
             if (base_options.maxRepaymentTerms_on) {
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
@@ -1177,7 +1184,7 @@ class Loans {
             }))
         }.bind(this)
 
-        const kl_getPartners=function() {
+        const kl_getPartners = function() {
             /** partners **/
             req.kl.get("partners").done(partners => {
                 this.processPartners(partners)
@@ -1211,6 +1218,7 @@ class Loans {
                     hasStarted = true
                     kl_getLoans(response.batch, response.pages)
                     kl_getPartners()
+                    setInterval(kl_getPartners, 24 * 60 * 60000)
                     /** descriptions **/
                     if (!base_options.doNotDownloadDescriptions) {
                         kl_getDesc(response.batch, response.pages)
@@ -1236,7 +1244,7 @@ class Loans {
         //meh...
         const startGettingLoans = function () {
             if (hasStarted) {
-                clearInterval(handle)
+                clearInterval(this.startGettingLoansHandle)
                 return
             }
             ///todo: won't have partners!!
@@ -1256,7 +1264,7 @@ class Loans {
             }
         }.bind(this)
         setTimeout(startGettingLoans, 10)
-        handle = setInterval(startGettingLoans, 10000)
+        this.startGettingLoansHandle = setInterval(startGettingLoans, 10000)
 
         return this.notify_promise
     }
@@ -1592,6 +1600,14 @@ class Loans {
         //this.activities = this.loans_from_kiva.select(loan => loan.activity).distinct().orderBy(name => name) todo: merge and order them with the full list in case Kiva adds some.
         this.is_ready = true
     }
+    kill(){
+        clearInterval(this.update_interval_handle)
+        clearInterval(this.hot_loans_interval_handle)
+        clearInterval(this.startGettingLoansHandle)
+        clearInterval(this.queue_to_refresh.queueInterval)
+        clearInterval(this.queue_new_loan_query.queueInterval)
+        Object.keys(this).forEach(key=>delete this[key])
+    }
     isReady(){
         return this.is_ready
     }
@@ -1606,6 +1622,7 @@ class Loans {
         return this.indexed_loans[id] != undefined
     }
     processPartners(partners){
+        this.loans_from_kiva.forEach(l=>l.kl_partner)
         this.partners_from_kiva = partners
         this.active_partners = partners.where(p => p.status == "active")
         //todo: temp. for debugging
@@ -1735,6 +1752,8 @@ class Loans {
     backgroundResync(notify){
         this.background_resync++
         var that = this
+        if (isServer())
+            notify = true
 
         if (notify) this.notify({backgroundResync:{state: 'started'}})
         new LoansSearch(this.base_kiva_params, false).start().done(loans => {
@@ -1764,6 +1783,7 @@ class Loans {
 
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
+            //this.notify({backgroundResync})
             if (notify) this.notify({backgroundResync:{state: 'done'}})
             that.saveLoansToLLSAfterDelay()
         })

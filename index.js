@@ -136,6 +136,12 @@ app.get('/loans/since', function(request, response){
     }
     var newestTime = loansToServe[batch].newestTime
     var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
+    if (loans.length > 1000) {
+        //todo: make a better way to find changes than kl_processed since that gets reset on background resync
+        console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
+        response.send(JSON.stringify([]))
+        return
+    }
     console.log(`INTERESTING: loans/since count: ${loans.length}`)
     response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
 })
@@ -178,6 +184,7 @@ var loansChanged = false
 setInterval(tempFixReInitKivaLoans, 24*60*60000)
 tempFixReInitKivaLoans()
 
+//won't the old kivaloans object still exist and keep downloading when a new one is instantiated?
 function tempFixReInitKivaLoans(){
     kivaloans = new k.Loans(5*60*1000)
     var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
@@ -186,13 +193,16 @@ function tempFixReInitKivaLoans(){
             console.log(progress.loan_load_progress.label)
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
             loansChanged = true
-        if (progress.loans_loaded)
+        if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
             prepForRequests()
     })
 }
 
+var prepping = false
 function prepForRequests(){
-    if (!kivaloans.isReady()){
+    //if (prepping) return
+
+    if (!kivaloans.isReady()) {
         console.log("kivaloans not ready")
         return
     }
@@ -201,9 +211,9 @@ function prepForRequests(){
         return
     }
     loansChanged = false //hot loans &
-    var prepping = extend({},blankResponse)
+    var prepping = extend({}, blankResponse)
 
-    kivaloans.loans_from_kiva.removeAll(l=>l.status!='fundraising')
+    kivaloans.loans_from_kiva.removeAll(l=>l.status != 'fundraising')
     var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
     //additional unprocessing and collecting descriptions
     var descriptions = []
@@ -218,17 +228,17 @@ function prepForRequests(){
     prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>'')
     prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
 
-    zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function(_, result) {
+    zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function (_, result) {
         partnersGzip = result
     })
 
-    bigloanChunks.map((chunk,i) => {
-        zlib.gzip(chunk, gzipOpt, function(_, result) {
+    bigloanChunks.map((chunk, i) => {
+        zlib.gzip(chunk, gzipOpt, function (_, result) {
             prepping.loanChunks[i] = result
-            if (prepping.loanChunks.all(c=>c !='') && partnersGzip){
+            if (prepping.loanChunks.all(c=>c != '') && partnersGzip) {
                 loansToServe[++latest] = prepping //must make a copy.
                 //delete the old batches.
-                Object.keys(loansToServe).where(key => key < latest - 2).forEach(key => delete loansToServe[key])
+                Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
             }
         })
