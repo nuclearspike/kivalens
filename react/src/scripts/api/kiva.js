@@ -276,6 +276,7 @@ const getAge = text => {
 
 //also: age(d) 34, 50 years of age
 //static class to hold standard functions that prepare kiva api objects for use with kiva lens.
+//should be "transforms"
 class ResultProcessors {
     static processLoans(loans){
         //this alters the loans in the array. no need to return the array ?
@@ -335,7 +336,7 @@ class ResultProcessors {
             loan.kls_age = getAge(loan.description.texts.en)
     }
     static processLoan(loan){
-        if (typeof loan != 'object') return //for an ids_only search...
+        if (typeof loan != 'object') return //for an ids_only search... should never get called though!
 
         loan.kl_processed = new Date()
         loan.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
@@ -343,15 +344,13 @@ class ResultProcessors {
         loan.kl_newest_sort = loan.kl_posted_date.getTime()
         loan.kl_posted_hours_ago = function(){ return  (new Date() - this.kl_posted_date) / (60*60*1000) }.bind(loan)
         if (!loan.basket_amount) loan.basket_amount = 0
+        if (!loan.funded_amount) loan.funded_amount = 0
         loan.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         loan.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         loan.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
         if (loan.tags) //if tags present, always use those.
             loan.kls_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
-        if (!loan.kls_tags)
-            loan.kls_tags = []
-        if (!loan.funded_amount) loan.funded_amount = 0
-        if (!loan.basket_amount) loan.basket_amount = 0
+        if (!loan.kls_tags) loan.kls_tags = []
 
         if (!isServer()) {
             loan.getPartner = function () {
