@@ -98,16 +98,16 @@ app.get('/loans/:batch/:page', function(request, response) {
     if (!toServe) {
         response.sendStatus(404)
     } else {
-        response.header('Content-Type', 'text/html');
-        response.header('Content-Encoding', 'gzip');
+        response.header('Content-Type', 'application/json')
+        response.header('Content-Encoding', 'gzip')
         response.send(toServe)
     }
 })
 
 app.get('/partners', function(request,response){
     //don't use 'batch' since it just serves all at once and we want the most recent.
-    response.header('Content-Type', 'text/html');
-    response.header('Content-Encoding', 'gzip');
+    response.header('Content-Type', 'application/json')
+    response.header('Content-Encoding', 'gzip')
     response.send(partnersGzip)
 })
 
@@ -124,6 +124,8 @@ app.get('/loans/:batch/descriptions/:page', function(request,response){
     if (!toServe) {
         response.sendStatus(404)
     } else {
+        response.header('Content-Type', 'application/json');
+        response.header('Content-Encoding', 'gzip');
         response.send(toServe)
     }
 })
@@ -135,16 +137,15 @@ app.get('/since/:batch', function(request, response){
         return
     }
     var newestTime = loansToServe[batch].newestTime
-    console.log(newestTime)
     var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
     if (loans.length > 1000) {
         //todo: make a better way to find changes than kl_processed since that gets reset on background resync
         console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
-        response.send(JSON.stringify([]))
+        response.json([])
         return
     }
     console.log(`INTERESTING: loans/since count: ${loans.length}`)
-    response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
+    response.json(k.ResultProcessors.unprocessLoans(loans))
 })
 
 //req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
@@ -187,26 +188,21 @@ setInterval(()=>{
     process.exit(1)
 }, 24*60*60000)
 
-tempFixReInitKivaLoans()
-
 //won't the old kivaloans object still exist and keep downloading when a new one is instantiated?
-function tempFixReInitKivaLoans(){
-    kivaloans = new k.Loans(5*60*1000)
-    var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
-    kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
-        if (progress.loan_load_progress && progress.loan_load_progress.label)
-            console.log(progress.loan_load_progress.label)
-        if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
-            loansChanged = true
-        if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
-            prepForRequests()
-    })
-}
+
+kivaloans = new k.Loans(5*60*1000)
+var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
+kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
+    if (progress.loan_load_progress && progress.loan_load_progress.label)
+        console.log(progress.loan_load_progress.label)
+    if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
+        loansChanged = true
+    if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
+        prepForRequests()
+})
 
 var prepping = false
 function prepForRequests(){
-    //if (prepping) return
-
     if (!kivaloans.isReady()) {
         console.log("kivaloans not ready")
         return
@@ -245,21 +241,36 @@ function prepForRequests(){
     prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
     var bigloanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
     prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>'')
-    prepping.descriptions = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+    var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+    prepping.descriptions = Array.range(0, KLPageSplits).select(x=>'')
+
+    function checkReady(){
+        if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
+            loansToServe[++latest] = prepping //must make a copy.
+            //delete the old batches.
+            Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
+            console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
+            bigloanChunks = undefined
+            bigDesc = undefined
+        }
+    }
 
     zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function (_, result) {
         partnersGzip = result
+        checkReady()
     })
 
-    bigloanChunks.map((chunk, i) => {
+    bigloanChunks.map((chunk, i) => { //map to give index
         zlib.gzip(chunk, gzipOpt, function (_, result) {
             prepping.loanChunks[i] = result
-            if (prepping.loanChunks.all(c=>c != '') && partnersGzip) {
-                loansToServe[++latest] = prepping //must make a copy.
-                //delete the old batches.
-                Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
-                console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
-            }
+            checkReady()
+        })
+    })
+
+    bigDesc.map((chunk, i) => {
+        zlib.gzip(chunk, gzipOpt, function (_, result) {
+            prepping.descriptions[i] = result
+            checkReady()
         })
     })
 }
@@ -276,7 +287,6 @@ function connectChannel(channelName, onEvent) {
 connectChannel('loan.posted', function(data){
     data = JSON.parse(data)
     console.log("!!! loan.posted")
-    loansChanged = true
     if (kivaloans)
         kivaloans.queueNewLoanNotice(data.p.loan.id)
 })
@@ -284,7 +294,6 @@ connectChannel('loan.posted', function(data){
 connectChannel('loan.purchased', function(data){
     data = JSON.parse(data)
     console.log("!!! loan.purchased")
-    loansChanged = true
     if (kivaloans)
         kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
 })
