@@ -361,6 +361,7 @@ class ResultProcessors {
 
         if (loan.kls) { // it was stripped out before sending down.
             loan.description = {languages:["en"],texts:{en:''}}
+            loan.borrowers.where(b=>b.first_name===undefined).forEach(b=>b.first_name = '')
         }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
