@@ -223,7 +223,7 @@ var Loan = React.createClass({
                                 </Row>
                                 <dl className="dl-horizontal">
                                     <dt>Saved Searches</dt><dd>{matching}</dd>
-                                    <dt>Tags</dt><dd>{(loan.kl_tags.length)? loan.kl_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
+                                    <dt>Tags</dt><dd>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
                                     <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                     <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>
                                     <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>

@@ -553,7 +553,7 @@ const CriteriaTabs = React.createClass({
                 data = loans.groupByWithCount(l=>l.activity)
                 break
             case 'tags':
-                data = loans.select(l => l.kl_tags).flatten().groupByWithCount(t => humanize(t))
+                data = loans.select(l => l.kls_tags).flatten().groupByWithCount(t => humanize(t))
                 break
             case 'themes':
                 data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupByWithCount()

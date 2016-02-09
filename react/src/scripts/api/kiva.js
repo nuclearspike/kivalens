@@ -337,47 +337,53 @@ class ResultProcessors {
     static processLoan(loan){
         if (typeof loan != 'object') return //for an ids_only search...
 
-        var addIt = { kl_processed: new Date() }
-        addIt.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
-        addIt.kl_posted_date = new Date(loan.posted_date)
-        addIt.kl_newest_sort = addIt.kl_posted_date.getTime()
-        addIt.kl_posted_hours_ago = function(){ return  (new Date() - this.kl_posted_date) / (60*60*1000) }.bind(loan)
+        loan.kl_processed = new Date()
+        loan.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
+        loan.kl_posted_date = new Date(loan.posted_date)
+        loan.kl_newest_sort = loan.kl_posted_date.getTime()
+        loan.kl_posted_hours_ago = function(){ return  (new Date() - this.kl_posted_date) / (60*60*1000) }.bind(loan)
         if (!loan.basket_amount) loan.basket_amount = 0
-        addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
-        addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
-        addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
-        if (!loan.tags) loan.tags = []
-        addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
+        loan.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
+        loan.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
+        loan.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
+        if (loan.tags) //if tags present, always use those.
+            loan.kls_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
+        if (!loan.kls_tags)
+            loan.kls_tags = []
         if (!loan.funded_amount) loan.funded_amount = 0
         if (!loan.basket_amount) loan.basket_amount = 0
 
         if (!isServer()) {
-            addIt.getPartner = function () {
+            loan.getPartner = function () {
                 //todo: this should not reference kivaloans...
                 if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
                 return this.kl_partner
             }.bind(loan)
         }
 
-        if (loan.kls) { // it was stripped out before sending down.
-            loan.description = {languages:["en"],texts:{en:''}}
-            loan.borrowers.where(b=>b.first_name===undefined).forEach(b=>b.first_name = '')
+        if (loan.kls) { // replace what was stripped out before sending down.
+            loan.description = loan.description || {languages:["en"],texts:{en:''}}
+            loan.status = loan.status || 'fundraising'
+            //this is clumsy... can't we just populate borrower_count and percent_female?
+            loan.borrowers = Array.range(1,loan.klb.M || 0).select(x=>({gender:"M",first_name: '...'}))
+            loan.borrowers = loan.borrowers.concat(Array.range(1,loan.klb.F || 0).select(x=>({gender:"F",first_name: '...'})))
+            loan.borrower_count = loan.borrowers.length
         }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
             ResultProcessors.processLoanDescription(loan)
 
-            addIt.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
-            addIt.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
-            addIt.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - today) / (24 * 60 * 60 * 1000) }.bind(loan)
+            loan.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
+            loan.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
+            loan.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - today) / (24 * 60 * 60 * 1000) }.bind(loan)
 
-            addIt.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
+            loan.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
             ///REPAYMENT STUFF: START
             var amount_50 = loan.loan_amount  * 0.5
             var amount_75 = loan.loan_amount * 0.75
             var running_total = 0
-            addIt.kl_repayments = []
+            loan.kl_repayments = []
 
             //some very old loans do not have scheduled payments.
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
@@ -404,25 +410,25 @@ class ResultProcessors {
                     nextDate = nextDate.next().month().set({day: 1}).clearTime() //clearTime() to correct for DST bs?
                 }
                 //remove the leading 0 payment months. ordering needed to get the newly added ones in their proper spot.
-                addIt.kl_repayments = repayments.orderBy(p=>p.date).skipWhile(p=>p.amount==0)
+                loan.kl_repayments = repayments.orderBy(p=>p.date).skipWhile(p=>p.amount==0)
 
                 //two fold purpose: added a running percentage for all the repayments and track when the payments hit 50 and 75%
-                addIt.kl_repayments.forEach(payment => {
+                loan.kl_repayments.forEach(payment => {
                     //there's got to be a more accurate algorithm to handle this efficiently...
                     running_total += payment.amount
                     payment.percent = (running_total * 100) / loan.loan_amount
-                    if (!addIt.kl_half_back && running_total >= amount_50) {
-                        addIt.kl_half_back = payment.date
-                        addIt.kl_half_back_actual = (running_total * 100) / loan.loan_amount
+                    if (!loan.kl_half_back && running_total >= amount_50) {
+                        loan.kl_half_back = payment.date
+                        loan.kl_half_back_actual = (running_total * 100) / loan.loan_amount
                     }
-                    if (!addIt.kl_75_back && running_total >= amount_75) {
-                        addIt.kl_75_back = payment.date
-                        addIt.kl_75_back_actual = (running_total * 100) / loan.loan_amount
+                    if (!loan.kl_75_back && running_total >= amount_75) {
+                        loan.kl_75_back = payment.date
+                        loan.kl_75_back_actual = (running_total * 100) / loan.loan_amount
                     }
                 })
-                addIt.kl_final_repayment =  addIt.kl_repayments.last().date
+                loan.kl_final_repayment =  loan.kl_repayments.last().date
                 //when looking at really old loans, can be null
-                addIt.kl_repaid_in = addIt.kl_final_repayment ? Math.abs((addIt.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (addIt.kl_final_repayment.getMonth() - today.getMonth())) : 0
+                loan.kl_repaid_in = loan.kl_final_repayment ? Math.abs((loan.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kl_final_repayment.getMonth() - today.getMonth())) : 0
 
             }
             ///REPAYMENT STUFF: END
@@ -438,8 +444,9 @@ class ResultProcessors {
 
         }
         //add kivalens specific fields to the loan.
-        extend(loan, addIt)
+        //extend(loan, addIt)
 
+        delete loan.tags
         delete loan.journal_totals
         delete loan.translator
         delete loan.location.geo
@@ -1419,13 +1426,13 @@ class Loans {
         ct.addAnyAllNoneTester('sector',      null,'any',loan=>loan.sector)
         ct.addAnyAllNoneTester('activity',    null,'any',loan=>loan.activity)
         ct.addAnyAllNoneTester('country_code',null,'any',loan=>loan.location.country_code)
-        ct.addAnyAllNoneTester('tags',        null,'all',loan=>loan.kl_tags, true)
+        ct.addAnyAllNoneTester('tags',        null,'all',loan=>loan.kls_tags, true)
         ct.addAnyAllNoneTester('themes',      null,'all',loan=>loan.themes, true)
 
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
         ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
         ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
-        ct.addRangeTesters('borrower_count',    loan=>loan.borrowers.length)
+        ct.addRangeTesters('borrower_count',    loan=>loan.borrower_count)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('age',               loan=>loan.kls_age)
         ct.addRangeTesters('still_needed',      loan=>loan.kl_still_needed)

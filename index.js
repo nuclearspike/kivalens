@@ -139,11 +139,11 @@ app.get('/loans/:batch/since', function(request, response){
     if (loans.length > 1000) {
         //todo: make a better way to find changes than kl_processed since that gets reset on background resync
         console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
-        response.send(JSON.stringify([]))
+        response.json([])
         return
     }
     console.log(`INTERESTING: loans/since count: ${loans.length}`)
-    response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
+    response.json(k.ResultProcessors.unprocessLoans(loans))
 })
 
 //req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
@@ -229,14 +229,15 @@ function prepForRequests(){
         delete loan.lender_count
         if (!loan.funded_amount) delete loan.funded_amount
         if (!loan.basket_amount) delete loan.basket_amount
-        if (!loan.tags.length) delete loan.tags
+        if (!loan.kls_tags.length) delete loan.kls_tags
         delete loan.terms.repayment_term
-        loan.borrowers.forEach(b=>{
-            delete b.first_name
-            delete b.last_name
-            delete b.pictured
-        })
+        loan.klb = {}
+        loan.borrowers.groupByWithCount(b=>b.gender).forEach(g=>loan.klb[g.name] = g.count)
+        delete loan.borrowers
         delete loan.terms.loss_liability.currency_exchange_coverage_rate
+        delete loan.borrower_count
+        delete loan.payments
+        delete loan.status
         loan.kls = true
     })
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
