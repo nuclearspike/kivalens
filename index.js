@@ -23,6 +23,7 @@ app.use(helmet())
 //shouldn't be in server file.
 var k = require('./react/src/scripts/api/kiva')
 const KLPageSplits = k.KLPageSplits
+k.setAPIOptions({max_concurrent:20})
 
 /**
 app.use(express.compress())
@@ -75,28 +76,27 @@ app.use(express.static(__dirname + '/public'))
 
 //old site bad urls.
 app.get('/feed.svc/rss/*', function(request, response){
-    response.sendStatus(404)
+    response.status(404)
 })
 
 //API
 app.get('/start', function(request, response){
-    var data = {pages: loansToServe[latest].loanChunks.length, batch: latest}
-    response.send(JSON.stringify(data))
+    response.json({pages: loansToServe[latest].loanChunks.length, batch: latest})
 })
 
-app.get('/loans', function(request, response) {
-    var batch = parseInt(request.query.batch)
+app.get('/loans/:batch/:page', function(request, response) {
+    var batch = parseInt(request.params.batch)
     if (batch != latest)
         console.log(`INTERESTING: /loans batch: ${batch} latest: ${latest}`)
 
     if (!loansToServe[batch]) {
-        response.sendStatus(404)
+        response.status(404)
         return
     }
-    var page = parseInt(request.query.page)
+    var page = parseInt(request.params.page)
     var toServe = loansToServe[batch].loanChunks[page - 1]
     if (!toServe) {
-        response.sendStatus(404)
+        response.status(404)
     } else {
         response.header('Content-Type', 'text/html');
         response.header('Content-Encoding', 'gzip');
@@ -111,27 +111,27 @@ app.get('/partners', function(request,response){
     response.send(partnersGzip)
 })
 
-app.get('/loans/descriptions', function(request,response){
-    var batch = parseInt(request.query.batch)
+app.get('/loans/:batch/descriptions/:page', function(request,response){
+    var batch = parseInt(request.params.batch)
     if (!loansToServe[batch]) {
-        response.sendStatus(404)
+        response.status(404)
         return
     }
     if (batch != latest)
         console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${latest}`)
-    var page = parseInt(request.query.page)
+    var page = parseInt(request.params.page)
     var toServe = loansToServe[batch].descriptions[page - 1]
     if (!toServe) {
-        response.sendStatus(404)
+        response.status(404)
     } else {
         response.send(toServe)
     }
 })
 
-app.get('/loans/since', function(request, response){
-    var batch = parseInt(request.query.batch)
+app.get('/loans/:batch/since', function(request, response){
+    var batch = parseInt(request.params.batch)
     if (!batch || !loansToServe[batch]){
-        response.sendStatus(404)
+        response.status(404)
         return
     }
     var newestTime = loansToServe[batch].newestTime
@@ -146,15 +146,12 @@ app.get('/loans/since', function(request, response){
     response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
 })
 
+//req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
 app.get('/loans/filter', function(req, resp){
-    //getUrl("http://www.kivalens.org/loans/filter?crit=" + encodeURIComponent(JSON.stringify({loan:{name:"Paul"}})),true).done(r => console.log(r))
     var crit = req.query.crit
     if (crit)
         crit = JSON.parse(decodeURIComponent(crit))
-    //var results = k.ResultProcessors.unprocessLoans(kivaloans.filter(crit, false))
-    var results = kivaloans.filter(crit, false).select(l=>l.id)
-    resp.send(JSON.stringify(results))
-    //console.log(crit,results)
+    resp.json(kivaloans.filter(crit).select(l=>l.id))
 })
 
 //CATCH ALL this will also redirect old image reqs to a page though...
@@ -166,7 +163,7 @@ app.listen(app.get('port'), function() {
   console.log('KivaLens Server is running on port', app.get('port'))
 })
 
-//to satisfy kiva.js
+//to satisfy kiva.js ; hack
 global.cl = function(){}
 
 require('./react/src/scripts/linqextras')
@@ -257,11 +254,8 @@ setInterval(prepForRequests, 60000)
 //live data stream over socket.io
 function connectChannel(channelName, onEvent) {
     var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});
-    //channel.on('connect', function () {console.log(`socket.io channel connect: ${channelName}`)})
     channel.on('error', function (data) {console.log(`socket.io channel error: ${channelName}: ${data}`)})
-    //channel.on('event', onEvent)
     channel.on('message', onEvent)
-    //channel.on('disconnect', function () {console.log(`socket.io channel disconnect: ${channelName}`)})
 }
 
 connectChannel('loan.posted', function(data){

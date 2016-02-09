@@ -1174,7 +1174,7 @@ class Loans {
         const kl_getDesc = function(batch, pages) {
             var receivedDesc = 0
             var descToProc = []
-            Array.range(1, pages).forEach(page => req.kl.get('loans/descriptions', {page, batch}).done(descriptions => {
+            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/descriptions/${page}`).done(descriptions => {
                 receivedDesc++
                 descToProc = descToProc.concat(descriptions)
                 if (receivedDesc == pages) {
@@ -1210,14 +1210,14 @@ class Loans {
             var receivedLoans = 0
             var loansToAdd = []
 
-            Array.range(1, pages).forEach(page => req.kl.get('loans', {page, batch}).done(loans => {
+            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/${page}`).done(loans => {
                 receivedLoans++
                 this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
                 loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                 if (receivedLoans == pages) {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     this.endDownloadTimer('KLLoans')
-                    req.kl.get('loans/since', {batch}).done(loans => this.setKivaLoans(loans, false))
+                    req.kl.get(`loans/${batch}/since`).done(loans => this.setKivaLoans(loans, false))
                 }
             }))
         }.bind(this)
