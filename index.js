@@ -223,8 +223,21 @@ function prepForRequests(){
     var descriptions = []
     allLoans.forEach(loan => {
         descriptions.push({id: loan.id, t: loan.kls_use_or_descr_arr}) //only need to do descr... use already there.
-        delete loan.description.texts.en
+        delete loan.description //.texts.en
         delete loan.kls_use_or_descr_arr
+        if (!loan.kls_age) delete loan.kls_age
+        delete loan.lender_count
+        if (!loan.funded_amount) delete loan.funded_amount
+        if (!loan.basket_amount) delete loan.basket_amount
+        if (!loan.tags.length) delete loan.tags
+        delete loan.terms.repayment_term
+        loan.borrowers.forEach(b=>{
+            delete b.first_name
+            delete b.last_name
+            delete b.pictured
+        })
+        delete loan.terms.loss_liability.currency_exchange_coverage_rate
+        loan.kls = true
     })
     var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
     prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())

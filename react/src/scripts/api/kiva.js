@@ -346,7 +346,10 @@ class ResultProcessors {
         addIt.kl_dollars_per_hour = function(){ return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago() }.bind(loan)
         addIt.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         addIt.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
+        if (!loan.tags) loan.tags = []
         addIt.kl_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
+        if (!loan.funded_amount) loan.funded_amount = 0
+        if (!loan.basket_amount) loan.basket_amount = 0
 
         if (!isServer()) {
             addIt.getPartner = function () {
@@ -354,6 +357,10 @@ class ResultProcessors {
                 if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
                 return this.kl_partner
             }.bind(loan)
+        }
+
+        if (loan.kls) { // it was stripped out before sending down.
+            loan.description = {languages:["en"],texts:{en:''}}
         }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
@@ -376,7 +383,8 @@ class ResultProcessors {
                 var today = Date.today()
 
                 //replace Kiva's version since it has too many entries.
-                loan.terms.scheduled_payments = loan.terms.scheduled_payments.groupBy(p=>p.due_date).select(g => ({due_date: g[0].due_date, amount: g.sum(p=>p.amount)}))
+                if (!loan.kls)
+                    loan.terms.scheduled_payments = loan.terms.scheduled_payments.groupBy(p=>p.due_date).select(g => ({due_date: g[0].due_date, amount: g.sum(p=>p.amount)}))
 
                 //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
                 var repayments = loan.terms.scheduled_payments.select(p => {
@@ -421,6 +429,8 @@ class ResultProcessors {
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
             delete loan.terms.local_payments //we don't care
+            delete loan.terms.disbursal_currency
+            delete loan.terms.disbursal_amount
             //do memory clean up of larger pieces of the loan object.
             if (loan.borrowers) //only visible
                 loan.borrowers.where(b=> b.last_name=='').forEach(b=> delete b.last_name)
@@ -432,7 +442,9 @@ class ResultProcessors {
         delete loan.journal_totals
         delete loan.translator
         delete loan.location.geo
-
+        delete loan.location.town
+        delete loan.image.template
+        if (!loan.bonus_credit_eligibility) delete loan.bonus_credit_eligibility
         return loan
     }
 
@@ -1429,7 +1441,7 @@ class Loans {
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
         ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
-        ct.addThreeStateTester(c.loan.bonus_credit_eligibility, loan=>loan.bonus_credit_eligibility)
+        ct.addThreeStateTester(c.loan.bonus_credit_eligibility, loan=>loan.bonus_credit_eligibility === true)
         ct.testers.push(loan => loan.status == 'fundraising')
         cl('crit:loan:testers', ct.testers)
 

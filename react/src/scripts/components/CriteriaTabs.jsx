@@ -562,7 +562,7 @@ const CriteriaTabs = React.createClass({
                 data = loans.groupByWithCount(l=>l.terms.loss_liability.currency_exchange)
                 break
             case 'bonus_credit_eligibility':
-                data = loans.groupByWithCount(l=>l.bonus_credit_eligibility)
+                data = loans.groupByWithCount(l=>l.bonus_credit_eligibility === true)
                 break
             case 'repayment_interval':
                 data = loans.groupByWithCount(l=>l.terms.repayment_interval)
