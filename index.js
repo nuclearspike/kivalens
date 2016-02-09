@@ -76,7 +76,7 @@ app.use(express.static(__dirname + '/public'))
 
 //old site bad urls.
 app.get('/feed.svc/rss/*', function(request, response){
-    response.status(404)
+    response.sendStatus(404)
 })
 
 //API
@@ -90,13 +90,13 @@ app.get('/loans/:batch/:page', function(request, response) {
         console.log(`INTERESTING: /loans batch: ${batch} latest: ${latest}`)
 
     if (!loansToServe[batch]) {
-        response.status(404)
+        response.sendStatus(404)
         return
     }
     var page = parseInt(request.params.page)
     var toServe = loansToServe[batch].loanChunks[page - 1]
     if (!toServe) {
-        response.status(404)
+        response.sendStatus(404)
     } else {
         response.header('Content-Type', 'text/html');
         response.header('Content-Encoding', 'gzip');
@@ -114,7 +114,7 @@ app.get('/partners', function(request,response){
 app.get('/loans/:batch/descriptions/:page', function(request,response){
     var batch = parseInt(request.params.batch)
     if (!loansToServe[batch]) {
-        response.status(404)
+        response.sendStatus(404)
         return
     }
     if (batch != latest)
@@ -122,7 +122,7 @@ app.get('/loans/:batch/descriptions/:page', function(request,response){
     var page = parseInt(request.params.page)
     var toServe = loansToServe[batch].descriptions[page - 1]
     if (!toServe) {
-        response.status(404)
+        response.sendStatus(404)
     } else {
         response.send(toServe)
     }
@@ -131,7 +131,7 @@ app.get('/loans/:batch/descriptions/:page', function(request,response){
 app.get('/since/:batch', function(request, response){
     var batch = parseInt(request.params.batch)
     if (!batch || !loansToServe[batch]){
-        response.status(404)
+        response.sendStatus(404)
         return
     }
     var newestTime = loansToServe[batch].newestTime

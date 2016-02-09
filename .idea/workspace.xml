@@ -4,9 +4,6 @@
     <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -195,10 +192,10 @@
                 <state vertical-scroll-proportion="0.0">
                   <caret line="46" column="63" selection-start-line="46" selection-start-column="63" selection-end-line="46" selection-end-column="63" />
                   <folding>
-                    <marker date="1455014337000" expanded="true" signature="2766:2953" placeholder="{...}" />
-                    <marker date="1455014337000" expanded="true" signature="2767:2801" placeholder="{...}" />
-                    <marker date="1455014337000" expanded="true" signature="4990:5028" placeholder="{...}" />
-                    <marker date="1455014337000" expanded="true" signature="6086:6818" placeholder="{...}" />
+                    <marker date="1455015221000" expanded="true" signature="2774:2965" placeholder="{...}" />
+                    <marker date="1455015221000" expanded="true" signature="2775:2813" placeholder="{...}" />
+                    <marker date="1455015221000" expanded="true" signature="5014:5052" placeholder="{...}" />
+                    <marker date="1455015221000" expanded="true" signature="6110:6842" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -251,8 +248,8 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.79389316">
-                  <caret line="130" column="9" selection-start-line="130" selection-start-column="9" selection-end-line="130" selection-end-column="9" />
+                <state vertical-scroll-proportion="0.21337579">
+                  <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
                   <folding>
                     <element signature="e#1242#1856#0" expanded="false" />
                   </folding>
@@ -410,8 +407,8 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
-        <option value="$PROJECT_DIR$/index.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/index.js" />
       </list>
     </option>
   </component>
@@ -726,12 +723,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00041" summary="filter only returns ids">
-      <created>1454545721869</created>
-      <option name="number" value="00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1454545721869</updated>
-    </task>
     <task id="LOCAL-00042" summary="filter only returns ids">
       <created>1454548032811</created>
       <option name="number" value="00042" />
@@ -1020,7 +1011,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455012582339</updated>
     </task>
-    <option name="localTasksCounter" value="90" />
+    <task id="LOCAL-00090" summary="switched to /since/:batch due to url collision,">
+      <created>1455014601956</created>
+      <option name="number" value="00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1455014601956</updated>
+    </task>
+    <option name="localTasksCounter" value="91" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1061,7 +1058,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="trying to make processing faster by removing distinct on loan load when we can trust it." />
     <MESSAGE value="don't start the background resync until 500ms passes (let UI catch up), wait 500ms after all loans are loaded before processing all loan descriptions." />
     <MESSAGE value="don't start the background resync until 1000ms passes (let UI catch up), wait 200ms after all loans are loaded before processing all loan descriptions." />
     <MESSAGE value="only send down the descr array, not the descriptions. pull descriptions when clicked on. added option to block the downloading of descriptions," />
@@ -1086,7 +1082,8 @@
     <MESSAGE value="strip out more and more stuff from the prepped files that i'm not using and put it back on the client when nulls/0/[]" />
     <MESSAGE value="put back the first names as '' until they load instead of &quot;undefined&quot;" />
     <MESSAGE value="removed &quot;addIt&quot;, kls_tags are output now, tags are stripped. borrowers array is removed only sends {M:5,F:2}, removed status," />
-    <option name="LAST_COMMIT_MESSAGE" value="removed &quot;addIt&quot;, kls_tags are output now, tags are stripped. borrowers array is removed only sends {M:5,F:2}, removed status," />
+    <MESSAGE value="switched to /since/:batch due to url collision," />
+    <option name="LAST_COMMIT_MESSAGE" value="switched to /since/:batch due to url collision," />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2020,24 +2017,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.js">
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="46" column="63" selection-start-line="46" selection-start-column="63" selection-end-line="46" selection-end-column="63" />
-          <folding>
-            <marker date="1455014337000" expanded="true" signature="2766:2953" placeholder="{...}" />
-            <marker date="1455014337000" expanded="true" signature="2767:2801" placeholder="{...}" />
-            <marker date="1455014337000" expanded="true" signature="4990:5028" placeholder="{...}" />
-            <marker date="1455014337000" expanded="true" signature="6086:6818" placeholder="{...}" />
-          </folding>
+        <state vertical-scroll-proportion="-7.5185184">
+          <caret line="1433" column="60" selection-start-line="1433" selection-start-column="60" selection-end-line="1433" selection-end-column="60" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+    <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33282444">
-          <caret line="1239" column="32" selection-start-line="1239" selection-start-column="32" selection-end-line="1239" selection-end-column="32" />
-          <folding />
+        <state vertical-scroll-proportion="0.21337579">
+          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+          <folding>
+            <element signature="e#1242#1856#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
