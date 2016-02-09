@@ -241,16 +241,17 @@ if (!isServer()) {
 
 req.kiva = {
     api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},5),
-    page: new SemRequest(`${kivaBase}`,false,{},5*60000),
-    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5*60000)
+    page: new SemRequest(`${kivaBase}`,false,{},5*60),
+    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5*60)
 }
 
-//max of 100, not enforced.
+//max of 100, not enforced in this call.
 req.kiva.api.loans = ids => {
     return req.kiva.api.get(`loans/${ids.join(',')}.json`)
         .then(res => res.loans)
         .then(ResultProcessors.processLoans)
 }
+
 //hmm... really need a way to invoke immediately? on site load to a given loan url.
 req.kiva.api.loan = id => {
     return req.kiva.api.get(`loans/${id}.json`)
@@ -262,8 +263,8 @@ req.gdocs = {
     atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`,false,{gid:1,format:'csv'},5)
 }
 
-var common_descr =  ["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"]
 var common_use = ["PURCHASE", "FOR", "AND", "BUY", "OTHER", "HER", "BUSINESS", "SELL", "MORE", "HIS", "THE", "PAY"]
+var common_descr =  common_use.concat(["THIS", "ARE", "SHE", "THAT", "HAS", "LOAN", "BE", "OLD", "BEEN", "YEARS", "FROM", "WITH", "INCOME", "WILL", "HAVE"])
 
 var ageRegEx1 = new RegExp(/([2-9]\d)[ |-]years?[ |-](?:of age|old)/i)
 var ageRegEx2 = new RegExp(/(?:aged?|is) ([2-9]\d)/i) //reduce to a single regex?
@@ -437,6 +438,8 @@ class ResultProcessors {
             delete loan.terms.local_payments //we don't care
             delete loan.terms.disbursal_currency
             delete loan.terms.disbursal_amount
+            delete loan.terms.loan_amount
+
             //do memory clean up of larger pieces of the loan object.
             if (loan.borrowers) //only visible
                 loan.borrowers.where(b=> b.last_name=='').forEach(b=> delete b.last_name)
@@ -450,7 +453,7 @@ class ResultProcessors {
         delete loan.translator
         delete loan.location.geo
         delete loan.location.town
-        delete loan.image.template
+        delete loan.image.template_id
         if (!loan.bonus_credit_eligibility) delete loan.bonus_credit_eligibility
         return loan
     }

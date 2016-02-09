@@ -5,13 +5,13 @@ import {NewTabLink, LenderLink, KivaLink, KLALink, EmailLink} from '.'
 
 const About = React.createClass({
     getInitialState(){
-        return {KLAVersion: ''}
+        return {KLAVersion: '',hasLenderID: lsj.get("Options").kiva_lender_id != null}
     },
     componentDidMount(){
         callKLAFeature('getVersion').done(result => this.setState({KLAVersion: result.version}))
     },
     render(){
-        let {KLAVersion} = this.state
+        let {KLAVersion,hasLenderID} = this.state
         return <Grid>
             <h1>About</h1>
             <h3>What is KivaLens?</h3>
@@ -20,6 +20,24 @@ const About = React.createClass({
                 After you've found your loans and put them in your KivaLens basket, you just click a button and the
                 loans will be transferred to Kiva where you'll complete your purchase.
             </p>
+
+            <If condition={!hasLenderID}>
+                <span>
+                    <h3>What is Kiva?</h3>
+                    <p>
+                        Kiva is a non-profit that helps microfinance institutions (MFIs) around the world get access to 0%
+                        interest capital so that they can keep their overhead lower as they lend the money to
+                        borrowers who have very few options for access to capital. MFIs typically lend at
+                        interest to cover their operating expenses, if they weren't able to access the 0% capital from
+                        Kiva lenders, the MFIs may borrow from banks at 15% interest which is passed on to the borrower.
+                        A lot of the loans are very simple, a borrower owns a shop but they can't afford to stock their
+                        store with more products. A loan allows them to carry more products, leading to more customers
+                        and sales and they repay their loan. You lend $25 to borrowers and they repay over time
+                        (over 98% of the money loaned through Kiva of the money is repaid).
+                        &nbsp;<KivaLink path="invitedby/nuclearspike">Find out more!</KivaLink>
+                    </p>
+                </span>
+            </If>
 
             <h3>Rebuilt and Rethought</h3>
             <p>
@@ -62,39 +80,25 @@ const About = React.createClass({
             <ul className='spacedList'>
                 <li>
                     Sorting/Filtering by Final Repayment Date vs Repayment Terms. While Kiva allows you to sort by
-                    repayment
-                    terms, there are a few issues with this method from the perspective of the lender. Since different
-                    loans have different dates on which they posted to Kiva and the disbursal dates can have wide-ranges
-                    as well,
-                    an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already
-                    have
-                    repayments underway. While the same repayment terms on a <i>post</i>-disbursed loan that just posted
-                    today
-                    could end up with a final repayment date <i>months</i> different from the first loan mentioned. Yet
-                    Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Since
-                    Kiva only allows you to sort by repayment terms but not filter by them, it still shows you all
-                    loans. KivaLens lets you remove loans that don't match your selection for final repayment. Also,
-                    KivaLens doesn't sort by the term for the borrower, but the final repayment date relative to today,
-                    erasing the issues created by pre/post disbursed loans and different post dates. In Kiva's system
-                    (and the API, so also KivaLens), all repayment dates are shown at the first of the month, while
-                    many/most partners will actually settle the payments on the 17th of the <i>prior</i> month. So,
-                    many times you'll actually get your repayments about 2 weeks <i>sooner</i> than what KivaLens
-                    displays,
-                    assuming the partners settle early (as is common) and the borrower and partner are not delinquent.
+                    repayment terms, there are a few issues with this method from the perspective of the lender.
+                    Since different loans have different dates on which they posted to Kiva and the disbursal dates
+                    can have wide-ranges as well, an "8 month" repayment term on a pre-disbursed loan that posted
+                    almost a month ago could already have repayments underway. While the same repayment terms on
+                    a <i>post</i>-disbursed loan that just posted today could end up with a final repayment
+                    date <i>months</i> different from the first loan mentioned. Yet Kiva will sort them side-by-side
+                    because they have the same "8 month" repayment terms. Since Kiva only allows you to sort by
+                    repayment terms but not filter by them, it still shows you all loans. KivaLens lets you remove
+                    loans that don't match your selection for final repayment. Also, KivaLens doesn't sort by the term
+                    for the borrower, but the final repayment date relative to today, erasing the issues created by
+                    pre/post disbursed loans and different post dates. In Kiva's system (and the API, so also
+                    KivaLens), all repayment dates are shown at the first of the month, while many/most partners will
+                    actually settle the payments on the 17th of the <i>prior</i> month. So, many times you'll actually
+                    get your repayments about 2 weeks <i>sooner</i> than what KivaLens displays, assuming the partners
+                    settle early (as is common) and the borrower and partner are not delinquent.
                 </li>
 
                 <li>
-                    New Sort! You still have the ability to sort by final repayment date, but I've added a new sort
-                    that will sort by when the loan is scheduled to repay -- by percentages. Let me explain. Let's
-                    say you have 3 loans, all with a final repayment date 3 months away. The new sort will prioritize
-                    which pays more sooner. So, let's say loan #1 has a equal amount you get back each month.
-                    #2 has a larger amount on the first repayment then by the final it's very little and #3
-                    only has one single repayment at the very end. The new sorts will prioritize by how quickly you
-                    get 50%, then 75% then 100% back. So for the loans above, #2 would be the first, then #1,
-                    then #3. With pre-disbursed loans that start paying back right away, the first repayment to
-                    the lender can actually be a combination of multiple repayments made by the borrower. Using this
-                    sort will help find the loans that will allow the quickest turnaround for your money, if that's
-                    what your goal is.
+                    New Sort! You still have the ability to sort by final repayment date, but I've added a new sort that will sort by when the loan is scheduled to repay -- by percentages. Let me explain. Let's say you have 3 loans, all with a final repayment date 3 months away. The new sort will prioritize which pays more sooner. So, let's say loan #1 has a equal amount you get back each month. #2 has a larger amount on the first repayment then by the final it's very little and #3 only has one single repayment at the very end. The new sorts will prioritize by how quickly you get 50%, then 75% then 100% back. So for the loans above, #2 would be the first, then #1, then #3. With pre-disbursed loans that start paying back right away, the first repayment to the lender can actually be a combination of multiple repayments made by the borrower. Using this sort will help find the loans that will allow the quickest turnaround for your money, if that's what your goal is.
                 </li>
 
                 <li>
@@ -102,86 +106,60 @@ const About = React.createClass({
                     for properties of a loan where it can have multiple. So, a loan can only have one country, but
                     it can have multiple tags so there won't be an "All" option for Country since a loan couldn't be
                     in multiple countries and you'd get no results. If you select "All" then the loan must have
-                    <i>all</i> listed tags. If you select "Any" for Tags, then the loan has to match <i>at least one</i>
+                    &nbsp;<i>all</i> listed tags. If you select "Any" for Tags, then the loan has to match <i>at least one</i>&nbsp;
                     of your selection. "None" allows you to exclude results, so if you are opposed to "Liquor Store
                     / Off-License," "Balut-Making" and other controversial activities, you can exclude them.
                 </li>
 
                 <li>
-                    Auto-complete drop-downs for Sector, Activity, Country, Region, Social Performance Badges,
-                    Themes, Tags, Partners. KivaLens will also show you graphs along the side (when on a large
-                    enough device) indicating what options you have for that criteria so you don't have to guess
-                    at what will narrow your options for you.
+                    Auto-complete drop-downs for Sector, Activity, Country, Region, Social Performance Badges, Themes, Tags, Partners. KivaLens will also show you graphs along the side (when on a large enough device) indicating what options you have for that criteria so you don't have to guess at what will narrow your options for you.
                 </li>
 
                 <li>
-                    New range filters: in addition to all of the old ways of filtering, you can now filter by
-                    "Loans at Risk %" and "Currency Loss %" for partners to further reduce your risk. These are
-                    not available filters on Kiva.
+                    A Ton of Filters Kiva doesn't have... including "Loans at Risk %" and "Currency Loss %" for partners to further reduce your risk. Repayment interval filtering so you can find only loans paying back monthly, granular currency loss coverage options, mentioned ages, specific percentage of genders in a group, $/hour, expiring in days, disbursal days, average loan per capita income, years the partner has been on kiva and how many loans they've posted.
                 </li>
 
                 <li>
-                    Bulk Add! This is a favorite feature for previous KivaLens users and what I heard about the
-                    most from mega-lenders that they were missing after the previous version of KivaLens bit the
-                    dust in July of 2015. Add tons of loans that match your criteria to your basket all at once!
+                    Bulk Add! This is a favorite feature for previous KivaLens users and what I heard about the most from mega-lenders that they missed after the previous version of KivaLens bit the dust in July of 2015. Add tons of loans that match your criteria to your basket all at once!
                 </li>
 
                 <li>
-                    Mobile! Since the new site is just HTML and Javascript rather than Silverlight, it will run
-                    on everything and it's designed to automatically adapt to the size of the device
-                    you're using, so if you're on a phone, it will hide the graphs, and stack everything into
-                    one column; on a tablet, it displays differently depending on its orientation and
-                    laptop/desktop users have the easiest experience taking advantage of the width to show you more.
+                    Mobile! Since the new site is just HTML and Javascript rather than Silverlight, it will run on everything and it's designed to automatically adapt to the size of the device you're using, so if you're on a phone, it will hide the graphs, and stack everything into one column; on a tablet, it displays differently depending on its orientation and laptop/desktop users have the easiest experience taking advantage of the width to show you more.
                 </li>
 
                 <li>
-                    See graphs! View graphs that show the distribution of the current filter. Ex: Select
-                    "Retail" as your Sector filter, and see how Retail loans are spread across Countries and
-                    what Activities are available by clicking into those drop-downs to make the graphs down the side
-                    appear. There are also the half-donut charts.
+                    See graphs! View graphs that show the distribution of the current filter. Ex: Select "Retail" as your Sector filter, and see how Retail loans are spread across Countries and what Activities are available by clicking into those drop-downs to make the graphs down the side appear (only on large displays).
                 </li>
 
                 <li>
-                    Live Filtering = Speed! Since it downloads the loans at the start and then filters them
-                    in your browser, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch
-                    your results change right then, it doesn't have to talk to the server.
+                    Live Filtering = Speed! Since it downloads the loans at the start and then filters them in your browser, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch your results change right then, it doesn't have to talk to the server.
                 </li>
 
                 <li>
                     Always Fresh! KivaLens subscribes to the same live data-stream
                     that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new
                     loan posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your
-                    browser are kept exactly up-to-date without needing to reload the page. These updates do not cause
-                    your criteria to re-filter, but you'll see the impact of any new loans, funded loans or lending
-                    activity altering the funded amounts the next time you return to the Criteria tab or alter your
-                    filter.
+                    browser are kept exactly up-to-date without needing to reload the page. You may see a loan turn gray in the results indicating it either expired or funded or if you keep a popular loan open, the page will automatically update as more lenders lend money.
                 </li>
 
                 <li>
-                    Hide Loans you've already loaned money to so that you don't accidentally lend to them more
-                    than you want. To use this, go to "Options" to input your kiva lender-id.
-                    From the Criteria "Portfolio" tab and select the appropriate option.
+                    Hide Loans you've already loaned money to so that you don't accidentally lend to them more than you want. To use this, go to "Options" to input your kiva lender-id. From the Criteria "Portfolio" tab and select the appropriate option.
                 </li>
 
                 <li>
-                    Saved Searches: Save your favorite searches to quickly jump back to them. The site will start
-                    you out with some default saved searches to give you an idea of how to use them. As you view
-                    loan details, the "Saved Searches" line will show you which Saved Searches have that
-                    loan in their results.
+                    Saved Searches: Save your favorite searches to quickly jump back to them. The site will start you out with some default saved searches to give you an idea of how to use them. As you view loan details, the "Saved Searches" line will show you which Saved Searches have that loan in their results.
                 </li>
 
                 <li>
-                    Filter on the Atheist Team's MFI research with sliders for Secular and Social scoring. When you
-                    click on a loan, the Partner tab will show a new section displaying data pulled from their
-                    spreadsheet. This feature is off by default, simply turn it on in the Options tab and go search.
-                    The next time you visit the site, your old preferences will, of course, still be there.
+                    Filter on the Atheist Team's MFI research with sliders for Secular and Social scoring. When you click on a loan, the Partner tab will show a new section displaying data pulled from their spreadsheet. This feature is off by default, simply turn it on in the Options tab and go search.
                 </li>
 
                 <li>
-                    Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too
-                    many active loans from only a few partners, or if you want to find more sectors like your
-                    favorites, use the Portfolio Balancing tools to help you accomplish your lending goals.
-                    Just make sure you have your Lender ID filled out on the Options tab first.
+                    Portfolio Balancing: Whether you're a "Country Collector," or maybe that you don't want to have too many active loans from only a few partners, or if you want to find more sectors like your favorites, use the Portfolio Balancing tools to help you accomplish your lending goals.
+                </li>
+
+                <li>
+                    3D Loan Wall, when you have your lender id entered you can view a 3D "wall" of images of the borrowers in your portfolio.
                 </li>
 
                 <li>
@@ -198,8 +176,8 @@ const About = React.createClass({
                     sound if a new loan is added. There are some types of loans (especially the ultra-short term loans)
                     that can fully fund within less than a 1-2 hours. Install the extension, set your criteria,
                     select that you want to be notified on the menu option on the Saved Search menu, leave KivaLens
-                    open and you won't even have to have the browser showing and KivaLens will tell the extension to
-                    display a notification visible outside of the browser and play a sound. The loan must be posted
+                    open and you won't even have to have the browser showing and KivaLens will tell the extension
+                    to display a notification visible outside of the browser and play a sound. The loan must be posted
                     with all criteria matching or the notification won't fire. So, a notification set up with
                     restrictions for funding amounts that don't include 0 would never fire. Tags on loans are added
                     by other users after the loan has already posted, so any criteria with Tags won't fire. Filters
@@ -208,8 +186,7 @@ const About = React.createClass({
                 </li>
 
                 <li>
-                    Compare Teams: On the "Teams" page, you can compare the membership count, loan count, and total
-                    amount loaned for your teams.
+                    Compare Teams: On the "Teams" page, you can compare the membership count, loan count, and total amount loaned for your teams.
                 </li>
             </ul>
 
@@ -330,8 +307,7 @@ const About = React.createClass({
                 me</EmailLink> about
                 working on it. It uses React, Reflux, react-bootstrap, gulp,
                 browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express node js server
-                and more. You can check out
-                the source code (in progress)
+                and more. You can check out the source code (in progress)
                 at my <NewTabLink href="https://github.com/nuclearspike/kivalensjs/tree/master/react">github
                 repository</NewTabLink>.
             </p>

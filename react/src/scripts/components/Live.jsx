@@ -170,12 +170,12 @@ const Live = React.createClass({
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
                             browser downloads the entire KivaLens app and after that doesn't talk to the KivaLens
-                            server again. As you click between KivaLens pages, it's super fast because the entire
-                            app was pre-loaded in your browser.
+                            server again when clicking between pages.
                         </li>
                         <li>
-                            Once the app has loaded, KivaLens pulls it's listing of loans from Kiva's API and
-                            keeps all of the loan and partner data in your browser's memory.
+                            Once the app has loaded, KivaLens pulls it's listing of loans from the KivaLens server
+                            (which has pulled them from Kiva' API, stripped out everything it doesn't need and has them
+                            ready to go) and keeps all of the loan and partner data in your browser's memory.
                         </li>
                         <li>
                             With all of the activity on Kiva, the data that KivaLens pulled quickly becomes stale. To
@@ -187,12 +187,12 @@ const Live = React.createClass({
                             Every time you click on a loan, KivaLens will first immediately display what it has while
                             simultaneously requesting the most recent version of the loan and will seamlessly merge
                             any changes once it has the data. What could change? The amount other lenders have in
-                            their baskets is one example of data that changes over time that doesn't get published in
-                            the live data stream.
+                            their baskets or user tags are examples of data that changes over time that doesn't get
+                            published in the live data stream.
                         </li>
                         <li>
                             Every time you visit the Basket page, KivaLens will make sure all of the loans in your
-                            basket have the most recent funded/basket amounts.
+                            basket have the most recent data.
                         </li>
                         <li>
                             Every 2 minutes, KivaLens looks at it's list of loans and it gathers 1) Loans that are popular
@@ -201,12 +201,12 @@ const Live = React.createClass({
                             with Kiva to get the most recent data on them.
                         </li>
                         <li>
-                            Once every 10 minutes, KivaLens silently performs a resync of it's data to catch any changes
-                            not included in the datastream notifications.
+                            After 5 minutes then once every 10 minutes, KivaLens silently performs a resync of it's
+                            data with Kiva's API to catch any changes not included in the datastream notifications.
                         </li>
                         <li>
                             When you search for a loan in KivaLens, it searches the loans that it has in
-                            memory, it does not use Kiva or KivaLen's servers  to perform the search.
+                            memory, it does not use Kiva or KivaLen's servers to perform the search.
                             This is why KivaLens searches are so fast.
                         </li>
                     </ul>

@@ -9,7 +9,6 @@ var zlib = require('zlib')
 
 const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
-
 //var session = require('express-session')
 
 var compression = require('compression')
@@ -25,14 +24,6 @@ var k = require('./react/src/scripts/api/kiva')
 const KLPageSplits = k.KLPageSplits
 k.setAPIOptions({max_concurrent:20})
 
-/**
-app.use(express.compress())
-app.use(express.json())
-app.use(express.urlencoded())
-app.use(express.bodyParser())
-app.use(express.methodOverride())
-app.use(express.cookieParser())
-**/
 
 //session stuff (unused at this point)
 //app.set('trust proxy', 1) // trust first proxy
@@ -293,7 +284,8 @@ connectChannel('loan.posted', function(data){
 
 connectChannel('loan.purchased', function(data){
     data = JSON.parse(data)
-    console.log("!!! loan.purchased")
+    var ids = data.p.loans.select(l=>l.id)
+    console.log("!!! loan.purchased: " + ids.length)
     if (kivaloans)
-        kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
+        kivaloans.queueToRefresh(ids)
 })

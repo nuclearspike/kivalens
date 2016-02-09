@@ -27,9 +27,6 @@ import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
 
-//do not wait for it app mount
-if (location.hostname == 'kivalens.org') location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
-
 //window.Perf = require('react-addons-perf')
 
 window.rga = ga //react google analytics, ga is already defined

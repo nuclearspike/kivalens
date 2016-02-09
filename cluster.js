@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * NOT USED. Failed experiment. Caused too much memory usage.
+ */
+
 const cluster = require('cluster')
 const k = require('./react/src/scripts/api/kiva')
 const KLPageSplits = k.KLPageSplits

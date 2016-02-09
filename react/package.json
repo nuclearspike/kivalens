@@ -76,7 +76,7 @@
     "react-slider": "^0.6.0",
     "react-timeago": "^2.2.1",
     "reflux": "^0.3.0",
-    "request": "^2.67.0",
+    "request": "^2.69.0",
     "semaphore": "^1.0.3"
   }
 }
