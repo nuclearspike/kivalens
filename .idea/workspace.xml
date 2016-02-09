@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="bug.">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
     </list>
@@ -135,7 +134,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.44095787">
+    <splitter split-orientation="horizontal" split-proportion="0.41988555">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
@@ -161,7 +160,7 @@
           <file leaf-file-name="Search.jsx" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.3282443">
+                <state vertical-scroll-proportion="1.1908396">
                   <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
                   <folding />
                 </state>
@@ -207,8 +206,10 @@
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="-5.296296">
-                  <caret line="1560" column="29" selection-start-line="1560" selection-start-column="29" selection-end-line="1560" selection-end-column="29" />
-                  <folding />
+                  <caret line="1565" column="29" selection-start-line="1565" selection-start-column="29" selection-end-line="1565" selection-end-column="29" />
+                  <folding>
+                    <marker date="1454994510000" expanded="true" signature="19478:23677" placeholder="{...}" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -240,7 +241,7 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-16.481482">
+                <state vertical-scroll-proportion="-1.4814814">
                   <caret line="185" column="76" selection-start-line="185" selection-start-column="76" selection-end-line="185" selection-end-column="76" />
                   <folding>
                     <element signature="e#1205#1819#0" expanded="false" />
@@ -282,8 +283,18 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6076336">
-                  <caret line="1742" column="16" selection-start-line="1742" selection-start-column="16" selection-end-line="1742" selection-end-column="16" />
+                <state vertical-scroll-proportion="0.37862596">
+                  <caret line="390" column="61" selection-start-line="390" selection-start-column="61" selection-end-line="390" selection-end-column="61" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="linqextras.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
                   <folding />
                 </state>
               </provider>
@@ -705,12 +716,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00035" summary="better feedback">
-      <created>1454478112530</created>
-      <option name="number" value="00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1454478112530</updated>
-    </task>
     <task id="LOCAL-00036" summary="text changes on About, Options, and in API notifications, added a 404 response for /feed.svc/rss requests from the old way">
       <created>1454534236849</created>
       <option name="number" value="00036" />
@@ -999,14 +1004,20 @@
       <option name="project" value="LOCAL" />
       <updated>1454973567517</updated>
     </task>
-    <option name="localTasksCounter" value="84" />
+    <task id="LOCAL-00084" summary="bug.">
+      <created>1454974540064</created>
+      <option name="number" value="00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1454974540064</updated>
+    </task>
+    <option name="localTasksCounter" value="85" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="825" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -1040,7 +1051,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="do a proper redirect on bad requests. :O" />
     <MESSAGE value="wait for 2s to do initial loading of verse data, removed all references to intercomm" />
     <MESSAGE value="removed ejs view engine, made index a static page." />
     <MESSAGE value="wait time to 1s... shouldn't be number based." />
@@ -1065,7 +1075,8 @@
     <MESSAGE value="server doesn't need getPartner, added 24 hour cycle for partner pull (untested), if loans/since returns too many, it skips it." />
     <MESSAGE value="don't cycle kivaloans object every 24 hours. just redownload the partners." />
     <MESSAGE value="added temporary &quot;restart&quot; to see if i can use this" />
-    <option name="LAST_COMMIT_MESSAGE" value="added temporary &quot;restart&quot; to see if i can use this" />
+    <MESSAGE value="bug." />
+    <option name="LAST_COMMIT_MESSAGE" value="bug." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1154,14 +1165,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.7777777">
-          <caret line="15" column="69" selection-start-line="15" selection-start-column="69" selection-end-line="15" selection-end-column="69" />
           <folding />
         </state>
       </provider>
@@ -1993,9 +1996,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.1908396">
+          <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-16.481482">
+        <state vertical-scroll-proportion="-1.4814814">
           <caret line="185" column="76" selection-start-line="185" selection-start-column="76" selection-end-line="185" selection-end-column="76" />
           <folding>
             <element signature="e#1205#1819#0" expanded="false" />
@@ -2003,18 +2014,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.3282443">
-          <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6076336">
-          <caret line="1742" column="16" selection-start-line="1742" selection-start-column="16" selection-end-line="1742" selection-end-column="16" />
+        <state vertical-scroll-proportion="0.37862596">
+          <caret line="390" column="61" selection-start-line="390" selection-start-column="61" selection-end-line="390" selection-end-column="61" />
           <folding />
         </state>
       </provider>

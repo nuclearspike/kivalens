@@ -375,14 +375,16 @@ class ResultProcessors {
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
                 var today = Date.today()
 
-                //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
-                var repayments = loan.terms.scheduled_payments.groupBySelectWithSum(p=>new Date(p.due_date), p=>p.amount).select(p => ({
-                    date: p.name,
-                    display: p.name.toString("MMM-yyyy"),
-                    amount: p.sum
-                }))
+                //replace Kiva's version since it has too many entries.
+                loan.terms.scheduled_payments = loan.terms.scheduled_payments.groupBy(p=>p.due_date).select(g => ({due_date: g[0].due_date, amount: g.sum(p=>p.amount)}))
 
-                //fill in the gaps for southern-toothy-shaped repayments.
+                //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
+                var repayments = loan.terms.scheduled_payments.select(p => {
+                    var date = new Date(p.due_date)
+                    return {date: date, display: date.toString("MMM-yyyy"), amount: p.amount}
+                })
+
+                //fill in the gaps for southern-guy-toothy-shaped repayments.
                 var nextDate = new Date(Math.min(Date.next().month().set({day: 1}).clearTime(), repayments.first().date)).clearTime()
                 var lastDate = repayments.last().date.clearTime()
                 while (nextDate <= lastDate) {
@@ -419,11 +421,14 @@ class ResultProcessors {
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])
             delete loan.terms.local_payments //we don't care
+            //do memory clean up of larger pieces of the loan object.
+            if (loan.borrowers) //only visible
+                loan.borrowers.where(b=> b.last_name=='').forEach(b=> delete b.last_name)
+
         }
         //add kivalens specific fields to the loan.
         extend(loan, addIt)
 
-        //do memory clean up of larger pieces of the loan object.
         delete loan.journal_totals
         delete loan.translator
         delete loan.location.geo
