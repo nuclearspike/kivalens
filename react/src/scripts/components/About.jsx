@@ -43,7 +43,7 @@ const About = React.createClass({
                 Help Center or contact Kiva Customer Service</KivaLink>.
             </p>
             <p>
-                If you find a discrepancy between Kiva's site and what KivaLens' displays for loans or partners or if
+                If you find a discrepancy between Kiva's site and what KivaLens displays for loans or partners or if
                 you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is
                 working
                 then <EmailLink subject="KivaLens Bug"

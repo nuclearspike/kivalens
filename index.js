@@ -128,22 +128,23 @@ app.get('/loans/:batch/descriptions/:page', function(request,response){
     }
 })
 
-app.get('/loans/:batch/since', function(request, response){
+app.get('/since/:batch', function(request, response){
     var batch = parseInt(request.params.batch)
     if (!batch || !loansToServe[batch]){
         response.status(404)
         return
     }
     var newestTime = loansToServe[batch].newestTime
+    console.log(newestTime)
     var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
     if (loans.length > 1000) {
         //todo: make a better way to find changes than kl_processed since that gets reset on background resync
         console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
-        response.json([])
+        response.send(JSON.stringify([]))
         return
     }
     console.log(`INTERESTING: loans/since count: ${loans.length}`)
-    response.json(k.ResultProcessors.unprocessLoans(loans))
+    response.send(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
 })
 
 //req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))

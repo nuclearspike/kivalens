@@ -1237,7 +1237,7 @@ class Loans {
                 if (receivedLoans == pages) {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     this.endDownloadTimer('KLLoans')
-                    req.kl.get(`loans/${batch}/since`).done(loans => this.setKivaLoans(loans, false))
+                    req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
                 }
             }))
         }.bind(this)
@@ -1598,11 +1598,11 @@ class Loans {
         this.base_kiva_params = base_kiva_params
     }
     setKivaLoans(loans, reset, trustNoDupes){
+        if (!loans.length) return
         if (loans.length && !loans[0].kl_processed)
             ResultProcessors.processLoans(loans)
 
         if (reset === undefined) reset = true
-        if (!loans.length) return
         if (reset) {
             this.loans_from_kiva = []
             this.indexed_loans = {}
