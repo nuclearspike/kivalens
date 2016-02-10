@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="added memory output and gc to server...">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
     </list>
     <ignored path="react-kiva.iws" />
@@ -163,9 +162,9 @@
                 <state vertical-scroll-proportion="0.0">
                   <caret line="212" column="81" selection-start-line="212" selection-start-column="81" selection-end-line="212" selection-end-column="81" />
                   <folding>
-                    <marker date="1455140163000" expanded="true" signature="2728:2924" placeholder="{...}" />
-                    <marker date="1455140163000" expanded="true" signature="2729:2767" placeholder="{...}" />
-                    <marker date="1455140163000" expanded="true" signature="6069:6759" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -214,7 +213,7 @@
           <file leaf-file-name="package.json" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.387538">
+                <state vertical-scroll-proportion="0.36133122">
                   <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
                   <folding />
                 </state>
@@ -228,12 +227,12 @@
           <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/server.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.22900763">
-                  <caret line="10" column="2" selection-start-line="10" selection-start-column="2" selection-end-line="10" selection-end-column="2" />
+                <state vertical-scroll-proportion="0.3557252">
+                  <caret line="258" column="14" selection-start-line="258" selection-start-column="14" selection-end-line="258" selection-end-column="14" />
                   <folding>
-                    <marker date="1455140163000" expanded="true" signature="2728:2924" placeholder="{...}" />
-                    <marker date="1455140163000" expanded="true" signature="2729:2767" placeholder="{...}" />
-                    <marker date="1455140163000" expanded="true" signature="6069:6759" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
+                    <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
@@ -383,8 +382,8 @@
         <option value="$PROJECT_DIR$/index.js" />
         <option value="$PROJECT_DIR$/Procfile" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-        <option value="$PROJECT_DIR$/server.js" />
         <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/server.js" />
       </list>
     </option>
   </component>
@@ -699,12 +698,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00051" summary="attempts to reduce memory usage">
-      <created>1454583746220</created>
-      <option name="number" value="00051" />
-      <option name="project" value="LOCAL" />
-      <updated>1454583746220</updated>
-    </task>
     <task id="LOCAL-00052" summary="reverted clustering to single process until i get it working right. too much memory used, too much CPU, and sometimes horrible load times.">
       <created>1454592636344</created>
       <option name="number" value="00052" />
@@ -993,7 +986,13 @@
       <option name="project" value="LOCAL" />
       <updated>1455139818119</updated>
     </task>
-    <option name="localTasksCounter" value="100" />
+    <task id="LOCAL-00100" summary="added memory output and gc to server...">
+      <created>1455140173031</created>
+      <option name="number" value="00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1455140173031</updated>
+    </task>
+    <option name="localTasksCounter" value="101" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1416,28 +1415,28 @@
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="103" column="51" selection-start-line="103" selection-start-column="51" selection-end-line="103" selection-end-column="51" />
+          <caret line="279" column="9" selection-start-line="279" selection-start-column="9" selection-end-line="279" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.36133122">
+          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="212" column="81" selection-start-line="212" selection-start-column="81" selection-end-line="212" selection-end-column="81" />
+        <state vertical-scroll-proportion="0.3557252">
+          <caret line="258" column="14" selection-start-line="258" selection-start-column="14" selection-end-line="258" selection-end-column="14" />
           <folding>
-            <marker date="1455140163000" expanded="true" signature="2728:2924" placeholder="{...}" />
-            <marker date="1455140163000" expanded="true" signature="2729:2767" placeholder="{...}" />
-            <marker date="1455140163000" expanded="true" signature="6069:6759" placeholder="{...}" />
+            <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
+            <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
+            <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.387538">
-          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>

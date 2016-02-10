@@ -256,7 +256,7 @@ function prepForRequests(){
             bigloanChunks = undefined
             bigDesc = undefined
             //var diff = hd.end()
-            console.log(JSON.stringify(diff.change, 2))
+            //console.log(JSON.stringify(diff.change, 2))
             //memwatch.gc()
         }
     }
