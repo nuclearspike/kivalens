@@ -184,7 +184,7 @@ var loansChanged = false
 setInterval(()=>{
     console.log('INTERESTING: restart on interval')
     process.exit(1)
-}, 12*60*60000)
+}, 24*60*60000)
 
 //won't the old kivaloans object still exist and keep downloading when a new one is instantiated?
 
@@ -199,6 +199,10 @@ kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8
         prepForRequests()
 })
 
+function outputMemUsage(event){
+    console.log(event, util.inspect(process.memoryUsage()), `uptime: ${process.uptime()}`)
+}
+
 var prepping = false
 function prepForRequests(){
     if (!kivaloans.isReady()) {
@@ -210,7 +214,7 @@ function prepForRequests(){
         return
     }
 
-    console.log(util.inspect(process.memoryUsage()), `uptime: ${process.uptime()}`)
+    outputMemUsage('prepForRequests')
 
     loansChanged = false //hot loans &
     var prepping = extend({}, blankResponse)
@@ -247,7 +251,7 @@ function prepForRequests(){
 
     //var hd = new memwatch.HeapDiff();
 
-    function checkReady(){
+    function finishIfReady(){
         if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
             loansToServe[++latest] = prepping //must make a copy.
             //delete the old batches.
@@ -257,26 +261,28 @@ function prepForRequests(){
             bigDesc = undefined
             //var diff = hd.end()
             //console.log(JSON.stringify(diff.change, 2))
+            outputMemUsage('finishIfReady:before GC')
             memwatch.gc()
+            outputMemUsage('finishIfReady:after GC')
         }
     }
 
     zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function (_, result) {
         partnersGzip = result
-        checkReady()
+        finishIfReady()
     })
 
     bigloanChunks.map((chunk, i) => { //map to give index
         zlib.gzip(chunk, gzipOpt, function (_, result) {
             prepping.loanChunks[i] = result
-            checkReady()
+            finishIfReady()
         })
     })
 
     bigDesc.map((chunk, i) => {
         zlib.gzip(chunk, gzipOpt, function (_, result) {
             prepping.descriptions[i] = result
-            checkReady()
+            finishIfReady()
         })
     })
 }
