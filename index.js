@@ -177,7 +177,7 @@ var loansChanged = false
 setInterval(()=>{
     console.log('INTERESTING: restart on interval')
     process.exit(1)
-}, 24*60*60000)
+}, 12*60*60000)
 
 //won't the old kivaloans object still exist and keep downloading when a new one is instantiated?
 
