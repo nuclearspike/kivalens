@@ -7,7 +7,7 @@ var helmet = require('helmet')
 var extend = require('extend')
 var zlib = require('zlib')
 const util = require('util')
-require('v8-profiler')
+//require('v8-profiler')
 var memwatch = require('memwatch-next')
 
 memwatch.on('leak', function(info) {
