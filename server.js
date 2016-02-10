@@ -7,12 +7,12 @@ var helmet = require('helmet')
 var extend = require('extend')
 var zlib = require('zlib')
 const util = require('util')
-//require('v8-profiler')
 var memwatch = require('memwatch-next')
-
+//
+/**
 memwatch.on('leak', function(info) {
     console.log(info)
-})
+})**/
 
 const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
@@ -245,7 +245,7 @@ function prepForRequests(){
     var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
     prepping.descriptions = Array.range(0, KLPageSplits).select(x=>'')
 
-    var hd = new memwatch.HeapDiff();
+    //var hd = new memwatch.HeapDiff();
 
     function checkReady(){
         if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
@@ -255,9 +255,9 @@ function prepForRequests(){
             console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
             bigloanChunks = undefined
             bigDesc = undefined
-            var diff = hd.end()
+            //var diff = hd.end()
             console.log(JSON.stringify(diff.change, 2))
-            memwatch.gc()
+            //memwatch.gc()
         }
     }
 
