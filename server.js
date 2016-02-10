@@ -257,7 +257,7 @@ function prepForRequests(){
             bigDesc = undefined
             //var diff = hd.end()
             //console.log(JSON.stringify(diff.change, 2))
-            //memwatch.gc()
+            memwatch.gc()
         }
     }
 
