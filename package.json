@@ -9,7 +9,7 @@
   "dependencies": {
     "compression": "^1.6.1",
     "datejs": "^1.0.0-rc3",
-    "express": "4.13.3",
+    "express": "^4.13.3",
     "express-http-proxy": "^0.6.0",
     "extend": "^3.0.0",
     "helmet": "^1.1.0",
@@ -32,5 +32,8 @@
     "kivalens",
     "microfinance"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "v8-profiler": "^5.6.0"
+  }
 }

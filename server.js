@@ -6,8 +6,13 @@ var proxy = require('express-http-proxy')
 var helmet = require('helmet')
 var extend = require('extend')
 var zlib = require('zlib')
-const util = require('util');
+const util = require('util')
+require('v8-profiler')
+var memwatch = require('memwatch-next')
 
+memwatch.on('leak', function(info) {
+    console.log(info)
+})
 
 const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
@@ -205,7 +210,7 @@ function prepForRequests(){
         return
     }
 
-    console.log(util.inspect(process.memoryUsage()));
+    console.log(util.inspect(process.memoryUsage()), `uptime: ${process.uptime()}`)
 
     loansChanged = false //hot loans &
     var prepping = extend({}, blankResponse)
@@ -240,6 +245,8 @@ function prepForRequests(){
     var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
     prepping.descriptions = Array.range(0, KLPageSplits).select(x=>'')
 
+    var hd = new memwatch.HeapDiff();
+
     function checkReady(){
         if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
             loansToServe[++latest] = prepping //must make a copy.
@@ -248,6 +255,9 @@ function prepForRequests(){
             console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
             bigloanChunks = undefined
             bigDesc = undefined
+            var diff = hd.end()
+            console.log(JSON.stringify(diff.change, 2))
+            memwatch.gc()
         }
     }
 

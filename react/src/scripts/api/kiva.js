@@ -275,6 +275,33 @@ const getAge = text => {
     return (Array.isArray(ageMatch) && ageMatch.length == 2) ? parseInt(ageMatch[1]) : null
 }
 
+const kivaLoanDynFields = ['status','funded_amount','basket_amount','tags']
+
+//hmmm...
+class Loan {
+    constructor(){
+        this.kl_created = Date.now()
+    }
+    readSummaryFromAPI(apiLoan){
+
+    }
+    readDetailsFromAPI(apiLoan){
+
+    }
+    updateFromAPI(apiLoan){
+        kivaLoanDynFields.forEach(field => {
+            if (this[field] != apiLoan[field]){
+                this[field] = apiLoan[field]
+                this.kl_dynUpdated = Date.now()
+            }
+        })
+    }
+    transformToDownload(){
+
+    }
+
+}
+
 //also: age(d) 34, 50 years of age
 //static class to hold standard functions that prepare kiva api objects for use with kiva lens.
 //should be "transforms"
