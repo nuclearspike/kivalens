@@ -2,16 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
+      <change type="MOVED" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/server.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cluster.js" afterPath="$PROJECT_DIR$/cluster.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Procfile" afterPath="$PROJECT_DIR$/Procfile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/package.json" afterPath="$PROJECT_DIR$/react/package.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/app.js" afterPath="$PROJECT_DIR$/react/src/scripts/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -131,7 +125,7 @@
           </favorite_root>
         </favorite_root>
         <favorite_root url="file://$PROJECT_DIR$/app.json" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
-        <favorite_root url="file://$PROJECT_DIR$/index.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+        <favorite_root url="file://$PROJECT_DIR$/server.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
         <favorite_root url="file://$PROJECT_DIR$/Procfile" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
         <favorite_root url="file://$PROJECT_DIR$/README.md" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
         <favorite_root url="file://$PROJECT_DIR$/.gitignore" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
@@ -141,7 +135,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.49928468">
+    <splitter split-orientation="horizontal" split-proportion="0.53096616">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
@@ -164,24 +158,24 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/index.js">
+          <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/server.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="37" column="63" selection-start-line="37" selection-start-column="63" selection-end-line="37" selection-end-column="63" />
+                <state vertical-scroll-proportion="0.35190615">
+                  <caret line="208" column="0" selection-start-line="208" selection-start-column="0" selection-end-line="208" selection-end-column="0" />
                   <folding>
-                    <marker date="1455053184000" expanded="true" signature="2587:2783" placeholder="{...}" />
-                    <marker date="1455053184000" expanded="true" signature="2588:2626" placeholder="{...}" />
-                    <marker date="1455053184000" expanded="true" signature="5928:6618" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="2618:2814" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="2619:2657" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="5959:6649" placeholder="{...}" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="5.482456">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="250" column="31" selection-start-line="250" selection-start-column="31" selection-end-line="250" selection-end-column="31" />
                   <folding />
                 </state>
@@ -221,8 +215,8 @@
           <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-8.125">
-                  <caret line="13" column="3" selection-start-line="13" selection-start-column="3" selection-end-line="13" selection-end-column="3" />
+                <state vertical-scroll-proportion="-5.625">
+                  <caret line="9" column="28" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
                   <folding />
                 </state>
               </provider>
@@ -232,16 +226,26 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="index.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/index.js">
+          <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/server.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.66210043">
-                  <caret line="258" column="6" selection-start-line="258" selection-start-column="6" selection-end-line="258" selection-end-column="6" />
+                <state vertical-scroll-proportion="-99.44444">
+                  <caret line="181" column="5" selection-start-line="181" selection-start-column="5" selection-end-line="181" selection-end-column="5" />
                   <folding>
-                    <marker date="1455053184000" expanded="true" signature="2587:2783" placeholder="{...}" />
-                    <marker date="1455053184000" expanded="true" signature="2588:2626" placeholder="{...}" />
-                    <marker date="1455053184000" expanded="true" signature="5928:6618" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="2618:2814" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="2619:2657" placeholder="{...}" />
+                    <marker date="1455134002000" expanded="true" signature="5959:6649" placeholder="{...}" />
                   </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Procfile" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/Procfile">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="0" column="16" selection-start-line="0" selection-start-column="16" selection-end-line="0" selection-end-column="16" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -379,17 +383,19 @@
         <option value="$PROJECT_DIR$/public/index.html" />
         <option value="$PROJECT_DIR$/react/src/styles/application.scss" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" />
-        <option value="$PROJECT_DIR$/Procfile" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/app.js" />
-        <option value="$PROJECT_DIR$/index.js" />
-        <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/cluster.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" />
         <option value="$PROJECT_DIR$/react/deleteme" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
+        <option value="$PROJECT_DIR$/public/manifest.json" />
+        <option value="$PROJECT_DIR$/index.js" />
+        <option value="$PROJECT_DIR$/Procfile" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/server.js" />
       </list>
     </option>
   </component>
@@ -704,18 +710,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00045" summary="only spawn 3 workers.">
-      <created>1454575210293</created>
-      <option name="number" value="00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1454575210293</updated>
-    </task>
-    <task id="LOCAL-00046" summary="only spawn 1 worker">
-      <created>1454579194685</created>
-      <option name="number" value="00046" />
-      <option name="project" value="LOCAL" />
-      <updated>1454579194685</updated>
-    </task>
     <task id="LOCAL-00047" summary="handle worker that exits">
       <created>1454579872741</created>
       <option name="number" value="00047" />
@@ -998,15 +992,28 @@
       <option name="project" value="LOCAL" />
       <updated>1455018587607</updated>
     </task>
-    <option name="localTasksCounter" value="94" />
+    <task id="LOCAL-00094" summary="redid about text, added &quot;what is kiva&quot; for all people finding it through react sites, only show if they don't have a lender id, re-did wording on /live, show how many loans purchased">
+      <created>1455057307839</created>
+      <option name="number" value="00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1455057307840</updated>
+    </task>
+    <task id="LOCAL-00095" summary="switch to restart after 12 months.">
+      <created>1455130623980</created>
+      <option name="number" value="00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1455130623980</updated>
+    </task>
+    <option name="localTasksCounter" value="96" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="825" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297568" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1017,7 +1024,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1039,8 +1045,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="option text" />
-    <MESSAGE value="moved gdocs call to req. show the dl options" />
     <MESSAGE value="removed getKLUrl, switched SemRequest to used seconds not minutes, added &quot;Final Repayment In&quot; to Loan component" />
     <MESSAGE value="add a &quot;since&quot; method to pull loans processed since a given date... returns full loan object with descriptions (best?) and delays the background resync of loans for 5m rather than 1s. Gets page into a usable state much faster. added &quot;batch&quot; concept to server to provide consistent reads even if it's taking a while." />
     <MESSAGE value="added loans_processed promise, removed option for LLS until it stores partners, store more batches on server." />
@@ -1064,7 +1068,9 @@
     <MESSAGE value="putting sendStatus back in! oops" />
     <MESSAGE value="correct content type of responses. descriptions are now being pre-compressed to save prep time and a little bit of dl time, some attempts at memory reduction," />
     <MESSAGE value="bug... funded_amount being blank wasn't being populated but was already being used for still_needed" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug... funded_amount being blank wasn't being populated but was already being used for still_needed" />
+    <MESSAGE value="redid about text, added &quot;what is kiva&quot; for all people finding it through react sites, only show if they don't have a lender id, re-did wording on /live, show how many loans purchased" />
+    <MESSAGE value="switch to restart after 12 months." />
+    <option name="LAST_COMMIT_MESSAGE" value="switch to restart after 12 months." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1160,13 +1166,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/manifest.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1325,13 +1325,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Procfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.021994134">
-          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1396,18 +1389,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="37" column="63" selection-start-line="37" selection-start-column="63" selection-end-line="37" selection-end-column="63" />
-          <folding>
-            <marker date="1455053184000" expanded="true" signature="2587:2783" placeholder="{...}" />
-            <marker date="1455053184000" expanded="true" signature="2588:2626" placeholder="{...}" />
-            <marker date="1455053184000" expanded="true" signature="5928:6618" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1426,19 +1407,47 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
+    <entry file="file://$PROJECT_DIR$/public/manifest.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.125">
-          <caret line="13" column="3" selection-start-line="13" selection-start-column="3" selection-end-line="13" selection-end-column="3" />
+        <state vertical-scroll-proportion="0.023622047">
+          <caret line="1" column="18" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Procfile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="16" selection-start-line="0" selection-start-column="16" selection-end-line="0" selection-end-column="16" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="5.482456">
+        <state vertical-scroll-proportion="0.0">
           <caret line="250" column="31" selection-start-line="250" selection-start-column="31" selection-end-line="250" selection-end-column="31" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.625">
+          <caret line="9" column="28" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35190615">
+          <caret line="208" column="0" selection-start-line="208" selection-start-column="0" selection-end-line="208" selection-end-column="0" />
+          <folding>
+            <marker date="1455134002000" expanded="true" signature="2618:2814" placeholder="{...}" />
+            <marker date="1455134002000" expanded="true" signature="2619:2657" placeholder="{...}" />
+            <marker date="1455134002000" expanded="true" signature="5959:6649" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>

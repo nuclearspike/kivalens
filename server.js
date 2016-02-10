@@ -6,6 +6,8 @@ var proxy = require('express-http-proxy')
 var helmet = require('helmet')
 var extend = require('extend')
 var zlib = require('zlib')
+const util = require('util');
+
 
 const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
@@ -202,6 +204,9 @@ function prepForRequests(){
         console.log("Nothing changed")
         return
     }
+
+    console.log(util.inspect(process.memoryUsage()));
+
     loansChanged = false //hot loans &
     var prepping = extend({}, blankResponse)
 
