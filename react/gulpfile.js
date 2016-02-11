@@ -87,7 +87,7 @@ function compile(watch) {
 gulp.task("production", function(){
     console.log("SWITCHING TO PRODUCTION MODE")
     production = true
-    return process.env.NODE_ENV = 'production'; //
+    return process.env.NODE_ENV = 'production' //
 })
 
 //SERVER
