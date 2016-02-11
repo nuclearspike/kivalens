@@ -1,7 +1,7 @@
 "use strict";
 
 var Hub = require('cluster-hub')
-var hub = new Hub();
+var hub = new Hub()
 const cluster = require('cluster')
 var memwatch = require('memwatch-next')
 var extend = require('extend')
@@ -44,9 +44,8 @@ if (cluster.isMaster){ //preps the downloads
     //cluster.fork()
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
-    for (var i=0; i<Math.min(numCPUs-1,2); i++)
+    for (var i=0; i<Math.min(numCPUs-1,3); i++)
         cluster.fork()
-
 
     // Listen for dying workers
     cluster.on('exit', worker => {
@@ -160,6 +159,7 @@ if (cluster.isMaster){ //preps the downloads
 
         function finishIfReady(){
             if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
+                outputMemUsage("Master finishIfReady start")
                 loansToServe[++latest] = prepping //must make a copy.
                 //delete the old batches.
                 Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
@@ -285,7 +285,7 @@ else
         if (!toServe) {
             response.sendStatus(404)
         } else {
-            response.header('Content-Type', 'application/json')
+            response.type('application/json')
             response.header('Content-Encoding', 'gzip')
             response.send(toServe)
         }
@@ -293,7 +293,7 @@ else
 
     app.get('/partners', function(request,response){
         //don't use 'batch' since it just serves all at once and we want the most recent.
-        response.header('Content-Type', 'application/json')
+        response.type('application/json')
         response.header('Content-Encoding', 'gzip')
         response.send(partnersGzip)
     })
@@ -311,7 +311,7 @@ else
         if (!toServe) {
             response.sendStatus(404)
         } else {
-            response.header('Content-Type', 'application/json');
+            response.type('application/json')
             response.header('Content-Encoding', 'gzip');
             response.send(toServe)
         }
@@ -327,7 +327,10 @@ else
             result => response.send(result))
     })
 
-    //req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
+    /**
+     * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
+     * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({"loan":{"repaid_in_max":5,"still_needed_min":25,"limit_to":{"enabled":false,"count":1,"limit_by":"Partner"}},"partner":{},"portfolio":{"exclude_portfolio_loans":"true","pb_partner":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_country":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_sector":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_activity":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"}},"notifyOnNew":true}))},true).done(r => console.log(r))
+     */
     app.get('/loans/filter', function(req, response){
         var crit = req.query.crit
         if (crit)
@@ -358,7 +361,7 @@ else
             partnersGzip = dl.partnersGzip
             msg = undefined
             dl = undefined
-            doGarbageCollection("Worker new stuff")
+            doGarbageCollection(`Worker ${cluster.worker.id} new stuff`)
         }
     })
 }
