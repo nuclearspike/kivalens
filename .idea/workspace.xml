@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="more output of memory, increase workers by 3">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cluster.js" afterPath="$PROJECT_DIR$/cluster.js" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -133,7 +133,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.39198855">
+    <splitter split-orientation="horizontal" split-proportion="0.50214595">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
@@ -146,26 +146,26 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Search.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
+          <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/server.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
-                  <folding />
+                <state vertical-scroll-proportion="19.444445">
+                  <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="72" />
+                  <folding>
+                    <marker date="1455143138000" expanded="true" signature="2728:2924" placeholder="{...}" />
+                    <marker date="1455143138000" expanded="true" signature="2729:2767" placeholder="{...}" />
+                    <marker date="1455143138000" expanded="true" signature="6069:6759" placeholder="{...}" />
+                  </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/server.js">
+          <file leaf-file-name="cluster.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cluster.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="212" column="81" selection-start-line="212" selection-start-column="81" selection-end-line="212" selection-end-column="81" />
-                  <folding>
-                    <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
-                    <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
-                    <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
-                  </folding>
+                <state vertical-scroll-proportion="0.12671755">
+                  <caret line="179" column="76" selection-start-line="179" selection-start-column="76" selection-end-line="179" selection-end-column="76" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -200,21 +200,31 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="application.scss" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/styles/application.scss">
+          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="8" column="22" selection-start-line="8" selection-start-column="22" selection-end-line="8" selection-end-column="22" />
+                <state vertical-scroll-proportion="-2.6470587">
+                  <caret line="9" column="27" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/package.json">
+          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.36133122">
-                  <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+                <state vertical-scroll-proportion="-5.0">
+                  <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="gulpfile.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="-3.148148">
+                  <caret line="89" column="46" selection-start-line="89" selection-start-column="46" selection-end-line="89" selection-end-column="46" />
                   <folding />
                 </state>
               </provider>
@@ -224,16 +234,26 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/server.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.3557252">
-                  <caret line="258" column="14" selection-start-line="258" selection-start-column="14" selection-end-line="258" selection-end-column="14" />
+                <state vertical-scroll-proportion="-10.296296">
+                  <caret line="134" column="14" selection-start-line="134" selection-start-column="14" selection-end-line="134" selection-end-column="14" />
                   <folding>
-                    <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
-                    <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
-                    <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
+                    <marker date="1455143138000" expanded="true" signature="2728:2924" placeholder="{...}" />
+                    <marker date="1455143138000" expanded="true" signature="2729:2767" placeholder="{...}" />
+                    <marker date="1455143138000" expanded="true" signature="6069:6759" placeholder="{...}" />
                   </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="cluster.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cluster.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.2870229">
+                  <caret line="320" column="4" selection-start-line="320" selection-start-column="4" selection-end-line="320" selection-end-column="4" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -271,18 +291,8 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="279" column="9" selection-start-line="279" selection-start-column="9" selection-end-line="279" selection-end-column="9" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="linqextras.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
+                <state vertical-scroll-proportion="501.92593">
+                  <caret line="194" column="25" selection-start-line="194" selection-start-column="25" selection-end-line="194" selection-end-column="25" />
                   <folding />
                 </state>
               </provider>
@@ -338,7 +348,6 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/react/src/scripts/components/PartnerDisplayModal.jsx" />
-        <option value="$PROJECT_DIR$/react/gulpfile.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/LoadingLoansModal.jsx" />
         <option value="$PROJECT_DIR$/../lenderassistant/background.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/all_idle.js" />
@@ -374,16 +383,17 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/app.js" />
-        <option value="$PROJECT_DIR$/cluster.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" />
         <option value="$PROJECT_DIR$/react/deleteme" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
         <option value="$PROJECT_DIR$/public/manifest.json" />
         <option value="$PROJECT_DIR$/index.js" />
-        <option value="$PROJECT_DIR$/Procfile" />
-        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-        <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/server.js" />
+        <option value="$PROJECT_DIR$/Procfile" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/react/gulpfile.js" />
+        <option value="$PROJECT_DIR$/cluster.js" />
       </list>
     </option>
   </component>
@@ -572,6 +582,9 @@
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/public/old" />
     </key>
@@ -697,132 +710,6 @@
       <created>1441543243255</created>
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
-    </task>
-    <task id="LOCAL-00052" summary="reverted clustering to single process until i get it working right. too much memory used, too much CPU, and sometimes horrible load times.">
-      <created>1454592636344</created>
-      <option name="number" value="00052" />
-      <option name="project" value="LOCAL" />
-      <updated>1454592636344</updated>
-    </task>
-    <task id="LOCAL-00053" summary="introduced a &quot;SemRequest&quot; class and a req anon object. made loading loans from KL the default. req.kivaAjax will be either the proxy in the browser or kiva's location if on the server.">
-      <created>1454628483820</created>
-      <option name="number" value="00053" />
-      <option name="project" value="LOCAL" />
-      <updated>1454628483820</updated>
-    </task>
-    <task id="LOCAL-00054" summary="restructured req,">
-      <created>1454639052762</created>
-      <option name="number" value="00054" />
-      <option name="project" value="LOCAL" />
-      <updated>1454639052762</updated>
-    </task>
-    <task id="LOCAL-00055" summary="added &quot;partner&quot; for currency loss liability">
-      <created>1454660865598</created>
-      <option name="number" value="00055" />
-      <option name="project" value="LOCAL" />
-      <updated>1454660865598</updated>
-    </task>
-    <task id="LOCAL-00056" summary="redid fav-icon. loaded loans should always be distinct for some corner cases.">
-      <created>1454703977161</created>
-      <option name="number" value="00056" />
-      <option name="project" value="LOCAL" />
-      <updated>1454703977161</updated>
-    </task>
-    <task id="LOCAL-00057" summary="added old pics">
-      <created>1454749671861</created>
-      <option name="number" value="00057" />
-      <option name="project" value="LOCAL" />
-      <updated>1454749671861</updated>
-    </task>
-    <task id="LOCAL-00058" summary="do a proper redirect on bad requests. :O">
-      <created>1454807358060</created>
-      <option name="number" value="00058" />
-      <option name="project" value="LOCAL" />
-      <updated>1454807358060</updated>
-    </task>
-    <task id="LOCAL-00059" summary="wait for 2s to do initial loading of verse data, removed all references to intercomm">
-      <created>1454816587721</created>
-      <option name="number" value="00059" />
-      <option name="project" value="LOCAL" />
-      <updated>1454816587721</updated>
-    </task>
-    <task id="LOCAL-00060" summary="removed ejs view engine, made index a static page.">
-      <created>1454817365290</created>
-      <option name="number" value="00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1454817365290</updated>
-    </task>
-    <task id="LOCAL-00061" summary="wait time to 1s... shouldn't be number based.">
-      <created>1454818168881</created>
-      <option name="number" value="00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1454818168881</updated>
-    </task>
-    <task id="LOCAL-00062" summary="missing app_id from some api calls (the ones using req.api.get())">
-      <created>1454819955138</created>
-      <option name="number" value="00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1454819955138</updated>
-    </task>
-    <task id="LOCAL-00063" summary="split the descriptions into separate downloads to allow for faster loading.">
-      <created>1454836827014</created>
-      <option name="number" value="00063" />
-      <option name="project" value="LOCAL" />
-      <updated>1454836827014</updated>
-    </task>
-    <task id="LOCAL-00064" summary="trying to make processing faster by removing distinct on loan load when we can trust it.">
-      <created>1454838111521</created>
-      <option name="number" value="00064" />
-      <option name="project" value="LOCAL" />
-      <updated>1454838111521</updated>
-    </task>
-    <task id="LOCAL-00065" summary="don't start the background resync until 500ms passes (let UI catch up), wait 500ms after all loans are loaded before processing all loan descriptions.">
-      <created>1454841250751</created>
-      <option name="number" value="00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1454841250751</updated>
-    </task>
-    <task id="LOCAL-00066" summary="don't start the background resync until 1000ms passes (let UI catch up), wait 200ms after all loans are loaded before processing all loan descriptions.">
-      <created>1454841495267</created>
-      <option name="number" value="00066" />
-      <option name="project" value="LOCAL" />
-      <updated>1454841495267</updated>
-    </task>
-    <task id="LOCAL-00067" summary="only send down the descr array, not the descriptions. pull descriptions when clicked on. added option to block the downloading of descriptions,">
-      <created>1454845450966</created>
-      <option name="number" value="00067" />
-      <option name="project" value="LOCAL" />
-      <updated>1454845450966</updated>
-    </task>
-    <task id="LOCAL-00068" summary="option text">
-      <created>1454846474903</created>
-      <option name="number" value="00068" />
-      <option name="project" value="LOCAL" />
-      <updated>1454846474903</updated>
-    </task>
-    <task id="LOCAL-00069" summary="moved gdocs call to req. show the dl options">
-      <created>1454879128553</created>
-      <option name="number" value="00069" />
-      <option name="project" value="LOCAL" />
-      <updated>1454879128553</updated>
-    </task>
-    <task id="LOCAL-00070" summary="removed getKLUrl, switched SemRequest to used seconds not minutes, added &quot;Final Repayment In&quot; to Loan component">
-      <created>1454884437993</created>
-      <option name="number" value="00070" />
-      <option name="project" value="LOCAL" />
-      <updated>1454884437993</updated>
-    </task>
-    <task id="LOCAL-00071" summary="add a &quot;since&quot; method to pull loans processed since a given date... returns full loan object with descriptions (best?) and delays the background resync of loans for 5m rather than 1s. Gets page into a usable state much faster. added &quot;batch&quot; concept to server to provide consistent reads even if it's taking a while.">
-      <created>1454889104930</created>
-      <option name="number" value="00071" />
-      <option name="project" value="LOCAL" />
-      <updated>1454889104930</updated>
-    </task>
-    <task id="LOCAL-00072" summary="added loans_processed promise, removed option for LLS until it stores partners, store more batches on server.">
-      <created>1454892313978</created>
-      <option name="number" value="00072" />
-      <option name="project" value="LOCAL" />
-      <updated>1454892313978</updated>
     </task>
     <task id="LOCAL-00073" summary="req.kl should not cache results.">
       <created>1454894044122</created>
@@ -992,14 +879,140 @@
       <option name="project" value="LOCAL" />
       <updated>1455140173031</updated>
     </task>
-    <option name="localTasksCounter" value="101" />
+    <task id="LOCAL-00101" summary="added memory output and gc to server...">
+      <created>1455140251237</created>
+      <option name="number" value="00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1455140251237</updated>
+    </task>
+    <task id="LOCAL-00102" summary="added memory output and gc to server...">
+      <created>1455140412493</created>
+      <option name="number" value="00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1455140412493</updated>
+    </task>
+    <task id="LOCAL-00103" summary="added memory output and gc to server...">
+      <created>1455141035533</created>
+      <option name="number" value="00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1455141035533</updated>
+    </task>
+    <task id="LOCAL-00104" summary="trying clustering again">
+      <created>1455148366205</created>
+      <option name="number" value="00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1455148366205</updated>
+    </task>
+    <task id="LOCAL-00105" summary="trying clustering again. start 2 web servers">
+      <created>1455149050681</created>
+      <option name="number" value="00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1455149050681</updated>
+    </task>
+    <task id="LOCAL-00106" summary="trying clustering again. start 2 web servers">
+      <created>1455149796174</created>
+      <option name="number" value="00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1455149796174</updated>
+    </task>
+    <task id="LOCAL-00107" summary="better formatting.">
+      <created>1455151798436</created>
+      <option name="number" value="00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1455151798437</updated>
+    </task>
+    <task id="LOCAL-00108" summary="better formatting.">
+      <created>1455156441571</created>
+      <option name="number" value="00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1455156441571</updated>
+    </task>
+    <task id="LOCAL-00109" summary="adding back filtering">
+      <created>1455157922945</created>
+      <option name="number" value="00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1455157922945</updated>
+    </task>
+    <task id="LOCAL-00110" summary="more output of memory, increase workers by 3, logs show which worker">
+      <created>1455161222320</created>
+      <option name="number" value="00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1455161222320</updated>
+    </task>
+    <task id="LOCAL-00111" summary="don't store the raw result since the nothing ever looks at anything other than the first page's paging object. reduce workers back to 2">
+      <created>1455162192782</created>
+      <option name="number" value="00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1455162192782</updated>
+    </task>
+    <task id="LOCAL-00112" summary="remove promise after SemRequest ttl, more server logging.">
+      <created>1455163994444</created>
+      <option name="number" value="00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1455163994444</updated>
+    </task>
+    <task id="LOCAL-00113" summary="increase to 7 workers.">
+      <created>1455164212784</created>
+      <option name="number" value="00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1455164212784</updated>
+    </task>
+    <task id="LOCAL-00114" summary="set workers back to 3">
+      <created>1455164424732</created>
+      <option name="number" value="00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1455164424732</updated>
+    </task>
+    <task id="LOCAL-00115" summary="set 4 workers">
+      <created>1455164440598</created>
+      <option name="number" value="00115" />
+      <option name="project" value="LOCAL" />
+      <updated>1455164440598</updated>
+    </task>
+    <task id="LOCAL-00116" summary="back to 3">
+      <created>1455166708037</created>
+      <option name="number" value="00116" />
+      <option name="project" value="LOCAL" />
+      <updated>1455166708037</updated>
+    </task>
+    <task id="LOCAL-00117" summary="drop to 2... memory warnings are back.">
+      <created>1455170025402</created>
+      <option name="number" value="00117" />
+      <option name="project" value="LOCAL" />
+      <updated>1455170025402</updated>
+    </task>
+    <task id="LOCAL-00118" summary="text changes, moved anon func to named">
+      <created>1455170732596</created>
+      <option name="number" value="00118" />
+      <option name="project" value="LOCAL" />
+      <updated>1455170732596</updated>
+    </task>
+    <task id="LOCAL-00119" summary="read from file system rather than passing around arrays. much better for memory!">
+      <created>1455176830072</created>
+      <option name="number" value="00119" />
+      <option name="project" value="LOCAL" />
+      <updated>1455176830072</updated>
+    </task>
+    <task id="LOCAL-00120" summary="batch!">
+      <created>1455177200597</created>
+      <option name="number" value="00120" />
+      <option name="project" value="LOCAL" />
+      <updated>1455177200597</updated>
+    </task>
+    <task id="LOCAL-00121" summary="save last 10 batches.">
+      <created>1455177811828</created>
+      <option name="number" value="00121" />
+      <option name="project" value="LOCAL" />
+      <updated>1455177811828</updated>
+    </task>
+    <option name="localTasksCounter" value="122" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="825" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13376252" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -1033,22 +1046,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="added loans_processed promise, removed option for LLS until it stores partners, store more batches on server." />
-    <MESSAGE value="req.kl should not cache results." />
-    <MESSAGE value="keep fewer batches, track when user requests old batch." />
-    <MESSAGE value="pre-gzip the responses for loans and partners... descriptions not yet." />
-    <MESSAGE value="highest compression" />
-    <MESSAGE value="added GA code to index so that i'll have more knowledge of failing-to-load conditions. added &quot;endDownloadTimer&quot; and calls to report how long various pieces took to complete" />
-    <MESSAGE value="loans/since now uses batch # rather than easily painful newestTime (if user puts in very low value)" />
-    <MESSAGE value="fix Teams page to style the radios better." />
-    <MESSAGE value="server doesn't need getPartner, added 24 hour cycle for partner pull (untested), if loans/since returns too many, it skips it." />
-    <MESSAGE value="don't cycle kivaloans object every 24 hours. just redownload the partners." />
-    <MESSAGE value="added temporary &quot;restart&quot; to see if i can use this" />
-    <MESSAGE value="bug." />
-    <MESSAGE value="moved the groupBy for payments to replace teh existing terms to combine the multiple entries for the same dates (why does kiva do that??) reduces download by ~50KB compressed." />
-    <MESSAGE value="increase concurrent server connections to kiva to 20. changed url format for data requests. /loans/:batch/:page etc." />
-    <MESSAGE value="strip out more and more stuff from the prepped files that i'm not using and put it back on the client when nulls/0/[]" />
-    <MESSAGE value="put back the first names as '' until they load instead of &quot;undefined&quot;" />
     <MESSAGE value="removed &quot;addIt&quot;, kls_tags are output now, tags are stripped. borrowers array is removed only sends {M:5,F:2}, removed status," />
     <MESSAGE value="switched to /since/:batch due to url collision," />
     <MESSAGE value="putting sendStatus back in! oops" />
@@ -1058,7 +1055,23 @@
     <MESSAGE value="switch to restart after 12 months." />
     <MESSAGE value="report memory usage on command line, rename index to server" />
     <MESSAGE value="added memory output and gc to server..." />
-    <option name="LAST_COMMIT_MESSAGE" value="added memory output and gc to server..." />
+    <MESSAGE value="trying clustering again" />
+    <MESSAGE value="trying clustering again. start 2 web servers" />
+    <MESSAGE value="better formatting." />
+    <MESSAGE value="adding back filtering" />
+    <MESSAGE value="more output of memory, increase workers by 3, logs show which worker" />
+    <MESSAGE value="don't store the raw result since the nothing ever looks at anything other than the first page's paging object. reduce workers back to 2" />
+    <MESSAGE value="remove promise after SemRequest ttl, more server logging." />
+    <MESSAGE value="increase to 7 workers." />
+    <MESSAGE value="set workers back to 3" />
+    <MESSAGE value="set 4 workers" />
+    <MESSAGE value="back to 3" />
+    <MESSAGE value="drop to 2... memory warnings are back." />
+    <MESSAGE value="text changes, moved anon func to named" />
+    <MESSAGE value="read from file system rather than passing around arrays. much better for memory!" />
+    <MESSAGE value="batch!" />
+    <MESSAGE value="save last 10 batches." />
+    <option name="LAST_COMMIT_MESSAGE" value="save last 10 batches." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1067,13 +1080,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/manifest.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.4669604">
-          <caret line="112" column="6" selection-start-line="112" selection-start-column="6" selection-end-line="112" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/javascript/q.min.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1116,14 +1122,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="50" selection-start-line="89" selection-start-column="4" selection-end-line="89" selection-end-column="50" />
           <folding />
         </state>
       </provider>
@@ -1205,14 +1203,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.18237083">
-          <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1287,6 +1277,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.04398827">
           <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1318,14 +1309,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
           <folding />
         </state>
       </provider>
@@ -1378,28 +1361,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.065789476">
-          <caret line="3" column="61" selection-start-line="3" selection-start-column="61" selection-end-line="3" selection-end-column="61" />
-          <folding>
-            <element signature="e#5216#5890#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/manifest.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.023622047">
           <caret line="1" column="18" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Procfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="16" selection-start-line="0" selection-start-column="16" selection-end-line="0" selection-end-column="16" />
           <folding />
         </state>
       </provider>
@@ -1412,31 +1377,79 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+    <entry file="file://$PROJECT_DIR$/Procfile">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="279" column="9" selection-start-line="279" selection-start-column="9" selection-end-line="279" selection-end-column="9" />
+          <caret line="0" column="17" selection-start-line="0" selection-start-column="17" selection-end-line="0" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
+    <entry file="file://$PROJECT_DIR$/cluster-old.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36133122">
-          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+        <state vertical-scroll-proportion="-11.111111">
+          <caret line="20" column="5" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3557252">
-          <caret line="258" column="14" selection-start-line="258" selection-start-column="14" selection-end-line="258" selection-end-column="14" />
+        <state vertical-scroll-proportion="-10.296296">
+          <caret line="134" column="14" selection-start-line="134" selection-start-column="14" selection-end-line="134" selection-end-column="14" />
           <folding>
-            <marker date="1455140245000" expanded="true" signature="2728:2924" placeholder="{...}" />
-            <marker date="1455140245000" expanded="true" signature="2729:2767" placeholder="{...}" />
-            <marker date="1455140245000" expanded="true" signature="6069:6759" placeholder="{...}" />
+            <marker date="1455143138000" expanded="true" signature="2728:2924" placeholder="{...}" />
+            <marker date="1455143138000" expanded="true" signature="2729:2767" placeholder="{...}" />
+            <marker date="1455143138000" expanded="true" signature="6069:6759" placeholder="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-2.6470587">
+          <caret line="9" column="27" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.0">
+          <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.148148">
+          <caret line="89" column="46" selection-start-line="89" selection-start-column="46" selection-end-line="89" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4281525">
+          <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="501.92593">
+          <caret line="194" column="25" selection-start-line="194" selection-start-column="25" selection-end-line="194" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cluster.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2870229">
+          <caret line="320" column="4" selection-start-line="320" selection-start-column="4" selection-end-line="320" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
