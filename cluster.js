@@ -7,8 +7,22 @@ var memwatch = require('memwatch-next')
 var extend = require('extend')
 const util = require('util')
 
+const mb = 1024 * 1024
+function formatMB(bytes){
+    return Math.round(bytes / mb)
+}
+
 function outputMemUsage(event){
     console.log(event, util.inspect(process.memoryUsage()), `uptime: ${process.uptime()}`)
+}
+
+function doGarbageCollection(name){
+    var u_before = process.uptime()
+    var m_before = process.memoryUsage()
+    memwatch.gc()
+    var m_after = process.memoryUsage()
+    var u_after = process.uptime()
+    console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB after: ${formatMB(m_after.rss)}MB diff: ${formatMB(m_before.rss - m_after.rss)}MB time: ${u_after - u_before}`)
 }
 
 function notifyAllWorkers(msg){
@@ -21,6 +35,7 @@ var loansToServe = {0: extend({},blankResponse)} //start empty.
 var latest = 0
 
 if (cluster.isMaster){ //preps the downloads
+    outputMemUsage("STARTUP")
     console.log("STARTING MASTER")
     var zlib = require('zlib')
     const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
@@ -143,12 +158,14 @@ if (cluster.isMaster){ //preps the downloads
                 //delete the old batches.
                 Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
+                var message = {downloadReady: JSON.stringify({latest, loansToServe, partnersGzip})}
+                notifyAllWorkers(message)
+
                 bigloanChunks = undefined
                 bigDesc = undefined
-                notifyAllWorkers({downloadReady: JSON.stringify({latest, loansToServe, partnersGzip})})
-                outputMemUsage('finishIfReady:before GC')
-                memwatch.gc()
-                outputMemUsage('finishIfReady:after GC')
+                message = undefined
+                prepping = undefined
+                doGarbageCollection("finishIfReady")
             }
         }
 
@@ -324,7 +341,6 @@ else
     //worker receiving message...
     process.on("message", msg => {
         if (msg.downloadReady){
-            outputMemUsage('WORKER NEW STUFF')
             var dl = JSON.parse(msg.downloadReady, (key, value) => {
                 return value && value.type === 'Buffer'
                     ? new Buffer(value.data)
@@ -335,8 +351,7 @@ else
             partnersGzip = dl.partnersGzip
             msg = undefined
             dl = undefined
-            memwatch.gc()
-            outputMemUsage('WORKER NEW STUFF: after GC')
+            doGarbageCollection("Worker new stuff")
         }
     })
 }
