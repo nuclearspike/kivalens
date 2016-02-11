@@ -30,12 +30,14 @@ function notifyAllWorkers(msg){
     Object.keys(cluster.workers).forEach(id => cluster.workers[id].send(msg))
 }
 
-const blankResponse = {loanChunks:'', newestTime: null, descriptions:''}
-var partnersGzip
-var loansToServe = {0: extend({},blankResponse)} //start empty.
-var latest = 0
+var startResponse = {pages: 0, batch: 0}
 
 if (cluster.isMaster){ //preps the downloads
+    const blankResponse = {loanChunks:'', newestTime: null, descriptions:''}
+    var partnersGzipped = false
+    var loansToServe = {0: extend({},blankResponse)} //start empty.
+    var latest = 0
+
     outputMemUsage("STARTUP")
     console.log("STARTING MASTER")
     var zlib = require('zlib')
@@ -44,7 +46,7 @@ if (cluster.isMaster){ //preps the downloads
     //cluster.fork()
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
-    for (var i=0; i< Math.min(numCPUs-1, 2); i++)
+    for (var i=0; i< Math.min(numCPUs-1, 7); i++)
         cluster.fork()
 
     // Listen for dying workers
@@ -55,12 +57,16 @@ if (cluster.isMaster){ //preps the downloads
         cluster.fork()
     })
 
-    hub.on("since", (newestTime, sender, callback) => {
-        var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
+    hub.on("since", (batch, sender, callback) => {
+        if (!loansToServe[batch]) {
+            callback(JSON.stringify([]))
+            return
+        }
+        var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > loansToServe[batch].newestTime)
         if (loans.length > 500) {
             //todo: make a better way to find changes than kl_processed since that gets reset on background resync
             console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
-            cb(JSON.stringify([]))
+            callback(JSON.stringify([]))
             return
         }
         console.log(`INTERESTING: loans/since count: ${loans.length}`)
@@ -153,18 +159,36 @@ if (cluster.isMaster){ //preps the downloads
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
         prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
         var bigloanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-        prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>'')
+        prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>false)
         var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-        prepping.descriptions = Array.range(0, KLPageSplits).select(x=>'')
+        prepping.descriptions = Array.range(0, KLPageSplits).select(x=>false)
+        var fs = require('fs')
+
+        const writeBuffer = function(name, buffer, cb){
+            var fn = `/tmp/${name}.kl`
+            fs.writeFile(fn, buffer, function(err) {
+                if (err) return console.log(err)
+                cb()
+            })
+        }
 
         function finishIfReady(){
-            if (prepping.loanChunks.all(c=>c != '') && prepping.descriptions.all(c=>c != '') && partnersGzip) {
+            if (prepping.loanChunks.all(c=>c) && prepping.descriptions.all(c=>c) && partnersGzipped) {
                 outputMemUsage("Master finishIfReady start")
-                loansToServe[++latest] = prepping //must make a copy.
+                loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
-                Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
+                Object.keys(loansToServe).where(batch => batch < latest - 1).forEach(batch => {
+                    var fs = require('fs')
+                    if (batch > 0)
+                        Array.range(1,KLPageSplits).forEach(page => {
+                            fs.unlink(`/tmp/loans-${batch}-${page}.kl`)
+                            fs.unlink(`/tmp/descriptions-${batch}-${page}.kl`)
+                        })
+                    delete loansToServe[batch]
+                })
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
-                var message = {downloadReady: JSON.stringify({latest, loansToServe, partnersGzip})}
+
+                var message = { downloadReady: JSON.stringify({batch: latest, pages: prepping.loanChunks.length})}
                 doGarbageCollection("Master finishIfReady: before notify")
                 notifyAllWorkers(message)
 
@@ -172,26 +196,34 @@ if (cluster.isMaster){ //preps the downloads
                 bigDesc = undefined
                 message = undefined
                 prepping = undefined
-                doGarbageCollection("Master finishIfReady")
+                doGarbageCollection("Master finishIfReady: after notify")
             }
         }
 
-        zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function (_, result) {
-            partnersGzip = result
-            finishIfReady()
-        })
+        latest++
 
-        bigloanChunks.map((chunk, i) => { //map to give index
-            zlib.gzip(chunk, gzipOpt, function (_, result) {
-                prepping.loanChunks[i] = result
+        zlib.gzip(JSON.stringify(kivaloans.partners_from_kiva), gzipOpt, function (_, result) {
+            writeBuffer('partners', result, x=>{
+                partnersGzipped = true
                 finishIfReady()
             })
         })
 
-        bigDesc.map((chunk, i) => {
+        bigloanChunks.map((chunk, page) => { //map to give index
             zlib.gzip(chunk, gzipOpt, function (_, result) {
-                prepping.descriptions[i] = result
-                finishIfReady()
+                writeBuffer(`loans-${latest}-${page+1}`, result ,x=>{
+                    prepping.loanChunks[page] = true
+                    finishIfReady()
+                })
+            })
+        })
+
+        bigDesc.map((chunk, page) => {
+            zlib.gzip(chunk, gzipOpt, function (_, result) {
+                writeBuffer(`descriptions-${latest}-${page+1}`, result, x=>{
+                    prepping.descriptions[page] = true
+                    finishIfReady()
+                })
             })
         })
     }
@@ -254,6 +286,20 @@ else
         }
     }
 
+    const serveFile = (response, fn) =>{
+        var fs = require('fs')
+        fs.readFile(fn, (err, data)=> {
+            if (err) {
+                console.log(err)
+                response.sendStatus(404)
+            } else {
+                response.type('application/json')
+                response.header('Content-Encoding', 'gzip')
+                response.send(data)
+            }
+        })
+    }
+
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
@@ -269,63 +315,48 @@ else
 
     //API
     app.get('/start', function(request, response){
-        response.json({pages: loansToServe[latest].loanChunks.length, batch: latest})
+        response.json(startResponse)
     })
 
     app.get('/loans/:batch/:page', function(request, response) {
         var batch = parseInt(request.params.batch)
-        if (batch != latest)
-            console.log(`INTERESTING: /loans batch: ${batch} latest: ${latest}`)
-
-        if (!loansToServe[batch]) {
+        if (!batch) {
             response.sendStatus(404)
             return
         }
+        if (batch != startResponse.latest)
+            console.log(`INTERESTING: /loans batch: ${batch} latest: ${startResponse.latest}`)
+
         var page = parseInt(request.params.page)
-        var toServe = loansToServe[batch].loanChunks[page - 1]
-        if (!toServe) {
-            response.sendStatus(404)
-        } else {
-            response.type('application/json')
-            response.header('Content-Encoding', 'gzip')
-            response.send(toServe)
-        }
+
+        serveFile(response,`/tmp/loans-${batch}-${page}.kl`)
     })
 
     app.get('/partners', function(request,response){
-        //don't use 'batch' since it just serves all at once and we want the most recent.
-        response.type('application/json')
-        response.header('Content-Encoding', 'gzip')
-        response.send(partnersGzip)
+        serveFile(response, `/tmp/partners.kl`)
     })
 
     app.get('/loans/:batch/descriptions/:page', function(request,response){
         var batch = parseInt(request.params.batch)
-        if (!loansToServe[batch]) {
+        if (!batch) {
             response.sendStatus(404)
             return
         }
-        if (batch != latest)
-            console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${latest}`)
+        if (batch != startResponse.latest)
+            console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${startResponse.latest}`)
+
         var page = parseInt(request.params.page)
-        var toServe = loansToServe[batch].descriptions[page - 1]
-        if (!toServe) {
-            response.sendStatus(404)
-        } else {
-            response.type('application/json')
-            response.header('Content-Encoding', 'gzip');
-            response.send(toServe)
-        }
+
+        serveFile(response, `/tmp/descriptions-${batch}-${page}.kl`)
     })
 
     app.get('/since/:batch', function(request, response){
         var batch = parseInt(request.params.batch)
-        if (!batch || !loansToServe[batch]){
+        if (!batch) {
             response.sendStatus(404)
             return
         }
-        hub.requestMaster('since', loansToServe[batch].newestTime,
-            result => response.send(result))
+        hub.requestMaster('since', batch, result => response.send(result))
     })
 
     /**
@@ -348,23 +379,19 @@ else
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
+    /**
     const bufferParse = (key, value) => {
         return value && value.type === 'Buffer'
             ? new Buffer(value.data)
             : value;
     }
+    **/
 
     //worker receiving message...
     process.on("message", msg => {
-        doGarbageCollection(`Worker ${cluster.worker.id} before processing`)
         if (msg.downloadReady){
-            var dl = JSON.parse(msg.downloadReady, bufferParse)
-            loansToServe = dl.loansToServe
-            latest = dl.latest
-            partnersGzip = dl.partnersGzip
-            msg = undefined
-            dl = undefined
-            doGarbageCollection(`Worker ${cluster.worker.id} after processing `)
+            startResponse = JSON.parse(msg.downloadReady)
+            doGarbageCollection(`Worker ${cluster.worker.id} downloadReady `)
         }
     })
 }
