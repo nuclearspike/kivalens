@@ -214,17 +214,18 @@ class SemRequest {
         if (useCache && this.requests[key]) {
             var req = this.requests[key]
             if (req) {
-                if ((Date.now() - req.requested) > this.ttlSecs * 1000)
-                    delete this.requests[key]
-                else
-                    return req.promise
+                return req.promise
             }
         }
         //should be some type of cleanup of old cached but dead requests.
 
         let p = semaphored ? this.sem_get(path, params) : this.raw(path, params)
-        if (this.ttlSecs > 0) //not && useCache so that the result can be cached for another request
+        if (this.ttlSecs > 0) { //not && useCache so that the result can be cached for another request
             this.requests[key] = {promise: p, requested: Date.now()}
+            setTimeout(function(){
+                delete this.requests[key]
+            }.bind(this),this.ttlSecs * 1000)
+        }
         return p
     }
 }

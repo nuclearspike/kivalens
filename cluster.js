@@ -165,6 +165,7 @@ if (cluster.isMaster){ //preps the downloads
                 Object.keys(loansToServe).where(key => key < latest - 1).forEach(key => delete loansToServe[key])
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
                 var message = {downloadReady: JSON.stringify({latest, loansToServe, partnersGzip})}
+                doGarbageCollection("Master finishIfReady: before notify")
                 notifyAllWorkers(message)
 
                 bigloanChunks = undefined
@@ -349,7 +350,7 @@ else
 
     //worker receiving message...
     process.on("message", msg => {
-        //doGarbageCollection("Worker new stuff Before processing")
+        doGarbageCollection(`Worker ${cluster.worker.id} before processing`)
         if (msg.downloadReady){
             var dl = JSON.parse(msg.downloadReady, (key, value) => {
                 return value && value.type === 'Buffer'
