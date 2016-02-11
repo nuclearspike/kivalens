@@ -13,7 +13,8 @@ function formatMB(bytes){
 }
 
 function outputMemUsage(event){
-    console.log(event, util.inspect(process.memoryUsage()), `uptime: ${process.uptime()}`)
+    var mem = process.memoryUsage().rss
+    console.log(event, `${formatMB(mem)}MB`, `uptime: ${process.uptime()}`)
 }
 
 function doGarbageCollection(name){
@@ -22,7 +23,7 @@ function doGarbageCollection(name){
     memwatch.gc()
     var m_after = process.memoryUsage()
     var u_after = process.uptime()
-    console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB after: ${formatMB(m_after.rss)}MB diff: ${formatMB(m_before.rss - m_after.rss)}MB time: ${u_after - u_before}`)
+    console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
 }
 
 function notifyAllWorkers(msg){
@@ -91,8 +92,9 @@ if (cluster.isMaster){ //preps the downloads
     //has all loans loaded... have this not do it every 24 hours, but on an interval check the time
     //or when it starts up have it calculate when midnight is and set a timeout.
     setInterval(()=>{
-        console.log('INTERESTING: restart on interval')
-        process.exit(1)
+        doGarbageCollection("MASTER: would have restarted")
+        //console.log('INTERESTING: restart on interval')
+        //process.exit(1)
     }, 24*60*60000)
 
 
@@ -165,7 +167,7 @@ if (cluster.isMaster){ //preps the downloads
                 bigDesc = undefined
                 message = undefined
                 prepping = undefined
-                doGarbageCollection("finishIfReady")
+                doGarbageCollection("Master finishIfReady")
             }
         }
 
@@ -340,6 +342,7 @@ else
 
     //worker receiving message...
     process.on("message", msg => {
+        //doGarbageCollection("Worker new stuff Before processing")
         if (msg.downloadReady){
             var dl = JSON.parse(msg.downloadReady, (key, value) => {
                 return value && value.type === 'Buffer'

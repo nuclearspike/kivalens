@@ -4,7 +4,7 @@
   "description": "KivaLens NodeJS Server",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node cluster.js"
   },
   "dependencies": {
     "cluster-hub": "^0.1.2",
