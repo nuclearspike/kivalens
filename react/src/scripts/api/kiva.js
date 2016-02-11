@@ -18,7 +18,10 @@ const KLPageSplits = 5
 //not robust...
 const getUrl = function(url,parseJSON){
     var d = Deferred()
-    request.get(url,(error,response,body)=>{
+
+    var options = isServer() ? {url}: {url, headers: {"X-Requested-With": "XMLHttpRequest"}}
+
+    request.get(options,(error,response,body)=>{
         if (!error && response.statusCode == 200) {
             if (parseJSON) body = JSON.parse(body)
             d.resolve(body)
@@ -361,7 +364,7 @@ class ResultProcessors {
             loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
         } else {
             if (!loan.description.texts.en)
-                loan.description.texts.en = loan.kls_has_descr ? "Loading..." : "No English description available."
+                loan.description.texts.en = loan.kls_has_descr ? "" : "No English description available."
         }
 
         if (!loan.kls_age) //skip if populated from server since the description will be empty.
