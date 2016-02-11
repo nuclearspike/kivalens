@@ -25,7 +25,12 @@ if (cluster.isMaster){ //preps the downloads
     var zlib = require('zlib')
     const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
-    cluster.fork()
+    //cluster.fork()
+    const numCPUs = require('os').cpus().length
+    console.log("*** CPUs: " + numCPUs)
+    for (var i=0; i<Math.min(numCPUs-1,2); i++)
+        cluster.fork()
+
 
     // Listen for dying workers
     cluster.on('exit', function (worker) {
