@@ -324,8 +324,8 @@ else
             response.sendStatus(404)
             return
         }
-        if (batch != startResponse.latest)
-            console.log(`INTERESTING: /loans batch: ${batch} latest: ${startResponse.latest}`)
+        if (batch != startResponse.batch)
+            console.log(`INTERESTING: /loans batch: ${batch} latest: ${startResponse.batch}`)
 
         var page = parseInt(request.params.page)
 
@@ -342,8 +342,8 @@ else
             response.sendStatus(404)
             return
         }
-        if (batch != startResponse.latest)
-            console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${startResponse.latest}`)
+        if (batch != startResponse.batch)
+            console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${startResponse.batch}`)
 
         var page = parseInt(request.params.page)
 
