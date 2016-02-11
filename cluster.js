@@ -177,7 +177,7 @@ if (cluster.isMaster){ //preps the downloads
                 outputMemUsage("Master finishIfReady start")
                 loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
-                Object.keys(loansToServe).where(batch => batch < latest - 1).forEach(batch => {
+                Object.keys(loansToServe).where(batch => batch < latest - 10).forEach(batch => {
                     var fs = require('fs')
                     if (batch > 0)
                         Array.range(1,KLPageSplits).forEach(page => {
