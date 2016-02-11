@@ -56,7 +56,7 @@ if (cluster.isMaster){ //preps the downloads
         cluster.fork()
     })
 
-    hub.on("filter", (newestTime, sender, callback) => {
+    hub.on("since", (newestTime, sender, callback) => {
         var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > newestTime)
         if (loans.length > 500) {
             //todo: make a better way to find changes than kl_processed since that gets reset on background resync
@@ -66,6 +66,10 @@ if (cluster.isMaster){ //preps the downloads
         }
         console.log(`INTERESTING: loans/since count: ${loans.length}`)
         callback(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
+    })
+
+    hub.on('filter', (crit, sender, callback) => {
+        callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
     })
 
     var k = require('./react/src/scripts/api/kiva')
@@ -319,16 +323,16 @@ else
             response.sendStatus(404)
             return
         }
-        var newestTime = loansToServe[batch].newestTime
-        hub.requestMaster('filter', newestTime, result => response.send(result))
+        hub.requestMaster('since', loansToServe[batch].newestTime,
+            result => response.send(result))
     })
 
     //req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
-    app.get('/loans/filter', function(req, resp){
+    app.get('/loans/filter', function(req, response){
         var crit = req.query.crit
         if (crit)
             crit = JSON.parse(decodeURIComponent(crit))
-        resp.json(kivaloans.filter(crit).select(l=>l.id))
+        hub.requestMaster('filter', crit, result => response.send(result))
     })
 
     //CATCH ALL this will also redirect old image reqs to a page though...
