@@ -33,7 +33,7 @@ if (cluster.isMaster){ //preps the downloads
 
 
     // Listen for dying workers
-    cluster.on('exit', function (worker) {
+    cluster.on('exit', worker => {
         // Replace the dead worker,
         // we're not sentimental
         console.log('Worker %d died :(', worker.id)
@@ -325,7 +325,7 @@ else
     process.on("message", msg => {
         if (msg.downloadReady){
             outputMemUsage('WORKER NEW STUFF')
-            const dl = JSON.parse(msg.downloadReady, (key, value) => {
+            var dl = JSON.parse(msg.downloadReady, (key, value) => {
                 return value && value.type === 'Buffer'
                     ? new Buffer(value.data)
                     : value;
@@ -333,9 +333,10 @@ else
             loansToServe = dl.loansToServe
             latest = dl.latest
             partnersGzip = dl.partnersGzip
+            msg = undefined
+            dl = undefined
             memwatch.gc()
             outputMemUsage('WORKER NEW STUFF: after GC')
-            console.log("received downloadReady message")
         }
     })
 }
