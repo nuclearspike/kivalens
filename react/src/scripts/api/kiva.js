@@ -104,7 +104,10 @@ class Request {
                 def.fail(()=> this.state = sFAILED)
                 Request.get(this.url, this.params)
                     .always(x => sem_one.leave(1))
-                    .done(result => this.raw_result = result) //cannot pass the func itself since it takes params.
+                    .done(result => {
+                        if (result.paging.page == 1)
+                            this.raw_paging = result.paging
+                    }) //cannot pass the func itself since it takes params.
                     .done(def.resolve)
                     .progress(def.notify)
             }
@@ -510,8 +513,8 @@ class PagedKiva {
     }
 
     processFirstResponse(request, response){
-        this.total_object_count = request.raw_result.paging.total
-        var pages_in_result = request.raw_result.paging.pages
+        this.total_object_count = request.raw_paging.total
+        var pages_in_result = request.raw_paging.pages
         var total_pages = (this.options && this.options.max_pages) ? Math.min(this.options.max_pages, pages_in_result) : pages_in_result
         Array.range(2,total_pages-1).forEach(this.setupRequest.bind(this))
         this.processPage(request, response)

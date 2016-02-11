@@ -44,7 +44,7 @@ if (cluster.isMaster){ //preps the downloads
     //cluster.fork()
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
-    for (var i=0; i<Math.min(numCPUs-1,3); i++)
+    for (var i=0; i<Math.min(numCPUs-1,2); i++)
         cluster.fork()
 
     // Listen for dying workers
