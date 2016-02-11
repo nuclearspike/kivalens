@@ -348,21 +348,23 @@ else
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
+    const bufferParse = (key, value) => {
+        return value && value.type === 'Buffer'
+            ? new Buffer(value.data)
+            : value;
+    }
+
     //worker receiving message...
     process.on("message", msg => {
         doGarbageCollection(`Worker ${cluster.worker.id} before processing`)
         if (msg.downloadReady){
-            var dl = JSON.parse(msg.downloadReady, (key, value) => {
-                return value && value.type === 'Buffer'
-                    ? new Buffer(value.data)
-                    : value;
-            })
+            var dl = JSON.parse(msg.downloadReady, bufferParse)
             loansToServe = dl.loansToServe
             latest = dl.latest
             partnersGzip = dl.partnersGzip
             msg = undefined
             dl = undefined
-            doGarbageCollection(`Worker ${cluster.worker.id} new stuff`)
+            doGarbageCollection(`Worker ${cluster.worker.id} after processing `)
         }
     })
 }
