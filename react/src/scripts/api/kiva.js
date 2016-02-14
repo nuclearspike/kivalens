@@ -16,10 +16,14 @@ Array.prototype.percentWhere = function(predicate) {return this.where(predicate)
 const KLPageSplits = 5
 
 //not robust...
-const getUrl = function(url,parseJSON){
+const getUrl = function(url,parseJSON,includeRequestedWith){
     var d = Deferred()
+    if (isServer())
+        includeRequestedWith = false
 
-    var opts = isServer() ? {url, method: 'GET'}: {url, method: 'GET', headers: {"X-Requested-With": "XMLHttpRequest"}}
+    var opts = {url, method: 'GET', headers: {accept: 'application/json'}}
+    if (includeRequestedWith)
+        extend(true, opts, {headers: {"X-Requested-With": "XMLHttpRequest"}})
 
     request.get(opts,(error,response,body)=>{
         if (!error && response.statusCode == 200) {
@@ -151,7 +155,7 @@ class Request {
     static get(path, params){
         params = extend({}, params, {app_id: api_options.app_id})
         return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true).fail(e => cl(e) )
-        //can't use because this is semaphored... they stack up. return req.kiva.api.get(path, params).fail(e => cl(e) )
+        //can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
     }
 
     //semaphored access to kiva api to not overload it. also, it handles collections.
@@ -178,11 +182,12 @@ class Request {
  * semaphored access to a server. this is to replace Request.sem_get
  */
 class SemRequest {
-    constructor(serverAndBasePath,asJSON,defaultParams,ttlSecs){
+    constructor(serverAndBasePath,asJSON,requestedWith,defaultParams,ttlSecs){
         if (asJSON === undefined) asJSON = true
         this.serverAndBasePath = serverAndBasePath
         this.defaultParams = defaultParams
         this.asJSON = asJSON
+        this.requestedWith = requestedWith
         this.ttlSecs = ttlSecs || 0
         this.requests = {}
     }
@@ -203,7 +208,7 @@ class SemRequest {
     raw(path, params){
         params = serialize(extend({}, this.defaultParams, params))
         params = params ? '?' + params : ''
-        return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON)
+        return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON,this.requestedWith)
             .fail(e => cl(e) )
     }
 
@@ -238,7 +243,7 @@ var req = {}
 var kivaBase, gdocs
 if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
-    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,{},0)
+    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,false,{},0)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
 } else {
@@ -247,9 +252,9 @@ if (!isServer()) {
 }
 
 req.kiva = {
-    api: new SemRequest('http://api.kivaws.org/v1/',true,{app_id: 'org.kiva.kivalens'},5),
-    page: new SemRequest(`${kivaBase}`,false,{},5*60),
-    ajax: new SemRequest(`${kivaBase}ajax/`,true,{},5*60)
+    api: new SemRequest('http://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},5),
+    page: new SemRequest(`${kivaBase}`,false,!isServer(),{},5*60),
+    ajax: new SemRequest(`${kivaBase}ajax/`,true,!isServer(),{},5*60)
 }
 
 //max of 100, not enforced in this call.
