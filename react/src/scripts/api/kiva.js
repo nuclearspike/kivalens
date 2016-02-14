@@ -21,8 +21,8 @@ const getUrl = function(url,parseJSON,includeRequestedWith){
     if (isServer())
         includeRequestedWith = false
 
-    var opts = {url, method: 'GET', headers: {accept: 'application/json'}}
-    if (includeRequestedWith)
+    var opts = {url, method: 'GET', headers: {Accept: 'application/json,*/*'}}
+    if (includeRequestedWith) //only used when doing proxy calls to catch on server so KL cannot be used to display Kiva pages on KL domain.
         extend(true, opts, {headers: {"X-Requested-With": "XMLHttpRequest"}})
 
     request.get(opts,(error,response,body)=>{
