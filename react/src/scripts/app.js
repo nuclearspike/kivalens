@@ -76,7 +76,7 @@ var history = createHistory({queryKey: false})
 
 domready.done(()=>{
     if (document.getElementById("react-app")){
-        ReactDOM.render((<Router history={history}>
+        ReactDOM.render((<Router onUpdate={() => window.scrollTo(0, 0)} history={history}>
             <Route path="/portfolio" component={SnowStack}/>
             <Route path="/" component={App} >
                 <Route path="search" component={Search}>

@@ -290,9 +290,9 @@ else
         }
     }
 
-    const serveFile = (response, fn) =>{
+    const serveGzipFile = (response, fn) =>{
         var fs = require('fs')
-        fs.readFile(fn, (err, data)=> {
+        fs.readFile(`/tmp/${fn}.kl`, (err, data)=> {
             if (err) {
                 console.log(err)
                 response.sendStatus(404)
@@ -334,11 +334,11 @@ else
 
         var page = parseInt(request.params.page)
 
-        serveFile(response,`/tmp/loans-${batch}-${page}.kl`)
+        serveGzipFile(response,`loans-${batch}-${page}`)
     })
 
     app.get('/partners', function(request,response){
-        serveFile(response, `/tmp/partners.kl`)
+        serveGzipFile(response, `partners`)
     })
 
     app.get('/loans/:batch/descriptions/:page', function(request,response){
@@ -352,7 +352,7 @@ else
 
         var page = parseInt(request.params.page)
 
-        serveFile(response, `/tmp/descriptions-${batch}-${page}.kl`)
+        serveGzipFile(response, `descriptions-${batch}-${page}`)
     })
 
     app.get('/since/:batch', function(request, response){
