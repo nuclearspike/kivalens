@@ -270,9 +270,7 @@ else
     //TODO: RESTRICT TO SAME SERVER?
     const proxyHandler = {
         filter: req => req.xhr, //only proxy xhr requests
-        forwardPath: function(req, res) {
-            return require('url').parse(req.url).path;
-        },
+        forwardPath: req => require('url').parse(req.url).path,
         intercept: function(rsp, data, req, res, callback){
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -285,6 +283,17 @@ else
                 callback(null,data)
             }
         }
+    }
+
+    const streamGzipFile = (response, fn) =>{
+        fn = `/tmp/${fn}.kl`
+        var fs = require('fs')
+        var stat = fs.statSync(fn);
+        var rs = fs.createReadStream(fn)
+        response.type('application/json')
+        response.header('Content-Encoding', 'gzip')
+        response.header('Content-Length', stat.size)
+        rs.pipe(response)
     }
 
     const serveGzipFile = (response, fn) =>{
@@ -319,7 +328,6 @@ else
         response.json(startResponse)
     })
 
-
     app.get('/loans/:batch/:page', function(request, response) {
         var batch = parseInt(request.params.batch)
         if (!batch) {
@@ -331,10 +339,11 @@ else
 
         var page = parseInt(request.params.page)
 
-        serveGzipFile(response,`loans-${batch}-${page}`)
+        streamGzipFile(response,`loans-${batch}-${page}`)
     })
 
     app.get('/partners', function(request,response){
+        //not using streamGzipFile because this method send tag down to let client know they already have the current one.
         serveGzipFile(response, `partners`)
     })
 
@@ -349,7 +358,7 @@ else
 
         var page = parseInt(request.params.page)
 
-        serveGzipFile(response, `descriptions-${batch}-${page}`)
+        streamGzipFile(response, `descriptions-${batch}-${page}`)
     })
 
     app.get('/since/:batch', function(request, response){
@@ -381,7 +390,7 @@ else
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
-    /**
+    /** JSON Parser! COOL!
     const bufferParse = (key, value) => {
         return value && value.type === 'Buffer'
             ? new Buffer(value.data)
