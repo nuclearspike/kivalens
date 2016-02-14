@@ -269,11 +269,8 @@ else
 
     //TODO: RESTRICT TO SAME SERVER?
     const proxyHandler = {
+        filter: req => req.xhr, //only proxy xhr requests
         forwardPath: function(req, res) {
-            if (!req.xhr) {
-                res.sendStatus(404)
-                return
-            }
             return require('url').parse(req.url).path;
         },
         intercept: function(rsp, data, req, res, callback){
