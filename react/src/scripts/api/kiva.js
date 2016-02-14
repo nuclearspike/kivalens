@@ -19,9 +19,9 @@ const KLPageSplits = 5
 const getUrl = function(url,parseJSON){
     var d = Deferred()
 
-    var options = isServer() ? {url}: {url, method: 'GET', headers: {"X-Requested-With": "XMLHttpRequest"}}
+    var opts = isServer() ? {url, method: 'GET'}: {url, method: 'GET', headers: {"X-Requested-With": "XMLHttpRequest"}}
 
-    request.get(options,(error,response,body)=>{
+    request.get(opts,(error,response,body)=>{
         if (!error && response.statusCode == 200) {
             if (parseJSON) body = JSON.parse(body)
             d.resolve(body)
