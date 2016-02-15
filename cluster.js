@@ -1,11 +1,36 @@
 "use strict";
 
+/**
+ *
+ * CLUSTER
+ *
+ * the file contains code for both the master as well as the worker processes.
+ * the master does all of the downloading from kiva, the workers do all of the servicing
+ * of the requests.
+ *
+ * The master has the socket open to kiva for listening to changes to loans and it updates
+ * and adds new ones accordingly. Once a minute if anything has changed, it packages all the loans
+ * up into gzipped files of stringified json, ready to be streamed to the client. When the clients
+ * download a batch of files, it also requests all changes since the batch was produced to guaratee
+ * freshness.
+ *
+ * memwatch is very useful to run the garbage collection after actions that are known to shift
+ * around a lot of objects.
+ *
+ * cluster-hub was found to be the best way to call code on the main process and have a callback
+ * to receive the data to send it back to the client. I looked at a number of options and either
+ * the callbacks didn't work at all or it seemed to be lossy in it's abilities.
+ *
+ */
+
 var Hub = require('cluster-hub')
 var hub = new Hub()
 const cluster = require('cluster')
 var memwatch = require('memwatch-next')
 var extend = require('extend')
 const util = require('util')
+var git = require('git-rev-sync');
+var shortGit = git.short()
 
 const mb = 1024 * 1024
 function formatMB(bytes){
@@ -51,15 +76,16 @@ if (cluster.isMaster){ //preps the downloads
 
     // Listen for dying workers
     cluster.on('exit', worker => {
-        // Replace the dead worker,
-        // we're not sentimental
-        console.log('Worker %d died :(', worker.id)
+        console.log('INTERESTING: Worker %d died :(', worker.id)
         cluster.fork()
     })
 
+    /**
+     * get the updates since given batch number
+     */
     hub.on("since", (batch, sender, callback) => {
         if (!loansToServe[batch]) {
-            callback(JSON.stringify([]))
+            callback('[]')
             return
         }
         var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > loansToServe[batch].newestTime)
@@ -75,11 +101,18 @@ if (cluster.isMaster){ //preps the downloads
 
     var k = require('./react/src/scripts/api/kiva')
 
+    /**
+     * filter takes a client crit object and returns the ids that match.
+     */
     hub.on('filter', (crit, sender, callback) => {
         callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
     })
 
+    /**
+     * get all of the fundraising ids for a given lender.
+     */
     hub.on('lenderloans', (lenderid, sender, callback) => {
+        console.log("INTERESTING: lenderloans", lenderid)
         new k.LenderFundraisingLoans(lenderid).ids()
             .done(ids => callback(JSON.stringify(ids)))
             .fail(x=>callback('[]'))
@@ -267,7 +300,8 @@ else
     var proxy = require('express-http-proxy')
     var helmet = require('helmet')
     var compression = require('compression')
-    var staticFiles = require('serve-static')
+    var serveStatic = require('serve-static')
+    var mime = require('mime-types')
 
     // compress all requests
     app.use(compression())
@@ -319,22 +353,47 @@ else
     }
 
     app.set('port', (process.env.PORT || 3000))
+    app.set('view engine', 'ejs');
 
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
     //app.use(express.static(__dirname + '/public'))
-    app.use(staticFiles(__dirname + '/public'))
 
+    var setCustomCacheControl = function(res, path) {
+        console.log('setHeaders:', path, mime.lookup(path))
+        var maxAge = 86400
+        switch (mime.lookup(path)){
+            case 'image/png': maxAge = 31536000
+                break
+            case 'text/html': maxAge = 0
+                break
+            case 'application/javascript': maxAge = 31536000
+                break
+        }
+        res.setHeader('Cache-Control', `public, max-age=${maxAge}`)
+    }
 
-    /**var staticCache = require('express-static-cache')
+    app.get('/', function(req, res) {
+        res.render('pages/index',{shortGit})
+    })
 
-    app.use(staticCache(path.join(__dirname, 'public')), {
-        maxAge: 365 * 24 * 60 * 60
-    })**/
+    app.get('/javascript/:gitrev/:file', (req,res)=>{
+        var fn = __dirname + '/public/javascript/' + req.params.file
+        var fs = require('fs')
+        var stat = fs.statSync(fn);
+        var rs = fs.createReadStream(fn)
+        res.type('application/javascript')
+        res.header('Cache-Control', 'public, max-age=31536000')
+        res.header('Content-Length', stat.size)
+        rs.pipe(res)
+    })
 
-    //app.use(express.static(__dirname + '/public'))
+    app.use(serveStatic(__dirname + '/public', {
+        maxAge: '1d',
+        setHeaders: setCustomCacheControl
+    }))
 
     //old site bad urls.
     app.get('/feed.svc/rss/*', function(request, response){

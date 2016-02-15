@@ -1,5 +1,10 @@
 "use strict";
 
+/**
+ * THIS IS NO LONGER USED. IT HAS ALL BEEN MOVED TO CLUSTER.JS
+ * THIS FILE WILL EVENTUALLY DISAPPEAR.
+ */
+
 var express = require('express')
 var app = express()
 var proxy = require('express-http-proxy')
