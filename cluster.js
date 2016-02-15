@@ -91,18 +91,17 @@ if (cluster.isMaster){ //preps the downloads
         var css = [{name:'application',hash},{name:'snowstack',hash}]
         var js = [{name:'build',hash},{name:'vendor',hash}]
         var todo = css.length + js.length
-        const renderIndex = () => {
-            if (--todo) return
+        const renderIndex = (bypassCheck) => {
+            if (!bypassCheck && --todo) return
             var index = ejs.render(buffer.toString(), {js, css}, {})
             fs.writeFile(__dirname + '/public/index.html', index, x => {
                 console.log("## rendered index!")
             })
         }
-
+        renderIndex(true) //gets it rendered with a random hash just to keep the server serving.
         css.forEach(fo => {
             hashFile(__dirname + '/public/stylesheets/' + fo.name + '.min.css',fo,renderIndex)
         })
-
         js.forEach(fo => {
             hashFile(__dirname + '/public/javascript/' + fo.name + '.js',fo,renderIndex)
         })
