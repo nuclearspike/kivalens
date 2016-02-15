@@ -72,7 +72,20 @@ if (cluster.isMaster){ //preps the downloads
     var latest = 0
 
     fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
-        var index = ejs.render(buffer.toString(), {release}, {})
+        var css = [{name:'application'},{name:'snowstack'}]
+        var js = [{name:'build'},{name:'vendor'}]
+
+        css.forEach(fn => {
+            var stat = fs.statSync(__dirname + '/public/stylesheets/' + fn.name + '.min.css')
+            fn.date = new Date(stat.mtime).getTime()
+        })
+
+        js.forEach(fn => {
+            var stat = fs.statSync(__dirname + '/public/javascript/' + fn.name + '.js')
+            fn.date = new Date(stat.mtime).getTime()
+        })
+
+        var index = ejs.render(buffer.toString(), {js, css, release}, {})
         fs.writeFile(__dirname + '/public/index.html', index, x => {
             console.log("## rendered index!")
         })
@@ -383,17 +396,28 @@ else
                 break
             case 'text/html': maxAge = 0
                 break
-            case 'application/javascript': maxAge = 31536000
+            case 'application/javascript','text/css' : maxAge = 31536000
                 break
         }
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`)
     }
 
+    //there's gotta be a smoother/faster way?
     app.get('/javascript/:release/:file', (req,res)=>{
         var fn = __dirname + '/public/javascript/' + req.params.file
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
         res.type('application/javascript')
+        res.header('Cache-Control', 'public, max-age=31536000')
+        res.header('Content-Length', stat.size)
+        rs.pipe(res)
+    })
+
+    app.get('/stylesheets/:release/:file', (req,res)=>{
+        var fn = __dirname + '/public/stylesheets/' + req.params.file
+        var stat = fs.statSync(fn);
+        var rs = fs.createReadStream(fn)
+        res.type('text/css')
         res.header('Cache-Control', 'public, max-age=31536000')
         res.header('Content-Length', stat.size)
         rs.pipe(res)
