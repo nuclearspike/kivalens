@@ -69,16 +69,6 @@ function compile(watch) {
     }
     rebundle()
 
-    var fs = require('fs')
-
-    var setAppJsonRev = function () {
-        var config = JSON.parse(fs.readFileSync('../app.json', 'utf8'))
-        config.rev = Math.round(Math.random() * 100000000)
-        fs.writeFileSync('../app.json', JSON.stringify(config, 2))
-    }
-
-    setAppJsonRev()
-
     gulp.src('./src/scripts/vendor/*.min.js')
         .pipe(sourcemaps.init())
         .pipe(concat('vendor.js'))

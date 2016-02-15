@@ -388,10 +388,10 @@ else
         })
     }
 
-    const serveHashedAsset = (res, fn) => {
+    const serveHashedAsset = (res, fn, mimetype) => {
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
-        res.type('application/javascript')
+        res.type(mimetype)
         res.header('Cache-Control', 'public, max-age=31536000')
         res.header('Content-Length', stat.size)
         rs.pipe(res)
@@ -422,11 +422,11 @@ else
 
     //there's gotta be a smoother/faster way?
     app.get('/javascript/:release/:file', (req,res)=>{
-        serveHashedAsset(res, __dirname + '/public/javascript/' + req.params.file)
+        serveHashedAsset(res, __dirname + '/public/javascript/' + req.params.file, 'application/javascript')
     })
 
     app.get('/stylesheets/:release/:file', (req,res)=>{
-        serveHashedAsset(res, __dirname + '/public/stylesheets/' + req.params.file)
+        serveHashedAsset(res, __dirname + '/public/stylesheets/' + req.params.file, 'text/css')
     })
 
     app.use(serveStatic(__dirname + '/public', {
