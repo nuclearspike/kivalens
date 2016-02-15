@@ -382,8 +382,8 @@ const SliderRow = React.createClass({
     pickValue(crit_facet, defaultValue){
         return (crit_facet === null || crit_facet === undefined) ? defaultValue : crit_facet
     },
-    shouldComponentUpdateOLD(np,{d_min,d_max}){
-        return (d_min != this.state.d_min || d_max != this.state.d_max)
+    shouldComponentUpdateOld({cursorMin,cursorMax},{d_min,d_max}){
+        return (d_min != this.state.d_min || d_max != this.state.d_max || cursorMin != this.props.cursorMin || cursorMax != this.props.cursorMax)
     },
     componentWillReceiveProps({cursorMin,cursorMax}){
         if ((this.props.cursorMin.value !== cursorMin.value) || (this.props.cursorMax.value !== cursorMax.value)) {

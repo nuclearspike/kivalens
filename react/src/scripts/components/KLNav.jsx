@@ -14,6 +14,9 @@ const KLNav = React.createClass({
         this.listenTo(a.loans.basket.changed, this.basketChange)
         this.basketChange()
     },
+    shouldComponentUpdate(p,{basket_count}){
+        return (basket_count != this.state.basket_count)
+    },
     basketChange(){
         this.setState({basket_count: s.loans.syncBasketCount()})
     },
