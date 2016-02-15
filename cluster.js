@@ -404,6 +404,10 @@ else
         response.sendStatus(404)
     })
 
+    app.get('/Redirect.aspx*', function(request, response){
+        response.sendStatus(404)
+    })
+
     //API
     app.get('/start', function(request, res){
         res.header('Cache-Control', 'public, max-age=0')
@@ -469,6 +473,7 @@ else
 
     //CATCH ALL this will also redirect old image reqs to a page though...
     app.get('/*', function(request, response) {
+        //i could test the mime type of the path?
         response.redirect("/#/search")
     })
 
