@@ -25,12 +25,19 @@
 
 var Hub = require('cluster-hub')
 var hub = new Hub()
-const cluster = require('cluster')
+var cluster = require('cluster')
 var memwatch = require('memwatch-next')
 var extend = require('extend')
-const util = require('util')
-//var git = require('git-rev-sync')
-var shortGit = 'testing' //git.short()
+var util = require('util')
+var release = 'testing'
+var fs = require('fs')
+
+var getAppJson = function () {
+    return JSON.parse(fs.readFileSync('./app.json', 'utf8'))
+}
+
+var appConfig = getAppJson()
+release = appConfig.rev //I could also just use the date of the file!
 
 const mb = 1024 * 1024
 function formatMB(bytes){
@@ -202,7 +209,6 @@ if (cluster.isMaster){ //preps the downloads
         prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>false)
         var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         prepping.descriptions = Array.range(0, KLPageSplits).select(x=>false)
-        var fs = require('fs')
 
         const writeBuffer = function(name, buffer, cb){
             var fn = `/tmp/${name}.kl`
@@ -218,7 +224,6 @@ if (cluster.isMaster){ //preps the downloads
                 loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
                 Object.keys(loansToServe).where(batch => batch < latest - 10).forEach(batch => {
-                    var fs = require('fs')
                     if (batch > 0)
                         Array.range(1,KLPageSplits).forEach(page => {
                             fs.unlink(`/tmp/loans-${batch}-${page}.kl`)
@@ -329,7 +334,6 @@ else
 
     const streamGzipFile = (response, fn) =>{
         fn = `/tmp/${fn}.kl`
-        var fs = require('fs')
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
         response.type('application/json')
@@ -339,7 +343,6 @@ else
     }
 
     const serveGzipFile = (response, fn) =>{
-        var fs = require('fs')
         fs.readFile(`/tmp/${fn}.kl`, (err, data)=> {
             if (err) {
                 console.log(err)
@@ -376,12 +379,11 @@ else
     }
 
     app.get('/', function(req, res) {
-        res.render('pages/index',{shortGit})
+        res.render('pages/index',{release})
     })
 
     app.get('/javascript/:gitrev/:file', (req,res)=>{
         var fn = __dirname + '/public/javascript/' + req.params.file
-        var fs = require('fs')
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
         res.type('application/javascript')
