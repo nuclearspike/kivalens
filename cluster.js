@@ -65,6 +65,21 @@ function notifyAllWorkers(msg){
 
 var startResponse = {pages: 0, batch: 0}
 
+function hashFile(fn, fo, cb) {
+    // the file you want to get the hash
+    var crypto = require('crypto')
+    var fd = fs.createReadStream(fn)
+    var hash = crypto.createHash('sha1')
+    hash.setEncoding('hex')
+
+    fd.on('end', function () {
+        hash.end()
+        fo.hash = hash.read()
+        cb() // the desired sha1sum
+    })
+    fd.pipe(hash)
+}
+
 if (cluster.isMaster){ //preps the downloads
     const blankResponse = {loanChunks:'', newestTime:null, descriptions:''}
     var partnersGzipped = false
@@ -72,22 +87,24 @@ if (cluster.isMaster){ //preps the downloads
     var latest = 0
 
     fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
-        var css = [{name:'application'},{name:'snowstack'}]
-        var js = [{name:'build'},{name:'vendor'}]
+        var hash = Math.round(Math.random()  * 100000000)
+        var css = [{name:'application',hash},{name:'snowstack',hash}]
+        var js = [{name:'build',hash},{name:'vendor',hash}]
+        var todo = css.length + js.length
+        const renderIndex = () => {
+            if (--todo) return
+            var index = ejs.render(buffer.toString(), {js, css}, {})
+            fs.writeFile(__dirname + '/public/index.html', index, x => {
+                console.log("## rendered index!")
+            })
+        }
 
-        css.forEach(fn => {
-            var stat = fs.statSync(__dirname + '/public/stylesheets/' + fn.name + '.min.css')
-            fn.date = new Date(stat.mtime).getTime()
+        css.forEach(fo => {
+            hashFile(__dirname + '/public/stylesheets/' + fo.name + '.min.css',fo,renderIndex)
         })
 
-        js.forEach(fn => {
-            var stat = fs.statSync(__dirname + '/public/javascript/' + fn.name + '.js')
-            fn.date = new Date(stat.mtime).getTime()
-        })
-
-        var index = ejs.render(buffer.toString(), {js, css, release}, {})
-        fs.writeFile(__dirname + '/public/index.html', index, x => {
-            console.log("## rendered index!")
+        js.forEach(fo => {
+            hashFile(__dirname + '/public/javascript/' + fo.name + '.js',fo,renderIndex)
         })
     })
 
