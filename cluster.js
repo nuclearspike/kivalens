@@ -322,7 +322,8 @@ else
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
-    app.use(staticFiles(__dirname + '/public'))
+    app.use(express.static(__dirname + '/public'))
+    //app.use(staticFiles(__dirname + '/public'))
 
 
     /**var staticCache = require('express-static-cache')
