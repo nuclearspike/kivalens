@@ -80,7 +80,9 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('lenderloans', (lenderid, sender, callback) => {
-        new k.LenderFundraisingLoans(lenderid).ids().done(ids => callback(JSON.stringify(ids)))
+        new k.LenderFundraisingLoans(lenderid).ids()
+            .done(ids => callback(JSON.stringify(ids)))
+            .fail(x=>callback('[]'))
     })
 
     const KLPageSplits = k.KLPageSplits
@@ -322,8 +324,8 @@ else
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
-    app.use(express.static(__dirname + '/public'))
-    //app.use(staticFiles(__dirname + '/public'))
+    //app.use(express.static(__dirname + '/public'))
+    app.use(staticFiles(__dirname + '/public'))
 
 
     /**var staticCache = require('express-static-cache')
