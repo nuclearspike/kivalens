@@ -84,14 +84,13 @@ if (cluster.isMaster){ //preps the downloads
         var css = [{name:'application',hash},{name:'snowstack',hash}]
         var js = [{name:'build',hash},{name:'vendor',hash}]
         var todo = css.length + js.length
-        const renderIndex = (bypassCheck) => {
-            if (!bypassCheck && --todo) return
+        const renderIndex = () => {
+            if (--todo) return //if it has anything left to do, leave.
             var index = ejs.render(buffer.toString(), {js, css}, {})
             fs.writeFile(__dirname + '/public/index.html', index, x => {
                 console.log("## rendered index!")
             })
         }
-        renderIndex(true) //gets it rendered with a random hash just to keep the server serving.
         css.forEach(fo => {
             hashFile(__dirname + '/public/stylesheets/' + fo.name + '.min.css',fo,renderIndex)
         })
@@ -389,6 +388,16 @@ else
         })
     }
 
+    const serveHashedAsset = (res, fn) => {
+        var stat = fs.statSync(fn);
+        var rs = fs.createReadStream(fn)
+        res.type('application/javascript')
+        res.header('Cache-Control', 'public, max-age=31536000')
+        res.header('Content-Length', stat.size)
+        rs.pipe(res)
+    }
+
+
     app.set('port', (process.env.PORT || 3000))
 
     //PASSTHROUGH
@@ -413,23 +422,11 @@ else
 
     //there's gotta be a smoother/faster way?
     app.get('/javascript/:release/:file', (req,res)=>{
-        var fn = __dirname + '/public/javascript/' + req.params.file
-        var stat = fs.statSync(fn);
-        var rs = fs.createReadStream(fn)
-        res.type('application/javascript')
-        res.header('Cache-Control', 'public, max-age=31536000')
-        res.header('Content-Length', stat.size)
-        rs.pipe(res)
+        serveHashedAsset(res, __dirname + '/public/javascript/' + req.params.file)
     })
 
     app.get('/stylesheets/:release/:file', (req,res)=>{
-        var fn = __dirname + '/public/stylesheets/' + req.params.file
-        var stat = fs.statSync(fn);
-        var rs = fs.createReadStream(fn)
-        res.type('text/css')
-        res.header('Cache-Control', 'public, max-age=31536000')
-        res.header('Content-Length', stat.size)
-        rs.pipe(res)
+        serveHashedAsset(res, __dirname + '/public/stylesheets/' + req.params.file)
     })
 
     app.use(serveStatic(__dirname + '/public', {
