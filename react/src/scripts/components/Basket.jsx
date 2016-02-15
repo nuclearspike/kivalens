@@ -48,8 +48,6 @@ const Basket = React.createClass({
         if (this.state.basket_count > 0) {
             this.setState({showGoodbye: true})
 
-            kivaloans.saveLoansToLLSAfterDelay()
-
             window.rga.event({category: 'basket', action: 'basket:transfer', value: this.state.amount_sum})
 
             window.rga.modalview('/baskettransfer');

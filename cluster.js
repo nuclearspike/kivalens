@@ -73,11 +73,16 @@ if (cluster.isMaster){ //preps the downloads
         callback(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
     })
 
+    var k = require('./react/src/scripts/api/kiva')
+
     hub.on('filter', (crit, sender, callback) => {
         callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
     })
 
-    var k = require('./react/src/scripts/api/kiva')
+    hub.on('lenderloans', (lenderid, sender, callback) => {
+        new k.LenderFundraisingLoans(lenderid).ids().done(ids => callback(JSON.stringify(ids)))
+    })
+
     const KLPageSplits = k.KLPageSplits
     k.setAPIOptions({max_concurrent:20})
 
@@ -333,25 +338,6 @@ else
         response.sendStatus(404)
     })
 
-    //for testing...
-    /**
-    var index
-    app.get('/index', (req, res) => {
-        res.type('text/html')
-        if (!index) {
-            var fs = require('fs')
-            fs.readFile(__dirname + '/public/index.html', (err,data)=>{
-                console.log('read index from disk')
-                index = data
-                res.send(index)
-            })
-        } else {
-            console.log('read index from cache')
-            res.send(index)
-        }
-    })
-    **/
-
     //API
     app.get('/start', function(request, response){
         response.json(startResponse)
@@ -397,6 +383,10 @@ else
             return
         }
         hub.requestMaster('since', batch, result => response.send(result))
+    })
+
+    app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
+        hub.requestMaster('lenderloans', req.params.lender, result => res.send(result))
     })
 
     /**

@@ -1051,7 +1051,6 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
  * I'd like to move toward this structure... not a class but just an anon object in a separate npm package.
  *
  * kiva.settings.set({updateInterval:100000,_getter:()=>lsj.get("Options")})
- * kiva.settings.get().useLargeLocalStorage
  *
  * kiva.api.get('partners').done(Array<Object>...
  * kiva.www.ajax.get('getGraphData',params).done(variant...
@@ -1085,7 +1084,6 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
  * kiva.loans.all: Array<Loan>
  * kiva.loans.ready: boolean
  * kiva.loans.where( //just all.where( needed?
- * kiva.loans.saveToLLS() / loadFromLLS()
  *
  * kiva.loan.get(id): Loan
  * kiva.loan.exists(id): bool //only tells if it's locally here, not exist in kiva db
@@ -1134,41 +1132,9 @@ class Loans {
         if (this.update_interval > 0)
            this.update_interval_handle = setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
-    saveLoansToLLS(){
-        if (isServer()) return Deferred().reject()
-        var def = Deferred()
-        var that = this
-        waitFor(()=>typeof LargeLocalStorage == 'function').done(r=> {
-            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
-            var toStore = {
-                saved: Date.now(),
-                loans: ResultProcessors.unprocessLoans(that.loans_from_kiva.where(l=>l.status == 'fundraising'))
-            }
-            llstorage.initialized.then(g => {
-                llstorage.setContents('loans', JSON.stringify(toStore)).then(r => def.resolve())
-            })
-        })
-        return def
-    }
-    getLoansFromLLS(){
-        if (isServer()) return Deferred().reject()
-        var def = Deferred()
-        // Create a 125MB key-value store
-        if (typeof LargeLocalStorage == 'function') {
-            window.llstorage = window.llstorage || new LargeLocalStorage({size: 125 * 1024 * 1024, name: 'KivaLens'})
-            llstorage.initialized.done(x => {
-                def.notify({readyToRead: true}) //?
-                llstorage.getContents('loans').done(response => {
-                    var r = JSON.parse(response)
-                    def.resolve(r.loans, r.saved)
-                })
-            })
-        }
-        return def
-    }
     endDownloadTimer(name){
         if (!isServer())
-            global.rga.event({category: 'timer', action: name, value: ((Date.now() - this.startDownload.getTime()) / 1000).toFixed(2)})
+            global.rga.event({category: 'timer', action: name, value: parseFloat(((Date.now() - this.startDownload.getTime()) / 1000).toFixed(2))})
     }
     init(crit, getOptions, api_options){
         //fetch partners.
@@ -1187,7 +1153,7 @@ class Loans {
         this.loan_download = Deferred()
         this.loans_processed = Deferred()
 
-        //this only is used for non-kiva load sources (KL and LLS)... this should be standardized
+        //this only is used for KL source.
         this.loan_download
             .fail(e=>this.notify({failed: e}))
             .then((loans,notify,waitBackgroundResync)=>{
@@ -1236,7 +1202,6 @@ class Loans {
                     } else {
                         this.endDownloadTimer('kivaDownloadAll')
                         this.loans_processed.resolve()
-                        this.saveLoansToLLSAfterDelay()
                     }
                 })
         }.bind(this)
@@ -1324,21 +1289,7 @@ class Loans {
                 clearInterval(this.startGettingLoansHandle)
                 return
             }
-            ///todo: won't have partners!!
-            if (false && this.options.useLargeLocalStorage) {
-                wait(20).done(r => {
-                    this.getLoansFromLLS().done((loans, saved)=> {
-                        if (saved && (Date.now() - new Date(saved) < (6 * 60 * 60 * 1000))) {
-                            hasStarted = true
-                            this.loan_download.resolve(loans, true)
-                        } else {
-                            loadFromSource()
-                        }
-                    })
-                })
-            } else {
-                loadFromSource()
-            }
+            loadFromSource()
         }.bind(this)
         setTimeout(startGettingLoans, 10)
         this.startGettingLoansHandle = setInterval(startGettingLoans, 10000)
@@ -1726,16 +1677,24 @@ class Loans {
         this.lender_loans_message = `Loading fundraising loans for ${this.lender_id} (Please wait...)`
         this.lender_loans_state = llDownloading
         this.notify({lender_loans_event: 'started'})
-        var kl = this
-        wait(500).done(x => {
-            new LenderFundraisingLoans(this.lender_id, true).ids().done(ids => {
-                kl.lender_loans = ids
-                kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
-                kl.lender_loans_state = llComplete
-                kl.notify({lender_loans_event: 'done'})
-                cl('LENDER LOAN IDS:', ids)
+
+        const processIds = function(ids){
+            this.lender_loans = ids
+            this.lender_loans_message = `Fundraising loans for ${lender_id} found: ${ids.length}`
+            this.lender_loans_state = llComplete
+            this.notify({lender_loans_event: 'done'})
+            cl('LENDER LOAN IDS:', ids)
+        }.bind(this)
+
+        if (this.options.loansFromKiva) {
+            wait(500).done(x => {
+                new LenderFundraisingLoans(lender_id).ids().done(processIds)
             })
-        })
+        } else {
+            wait(500).done(x => {
+                req.kl.get(`api/lender/${lender_id}/loans/fundraising`).done(processIds)
+            })
+        }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
         //since this object was what was already in our arrays and index, then it will just update, return can be ignored.
@@ -1820,14 +1779,9 @@ class Loans {
                 this.secondary_load = ''
                 this.loans_processed.resolve()
                 this.notify({secondary_load: 'complete'})
-                this.saveLoansToLLSAfterDelay()
             }).done(def.resolve)
         })
         return def
-    }
-    saveLoansToLLSAfterDelay(){
-        if (this.getOptions().useLargeLocalStorage)
-            wait(20).done(this.saveLoansToLLS.bind(this))
     }
     backgroundResync(notify){
         this.background_resync++
@@ -1864,7 +1818,6 @@ class Loans {
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
             if (notify) this.notify({backgroundResync:{state: 'done'}})
-            that.saveLoansToLLSAfterDelay()
         })
     }
 }

@@ -6,7 +6,6 @@ var autoprefixer = require('gulp-autoprefixer')
 var uglify = require('gulp-uglify')
 var minifycss = require('gulp-minify-css')
 var sass = require('gulp-sass')
-var browserSync = require('browser-sync')
 var browserify = require('browserify')
 var watchify = require('watchify')
 var notifier = require('node-notifier')
@@ -14,21 +13,10 @@ var babelify = require('babelify')
 var sourcemaps = require('gulp-sourcemaps')
 var source = require('vinyl-source-stream')
 var buffer = require('vinyl-buffer')
-var gutil = require( 'gulp-util' )
-var ftp = require( 'vinyl-ftp' )
-var argv = require('yargs').argv,
-    gulpif = require('gulp-if')
+var gulpif = require('gulp-if'),
+    concat = require("gulp-concat")
 
 var production = false; //todo: find what node production environment settings do.
-
-
-gulp.task('browser-sync', function() {
-  browserSync({server: {baseDir: "./"}})
-})
-
-gulp.task('bs-reload', function () {
-  browserSync.reload()
-})
 
 gulp.task('styles', function(){
   notifier.notify({title: 'Gulp', message: 'Styles changed'})
@@ -45,7 +33,6 @@ gulp.task('styles', function(){
     .pipe(rename({suffix: '.min'}))
     .pipe(gulpif(production, minifycss())) //skip minification, it still goes into the .min unminified if non-prod
     .pipe(gulp.dest('../public/stylesheets/'))
-    .pipe(browserSync.reload({stream:true}))
 })
 
 function compile(watch) {
@@ -67,7 +54,6 @@ function compile(watch) {
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('./'))
             .pipe(gulp.dest('../public/javascript'))
-            .pipe(browserSync.reload({stream:true}))
     }
 
     if (watch) {
@@ -82,6 +68,13 @@ function compile(watch) {
         })
     }
     rebundle()
+
+
+    gulp.src('./src/scripts/vendor/*.min.js')
+        .pipe(sourcemaps.init())
+        .pipe(concat('vendor.js'))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('../public/javascript'))
 }
 
 gulp.task("production", function(){
@@ -90,17 +83,6 @@ gulp.task("production", function(){
     return process.env.NODE_ENV = 'production' //
 })
 
-//SERVER
-gulp.task('s', function() {
-    var webserver = require('gulp-webserver')
-    gulp.src('./')
-        .pipe(webserver({
-            fallback: 'index.html',
-            livereload: true,
-            open: true,
-            enable: true
-        }))
-})
 
 gulp.task("delete_rogue_react", function(){ //todo: temp fix!
     var clean = require('gulp-clean')
@@ -110,7 +92,6 @@ gulp.task("delete_rogue_react", function(){ //todo: temp fix!
 gulp.task('scripts', function() { return compile(false) })
 gulp.task('watch', function() { return compile(true) })
 
-//deploy~: gulp d --u 'gjgjgjg' --pw djfjffj
 gulp.task('prod', ['production','styles','scripts'])
 
 gulp.task('default', ['styles','scripts'], function(){ //, 'browser-sync'
