@@ -332,6 +332,9 @@ else
     app.get('/feed.svc/rss/*', function(request, response){
         response.sendStatus(404)
     })
+
+    //for testing...
+    /**
     var index
     app.get('/index', (req, res) => {
         res.type('text/html')
@@ -347,6 +350,7 @@ else
             res.send(index)
         }
     })
+    **/
 
     //API
     app.get('/start', function(request, response){

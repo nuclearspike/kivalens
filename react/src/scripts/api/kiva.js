@@ -1168,7 +1168,7 @@ class Loans {
     }
     endDownloadTimer(name){
         if (!isServer())
-            global.rga.event({category: 'timer', action: name, value: Math.round((Date.now() - this.startDownload.getTime()) / 1000)})
+            global.rga.event({category: 'timer', action: name, value: ((Date.now() - this.startDownload.getTime()) / 1000).toFixed(2)})
     }
     init(crit, getOptions, api_options){
         //fetch partners.
