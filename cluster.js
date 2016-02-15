@@ -29,8 +29,8 @@ const cluster = require('cluster')
 var memwatch = require('memwatch-next')
 var extend = require('extend')
 const util = require('util')
-var git = require('git-rev-sync');
-var shortGit = git.short()
+//var git = require('git-rev-sync')
+var shortGit = 'testing' //git.short()
 
 const mb = 1024 * 1024
 function formatMB(bytes){
