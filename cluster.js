@@ -260,6 +260,7 @@ else
     var proxy = require('express-http-proxy')
     var helmet = require('helmet')
     var compression = require('compression')
+    var staticFiles = require('serve-static')
 
     // compress all requests
     app.use(compression())
@@ -316,7 +317,16 @@ else
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
-    app.use(express.static(__dirname + '/public'))
+    app.use(staticFiles(__dirname + '/public'))
+
+
+    /**var staticCache = require('express-static-cache')
+
+    app.use(staticCache(path.join(__dirname, 'public')), {
+        maxAge: 365 * 24 * 60 * 60
+    })**/
+
+    //app.use(express.static(__dirname + '/public'))
 
     //old site bad urls.
     app.get('/feed.svc/rss/*', function(request, response){
