@@ -339,6 +339,7 @@ else
         response.type('application/json')
         response.header('Content-Encoding', 'gzip')
         response.header('Content-Length', stat.size)
+        response.header('Cache-Control', `public, max-age=3600`)
         rs.pipe(response)
     }
 
@@ -350,6 +351,7 @@ else
             } else {
                 response.type('application/json')
                 response.header('Content-Encoding', 'gzip')
+                response.header('Cache-Control', `public, max-age=3600`)
                 response.send(data)
             }
         })
