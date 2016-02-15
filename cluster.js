@@ -405,8 +405,9 @@ else
     })
 
     //API
-    app.get('/start', function(request, response){
-        response.json(startResponse)
+    app.get('/start', function(request, res){
+        res.header('Cache-Control', 'public, max-age=0')
+        res.json(startResponse)
     })
 
     app.get('/loans/:batch/:page', function(request, response) {
