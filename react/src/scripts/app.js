@@ -32,6 +32,8 @@ import s from './stores'
 window.rga = ga //react google analytics, ga is already defined
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
 
+global.rga.event({category: 'timer', action: 'loadToStart', value: Math.round((Date.now() - window.pageStarted) / 1000)})
+
 const App = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState(){ return { } },

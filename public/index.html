@@ -2,6 +2,7 @@
 <html lang='en'>
 <head>
     <script type="application/javascript">
+        window.pageStarted = Date.now()
         if (location.hostname == 'kivalens.org') {
             if (document.referrer && document.referrer.indexOf('kivalens.org') == -1)
                 location.href = "http://www.kivalens.org/#/outdated?attempt=" + encodeURIComponent(document.referrer.replace('http://',''))

@@ -310,17 +310,32 @@ else
         })
     }
 
+    app.set('port', (process.env.PORT || 3000))
+
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
-
-    app.set('port', (process.env.PORT || 3000))
 
     app.use(express.static(__dirname + '/public'))
 
     //old site bad urls.
     app.get('/feed.svc/rss/*', function(request, response){
         response.sendStatus(404)
+    })
+    var index
+    app.get('/index', (req, res) => {
+        res.type('text/html')
+        if (!index) {
+            var fs = require('fs')
+            fs.readFile(__dirname + '/public/index.html', (err,data)=>{
+                console.log('read index from disk')
+                index = data
+                res.send(index)
+            })
+        } else {
+            console.log('read index from cache')
+            res.send(index)
+        }
     })
 
     //API

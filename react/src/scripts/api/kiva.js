@@ -258,10 +258,10 @@ req.kiva = {
 }
 
 //max of 100, not enforced in this call.
-req.kiva.api.loans = ids => {
-    return req.kiva.api.get(`loans/${ids.join(',')}.json`)
-        .then(res => res.loans)
-        .then(ResultProcessors.processLoans)
+req.kiva.api.loans = (ids,process) => {
+    if (process === undefined) process = true
+    var p = req.kiva.api.get(`loans/${ids.join(',')}.json`).then(res => res.loans)
+    return process ? p.then(ResultProcessors.processLoans) : p
 }
 
 //hmm... really need a way to invoke immediately? on site load to a given loan url.
@@ -289,18 +289,31 @@ const getAge = text => {
 
 const kivaLoanDynFields = ['status','funded_amount','basket_amount','tags']
 
-//hmmm...
+const s_unknown = 'unknown', s_kvSummary = 'kiva_summary', s_kvDetail = 'kiva_detail', s_kl = 'kl'
+
+
+//hmmm... just thinking through what the world would look like with this in place.
 class Loan {
     constructor(){
         this.kl_created = Date.now()
+        this.source = s_unknown
+    }
+    readFromCommon(c){
+        this.id = c.id
+        this.status = c.status
+        this.posted_date = c.posted_date
+    }
+    readFromKL(KLLoan){
+        this.source = s_kl
+
     }
     readSummaryFromAPI(apiLoan){
-
+        this.source = s_kvSummary
     }
     readDetailsFromAPI(apiLoan){
-
+        this.source = s_kvDetail
     }
-    updateFromAPI(apiLoan){
+    updateDynamicFieldsFromAPI(apiLoan){
         kivaLoanDynFields.forEach(field => {
             if (this[field] != apiLoan[field]){
                 this[field] = apiLoan[field]
@@ -309,9 +322,8 @@ class Loan {
         })
     }
     transformToDownload(){
-
+        //return a cloned object with only what a download object should contain.
     }
-
 }
 
 //also: age(d) 34, 50 years of age
@@ -687,12 +699,8 @@ class LenderFundraisingLoans extends LenderStatusLoans {
         }
         return true
     }
-    //assumed start() function in here
-    fundraisingLoans(){
-        return super.result()
-    }
-    fundraisingIds(){
-        return this.fundraisingLoans().then(loans => loans.select(loan => loan.id))
+    ids(){
+        return super.result().then(loans => loans.select(loan => loan.id))
     }
 }
 
@@ -809,8 +817,9 @@ class ManualPagedKiva {
  */
 
 class LoanBatch {
-    constructor(id_arr){
+    constructor(id_arr,process){
         this.ids = id_arr
+        this.process = process
     }
     start(){
         //kiva does not allow more than 100 loans in a batch. break the list into chunks of up to 100 and process them.
@@ -820,7 +829,7 @@ class LoanBatch {
 
         chunks.forEach(chunk => {
             def.notify({task: 'details', done: 0, total: 1, label: 'Downloading...'})
-            req.kiva.api.loans(chunk)
+            req.kiva.api.loans(chunk, this.process)
                 .done(loans => {
                     r_loans = r_loans.concat(loans)
                     def.notify({
@@ -1517,7 +1526,7 @@ class Loans {
                         loans = loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
                         break
                     case 'still_needed':
-                        loans = loans.orderBy(loan => loan.kl_still_needed)
+                        loans = loans.orderBy(loan => loan.kl_still_needed())
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
@@ -1708,7 +1717,7 @@ class Loans {
         //this needs to use non-active partners as well, this function is used when looking at old loans.
         return this.partners_from_kiva.first(p => p.id == id)
     }
-    setLender(lender_id){ //does this really make sense to return a promise?
+    setLender(lender_id){
         if (lender_id) {
             this.lender_id = lender_id
         } else return
@@ -1719,7 +1728,7 @@ class Loans {
         this.notify({lender_loans_event: 'started'})
         var kl = this
         wait(500).done(x => {
-            new LenderFundraisingLoans(this.lender_id, true).fundraisingIds().done(ids => {
+            new LenderFundraisingLoans(this.lender_id, true).ids().done(ids => {
                 kl.lender_loans = ids
                 kl.lender_loans_message = `Fundraising loans for ${kl.lender_id} found: ${ids.length}`
                 kl.lender_loans_state = llComplete
@@ -1737,10 +1746,12 @@ class Loans {
     }
     mergeLoanAndNotify(existing, refreshed, extra){
         if (extra === undefined) extra = {}
+        //to switch to a more selective merge, i'd need to make sure all kl fields that are based on dynamic fields also update.
         if (existing.status == 'fundraising') {
             if (existing.funded_amount != refreshed.funded_amount) {
                 this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
                 cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
+                existing.kl_dynamicFieldChange = Date.now()
             }
         }
         var old_status = existing.status
@@ -1749,6 +1760,7 @@ class Loans {
             if (refreshed.status == "funded" || refreshed.status == 'in_repayment') this.running_totals.funded_loans++
             if (refreshed.status == "expired") this.running_totals.expired_loans++
             this.notify({loan_not_fundraising: existing})
+            existing.kl_dynamicFieldChange = Date.now()
         }
         this.notify({running_totals_change: this.running_totals}) //todo: only if changed??
         this.notify({loan_updated: existing})
