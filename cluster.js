@@ -29,15 +29,16 @@ var cluster = require('cluster')
 var memwatch = require('memwatch-next')
 var extend = require('extend')
 var util = require('util')
-var release = 'testing'
 var fs = require('fs')
+var ejs = require('ejs')
 
 var getAppJson = function () {
     return JSON.parse(fs.readFileSync('./app.json', 'utf8'))
 }
 
 var appConfig = getAppJson()
-release = appConfig.rev //I could also just use the date of the file!
+var release = appConfig.rev //I could also just use the date of the file!
+
 
 const mb = 1024 * 1024
 function formatMB(bytes){
@@ -65,10 +66,17 @@ function notifyAllWorkers(msg){
 var startResponse = {pages: 0, batch: 0}
 
 if (cluster.isMaster){ //preps the downloads
-    const blankResponse = {loanChunks:'', newestTime: null, descriptions:''}
+    const blankResponse = {loanChunks:'', newestTime:null, descriptions:''}
     var partnersGzipped = false
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
+
+    fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
+        var index = ejs.render(buffer.toString(), {release}, {})
+        fs.writeFile(__dirname + '/public/index.html', index, x => {
+            console.log("## rendered index!")
+        })
+    })
 
     outputMemUsage("STARTUP")
     console.log("STARTING MASTER")
@@ -86,6 +94,8 @@ if (cluster.isMaster){ //preps the downloads
         console.log('INTERESTING: Worker %d died :(', worker.id)
         cluster.fork()
     })
+
+
 
     /**
      * get the updates since given batch number
@@ -358,7 +368,6 @@ else
     }
 
     app.set('port', (process.env.PORT || 3000))
-    app.set('view engine', 'ejs');
 
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
@@ -380,11 +389,7 @@ else
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`)
     }
 
-    app.get('/', function(req, res) {
-        res.render('pages/index',{release})
-    })
-
-    app.get('/javascript/:gitrev/:file', (req,res)=>{
+    app.get('/javascript/:release/:file', (req,res)=>{
         var fn = __dirname + '/public/javascript/' + req.params.file
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
