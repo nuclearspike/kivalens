@@ -30,14 +30,6 @@ var memwatch = require('memwatch-next')
 var extend = require('extend')
 var util = require('util')
 var fs = require('fs')
-var ejs = require('ejs')
-
-var getAppJson = function () {
-    return JSON.parse(fs.readFileSync('./app.json', 'utf8'))
-}
-
-var appConfig = getAppJson()
-var release = appConfig.rev //I could also just use the date of the file!
 
 
 const mb = 1024 * 1024
@@ -83,6 +75,7 @@ function hashFile(fn, fo, cb) {
 if (cluster.isMaster){ //preps the downloads
     const blankResponse = {loanChunks:'', newestTime:null, descriptions:''}
     var partnersGzipped = false
+    var ejs = require('ejs')
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
 
