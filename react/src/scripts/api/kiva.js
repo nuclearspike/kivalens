@@ -1165,8 +1165,8 @@ class Loans {
                 wait(waitBackgroundResync).done(x => this.backgroundResync(notify))
             }).done(this.loans_processed.resolve)
 
-        if (base_options.kiva_lender_id)
-            this.setLender(base_options.kiva_lender_id)
+
+        this.setLender(base_options.kiva_lender_id)
 
         var hasStarted = false
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
@@ -1691,9 +1691,9 @@ class Loans {
                 new LenderFundraisingLoans(lender_id).ids().done(processIds)
             })
         } else {
-            wait(500).done(x => {
+            //wait(500).done(x => {
                 req.kl.get(`api/lender/${lender_id}/loans/fundraising`).done(processIds)
-            })
+            //})
         }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
