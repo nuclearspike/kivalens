@@ -152,8 +152,8 @@ if (cluster.isMaster){ //preps the downloads
     hub.on('lenderloans', (lenderid, sender, callback) => {
         console.log("INTERESTING: lenderloans", lenderid)
         new k.LenderFundraisingLoans(lenderid).ids()
-            .done(ids => callback(JSON.stringify(ids)))
-            .fail(x=>callback('[]')) //todo: this never gets called. bad lender id doesn't cause a reject!
+            .done(ids => callback(null,JSON.stringify(ids)))
+            .fail(x=>callback(404))
     })
 
     const KLPageSplits = k.KLPageSplits
@@ -492,7 +492,12 @@ else
     })
 
     app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
-        hub.requestMaster('lenderloans', req.params.lender, result => res.send(result))
+        hub.requestMaster('lenderloans', req.params.lender, (err,result) => {
+            if (err)
+                res.sendStatus(err)
+            else
+                res.send(result)
+        })
     })
 
     /**

@@ -117,6 +117,7 @@ class Request {
                     }) //cannot pass the func itself since it takes params.
                     .done(def.resolve)
                     .progress(def.notify)
+                    .fail(def.reject)
             }
         }.bind(this))
 
@@ -678,7 +679,7 @@ class LenderStatusLoans extends LenderLoans {
         super(lender_id, extend(true, {}, options))
     }
 
-    result(){ //returns actual loan objects.
+    start(){ //returns actual loan objects.
         return super.start().then(loans => {
             if (this.options.status)
                 loans = loans.where(loan => loan.status == this.options.status)
@@ -705,7 +706,10 @@ class LenderFundraisingLoans extends LenderStatusLoans {
         return true
     }
     ids(){
-        return super.result().then(loans => loans.select(loan => loan.id))
+        var d = Deferred()
+        this.promise.fail(d.reject)
+        super.start().then(loans => d.resolve(loans.select(loan => loan.id)))
+        return d
     }
 }
 
@@ -1691,12 +1695,21 @@ class Loans {
             cl('LENDER LOAN IDS:', ids)
         }.bind(this)
 
+        const markFailed = function(){
+            this.lender_loans = []
+            this.lender_loans_message = `Something went wrong when searching for loans for ${lender_id}. Cannot remove your loans.`
+            this.lender_loans_state = llComplete
+            this.notify({lender_loans_event: 'done'})
+        }.bind(this)
+
         if (this.options.lenderLoansFromKiva) {
             wait(500).done(x => {
-                new LenderFundraisingLoans(lender_id).ids().done(processIds)
+                new LenderFundraisingLoans(lender_id).ids()
+                    .done(processIds).fail(markFailed)
             })
         } else {
-            req.kl.get(`api/lender/${lender_id}/loans/fundraising`).done(processIds)
+            req.kl.get(`api/lender/${lender_id}/loans/fundraising`)
+                .done(processIds).fail(markFailed)
         }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
