@@ -271,6 +271,11 @@ req.kiva.api.loan = id => {
         .then(ResultProcessors.processLoan)
 }
 
+req.kiva.api.lender = lender => {
+    return req.kiva.api.get(`lenders/${lender}.json`)
+        .then(res => res.lenders[0])
+}
+
 req.gdocs = {
     atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`,false,!isServer(),{gid:1,format:'csv'},5)
 }

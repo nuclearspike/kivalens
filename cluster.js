@@ -153,7 +153,7 @@ if (cluster.isMaster){ //preps the downloads
         console.log("INTERESTING: lenderloans", lenderid)
         new k.LenderFundraisingLoans(lenderid).ids()
             .done(ids => callback(JSON.stringify(ids)))
-            .fail(x=>callback('[]'))
+            .fail(x=>callback('[]')) //todo: this never gets called. bad lender id doesn't cause a reject!
     })
 
     const KLPageSplits = k.KLPageSplits
