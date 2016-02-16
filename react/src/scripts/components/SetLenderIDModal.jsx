@@ -5,8 +5,9 @@ import {Grid,Row,Col,Modal,Input,Button,Alert} from 'react-bootstrap'
 import {KivaLink} from '.'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {req} from '../api/kiva'
+import s from '../stores'
 
-var lenderIdTester = new RegExp(/^[a-z0-9]{0,24}$/i)
+var lenderIdTester = new RegExp(/^[a-z0-9]{0,24}$/i) //technically 3,24 but i don't want to start out with an error and alternatives weren't worth it.
 
 const SetLenderIDModal = React.createClass({
     mixins: [LinkedStateMixin],
@@ -25,10 +26,11 @@ const SetLenderIDModal = React.createClass({
 
         this.setState({checking: true, failed: false})
 
-        req.kiva.api.get(`lenders/${lid}.json`)
+        req.kiva.api.lender(lid)
             .always(x=>this.setState({checking: false}))
             .fail(x=>this.setState({failed: true}))
-            .done(x=>{
+            .done(lender => {
+                s.utils.lenderObj = lender
                 kivaloans.setLender(lid)
                 this.props.onSet(lid)
                 this.onHide()

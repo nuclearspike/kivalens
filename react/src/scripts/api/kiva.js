@@ -1697,7 +1697,7 @@ class Loans {
 
         const markFailed = function(){
             this.lender_loans = []
-            this.lender_loans_message = `Something went wrong when searching for loans for ${lender_id}. Cannot remove your loans.`
+            this.lender_loans_message = `Something went wrong when searching for loans for ${lender_id}. Cannot exclude loans you've made.`
             this.lender_loans_state = llComplete
             this.notify({lender_loans_event: 'done'})
         }.bind(this)
