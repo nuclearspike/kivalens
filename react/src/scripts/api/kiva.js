@@ -1686,14 +1686,12 @@ class Loans {
             cl('LENDER LOAN IDS:', ids)
         }.bind(this)
 
-        if (this.options.loansFromKiva) {
+        if (this.options.lenderLoansFromKiva) {
             wait(500).done(x => {
                 new LenderFundraisingLoans(lender_id).ids().done(processIds)
             })
         } else {
-            //wait(500).done(x => {
-                req.kl.get(`api/lender/${lender_id}/loans/fundraising`).done(processIds)
-            //})
+            req.kl.get(`api/lender/${lender_id}/loans/fundraising`).done(processIds)
         }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses

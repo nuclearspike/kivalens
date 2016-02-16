@@ -17,7 +17,7 @@ const Options = React.createClass({
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
-            'debugging', 'betaTester', 'noStream', 'loansFromKiva', 'doNotDownloadDescriptions']
+            'debugging', 'betaTester', 'noStream', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -149,9 +149,13 @@ const Options = React.createClass({
                             checkedLink={this.linkState('loansFromKiva')} />
                         <Input
                             type="checkbox"
+                            label="Download lender fundraising loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)."
+                            checkedLink={this.linkState('lenderLoansFromKiva')} />
+                        <Input
+                            type="checkbox"
                             label={`When loading loans from Kiva (option above), allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}
                             checkedLink={this.linkState('maxRepaymentTerms_on')} />
-                        <input type="range" min={8} max={120}  valueLink={this.linkState('maxRepaymentTerms')}/>
+                        <input type="range" min={8} max={120} valueLink={this.linkState('maxRepaymentTerms')}/>
                             This option only has an impact when loading loans from Kiva rather than KivaLens.
                             After the initial load of loans, the rest of the loans will get loaded so you'll still need to
                             use the final repayment date criteria option if you want to hide longer term loans.
