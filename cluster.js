@@ -82,7 +82,7 @@ if (cluster.isMaster){ //preps the downloads
     fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
         var hash = Math.round(Math.random()  * 100000000)
         var css = [{name:'application',hash},{name:'snowstack',hash}]
-        var js = [{name:'build',hash},{name:'vendor',hash}]
+        var js = [{name:'vendor',hash},{name:'build',hash}]
         var todo = css.length + js.length
         const renderIndex = () => {
             if (--todo) return //if it has anything left to do, leave.
