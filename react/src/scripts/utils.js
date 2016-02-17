@@ -48,7 +48,7 @@ window.KLA_Extension = window.location.hostname == 'localhost' ? KLAdev : KLApro
 window.getKLAFeatures = function(){
     //either returns the feature array or fails.
     var def = Deferred()
-    if (typeof chrome != "undefined") {
+    if (typeof chrome != "undefined" && typeof chrome.runtime != 'undefined') {
         chrome.runtime.sendMessage(KLA_Extension, {getFeatures:true},
             reply => {
                 if (reply && reply.features) {
