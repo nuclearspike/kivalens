@@ -463,7 +463,8 @@ const CriteriaTabs = React.createClass({
              criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false, descriptionsLoaded: false}
     },
     componentDidMount() {
-        this.setState({kiva_lender_id: lsj.get("Options").kiva_lender_id})
+        var opts = lsj.get("Options")
+        this.setState({kiva_lender_id: opts.kiva_lender_id, enableRSS: opts.enableRSS,isMobile: mobileAndTabletCheck()})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
@@ -473,7 +474,6 @@ const CriteriaTabs = React.createClass({
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
         this.checkDescriptionsLoaded()
-        this.setState({isMobile: mobileAndTabletCheck()})
         KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
     },
     checkDescriptionsLoaded(){
@@ -644,7 +644,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
+        let {isMobile, needLenderID, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -750,9 +750,13 @@ const CriteriaTabs = React.createClass({
                                     </li>
                                 </ul>
 
-                                <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                                    <BalancingRow key={i} cursor={cPortfolio.refine(name)} options={allOptions[name]}/>
-                                </For>
+                                <If condition={activeTab == 3}>
+                                    <div>
+                                        <For each='name' index='i' of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
+                                            <BalancingRow key={i} cursor={cPortfolio.refine(name)} options={allOptions[name]}/>
+                                        </For>
+                                    </div>
+                                </If>
                             </Panel>
                         </Col>
                     </Row>
@@ -762,6 +766,24 @@ const CriteriaTabs = React.createClass({
                         <Col lg={12}>
                             <If condition={activeTab == 4}>
                                 <AutoLendSettings />
+                            </If>
+                        </Col>
+                    </Tab>
+                </If>
+                <If condition={!isMobile && enableRSS}>
+                    <Tab eventKey={5} title="RSS">
+                        <Col lg={12}>
+                            <If condition={activeTab == 5}>
+                                <div>
+                                    <h1>RSS - Alpha</h1>
+                                    <p>
+                                        This is experimental. It will only show the first matching loans and does not
+                                        update your fundraising loans and won't work with portfolio balancing. This
+                                        link is for the current options.
+                                    </p>
+                                    <textarea style={{width:'100%',height:'150px'}} value={`http://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(s.criteria.stripNullValues(this.state.criteria)))}`}>
+                                    </textarea>
+                                </div>
                             </If>
                         </Col>
                     </Tab>

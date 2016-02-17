@@ -4,19 +4,20 @@ import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Input,Row,Col,Panel,Alert,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
+import TimeAgo from 'react-timeago'
 import LocalStorageMixin from 'react-localstorage'
 import {Link} from 'react-router'
-import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal} from '.'
+import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal, KivaImage, LenderLink} from '.'
 import a from '../actions'
+import s from '../stores'
 import {WatchLocalStorage} from '../api/syncStorage'
 import extend from 'extend'
-
 
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'enableRSS',
             'debugging', 'betaTester', 'noStream', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions']
     },
     reload(){
@@ -40,7 +41,9 @@ const Options = React.createClass({
     },
     showLenderIDModal(){this.setState({ showLenderModal: true })},
     hideLenderIDModal(){this.setState({ showLenderModal: false })},
-    setLenderID(new_lender_id){ this.setState({kiva_lender_id: new_lender_id}) },
+    setLenderID(new_lender_id){
+        this.setState({kiva_lender_id: new_lender_id})
+    },
     getMissingPartners(){
         //get active partners without any score
         var m_partners = kivaloans.partners_from_kiva.where(p=>!p.atheistScore && p.status=='active')
@@ -49,15 +52,33 @@ const Options = React.createClass({
         return m_partners.select(p => extend(true, {}, p, {kl_hasLoans: m_p_with_loans.contains(p.id) }))
     },
     render() {
+        let {kiva_lender_id} = this.state
+        let lenderObj = s.utils.lenderObj
         return (<Grid>
                 <h1>Options</h1>
                 <Col md={12}>
                     <Panel header='Who are you?'>
-                        {this.state.kiva_lender_id ?
-                            <span>Your Lender ID: <b>{this.state.kiva_lender_id}</b> <ClickLink
+                        {kiva_lender_id ?
+                            <span>Your Lender ID: <b>{kiva_lender_id}</b> <ClickLink
                                 onClick={this.showLenderIDModal}>Change</ClickLink></span>
                             : <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button> }
                         <SetLenderIDModal show={this.state.showLenderModal} onSet={this.setLenderID} onHide={this.hideLenderIDModal}/>
+                        <If condition={lenderObj}>
+                            <Grid>
+                                <Col sm={2}>
+                                    <KivaImage type="square" image_id={lenderObj.image.id} image_width={113} height={113} width={113}/>
+                                </Col>
+                                <Col sm={10}>
+                                    <dl className="dl-horizontal">
+                                        <dt>Name</dt><dd>{lenderObj.name}</dd>
+                                        <dt>Loan Count</dt><dd>{lenderObj.loan_count}</dd>
+                                        <dt>Member Since</dt><dd><TimeAgo date={lenderObj.member_since}/></dd>
+                                        <dt>Location</dt><dd>{lenderObj.whereabouts}</dd>
+                                        <dt>Lender Page</dt><dd><LenderLink lender={kiva_lender_id}>Your Lender Page</LenderLink></dd>
+                                    </dl>
+                                </Col>
+                            </Grid>
+                        </If>
                         <p className="ample-padding-top">
                             This is used for:
                         </p>
@@ -159,6 +180,10 @@ const Options = React.createClass({
                             This option only has an impact when loading loans from Kiva rather than KivaLens.
                             After the initial load of loans, the rest of the loans will get loaded so you'll still need to
                             use the final repayment date criteria option if you want to hide longer term loans.
+                        <Input
+                            type="checkbox"
+                            label="Enable RSS tab (very early stages)"
+                            checkedLink={this.linkState('enableRSS')} />
                         <Input
                             type="checkbox"
                             label="Output debugging messages to the console"

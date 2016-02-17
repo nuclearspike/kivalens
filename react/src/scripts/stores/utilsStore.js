@@ -6,7 +6,7 @@ import {req} from '../api/kiva'
 var utilsStore = Reflux.createStore({
     listenables: [a.utils.var],
     init(){
-        this.lenderObj = {}
+        this.lenderObj = null
         this.sharedVars = {}
         var lender_id = lsj.get("Options").kiva_lender_id
         if (!lender_id && typeof chrome == "object") {

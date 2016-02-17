@@ -22,7 +22,8 @@ const AutoLendSettings = React.createClass({
         var sector_count = defaultKivaData.sectors.length
         var country_count = defaultKivaData.countries.length
         var mobileCheck = mobileAndTabletCheck()
-        this.setState({sector_count, country_count, mobileCheck})
+        var basket_count = s.loans.syncGetBasket().length
+        this.setState({sector_count, country_count, mobileCheck, basket_count})
     },
     receiveCriteria(crit){
         if (!kivaloans.isReady()) return
@@ -50,7 +51,7 @@ const AutoLendSettings = React.createClass({
         chrome.runtime.sendMessage(KLA_Extension, {setAutoLendPCS}, reply => console.log(reply))
     },
     render() {
-        let {cycle,pids,sectors,countries,setAutoLendPCS,sector_count,country_count,partner_count,mobileCheck} = this.state
+        let {cycle,pids,sectors,countries,setAutoLendPCS,sector_count,country_count,partner_count,mobileCheck,basket_count} = this.state
 
         var probs = []
         if (typeof chrome == 'undefined')
@@ -66,17 +67,15 @@ const AutoLendSettings = React.createClass({
         return (
             <div className="ample-padding-top">
                 <h4>Push your Auto-Lending preferences to Kiva</h4>
-                <If condition={probs.length}>
-                    <Alert bsStyle="danger">
-                        There are problems preventing you from continuing:
-                        <ul>
-                            {probs.map(prob => prob)}
-                        </ul>
-                    </Alert>
-                </If>
                 <p>
                     Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> tucked away on
-                    it's site for years. Use this tab to automatically set your preferences for Sectors,
+                    it's site for years. Auto-Lending is a feature on Kiva where you can have Kiva automatically
+                    lend your money based on the rules you set up. If you always want to select your loans yourself,
+                    just ignore this tab. <If condition={basket_count}><span>If you're looking for the loans you've
+                    selected, click on the "Basket" link at the top of the page.</span></If>
+                </p>
+                <p>
+                    Use this tab to automatically set your preferences for Sectors,
                     Countries and Partners on Kiva so you can take advantage of KivaLens' portfolio balancing and
                     many additional options for selecting partners that are not included in the Auto-Lend settings.
                 </p>
@@ -102,7 +101,14 @@ const AutoLendSettings = React.createClass({
                     <li><Input key={cycle} type="checkbox" ref="countries" defaultChecked={countries.length != country_count} label={<span>Set the <b>{countries.length}/{country_count} countries</b> that match the current criteria.</span>}/></li>
                     <li>Save your new settings.</li>
                 </ul>
-
+                <If condition={probs.length}>
+                    <Alert bsStyle="danger">
+                        There are problems preventing you from continuing:
+                        <ul>
+                            {probs}
+                        </ul>
+                    </Alert>
+                </If>
                 <Button bsStyle="primary" onClick={this.success} disabled={probs.length > 0}>Set Auto-Lending Options on Kiva</Button>
             </div>
         )

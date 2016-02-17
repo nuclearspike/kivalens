@@ -146,6 +146,10 @@ if (cluster.isMaster){ //preps the downloads
         callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
     })
 
+    hub.on('rss', (crit, sender, callback) => {
+        callback(JSON.stringify(k.ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
+    })
+
     /**
      * get all of the fundraising ids for a given lender.
      */
@@ -397,7 +401,6 @@ else
         rs.pipe(res)
     }
 
-
     app.set('port', (process.env.PORT || 3000))
 
     //PASSTHROUGH
@@ -442,6 +445,36 @@ else
     app.get('/Redirect.aspx*', function(request, response){
         response.sendStatus(404)
     })
+
+    app.get('/rss/:criteria', function(request, response){
+        var crit = request.params.criteria
+        if (crit)
+            crit = JSON.parse(decodeURIComponent(crit))
+        if (!crit.loan) crit.loan = {}
+        crit.loan.limit_results = 20
+
+        hub.requestMaster('rss', crit, result => {
+            var RSS = require('rss')
+            var opts = {
+                title: 'KivaLens RSS',
+                feed_url: `http://www.kivalens.org/rss/${request.params.criteria}`,
+                site_url: 'http://www.kivalens.org/'
+            }
+            var feed = new RSS(opts)
+            result = JSON.parse(result)
+            result.forEach(loan => {
+                feed.item({
+                    title: loan.name,
+                    description: loan.description.texts.en,
+                    guid: loan.id,
+                    url: `https://www.kiva.org/lend/${loan.id}`,
+                    date: loan.posted_date
+                })
+            })
+            response.send(feed.xml())
+        })
+    })
+
 
     //API
     app.get('/start', function(request, res){

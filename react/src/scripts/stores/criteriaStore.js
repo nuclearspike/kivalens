@@ -186,12 +186,18 @@ var criteriaStore = Reflux.createStore({
 
     stripNullValues(crit){
         if (!crit) return
-        ['loan','partner','portfolio'].forEach(group => {
+        const critGroups = ['loan','partner','portfolio']
+        critGroups.forEach(group => {
             if (crit[group]) {
                 Object.keys(crit[group]).forEach(key => {
                     if (crit[group][key] === null || crit[group][key] === undefined || crit[group][key] === '') delete crit[group][key]
                 })
             }
+        })
+        const balancers = ['sector','activity','partner','country']
+        balancers.forEach(slice => {
+            if (crit.portfolio[`pb_${slice}`] && !crit.portfolio[`pb_${slice}`].enabled)
+                crit.portfolio[`pb_${slice}`] = {enabled: false}
         })
 
         return crit

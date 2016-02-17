@@ -245,6 +245,7 @@ var kivaBase, gdocs
 if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
     req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,false,{},0)
+    req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
 } else {
