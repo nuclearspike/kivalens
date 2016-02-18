@@ -4,8 +4,8 @@ require('linqjs')
 import Reflux from 'reflux'
 import a from '../actions'
 import {WatchLocalStorage} from '../api/syncStorage'
-import extend from 'extend'
 import {Deferred} from 'jquery-deferred'
+import extend from 'extend'
 import {req} from '../api/kiva'
 
 var criteriaStore = Reflux.createStore({
@@ -198,11 +198,16 @@ var criteriaStore = Reflux.createStore({
                 })
             }
         })
+        return crit
+    },
+    prepForRSS(crit){
+        crit = extend({},crit)
         /**const balancers = ['sector','activity','partner','country']
         balancers.forEach(slice => {
             if (crit.portfolio[`pb_${slice}`] && !crit.portfolio[`pb_${slice}`].enabled)
                 crit.portfolio[`pb_${slice}`] = {enabled: false}
         })**/
+        crit.portfolio = {}
 
         return crit
     },

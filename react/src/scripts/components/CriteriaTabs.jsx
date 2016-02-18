@@ -781,7 +781,7 @@ const CriteriaTabs = React.createClass({
                                         update your fundraising loans and won't work with portfolio balancing. This
                                         link is for the current options.
                                     </p>
-                                    <textarea style={{width:'100%',height:'150px'}} value={`http://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(s.criteria.stripNullValues(extend({},this.state.criteria))))}`}>
+                                    <textarea style={{width:'100%',height:'150px'}} value={`http://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(s.criteria.prepForRSS(this.state.criteria)))}`}>
                                     </textarea>
                                 </div>
                             </If>
