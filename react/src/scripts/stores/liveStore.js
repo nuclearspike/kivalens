@@ -2,6 +2,8 @@
 
 import Reflux from 'reflux'
 import a from '../actions'
+import utilsStore from './utilsStore'
+
 //this unit assumes socket.io.js is loaded outside of bundle (script on index)
 
 class KivaChannel {
@@ -41,11 +43,14 @@ class LoanPurchasedChannel extends KivaChannel {
     processData(data){
         kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
         //on the chance that they found the loan on KL, but completed on Kiva without closing it,
-        if (kla_features.notify && data.p.lender.public && data.p.lender.publicId == kivaloans.lender_id){
-            var loans = data.p.loans.select(l=>l.id)
-            kivaloans.lender_loans = kivaloans.lender_loans.concat(loans)
-            callKLAFeature('notify', `I just saw the ${loans.length} loan${loans.length > 1? 's':''} you made!
+        if (data.p.lender.public && data.p.lender.publicId == kivaloans.lender_id){
+            utilsStore.pullLenderObj(kivaloans.lender_id)
+            if (kla_features.notify){
+                var loans = data.p.loans.select(l=>l.id)
+                kivaloans.lender_loans = kivaloans.lender_loans.concat(loans)
+                callKLAFeature('notify', `I just saw the ${loans.length} loan${loans.length > 1? 's':''} you made!
             The next search you perform with the option to hide your existing loans will exclude your recent purchase.`)
+            }
         }
     }
 }

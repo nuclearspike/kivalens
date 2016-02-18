@@ -16,12 +16,15 @@ var utilsStore = Reflux.createStore({
                         kivaloans.setLender(reply.lender_id)
                     })
         }
+        this.pullLenderObj(lender_id, true)
+    },
+    pullLenderObj(lender_id, displayError){
         if (lender_id){
             req.kiva.api.lender(lender_id)
                 .done(lender => this.lenderObj = lender)
                 .fail((msg,status) => {
                     window.rga.event({category: 'error', action: `BadLenderId:${status}:${msg}`, label: lender_id})
-                    if (status == 400 || status == 404) {
+                    if (displayError && (status == 400 || status == 404)) {
                         var hint = 'Did you change it on Kiva recently?'
                         if (status == 400)
                             hint = 'Maybe you used your email address by mistake?'

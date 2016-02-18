@@ -166,11 +166,15 @@ var criteriaStore = Reflux.createStore({
         var results = []
         var predicate = onlyMarkedForNotice? c=>this.syncGetByName(c).notifyOnNew : c=>true
         this.syncGetAllNames().where(predicate).forEach(name => {
-            var crit = this.all[name]
-            if (kivaloans.filter(crit, false, [loan]).length) {
-                var hasBalancer = ['sector','activity','partner','country'].any(slice => crit.portfolio[`pb_${slice}`] && crit.portfolio[`pb_${slice}`].enabled)
-                if ((!hasBalancer)  || (hasBalancer && lsj.get("Options").kiva_lender_id)) //
-                    results.push(name)
+            try {
+                var crit = this.all[name]
+                if (kivaloans.filter(crit, false, [loan]).length) {
+                    var hasBalancer = ['sector', 'activity', 'partner', 'country'].any(slice => crit.portfolio[`pb_${slice}`] && crit.portfolio[`pb_${slice}`].enabled)
+                    if ((!hasBalancer) || (hasBalancer && lsj.get("Options").kiva_lender_id)) //
+                        results.push(name)
+                }
+            }catch(e){
+                console.log(name, e)
             }
         })
         return results
@@ -194,11 +198,11 @@ var criteriaStore = Reflux.createStore({
                 })
             }
         })
-        const balancers = ['sector','activity','partner','country']
+        /**const balancers = ['sector','activity','partner','country']
         balancers.forEach(slice => {
             if (crit.portfolio[`pb_${slice}`] && !crit.portfolio[`pb_${slice}`].enabled)
                 crit.portfolio[`pb_${slice}`] = {enabled: false}
-        })
+        })**/
 
         return crit
     },
@@ -256,7 +260,10 @@ var criteriaStore = Reflux.createStore({
                     //wait is added so that they don't fire immediately when starting KL since they take a long time and aren't needed right away.
                     wait(1000).done(x=> get_verse_data('lender', lsj.get("Options").kiva_lender_id, slice, bal.allactive).done(result => {
                         var slices = (bal.ltgt == 'gt') ? result.slices.where(s => s.percent > bal.percent) : result.slices.where(s => s.percent < bal.percent)
+                        //slices.where(s=>s.name === null).select(s=>console.log('ERROR: slice:', s))
                         bal.values = (slice == 'partner') ? slices.select(s => parseInt(s.id)) : slices.select(s => s.name)
+                        //bad data is being returned from kiva. a country of id=0, name=null
+                        bal.values = bal.values.where(s=>s!=null)
                         lsj.set('all_criteria', that.all)
                     }))
                 }
@@ -271,6 +278,7 @@ var criteriaStore = Reflux.createStore({
             .done(result => {
                 cl('onBalancingGet.get_verse_data.done',result)
                 result.slices = (crit.ltgt == 'gt') ? result.slices.where(s => s.percent > crit.percent) : result.slices.where(s => s.percent < crit.percent)
+                result.slices = result.slices.where(s=>s.name != null)
                 a.criteria.balancing.get.completed(requestId, sliceBy, crit, result)
             })
     },
