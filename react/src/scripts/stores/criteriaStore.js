@@ -202,13 +202,15 @@ var criteriaStore = Reflux.createStore({
     },
     prepForRSS(crit){
         crit = extend({},crit)
-        /**const balancers = ['sector','activity','partner','country']
-        balancers.forEach(slice => {
-            if (crit.portfolio[`pb_${slice}`] && !crit.portfolio[`pb_${slice}`].enabled)
-                crit.portfolio[`pb_${slice}`] = {enabled: false}
-        })**/
-        crit.portfolio = {}
-
+        crit = this.stripNullValues(crit)
+        delete crit.portfolio
+        if (crit.loan && crit.loan.limit_to && !crit.loan.limit_to.enabled)
+            delete crit.loan.limit_to
+        if (crit.partner && Object.keys(crit.partner) == 0)
+            delete crit.partner
+        if (crit.loan && Object.keys(crit.loan) == 0)
+            delete crit.loan
+        delete crit.notifyOnNew
         return crit
     },
     fixUpgrades(crit){
