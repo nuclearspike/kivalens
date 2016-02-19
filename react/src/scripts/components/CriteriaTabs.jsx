@@ -804,7 +804,7 @@ const CriteriaTabs = React.createClass({
                                             Copy and Paste this entire URL into your RSS reader or
                                             use <NewTabLink href="http://www.ifttt.com">If This Then That</NewTabLink> to
                                             create a "recipe" to respond to new items in the news feed and either send
-                                            you an email you or an SMS.
+                                            you an email or an SMS.
                                         </p>
                                         <textarea style={{width:'100%',height:'150px'}} readOnly value={`http://www.kivalens.org/rss/${critRSSUrl}`}/>
                                     </Panel>
