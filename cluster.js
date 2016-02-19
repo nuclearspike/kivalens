@@ -454,7 +454,7 @@ else
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
 
-        console.log('INTERESTING: rss fetch:', crit)
+        console.log('INTERESTING: rss fetch:', JSON.stringify(crit))
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
