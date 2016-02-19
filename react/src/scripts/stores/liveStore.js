@@ -43,7 +43,7 @@ class LoanPurchasedChannel extends KivaChannel {
     processData(data){
         kivaloans.queueToRefresh(data.p.loans.select(l=>l.id))
         //on the chance that they found the loan on KL, but completed on Kiva without closing it,
-        if (data.p.lender.public && data.p.lender.publicId == kivaloans.lender_id){
+        if (kivaloans.lender_id && data.p.lender.public && data.p.lender.publicId == kivaloans.lender_id.toLowerCase()){
             utilsStore.pullLenderObj(kivaloans.lender_id)
             if (kla_features.notify){
                 var loans = data.p.loans.select(l=>l.id)

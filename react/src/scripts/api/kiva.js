@@ -1183,7 +1183,7 @@ class Loans {
         const kiva_getPartners = function() {
             if (isServer())
                 console.log('INTERESTING: kiva_getPartners()')
-            this.getAllPartners().fail(failed=>this.notify({failed})).done(this.partner_download.resolve)
+            this.getAllPartners().fail(failed => this.notify({failed})).done(this.partner_download.resolve)
             if (base_options.mergeAtheistList)
                 this.getAtheistList()
         }.bind(this)

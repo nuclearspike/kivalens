@@ -72,6 +72,7 @@ const Options = React.createClass({
                                     <dl className="dl-horizontal">
                                         <dt>Name</dt><dd>{lenderObj.name}</dd>
                                         <dt>Loan Count</dt><dd>{lenderObj.loan_count}</dd>
+                                        <dt>Invitees</dt><dd>{lenderObj.invitee_count}</dd>
                                         <dt>Joined</dt><dd><TimeAgo date={lenderObj.member_since}/></dd>
                                         <dt>Location</dt><dd>{lenderObj.whereabouts}</dd>
                                         <dt>Lender Page</dt><dd><LenderLink lender={kiva_lender_id}>Your Lender Page</LenderLink></dd>
@@ -166,12 +167,12 @@ const Options = React.createClass({
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
-                            checkedLink={this.linkState('loansFromKiva')} />
-                        <Input
-                            type="checkbox"
                             label="Download lender fundraising loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)."
                             checkedLink={this.linkState('lenderLoansFromKiva')} />
+                        <Input
+                            type="checkbox"
+                            label="Download loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
+                            checkedLink={this.linkState('loansFromKiva')} />
                         <Input
                             type="checkbox"
                             label={`When loading loans from Kiva (option above), allow me to start using the site after downloading all loans with ${this.state.maxRepaymentTerms} months before final repayment and less.`}

@@ -513,8 +513,10 @@ const CriteriaTabs = React.createClass({
     figureNeedLender(crit){
         var por = crit.portfolio
         //if any of the balancers are present and enabled, show message that they need to have their lender id
-        var needLenderID = ['pb_country','pb_partner','pb_activity','pb_sector'].any(n => por[n] && por[n].enabled)
-        this.setState({needLenderID: (needLenderID && kivaloans.isReady() && !kivaloans.lender_id)})
+        var needLenderID = ['pb_country','pb_partner','pb_activity','pb_sector'].any(n => por && por[n] && por[n].enabled)
+        needLenderID = (needLenderID && kivaloans.isReady() && !kivaloans.lender_id)
+        if (this.state.needLenderID != needLenderID)
+            this.setState({needLenderID})
     },
     performSearch(){
         var criteria = this.buildCriteria()
@@ -777,8 +779,8 @@ const CriteriaTabs = React.createClass({
                                 <div>
                                     <h1>RSS - Alpha</h1>
                                     <p>
-                                        This is experimental. It will only show the first matching loans and does not
-                                        update your fundraising loans and won't work with portfolio balancing. This
+                                        This is experimental. It will only show the first 20 matching loans and does not
+                                        look at your fundraising loans and won't work with portfolio balancing. This
                                         link is for the current options.
                                     </p>
                                     <textarea style={{width:'100%',height:'150px'}} readonly value={`http://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(s.criteria.prepForRSS(this.state.criteria)))}`}>

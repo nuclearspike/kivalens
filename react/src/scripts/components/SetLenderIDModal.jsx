@@ -31,8 +31,8 @@ const SetLenderIDModal = React.createClass({
             .fail(x=>this.setState({failed: true}))
             .done(lender => {
                 s.utils.lenderObj = lender
-                kivaloans.setLender(lid)
-                this.props.onSet(lid)
+                kivaloans.setLender(lender.lender_id) //lowercase version.
+                this.props.onSet(lender.lender_id)
                 this.onHide()
             })
     },

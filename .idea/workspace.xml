@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="remove LargeLocalStorage, concat vendor files,">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/public/javascript/LargeLocalStorage.min.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/public/javascript/q.min.js" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/public/javascript/snowstack.js" afterPath="$PROJECT_DIR$/react/src/scripts/vendor/snowstack.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/public/javascript/snowstack.min.js" afterPath="$PROJECT_DIR$/react/src/scripts/vendor/snowstack.min.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/public/javascript/socket.io.js" afterPath="$PROJECT_DIR$/react/src/scripts/vendor/socket.io.js" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/public/javascript/socket.io.min.js" afterPath="$PROJECT_DIR$/react/src/scripts/vendor/socket.io.min.js" />
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="properly fails bad PagedKiva requests, properly fails bad lender loans requests on both the server and in the app on bad request, added GA tracking for bad lender id on startup,">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/react-kiva.iml" afterPath="$PROJECT_DIR$/.idea/react-kiva.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cluster.js" afterPath="$PROJECT_DIR$/cluster.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/index.html" afterPath="$PROJECT_DIR$/public/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js" afterPath="$PROJECT_DIR$/public/javascript/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/gulpfile.js" afterPath="$PROJECT_DIR$/react/gulpfile.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/javascript/build.js.map" afterPath="$PROJECT_DIR$/public/javascript/build.js.map" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/stylesheets/application.css" afterPath="$PROJECT_DIR$/public/stylesheets/application.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/stylesheets/application.min.css" afterPath="$PROJECT_DIR$/public/stylesheets/application.min.css" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/app.js" afterPath="$PROJECT_DIR$/react/src/scripts/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/Basket.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/Basket.jsx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" afterPath="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/stores/liveStore.js" afterPath="$PROJECT_DIR$/react/src/scripts/stores/liveStore.js" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -146,25 +143,37 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.39399293">
+    <splitter split-orientation="horizontal" split-proportion="0.481402">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="cluster.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/cluster.js">
+          <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="132" column="18" selection-start-line="132" selection-start-column="18" selection-end-line="132" selection-end-column="18" />
+                <state vertical-scroll-proportion="-4.415525">
+                  <caret line="518" column="12" selection-start-line="518" selection-start-column="12" selection-end-line="518" selection-end-column="12" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Options.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+          <file leaf-file-name="liveStore.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="167" column="2" selection-start-line="167" selection-start-column="2" selection-end-line="167" selection-end-column="2" />
+                  <caret line="45" column="35" selection-start-line="45" selection-start-column="35" selection-end-line="45" selection-end-column="35" />
                   <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="cluster.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cluster.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="404" column="0" selection-start-line="404" selection-start-column="0" selection-end-line="404" selection-end-column="0" />
+                  <folding>
+                    <marker date="1455861235000" expanded="true" signature="18264:18283" placeholder="{...}" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -172,68 +181,70 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-8.074074">
-                  <caret line="1155" column="42" selection-start-line="1155" selection-start-column="42" selection-end-line="1155" selection-end-column="42" />
-                  <folding />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="1424" column="4" selection-start-line="1424" selection-start-column="4" selection-end-line="1424" selection-end-column="4" />
+                  <folding>
+                    <element signature="n#!!block;n#getAtheistList#0;n#Loans#0" expanded="false" />
+                  </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Basket.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Basket.jsx">
+          <file leaf-file-name="About.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
+                  <caret line="43" column="30" selection-start-line="43" selection-start-column="30" selection-end-line="43" selection-end-column="30" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Live.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-8.074074">
-                  <caret line="100" column="77" selection-start-line="100" selection-start-column="77" selection-end-line="100" selection-end-column="77" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/package.json">
+          <file leaf-file-name="index.ejs" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="11" column="27" selection-start-line="11" selection-start-column="27" selection-end-line="11" selection-end-column="27" />
+                  <caret line="57" column="45" selection-start-line="57" selection-start-column="45" selection-end-line="57" selection-end-column="45" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/package.json">
+          <file leaf-file-name="AutoLendSettings.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
+                  <caret line="110" column="21" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="loanStore.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/loanStore.js">
+          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/index.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="112" column="98" selection-start-line="112" selection-start-column="98" selection-end-line="112" selection-end-column="98" />
+                  <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="gulpfile.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+          <file leaf-file-name="application.min.css" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/stylesheets/application.min.css">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.36867088">
-                  <caret line="72" column="44" selection-start-line="72" selection-start-column="44" selection-end-line="72" selection-end-column="44" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="AlertModal.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AlertModal.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="9" column="24" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
                   <folding />
                 </state>
               </provider>
@@ -246,68 +257,18 @@
           <file leaf-file-name="cluster.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/cluster.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-8.074074">
-                  <caret line="388" column="38" selection-start-line="388" selection-start-column="38" selection-end-line="388" selection-end-column="38" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/public/index.html">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-13.75">
-                  <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="Teams.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Teams.jsx">
-              <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="113" column="18" selection-start-line="113" selection-start-column="18" selection-end-line="113" selection-end-column="18" />
+                  <caret line="187" column="35" selection-start-line="187" selection-start-column="29" selection-end-line="187" selection-end-column="35" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="BulkAddModal.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/BulkAddModal.jsx">
+          <file leaf-file-name="index.ejs" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../everythingtokivalens/views/pages/index.ejs">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
+                <state vertical-scroll-proportion="-0.0">
                   <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6910828">
-                  <caret line="1695" column="14" selection-start-line="1695" selection-start-column="14" selection-end-line="1695" selection-end-column="14" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="Loan.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="252" column="98" selection-start-line="252" selection-start-column="98" selection-end-line="252" selection-end-column="98" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="34" column="132" selection-start-line="34" selection-start-column="132" selection-end-line="34" selection-end-column="132" />
                   <folding />
                 </state>
               </provider>
@@ -317,7 +278,90 @@
             <entry file="file://$PROJECT_DIR$/react/src/scripts/utils.js">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="183" column="29" selection-start-line="183" selection-start-column="29" selection-end-line="183" selection-end-column="29" />
+                  <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="syncStorage.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/syncStorage.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Options.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="171" column="24" selection-start-line="171" selection-start-column="24" selection-end-line="171" selection-end-column="24" />
+                  <folding>
+                    <marker date="1455859457000" expanded="true" signature="4632:4707" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="4759:6703" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="4792:5064" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="5097:5691" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="5724:6242" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="6275:6463" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="6496:6673" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="6803:7735" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="6836:7209" placeholder="..." />
+                    <marker date="1455859457000" expanded="true" signature="7242:7705" placeholder="..." />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="KivaImage.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KivaImage.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="criteriaStore.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="-9.555555">
+                  <caret line="203" column="12" selection-start-line="203" selection-start-column="8" selection-end-line="203" selection-end-column="12" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SetLenderIDModal.jsx" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.74561405">
+                  <caret line="34" column="24" selection-start-line="34" selection-start-column="24" selection-end-line="34" selection-end-column="24" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="-7.5555553">
+                  <caret line="1185" column="46" selection-start-line="1185" selection-start-column="46" selection-end-line="1185" selection-end-column="46" />
+                  <folding>
+                    <element signature="n#!!block;n#getAtheistList#0;n#Loans#0" expanded="false" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="utilsStore.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/utilsStore.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="29" column="57" selection-start-line="29" selection-start-column="57" selection-end-line="29" selection-end-column="57" />
                   <folding />
                 </state>
               </provider>
@@ -333,6 +377,7 @@
         <option value="React Component JSX" />
         <option value="JavaScript File" />
         <option value="HTML File" />
+        <option value="CSS File" />
       </list>
     </option>
   </component>
@@ -342,8 +387,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/react/src/scripts/components/PartnerDisplayModal.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/LoadingLoansModal.jsx" />
         <option value="$PROJECT_DIR$/../lenderassistant/background.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/all_idle.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/manifest.json" />
@@ -351,44 +394,50 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/Criteria.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/BulkAddModal.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/index.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/loans.js" />
         <option value="$PROJECT_DIR$/public/javascript/q.min.js" />
         <option value="$PROJECT_DIR$/public/javascript/socket.io.min.js" />
         <option value="$PROJECT_DIR$/public/javascript/snowstack.min.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/stores/liveStore.js" />
         <option value="$PROJECT_DIR$/MongoTest.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Search.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/linqextras.js" />
         <option value="$PROJECT_DIR$/public/javascript/socket.io.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/LoadingLoansPanel.jsx" />
         <option value="$PROJECT_DIR$/react/package.json" />
-        <option value="$PROJECT_DIR$/views/pages/index.ejs" />
         <option value="$PROJECT_DIR$/public/react/index.html" />
-        <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/actions.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/utils.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" />
         <option value="$PROJECT_DIR$/react/src/styles/application.scss" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Teams.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/deleteme" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
         <option value="$PROJECT_DIR$/public/manifest.json" />
         <option value="$PROJECT_DIR$/index.js" />
-        <option value="$PROJECT_DIR$/server.js" />
         <option value="$PROJECT_DIR$/Procfile" />
-        <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/react/src/scripts/stores/loanStore.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
-        <option value="$PROJECT_DIR$/public/index.html" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Basket.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
-        <option value="$PROJECT_DIR$/react/gulpfile.js" />
+        <option value="$PROJECT_DIR$/server.js" />
+        <option value="$PROJECT_DIR$/public/index.html" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/app.js" />
-        <option value="$PROJECT_DIR$/cluster.js" />
+        <option value="$PROJECT_DIR$/public/stylesheets/snowstack.min.css" />
+        <option value="$PROJECT_DIR$/react/gulpfile.js" />
+        <option value="$PROJECT_DIR$/app.json" />
+        <option value="$PROJECT_DIR$/views/pages/index.ejs" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/react/src/scripts/utils.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/KivaImage.jsx" />
+        <option value="$PROJECT_DIR$/react/src/scripts/stores/utilsStore.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
+        <option value="$PROJECT_DIR$/react/src/scripts/stores/liveStore.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/Options.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
+        <option value="$PROJECT_DIR$/cluster.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx" />
       </list>
     </option>
   </component>
@@ -472,6 +521,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -500,6 +550,24 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="views" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pages" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="react-kiva" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="react-kiva" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="react" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -519,32 +587,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="styles" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="react-kiva" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="react-kiva" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="react" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="scripts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -569,10 +611,6 @@
               <option name="myItemId" value="scripts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="vendor" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -584,35 +622,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="react-kiva" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="react-kiva" />
+              <option name="myItemId" value="react" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
+              <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="javascript" />
+              <option name="myItemId" value="scripts" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="stores" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../lokal" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../everythingtokivalens/views/pages/index.ejs" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="settings.editor.selected.configurable" value="Settings.JavaScript" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
@@ -637,6 +668,7 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="936" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="list.type.of.created.stylesheet" value="CSS" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -769,192 +801,6 @@
       <option name="number" value="Default" />
       <updated>1441543243255</updated>
     </task>
-    <task id="LOCAL-00087" summary="strip out more and more stuff from the prepped files that i'm not using and put it back on the client when nulls/0/[]">
-      <created>1455008515038</created>
-      <option name="number" value="00087" />
-      <option name="project" value="LOCAL" />
-      <updated>1455008515038</updated>
-    </task>
-    <task id="LOCAL-00088" summary="put back the first names as '' until they load instead of &quot;undefined&quot;">
-      <created>1455009355068</created>
-      <option name="number" value="00088" />
-      <option name="project" value="LOCAL" />
-      <updated>1455009355068</updated>
-    </task>
-    <task id="LOCAL-00089" summary="removed &quot;addIt&quot;, kls_tags are output now, tags are stripped. borrowers array is removed only sends {M:5,F:2}, removed status,">
-      <created>1455012582338</created>
-      <option name="number" value="00089" />
-      <option name="project" value="LOCAL" />
-      <updated>1455012582339</updated>
-    </task>
-    <task id="LOCAL-00090" summary="switched to /since/:batch due to url collision,">
-      <created>1455014601956</created>
-      <option name="number" value="00090" />
-      <option name="project" value="LOCAL" />
-      <updated>1455014601956</updated>
-    </task>
-    <task id="LOCAL-00091" summary="putting sendStatus back in! oops">
-      <created>1455015240974</created>
-      <option name="number" value="00091" />
-      <option name="project" value="LOCAL" />
-      <updated>1455015240974</updated>
-    </task>
-    <task id="LOCAL-00092" summary="correct content type of responses. descriptions are now being pre-compressed to save prep time and a little bit of dl time, some attempts at memory reduction,">
-      <created>1455017610189</created>
-      <option name="number" value="00092" />
-      <option name="project" value="LOCAL" />
-      <updated>1455017610189</updated>
-    </task>
-    <task id="LOCAL-00093" summary="bug... funded_amount being blank wasn't being populated but was already being used for still_needed">
-      <created>1455018587607</created>
-      <option name="number" value="00093" />
-      <option name="project" value="LOCAL" />
-      <updated>1455018587607</updated>
-    </task>
-    <task id="LOCAL-00094" summary="redid about text, added &quot;what is kiva&quot; for all people finding it through react sites, only show if they don't have a lender id, re-did wording on /live, show how many loans purchased">
-      <created>1455057307839</created>
-      <option name="number" value="00094" />
-      <option name="project" value="LOCAL" />
-      <updated>1455057307840</updated>
-    </task>
-    <task id="LOCAL-00095" summary="switch to restart after 12 months.">
-      <created>1455130623980</created>
-      <option name="number" value="00095" />
-      <option name="project" value="LOCAL" />
-      <updated>1455130623980</updated>
-    </task>
-    <task id="LOCAL-00096" summary="report memory usage on command line, rename index to server">
-      <created>1455134256848</created>
-      <option name="number" value="00096" />
-      <option name="project" value="LOCAL" />
-      <updated>1455134256848</updated>
-    </task>
-    <task id="LOCAL-00097" summary="added memory output and gc to server...">
-      <created>1455139712547</created>
-      <option name="number" value="00097" />
-      <option name="project" value="LOCAL" />
-      <updated>1455139712547</updated>
-    </task>
-    <task id="LOCAL-00098" summary="added memory output and gc to server...">
-      <created>1455139767375</created>
-      <option name="number" value="00098" />
-      <option name="project" value="LOCAL" />
-      <updated>1455139767375</updated>
-    </task>
-    <task id="LOCAL-00099" summary="added memory output and gc to server...">
-      <created>1455139818119</created>
-      <option name="number" value="00099" />
-      <option name="project" value="LOCAL" />
-      <updated>1455139818119</updated>
-    </task>
-    <task id="LOCAL-00100" summary="added memory output and gc to server...">
-      <created>1455140173031</created>
-      <option name="number" value="00100" />
-      <option name="project" value="LOCAL" />
-      <updated>1455140173031</updated>
-    </task>
-    <task id="LOCAL-00101" summary="added memory output and gc to server...">
-      <created>1455140251237</created>
-      <option name="number" value="00101" />
-      <option name="project" value="LOCAL" />
-      <updated>1455140251237</updated>
-    </task>
-    <task id="LOCAL-00102" summary="added memory output and gc to server...">
-      <created>1455140412493</created>
-      <option name="number" value="00102" />
-      <option name="project" value="LOCAL" />
-      <updated>1455140412493</updated>
-    </task>
-    <task id="LOCAL-00103" summary="added memory output and gc to server...">
-      <created>1455141035533</created>
-      <option name="number" value="00103" />
-      <option name="project" value="LOCAL" />
-      <updated>1455141035533</updated>
-    </task>
-    <task id="LOCAL-00104" summary="trying clustering again">
-      <created>1455148366205</created>
-      <option name="number" value="00104" />
-      <option name="project" value="LOCAL" />
-      <updated>1455148366205</updated>
-    </task>
-    <task id="LOCAL-00105" summary="trying clustering again. start 2 web servers">
-      <created>1455149050681</created>
-      <option name="number" value="00105" />
-      <option name="project" value="LOCAL" />
-      <updated>1455149050681</updated>
-    </task>
-    <task id="LOCAL-00106" summary="trying clustering again. start 2 web servers">
-      <created>1455149796174</created>
-      <option name="number" value="00106" />
-      <option name="project" value="LOCAL" />
-      <updated>1455149796174</updated>
-    </task>
-    <task id="LOCAL-00107" summary="better formatting.">
-      <created>1455151798436</created>
-      <option name="number" value="00107" />
-      <option name="project" value="LOCAL" />
-      <updated>1455151798437</updated>
-    </task>
-    <task id="LOCAL-00108" summary="better formatting.">
-      <created>1455156441571</created>
-      <option name="number" value="00108" />
-      <option name="project" value="LOCAL" />
-      <updated>1455156441571</updated>
-    </task>
-    <task id="LOCAL-00109" summary="adding back filtering">
-      <created>1455157922945</created>
-      <option name="number" value="00109" />
-      <option name="project" value="LOCAL" />
-      <updated>1455157922945</updated>
-    </task>
-    <task id="LOCAL-00110" summary="more output of memory, increase workers by 3, logs show which worker">
-      <created>1455161222320</created>
-      <option name="number" value="00110" />
-      <option name="project" value="LOCAL" />
-      <updated>1455161222320</updated>
-    </task>
-    <task id="LOCAL-00111" summary="don't store the raw result since the nothing ever looks at anything other than the first page's paging object. reduce workers back to 2">
-      <created>1455162192782</created>
-      <option name="number" value="00111" />
-      <option name="project" value="LOCAL" />
-      <updated>1455162192782</updated>
-    </task>
-    <task id="LOCAL-00112" summary="remove promise after SemRequest ttl, more server logging.">
-      <created>1455163994444</created>
-      <option name="number" value="00112" />
-      <option name="project" value="LOCAL" />
-      <updated>1455163994444</updated>
-    </task>
-    <task id="LOCAL-00113" summary="increase to 7 workers.">
-      <created>1455164212784</created>
-      <option name="number" value="00113" />
-      <option name="project" value="LOCAL" />
-      <updated>1455164212784</updated>
-    </task>
-    <task id="LOCAL-00114" summary="set workers back to 3">
-      <created>1455164424732</created>
-      <option name="number" value="00114" />
-      <option name="project" value="LOCAL" />
-      <updated>1455164424732</updated>
-    </task>
-    <task id="LOCAL-00115" summary="set 4 workers">
-      <created>1455164440598</created>
-      <option name="number" value="00115" />
-      <option name="project" value="LOCAL" />
-      <updated>1455164440598</updated>
-    </task>
-    <task id="LOCAL-00116" summary="back to 3">
-      <created>1455166708037</created>
-      <option name="number" value="00116" />
-      <option name="project" value="LOCAL" />
-      <updated>1455166708037</updated>
-    </task>
-    <task id="LOCAL-00117" summary="drop to 2... memory warnings are back.">
-      <created>1455170025402</created>
-      <option name="number" value="00117" />
-      <option name="project" value="LOCAL" />
-      <updated>1455170025402</updated>
-    </task>
     <task id="LOCAL-00118" summary="text changes, moved anon func to named">
       <created>1455170732596</created>
       <option name="number" value="00118" />
@@ -1063,31 +909,217 @@
       <option name="project" value="LOCAL" />
       <updated>1455502669103</updated>
     </task>
-    <option name="localTasksCounter" value="136" />
+    <task id="LOCAL-00136" summary="remove LargeLocalStorage, concat vendor files, move downloading of fundraising lender loans to server process.">
+      <created>1455509143878</created>
+      <option name="number" value="00136" />
+      <option name="project" value="LOCAL" />
+      <updated>1455509143878</updated>
+    </task>
+    <task id="LOCAL-00137" summary="remove LargeLocalStorage, concat vendor files, move downloading of fundraising lender loans to server process.">
+      <created>1455509683916</created>
+      <option name="number" value="00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1455509683916</updated>
+    </task>
+    <task id="LOCAL-00138" summary="remove LargeLocalStorage, concat vendor files, move downloading of fundraising lender loans to server process.">
+      <created>1455509778029</created>
+      <option name="number" value="00138" />
+      <option name="project" value="LOCAL" />
+      <updated>1455509778029</updated>
+    </task>
+    <task id="LOCAL-00139" summary="have failing process for fundraising loans, switch back to other static serving">
+      <created>1455510173857</created>
+      <option name="number" value="00139" />
+      <option name="project" value="LOCAL" />
+      <updated>1455510173858</updated>
+    </task>
+    <task id="LOCAL-00140" summary="removed wait for fundraising loans call.">
+      <created>1455511741073</created>
+      <option name="number" value="00140" />
+      <option name="project" value="LOCAL" />
+      <updated>1455511741073</updated>
+    </task>
+    <task id="LOCAL-00141" summary="generate the index file each time, include the git short rev in the template so browsers will see the javascript as separate files and I can set the cache to huge times, also defer the scripts">
+      <created>1455520597816</created>
+      <option name="number" value="00141" />
+      <option name="project" value="LOCAL" />
+      <updated>1455520597816</updated>
+    </task>
+    <task id="LOCAL-00142" summary="broke the server...">
+      <created>1455520772172</created>
+      <option name="number" value="00142" />
+      <option name="project" value="LOCAL" />
+      <updated>1455520772172</updated>
+    </task>
+    <task id="LOCAL-00143" summary="super fast for return users until the file is changed.">
+      <created>1455522247202</created>
+      <option name="number" value="00143" />
+      <option name="project" value="LOCAL" />
+      <updated>1455522247202</updated>
+    </task>
+    <task id="LOCAL-00144" summary="added cache timer of 60 mins to gzipped files (ok since the batches will change)">
+      <created>1455523269098</created>
+      <option name="number" value="00144" />
+      <option name="project" value="LOCAL" />
+      <updated>1455523269098</updated>
+    </task>
+    <task id="LOCAL-00145" summary="hmm">
+      <created>1455523547219</created>
+      <option name="number" value="00145" />
+      <option name="project" value="LOCAL" />
+      <updated>1455523547219</updated>
+    </task>
+    <task id="LOCAL-00146" summary="start should have 0 age. always get fresh">
+      <created>1455527915610</created>
+      <option name="number" value="00146" />
+      <option name="project" value="LOCAL" />
+      <updated>1455527915611</updated>
+    </task>
+    <task id="LOCAL-00147" summary="block old redirect.aspx reqs">
+      <created>1455529797000</created>
+      <option name="number" value="00147" />
+      <option name="project" value="LOCAL" />
+      <updated>1455529797000</updated>
+    </task>
+    <task id="LOCAL-00148" summary="timer not working,">
+      <created>1455555930748</created>
+      <option name="number" value="00148" />
+      <option name="project" value="LOCAL" />
+      <updated>1455555930750</updated>
+    </task>
+    <task id="LOCAL-00149" summary="pre-renders index. no need to do it per-call.">
+      <created>1455564325521</created>
+      <option name="number" value="00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1455564325522</updated>
+    </task>
+    <task id="LOCAL-00150" summary="use file times to differentiate updates for both js and css assets.">
+      <created>1455566395182</created>
+      <option name="number" value="00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1455566395182</updated>
+    </task>
+    <task id="LOCAL-00151" summary="generate hash for files since mod dates are all the same on the server.">
+      <created>1455567598882</created>
+      <option name="number" value="00151" />
+      <option name="project" value="LOCAL" />
+      <updated>1455567598882</updated>
+    </task>
+    <task id="LOCAL-00152" summary="force a render before the hashes are ready to keep the server serving for those 3 prep seconds.">
+      <created>1455567869984</created>
+      <option name="number" value="00152" />
+      <option name="project" value="LOCAL" />
+      <updated>1455567869984</updated>
+    </task>
+    <task id="LOCAL-00153" summary="remove dead code and move ejs require to master only for memory concerns">
+      <created>1455568809303</created>
+      <option name="number" value="00153" />
+      <option name="project" value="LOCAL" />
+      <updated>1455568809303</updated>
+    </task>
+    <task id="LOCAL-00154" summary="remove extra render, they were happening the same second anyway... add proof to google that i own the site.">
+      <created>1455573777275</created>
+      <option name="number" value="00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1455573777275</updated>
+    </task>
+    <task id="LOCAL-00155" summary="remove app json writes, fix type bug">
+      <created>1455574897155</created>
+      <option name="number" value="00155" />
+      <option name="project" value="LOCAL" />
+      <updated>1455574897155</updated>
+    </task>
+    <task id="LOCAL-00156" summary="allow user to switch to pulling lender loans from kiva rather KL for mega lenders where the request times out.">
+      <created>1455651080989</created>
+      <option name="number" value="00156" />
+      <option name="project" value="LOCAL" />
+      <updated>1455651080989</updated>
+    </task>
+    <task id="LOCAL-00157" summary="test lender id on start-up. give error message and clear it out (doesn't clean up the mess already made though)">
+      <created>1455654462503</created>
+      <option name="number" value="00157" />
+      <option name="project" value="LOCAL" />
+      <updated>1455654462503</updated>
+    </task>
+    <task id="LOCAL-00158" summary="and proper production version">
+      <created>1455654528968</created>
+      <option name="number" value="00158" />
+      <option name="project" value="LOCAL" />
+      <updated>1455654528968</updated>
+    </task>
+    <task id="LOCAL-00159" summary="properly fails bad PagedKiva requests, properly fails bad lender loans requests on both the server and in the app on bad request, added GA tracking for bad lender id on startup,">
+      <created>1455658783626</created>
+      <option name="number" value="00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1455658783627</updated>
+    </task>
+    <task id="LOCAL-00160" summary="stores lenderObj">
+      <created>1455660642564</created>
+      <option name="number" value="00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1455660642564</updated>
+    </task>
+    <task id="LOCAL-00161" summary="order of the js is important!">
+      <created>1455733930469</created>
+      <option name="number" value="00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1455733930469</updated>
+    </task>
+    <task id="LOCAL-00162" summary="runtime is undefined for a user?">
+      <created>1455734476950</created>
+      <option name="number" value="00162" />
+      <option name="project" value="LOCAL" />
+      <updated>1455734476950</updated>
+    </task>
+    <task id="LOCAL-00163" summary="added req.klraw, moved some stuff around on auto-lend tab and added text to help with confusion, added RSS tab and server code, added a div for the lender object on Options,">
+      <created>1455752492315</created>
+      <option name="number" value="00163" />
+      <option name="project" value="LOCAL" />
+      <updated>1455752492315</updated>
+    </task>
+    <task id="LOCAL-00164" summary="fixed bug for 0 id">
+      <created>1455764019873</created>
+      <option name="number" value="00164" />
+      <option name="project" value="LOCAL" />
+      <updated>1455764019873</updated>
+    </task>
+    <task id="LOCAL-00165" summary="strip more stuff from RSS crit urls">
+      <created>1455766673916</created>
+      <option name="number" value="00165" />
+      <option name="project" value="LOCAL" />
+      <updated>1455766673917</updated>
+    </task>
+    <task id="LOCAL-00166" summary="reduce the RSS URL">
+      <created>1455768469902</created>
+      <option name="number" value="00166" />
+      <option name="project" value="LOCAL" />
+      <updated>1455768469902</updated>
+    </task>
+    <option name="localTasksCounter" value="167" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="825" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19027181" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14449213" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297568" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30136988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15808298" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1104,32 +1136,32 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="don't store the raw result since the nothing ever looks at anything other than the first page's paging object. reduce workers back to 2" />
-    <MESSAGE value="remove promise after SemRequest ttl, more server logging." />
-    <MESSAGE value="increase to 7 workers." />
-    <MESSAGE value="set workers back to 3" />
-    <MESSAGE value="set 4 workers" />
-    <MESSAGE value="back to 3" />
-    <MESSAGE value="drop to 2... memory warnings are back." />
-    <MESSAGE value="text changes, moved anon func to named" />
-    <MESSAGE value="read from file system rather than passing around arrays. much better for memory!" />
-    <MESSAGE value="batch!" />
-    <MESSAGE value="save last 10 batches." />
-    <MESSAGE value="kick it." />
-    <MESSAGE value="add xhr header to request object, have proxy only respond if xhr header present, have proxy strip out all kiva cookies coming back to client through proxy call." />
-    <MESSAGE value="is this the problem with the super long partner requests?? why was it switching over to OPTIONS method for many calls? also fix for clicking to new pages and scrolling to top." />
-    <MESSAGE value="why is it doing OPTIONS method?" />
-    <MESSAGE value="another attempt" />
-    <MESSAGE value="try again..." />
-    <MESSAGE value="oops. didn't update gdocs instantiation for new param" />
-    <MESSAGE value="build wasn't ready when i committed" />
-    <MESSAGE value="gdocs wasn't adding for non server calls" />
-    <MESSAGE value="filter proxy request through server to only allow XHR. using 404 method was killing worker processes. filter causes it to redirect to search. intention is to prevent a link to /proxy/kiva/* viewable in a browser" />
-    <MESSAGE value="stream the files directly from disk, not into memory first." />
-    <MESSAGE value="added timer for app start, optionally process loans for an api call" />
-    <MESSAGE value="is this better for static serving than the other?" />
-    <MESSAGE value="round times to .xx to be more accurate!" />
-    <option name="LAST_COMMIT_MESSAGE" value="round times to .xx to be more accurate!" />
+    <MESSAGE value="broke the server..." />
+    <MESSAGE value="super fast for return users until the file is changed." />
+    <MESSAGE value="added cache timer of 60 mins to gzipped files (ok since the batches will change)" />
+    <MESSAGE value="hmm" />
+    <MESSAGE value="start should have 0 age. always get fresh" />
+    <MESSAGE value="block old redirect.aspx reqs" />
+    <MESSAGE value="timer not working," />
+    <MESSAGE value="pre-renders index. no need to do it per-call." />
+    <MESSAGE value="use file times to differentiate updates for both js and css assets." />
+    <MESSAGE value="generate hash for files since mod dates are all the same on the server." />
+    <MESSAGE value="force a render before the hashes are ready to keep the server serving for those 3 prep seconds." />
+    <MESSAGE value="remove dead code and move ejs require to master only for memory concerns" />
+    <MESSAGE value="remove extra render, they were happening the same second anyway... add proof to google that i own the site." />
+    <MESSAGE value="remove app json writes, fix type bug" />
+    <MESSAGE value="allow user to switch to pulling lender loans from kiva rather KL for mega lenders where the request times out." />
+    <MESSAGE value="test lender id on start-up. give error message and clear it out (doesn't clean up the mess already made though)" />
+    <MESSAGE value="and proper production version" />
+    <MESSAGE value="properly fails bad PagedKiva requests, properly fails bad lender loans requests on both the server and in the app on bad request, added GA tracking for bad lender id on startup," />
+    <MESSAGE value="stores lenderObj" />
+    <MESSAGE value="order of the js is important!" />
+    <MESSAGE value="runtime is undefined for a user?" />
+    <MESSAGE value="added req.klraw, moved some stuff around on auto-lend tab and added text to help with confusion, added RSS tab and server code, added a div for the lender object on Options," />
+    <MESSAGE value="fixed bug for 0 id" />
+    <MESSAGE value="strip more stuff from RSS crit urls" />
+    <MESSAGE value="reduce the RSS URL" />
+    <option name="LAST_COMMIT_MESSAGE" value="reduce the RSS URL" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1138,91 +1170,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/vendor/socket.io.min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="26702" selection-start-line="0" selection-start-column="26702" selection-end-line="0" selection-end-column="26702" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/vendor/snowstack.min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/vendor/snowstack.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3079179">
-          <caret line="14" column="18" selection-start-line="14" selection-start-column="18" selection-end-line="14" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/loans.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.59574467">
-          <caret line="149" column="8" selection-start-line="149" selection-start-column="8" selection-end-line="149" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/syncStorage.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/vendor/socket.io.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="440" column="0" selection-start-line="441" selection-start-column="42" selection-end-line="441" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/browserconfig.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/old/SampleSearchScreen.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/old/SampleSearchOutput.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/old/LenderAnalysis.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/old/KivabankRepay.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/old/kivabankpartner.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/old/KivabankLender.jpg">
       <provider selected="true" editor-type-id="images">
         <state />
@@ -1236,22 +1183,6 @@
     <entry file="file://$PROJECT_DIR$/public/old/kivabank.png">
       <provider selected="true" editor-type-id="images">
         <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="34" column="26" selection-start-line="34" selection-start-column="26" selection-end-line="34" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.81085044">
-          <caret line="259" column="45" selection-start-line="259" selection-start-column="45" selection-end-line="259" selection-end-column="45" />
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/public/react/index.html">
@@ -1284,27 +1215,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/utils.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="183" column="29" selection-start-line="183" selection-start-column="29" selection-end-line="183" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.04398827">
-          <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/BulkAddModal.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1312,7 +1226,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="22" selection-start-line="8" selection-start-column="22" selection-end-line="8" selection-end-column="22" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1320,7 +1233,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="113" column="18" selection-start-line="113" selection-start-column="18" selection-end-line="113" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1328,15 +1240,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="555" column="46" selection-start-line="555" selection-start-column="46" selection-end-line="555" selection-end-column="46" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1344,22 +1247,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="23" column="38" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="92" column="55" selection-start-line="92" selection-start-column="55" selection-end-line="92" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/manifest.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.023622047">
-          <caret line="1" column="18" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -1370,47 +1257,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster-old.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.111111">
-          <caret line="20" column="5" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/server.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="134" column="14" selection-start-line="134" selection-start-column="14" selection-end-line="134" selection-end-column="14" />
-          <folding>
-            <marker date="1455143138000" expanded="true" signature="2728:2924" placeholder="{...}" />
-            <marker date="1455143138000" expanded="true" signature="2729:2767" placeholder="{...}" />
-            <marker date="1455143138000" expanded="true" signature="6069:6759" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="11" column="27" selection-start-line="11" selection-start-column="27" selection-end-line="11" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4281525">
           <caret line="21" column="96" selection-start-line="21" selection-start-column="16" selection-end-line="21" selection-end-column="96" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1418,22 +1268,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="112" column="98" selection-start-line="112" selection-start-column="98" selection-end-line="112" selection-end-column="98" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.074074">
-          <caret line="100" column="77" selection-start-line="100" selection-start-column="77" selection-end-line="100" selection-end-column="77" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="252" column="98" selection-start-line="252" selection-start-column="98" selection-end-line="252" selection-end-column="98" />
           <folding />
         </state>
       </provider>
@@ -1446,18 +1280,133 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+    <entry file="file://$PROJECT_DIR$/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.08797654">
+          <caret line="4" column="39" selection-start-line="4" selection-start-column="39" selection-end-line="4" selection-end-column="39" />
+          <folding>
+            <marker date="1455512191000" expanded="true" signature="2840:3036" placeholder="{...}" />
+            <marker date="1455512191000" expanded="true" signature="2841:2879" placeholder="{...}" />
+            <marker date="1455512191000" expanded="true" signature="6181:6871" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.023622047">
+          <caret line="8" column="86" selection-start-line="8" selection-start-column="86" selection-end-line="8" selection-end-column="86" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="167" column="2" selection-start-line="167" selection-start-column="2" selection-end-line="167" selection-end-column="2" />
+          <caret line="252" column="98" selection-start-line="252" selection-start-column="98" selection-end-line="252" selection-end-column="98" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-45.296295">
+          <caret line="100" column="77" selection-start-line="100" selection-start-column="77" selection-end-line="100" selection-end-column="77" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="4" column="33" selection-start-line="4" selection-start-column="33" selection-end-line="4" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="4" selection-start-line="17" selection-start-column="4" selection-end-line="17" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/stylesheets/snowstack.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="110" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/stylesheets/snowstack.min.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="1085" selection-start-line="0" selection-start-column="1085" selection-end-line="0" selection-end-column="1085" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36867088">
-          <caret line="72" column="44" selection-start-line="72" selection-start-column="44" selection-end-line="72" selection-end-column="44" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="69" column="14" selection-start-line="69" selection-start-column="14" selection-end-line="69" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="209" selection-start-line="0" selection-start-column="209" selection-end-line="0" selection-end-column="209" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/stylesheets/application.min.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/stylesheets/application.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="151" column="3" selection-start-line="151" selection-start-column="3" selection-end-line="151" selection-end-column="3" />
+          <folding>
+            <marker date="1455866525000" expanded="true" signature="337:421" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="436:607" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="624:656" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="686:770" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="788:910" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="933:983" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="1005:1363" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="1390:1407" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="1424:1545" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="1571:1969" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="1993:2209" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2228:2252" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2266:2284" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2299:2318" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2335:2378" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2406:2466" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2431:2464" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2489:2507" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2527:2548" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2573:2626" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2647:2671" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2693:2721" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2779:2822" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2835:2878" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2888:2931" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="2947:2990" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="3001:3005" placeholder="{...}" />
+            <marker date="1455866525000" expanded="true" signature="12372:12412" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="43" column="30" selection-start-line="43" selection-start-column="30" selection-end-line="43" selection-end-column="30" />
           <folding />
         </state>
       </provider>
@@ -1465,31 +1414,187 @@
     <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="34" column="132" selection-start-line="34" selection-start-column="132" selection-end-line="34" selection-end-column="132" />
+          <caret line="69" column="26" selection-start-line="69" selection-start-column="26" selection-end-line="69" selection-end-column="26" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/public/index.html">
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AlertModal.jsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.75">
-          <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="24" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster.js">
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.074074">
-          <caret line="388" column="38" selection-start-line="388" selection-start-column="38" selection-end-line="388" selection-end-column="38" />
+        <state vertical-scroll-proportion="-4.375">
+          <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/react-kiva.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="57" column="45" selection-start-line="57" selection-start-column="45" selection-end-line="57" selection-end-column="45" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/utils.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/syncStorage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="110" column="21" selection-start-line="110" selection-start-column="21" selection-end-line="110" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KivaImage.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/utilsStore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="29" column="57" selection-start-line="29" selection-start-column="57" selection-end-line="29" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/browserconfig.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/manifest.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.022727273">
+          <caret line="1" column="18" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.555555">
+          <caret line="203" column="12" selection-start-line="203" selection-start-column="8" selection-end-line="203" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="45" column="35" selection-start-line="45" selection-start-column="35" selection-end-line="45" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="171" column="24" selection-start-line="171" selection-start-column="24" selection-end-line="171" selection-end-column="24" />
+          <folding>
+            <marker date="1455859457000" expanded="true" signature="4632:4707" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="4759:6703" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="4792:5064" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="5097:5691" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="5724:6242" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="6275:6463" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="6496:6673" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="6803:7735" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="6836:7209" placeholder="..." />
+            <marker date="1455859457000" expanded="true" signature="7242:7705" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.415525">
+          <caret line="518" column="12" selection-start-line="518" selection-start-column="12" selection-end-line="518" selection-end-column="12" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6910828">
-          <caret line="1695" column="14" selection-start-line="1695" selection-start-column="14" selection-end-line="1695" selection-end-column="14" />
+        <state vertical-scroll-proportion="-7.5555553">
+          <caret line="1185" column="46" selection-start-line="1185" selection-start-column="46" selection-end-line="1185" selection-end-column="46" />
+          <folding>
+            <element signature="n#!!block;n#getAtheistList#0;n#Loans#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cluster.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="187" column="35" selection-start-line="187" selection-start-column="29" selection-end-line="187" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../everythingtokivalens/views/pages/index.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/SetLenderIDModal.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.74561405">
+          <caret line="34" column="24" selection-start-line="34" selection-start-column="24" selection-end-line="34" selection-end-column="24" />
           <folding />
         </state>
       </provider>

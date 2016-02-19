@@ -14,6 +14,11 @@
  * download a batch of files, it also requests all changes since the batch was produced to guaratee
  * freshness.
  *
+ * When the server first boots up, the master uses ejs to compile the index based on the hashes of the
+ * css/js files. /javascript/29383u413984/build.js so that the cache can be set to hold for a year
+ * since as soon as it changes, it won't be considered the same file anymore. but EJS is kinda crappy
+ * to run every time since the pages aren't build unique per session.
+ *
  * memwatch is very useful to run the garbage collection after actions that are known to shift
  * around a lot of objects.
  *
@@ -51,7 +56,7 @@ function doGarbageCollection(name){
     console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
 }
 
-function notifyAllWorkers(msg){
+function notifyAllWorkers(msg){ //todo: cluster-hub has a method to send to all workers.
     Object.keys(cluster.workers).forEach(id => cluster.workers[id].send(msg))
 }
 
@@ -104,7 +109,6 @@ if (cluster.isMaster){ //preps the downloads
     var zlib = require('zlib')
     const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
-    //cluster.fork()
     const numCPUs = require('os').cpus().length
     console.log("*** CPUs: " + numCPUs)
     for (var i=0; i< Math.min(numCPUs-1, 7); i++)
@@ -115,8 +119,6 @@ if (cluster.isMaster){ //preps the downloads
         console.log('INTERESTING: Worker %d died :(', worker.id)
         cluster.fork()
     })
-
-
 
     /**
      * get the updates since given batch number
@@ -475,6 +477,7 @@ else
         })
     })
 
+    app.get("/robots.txt", (req,res)=>res.sendStatus(404))
 
     //API
     app.get('/start', function(request, res){
