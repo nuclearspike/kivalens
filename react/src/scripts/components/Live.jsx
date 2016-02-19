@@ -31,6 +31,11 @@ const LabeledNumber = ({number, label}) => <div key={label} className="labeledNu
 </div>
 
 const TopTen = React.createClass({
+    shouldComponentUpdate({data}){
+        if (this.props.data.length != data.length)
+            return true
+        return (JSON.stringify(this.props.data) != JSON.stringify(data))
+    },
     render(){
         let {title, data = [], field = 'count'} = this.props
         return <Col md={4}>
@@ -61,7 +66,7 @@ const Live = React.createClass({
     componentDidMount() {
         this.listenTo(a.loans.live.statsChanged, this.newRunningTotals)
         this.recalcTop()
-        this.topInterval = setInterval(this.recalcTop, 1000)
+        this.topInterval = setInterval(this.recalcTop, 5000)
     },
     newRunningTotals(rt){
         this.setState({running_totals: rt, force: Math.random().toString()})
@@ -102,12 +107,15 @@ const Live = React.createClass({
 
         this.setState({funded_sum, still_needed, basket_amount, fundraising_amount, avg_percent_funded})
 
-        if (this.state.running_totals.funded_amount >= 500)
+        if (this.state.running_totals.funded_amount >= 250)
             this.setState({top_lending_countries, top_sectors, top_countries})
 
     },
     componentWillUnmount(){
         clearInterval(this.topInterval)
+    },
+    shouldComponentUpdate(p,state){
+        return JSON.stringify(state) != JSON.stringify(this.state)
     },
     render() {
         let {new_loans, funded_loans, funded_amount, expired_loans} = this.state.running_totals

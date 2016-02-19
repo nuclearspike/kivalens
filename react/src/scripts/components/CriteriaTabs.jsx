@@ -457,7 +457,7 @@ const SliderRow = React.createClass({
 })
 
 const CriteriaTabs = React.createClass({
-    mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
+    mixins: [Reflux.ListenerMixin, LinkedStateMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, helper_chart_height: 400, needLenderID: false,
              criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false, descriptionsLoaded: false}
@@ -646,12 +646,17 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
+        let {isMobile, needLenderID, RSSName, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
         var cPortfolio = cursor.refine('portfolio')
         var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
+
+        if (activeTab == 5){
+            var critRSS = s.criteria.prepForRSS(extend({feed_name: RSSName},this.state.criteria))
+            var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
+        }
 
         return (<div>
             <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
@@ -780,11 +785,25 @@ const CriteriaTabs = React.createClass({
                                     <h1>RSS - Alpha</h1>
                                     <p>
                                         This is experimental. It will only show the first 20 matching loans and does not
-                                        look at your fundraising loans and won't work with portfolio balancing. This
-                                        link is for the current options.
+                                        look at your fundraising loans and won't work with portfolio balancing.
                                     </p>
-                                    <textarea style={{width:'100%',height:'150px'}} readonly value={`http://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(s.criteria.prepForRSS(this.state.criteria)))}`}>
-                                    </textarea>
+                                    <Panel header="Name the RSS Feed">
+                                        <p>This will appear in your RSS feed reader.</p>
+                                        <Input type="text" label='' style={{height:'38px',minWidth:'50px'}}
+                                               className='col-xs-2'
+                                               valueLink={this.linkState('RSSName')} />
+                                    </Panel>
+                                    <Panel header="Your Settings">
+                                        <p>These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.</p>
+                                        <pre>
+                                            {JSON.stringify(critRSS, null, 2)}
+                                        </pre>
+                                    </Panel>
+                                    <Panel header="RSS Link">
+                                        <p>Copy and Paste this entire URL into your RSS reader.</p>
+                                        <textarea style={{width:'100%',height:'150px'}} readOnly value={`http://www.kivalens.org/rss/${critRSSUrl}`}>
+                                        </textarea>
+                                    </Panel>
                                 </div>
                             </If>
                         </Col>

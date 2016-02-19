@@ -3,14 +3,13 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {ListGroupItem} from 'react-bootstrap'
-import {ImmutableOptimizations} from 'react-cursor'
 import {KivaImage} from '.'
 import cx from 'classnames'
 import a from '../actions'
 import s from '../stores/'
 
 const LoanListItem = React.createClass({
-    mixins: [Reflux.ListenerMixin,ImmutableOptimizations(['loan'])],
+    mixins: [Reflux.ListenerMixin],
     getInitialState() {
         return this.isInBasket()
     },
@@ -23,7 +22,7 @@ const LoanListItem = React.createClass({
         var st = this.isInBasket()
         if (st.inBasket != this.state.inBasket) {
             this.setState(st)
-            this.forceUpdate()
+            //this.forceUpdate()
         }
     },
     isInBasket(){
@@ -32,7 +31,7 @@ const LoanListItem = React.createClass({
     loanUpdated(loan){
         if (loan.status != 'fundraising') {
             this.setState({loanNotFundraising: true})
-            this.forceUpdate()
+            //this.forceUpdate()
         }
     },
     render() {
@@ -54,4 +53,4 @@ const LoanListItem = React.createClass({
     }
 })
 
-export default LoanListItem;
+export default LoanListItem

@@ -458,7 +458,7 @@ else
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
             var opts = {
-                title: 'KivaLens RSS',
+                title: 'KivaLens ' + crit.feed_name,
                 feed_url: `http://www.kivalens.org/rss/${request.params.criteria}`,
                 site_url: 'http://www.kivalens.org/'
             }
