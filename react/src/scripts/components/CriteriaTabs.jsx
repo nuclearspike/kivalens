@@ -654,7 +654,7 @@ const CriteriaTabs = React.createClass({
         var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
 
         if (activeTab == 5){
-            var critRSS = s.criteria.prepForRSS(extend({feed_name: RSSName},this.state.criteria))
+            var critRSS = s.criteria.prepForRSS(extend({feed: {name: RSSName}},this.state.criteria))
             var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
         }
 
@@ -782,9 +782,9 @@ const CriteriaTabs = React.createClass({
                         <Col lg={12}>
                             <If condition={activeTab == 5}>
                                 <div>
-                                    <h1>RSS - Alpha</h1>
+                                    <h2>RSS</h2>
                                     <p>
-                                        This is experimental. It will only show the first 20 matching loans and does not
+                                        This is experimental, expect breaking changes. It will only show the first 20 matching loans and does not
                                         look at your fundraising loans and won't work with portfolio balancing.
                                     </p>
                                     <Panel header="Name the RSS Feed">
