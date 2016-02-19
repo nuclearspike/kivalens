@@ -68,6 +68,9 @@ var Search = React.createClass({
         //I hate this. this cannot be the right way to do this. it works. but there has to be a better way.
         this.setState({showBulkAdd: false})
     },
+    handleOutdatedUrlAlertDismiss(){
+        this.setState({outdatedUrl: null})
+    },
     render()  {
         var style = {height:'100%', width: '100%'}
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
@@ -77,10 +80,11 @@ var Search = React.createClass({
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>
                 <If condition={outdatedUrl}>
-                    <Alert bsStyle="warning">
+                    <Alert className="not-rounded" style={{marginTop:'-20px'}} bsStyle="warning" onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
                         <p>
-                            The link or bookmark you used is outdated. To ensure faster page loading and that you can
-                            always get back to the right place, please bookmark this page.
+                            The link or bookmark you used is outdated. To ensure faster page loading
+                            and that you can always get back to the right place, please bookmark this
+                            page.
                         </p>
                     </Alert>
                 </If>

@@ -355,7 +355,7 @@ else
     const proxyHandler = {
         filter: req => req.xhr, //only proxy xhr requests
         forwardPath: req => require('url').parse(req.url).path,
-        intercept: function(rsp, data, req, res, callback){
+        intercept: (rsp, data, req, res, callback) => {
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
@@ -369,27 +369,27 @@ else
         }
     }
 
-    const streamGzipFile = (response, fn) =>{
+    const streamGzipFile = (res, fn) =>{
         fn = `/tmp/${fn}.kl`
         var stat = fs.statSync(fn);
         var rs = fs.createReadStream(fn)
-        response.type('application/json')
-        response.header('Content-Encoding', 'gzip')
-        response.header('Content-Length', stat.size)
-        response.header('Cache-Control', `public, max-age=3600`)
-        rs.pipe(response)
+        res.type('application/json')
+        res.header('Content-Encoding', 'gzip')
+        res.header('Content-Length', stat.size)
+        res.header('Cache-Control', `public, max-age=3600`)
+        rs.pipe(res)
     }
 
-    const serveGzipFile = (response, fn) =>{
+    const serveGzipFile = (res, fn) =>{
         fs.readFile(`/tmp/${fn}.kl`, (err, data)=> {
             if (err) {
                 console.log(err)
-                response.sendStatus(404)
+                res.sendStatus(404)
             } else {
-                response.type('application/json')
-                response.header('Content-Encoding', 'gzip')
-                response.header('Cache-Control', `public, max-age=3600`)
-                response.send(data)
+                res.type('application/json')
+                res.header('Content-Encoding', 'gzip')
+                res.header('Cache-Control', `public, max-age=3600`)
+                res.send(data)
             }
         })
     }
@@ -411,7 +411,7 @@ else
 
     //app.use(express.static(__dirname + '/public'))
 
-    var setCustomCacheControl = function(res, path) {
+    var setCustomCacheControl = (res, path) => {
         console.log('setHeaders:', path, mime.lookup(path))
         var maxAge = 86400
         switch (mime.lookup(path)){
@@ -440,27 +440,29 @@ else
     }))
 
     //old site bad urls.
-    app.get('/feed.svc/rss/*', function(request, response){
-        response.sendStatus(404)
-    })
+    app.get('/feed.svc/rss/*', (req, res) =>res.sendStatus(404))
+    app.get('/Redirect.aspx*', (req, res) =>res.sendStatus(404))
 
-    app.get('/Redirect.aspx*', function(request, response){
-        response.sendStatus(404)
-    })
+    //things i don't have
+    app.get("/robots.txt", (req,res)=>res.sendStatus(404))
 
-    app.get('/rss/:criteria', function(request, response){
-        var crit = request.params.criteria
+
+    app.get('/rss/:criteria', (req, res) =>{
+        var crit = req.params.criteria
         if (crit)
             crit = JSON.parse(decodeURIComponent(crit))
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
 
+        console.log('INTERESTING: rss fetch:', JSON.stringify(crit,null,2))
+
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
-            var feedName = (crit.feed && crit.feed.name)? crit.feed.name : crit.feed_name
+            var feedName = (crit.feed && crit.feed.name)? crit.feed.name : crit.feed_name || '(unnamed)'
+            var go_to = 'kiva'
             var opts = {
                 title: 'KivaLens: ' + feedName,
-                feed_url: `http://www.kivalens.org/rss/${request.params.criteria}`,
+                feed_url: `http://www.kivalens.org/rss/${req.params.criteria}`,
                 site_url: 'http://www.kivalens.org/#/search'
             }
             var feed = new RSS(opts)
@@ -470,62 +472,70 @@ else
                     title: loan.name,
                     description: loan.description.texts.en,
                     guid: loan.id,
-                    url: `https://www.kiva.org/lend/${loan.id}?app_id=org.kiva.kivalens`,
+                    url: `http://www.kivalens.org/rss_click/${go_to}/${loan.id}`,
                     date: loan.posted_date
                 })
             })
-            response.send(feed.xml())
+            res.send(feed.xml())
         })
     })
 
-    app.get("/robots.txt", (req,res)=>res.sendStatus(404))
+    app.get('/rss_click/:go_to/:id', (req,res) => {
+        var id = req.params.id, go_to = req.params.go_to
+        console.log(`INTERESTING: rss_click : ${go_to}: ${id}`)
+        if (go_to == 'kiva') {
+            res.redirect(`https://www.kiva.org/lend/${id}?app_id=org.kiva.kivalens`)
+        } else {
+            res.redirect(`http://www.kivalens.org/#/search/loan/${id}`)
+        }
+    })
 
     //API
-    app.get('/start', function(request, res){
+    app.get('/start', (req, res) =>{
         res.header('Cache-Control', 'public, max-age=0')
         res.json(startResponse)
     })
 
-    app.get('/loans/:batch/:page', function(request, response) {
-        var batch = parseInt(request.params.batch)
+    app.get('/loans/:batch/:page', (req, res) => {
+        var batch = parseInt(req.params.batch)
         if (!batch) {
-            response.sendStatus(404)
+            res.sendStatus(404)
             return
         }
         if (batch != startResponse.batch)
             console.log(`INTERESTING: /loans batch: ${batch} latest: ${startResponse.batch}`)
 
-        var page = parseInt(request.params.page)
+        var page = parseInt(req.params.page)
 
-        streamGzipFile(response,`loans-${batch}-${page}`)
+        streamGzipFile(res,`loans-${batch}-${page}`)
     })
 
-    app.get('/partners', function(request,response){
+    app.get('/partners', function(req,res){
         //not using streamGzipFile because this method send tag down to let client know they already have the current one.
-        serveGzipFile(response, `partners`)
+        serveGzipFile(res, `partners`)
     })
 
-    app.get('/loans/:batch/descriptions/:page', function(request,response){
-        var batch = parseInt(request.params.batch)
+    app.get('/loans/:batch/descriptions/:page', function(req,res){
+        var batch = parseInt(req.params.batch)
         if (!batch) {
-            response.sendStatus(404)
+            res.sendStatus(404)
             return
         }
         if (batch != startResponse.batch)
             console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${startResponse.batch}`)
 
-        var page = parseInt(request.params.page)
+        var page = parseInt(req.params.page)
 
-        streamGzipFile(response, `descriptions-${batch}-${page}`)
+        streamGzipFile(res, `descriptions-${batch}-${page}`)
     })
 
-    app.get('/since/:batch', function(request, response){
-        var batch = parseInt(request.params.batch)
+    app.get('/since/:batch', (req, res) =>{
+        var batch = parseInt(req.params.batch)
         if (!batch) {
-            response.sendStatus(404)
+            res.sendStatus(404)
             return
         }
-        hub.requestMaster('since', batch, result => response.send(result))
+        hub.requestMaster('since', batch, result => res.send(result))
     })
 
     app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
@@ -541,17 +551,17 @@ else
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({"loan":{"repaid_in_max":5,"still_needed_min":25,"limit_to":{"enabled":false,"count":1,"limit_by":"Partner"}},"partner":{},"portfolio":{"exclude_portfolio_loans":"true","pb_partner":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_country":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_sector":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_activity":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"}},"notifyOnNew":true}))},true).done(r => console.log(r))
      */
-    app.get('/loans/filter', function(req, response){
+    app.get('/loans/filter', (req, res) =>{
         var crit = req.query.crit
         if (crit)
             crit = JSON.parse(decodeURIComponent(crit))
-        hub.requestMaster('filter', crit, result => response.send(result))
+        hub.requestMaster('filter', crit, result => res.send(result))
     })
 
     //CATCH ALL this will also redirect old image reqs to a page though...
-    app.get('/*', function(request, response) {
+    app.get('/*', (req, res) => {
         //i could test the mime type of the path?
-        response.redirect("/#/search")
+        res.redirect("/#/search")
     })
 
     app.listen(app.get('port'), function() {
