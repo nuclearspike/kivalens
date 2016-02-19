@@ -1143,8 +1143,11 @@ class Loans {
            this.update_interval_handle = setInterval(this.backgroundResync.bind(this), this.update_interval)
     }
     endDownloadTimer(name){
-        if (!isServer())
-            global.rga.event({category: 'timer', action: name, value: Math.round((Date.now() - this.startDownload.getTime()) / 1000)})
+        if (!isServer()) {
+            var secondsAgo = Math.round((Date.now() - this.startDownload.getTime()) / 1000)
+            if (secondsAgo < 60*60000)
+                global.rga.event({category: 'timer', action: name, value: secondsAgo})
+        }
     }
     init(crit, getOptions, api_options){
         //fetch partners.

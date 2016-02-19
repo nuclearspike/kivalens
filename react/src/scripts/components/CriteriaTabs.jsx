@@ -13,7 +13,7 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
-import {ClickLink, KivaLink, PartnerDisplayModal, AutoLendSettings} from '.'
+import {ClickLink, KivaLink, NewTabLink, PartnerDisplayModal, AutoLendSettings} from '.'
 import TimeAgo from 'react-timeago'
 import {defaultKivaData} from '../api/kiva'
 import extend from 'extend'
@@ -782,7 +782,7 @@ const CriteriaTabs = React.createClass({
                         <Col lg={12}>
                             <If condition={activeTab == 5}>
                                 <div>
-                                    <h2>RSS</h2>
+                                    <h4>RSS</h4>
                                     <p>
                                         This is experimental, expect breaking changes. It will only show the first 20 matching loans and does not
                                         look at your fundraising loans and won't work with portfolio balancing.
@@ -800,9 +800,13 @@ const CriteriaTabs = React.createClass({
                                         </pre>
                                     </Panel>
                                     <Panel header="RSS Link">
-                                        <p>Copy and Paste this entire URL into your RSS reader.</p>
-                                        <textarea style={{width:'100%',height:'150px'}} readOnly value={`http://www.kivalens.org/rss/${critRSSUrl}`}>
-                                        </textarea>
+                                        <p>
+                                            Copy and Paste this entire URL into your RSS reader or
+                                            use <NewTabLink href="http://www.ifttt.com">If This Then That</NewTabLink> to
+                                            create a "recipe" to respond to new items in the news feed and either send
+                                            you an email you or an SMS.
+                                        </p>
+                                        <textarea style={{width:'100%',height:'150px'}} readOnly value={`http://www.kivalens.org/rss/${critRSSUrl}`}/>
                                     </Panel>
                                 </div>
                             </If>
