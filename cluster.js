@@ -476,6 +476,7 @@ else
                     date: loan.posted_date
                 })
             })
+            res.type('application/rss+xml')
             res.send(feed.xml())
         })
     })
