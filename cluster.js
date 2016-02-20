@@ -369,38 +369,17 @@ else
         }
     }
 
-    const streamGzipFile = (res, fn) =>{
-        fn = `/tmp/${fn}.kl`
-        var stat = fs.statSync(fn);
-        var rs = fs.createReadStream(fn)
+    const serveGzipFile = (res, fn) =>{
         res.type('application/json')
         res.header('Content-Encoding', 'gzip')
-        res.header('Content-Length', stat.size)
         res.header('Cache-Control', `public, max-age=3600`)
-        rs.pipe(res)
-    }
-
-    const serveGzipFile = (res, fn) =>{
-        fs.readFile(`/tmp/${fn}.kl`, (err, data)=> {
-            if (err) {
-                console.log(err)
-                res.sendStatus(404)
-            } else {
-                res.type('application/json')
-                res.header('Content-Encoding', 'gzip')
-                res.header('Cache-Control', `public, max-age=3600`)
-                res.send(data)
-            }
-        })
+        res.sendFile(`/tmp/${fn}.kl`)
     }
 
     const serveHashedAsset = (res, fn, mimetype) => {
-        var stat = fs.statSync(fn);
-        var rs = fs.createReadStream(fn)
         res.type(mimetype)
         res.header('Cache-Control', 'public, max-age=31536000')
-        res.header('Content-Length', stat.size)
-        rs.pipe(res)
+        res.sendFile(fn)
     }
 
     app.set('port', (process.env.PORT || 3000))
@@ -435,8 +414,7 @@ else
     })
 
     app.use(serveStatic(__dirname + '/public', {
-        maxAge: '1d',
-        setHeaders: setCustomCacheControl
+        maxAge: '1d',  setHeaders: setCustomCacheControl
     }))
 
     //old site bad urls.
@@ -445,7 +423,6 @@ else
 
     //things i don't have
     app.get("/robots.txt", (req,res)=>res.sendStatus(404))
-
 
     app.get('/rss/:criteria', (req, res) =>{
         var crit = req.params.criteria
@@ -492,12 +469,12 @@ else
     })
 
     //API
-    app.get('/start', (req, res) =>{
+    app.get('/api/start', (req, res) =>{
         res.header('Cache-Control', 'public, max-age=0')
         res.json(startResponse)
     })
 
-    app.get('/loans/:batch/:page', (req, res) => {
+    app.get('/api/loans/:batch/:page', (req, res) => {
         var batch = parseInt(req.params.batch)
         if (!batch) {
             res.sendStatus(404)
@@ -508,15 +485,14 @@ else
 
         var page = parseInt(req.params.page)
 
-        streamGzipFile(res,`loans-${batch}-${page}`)
+        serveGzipFile(res,`loans-${batch}-${page}`)
     })
 
-    app.get('/partners', function(req,res){
-        //not using streamGzipFile because this method send tag down to let client know they already have the current one.
+    app.get('/api/partners', function(req,res){
         serveGzipFile(res, `partners`)
     })
 
-    app.get('/loans/:batch/descriptions/:page', function(req,res){
+    app.get('/api/loans/:batch/descriptions/:page', function(req,res){
         var batch = parseInt(req.params.batch)
         if (!batch) {
             res.sendStatus(404)
@@ -527,24 +503,29 @@ else
 
         var page = parseInt(req.params.page)
 
-        streamGzipFile(res, `descriptions-${batch}-${page}`)
+        serveGzipFile(res, `descriptions-${batch}-${page}`)
     })
 
-    app.get('/since/:batch', (req, res) =>{
+    app.get('/api/since/:batch', (req, res) =>{
         var batch = parseInt(req.params.batch)
         if (!batch) {
             res.sendStatus(404)
             return
         }
-        hub.requestMaster('since', batch, result => res.send(result))
+        hub.requestMaster('since', batch, result => {
+            res.type('application/json')
+            res.send(result)
+        })
     })
 
     app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
         hub.requestMaster('lenderloans', req.params.lender, (err,result) => {
             if (err)
                 res.sendStatus(err)
-            else
+            else {
+                res.type('application/json')
                 res.send(result)
+            }
         })
     })
 
@@ -552,7 +533,7 @@ else
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({"loan":{"repaid_in_max":5,"still_needed_min":25,"limit_to":{"enabled":false,"count":1,"limit_by":"Partner"}},"partner":{},"portfolio":{"exclude_portfolio_loans":"true","pb_partner":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_country":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_sector":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_activity":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"}},"notifyOnNew":true}))},true).done(r => console.log(r))
      */
-    app.get('/loans/filter', (req, res) =>{
+    app.get('/api/loans/filter', (req, res) =>{
         var crit = req.query.crit
         if (crit)
             crit = JSON.parse(decodeURIComponent(crit))

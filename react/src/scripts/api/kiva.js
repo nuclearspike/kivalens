@@ -244,7 +244,7 @@ var req = {}
 var kivaBase, gdocs
 if (!isServer()) {
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
-    req.kl = new SemRequest(`${location.protocol}//${location.host}/`,true,false,{},0)
+    req.kl = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},0)
     req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
@@ -1017,7 +1017,7 @@ class QueuedActions {
     }
     enqueue(objs){
         if (Array.isArray(objs))
-            this.queue = this.queue.concat(objs).distinct((a,b)=>a.id==b.id) //todo: if ever used for anything other than loans this won't work
+            this.queue = this.queue.concat(objs).distinct()
         else
             this.queue.push(objs)
 
@@ -1712,7 +1712,7 @@ class Loans {
                     .done(processIds).fail(markFailed)
             })
         } else {
-            req.kl.get(`api/lender/${lender_id}/loans/fundraising`)
+            req.kl.get(`lender/${lender_id}/loans/fundraising`)
                 .done(processIds).fail(markFailed)
         }
     }
