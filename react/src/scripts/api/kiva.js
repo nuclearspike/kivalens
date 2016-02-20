@@ -1233,10 +1233,10 @@ class Loans {
                                 //loan.description.texts.en = desc.t
                                 loan.kls_use_or_descr_arr = desc.t
                                 ResultProcessors.processLoanDescription(loan)
+                                this.allDescriptionsLoaded = true
+                                this.notify({all_descriptions_loaded: true})
                             })
                             this.endDownloadTimer('KLDescriptions')
-                            this.allDescriptionsLoaded = true
-                            this.notify({all_descriptions_loaded: true})
                         })
                     })
                 }

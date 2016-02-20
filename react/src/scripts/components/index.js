@@ -29,12 +29,12 @@ const LoanLink = ({id, title, children, loan}) => {
         id = loan.id
         title = `View loan for ${loan.name} on Kiva.org in a new tab`
     }
-    return <KivaLink path={`lend/${id}`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
+    return <KivaLink path={`lend/${id}?app_id=org.kiva.kivalens`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
 }
 const EmailLink = ({email, subject, body, title, children}) => {
     var params = []
-    if (subject) params.push(`subject=${encodeURI(subject)}`)
-    if (body) params.push(`body=${encodeURI(body)}`)
+    if (subject) params.push(`subject=${encodeURIComponent(subject)}`)
+    if (body) params.push(`body=${encodeURIComponent(body)}`)
     return <NewTabLink href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
 }
 const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>}) => {

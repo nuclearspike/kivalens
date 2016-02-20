@@ -435,10 +435,11 @@ else
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
-            var feedName = (crit.feed && crit.feed.name)? crit.feed.name : crit.feed_name || '(unnamed)'
-            var go_to = 'kiva'
+            if (!crit.feed) crit.feed = {}
+            if (!crit.feed.name) crit.feed.name = '(unnamed)'
+            if (!crit.feed.link_to) crit.feed.link_to = 'kiva'
             var opts = {
-                title: 'KivaLens: ' + feedName,
+                title: 'KivaLens: ' + crit.feed.name,
                 feed_url: `http://www.kivalens.org/rss/${req.params.criteria}`,
                 site_url: 'http://www.kivalens.org/#/search'
             }
@@ -449,7 +450,7 @@ else
                     title: loan.name,
                     description: loan.description.texts.en,
                     guid: loan.id,
-                    url: `http://www.kivalens.org/rss_click/${go_to}/${loan.id}`,
+                    url: `http://www.kivalens.org/rss_click/${crit.feed.link_to}/${loan.id}`,
                     date: loan.posted_date
                 })
             })

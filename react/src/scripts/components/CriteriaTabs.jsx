@@ -460,7 +460,7 @@ const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
         return { activeTab: 1, portfolioTab: '', helper_charts: {}, helper_chart_height: 400, needLenderID: false,
-             criteria: s.criteria.syncGetLast(), KLA: {}, loansReady: false, descriptionsLoaded: false}
+             criteria: s.criteria.syncGetLast(), KLA: {}, RSSLinkTo: 'kiva', loansReady: false, descriptionsLoaded: false}
     },
     componentDidMount() {
         var opts = lsj.get("Options")
@@ -646,7 +646,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, RSSName, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
+        let {isMobile, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -654,11 +654,11 @@ const CriteriaTabs = React.createClass({
         var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
 
         if (activeTab == 5){
-            var critRSS = s.criteria.prepForRSS(extend({feed: {name: RSSName}},this.state.criteria))
+            var critRSS = s.criteria.prepForRSS(extend({feed: {name: RSSName, link_to: RSSLinkTo}},this.state.criteria))
             var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
         }
 
-        return (<div>
+        return <div>
             <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
                 <If condition={location.hostname == '$$localhost'}>
                     <pre>{JSON.stringify(criteria, null, 2)}</pre>
@@ -782,16 +782,21 @@ const CriteriaTabs = React.createClass({
                         <Col lg={12}>
                             <If condition={activeTab == 5}>
                                 <div>
-                                    <h4>RSS</h4>
                                     <p>
                                         This is experimental, expect breaking changes. It will only show the first 20 matching loans and does not
                                         look at your fundraising loans and won't work with portfolio balancing.
                                     </p>
-                                    <Panel header="Name the RSS Feed">
-                                        <p>This will appear in your RSS feed reader.</p>
-                                        <Input type="text" label='' style={{height:'38px',minWidth:'50px'}}
+                                    <Panel header="RSS Feed Details">
+                                        <Input type="text" label='Name (this will appear in your RSS feed reader)' style={{height:'38px',minWidth:'50px'}}
                                                className='col-xs-2'
                                                valueLink={this.linkState('RSSName')} />
+                                        <Input type="select" label="Links in RSS go to"
+                                               valueLink={this.linkState('RSSLinkTo')}
+                                               placeholder="select">
+                                            <option value="kiva">Kiva</option>
+                                            <option value="kivalens">KivaLens</option>
+                                        </Input>
+
                                     </Panel>
                                     <Panel header="Your Settings">
                                         <p>These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.</p>
@@ -815,7 +820,6 @@ const CriteriaTabs = React.createClass({
                 </If>
             </Tabs>
             </div>
-        );
     }
 })
 export default CriteriaTabs

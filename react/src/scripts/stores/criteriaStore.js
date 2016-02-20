@@ -200,8 +200,8 @@ var criteriaStore = Reflux.createStore({
         })
         return crit
     },
-    prepForRSS(crit){
-        crit = extend({},crit)
+    prepForRSS(c){
+        var crit = extend(true,{},c)
         crit = this.stripNullValues(crit)
         delete crit.portfolio
         if (crit.loan && crit.loan.limit_to && !crit.loan.limit_to.enabled)
