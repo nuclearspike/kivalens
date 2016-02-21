@@ -334,8 +334,8 @@ if (cluster.isMaster){ //preps the downloads
             kivaloans.queueToRefresh(ids)
     })
 }
-else
-{ //workers handle the downloads
+else  //workers handle all communication with the clients.
+{
     console.log("STARTING WORKER")
     var express = require('express')
     var app = express()
@@ -436,7 +436,7 @@ else
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
             if (!crit.feed) crit.feed = {}
-            if (!crit.feed.name) crit.feed.name = '(unnamed)'
+            if (!crit.feed.name) crit.feed.name = crit.feed_name || '(unnamed)'
             if (!crit.feed.link_to) crit.feed.link_to = 'kiva'
             var opts = {
                 title: 'KivaLens: ' + crit.feed.name,
