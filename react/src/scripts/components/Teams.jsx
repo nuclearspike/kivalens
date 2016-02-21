@@ -119,12 +119,10 @@ const Teams = React.createClass({
         if (loadingTeams && !yt_message)
             yt_message = '- Loading teams...'
 
-        return (<Grid>
-                <h1>Compare Teams - Beta</h1>
+        return <Grid>
+                <h1>Compare Teams</h1>
                 <p>
                     Select the teams to compare and graphs will show.
-                    There are still many improvements that can be made to this feature. Contact me (see About)
-                    with ideas.
                 </p>
                 <Col sm={4}>
                     <form ref="graph_options" name="graph_options" action="">
@@ -147,7 +145,7 @@ const Teams = React.createClass({
                         <Highcharts style={{height:'600px'}} config={config}/>
                     </If>
                 </Col>
-            </Grid>)
+            </Grid>
     }
 })
 

@@ -3,7 +3,7 @@ import React from 'react'
 import Reflux from 'reflux'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 
-import {Grid,Col,Row,Panel} from 'react-bootstrap'
+import {Grid,Col,Row,Panel,Alert} from 'react-bootstrap'
 import {KivaLink} from '.'
 import {DelayStateTriggerMixin} from './Mixins'
 import a from '../actions'
@@ -66,7 +66,10 @@ const Live = React.createClass({
     componentDidMount() {
         this.listenTo(a.loans.live.statsChanged, this.newRunningTotals)
         this.recalcTop()
-        this.topInterval = setInterval(this.recalcTop, 5000)
+        if (!channels["loan.purchased"])
+            this.setState({notActive: true})
+        else
+            this.topInterval = setInterval(this.recalcTop, 5000)
     },
     newRunningTotals(rt){
         this.setState({running_totals: rt, force: Math.random().toString()})
@@ -120,59 +123,68 @@ const Live = React.createClass({
     },
     render() {
         let {new_loans, funded_loans, funded_amount, expired_loans} = this.state.running_totals
-        let {funded_sum, still_needed, basket_amount, fundraising_amount,avg_percent_funded} = this.state
+        let {funded_sum, still_needed, basket_amount, fundraising_amount,avg_percent_funded,notActive} = this.state
         return <Grid>
                 <Row>
                     <h1>Kiva Lending</h1>
-                    <b>Beta</b>
-                    <p>To keep data up-to-the-second fresh, KivaLens subscribes to the same live data-stream
-                        that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses and adds new loans and updates existing
-                        loans accordingly. Since starting your current KivaLens session (<TimeAgo date={kivaloans.startupTime.toISOString()}/>), the following activity has occurred
-                        on Kiva.org.</p>
+                    <If condition={notActive}>
+                        <Alert bsStyle="warning">
+                            You do not have the live stream enabled for this session. To enable it, go to Options, uncheck the box that disables it and reload the page.
+                        </Alert>
+                    <Else/>
+                        <p>
+                            To keep data up-to-the-second fresh, KivaLens subscribes to the same live data-stream
+                            that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses and adds new loans and updates existing
+                            loans accordingly. Since starting your current KivaLens session (<TimeAgo date={kivaloans.startupTime.toISOString()}/>), the following activity has occurred
+                            on Kiva.org.
+                        </p>
+                    </If>
                 </Row>
-                <Row>
-                    <Col md={3}>
-                        <h3>Since session start</h3>
-                        <dl className="dl-horizontal" style={{fontSize: 'large'}}>
-                            <dt>New Loans</dt><dd><AnimInt value={new_loans}/></dd>
-                            <dt>Fully Funded</dt><dd><AnimInt value={funded_loans}/></dd>
-                            <dt>Expired</dt><dd><AnimInt value={expired_loans}/></dd>
-                            <dt>Lending Total</dt><dd>$<AnimInt value={funded_amount}/></dd>
-                        </dl>
-                        <h3>Fundraising Loans</h3>
-                        <dl className="dl-horizontal" style={{fontSize: 'large'}}>
-                            <dt>Fundraising</dt><dd>$<AnimInt value={fundraising_amount}/></dd>
-                            <dt>Funded Amount</dt><dd>$<AnimInt value={funded_sum}/></dd>
-                            <dt>In Baskets</dt><dd>$<AnimInt value={basket_amount}/></dd>
-                            <dt>Still Needed</dt><dd>$<AnimInt value={still_needed}/></dd>
-                            <dt>Average Funded</dt><dd><AnimInt value={avg_percent_funded}/>%</dd>
-                        </dl>
-                        <If condition={false && lsj.get("Options").maxRepaymentTerms_on}>
-                            <p>
-                                * These totals only include the loans KivaLens has pulled from Kiva.
-                            </p>
-                        </If>
-                    </Col>
+                <If condition={!notActive}>
+                    <Row>
+                        <Col md={3}>
+                            <h3>Since session start</h3>
+                            <dl className="dl-horizontal" style={{fontSize: 'large'}}>
+                                <dt>New Loans</dt><dd><AnimInt value={new_loans}/></dd>
+                                <dt>Fully Funded</dt><dd><AnimInt value={funded_loans}/></dd>
+                                <dt>Expired</dt><dd><AnimInt value={expired_loans}/></dd>
+                                <dt>Lending Total</dt><dd>$<AnimInt value={funded_amount}/></dd>
+                            </dl>
+                            <h3>Fundraising Loans</h3>
+                            <dl className="dl-horizontal" style={{fontSize: 'large'}}>
+                                <dt>Fundraising</dt><dd>$<AnimInt value={fundraising_amount}/></dd>
+                                <dt>Funded Amount</dt><dd>$<AnimInt value={funded_sum}/></dd>
+                                <dt>In Baskets</dt><dd>$<AnimInt value={basket_amount}/></dd>
+                                <dt>Still Needed</dt><dd>$<AnimInt value={still_needed}/></dd>
+                                <dt>Average Funded</dt><dd><AnimInt value={avg_percent_funded}/>%</dd>
+                            </dl>
+                            <If condition={false && lsj.get("Options").maxRepaymentTerms_on}>
+                                <p>
+                                    * These totals only include the loans KivaLens has pulled from Kiva.
+                                </p>
+                            </If>
+                        </Col>
 
-                    <Col md={9}>
-                        <Grid fluid>
-                            <Row>
-                                <Col md={6}>
-                                    <input type="range" min="5" max='30' step="1" valueLink={this.linkState('maxMinutes')}/>
-                                </Col>
-                                <Col md={6}>
-                                    Up to the last {this.state.maxMinutes} minutes of lending
-                                </Col>
-                            </Row>
+                        <Col md={9}>
+                            <Grid fluid>
+                                <Row>
+                                    <Col md={6}>
+                                        <input type="range" min="5" max='30' step="1" valueLink={this.linkState('maxMinutes')}/>
+                                    </Col>
+                                    <Col md={6}>
+                                        Up to the last {this.state.maxMinutes} minutes of lending
+                                    </Col>
+                                </Row>
 
-                            <Row className="ample-padding-top">
-                                <TopTen title='Top Lending Countries' data={this.state.top_lending_countries} field='sum'/>
-                                <TopTen title='Top Sectors' data={this.state.top_sectors} />
-                                <TopTen title='Top Countries' data={this.state.top_countries} />
-                            </Row>
-                        </Grid>
-                    </Col>
-                </Row>
+                                <Row className="ample-padding-top">
+                                    <TopTen title='Top Lending Countries' data={this.state.top_lending_countries} field='sum'/>
+                                    <TopTen title='Top Sectors' data={this.state.top_sectors} />
+                                    <TopTen title='Top Countries' data={this.state.top_countries} />
+                                </Row>
+                            </Grid>
+                        </Col>
+                    </Row>
+                </If>
                 <Row>
                     <h2>How is KivaLens so Fast and Fresh?</h2>
                     <ul className='spacedList'>

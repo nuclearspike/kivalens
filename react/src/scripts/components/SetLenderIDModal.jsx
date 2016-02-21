@@ -5,7 +5,7 @@ import {Grid,Row,Col,Modal,Input,Button,Alert} from 'react-bootstrap'
 import {KivaLink} from '.'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import {req} from '../api/kiva'
-import s from '../stores'
+import s from '../stores/'
 
 var lenderIdTester = new RegExp(/^[a-z0-9]{0,24}$/i) //technically 3,24 but i don't want to start out with an error and alternatives weren't worth it.
 
