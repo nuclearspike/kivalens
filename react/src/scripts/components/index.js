@@ -20,7 +20,7 @@ const NotFound = () => <h1>Not Found</h1>
 //SIMPLE STATE-LESS COMPONENTS
 import React from 'react'
 
-const ClickLink = ({onClick,children}) => <a href="#" onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
+const ClickLink = ({onClick, children}) => <a href="#" onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
 const NewTabLink = ({href, title, children}) => <a href={href} onClick={e=>rga.outboundLink({label: href},c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
 const KivaLink = ({path, title, children}) => <NewTabLink href={`https://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
 const LenderLink = ({lender, title, children}) => <KivaLink path={`lender/${lender}?super_graphs=1`} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>

@@ -68,7 +68,7 @@ function serialize(obj, prefix) {
         if (obj.hasOwnProperty(p)) {
             var k = prefix ? prefix + "[" + p + "]" : p,
                 v = obj[p]
-            str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v));
+            str.push(typeof v == "object" ? serialize(v, k) : encodeURIComponent(k) + "=" + encodeURIComponent(v))
         }
     }
     return str.join("&");
@@ -254,7 +254,7 @@ if (!isServer()) {
 }
 
 req.kiva = {
-    api: new SemRequest('http://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},5),
+    api: new SemRequest('http://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},2),
     page: new SemRequest(`${kivaBase}`,false,!isServer(),{},5*60),
     ajax: new SemRequest(`${kivaBase}ajax/`,true,!isServer(),{},5*60)
 }
@@ -369,8 +369,6 @@ class ResultProcessors {
             }
         }
 
-        var descr_arr
-        var use_arr
 
         /**
          * on the server, on the first-pass the kls will be empty, the description and use will be populated.
@@ -379,11 +377,11 @@ class ResultProcessors {
 
         if (isServer()) {
             if (loan.description.texts.en) {
-                descr_arr = processText(loan.description.texts.en, common_descr)
+                var descr_arr = processText(loan.description.texts.en, common_descr)
             } else {
                 descr_arr = []
             }
-            use_arr = processText(loan.use, common_use)
+            var use_arr = processText(loan.use, common_use)
             loan.kls_has_descr = loan.description.texts.en != undefined
             loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
         } else {
@@ -1127,8 +1125,8 @@ class Loans {
         this.partners_from_kiva = []
         this.lender_loans = []
         this.allDescriptionsLoaded = false
-        this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
-        this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:1000})
+        this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:5000})
+        this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:2000})
         this.is_ready = false
         this.lender_loans_message = "Lender ID not set"
         this.lender_loans_state = llUnknown
