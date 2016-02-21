@@ -73,6 +73,7 @@ const Options = React.createClass({
                                         <dt>Name</dt><dd>{lenderObj.name}</dd>
                                         <dt>Loan Count</dt><dd>{lenderObj.loan_count}</dd>
                                         <dt>Invitees</dt><dd>{lenderObj.invitee_count}</dd>
+                                        <dt>Your Invitation Link</dt><dd><KivaLink path={`invitedby/${lenderObj.lender_id}`}>{`https://www.kiva.org/invitedby/${lenderObj.lender_id}`}</KivaLink></dd>
                                         <dt>Joined</dt><dd><TimeAgo date={lenderObj.member_since}/></dd>
                                         <dt>Location</dt><dd>{lenderObj.whereabouts}</dd>
                                         <dt>Lender Page</dt><dd><LenderLink lender={kiva_lender_id}>Your Lender Page</LenderLink></dd>

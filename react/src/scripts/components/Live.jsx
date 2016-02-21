@@ -74,6 +74,7 @@ const Live = React.createClass({
     },
     recalcTop(){
         var c = channels["loan.purchased"]
+        if (!c) return
         var x_mins_ago = parseInt(this.state.maxMinutes).minutes().ago()
 
         //get recent message payloads
