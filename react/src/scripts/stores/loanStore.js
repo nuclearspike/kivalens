@@ -33,7 +33,7 @@ domready.done(()=> {
         if (progress.lender_loans_event) {
             criteriaStore.syncUpdateBalancers()
             a.criteria.lenderLoansEvent(progress.lender_loans_event)
-            loanStore.onBasketBatchRemove(kivaloans.lender_loans) //todo: should be in response to the action
+            loanStore.onBasketBatchRemove(kivaloans.lenderLoans[kivaloans.lender_id]) //todo: should be in response to the action
         }
         if (progress.running_totals_change)
             a.loans.live.statsChanged(progress.running_totals_change)

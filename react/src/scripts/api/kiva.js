@@ -1123,7 +1123,7 @@ class Loans {
         this.loans_from_kiva = []
         //this.partner_ids_from_loans = []
         this.partners_from_kiva = []
-        this.lender_loans = []
+        this.lenderLoans = {}
         this.allDescriptionsLoaded = false
         this.queue_to_refresh = new QueuedActions().init({action: this.refreshLoans.bind(this), isReady: this.isReady.bind(this),waitFor:5000})
         this.queue_new_loan_query = new QueuedActions().init({action: this.newLoanNotice.bind(this), isReady: this.isReady.bind(this),waitFor:2000})
@@ -1465,8 +1465,8 @@ class Loans {
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kls_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
         ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
-        if (c.portfolio.exclude_portfolio_loans == 'true' && this.lender_loans  && this.lender_loans.length)
-            ct.addFieldNotContainsOneOfArrayTester(this.lender_loans, loan=>loan.id)
+        if (c.portfolio.exclude_portfolio_loans == 'true' && this.lenderLoans[this.lender_id]  && this.lenderLoans[this.lender_id].length)
+            ct.addFieldNotContainsOneOfArrayTester(this.lenderLoans[this.lender_id], loan=>loan.id)
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
         ct.addBalancer(c.portfolio.pb_country,    loan=>loan.location.country)
         ct.addBalancer(c.portfolio.pb_activity,   loan=>loan.activity)
@@ -1692,14 +1692,17 @@ class Loans {
         if (lender_id) {
             this.lender_id = lender_id
         } else return
-        this.lender_loans = []
+        if (!this.lenderLoans) this.lenderLoans = {}
+        this.lenderLoans[lender_id] = []
+
         if (this.lender_loans_state == llDownloading) return null ///not the right pattern. UI code in the API
         this.lender_loans_message = `Loading fundraising loans for ${this.lender_id} (Please wait...)`
         this.lender_loans_state = llDownloading
         this.notify({lender_loans_event: 'started'})
 
         const processIds = function(ids){
-            this.lender_loans = ids
+            this.lenderLoans[lender_id] = ids
+            //this code is not that great at being async. but it's good enough for the use cases.
             this.lender_loans_message = `Fundraising loans for ${lender_id} found: ${ids.length}`
             this.lender_loans_state = llComplete
             this.notify({lender_loans_event: 'done'})
@@ -1707,27 +1710,27 @@ class Loans {
         }.bind(this)
 
         const markFailed = function(){
-            this.lender_loans = []
-            this.lender_loans_message = `Something went wrong when searching for loans for ${lender_id}. Cannot exclude loans you've made.`
+            this.lenderLoans[lender_id] = []
+            this.lender_loans_message = `Something went wrong when searching for loans for ${lender_id}. Cannot exclude loans you've made. If problem persists, go to Options and instruct KivaLens to download your loans directly from Kiva.`
             this.lender_loans_state = llComplete
             this.notify({lender_loans_event: 'done'})
         }.bind(this)
 
         if (this.options.lenderLoansFromKiva) {
             wait(500).done(x => {
-                new LenderFundraisingLoans(lender_id).ids()
-                    .done(processIds).fail(markFailed)
+                new LenderFundraisingLoans(lender_id).ids().done(processIds).fail(markFailed)
             })
         } else {
-            if (global.lenderLoansDownloadStarted){
-                waitFor(x=>global.unprocessedLenderLoans).done(x=> {
-                    processIds(global.unprocessedLenderLoans)
-                    global.unprocessedLenderLoans = undefined
-                    global.lenderLoansDownloadStarted = false //next time
+            if (global.lenderLoans && global.lenderLoans[lender_id] && global.lenderLoans[lender_id].downloadStarted){
+                waitFor(x=>global.lenderLoans[lender_id].unprocessedIds).done(x=> {
+                    processIds(global.lenderLoans[lender_id].unprocessedIds)
+                    delete global.lenderLoans[lender_id]
                 })
-            } else
-                req.kl.get(`lender/${lender_id}/loans/fundraising`)
-                    .done(processIds).fail(markFailed)
+            } else {
+                if (!this.lenderLoans[lender_id].length)
+                    req.kl.get(`lender/${lender_id}/loans/fundraising`)
+                        .done(processIds).fail(markFailed)
+            }
         }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses

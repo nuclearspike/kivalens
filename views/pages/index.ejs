@@ -73,36 +73,35 @@
     function xhrPartnerBail(){
         window.partnerDownloadStarted = false
     }
-    function xhrLenderLoansTransferComplete() {
-        window.unprocessedLenderLoans = JSON.parse(this.responseText)
+    window.lenderLoans = {}
+
+    var options = localStorage.getItem("Options")
+    if (options) options = JSON.parse(options)
+    var doKLLoad = !(options && options.loansFromKiva)
+    if (doKLLoad) {
+        var xhrP = new XMLHttpRequest();
+        xhrP.addEventListener("load", xhrPartnerTransferComplete);
+        xhrP.addEventListener("error", xhrPartnerBail);
+        xhrP.addEventListener("abort", xhrPartnerBail);
+        window.partnerDownloadStarted = true
+        xhrP.open("GET", '/api/partners');
+        xhrP.send();
     }
-    function xhrLenderLoansBail(){
-        window.lenderLoansDownloadStarted = false
+    var doKLLenderLoans = (options && !options.lenderLoansFromKiva && options.kiva_lender_id)
+    if (doKLLenderLoans){
+        window.lenderLoans[options.kiva_lender_id] = {downloadStarted: true}
+        var xhrLL = new XMLHttpRequest();
+        xhrLL.addEventListener("load", function(){
+            window.lenderLoans[options.kiva_lender_id].unprocessedIds = JSON.parse(this.responseText)
+        });
+        xhrLL.addEventListener("error", function(){
+            delete window.lenderLoans[options.kiva_lender_id]
+            alert("Your portfolio loans failed to download. If this problem persists, go to Options and enable the option to download your loans directly from Kiva. It's probably that you have too many to search through within the allotted time.")
+        });
+        xhrLL.open("GET", '/api/lender/'+ options.kiva_lender_id + '/loans/fundraising');
+        xhrLL.send();
     }
-    setTimeout(function(){
-        var options = localStorage.getItem("Options")
-        if (options) options = JSON.parse(options)
-        var doKLLoad = !(options && options.loansFromKiva)
-        if (doKLLoad) {
-            var xhrP = new XMLHttpRequest();
-            xhrP.addEventListener("load", xhrPartnerTransferComplete);
-            xhrP.addEventListener("error", xhrPartnerBail);
-            xhrP.addEventListener("abort", xhrPartnerBail);
-            window.partnerDownloadStarted = true
-            xhrP.open("GET", '/api/partners');
-            xhrP.send();
-        }
-        var doKLLenderLoans = (options && !options.lenderLoansFromKiva && options.kiva_lender_id)
-        if (doKLLenderLoans){
-            var xhrLL = new XMLHttpRequest();
-            xhrLL.addEventListener("load", xhrLenderLoansTransferComplete);
-            xhrLL.addEventListener("error", xhrLenderLoansBail);
-            xhrLL.addEventListener("abort", xhrLenderLoansBail);
-            window.lenderLoansDownloadStarted = true
-            xhrLL.open("GET", '/api/lender/'+ options.kiva_lender_id + '/loans/fundraising');
-            xhrLL.send();
-        }
-    }, 20)
+
 </script>
 
 </body>

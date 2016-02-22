@@ -47,7 +47,7 @@ class LoanPurchasedChannel extends KivaChannel {
             utilsStore.pullLenderObj(kivaloans.lender_id)
             if (kla_features.notify){
                 var loans = data.p.loans.select(l=>l.id)
-                kivaloans.lender_loans = kivaloans.lender_loans.concat(loans)
+                kivaloans.lenderLoans[kivaloans.lender_id] = kivaloans.lenderLoans[kivaloans.lender_id].concat(loans)
                 callKLAFeature('notify', `I just saw the ${loans.length} loan${loans.length > 1? 's':''} you made!
             The next search you perform with the option to hide your existing loans will exclude your recent purchase.`)
             }

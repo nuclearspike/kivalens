@@ -418,8 +418,8 @@ else  //workers handle all communication with the clients.
     }))
 
     //old site bad urls.
-    app.get('/feed.svc/rss/*', (req, res) =>res.sendStatus(404))
-    app.get('/Redirect.aspx*', (req, res) =>res.sendStatus(404))
+    app.get('/feed.svc/rss/*', (req, res) =>res.sendStatus(410))
+    app.get('/Redirect.aspx*', (req, res) =>res.sendStatus(410))
 
     //things i don't have
     app.get("/robots.txt", (req,res)=>res.sendStatus(404))
@@ -525,6 +525,7 @@ else  //workers handle all communication with the clients.
                 res.sendStatus(err)
             else {
                 res.type('application/json')
+                res.header('Cache-Control', `public, max-age=1800`) //30m
                 res.send(result)
             }
         })
