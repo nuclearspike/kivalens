@@ -372,13 +372,13 @@ else  //workers handle all communication with the clients.
     const serveGzipFile = (res, fn) =>{
         res.type('application/json')
         res.header('Content-Encoding', 'gzip')
-        res.header('Cache-Control', `public, max-age=3600`)
+        res.header('Cache-Control', `public, max-age=3600`) //1 hour
         res.sendFile(`/tmp/${fn}.kl`)
     }
 
     const serveHashedAsset = (res, fn, mimetype) => {
         res.type(mimetype)
-        res.header('Cache-Control', 'public, max-age=31536000')
+        res.header('Cache-Control', 'public, max-age=31536000') //1 year
         res.sendFile(fn)
     }
 

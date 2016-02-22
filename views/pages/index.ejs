@@ -66,5 +66,29 @@
 <% js.forEach(function(file) { %>
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 
+<script>
+    function xhrTransferComplete() {
+        window.unprocessedPartners = JSON.parse(this.responseText)
+    }
+    function xhrBail(){
+        window.partnerDownloadStarted = false
+    }
+    setTimeout(function(){
+        var options = localStorage.getItem("Options")
+        var doKLLoad = !(options && JSON.parse(options).loansFromKiva)
+        if (doKLLoad) {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", xhrTransferComplete);
+            xhr.addEventListener("progress", function () {
+                window.partnerDownloadStarted = true
+            });
+            xhr.addEventListener("error", xhrBail);
+            xhr.addEventListener("abort", xhrBail);
+            xhr.open("GET", '/api/partners');
+            xhr.send();
+        }
+    }, 20)
+</script>
+
 </body>
 </html>

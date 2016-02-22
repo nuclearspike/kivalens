@@ -1241,14 +1241,19 @@ class Loans {
             }))
         }.bind(this)
 
+        const kl_processPartners = function(partners){
+            this.processPartners(partners)
+            this.endDownloadTimer('KLPartners')
+            this.atheist_list_processed = true //we always download the data.
+            this.notify({atheist_list_loaded: true})
+        }.bind(this)
+
         const kl_getPartners = function() {
             /** partners **/
-            req.kl.get("partners").done(partners => {
-                this.processPartners(partners)
-                this.endDownloadTimer('KLPartners')
-                this.atheist_list_processed = true //we always download the data.
-                this.notify({atheist_list_loaded: true})
-            })
+            if (global.partnerDownloadStarted) {
+                waitFor(x=>global.unprocessedPartners).done(x=>kl_processPartners(global.unprocessedPartners))
+            } else
+                req.kl.get("partners").done(kl_processPartners)
         }.bind(this)
 
         const kl_getLoans = function(batch, pages) {

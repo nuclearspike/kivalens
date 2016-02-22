@@ -122,7 +122,7 @@ const Options = React.createClass({
                     <Panel header="Speed!">
                         <Input
                             type="checkbox"
-                            label={`I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions ahead of time for searching but you'll still be able to read the loan description when you click on a loan. This speeds up the initial load. Will only take effect next app load.`}
+                            label={`I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions ahead of time for searching but you'll still be able to read the loan description when you click on a loan. This speeds up the initial load but only if set to download from KivaLens (default). Will only take effect next app load.`}
                             checkedLink={this.linkState('doNotDownloadDescriptions')} />
                         <Input
                             type="checkbox"
@@ -168,7 +168,7 @@ const Options = React.createClass({
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Download lender fundraising loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)."
+                            label="Download lender fundraising loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
                             checkedLink={this.linkState('lenderLoansFromKiva')} />
                         <Input
                             type="checkbox"
