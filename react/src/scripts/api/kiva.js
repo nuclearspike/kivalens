@@ -1251,7 +1251,11 @@ class Loans {
         const kl_getPartners = function() {
             /** partners **/
             if (global.partnerDownloadStarted) {
-                waitFor(x=>global.unprocessedPartners).done(x=>kl_processPartners(global.unprocessedPartners))
+                waitFor(x=>global.unprocessedPartners).done(x=>{
+                    kl_processPartners(global.unprocessedPartners)
+                    global.unprocessedPartners = undefined
+                    global.partnerDownloadStarted = false
+                })
             } else
                 req.kl.get("partners").done(kl_processPartners)
         }.bind(this)
@@ -1715,8 +1719,15 @@ class Loans {
                     .done(processIds).fail(markFailed)
             })
         } else {
-            req.kl.get(`lender/${lender_id}/loans/fundraising`)
-                .done(processIds).fail(markFailed)
+            if (global.lenderLoansDownloadStarted){
+                waitFor(x=>global.unprocessedLenderLoans).done(x=> {
+                    processIds(global.unprocessedLenderLoans)
+                    global.unprocessedLenderLoans = undefined
+                    global.lenderLoansDownloadStarted = false //next time
+                })
+            } else
+                req.kl.get(`lender/${lender_id}/loans/fundraising`)
+                    .done(processIds).fail(markFailed)
         }
     }
     refreshLoan(loan){ //returns a promise todo: a.loans.detail/s.loans.onDetail uses
