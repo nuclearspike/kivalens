@@ -20,7 +20,7 @@
  * to run every time since the pages aren't build unique per session.
  *
  * memwatch is very useful to run the garbage collection after actions that are known to shift
- * around a lot of objects.
+ * around a lot of objects otherwise my hobby-level heroku server runs out of memory.
  *
  * cluster-hub was found to be the best way to call code on the main process and have a callback
  * to receive the data to send it back to the client. I looked at a number of options and either
@@ -181,16 +181,6 @@ if (cluster.isMaster){ //preps the downloads
     var kivaloans
     var loansChanged = false
 
-    //
-    //temporary fix for memory issue. the restart is so fast and the client is usable before KL
-    //has all loans loaded... have this not do it every 24 hours, but on an interval check the time
-    //or when it starts up have it calculate when midnight is and set a timeout.
-    setInterval(()=>{
-        doGarbageCollection("MASTER: would have restarted")
-        //console.log('INTERESTING: restart on interval')
-        //process.exit(1)
-    }, 24*60*60000)
-
 
     kivaloans = new k.Loans(5*60*1000)
     var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
@@ -257,7 +247,8 @@ if (cluster.isMaster){ //preps the downloads
         }
 
         function finishIfReady(){
-            if (prepping.loanChunks.all(c=>c) && prepping.descriptions.all(c=>c) && partnersGzipped) {
+            //don't know when prepping isn't there, but there was an error in the logs that it was undefined here and crashed master.
+            if (prepping && prepping.loanChunks.all(c=>c) && prepping.descriptions.all(c=>c) && partnersGzipped) {
                 outputMemUsage("Master finishIfReady start")
                 loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
@@ -462,7 +453,7 @@ else  //workers handle all communication with the clients.
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
 
-        console.log('INTERESTING: rss fetch:', JSON.stringify(crit))
+        //console.log('INTERESTING: rss fetch:', JSON.stringify(crit))
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
