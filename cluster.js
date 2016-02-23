@@ -47,13 +47,14 @@ function outputMemUsage(event){
     console.log(event, `${formatMB(mem)}MB`, `uptime: ${process.uptime()}`)
 }
 
-function doGarbageCollection(name){
+function doGarbageCollection(name,log){
     var u_before = process.uptime()
     var m_before = process.memoryUsage()
     memwatch.gc()
     var m_after = process.memoryUsage()
     var u_after = process.uptime()
-    console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
+    if (log)
+        console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
 }
 
 function notifyAllWorkers(msg){ //todo: cluster-hub has a method to send to all workers.
@@ -86,6 +87,7 @@ if (cluster.isMaster){ //preps the downloads
     var latest = 0
 
     fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
+        //starts with random hash just to make it always in a working state.
         var hash = Math.round(Math.random()  * 100000000)
         var css = [{name:'application',hash},{name:'snowstack',hash}]
         var js = [{name:'vendor',hash},{name:'build',hash}]
@@ -195,11 +197,11 @@ if (cluster.isMaster){ //preps the downloads
 
     const prepForRequests = function(){
         if (!kivaloans.isReady()) {
-            console.log("kivaloans not ready")
+            //console.log("kivaloans not ready")
             return
         }
         if (!loansChanged) {
-            console.log("Nothing changed")
+            //console.log("Nothing changed")
             return
         }
 
@@ -270,7 +272,7 @@ if (cluster.isMaster){ //preps the downloads
                 bigDesc = undefined
                 message = undefined
                 prepping = undefined
-                doGarbageCollection("Master finishIfReady: after notify")
+                doGarbageCollection("Master finishIfReady: after notify", true)
             }
         }
 
@@ -313,7 +315,7 @@ if (cluster.isMaster){ //preps the downloads
 
     connectChannel('loan.posted', function(data){
         data = JSON.parse(data)
-        console.log("!!! loan.posted")
+        //console.log("!!! loan.posted")
         if (kivaloans)
             kivaloans.queueNewLoanNotice(data.p.loan.id)
     })
@@ -321,7 +323,7 @@ if (cluster.isMaster){ //preps the downloads
     connectChannel('loan.purchased', function(data){
         data = JSON.parse(data)
         var ids = data.p.loans.select(l=>l.id)
-        console.log("!!! loan.purchased: " + ids.length)
+        //console.log("!!! loan.purchased: " + ids.length)
         if (kivaloans)
             kivaloans.queueToRefresh(ids)
     })
@@ -336,6 +338,8 @@ else  //workers handle all communication with the clients.
     var compression = require('compression')
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
+
+    var rss_requests = {}
 
     // compress all requests
     app.use(compression())
@@ -412,7 +416,7 @@ else  //workers handle all communication with the clients.
     //app.use(express.static(__dirname + '/public'))
 
     var setCustomCacheControl = (res, path) => {
-        console.log('setHeaders:', path, mime.lookup(path))
+        //console.log('setHeaders:', path, mime.lookup(path))
         var maxAge = 86400
         switch (mime.lookup(path)){
             case 'text/html': maxAge = 0
@@ -453,7 +457,11 @@ else  //workers handle all communication with the clients.
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
 
-        //console.log('INTERESTING: rss fetch:', JSON.stringify(crit))
+        var rss_crit = JSON.stringify(crit)
+        if (!rss_requests[rss_crit]) { //only log rss fetches one time per process. cuts down the noise
+            console.log('INTERESTING: rss fetch:',rss_crit)
+            rss_requests[rss_crit] = true
+        }
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
