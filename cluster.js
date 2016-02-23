@@ -143,6 +143,7 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     var k = require('./react/src/scripts/api/kiva')
+    var rss_requests = {}
 
     /**
      * filter takes a client crit object and returns the ids that match.
@@ -152,6 +153,11 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('rss', (crit, sender, callback) => {
+        var rss_crit = JSON.stringify(crit)
+        if (!rss_requests[rss_crit]) { //only log rss fetches one time per restart. cuts down the noise dramatically
+            console.log('INTERESTING: rss fetch:',rss_crit)
+            rss_requests[rss_crit] = true
+        }
         callback(JSON.stringify(k.ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
     })
 
@@ -339,7 +345,6 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
-    var rss_requests = {}
 
     // compress all requests
     app.use(compression())
@@ -457,11 +462,6 @@ else  //workers handle all communication with the clients.
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
 
-        var rss_crit = JSON.stringify(crit)
-        if (!rss_requests[rss_crit]) { //only log rss fetches one time per process. cuts down the noise
-            console.log('INTERESTING: rss fetch:',rss_crit)
-            rss_requests[rss_crit] = true
-        }
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
