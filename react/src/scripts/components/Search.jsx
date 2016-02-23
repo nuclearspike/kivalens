@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Reflux from 'reflux'
-import Notification from 'react-notification'
+import {Notification} from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
 import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
 import a from '../actions'

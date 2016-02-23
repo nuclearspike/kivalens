@@ -1,7 +1,7 @@
 'use strict'
 import React from 'react'
 import Reflux from 'reflux'
-var Highcharts = require('react-highcharts/dist/bundle/highcharts')
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button} from 'react-bootstrap'

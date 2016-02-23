@@ -6,7 +6,7 @@ import {Grid,Col,Row,Alert,Input,Panel} from 'react-bootstrap'
 import {req, LenderTeams} from '../api/kiva'
 import numeral from 'numeral'
 
-var Highcharts = require('react-highcharts/dist/bundle/highcharts')
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 
 //http://www.kivalens.org/proxy/kiva/ajax/getGraphData?graphName=team_loan_total&id=12965
 //http://www.kivalens.org/proxy/kiva/ajax/getGraphData?graphName=team_loan_count&id=12965

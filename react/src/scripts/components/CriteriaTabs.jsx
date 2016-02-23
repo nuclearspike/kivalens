@@ -17,7 +17,7 @@ import {ClickLink, KivaLink, NewTabLink, PartnerDisplayModal, AutoLendSettings} 
 import TimeAgo from 'react-timeago'
 import {defaultKivaData} from '../api/kiva'
 import extend from 'extend'
-var Highcharts = require('react-highcharts/dist/bundle/highcharts')
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 
 var allOptions = {}
 

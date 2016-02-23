@@ -46,17 +46,15 @@
     "vinyl-ftp": "^0.4.5",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.6.1",
-    "yargs": "^3.31.0"
+    "yargs": "^4.1.0"
   },
   "dependencies": {
     "classnames": "^2.1.5",
-    "dateformat": "^1.0.12",
     "datejs": "^1.0.0-rc3",
     "extend": "^3.0.0",
     "history": "^1.16.0",
     "jquery-deferred": "^0.3.0",
     "linqjs": "0.0.6",
-    "multi-slider": "^2.0.0",
     "numeral": "^1.5.3",
     "react": "^0.14.3",
     "react-addons-css-transition-group": "^0.14.3",
@@ -65,7 +63,7 @@
     "react-cursor": "1.2.1",
     "react-dom": "^0.14.3",
     "react-ga": "^1.1.0",
-    "react-highcharts": "^6.0.0",
+    "react-highcharts": "^7.0.0",
     "react-infinite-list": "^0.3.1",
     "react-input-autosize": "^0.6.1",
     "react-localstorage": "^0.2.8",
