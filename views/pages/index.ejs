@@ -67,18 +67,6 @@
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 
 <script>
-    function xhrPartnerTransferProgress(e)
-    {
-        if (e.lengthComputable)
-        {
-            var percentage = Math.round((e.loaded/e.total)*100);
-            console.log("Partner percent: " + percentage + '%' );
-        }
-        else
-        {
-            console.log("Unable to compute progress information since the total size is unknown");
-        }
-    }
     function xhrPartnerTransferComplete() {
         window.unprocessedPartners = JSON.parse(this.responseText)
     }
@@ -93,7 +81,6 @@
     if (doKLLoad) {
         var xhrP = new XMLHttpRequest();
         xhrP.addEventListener("load", xhrPartnerTransferComplete);
-        xhrP.addEventListener("progress", xhrPartnerTransferProgress);
         xhrP.addEventListener("error", xhrPartnerBail);
         xhrP.addEventListener("abort", xhrPartnerBail);
         window.partnerDownloadStarted = true

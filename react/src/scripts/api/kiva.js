@@ -3,7 +3,6 @@
 require('linqjs')
 require('datejs')
 var extend = require('extend')
-//var request = require('request')
 var Deferred = require("jquery-deferred").Deferred
 var when = require("jquery-deferred").when
 var sem_one = require('semaphore')(8)
@@ -1339,13 +1338,17 @@ class Loans {
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: done, total: totalLoanBytes}})
                 })
                 .done(loans => {
+                    progress[page].loaded = progress[page].total
                     receivedLoans++
                     this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
                     loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
                     if (receivedLoans == pages) {
-                        this.loan_download.resolve(loansToAdd, false, 5 * 60000)
-                        this.endDownloadTimer('KLLoans')
-                        req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
+                        this.notify({loan_load_progress: {singlePass: true, task: 'details', done: totalLoanBytes, total: totalLoanBytes}})
+                        wait(100).done(x=>{
+                            this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                            this.endDownloadTimer('KLLoans')
+                            req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
+                        })
                     }
                 }))
         }.bind(this)
@@ -1360,10 +1363,10 @@ class Loans {
                     kl_getPartners()
                     setInterval(kl_getPartners, 24 * 60 * 60000)
                     /** descriptions **/
-                    if (!base_options.doNotDownloadDescriptions) {
+                    if (!base_options.doNotDownloadDescriptions)
                         kl_getDesc(response.batch, response.pages, response.descrLengths)
-                    }
-                } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
+
+                } else //if the server was just restarted and doesn't have the loans loaded yet, then fall back to loading from kiva.
                     loadFromKiva()
             }).fail(x=>loadFromKiva())
         }.bind(this)
