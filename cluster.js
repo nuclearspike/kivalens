@@ -61,6 +61,7 @@ function notifyAllWorkers(msg){ //todo: cluster-hub has a method to send to all 
 }
 
 var startResponse = {pages: 0, batch: 0}
+var startResponseHistory = []
 
 function hashFile(fn, fo, cb) {
     // the file you want to get the hash
@@ -270,7 +271,7 @@ if (cluster.isMaster){ //preps the downloads
                 })
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 
-                var message = { downloadReady: JSON.stringify({batch: latest, pages: prepping.loanChunks.length})}
+                var message = { downloadReady: JSON.stringify({batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.descriptions})}
                 doGarbageCollection("Master finishIfReady: before notify")
                 notifyAllWorkers(message)
 
@@ -294,7 +295,7 @@ if (cluster.isMaster){ //preps the downloads
         bigloanChunks.map((chunk, page) => { //map to give index
             zlib.gzip(chunk, gzipOpt, function (_, result) {
                 writeBuffer(`loans-${latest}-${page+1}`, result ,x=>{
-                    prepping.loanChunks[page] = true
+                    prepping.loanChunks[page] = chunk.length
                     finishIfReady()
                 })
             })
@@ -303,7 +304,7 @@ if (cluster.isMaster){ //preps the downloads
         bigDesc.map((chunk, page) => {
             zlib.gzip(chunk, gzipOpt, function (_, result) {
                 writeBuffer(`descriptions-${latest}-${page+1}`, result, x=>{
-                    prepping.descriptions[page] = true
+                    prepping.descriptions[page] = chunk.length
                     finishIfReady()
                 })
             })
@@ -370,10 +371,39 @@ else  //workers handle all communication with the clients.
     }
 
     const serveGzipFile = (res, fn) =>{
-        res.type('application/json')
+        fn = `/tmp/${fn}.kl`
+        var fs = require("fs")
+        var stats = fs.statSync(fn)
+        res.type('application/json;  charset=utf-8')
         res.header('Content-Encoding', 'gzip')
+        res.header('Content-Length', stats.size)
         res.header('Cache-Control', `public, max-age=3600`) //1 hour
-        res.sendFile(`/tmp/${fn}.kl`)
+        res.sendFile(fn)
+    }
+
+    //alternative method...
+    const serveGzipFile2 = (res, size, fn) =>{
+        var fs = require("fs")
+        fn = `/tmp/${fn}.kl`
+        if (!size) {
+            var stats = fs.statSync(fn)
+            size = stats.size
+        }
+        var head = {'Content-Encoding': 'gzip',
+            'Content-Type': 'application/json;  charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            'Content-Length': size}
+
+        res.writeHead(200, head)
+
+        var readStream = fs.createReadStream(fn)
+        readStream.on('data', function(data) {
+            res.write(data)
+        })
+
+        readStream.on('end', function() {
+            res.end()
+        })
     }
 
     const serveHashedAsset = (res, fn, mimetype) => {
@@ -394,11 +424,12 @@ else  //workers handle all communication with the clients.
         console.log('setHeaders:', path, mime.lookup(path))
         var maxAge = 86400
         switch (mime.lookup(path)){
-            case 'image/png': maxAge = 31536000
-                break
             case 'text/html': maxAge = 0
                 break
-            case 'application/javascript','text/css' : maxAge = 31536000
+            case 'image/png':
+            case 'application/javascript':
+            case 'text/css' :
+                maxAge = 31536000
                 break
         }
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`)
@@ -418,7 +449,7 @@ else  //workers handle all communication with the clients.
     }))
 
     //old site bad urls.
-    app.get('/feed.svc/rss/*', (req, res) =>res.sendStatus(410))
+    app.get('/feed.svc/rss/*', (req, res) =>res.sendStatus(410)) //410 = GONE
     app.get('/Redirect.aspx*', (req, res) =>res.sendStatus(410))
 
     //things i don't have
@@ -486,11 +517,11 @@ else  //workers handle all communication with the clients.
 
         var page = parseInt(req.params.page)
 
-        serveGzipFile(res,`loans-${batch}-${page}`)
+        serveGzipFile(res, `loans-${batch}-${page}`)
     })
 
     app.get('/api/partners', function(req,res){
-        serveGzipFile(res, `partners`)
+        serveGzipFile(res, 'partners')
     })
 
     app.get('/api/loans/:batch/descriptions/:page', function(req,res){
@@ -525,7 +556,7 @@ else  //workers handle all communication with the clients.
                 res.sendStatus(err)
             else {
                 res.type('application/json')
-                res.header('Cache-Control', `public, max-age=1800`) //30m
+                res.header('Cache-Control', `public, max-age=1800`) //30m todo: is this a bad idea?
                 res.send(result)
             }
         })
@@ -564,6 +595,12 @@ else  //workers handle all communication with the clients.
     process.on("message", msg => {
         if (msg.downloadReady){
             startResponse = JSON.parse(msg.downloadReady)
+            var curBatch = startResponse.batch
+            startResponseHistory[curBatch] = startResponse
+            Object.keys(startResponseHistory).forEach(k=> {
+                if (curBatch - k > 2)
+                    delete startResponseHistory[k]
+            })
             doGarbageCollection(`Worker ${cluster.worker.id} downloadReady `)
         }
     })

@@ -67,6 +67,18 @@
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 
 <script>
+    function xhrPartnerTransferProgress(e)
+    {
+        if (e.lengthComputable)
+        {
+            var percentage = Math.round((e.loaded/e.total)*100);
+            console.log("Partner percent: " + percentage + '%' );
+        }
+        else
+        {
+            console.log("Unable to compute progress information since the total size is unknown");
+        }
+    }
     function xhrPartnerTransferComplete() {
         window.unprocessedPartners = JSON.parse(this.responseText)
     }
@@ -81,6 +93,7 @@
     if (doKLLoad) {
         var xhrP = new XMLHttpRequest();
         xhrP.addEventListener("load", xhrPartnerTransferComplete);
+        xhrP.addEventListener("progress", xhrPartnerTransferProgress);
         xhrP.addEventListener("error", xhrPartnerBail);
         xhrP.addEventListener("abort", xhrPartnerBail);
         window.partnerDownloadStarted = true
@@ -92,11 +105,12 @@
         window.lenderLoans[options.kiva_lender_id] = {downloadStarted: true}
         var xhrLL = new XMLHttpRequest();
         xhrLL.addEventListener("load", function(){
-            window.lenderLoans[options.kiva_lender_id].unprocessedIds = JSON.parse(this.responseText)
+            if (xhrLL.status == 200)
+                window.lenderLoans[options.kiva_lender_id].unprocessedIds = JSON.parse(this.responseText)
         });
         xhrLL.addEventListener("error", function(){
             delete window.lenderLoans[options.kiva_lender_id]
-            alert("Your portfolio loans failed to download. If this problem persists, go to Options and enable the option to download your loans directly from Kiva. It's probably that you have too many to search through within the allotted time.")
+            alert("Your portfolio loans failed to download. If this problem persists, go to Options and enable the option to download your loans directly from Kiva.")
         });
         xhrLL.open("GET", '/api/lender/'+ options.kiva_lender_id + '/loans/fundraising');
         xhrLL.send();

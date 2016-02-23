@@ -3,28 +3,39 @@
 require('linqjs')
 require('datejs')
 var extend = require('extend')
-var request = require('request')
+//var request = require('request')
 var Deferred = require("jquery-deferred").Deferred
 var when = require("jquery-deferred").when
 var sem_one = require('semaphore')(8)
 var sem_two = require('semaphore')(8)
 
-const isServer = () => typeof location === 'undefined'
+var _isServer = false
+if (typeof XMLHttpRequest == 'undefined'){
+    _isServer = true
+    global.XMLHttpRequest = require('xhr2')
+}
+
+if (!global.cl)
+    global.cl = function(){console.log(...arguments)}
+
+const isServer = () => _isServer
+const canWebWork= () => !_isServer && typeof Worker !== 'undefined' && typeof TextEncoder !== 'undefined'
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
 const KLPageSplits = 5
 
 //not robust...
-const getUrl = function(url,parseJSON,includeRequestedWith){
+/***
+var getUrl2 = function(url,parseJSON,includeRequestedWith){
     var d = Deferred()
     if (isServer())
         includeRequestedWith = false
 
-    var opts = {url, method: 'GET', headers: {Accept: 'application/json,*/*'}}
-    if (includeRequestedWith) //only used when doing proxy calls to catch on server so KL cannot be used to display Kiva pages on KL domain.
-        extend(true, opts, {headers: {"X-Requested-With": "XMLHttpRequest"}})
-
+    var opts = {url, method: 'GET', headers: {Accept: 'application/json,*///*'}}
+    //if (includeRequestedWith) //only used when doing proxy calls to catch on server so KL cannot be used to display Kiva pages on KL domain.
+    //    extend(true, opts, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+/***
     request.get(opts,(error,response,body)=>{
         if (!error && response.statusCode == 200) {
             if (parseJSON) body = JSON.parse(body)
@@ -33,9 +44,7 @@ const getUrl = function(url,parseJSON,includeRequestedWith){
             //should i break out an api-specific response handler for this?
             if (response) {
                 switch (response.statusCode) {
-                    case 503:
-                    case 404:
-                    case 400:
+                    case 503,404,400:
                         var msg
                         try {
                             //todo: only when parseJSON? or just look at response type?
@@ -43,7 +52,7 @@ const getUrl = function(url,parseJSON,includeRequestedWith){
                         } catch (e) {
                             msg = ''
                         }
-                        d.reject(msg,response.statusCode)
+                        d.reject(msg, response.statusCode)
                         break
                     default:
                         d.reject()
@@ -54,6 +63,56 @@ const getUrl = function(url,parseJSON,includeRequestedWith){
     })
     return d
 }
+***/
+
+var getUrl = function(url, options){
+    var d = Deferred()
+
+    options = extend({parseJSON: true, withProgress: true, includeRequestedWith: true}, options)
+
+    function xhrTransferComplete() {
+        if (xhr.status == 200) {
+            var res = options.parseJSON ? JSON.parse(this.responseText) : this.responseText
+            d.resolve(res)
+        } else {
+            var msg = ''
+            if (this.responseText)
+                msg = this.responseText
+
+            d.reject(msg, xhr.status)
+        }
+    }
+
+    function xhrFailed(e){
+        var msg = ''
+        if (this.responseText)
+            msg = this.responseText
+
+        d.reject(msg, xhr.status)
+    }
+
+    var xhr = new XMLHttpRequest()
+    xhr.addEventListener("load", xhrTransferComplete)
+    if (options.withProgress && !isServer())
+        xhr.addEventListener("progress", e=>{
+            if (e.lengthComputable)
+                options.contentLength = e.total
+
+            if (options.contentLength) {
+                var notify = {percent: Math.round((e.loaded/options.contentLength)*100), loaded: e.loaded, total: options.contentLength}
+                d.notify(notify)
+            }
+        })
+    xhr.addEventListener("error", xhrFailed)
+    xhr.addEventListener("abort", xhrFailed)
+    xhr.open("GET", url, true)
+    xhr.setRequestHeader("Accept", 'application/json,*/*')
+    if (options.includeRequestedWith) xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+    xhr.send()
+
+    return d
+}
+
 
 //this unit was designed to be able to be pulled from this project without any requirements on any stores/actions/etc.
 //this is the heart of KL. all downloading, filtering, sorting, etc is done in here. this unit needs to be able to
@@ -155,7 +214,7 @@ class Request {
     //fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
     static get(path, params){
         params = extend({}, params, {app_id: api_options.app_id})
-        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,true).fail(e => cl(e) )
+        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,{parseJSON: true}).fail(e => cl(e) )
         //can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
     }
 
@@ -193,10 +252,10 @@ class SemRequest {
         this.requests = {}
     }
 
-    sem_get(path, params){
+    sem_get(path, params, getUrlOpts){
         var def = Deferred()
         sem_one.take(function(){
-            return this.raw(path, params)
+            return this.raw(path, params, getUrlOpts)
                 .fail(e => cl(e) )
                 .always(x => sem_one.leave())
                 .done(def.resolve)
@@ -206,21 +265,22 @@ class SemRequest {
         return def
     }
 
-    raw(path, params){
+    raw(path, params, getUrlOpts){
         params = serialize(extend({}, this.defaultParams, params))
         params = params ? '?' + params : ''
-        return getUrl(`${this.serverAndBasePath}${path}${params}`,this.asJSON,this.requestedWith)
+        return getUrl(`${this.serverAndBasePath}${path}${params}`,
+            extend({parseJSON: this.asJSON, includeRequestedWith: this.requestedWith}, getUrlOpts))
             .fail(e => cl(e) )
     }
 
-    get(path, params, semaphored, useCache){
+    get(path, params, getOpts, getUrlOpts){
         if (!path) path = ''
         if (!params) params = {}
-        if (!semaphored) semaphored = true
-        if (!useCache) useCache = true
+        getOpts = extend({semaphored: true, useCache: true}, getOpts)
+        getUrlOpts = extend({},getUrlOpts)
 
         var key = path + '?' + JSON.stringify(params)
-        if (useCache && this.requests[key]) {
+        if (getOpts.useCache && this.requests[key]) {
             var req = this.requests[key]
             if (req) {
                 return req.promise
@@ -228,8 +288,8 @@ class SemRequest {
         }
         //should be some type of cleanup of old cached but dead requests.
 
-        let p = semaphored ? this.sem_get(path, params) : this.raw(path, params)
-        if (this.ttlSecs > 0) { //not && useCache so that the result can be cached for another request
+        let p = getOpts.semaphored ? this.sem_get(path, params, getUrlOpts) : this.raw(path, params, getUrlOpts)
+        if (this.ttlSecs > 0) {
             this.requests[key] = {promise: p, requested: Date.now()}
             setTimeout(function(){
                 delete this.requests[key]
@@ -351,6 +411,7 @@ class ResultProcessors {
     static unprocessLoan(loan){
         loan = extend(true, {}, loan) //make a copy, strip it out
         Object.keys(loan).where(f=>f.indexOf('kl_') == 0).forEach(field => delete loan[field])
+        delete loan.getPartner
         return loan
     }
 
@@ -1217,10 +1278,10 @@ class Loans {
                 })
         }.bind(this)
 
-        const kl_getDesc = function(batch, pages) {
+        const kl_getDesc = function(batch, pages, lengths) {
             var receivedDesc = 0
             var descToProc = []
-            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/descriptions/${page}`).done(descriptions => {
+            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/descriptions/${page}`,{},{},{contentLength:lengths[page-1]}).done(descriptions => {
                 receivedDesc++
                 descToProc = descToProc.concat(descriptions)
                 if (receivedDesc == pages) {
@@ -1260,34 +1321,47 @@ class Loans {
                 req.kl.get("partners").done(kl_processPartners)
         }.bind(this)
 
-        const kl_getLoans = function(batch, pages) {
+        const kl_getLoans = function(batch, pages, lengths) {
             /** loans **/
             var receivedLoans = 0
             var loansToAdd = []
+            var totalLoanBytes = lengths.sum()
+            var progress = {}
 
-            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/${page}`).done(loans => {
-                receivedLoans++
-                this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
-                loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                if (receivedLoans == pages) {
-                    this.loan_download.resolve(loansToAdd, false, 5 * 60000)
-                    this.endDownloadTimer('KLLoans')
-                    req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
-                }
-            }))
+            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/${page}`,{},{},{contentLength:lengths[page-1]})
+                .progress(p=>{
+                    if (!progress[page])
+                        progress[page] = {loaded: p.loaded, total: p.total}
+                    else
+                        progress[page].loaded = p.loaded
+
+                    var done = Object.keys(progress).sum(k=>progress[k].loaded)
+                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: done, total: totalLoanBytes}})
+                })
+                .done(loans => {
+                    receivedLoans++
+                    this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
+                    loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
+                    if (receivedLoans == pages) {
+                        this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                        this.endDownloadTimer('KLLoans')
+                        req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
+                    }
+                }))
         }.bind(this)
 
         const loadFromKL = function() {
             req.kl.get('start').done(response => { //this tells us if the loans have loaded on the server.
                 if (response.pages) {
-                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 1, total: 1, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
+                    var totalLoanBytes = response.loanLengths.sum()
+                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: 0, total: totalLoanBytes, title: 'Loading loans from KivaLens.org', label: 'Loading loans from KivaLens server...'}})
                     hasStarted = true
-                    kl_getLoans(response.batch, response.pages)
+                    kl_getLoans(response.batch, response.pages, response.loanLengths)
                     kl_getPartners()
                     setInterval(kl_getPartners, 24 * 60 * 60000)
                     /** descriptions **/
                     if (!base_options.doNotDownloadDescriptions) {
-                        kl_getDesc(response.batch, response.pages)
+                        kl_getDesc(response.batch, response.pages, response.descrLengths)
                     }
                 } else //if the server was just restarted and doesn't have the loans loaded yet, the fall back to loading from kiva.
                     loadFromKiva()
@@ -1827,7 +1901,9 @@ class Loans {
             notify = true
 
         if (notify) this.notify({backgroundResync:{state: 'started'}})
-        new LoansSearch(this.base_kiva_params, false).start().done(loans => {
+
+
+        const processLoans = function(loans){
             var loans_added = [], loans_updated = 0
             //for every loan found in a search from Kiva... these are not full details!
             loans.forEach(loan => {
@@ -1847,7 +1923,7 @@ class Loans {
 
             //find the loans that weren't found during the last update and return them. Mostly due to being funded, expired or have 0 still needed.
             var mia_loans = that.loans_from_kiva.where(loan => loan.status == 'fundraising' &&
-                        loan.kl_background_resync != that.background_resync).select(loan => loan.id)
+            loan.kl_background_resync != that.background_resync).select(loan => loan.id)
 
             //these need refreshing.
             that.refreshLoans(mia_loans)
@@ -1855,7 +1931,21 @@ class Loans {
             //fetch the full details for the new loans and add them to the list.
             that.newLoanNotice(loans_added)
             if (notify) this.notify({backgroundResync:{state: 'done'}})
-        })
+        }
+
+        if (!canWebWork()) {
+            new LoansSearch(this.base_kiva_params, false).start().done(processLoans)
+        } else {
+            var work = require('webworkify')
+            var ww = work(require('../api/wwBackgroundResync.js'))
+            ww.addEventListener('message', function (ev) {
+                var decoder = new TextDecoder('utf-8')
+                console.log("wwBackgroundResync: returned")
+                processLoans(JSON.parse(decoder.decode(ev.data)))
+                console.log("wwBackgroundResync: decoded/processed")
+            })
+            ww.postMessage('go')
+        }
     }
 }
 
