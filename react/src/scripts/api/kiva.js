@@ -296,32 +296,31 @@ class Loans {
             var receivedLoans = 0
             var loansToAdd = []
             var totalLoanBytes = lengths.sum()
-            var progress = {}
 
-            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/${page}`,{},{},{contentLength:lengths[page-1]})
-                .progress(p=>{
-                    if (!progress[page])
-                        progress[page] = {loaded: p.loaded, total: p.total}
-                    else
-                        progress[page].loaded = p.loaded
-
-                    var done = Object.keys(progress).sum(k=>progress[k].loaded)
-                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: done, total: totalLoanBytes}})
-                })
-                .done(loans => {
-                    progress[page].loaded = progress[page].total
+            const testIfDone = function(){
+                Object.keys(kl_progress).select(key=>kl_progress[key]).where(prog => prog.downloaded && !prog.processed).forEach(prog =>{
+                    prog.processed = true
                     receivedLoans++
                     this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
-                    loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(loans))
-                    if (receivedLoans == pages) {
-                        this.notify({loan_load_progress: {singlePass: true, task: 'details', done: totalLoanBytes, total: totalLoanBytes}})
-                        wait(100).done(x=>{
-                            this.loan_download.resolve(loansToAdd, false, 5 * 60000)
-                            this.endDownloadTimer('KLLoans')
-                            req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
-                        })
-                    }
-                }))
+                    loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(prog.response))
+                })
+                if (Object.keys(kl_progress).all(key=>kl_progress[key].processed)){
+                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: totalLoanBytes, total: totalLoanBytes}})
+                    wait(100).done(x=>{
+                        this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                        this.endDownloadTimer('KLLoans')
+                        req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
+                    })
+                }
+            }.bind(this)
+
+            //take over receiving updates for pages. if package loads mid-stream
+            window.kl_loan_progressUpdate = function(page,loaded){
+                var done = Object.keys(kl_progress).sum(k=>kl_progress[k].loaded)
+                this.notify({loan_load_progress: {singlePass: true, task: 'details', done: done, total: totalLoanBytes}})
+                testIfDone()
+            }.bind(this)
+            testIfDone()
         }.bind(this)
 
         const loadFromKL = function() {

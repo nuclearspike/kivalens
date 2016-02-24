@@ -67,7 +67,9 @@
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 
 <script>
-    window.kl_api_start = <%- JSON.stringify(start) %>
+    window.kl_api_start = <%- JSON.stringify(start) %>;
+    window.kl_progress = {}
+    window.kl_loan_progressUpdate = function(page, loaded) {};
 
     function xhrPartnerTransferComplete() {
         window.unprocessedPartners = JSON.parse(this.responseText)
@@ -88,6 +90,30 @@
         window.partnerDownloadStarted = true
         xhrP.open("GET", '/api/partners');
         xhrP.send();
+
+        setTimeout(function(){
+            for (var i = 1; i <= kl_api_start.pages; i++) {
+                var xhr = new XMLHttpRequest();
+                var prog_obj = {page: i, xhr: xhr, loaded: 0, total: kl_api_start.loanLengths[i], response: null}
+                kl_progress[i] = prog_obj
+                xhr.prog_obj = prog_obj
+                xhr.addEventListener("load", function(){
+                    this.prog_obj.response = JSON.parse(this.responseText)
+                    this.prog_obj.loaded = this.prog_obj.total
+                    this.prog_obj.downloaded = true
+                    kl_loan_progressUpdate(this.prog_obj.page, this.prog_obj.total)
+                    delete this.prog_obj.xhr
+                });
+                xhr.addEventListener("progress", function(e) {
+                    this.prog_obj.loaded = e.loaded
+                    kl_loan_progressUpdate(this.prog_obj.page, e.loaded)
+                });
+                //xhr.addEventListener("error", xhrPartnerBail);
+                //xhr.addEventListener("abort", xhrPartnerBail);
+                xhr.open("GET", '/api/loans/'+kl_api_start.batch + '/'+ i);
+                xhr.send();
+            }
+        },20)
     }
     var doKLLenderLoans = (options && !options.lenderLoansFromKiva && options.kiva_lender_id)
     if (doKLLenderLoans){
