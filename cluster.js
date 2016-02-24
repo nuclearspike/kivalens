@@ -5,19 +5,20 @@
  * CLUSTER
  *
  * the file contains code for both the master as well as the worker processes.
- * the master does all of the downloading from kiva, the workers do all of the servicing
- * of the requests.
+ * The master does all of the downloading from kiva, the workers do all of the
+ * servicing of the requests to users of KivaLens.
  *
  * The master has the socket open to kiva for listening to changes to loans and it updates
  * and adds new ones accordingly. Once a minute if anything has changed, it packages all the loans
  * up into gzipped files of stringified json, ready to be streamed to the client. When the clients
- * download a batch of files, it also requests all changes since the batch was produced to guaratee
+ * download a batch of files, it then requests all changes since the batch was produced to guaratee
  * freshness.
  *
  * When the server first boots up, the master uses ejs to compile the index based on the hashes of the
  * css/js files. /javascript/29383u413984/build.js so that the cache can be set to hold for a year
  * since as soon as it changes, it won't be considered the same file anymore. but EJS is kinda crappy
- * to run every time since the pages aren't build unique per session.
+ * to run every time since the pages aren't built unique per request. So, I just generate index once
+ * at master startup.
  *
  * memwatch is very useful to run the garbage collection after actions that are known to shift
  * around a lot of objects otherwise my hobby-level heroku server runs out of memory.
@@ -28,14 +29,13 @@
  *
  */
 
+//both master and workers need these.
 var Hub = require('cluster-hub')
 var hub = new Hub()
 var cluster = require('cluster')
 var memwatch = require('memwatch-next')
-var extend = require('extend')
-var util = require('util')
 var fs = require('fs')
-
+var extend = require('extend')
 
 const mb = 1024 * 1024
 function formatMB(bytes){
@@ -48,13 +48,15 @@ function outputMemUsage(event){
 }
 
 function doGarbageCollection(name,log){
-    var u_before = process.uptime()
-    var m_before = process.memoryUsage()
-    memwatch.gc()
-    var m_after = process.memoryUsage()
-    var u_after = process.uptime()
-    if (log)
+    if (log) {
+        var u_before = process.uptime()
+        var m_before = process.memoryUsage()
+        memwatch.gc()
+        var m_after = process.memoryUsage()
+        var u_after = process.uptime()
         console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
+    } else
+        memwatch.gc()
 }
 
 function notifyAllWorkers(msg){ //todo: cluster-hub has a method to send to all workers.
@@ -86,26 +88,32 @@ if (cluster.isMaster){ //preps the downloads
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
 
-    fs.readFile(__dirname + '/views/pages/index.ejs',(err, buffer)=>{
-        //starts with random hash just to make it always in a working state.
-        var hash = Math.round(Math.random()  * 100000000)
-        var css = [{name:'application',hash},{name:'snowstack',hash}]
-        var js = [{name:'vendor',hash},{name:'build',hash}]
-        var todo = css.length + js.length
-        const renderIndex = () => {
-            if (--todo) return //if it has anything left to do, leave.
-            var index = ejs.render(buffer.toString(), {js, css}, {})
-            fs.writeFile(__dirname + '/public/index.html', index, x => {
-                console.log("## rendered index!")
+    const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
+
+    //RENDER INDEX
+    const regenIndex = function(start) {
+        fs.readFile(__dirname + '/views/pages/index.ejs', (err, buffer)=> {
+            //starts with random hash just to make it always in a working state.
+            var hash = Math.round(Math.random() * 100000000)
+            var css = [{name: 'application', hash}, {name: 'snowstack', hash}]
+            var js = [{name: 'vendor', hash}, {name: 'build', hash}]
+            var todo = css.length + js.length
+            const renderIndex = () => {
+                if (--todo) return //if it has anything left to do, leave.
+                var index = ejs.render(buffer.toString(), {js, css, start}, {})
+                fs.writeFile(__dirname + '/public/index.html', index, x => {
+                    console.log("## rendered index!")
+                })
+            }
+            css.forEach(fo => {
+                hashFile(__dirname + '/public/stylesheets/' + fo.name + '.min.css', fo, renderIndex)
             })
-        }
-        css.forEach(fo => {
-            hashFile(__dirname + '/public/stylesheets/' + fo.name + '.min.css',fo,renderIndex)
+            js.forEach(fo => {
+                hashFile(__dirname + '/public/javascript/' + fo.name + '.js', fo, renderIndex)
+            })
         })
-        js.forEach(fo => {
-            hashFile(__dirname + '/public/javascript/' + fo.name + '.js',fo,renderIndex)
-        })
-    })
+    }
+    regenIndex({batch: 0, pages: 0}) //files aren't ready to serve yet, instructs client to go to Kiva.
 
     outputMemUsage("STARTUP")
     console.log("STARTING MASTER")
@@ -139,7 +147,7 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
         console.log(`INTERESTING: loans/since count: ${loans.length}`)
-        callback(JSON.stringify(k.ResultProcessors.unprocessLoans(loans)))
+        callback(JSON.stringify(ResultProcessors.unprocessLoans(loans)))
     })
 
     var k = require('./react/src/scripts/api/kiva')
@@ -158,7 +166,7 @@ if (cluster.isMaster){ //preps the downloads
             console.log('INTERESTING: rss fetch:',rss_crit)
             rss_requests[rss_crit] = true
         }
-        callback(JSON.stringify(k.ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
+        callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
     })
 
     /**
@@ -166,7 +174,8 @@ if (cluster.isMaster){ //preps the downloads
      */
     hub.on('lenderloans', (lenderid, sender, callback) => {
         console.log("INTERESTING: lenderloans", lenderid)
-        new k.LenderFundraisingLoans(lenderid).ids()
+        const LenderFundraisingLoans = require("./react/src/scripts/api/kivajs/LenderFundraisingLoans")
+        new LenderFundraisingLoans(lenderid).ids()
             .done(ids => callback(null,JSON.stringify(ids)))
             .fail(x=>callback(404))
     })
@@ -217,7 +226,7 @@ if (cluster.isMaster){ //preps the downloads
         var prepping = extend({}, blankResponse)
 
         kivaloans.loans_from_kiva.removeAll(l=>l.status != 'fundraising')
-        var allLoans = k.ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
+        var allLoans = ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
         //additional unprocessing and collecting descriptions
         var descriptions = []
         allLoans.forEach(loan => {
@@ -270,9 +279,11 @@ if (cluster.isMaster){ //preps the downloads
                 })
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 
-                var message = { downloadReady: JSON.stringify({batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.descriptions})}
+                var startResponse = {batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.descriptions}
+                var message = { downloadReady: JSON.stringify(startResponse)}
                 doGarbageCollection("Master finishIfReady: before notify")
                 notifyAllWorkers(message)
+                regenIndex(startResponse)
 
                 bigloanChunks = undefined
                 bigDesc = undefined
@@ -345,7 +356,6 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
-
     // compress all requests
     app.use(compression())
 
@@ -372,7 +382,6 @@ else  //workers handle all communication with the clients.
 
     const serveGzipFile = (res, fn) =>{
         fn = `/tmp/${fn}.kl`
-        var fs = require("fs")
         var stats = fs.statSync(fn)
         res.type('application/json;  charset=utf-8')
         res.header('Content-Encoding', 'gzip')
@@ -383,7 +392,6 @@ else  //workers handle all communication with the clients.
 
     //alternative method...
     const serveGzipFile2 = (res, size, fn) =>{
-        var fs = require("fs")
         fn = `/tmp/${fn}.kl`
         if (!size) {
             var stats = fs.statSync(fn)
@@ -500,11 +508,6 @@ else  //workers handle all communication with the clients.
     })
 
     //API
-    app.get('/api/start', (req, res) =>{
-        res.header('Cache-Control', 'public, max-age=0')
-        res.json(startResponse)
-    })
-
     app.get('/api/loans/:batch/:page', (req, res) => {
         var batch = parseInt(req.params.batch)
         if (!batch) {
@@ -550,6 +553,40 @@ else  //workers handle all communication with the clients.
     })
 
     app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
+        /**
+        var t = require('webworker-threads').create()
+        //t.load(__dirname + '/react/src/scripts/api/kiva.js')
+        t.load(__dirname + '/thread_lenderLoans.js')
+        t.on("message", function(event){
+            console.log(event)
+        })
+        t.on("error", function(event){
+            console.log(event)
+        })
+        t.on("data", function(one,two){
+            console.log('on data:', one, JSON.parse(two))
+        })
+        t.eval(`lenderLoans('${req.params.lender}')`, function(err,result){
+            console.log('eval returned:',err,result)
+        })
+        **/
+        /**
+        var Worker = require('webworker-threads').Worker
+        var llw = new Worker('thread_lenderLoans.js')
+        llw.onmessage = function(event) {
+            console.log('thread returning:',event.data)
+            var d = JSON.parse(event.data)
+            if (d.ids)
+                res.send(d.ids)
+            else
+                res.sendStatus(404)
+        }
+        llw.onerror = function(event){
+            console.log('ERROR:',event)
+        }
+        llw.postMessage(req.params.lender)
+         **/
+
         hub.requestMaster('lenderloans', req.params.lender, (err,result) => {
             if (err)
                 res.sendStatus(err)

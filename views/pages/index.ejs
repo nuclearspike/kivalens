@@ -67,6 +67,8 @@
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 
 <script>
+    window.kl_api_start = <%- JSON.stringify(start) %>
+
     function xhrPartnerTransferComplete() {
         window.unprocessedPartners = JSON.parse(this.responseText)
     }

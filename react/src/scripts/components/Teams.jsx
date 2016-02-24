@@ -3,7 +3,8 @@
 import React from 'react'
 import Reflux from 'reflux'
 import {Grid,Col,Row,Alert,Input,Panel} from 'react-bootstrap'
-import {req, LenderTeams} from '../api/kiva'
+import {req} from '../api/kiva'
+import LenderTeams from '../api/kivajs/LenderTeams'
 import numeral from 'numeral'
 
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')

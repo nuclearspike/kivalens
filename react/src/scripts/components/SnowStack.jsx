@@ -3,7 +3,7 @@ import {Grid,Col,Row} from 'react-bootstrap'
 import Reflux from 'reflux'
 import a from '../actions'
 import {Link} from 'react-router'
-import {LenderLoans} from '../api/kiva'
+const LenderLoans = require("../api/kivajs/LenderLoans")
 
 var alreadyLoadedOnce = false
 const SnowStack = React.createClass({
