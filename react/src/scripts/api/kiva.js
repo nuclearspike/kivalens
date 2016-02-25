@@ -200,8 +200,8 @@ class Loans {
             .then((loans,notify,waitBackgroundResync)=>{
                 if (!waitBackgroundResync) waitBackgroundResync = 1000
                 this.setKivaLoans(loans, true, true)
-                this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
                 this.loans_processed.resolve()
+                this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
                 wait(waitBackgroundResync).done(x => this.backgroundResync(notify))
             })
 
