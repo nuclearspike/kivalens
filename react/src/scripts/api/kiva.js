@@ -315,7 +315,7 @@ class Loans {
             }.bind(this)
 
             //take over receiving updates for pages. if package loads mid-stream
-            window.kl_loan_progressUpdate = function(page,loaded){
+            global.kl_loan_progressUpdate = function(page,loaded){
                 var done = Object.keys(kl_progress).sum(k=>kl_progress[k].loaded)
                 this.notify({loan_load_progress: {singlePass: true, task: 'details', done: done, total: totalLoanBytes}})
                 testIfDone()
