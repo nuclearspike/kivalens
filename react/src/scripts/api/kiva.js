@@ -296,6 +296,7 @@ class Loans {
             var receivedLoans = 0
             var loansToAdd = []
             var totalLoanBytes = lengths.sum()
+            var allDone = false
 
             const testIfDone = function(){
                 Object.keys(kl_progress).select(key=>kl_progress[key]).where(prog => prog.downloaded && !prog.processed).forEach(prog =>{
@@ -304,13 +305,12 @@ class Loans {
                     this.notify({loan_load_progress: {label: `Loading loan packets from KivaLens server ${receivedLoans} of ${pages}...`}})
                     loansToAdd = loansToAdd.concat(ResultProcessors.processLoans(prog.response))
                 })
-                if (Object.keys(kl_progress).all(key=>kl_progress[key].processed)){
+                if (!allDone && Object.keys(kl_progress).all(key=>kl_progress[key].processed)){
+                    allDone = true //possible with timings that all are done and processed and testIfDone is called more than once after completed.
                     this.notify({loan_load_progress: {singlePass: true, task: 'details', done: totalLoanBytes, total: totalLoanBytes}})
-                    wait(100).done(x=>{
-                        this.loan_download.resolve(loansToAdd, false, 5 * 60000)
-                        this.endDownloadTimer('KLLoans')
-                        req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
-                    })
+                    this.loan_download.resolve(loansToAdd, false, 5 * 60000)
+                    this.endDownloadTimer('KLLoans')
+                    req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
                 }
             }.bind(this)
 
