@@ -174,7 +174,7 @@ class Loans {
         if (!isServer()) {
             var secondsAgo = Math.round((Date.now() - this.startDownload.getTime()) / 1000)
             if (secondsAgo < 60*60000)
-                global.rga.event({category: 'timer', action: name, value: secondsAgo})
+                wait(500).done(x=>global.rga.event({category: 'timer', action: name, value: secondsAgo}))
         }
     }
     init(crit, getOptions, api_options){
@@ -199,13 +199,11 @@ class Loans {
             .fail(e=>this.notify({failed: e}))
             .then((loans,notify,waitBackgroundResync)=>{
                 if (!waitBackgroundResync) waitBackgroundResync = 1000
-                this.notify({loan_load_progress: {label: 'Processing...'}})
                 this.setKivaLoans(loans, true, true)
                 this.partner_download.done(x => this.notify({loans_loaded: true, loan_load_progress: {complete: true}}))
                 this.loans_processed.resolve()
                 wait(waitBackgroundResync).done(x => this.backgroundResync(notify))
-            }).done(this.loans_processed.resolve)
-
+            })
 
         this.setLender(base_options.kiva_lender_id)
 
@@ -307,7 +305,6 @@ class Loans {
                 })
                 if (!allDone && Object.keys(kl_progress).all(key=>kl_progress[key].processed)){
                     allDone = true //possible with timings that all are done and processed and testIfDone is called more than once after completed.
-                    this.notify({loan_load_progress: {singlePass: true, task: 'details', done: totalLoanBytes, total: totalLoanBytes}})
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     this.endDownloadTimer('KLLoans')
                     req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
