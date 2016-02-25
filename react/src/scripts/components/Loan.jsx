@@ -4,7 +4,7 @@ import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
-import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button} from 'react-bootstrap'
+import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, NewTabLink, LoanLink, KivaLink} from '.'
 import a from '../actions'
@@ -185,7 +185,7 @@ var Loan = React.createClass({
     },
     render() {
         let {loan, matching, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch} = this.state
-        if (!loan || !partner) return (<div>Loading...</div>) //only if looking at loan during initial load or one that isn't fundraising.
+        if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
