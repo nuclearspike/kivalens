@@ -15,12 +15,11 @@ import React from 'react'
 import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
-import {Route, Redirect, IndexRoute, browserHistory} from 'react-router'
+import {Route, Redirect, IndexRoute} from 'react-router'
 import {Grid,Jumbotron} from 'react-bootstrap'
 
 import createHistory from 'history/lib/createHashHistory'
-//import { createHistory } from 'history'
-//import createHistory from 'history/lib/createBrowserHistory'
+var history = createHistory({queryKey: false})
 
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
     Criteria, ClearBasket, Live, Teams, NotFound, PromptModal, AlertModal, SnowStack,
@@ -42,6 +41,8 @@ const App = React.createClass({
     componentDidMount(){
         ga.initialize('UA-10202885-1')
         this.listenTo(a.loans.live.new, this.newLoansTest)
+        if (!this.props.children)
+            history.push('/search')
     },
     newLoansTest(loans){
         if (kla_features.notify) {
@@ -63,21 +64,17 @@ const App = React.createClass({
         }
     },
     render(){
-        //do not render a blank page.
-        if (!this.props.children)
-            location.replace(`${location.protocol}//${location.host}${location.pathname}#/search`)
+
         this.logPageChange()
         return <div>
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
-                    {(this.props.children)? this.props.children: <Grid><Jumbotron><h1>Preparing to dazzle you...</h1></Jumbotron></Grid>}
+                    {this.props.children}
                 <KLFooter/>
             </div>
     }
 })
-
-var history = createHistory({queryKey: false})
 
 domready.done(()=>{
     if (document.getElementById("react-app")){
@@ -103,5 +100,5 @@ domready.done(()=>{
 })
 
 /**
-
+ {(this.props.children)? this.props.children: <Grid><Jumbotron><h1>Preparing to dazzle you...</h1></Jumbotron></Grid>}
  **/
