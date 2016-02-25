@@ -56,10 +56,11 @@ import SetLenderIDModal from './SetLenderIDModal.jsx'
 import PartnerDisplayModal from './PartnerDisplayModal.jsx'
 import AlertModal from './AlertModal.jsx'
 import AutoLendSettings from './AutoLendSettings.jsx'
+import DidYouKnow from './DidYouKnow.jsx'
 
 export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLink,
     Search, Loan, NotFound, About, Basket, Options, Criteria, KivaImage, Live, Teams,
     KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,
-    AutoLendSettings, Outdated}
+    AutoLendSettings, Outdated, DidYouKnow}

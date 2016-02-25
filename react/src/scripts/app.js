@@ -16,6 +16,8 @@ import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
 import Router from 'react-router'
 import {Route, Redirect, IndexRoute, browserHistory} from 'react-router'
+import {Grid,Jumbotron} from 'react-bootstrap'
+
 import createHistory from 'history/lib/createHashHistory'
 //import { createHistory } from 'history'
 //import createHistory from 'history/lib/createBrowserHistory'
@@ -26,7 +28,6 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
 import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
-
 
 //window.Perf = require('react-addons-perf')
 
@@ -63,13 +64,14 @@ const App = React.createClass({
     },
     render(){
         //do not render a blank page.
-        if (!this.props.children) location.replace(`${location.protocol}//${location.host}${location.pathname}#/search`)
+        if (!this.props.children)
+            location.replace(`${location.protocol}//${location.host}${location.pathname}#/search`)
         this.logPageChange()
         return <div>
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
-                    {this.props.children}
+                    {(this.props.children)? this.props.children: <Grid><Jumbotron><h1>Preparing to dazzle you...</h1></Jumbotron></Grid>}
                 <KLFooter/>
             </div>
     }
@@ -99,3 +101,7 @@ domready.done(()=>{
         </Router>), document.getElementById("react-app"))
     }
 })
+
+/**
+
+ **/
