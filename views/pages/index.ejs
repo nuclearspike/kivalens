@@ -108,6 +108,14 @@
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
 </body>
 <script>
+    window.isBootstrapLoaded = false
+    window.bootstrapLoaded = function(){
+        window.isBootstrapLoaded = true
+        if (typeof bootstrapLoadedCallback === 'function')
+            bootstrapLoadedCallback()
+        console.log("window.isBootstrapLoaded")
+    }
+
     var cb = function() {
         var cssfiles = ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/sandstone/bootstrap.css'];
         <% css.forEach(function(file) {  %>
@@ -115,9 +123,13 @@
         var h = document.getElementsByTagName('head')[0];
         for (var i = 0; i < cssfiles.length; i++) {
             var l = document.createElement('link');
+            l.type = "text/css";
             l.rel = 'stylesheet';
             l.href = cssfiles[i];
-            h.parentNode.insertBefore(l, h);
+            if (i == 0) {
+                l.onload = bootstrapLoaded
+            }
+            h.appendChild(l);
         }
     };
 

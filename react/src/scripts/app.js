@@ -76,8 +76,8 @@ const App = React.createClass({
     }
 })
 
-domready.done(()=>{
-    if (document.getElementById("react-app")){
+function LoadReactApp(){
+    if (window.isBootstrapLoaded && document.getElementById("react-app")){
         ReactDOM.render((<Router onUpdate={() => window.scrollTo(0, 0)} history={history}>
             <Route path="/portfolio" component={SnowStack}/>
             <Route path="/" component={App} >
@@ -96,8 +96,13 @@ domready.done(()=>{
                 <Redirect from="" to="/search"/>
             </Route>
         </Router>), document.getElementById("react-app"))
+    } else {
+        //if it didn't load, it may be because the CSS wasn't ready yet.
+        window.bootstrapLoadedCallback = LoadReactApp
     }
-})
+}
+
+domready.done(LoadReactApp)
 
 /**
  {(this.props.children)? this.props.children: <Grid><Jumbotron><h1>Preparing to dazzle you...</h1></Jumbotron></Grid>}
