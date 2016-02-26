@@ -207,6 +207,14 @@ class Loans {
 
         this.setLender(base_options.kiva_lender_id)
 
+        //hack-fix. recalculates repaid_in daily since it's a field that changes but isn't a function.
+        setInterval(function(){
+            var today = Date.today()
+            this.loans_from_kiva.forEach(loan => {
+                loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
+            })
+        }.bind(this),6*60*60000)
+
         var hasStarted = false
         //if the download/crossload hasn't started after 5 seconds then something is wrong. and it's probably realized it's boss after wanting to load via intercom
         const kiva_getPartners = function() {
