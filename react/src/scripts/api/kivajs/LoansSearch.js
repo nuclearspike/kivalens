@@ -19,7 +19,7 @@ class LoansSearch extends PagedKiva {
     continuePaging(loans){
         if (this.max_repayment_date){
             //if all loans on the given page won't repay until after the max, then we've passed
-            if (loans.all(loan => loan.kl_final_repayment.isAfter(this.max_repayment_date)))
+            if (loans.all(loan => loan.kls_final_repayment.isAfter(this.max_repayment_date)))
                 return false
         }
         return true
@@ -32,7 +32,7 @@ class LoansSearch extends PagedKiva {
             //may want to re-enable this at some point but right now, it's a waste to throw any loans away.
             //could make this
             //if (this.max_repayment_date)
-            //    loans = loans.where(loan => loan.kl_final_repayment.isBefore(this.max_repayment_date))
+            //    loans = loans.where(loan => loan.kls_final_repayment.isBefore(this.max_repayment_date))
             return loans
         })
     }

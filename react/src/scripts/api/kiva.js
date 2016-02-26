@@ -245,6 +245,7 @@ class Loans {
                 })
         }.bind(this)
 
+        //don't pre-load, just do this after build has loaded and there's enough time.
         const kl_getDesc = function(batch, pages, lengths) {
             var receivedDesc = 0
             var descToProc = []
@@ -274,6 +275,7 @@ class Loans {
             this.endDownloadTimer('KLPartners')
             this.atheist_list_processed = true //we always download the data.
             this.notify({atheist_list_loaded: true})
+            this.loans_from_kiva.forEach(l=>delete l.kl_partner)
         }.bind(this)
 
         const kl_getPartners = function() {
@@ -288,6 +290,7 @@ class Loans {
             } else
                 req.kl.get("partners").done(kl_processPartners)
         }.bind(this)
+
 
         const kl_getLoans = function(batch, pages, lengths) {
             /** loans **/
@@ -528,7 +531,7 @@ class Loans {
             if (loans.length > 1)
                 switch (sort) {
                     case 'half_back':
-                        loans = loans.orderBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_half_back_actual, basicReverseOrder).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_75_back_actual, basicReverseOrder).thenBy(loan => loan.kl_final_repayment)
+                        loans = loans.orderBy(loan => loan.kls_half_back).thenBy(loan => loan.kls_half_back_actual, basicReverseOrder).thenBy(loan => loan.kls_75_back).thenBy(loan => loan.kls_75_back_actual, basicReverseOrder).thenBy(loan => loan.kls_final_repayment)
                         break
                     case 'popularity':
                         loans = loans.orderBy(loan => loan.kl_dollars_per_hour(), basicReverseOrder)
@@ -544,7 +547,7 @@ class Loans {
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
-                        loans = loans.orderBy(loan => loan.kl_final_repayment).thenBy(loan => loan.kl_half_back).thenBy(loan => loan.kl_half_back_actual, basicReverseOrder).thenBy(loan => loan.kl_75_back).thenBy(loan => loan.kl_75_back_actual, basicReverseOrder)
+                        loans = loans.orderBy(loan => loan.kls_final_repayment).thenBy(loan => loan.kls_half_back).thenBy(loan => loan.kls_half_back_actual, basicReverseOrder).thenBy(loan => loan.kls_75_back).thenBy(loan => loan.kls_75_back_actual, basicReverseOrder)
                 }
             return loans
         }

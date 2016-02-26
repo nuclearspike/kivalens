@@ -54,7 +54,7 @@ const Options = React.createClass({
     render() {
         let {kiva_lender_id} = this.state
         let lenderObj = s.utils.lenderObj
-        return (<Grid>
+        return <Grid>
                 <h1>Options</h1>
                 <Col md={12}>
                     <Panel header='Who are you?'>
@@ -168,7 +168,7 @@ const Options = React.createClass({
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
-                            label="Download lender fundraising loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
+                            label="Download lender portfolio loans from Kiva's server instead of KivaLens (only use this if experiencing problems; it's much slower!)"
                             checkedLink={this.linkState('lenderLoansFromKiva')} />
                         <Input
                             type="checkbox"
@@ -194,7 +194,6 @@ const Options = React.createClass({
 
                 </Col>
             </Grid>
-        )
     }
 })
 

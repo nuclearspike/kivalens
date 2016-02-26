@@ -1,6 +1,11 @@
 'use strict'
 
-import React from 'react';
+import React from 'react'
+
+/**
+ * each time it mounts, it will display the next child component
+ * and keep track of it's last index shown in localStorage.
+ */
 
 const CycleChild = React.createClass({
     getInitialState(){return {index: 0}},
@@ -16,7 +21,7 @@ const CycleChild = React.createClass({
         this.forceUpdate()
     },
     render() {
-        return (<span>{this.props.children[this.state.index]}</span>)
+        return <span>{this.props.children[this.state.index]}</span>
     }
 })
 

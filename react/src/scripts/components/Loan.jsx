@@ -21,8 +21,6 @@ const NoUpdate = React.createClass({
     render(){return <div>{this.props.children}</div>}
 })
 
-//only update if the loan is different. terms aren't dynamic.
-//add ability for user to switch from $ borrower pays, % repaid, to $ lender gets
 const RepaymentGraphs= React.createClass({
     getInitialState(){
         let {loan} = this.props
@@ -108,14 +106,15 @@ const RepaymentGraphs= React.createClass({
     },
     render(){
         let {loan, config} = this.state
+        if (!loan.kl_repay_categories) return <div> </div>
         var height = Math.max(400, Math.min(loan.kl_repay_categories.length * 50, 1000))
         return <Col key="graph_container" lg={4} id='graph_container'>
             <Highcharts style={{height: `${height}px`}} config={config} />
             <dl className="dl-horizontal">
                 <dt>Interval</dt><dd>{loan.terms.repayment_interval}</dd>
-                <dt>{Math.round(loan.kl_half_back_actual)}% back by</dt><dd>{loan.kl_half_back.toString("MMM d, yyyy")}</dd>
-                <dt>{Math.round(loan.kl_75_back_actual)}% back by</dt><dd>{loan.kl_75_back.toString("MMM d, yyyy")}</dd>
-                <dt>Final repayment</dt><dd>{loan.kl_final_repayment.toString("MMM d, yyyy")}</dd>
+                <dt>{Math.round(loan.kls_half_back_actual)}% back by</dt><dd>{loan.kls_half_back.toString("MMM d, yyyy")}</dd>
+                <dt>{Math.round(loan.kls_75_back_actual)}% back by</dt><dd>{loan.kls_75_back.toString("MMM d, yyyy")}</dd>
+                <dt>Final repayment</dt><dd>{loan.kls_final_repayment.toString("MMM d, yyyy")}</dd>
             </dl>
         </Col>
     }
@@ -253,7 +252,7 @@ var Loan = React.createClass({
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                             </Col>
-                            {(activeTab == 2 && loan.kl_half_back)? <RepaymentGraphs loan={loan}/> : <span/>}
+                            {(activeTab == 2 && loan.kls_half_back)? <RepaymentGraphs loan={loan}/> : <span/>}
                         </Grid>
                     </Tab>
 

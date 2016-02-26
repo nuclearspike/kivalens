@@ -69,7 +69,7 @@
 <script>
     window.kl_api_start = <%- JSON.stringify(start) %>;
     window.kl_progress = {}
-    window.kl_loan_progressUpdate = function(page, loaded) {};
+    //window.kl_loan_progressUpdate = function(page, loaded) {};
 
     function xhrPartnerTransferComplete() {
         window.unprocessedPartners = JSON.parse(this.responseText)
@@ -78,6 +78,7 @@
         window.partnerDownloadStarted = false
     }
     window.lenderLoans = {}
+    window.doLoadProgress = false
 
     var options = localStorage.getItem("Options")
     if (options) options = JSON.parse(options)
@@ -101,13 +102,15 @@
                     this.prog_obj.response = JSON.parse(this.responseText)
                     this.prog_obj.loaded = this.prog_obj.total
                     this.prog_obj.downloaded = true
-                    kl_loan_progressUpdate(this.prog_obj.page, this.prog_obj.total)
+                    if (window.kl_loan_progressUpdate)
+                        kl_loan_progressUpdate(this.prog_obj.page, this.prog_obj.total)
                     delete this.prog_obj.xhr
                 } //todo: reload?
             });
             xhr.addEventListener("progress", function(e) {
                 this.prog_obj.loaded = e.loaded
-                kl_loan_progressUpdate(this.prog_obj.page, e.loaded)
+                if (window.kl_loan_progressUpdate)
+                    kl_loan_progressUpdate(this.prog_obj.page, e.loaded)
             });
             xhr.open("GET", '/api/loans/'+kl_api_start.batch + '/'+ i);
             xhr.send();
@@ -125,12 +128,10 @@
         });
         xhrLL.addEventListener("error", function(){
             delete window.lenderLoans[options.kiva_lender_id]
-            alert("Your portfolio loans failed to download. If this problem persists, go to Options and enable the option to download your loans directly from Kiva.")
+            alert("Your portfolio loans failed to download. If this problem persists, go to Options and enable the option to download your portfolio loans directly from Kiva.")
         });
         xhrLL.open("GET", '/api/lender/'+ options.kiva_lender_id + '/loans/fundraising');
-        setTimeout(function(){
-            xhrLL.send();
-        },70)
+        setTimeout(function(){xhrLL.send()},70)
     }
 
 </script>

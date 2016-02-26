@@ -102,13 +102,17 @@ class ResultProcessors {
             }.bind(loan)
         }
 
-        if (loan.kls) { // replace what was stripped out before sending down.
+        if (loan.kls) { // replace what was stripped out by the server before sending down.
             loan.description = loan.description || {languages:["en"],texts:{en:''}}
             loan.status = loan.status || 'fundraising'
             //this is clumsy... can't we just populate borrower_count and percent_female?
             loan.borrowers = Array.range(1,loan.klb.M || 0).select(x=>({gender:"M",first_name: '...'}))
             loan.borrowers = loan.borrowers.concat(Array.range(1,loan.klb.F || 0).select(x=>({gender:"F",first_name: '...'})))
             loan.borrower_count = loan.borrowers.length
+            loan.kls_half_back = new Date(loan.kls_half_back)
+            loan.kls_75_back = new Date(loan.kls_75_back)
+            loan.kls_final_repayment = new Date(loan.kls_final_repayment)
+            loan.kls = false
         }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
@@ -158,18 +162,18 @@ class ResultProcessors {
                     //there's got to be a more accurate algorithm to handle this efficiently...
                     running_total += payment.amount
                     payment.percent = (running_total * 100) / loan.loan_amount
-                    if (!loan.kl_half_back && running_total >= amount_50) {
-                        loan.kl_half_back = payment.date
-                        loan.kl_half_back_actual = (running_total * 100) / loan.loan_amount
+                    if (!loan.kls_half_back && running_total >= amount_50) {
+                        loan.kls_half_back = payment.date
+                        loan.kls_half_back_actual = (running_total * 100) / loan.loan_amount
                     }
-                    if (!loan.kl_75_back && running_total >= amount_75) {
-                        loan.kl_75_back = payment.date
-                        loan.kl_75_back_actual = (running_total * 100) / loan.loan_amount
+                    if (!loan.kls_75_back && running_total >= amount_75) {
+                        loan.kls_75_back = payment.date
+                        loan.kls_75_back_actual = (running_total * 100) / loan.loan_amount
                     }
                 })
-                loan.kl_final_repayment =  loan.kl_repayments.last().date
+                loan.kls_final_repayment =  loan.kl_repayments.last().date
                 //when looking at really old loans, can be null
-                loan.kl_repaid_in = loan.kl_final_repayment ? Math.abs((loan.kl_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kl_final_repayment.getMonth() - today.getMonth())) : 0
+                loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
 
             }
             ///REPAYMENT STUFF: END

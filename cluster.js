@@ -4,21 +4,21 @@
  *
  * CLUSTER
  *
- * the file contains code for both the master as well as the worker processes.
+ * this file contains code for both the master as well as the worker processes.
  * The master does all of the downloading from kiva, the workers do all of the
  * servicing of the requests to users of KivaLens.
  *
  * The master has the socket open to kiva for listening to changes to loans and it updates
  * and adds new ones accordingly. Once a minute if anything has changed, it packages all the loans
  * up into gzipped files of stringified json, ready to be streamed to the client. When the clients
- * download a batch of files, it then requests all changes since the batch was produced to guaratee
+ * download a batch of files, it then requests all changes since the batch was produced to guarantee
  * freshness.
  *
- * When the server first boots up, the master uses ejs to compile the index based on the hashes of the
+ * When the server first starts up, the master uses ejs to compile the index based on the hashes of the
  * css/js files. /javascript/29383u413984/build.js so that the cache can be set to hold for a year
  * since as soon as it changes, it won't be considered the same file anymore. but EJS is kinda crappy
  * to run every time since the pages aren't built unique per request. So, I just generate index once
- * at master startup.
+ * at master startup and then each time a new batch is prepared (some data is written to index)
  *
  * memwatch is very useful to run the garbage collection after actions that are known to shift
  * around a lot of objects otherwise my hobby-level heroku server runs out of memory.
@@ -143,7 +143,7 @@ if (cluster.isMaster){ //preps the downloads
         if (loans.length > 500) {
             //todo: make a better way to find changes than kl_processed since that gets reset on background resync
             console.log(`INTERESTING: loans/since count: ${loans.length}: NOT SENDING`)
-            callback(JSON.stringify([]))
+            callback('[]')
             return
         }
         console.log(`INTERESTING: loans/since count: ${loans.length}`)
@@ -246,6 +246,7 @@ if (cluster.isMaster){ //preps the downloads
             delete loan.borrower_count
             delete loan.payments
             delete loan.status
+            delete loan.terms.scheduled_payments
             loan.kls = true
         })
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
@@ -466,10 +467,14 @@ else  //workers handle all communication with the clients.
     app.get('/rss/:criteria', (req, res) =>{
         var crit = req.params.criteria
         if (crit)
+        try {
             crit = JSON.parse(decodeURIComponent(crit))
+        } catch(e){
+            res.sendStatus(404)
+            return
+        }
         if (!crit.loan) crit.loan = {}
         crit.loan.limit_results = 20
-
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
@@ -500,7 +505,7 @@ else  //workers handle all communication with the clients.
     app.get('/rss_click/:go_to/:id', (req,res) => {
         var id = req.params.id, go_to = req.params.go_to
         console.log(`INTERESTING: rss_click : ${go_to}: ${id}`)
-        if (go_to == 'kiva') {
+        if (go_to == 'kiva') { //rss output fills in 'kiva' when none specified
             res.redirect(`https://www.kiva.org/lend/${id}?app_id=org.kiva.kivalens`)
         } else {
             res.redirect(`http://www.kivalens.org/#/search/loan/${id}`)
@@ -609,7 +614,7 @@ else  //workers handle all communication with the clients.
         hub.requestMaster('filter', crit, result => res.send(result))
     })
 
-    //CATCH ALL this will also redirect old image reqs to a page though...
+    //CATCH ALL... this will also redirect old image reqs to a page though...
     app.get('/*', (req, res) => {
         //i could test the mime type of the path?
         res.redirect("/#/search")
@@ -619,7 +624,7 @@ else  //workers handle all communication with the clients.
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
-    /** JSON Parser! COOL!
+    /** JSON Parser, custom deserialization COOL!
     const bufferParse = (key, value) => {
         return value && value.type === 'Buffer'
             ? new Buffer(value.data)
@@ -627,7 +632,7 @@ else  //workers handle all communication with the clients.
     }
     **/
 
-    //worker receiving message...
+    //worker receiving message... todo: switch to hub.
     process.on("message", msg => {
         if (msg.downloadReady){
             startResponse = JSON.parse(msg.downloadReady)

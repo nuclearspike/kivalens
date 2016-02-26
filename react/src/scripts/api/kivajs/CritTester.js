@@ -7,7 +7,7 @@ require('linqjs')
 //to it's array of testers. All testers must pass or the entity fails to match the criteria. so, the criteria
 //has a lower range for age set of 20 and an upper range is set to 30. The addRangeTesters() func will add a separate
 //tester for each the lower and upper bound, then when testing a loan to see if it matches it runs the tester funcs
-//in the order they were added (unless one fails). So it barely takes any time to set up the testers then it can quickly
+//in the order they were added (until one fails). So it barely takes any time to set up the testers then it can quickly
 //run. It sets up highly targeted anon funcs to test exactly what the criteria specifies. used in filter() and filterPartners()
 class CritTester {
     constructor(crit_group){

@@ -1,4 +1,5 @@
 'use strict'
+//MORE LINQ GOODNESS
 
 global.basicReverseOrder = function(a,b) { //this is a hack. OrderByDescending has issues! Not sure what the conditions are.
     if (a > b) return -1
@@ -6,12 +7,12 @@ global.basicReverseOrder = function(a,b) { //this is a hack. OrderByDescending h
     return 0
 }
 
-//MORE LINQ GOODNESS
 //this is a common enough pattern in KL that it makes sense to standardize and shorten.
 Array.prototype.groupByWithCount = function(selector){
     if (!selector) selector = e=>e
     return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
 }
+
 //no longer used...
 Array.prototype.groupBySelectWithTake = function(selector, take_count){
     if (!take_count) take_count = 1
@@ -26,7 +27,7 @@ Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
-//either count() or count(l=>l.status='fundraising') work
+//either count() or count(l=>l.status=='fundraising') work
 Array.prototype.count = function(predicate) {
     return typeof predicate == 'function'? this.where(predicate).length: this.length
 }
