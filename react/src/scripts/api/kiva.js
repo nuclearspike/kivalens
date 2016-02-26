@@ -211,7 +211,7 @@ class Loans {
         setInterval(function(){
             var today = Date.today()
             this.loans_from_kiva.forEach(loan => { //todo: make this a funct that's added in processing... this is duplicated code.
-                loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
+                loan.kls_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
             })
         }.bind(this),6*60*60000)
 
@@ -506,7 +506,7 @@ class Loans {
 
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
         ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
-        ct.addRangeTesters('repaid_in',         loan=>loan.kl_repaid_in)
+        ct.addRangeTesters('repaid_in',         loan=>loan.kls_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrower_count)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
         ct.addRangeTesters('age',               loan=>loan.kls_age)

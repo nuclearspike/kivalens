@@ -237,7 +237,7 @@ var Loan = React.createClass({
                                     </If>
                                     <dt>Disbursed</dt><dd>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </dd>
                                     <If condition={loan.status == 'fundraising'}>
-                                        <span><dt>Final Repayment In</dt><dd>{numeral(loan.kl_repaid_in).format('0.0')} months</dd></span>
+                                        <span><dt>Final Repayment In</dt><dd>{numeral(loan.kls_repaid_in).format('0.0')} months</dd></span>
                                     </If>
                                 </dl>
                                 <If condition={loan.status == 'fundraising'}>
