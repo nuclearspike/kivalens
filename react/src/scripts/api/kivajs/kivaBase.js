@@ -24,7 +24,7 @@ Array.prototype.percentWhere = function(predicate) {return this.where(predicate)
 var getUrl = function(url, options){
     var d = Deferred()
 
-    options = extend({parseJSON: true, withProgress: true, includeRequestedWith: true}, options)
+    options = extend({parseJSON: true, withProgress: true}, options)
 
     function xhrTransferComplete() {
         if (xhr.status == 200) {

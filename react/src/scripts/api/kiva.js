@@ -210,7 +210,7 @@ class Loans {
         //hack-fix. recalculates repaid_in daily since it's a field that changes but isn't a function.
         setInterval(function(){
             var today = Date.today()
-            this.loans_from_kiva.forEach(loan => {
+            this.loans_from_kiva.forEach(loan => { //todo: make this a funct that's added in processing... this is duplicated code.
                 loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
             })
         }.bind(this),6*60*60000)
