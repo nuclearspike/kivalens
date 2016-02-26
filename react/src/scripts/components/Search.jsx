@@ -22,11 +22,12 @@ var Search = React.createClass({
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
         this.listenTo(a.loans.filter.completed, loans => {
-            this.setState({filtered_loans: loans, loan_count: loans.length, })
+            var newState = {filtered_loans: loans, loan_count: loans.length}
             if (kivaloans.isReady()) {
                 this.showNotification(`${loans.length} loans`)
-                this.setState({hasHadLoans: true})
+                newState.hasHadLoans = true
             }
+            this.setState(newState)
         })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())

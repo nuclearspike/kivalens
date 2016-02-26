@@ -130,7 +130,7 @@ class ResultProcessors {
             var running_total = 0
             loan.kl_repayments = []
 
-            //some very old loans do not have scheduled payments.
+            //some very old loans do not have scheduled payments and ones dl from kl server have them removed now.
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
                 var today = Date.today()
 
