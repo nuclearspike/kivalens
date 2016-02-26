@@ -96,7 +96,7 @@ if (cluster.isMaster){ //preps the downloads
             //starts with random hash just to make it always in a working state.
             var hash = Math.round(Math.random() * 100000000)
             var css = [{name: 'application', hash}, {name: 'snowstack', hash}]
-            var js = [{name: 'vendor', hash}, {name: 'build', hash}]
+            var js = [{name: 'initialdownload',hash},{name: 'vendor', hash}, {name: 'build', hash}]
             var todo = css.length + js.length
             const renderIndex = () => {
                 if (--todo) return //if it has anything left to do, leave.

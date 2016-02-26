@@ -171,11 +171,11 @@ class ResultProcessors {
                     payment.percent = (running_total * 100) / loan.loan_amount
                     if (!loan.kls_half_back && running_total >= amount_50) {
                         loan.kls_half_back = payment.date
-                        loan.kls_half_back_actual = (running_total * 100) / loan.loan_amount
+                        loan.kls_half_back_actual = parseFloat(((running_total * 100) / loan.loan_amount).toFixed(2))
                     }
                     if (!loan.kls_75_back && running_total >= amount_75) {
                         loan.kls_75_back = payment.date
-                        loan.kls_75_back_actual = (running_total * 100) / loan.loan_amount
+                        loan.kls_75_back_actual = parseFloat(((running_total * 100) / loan.loan_amount).toFixed(2))
                     }
                 })
                 loan.kls_final_repayment =  loan.kl_repayments.last().date
