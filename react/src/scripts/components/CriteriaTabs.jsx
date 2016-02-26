@@ -482,8 +482,9 @@ const CriteriaTabs = React.createClass({
     figureAtheistList(){
         this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
     },
-    filteredDone(loans){
+    filteredDone(loans,sameAsLastTime){
         if (!(this.last_select && this.last_select.key)) return
+        if (sameAsLastTime) return
         //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
         let {key, group} = this.last_select
         var cg = this.state.criteria[group]

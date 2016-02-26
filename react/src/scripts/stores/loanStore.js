@@ -130,7 +130,19 @@ var loanStore = Reflux.createStore({
         kivaloans.refreshLoan(loan).done(l => a.loans.detail.completed(l)) //kick off a process to get an updated version
     },
     onFilter(c){
-        a.loans.filter.completed(this.syncFilterLoans(c))
+        function arraysEqual (a1, a2) {
+            return a1 === a2 || (
+                    a1 != null && a2 != null &&
+                    a1.length === a2.length &&
+                    a1.every((val,idx) => val.id === a2[idx].id)
+                )
+        }
+        if (kivaloans.is_ready) {
+            var newlastFiltered = this.syncFilterLoans(c)
+            var sameAsLastTime = arraysEqual(this.lastFiltered, newlastFiltered)
+            this.lastFiltered = newlastFiltered
+            a.loans.filter.completed(newlastFiltered, sameAsLastTime)
+        }
     },
     onLoadCompleted(loans){
         //find loans in the basket where they are not in the listing from kiva.

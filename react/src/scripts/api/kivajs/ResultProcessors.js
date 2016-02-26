@@ -132,7 +132,7 @@ class ResultProcessors {
 
             //some very old loans do not have scheduled payments and ones dl from kl server have them removed now.
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
-                var today = Date.today()
+
 
                 //replace Kiva's version since it has too many entries.
                 if (!loan.kls)
@@ -173,10 +173,12 @@ class ResultProcessors {
                 })
                 loan.kls_final_repayment =  loan.kl_repayments.last().date
                 //when looking at really old loans, can be null
-                loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
-
             }
             ///REPAYMENT STUFF: END
+
+            //not inside repayment block because it may have come from server and repayments no longer processed.
+            var today = Date.today()
+            loan.kl_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
 
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])

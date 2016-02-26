@@ -14,7 +14,7 @@ const ChartDistribution = React.createClass({
     getInitialState() {return {countryData: [], sectorData: [], activityData: []}},
     componentDidMount() {
         this.listenTo(a.loans.filter.completed, this.redoCharts)
-        this.redoCharts(s.loans.syncFilterLoansLast())
+        this.redoCharts(s.loans.syncFilterLoansLast(),false)
     },
     produceChart(){
         var result = {
@@ -81,7 +81,8 @@ const ChartDistribution = React.createClass({
     groupByForChart(loans, selector){
         return loans.groupBy(selector).select(g=>({name: selector(g[0]), y: g.length}))
     },
-    redoCharts(loans){
+    redoCharts(loans,sameAsLastTime){
+        if (sameAsLastTime) return
         if (['xs','sm'].contains(findBootstrapEnv())) return
         var countryData  = this.groupByForChart(loans, l=>l.location.country)
         var sectorData   = this.groupByForChart(loans, l=>l.sector)

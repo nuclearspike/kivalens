@@ -21,14 +21,14 @@ var Search = React.createClass({
     componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
-        this.listenTo(a.loans.filter.completed, loans => {
-            var newState = {filtered_loans: loans, loan_count: loans.length}
-            if (kivaloans.isReady()) {
-                this.showNotification(`${loans.length} loans`)
+        this.listenTo(a.loans.filter.completed, (loans,sameAsLastTime) => {
+            console.log('a.loans.filter.completed',loans.length,sameAsLastTime)
+            if (sameAsLastTime) return
+            var newState = {filtered_loans: loans, loan_count: loans.length,notification: {active: true, message:`${loans.length} loans`}}
+            if (loans.length)
                 newState.hasHadLoans = true
-            }
             this.setState(newState)
-        })
+      })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
@@ -53,9 +53,6 @@ var Search = React.createClass({
             this.setState({show_secondary_load: true})
         if (status == 'complete')
             this.setState({show_secondary_load: false})
-    },
-    showNotification(message){
-        this.setState({notification: {active: true, message}})
     },
     changeCriteria(e){
         //e.preventDefault()
