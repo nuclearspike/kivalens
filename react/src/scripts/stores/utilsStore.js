@@ -21,7 +21,10 @@ var utilsStore = Reflux.createStore({
     pullLenderObj(lender_id, displayError){
         if (lender_id){
             req.kiva.api.lender(lender_id)
-                .done(lender => this.lenderObj = lender)
+                .done(lender => {
+                    this.lenderObj = lender
+                    lsj.set("lenderObj",lender)
+                })
                 .fail((msg,status) => {
                     window.rga.event({category: 'error', action: `BadLenderId:${status}:${msg}`, label: lender_id})
                     if (displayError && (status == 400 || status == 404)) {

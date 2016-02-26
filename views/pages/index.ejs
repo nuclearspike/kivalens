@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-    <script type="application/javascript">
+    <script>
         window.pageStarted = Date.now()
         if (location.hostname == 'kivalens.org') {
             if (document.referrer && document.referrer.indexOf('kivalens.org') == -1)
@@ -9,6 +9,7 @@
             else
                 location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
         }
+
     </script>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
@@ -42,12 +43,22 @@
 <div id="react-app">
     <div class="jumbotron">
         <div class="container">
-            <h1>Welcome, Kiva Expert!</h1>
+            <h1 id="welcome_text">Welcome, Kiva Expert!</h1>
             <p>The KivaLens app is loading. Please wait...</p>
         </div>
     </div>
 </div>
 <script>
+    if (localStorage){
+        var lenderObj = localStorage.getItem('lenderObj')
+        if (lenderObj) {
+            lenderObj = JSON.parse(lenderObj)
+            if (lenderObj.name) {
+                var ln = document.getElementById("welcome_text")
+                ln.innerHTML = 'Welcome back, ' + lenderObj.name + '!'
+            }
+        }
+    }
     window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
     ga('create', 'UA-10202885-1', 'auto');
     ga('send', 'pageview');
