@@ -9,7 +9,6 @@
             else
                 location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
         }
-
     </script>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
@@ -25,6 +24,29 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/manifest.json">
+    <style>
+        #welcome_text {
+            font: normal normal normal normal 63px / 69.3px Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 20px 0px 10px;
+        }
+
+        #fast_jumbo {
+            color: rgb(62, 63, 58);
+            background: rgb(248, 245, 240) none repeat scroll 0% 0% / auto padding-box border-box;
+            padding: 48px 0px;
+        }
+
+        #fast_jumbo_container {
+            font: normal normal normal normal 14px / 20px Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0px 135px;
+            padding: 0px 15px;
+        }
+
+        #fast_jumbo_loading {
+            font: normal normal 200 normal 21px / 30px Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0px 0px 15px;
+        }
+    </style>
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
@@ -35,19 +57,18 @@
     <meta property="og:title" content="KivaLens" />
     <meta property="og:description" content="How Experts and Mega-Lenders search for Kiva loans" />
     <title>Kiva Lens</title>
-    <% css.forEach(function(file) {  %>
-    <link href='stylesheets/<%= file.hash %>/<%= file.name %>.min.css' rel='stylesheet' type='text/css'><% }) %>
-    <link href="//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/sandstone/bootstrap.css" rel='stylesheet' type='text/css'>
 </head>
 <body>
+
 <div id="react-app">
-    <div class="jumbotron">
-        <div class="container">
-            <h1 id="welcome_text">Welcome, Kiva Expert!</h1>
-            <p>The KivaLens app is loading. Please wait...</p>
+    <div id="fast_jumbo">
+        <div id="fast_jumbo_container">
+            <h1 id="welcome_text">Welcome back, Paul!</h1>
+            <p id="fast_jumbo_loading">The KivaLens app is loading. Please wait...</p>
         </div>
     </div>
 </div>
+
 <script>
     if (localStorage){
         var lenderObj = localStorage.getItem('lenderObj')
@@ -59,6 +80,24 @@
             }
         }
     }
+
+    var cb = function() {
+        var cssfiles = ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/sandstone/bootstrap.css'];
+        <% css.forEach(function(file) {  %>
+        cssfiles.push('stylesheets/<%= file.hash %>/<%= file.name %>.min.css')<% }); %>
+        var h = document.getElementsByTagName('head')[0];
+        for (var i = 0; i < cssfiles.length; i++) {
+            var l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = cssfiles[i];
+            h.parentNode.insertBefore(l, h);
+        }
+    };
+    var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+            webkitRequestAnimationFrame || msRequestAnimationFrame;
+    if (raf) raf(cb);
+    else window.addEventListener('load', cb);
+
     window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
     ga('create', 'UA-10202885-1', 'auto');
     ga('send', 'pageview');
