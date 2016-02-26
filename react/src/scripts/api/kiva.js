@@ -927,7 +927,6 @@ exports.LoanBatch = LoanBatch
 exports.Loans = Loans
 exports.defaultKivaData = defaultKivaData
 exports.setAPIOptions = setAPIOptions
-exports.KLPageSplits = require("./kivajs/kivaBase").KLPageSplits
 exports.req = req
 
 //temp... verify that these aren't ever used before removal

@@ -180,7 +180,7 @@ if (cluster.isMaster){ //preps the downloads
             .fail(x=>callback(404))
     })
 
-    const KLPageSplits = k.KLPageSplits
+    const KLPageSplits = 4
     k.setAPIOptions({max_concurrent:20})
 
     //to satisfy kiva.js ; hack

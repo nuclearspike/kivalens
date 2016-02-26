@@ -21,8 +21,6 @@ const canWebWork= () => !_isServer && typeof Worker !== 'undefined' && typeof Te
 Array.prototype.flatten = Array.prototype.flatten || function(){ return [].concat.apply([], this) }
 Array.prototype.percentWhere = function(predicate) {return this.where(predicate).length * 100 / this.length}
 
-const KLPageSplits = 5
-
 var getUrl = function(url, options){
     var d = Deferred()
 
@@ -94,7 +92,6 @@ function setAPIOptions(options){
 
 
 exports.getUrl = getUrl
-exports.KLPageSplits = KLPageSplits
 exports.isServer = isServer
 exports.canWebWork = canWebWork
 exports.sem_one = sem_one
