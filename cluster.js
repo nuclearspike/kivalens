@@ -238,9 +238,6 @@ if (cluster.isMaster){ //preps the downloads
             if (!loan.funded_amount) delete loan.funded_amount
             if (!loan.basket_amount) delete loan.basket_amount
             if (!loan.kls_tags.length) delete loan.kls_tags
-            loan.kls_half_back = loan.kls_half_back.toISOString()
-            loan.kls_75_back = loan.kls_75_back.toISOString()
-            loan.kls_final_repayment = loan.kls_final_repayment.toISOString()
             delete loan.terms.repayment_term
             loan.klb = {}
             loan.borrowers.groupByWithCount(b=>b.gender).forEach(g=>loan.klb[g.name] = g.count)

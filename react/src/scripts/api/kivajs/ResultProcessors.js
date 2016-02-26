@@ -34,10 +34,13 @@ class ResultProcessors {
 
     //remove any KivaLens-added fields/functions
     static unprocessLoan(loan){
-        loan = extend(true, {}, loan) //make a copy, strip it out
-        Object.keys(loan).where(f=>f.indexOf('kl_') == 0).forEach(field => delete loan[field])
-        delete loan.getPartner
-        return loan
+        var l = extend(true, {}, loan) //make a copy, strip it out
+        Object.keys(l).where(f=>f.indexOf('kl_') == 0).forEach(field => delete l[field])
+        l.kls_half_back = l.kls_half_back.toISOString()
+        l.kls_75_back = l.kls_75_back.toISOString()
+        l.kls_final_repayment = l.kls_final_repayment.toISOString()
+        delete l.getPartner
+        return l
     }
 
     static processLoanDescription(loan){
@@ -109,10 +112,14 @@ class ResultProcessors {
             loan.borrowers = Array.range(1,loan.klb.M || 0).select(x=>({gender:"M",first_name: '...'}))
             loan.borrowers = loan.borrowers.concat(Array.range(1,loan.klb.F || 0).select(x=>({gender:"F",first_name: '...'})))
             loan.borrower_count = loan.borrowers.length
+            loan.kls = false
+        }
+
+        //i don't like this.
+        if (typeof loan.kls_half_back === 'string') { //true when
             loan.kls_half_back = new Date(loan.kls_half_back)
             loan.kls_75_back = new Date(loan.kls_75_back)
             loan.kls_final_repayment = new Date(loan.kls_final_repayment)
-            loan.kls = false
         }
 
         if (loan.description.texts) { //the presence implies this is a detail result; this doesn't run during the background refresh.
