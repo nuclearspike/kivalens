@@ -364,13 +364,10 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
-    //nuclearspike!
-    var nuclearspike = express()
     var vhost = require('vhost')
-    nuclearspike.use(serveStatic('public/nuclearspike.com'))
-    app.use(vhost('www.nuclearspike.com', nuclearspike))
-    app.use(vhost('nuclearspike.com', nuclearspike))
-
+    var nspike = require('./nuclearspike_com')
+    app.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
+    app.use(vhost('nuclearspike.com', nspike))
 
     // compress all requests
     app.use(compression())

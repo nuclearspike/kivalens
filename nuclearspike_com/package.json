@@ -1,0 +1,9 @@
+{
+  "name": "nuclearspike_com",
+  "version": "0.0.1",
+  "private": true,
+  "main": "app",
+  "dependencies": {
+    "express": "^4.13.3"
+  }
+}
