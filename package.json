@@ -23,6 +23,7 @@
     "semaphore": "^1.0.3",
     "serve-static": "^1.10.2",
     "socket.io-client": "^0.9.1",
+    "vhost": "^3.0.2",
     "webworker-threads": "^0.6.2",
     "xhr2": "^0.1.3"
   },
