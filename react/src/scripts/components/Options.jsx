@@ -17,7 +17,7 @@ const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){ return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false } },
     getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'enableRSS',
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
             'debugging', 'betaTester', 'noStream', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions']
     },
     reload(){
@@ -182,10 +182,6 @@ const Options = React.createClass({
                             This option only has an impact when loading loans from Kiva rather than KivaLens.
                             After the initial load of loans, the rest of the loans will get loaded so you'll still need to
                             use the final repayment date criteria option if you want to hide longer term loans.
-                        <Input
-                            type="checkbox"
-                            label="Enable RSS tab (very early stages)"
-                            checkedLink={this.linkState('enableRSS')} />
                         <Input
                             type="checkbox"
                             label="Output debugging messages to the console"

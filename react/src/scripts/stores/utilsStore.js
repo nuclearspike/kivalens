@@ -8,11 +8,10 @@ var utilsStore = Reflux.createStore({
     init(){
         this.lenderObj = null
         this.sharedVars = {}
-        var options = lsj.get("Options")
-        var lender_id = options.kiva_lender_id
-        if (!options.install_id){
+        var lender_id = lsj.get("Options").kiva_lender_id
+        if (!lsj.get("Extras").install_id){
             var install_id = 'install_id_' + Math.round(Math.random() * 1000000)
-            lsj.setMerge('Options',{install_id})
+            lsj.setMerge('Extras',{install_id})
         }
         if (!lender_id && typeof chrome == "object") {
             callKLAFeature('getLenderId')
@@ -25,7 +24,7 @@ var utilsStore = Reflux.createStore({
 
         setInterval(function(){
             var lender_id = this.lenderObj? lenderObj.lender_id : 'unknown'
-            var install_id = lsj.get("Options").install_id
+            var install_id = lsj.get("Extras").install_id
             var uptime = Math.ceil((Date.now() - window.pageStarted)/ 60000)
             req.kl.get(`heartbeat/${install_id}/${lender_id}/${uptime}`).fail((msg,status) => {
                 if (status == 205) location.reload()

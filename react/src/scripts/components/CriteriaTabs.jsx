@@ -464,7 +464,7 @@ const CriteriaTabs = React.createClass({
     },
     componentDidMount() {
         var opts = lsj.get("Options")
-        this.setState({kiva_lender_id: opts.kiva_lender_id, enableRSS: opts.enableRSS,isMobile: mobileAndTabletCheck()})
+        this.setState({kiva_lender_id: opts.kiva_lender_id, isMobile: mobileAndTabletCheck()})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
@@ -647,7 +647,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions, enableRSS} = this.state
+        let {isMobile, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -693,6 +693,7 @@ const CriteriaTabs = React.createClass({
                 </Tab>
 
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
+                    <Row>
                     <Col lg={8}>
                         <For each='name' index='i' of={['region','partners','social_performance','charges_fees_and_interest']}>
                             <SelectRow key={i} name={name} cursor={cPartner.refine(name)} aanCursor={cPartner.refine(`${name}_all_any_none`)} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
@@ -715,6 +716,7 @@ const CriteriaTabs = React.createClass({
                             <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}} config={helper_charts.partner} />
                         </If>
                     </Col>
+                    </Row>
                 </Tab>
 
                 <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
@@ -778,14 +780,23 @@ const CriteriaTabs = React.createClass({
                         </Col>
                     </Tab>
                 </If>
-                <If condition={!isMobile && enableRSS}>
+                <If condition={!isMobile}>
                     <Tab eventKey={5} title="RSS">
+                        <Row className="ample-padding-top">
                         <Col lg={12}>
                             <If condition={activeTab == 5}>
                                 <div>
                                     <p>
-                                        This is experimental, expect breaking changes. It will only show the first 20 matching loans and does not
-                                        look at your fundraising loans and won't work with portfolio balancing.
+                                        With an RSS feed, you can use any number of RSS Readers (including some browsers
+                                        or browser extensions), or sites like <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to
+                                        set up all sorts of actions in response to new items in the feed. You can set
+                                        it to send you emails, SMS, Instant Messages, flash your lights, turn on your
+                                        sprinklers... You have a lot of options!
+                                    </p>
+                                    <p>
+                                        It will only show the first 20 matching loans and it currently doesn't support
+                                        anything that requires any knowledge of your portfolio (fundraising loans or
+                                        balancing).
                                     </p>
                                     <Panel header="RSS Feed Details">
                                         <Input type="text" label='Name (this will appear in your RSS feed reader)' style={{height:'38px',minWidth:'50px'}}
@@ -817,6 +828,7 @@ const CriteriaTabs = React.createClass({
                                 </div>
                             </If>
                         </Col>
+                        </Row>
                     </Tab>
                 </If>
             </Tabs>
