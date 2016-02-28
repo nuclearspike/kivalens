@@ -364,10 +364,8 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
-    var vhost = require('vhost')
-    var nspike = require('./nuclearspike_com')
-    app.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
-    app.use(vhost('nuclearspike.com', nspike))
+
+    var main = express()
 
     // compress all requests
     app.use(compression())
@@ -437,7 +435,7 @@ else  //workers handle all communication with the clients.
         res.sendFile(fn)
     }
 
-    app.set('port', (process.env.PORT || 5000))
+    main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
@@ -647,7 +645,19 @@ else  //workers handle all communication with the clients.
         res.redirect("/#/search")
     })
 
-    app.listen(app.get('port'), function() {
+    var vhost = require('vhost')
+    var nspike = require('./nuclearspike_com')
+
+    main.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
+    main.use(vhost('nuclearspike.com', nspike))
+    main.use(vhost('nuclearspike.local', nspike)) //serveStatic(__dirname + '/nuclearspike_com/public', {maxAge: '1d'}))
+
+    main.use(vhost('localhost', app))
+    main.use(vhost('kivalens.org', app))
+    main.use(vhost('www.kivalens.org', app))
+
+
+    main.listen(main.get('port'), function() {
         console.log('KivaLens Server is running on port', app.get('port'))
     })
 
