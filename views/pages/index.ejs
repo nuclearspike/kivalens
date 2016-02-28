@@ -32,11 +32,6 @@
             color: #3e3f3a;
             background-color: #ffffff;
         }
-        .welcome_text {
-            font: normal normal normal normal 63px / 69.3px 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 20px 0px 10px;
-        }
-
         .fast_jumbo {
             color: rgb(62, 63, 58);
             background: rgb(248, 245, 240) none repeat scroll 0% 0% / auto padding-box border-box;
@@ -45,8 +40,13 @@
 
         .fast_jumbo_container {
             font: normal normal normal normal 14px / 20px 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 0px 135px;
-            padding: 0px 15px;
+            margin: auto;
+            width: 80%;
+        }
+
+        .fast_jumbo_welcome_text {
+            font: normal normal normal normal 63px / 69.3px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 20px 0px 10px;
         }
 
         .fast_jumbo_loading {
@@ -70,20 +70,19 @@
 <div id="react-app">
     <div class="fast_jumbo">
         <div class="fast_jumbo_container">
-            <h1 class="welcome_text" id="welcome_text">Welcome back, Paul!</h1>
+            <h1 class="fast_jumbo_welcome_text" id="welcome_text">Welcome back, Paul!</h1>
             <p class="fast_jumbo_loading">The KivaLens app is loading. Please wait...</p>
         </div>
     </div>
 </div>
 
 <script>
-    if (localStorage){
+    if (typeof localStorage == 'object'){
         var lenderObj = localStorage.getItem('lenderObj')
         if (lenderObj) {
             lenderObj = JSON.parse(lenderObj)
             if (lenderObj.name) {
-                var ln = document.getElementById("welcome_text")
-                ln.innerHTML = 'Welcome back, ' + lenderObj.name + '!'
+                document.getElementById("welcome_text").innerHTML = 'Welcome back, ' + lenderObj.name + '!'
             }
         }
     }
@@ -126,7 +125,7 @@
             l.type = "text/css";
             l.rel = 'stylesheet';
             l.href = cssfiles[i];
-            if (i == 0) {
+            if (i == 0) { //bootstrap
                 l.onload = bootstrapLoaded
             }
             h.appendChild(l);

@@ -4,13 +4,16 @@ import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
+import InfiniteList from 'react-infinite-list'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
-import {KivaImage, NewTabLink, LoanLink, KivaLink} from '.'
+import {KivaImage, NewTabLink, LoanLink, KivaLink, LoanListItem} from '.'
+import {req} from '../api/kiva'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 import extend from 'extend'
+
 //import {ImmutableOptimizations} from 'react-cursor'
 
 const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
@@ -171,19 +174,22 @@ var Loan = React.createClass({
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, similar: [], inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
         if (loan.id != this.props.params.id) return
         window.currentLoan = loan
         this.setState(this.loanToState(loan))
+        req.kiva.api.similarTo(loan.id)
+            .done(similar => this.setState({similar: similar.where(l=>l.id != loan.id)}))
+            .fail(x=>this.setState({similar:[]}))
     },
-    tabSelect(selectedKey){
-        this.setState({activeTab: selectedKey})
-        localStorage.loan_active_tab = selectedKey
+    tabSelect(activeTab){
+        this.setState({activeTab})
+        localStorage.loan_active_tab = activeTab
     },
     render() {
-        let {loan, matching, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch} = this.state
+        let {loan, matching, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
         if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -315,6 +321,17 @@ var Loan = React.createClass({
                                     </dl>
                                 </div>
                             </If>
+                        </Col>
+                    </Tab>
+
+                    <Tab eventKey={4} title="Similar" disabled={similar.length == 0} className="ample-padding-top">
+                        <Col lg={6}>
+                            <InfiniteList
+                                className="loan_list_container"
+                                items={similar}
+                                height={300}
+                                itemHeight={100}
+                                listItemClass={LoanListItem} />
                         </Col>
                     </Tab>
                 </Tabs>

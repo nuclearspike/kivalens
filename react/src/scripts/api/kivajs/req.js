@@ -1,3 +1,5 @@
+"use strict";
+
 const isServer = require("./kivaBase").isServer
 const ResultProcessors = require("./ResultProcessors")
 const SemRequest = require('./SemRequest')
@@ -23,7 +25,7 @@ req.kiva = {
 }
 
 //max of 100, not enforced in this call.
-req.kiva.api.loans = (ids,process) => {
+req.kiva.api.loans = (ids, process) => {
     if (process === undefined) process = true
     var p = req.kiva.api.get(`loans/${ids.join(',')}.json`).then(res => res.loans)
     return process ? p.then(ResultProcessors.processLoans) : p
@@ -34,6 +36,10 @@ req.kiva.api.loan = id => {
     return req.kiva.api.get(`loans/${id}.json`)
         .then(res => res.loans[0])
         .then(ResultProcessors.processLoan)
+}
+
+req.kiva.api.similarTo = id => {
+    return req.kiva.api.get(`loans/${id}/similar.json`).then(res => res.loans)
 }
 
 req.kiva.api.lender = lender => {
@@ -50,4 +56,4 @@ req.gdocs = {
     atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`,false,!isServer(),{gid:1,format:'csv'},5)
 }
 
-module.exports = req
+module.exports = global.req = req

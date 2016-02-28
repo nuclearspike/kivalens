@@ -64,7 +64,6 @@ const App = React.createClass({
         }
     },
     render(){
-
         this.logPageChange()
         return <div>
                 <KLNav/>

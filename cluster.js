@@ -47,6 +47,8 @@ function outputMemUsage(event){
     console.log(event, `${formatMB(mem)}MB`, `uptime: ${process.uptime()}`)
 }
 
+//important only because heroku has memory limits and doing a gc lets me stay under and run more processes.
+//it only takes a fraction of a second anyway.
 function doGarbageCollection(name,log){
     if (log) {
         var u_before = process.uptime()
@@ -178,6 +180,11 @@ if (cluster.isMaster){ //preps the downloads
         new LenderFundraisingLoans(lenderid).ids()
             .done(ids => callback(null,JSON.stringify(ids)))
             .fail(x=>callback(404))
+    })
+
+    hub.on('heartbeat', (settings, sender, callback)=>{
+        console.log("HEARTBEAT: " + JSON.stringify(settings))
+        callback(200)
     })
 
     const KLPageSplits = 4
@@ -371,7 +378,7 @@ else  //workers handle all communication with the clients.
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
-            res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly');
+            res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); //don't pass back kiva's cookies.
             // intercept OPTIONS method
             if ('OPTIONS' == req.method) {
                 res.send(200)
@@ -383,12 +390,16 @@ else  //workers handle all communication with the clients.
 
     const serveGzipFile = (res, fn) =>{
         fn = `/tmp/${fn}.kl`
-        var stats = fs.statSync(fn)
-        res.type('application/json;  charset=utf-8')
-        res.header('Content-Encoding', 'gzip')
-        res.header('Content-Length', stats.size)
-        res.header('Cache-Control', `public, max-age=3600`) //1 hour
-        res.sendFile(fn)
+        try {
+            var stats = fs.statSync(fn)
+            res.type('application/json;  charset=utf-8')
+            res.header('Content-Encoding', 'gzip')
+            res.header('Content-Length', stats.size)
+            res.header('Cache-Control', `public, max-age=3600`) //1 hour
+            res.sendFile(fn)
+        } catch(e){
+            res.sendStatus(404)
+        }
     }
 
     //alternative method...
@@ -421,7 +432,7 @@ else  //workers handle all communication with the clients.
         res.sendFile(fn)
     }
 
-    app.set('port', (process.env.PORT || 3000))
+    app.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
     app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
@@ -603,7 +614,17 @@ else  //workers handle all communication with the clients.
         })
     })
 
+    app.get('/api/heartbeat/:install/:lender/:uptime', (req, res)=>{
+        hub.requestMaster('heartbeat',
+            {install: req.params.install, lender: req.params.lender, uptime: req.params.uptime},
+            result => {
+                res.status(result)
+                res.send(`{"status":${result}}`)
+            })
+    })
+
     /**
+     * //not used currently.
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({loan:{name:"Paul"}}))},true).done(r => console.log(r))
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({"loan":{"repaid_in_max":5,"still_needed_min":25,"limit_to":{"enabled":false,"count":1,"limit_by":"Partner"}},"partner":{},"portfolio":{"exclude_portfolio_loans":"true","pb_partner":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_country":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_sector":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_activity":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"}},"notifyOnNew":true}))},true).done(r => console.log(r))
      */
@@ -613,6 +634,7 @@ else  //workers handle all communication with the clients.
             crit = JSON.parse(decodeURIComponent(crit))
         hub.requestMaster('filter', crit, result => res.send(result))
     })
+
 
     //CATCH ALL... this will also redirect old image reqs to a page though...
     app.get('/*', (req, res) => {
