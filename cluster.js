@@ -367,7 +367,7 @@ else  //workers handle all communication with the clients.
     //nuclearspike!
     var nuclearspike = express()
     var vhost = require('vhost')
-    nuclearspike.use(serveStatic('nuclearspike.com'))
+    nuclearspike.use(serveStatic('public/nuclearspike.com'))
     app.use(vhost('www.nuclearspike.com', nuclearspike))
     app.use(vhost('nuclearspike.com', nuclearspike))
 
