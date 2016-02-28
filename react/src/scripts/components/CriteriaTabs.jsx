@@ -795,8 +795,8 @@ const CriteriaTabs = React.createClass({
                                     </p>
                                     <p>
                                         It will only show the first 20 matching loans and it currently doesn't support
-                                        anything that requires any knowledge of your portfolio (fundraising loans or
-                                        balancing).
+                                        anything that requires any knowledge of your portfolio (excluding your
+                                        fundraising loans or portfolio balancing).
                                     </p>
                                     <Panel header="RSS Feed Details">
                                         <Input type="text" label='Name (this will appear in your RSS feed reader)' style={{height:'38px',minWidth:'50px'}}

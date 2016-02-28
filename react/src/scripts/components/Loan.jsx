@@ -1,4 +1,5 @@
 'use strict'
+
 import React from 'react'
 import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
@@ -18,7 +19,7 @@ import extend from 'extend'
 
 const DTDD = ({term, def}) => <span><dt>{term}</dt><dd>{def}</dd></span>
 
-//prevents components inside of this wrapper from being updated.
+//prevents components inside of this wrapper from being updated unless they update themselves.
 const NoUpdate = React.createClass({
     shouldComponentUpdate({cycle}){return cycle == this.props.cycle},
     render(){return <div>{this.props.children}</div>}
