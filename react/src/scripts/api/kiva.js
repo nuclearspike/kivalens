@@ -267,7 +267,7 @@ class Loans {
                                 var loan = this.getById(desc.id)
                                 //loan.description.texts.en = desc.t
                                 loan.kls_use_or_descr_arr = desc.t
-                                ResultProcessors.processLoanDescription(loan)
+                                //what would this get us? ResultProcessors.processLoanDescription(loan)
                             })
                             this.allDescriptionsLoaded = true
                             this.notify({all_descriptions_loaded: true})
@@ -800,17 +800,24 @@ class Loans {
         if (existing.status == 'fundraising') {
             if (existing.funded_amount != refreshed.funded_amount) {
                 this.running_totals.funded_amount += refreshed.funded_amount - existing.funded_amount
-                cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
+                //cl(`############### refreshLoans: FUNDED CHANGED: ${existing.id} was: ${existing.funded_amount} now: ${refreshed.funded_amount}`)
                 existing.kl_dynamicFieldChange = Date.now()
             }
         }
         var old_status = existing.status
+
+        //it (should?) will only modify the funded_amount up. this avoids the problem of the resync happening and
+        //data-stream updates coming in and it could incorrectly adjust it back down. CS could remove a share
+        //from a lender who added it by accident, but that is rare and would only have incorrect data for a
+        //short time before it auto-corrects with the next purchase.
+        if (refreshed.funded_amount < existing.funded_amount)
+            delete refreshed.funded_amount //prevents the merge of this property
         extend(true, existing, refreshed, extra)
         if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
             if (refreshed.status == "funded" || refreshed.status == 'in_repayment') this.running_totals.funded_loans++
             if (refreshed.status == "expired") this.running_totals.expired_loans++
-            this.notify({loan_not_fundraising: existing})
             existing.kl_dynamicFieldChange = Date.now()
+            this.notify({loan_not_fundraising: existing})
         }
         this.notify({running_totals_change: this.running_totals}) //todo: only if changed??
         this.notify({loan_updated: existing})

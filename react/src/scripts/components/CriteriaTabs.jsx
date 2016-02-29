@@ -477,6 +477,9 @@ const CriteriaTabs = React.createClass({
         KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA:state}))
     },
     checkDescriptionsLoaded(){
+        var criteria = s.criteria.syncGetLast()
+        if (criteria.loan && criteria.loan.use)
+            this.setState({criteria}) //only refresh the loans if the criteria has a use/descr search.
         this.setState({descriptionsLoaded: kivaloans.allDescriptionsLoaded})
     },
     figureAtheistList(){

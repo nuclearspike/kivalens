@@ -63,18 +63,33 @@ class ResultProcessors {
          * on the client, the kls will be populated but no description.
          */
 
+        //I do not like this function at all. used in too many situations and too much is being inferred.
+
         if (isServer()) {
+            var processDescr = true
             if (loan.description.texts.en) {
                 var descr_arr = processText(loan.description.texts.en, common_descr)
             } else {
                 descr_arr = []
             }
-            var use_arr = processText(loan.use, common_use)
             loan.kls_has_descr = loan.description.texts.en != undefined
-            loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
         } else {
             if (!loan.description.texts.en)
                 loan.description.texts.en = loan.kls_has_descr ? "" : "No English description available."
+            else { //client gets a full detail
+                descr_arr = processText(loan.description.texts.en, common_descr)
+                processDescr = true
+            }
+        }
+
+        //no matter what, this function
+        if (processDescr) {
+            var use_arr = processText(loan.use, common_use)
+            loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
+        } else {
+            if (!loan.kls_use_or_descr_arr) //make sure it is an array.
+                loan.kls_use_or_descr_arr = []
+            //console.log('kls_use_or_descr_arr has no value')
         }
 
         if (!loan.kls_age) //skip if populated from server since the description will be empty.
