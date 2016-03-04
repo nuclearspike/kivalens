@@ -6,7 +6,7 @@ var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
 import InfiniteList from 'react-infinite-list'
-import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron} from 'react-bootstrap'
+import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron,Alert} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, NewTabLink, LoanLink, KivaLink, LoanListItem} from '.'
 import {req} from '../api/kiva'
@@ -184,13 +184,22 @@ var Loan = React.createClass({
         req.kiva.api.similarTo(loan.id)
             .done(similar => this.setState({similar: similar.where(l=>l.id != loan.id)}))
             .fail(x=>this.setState({similar:[]}))
+
+        this.setState({visionStatus:'fetching'})
+        req.kl.get(`vision/loan/${loan.id}`) //todo: turn into a proper call with no biz logic here.
+            .done(result => {
+                loan.visionLabels = result
+                if (loan.id != this.props.params.id) return //
+                this.setState({visionStatus:'found', visionResults:result.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')})
+            })
+            .fail(x=> this.setState({visionStatus:'failed'}))
     },
     tabSelect(activeTab){
         this.setState({activeTab})
         localStorage.loan_active_tab = activeTab
     },
     render() {
-        let {loan, matching, partner, activeTab, inBasket, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
+        let {loan, matching, partner, activeTab, inBasket, visionStatus, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
         if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -210,8 +219,14 @@ var Loan = React.createClass({
                             <If condition={loan.borrowers.length > 1}>
                                 <p>In no particular order:</p>
                             </If>
-                            <p>Pictured: {pictured} </p>
-                            <p>Not Pictured: {not_pictured} </p>
+                            <p>Pictured: {pictured? pictured: '(none)'} </p>
+                            <p>Not Pictured: {not_pictured ? not_pictured: '(none)'} </p>
+                            <If condition={visionStatus == 'fetching'}>
+                                <Alert>Google Cloud Vision is examining the picture carefully...</Alert>
+                            </If>
+                            <If condition={visionStatus == 'found'}>
+                                <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
+                            </If>
                         </Panel>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">

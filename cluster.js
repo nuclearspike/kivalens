@@ -155,8 +155,6 @@ if (cluster.isMaster){ //preps the downloads
         }
 
         //todo: check redis so that the data will persist between server restarts
-
-
         const req = new vision.Request({
             image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
             features: [new vision.Feature('LABEL_DETECTION', 10)]
@@ -166,8 +164,11 @@ if (cluster.isMaster){ //preps the downloads
         vision.annotate([req]).then(res => {
             // handling response for each request
             loan.visionLabels = res.responses[0].labelAnnotations
-            callback(null, loan.visionLabels)
-            console.log(JSON.stringify(res.responses))
+            if (loan.visionLabels)
+                callback(null, loan.visionLabels)
+            else
+                callback(404)
+            //console.log(JSON.stringify(res.responses))
         }, e => {
             callback(404)
             console.log('Error: ', e)
@@ -671,7 +672,7 @@ else  //workers handle all communication with the clients.
         })
     })
 
-    app.get("/api/vision/:loan_id", (req,res)=>{
+    app.get("/api/vision/loan/:loan_id", (req,res)=>{
         hub.requestMaster('vision', req.params.loan_id, (err, result) =>{
             if (err)
                 res.sendStatus(err)
