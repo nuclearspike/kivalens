@@ -185,14 +185,29 @@ var Loan = React.createClass({
             .done(similar => this.setState({similar: similar.where(l=>l.id != loan.id)}))
             .fail(x=>this.setState({similar:[]}))
 
-        this.setState({visionStatus:'fetching'})
-        req.kl.get(`vision/loan/${loan.id}`) //todo: turn into a proper call with no biz logic here.
-            .done(result => {
-                loan.visionLabels = result
-                if (loan.id != this.props.params.id) return //
-                this.setState({visionStatus:'found', visionResults:result.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')})
+        //I don't like this pattern at all!
+        const displayVisionResults = visionLabels => {
+            this.setState({
+                visionStatus: 'found',
+                visionResults: visionLabels.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')
             })
-            .fail(x=> this.setState({visionStatus:'failed'}))
+        }
+        if (!loan.visionLabels) {
+            loan.visionLabels = [] //stops future look ups.. this is a terrible inference
+            this.setState({visionStatus: 'fetching'})
+            req.kl.get(`vision/loan/${loan.id}`) //todo: turn into a proper call with no biz logic here.
+                .done(result => {
+                    loan.visionLabels = result && Array.isArray(result) ? result: []
+                    if (loan.id != this.props.params.id) return //
+                    displayVisionResults(result)
+                })
+                .fail(x=> {
+                    this.setState({visionStatus: 'failed'})
+                })
+        } else {
+            if (loan.visionLabels.length)
+                displayVisionResults(loan.visionLabels)
+        }
     },
     tabSelect(activeTab){
         this.setState({activeTab})

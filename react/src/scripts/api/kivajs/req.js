@@ -10,6 +10,7 @@ if (!isServer()) {
     //this has KivaLens-specific refs that won't work in other uses.
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
     req.kl = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},0)
+    //req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
     req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
