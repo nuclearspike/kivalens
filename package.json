@@ -19,6 +19,7 @@
     "linqjs": "0.0.6",
     "memwatch-next": "^0.2.10",
     "mime-types": "^2.1.9",
+    "node-cloud-vision-api": "^0.2.0",
     "rss": "^1.2.1",
     "semaphore": "^1.0.3",
     "serve-static": "^1.10.2",

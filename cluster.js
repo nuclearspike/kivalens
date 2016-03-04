@@ -90,6 +90,13 @@ if (cluster.isMaster){ //preps the downloads
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
 
+    const vision = require('node-cloud-vision-api')
+    //limited to my home IP. todo: make heroku config and set google vision to allow heroku ip
+    if (process.env.VISION_API_KEY)
+        vision.init({auth: process.env.VISION_API_KEY})
+    else
+        console.log("NO VISION API KEY. GOOGLE CLOUD VISION CALLS WILL FAIL.")
+
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 
     //RENDER INDEX
@@ -131,6 +138,40 @@ if (cluster.isMaster){ //preps the downloads
     cluster.on('exit', worker => {
         console.log('INTERESTING: Worker %d died :(', worker.id)
         cluster.fork()
+    })
+
+
+    hub.on("vision", (loan_id, sender, callback) => {
+        var loan = kivaloans.getById(loan_id)
+        if (!loan) {
+            callback(404)
+            return
+        }
+
+        //we've looked it up previously.
+        if (loan.visionLabels) {
+            callback(null,loan.visionLabels)
+            return
+        }
+
+        //todo: check redis so that the data will persist between server restarts
+
+
+        const req = new vision.Request({
+            image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
+            features: [new vision.Feature('LABEL_DETECTION', 10)]
+        })
+
+        console.log("Vision API request")
+        vision.annotate([req]).then(res => {
+            // handling response for each request
+            loan.visionLabels = res.responses[0].labelAnnotations
+            callback(null, loan.visionLabels)
+            console.log(JSON.stringify(res.responses))
+        }, e => {
+            callback(404)
+            console.log('Error: ', e)
+        })
     })
 
     /**
@@ -332,26 +373,38 @@ if (cluster.isMaster){ //preps the downloads
     setInterval(prepForRequests, 60000)
 
     //live data stream over socket.io
+    var channels = []
     const connectChannel = function(channelName, onEvent) {
-        var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`,{'transports': ['websocket']});
-        channel.on('error', function (data) {console.log(`socket.io channel error: ${channelName}: ${data}`)})
-        channel.on('message', onEvent)
+        try {
+            var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
+            channel.on('error', function (data) {
+                console.log(`socket.io channel error: ${channelName}: ${data}`)
+            })
+            channel.on('message', onEvent)
+            channels.push(channel)
+        } catch(e){
+            console.error('socket.io error: ', e)
+        }
     }
+    //console.log('ENV', process.env)
+    if (process.env.NODE_ENV == 'production') {
+        connectChannel('loan.posted', function (data) {
+            data = JSON.parse(data)
+            //console.log("!!! loan.posted")
+            if (kivaloans)
+                kivaloans.queueNewLoanNotice(data.p.loan.id)
+        })
 
-    connectChannel('loan.posted', function(data){
-        data = JSON.parse(data)
-        //console.log("!!! loan.posted")
-        if (kivaloans)
-            kivaloans.queueNewLoanNotice(data.p.loan.id)
-    })
-
-    connectChannel('loan.purchased', function(data){
-        data = JSON.parse(data)
-        var ids = data.p.loans.select(l=>l.id)
-        //console.log("!!! loan.purchased: " + ids.length)
-        if (kivaloans)
-            kivaloans.queueToRefresh(ids)
-    })
+        connectChannel('loan.purchased', function (data) {
+            data = JSON.parse(data)
+            var ids = data.p.loans.select(l=>l.id)
+            //console.log("!!! loan.purchased: " + ids.length)
+            if (kivaloans)
+                kivaloans.queueToRefresh(ids)
+        })
+    } else {
+        console.log("not connecting to live stream socket.io channels.")
+    }
 }
 else  //workers handle all communication with the clients.
 {
@@ -617,6 +670,18 @@ else  //workers handle all communication with the clients.
         })
     })
 
+    app.get("/api/vision/:loan_id", (req,res)=>{
+        hub.requestMaster('vision', req.params.loan_id, (err, result) =>{
+            if (err)
+                res.sendStatus(err)
+            else {
+                res.type('application/json')
+                res.header('Cache-Control', `public, max-age=31536000`)
+                res.send(result)
+            }
+        })
+    })
+
     app.get('/api/heartbeat/:install/:lender/:uptime', (req, res)=>{
         hub.requestMaster('heartbeat',
             {install: req.params.install, lender: req.params.lender, uptime: req.params.uptime},
@@ -658,7 +723,7 @@ else  //workers handle all communication with the clients.
 
 
     main.listen(main.get('port'), function() {
-        console.log('KivaLens Server is running on port', app.get('port'))
+        console.log('KivaLens Server is running on port', main.get('port'))
     })
 
     /** JSON Parser, custom deserialization COOL!

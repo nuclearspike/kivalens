@@ -794,7 +794,9 @@ const CriteriaTabs = React.createClass({
                                         or browser extensions), or sites like <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to
                                         set up all sorts of actions in response to new items in the feed. You can set
                                         it to send you emails, SMS, Instant Messages, flash your lights, turn on your
-                                        sprinklers... You have a lot of options!
+                                        sprinklers... You have a lot of options! You can create as many RSS feeds
+                                        as you want. <NewTabLink href="https://ifttt.com/recipes/147561-rss-feed-to-email">Create 'Recipe'
+                                        to send you an email when loans match your criteria</NewTabLink>.
                                     </p>
                                     <p>
                                         It will only show the first 20 matching loans and it currently doesn't support
