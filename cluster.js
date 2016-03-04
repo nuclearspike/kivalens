@@ -148,9 +148,9 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
 
-        //we've looked it up previously.
-        if (loan.visionLabels) {
-            callback(null,loan.visionLabels)
+        //we've looked it up previously. should be kl_ or it's getting sent down.
+        if (loan.kl_visionLabels) {
+            callback(null,loan.kl_visionLabels)
             return
         }
 
@@ -163,9 +163,9 @@ if (cluster.isMaster){ //preps the downloads
         console.log("Vision API request")
         vision.annotate([req]).then(res => {
             // handling response for each request
-            loan.visionLabels = res.responses[0].labelAnnotations
-            if (loan.visionLabels)
-                callback(null, loan.visionLabels)
+            loan.kl_visionLabels = res.responses[0].labelAnnotations
+            if (loan.kl_visionLabels)
+                callback(null, loan.kl_visionLabels)
             else
                 callback(404)
             //console.log(JSON.stringify(res.responses))
