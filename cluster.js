@@ -158,7 +158,7 @@ if (cluster.isMaster){ //preps the downloads
 
 
         const req = new vision.Request({
-            image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
+            image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
             features: [new vision.Feature('LABEL_DETECTION', 10)]
         })
 
@@ -375,6 +375,7 @@ if (cluster.isMaster){ //preps the downloads
     //live data stream over socket.io
     var channels = []
     const connectChannel = function(channelName, onEvent) {
+        console.log("connecting to socket.io channel " + channelName)
         try {
             var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
             channel.on('error', function (data) {
