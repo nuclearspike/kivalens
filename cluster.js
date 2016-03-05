@@ -90,7 +90,7 @@ if (cluster.isMaster){ //preps the downloads
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
     const redis = require('redis')
-    const rc = redis.createClient(process.env.REDIS_CONNECT)
+    const rc = redis.createClient(process.env.REDISTOGO_URL)
 
     const vision = require('node-cloud-vision-api')
     //limited to my home IP. todo: make heroku config and set google vision to allow heroku ip
