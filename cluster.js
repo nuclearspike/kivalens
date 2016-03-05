@@ -166,8 +166,10 @@ if (cluster.isMaster){ //preps the downloads
             loan.kl_visionLabels = res.responses[0].labelAnnotations
             if (loan.kl_visionLabels)
                 callback(null, loan.kl_visionLabels)
-            else
+            else {
+                loan.kl_visionLabels = [] //prevents lookup next time.
                 callback(404)
+            }
             //console.log(JSON.stringify(res.responses))
         }, e => {
             callback(404)
