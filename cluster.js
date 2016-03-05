@@ -89,6 +89,8 @@ if (cluster.isMaster){ //preps the downloads
     var ejs = require('ejs')
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
+    const redis = require('redis')
+    const rc = redis.createClient(process.env.REDIS_CONNECT)
 
     const vision = require('node-cloud-vision-api')
     //limited to my home IP. todo: make heroku config and set google vision to allow heroku ip
@@ -148,32 +150,44 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
 
-        //we've looked it up previously. should be kl_ or it's getting sent down.
+        //we've looked it up previously.
         if (loan.kl_visionLabels) {
             callback(null,loan.kl_visionLabels)
             return
         }
 
-        //todo: check redis so that the data will persist between server restarts
-        const req = new vision.Request({
-            image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
-            features: [new vision.Feature('LABEL_DETECTION', 10)]
-        })
+        var vlkey = `vision_label_${loan_id}`
+        rc.get(vlkey,(err,result) => {
+            if (result){
+                console.log("found redis key: ", loan_id, result)
+                result = JSON.parse(result)
+                loan.kl_visionLabels = result
+                callback(null, result)
+            } else {
+                //todo: check redis so that the data will persist between server restarts
+                const req = new vision.Request({
+                    image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
+                    features: [new vision.Feature('LABEL_DETECTION', 10)]
+                })
 
-        console.log("Vision API request")
-        vision.annotate([req]).then(res => {
-            // handling response for each request
-            loan.kl_visionLabels = res.responses[0].labelAnnotations
-            if (loan.kl_visionLabels)
-                callback(null, loan.kl_visionLabels)
-            else {
-                loan.kl_visionLabels = [] //prevents lookup next time.
-                callback(404)
+                console.log("Vision API request")
+                vision.annotate([req]).then(res => {
+                    // handling response for each request
+                    loan.kl_visionLabels = res.responses[0].labelAnnotations
+                    if (loan.kl_visionLabels) {
+                        rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
+                        rc.expire(vlkey,'2592000') //30 days
+                        callback(null, loan.kl_visionLabels)
+                    } else {
+                        loan.kl_visionLabels = [] //prevents lookup next time.
+                        callback(404)
+                    }
+                    //console.log(JSON.stringify(res.responses))
+                }, e => {
+                    callback(404)
+                    console.log('Error: ', e)
+                })
             }
-            //console.log(JSON.stringify(res.responses))
-        }, e => {
-            callback(404)
-            console.log('Error: ', e)
         })
     })
 
