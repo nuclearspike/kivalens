@@ -174,7 +174,7 @@ if (cluster.isMaster){ //preps the downloads
                 callback(null, loan.kl_visionLabels = JSON.parse(result))
             } else {
                 const req = new vision.Request({
-                    image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
+                    image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
                     features: [new vision.Feature('LABEL_DETECTION', 10)]
                 })
 
