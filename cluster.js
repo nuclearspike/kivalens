@@ -142,6 +142,10 @@ if (cluster.isMaster){ //preps the downloads
         cluster.fork()
     })
 
+    /**
+     * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
+     */
+
 
     hub.on("vision", (loan_id, sender, callback) => {
         var loan = kivaloans.getById(loan_id)
@@ -170,7 +174,7 @@ if (cluster.isMaster){ //preps the downloads
                     features: [new vision.Feature('LABEL_DETECTION', 10)]
                 })
 
-                console.log("Vision API request")
+                console.log("Making Vision API request")
                 vision.annotate([req]).then(res => {
                     // handling response for each request
                     loan.kl_visionLabels = res.responses[0].labelAnnotations
@@ -182,7 +186,6 @@ if (cluster.isMaster){ //preps the downloads
                         loan.kl_visionLabels = [] //prevents lookup next time.
                         callback(404)
                     }
-                    //console.log(JSON.stringify(res.responses))
                 }, e => {
                     callback(404)
                     console.log('Error: ', e)
@@ -211,7 +214,6 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     var k = require('./react/src/scripts/api/kiva')
-    var rss_requests = {}
 
     /**
      * filter takes a client crit object and returns the ids that match.
@@ -221,12 +223,11 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('rss', (crit, sender, callback) => {
-        var rss_crit = JSON.stringify(crit)
-        if (!rss_requests[rss_crit]) { //only log rss fetches one time per restart. cuts down the noise dramatically
-            console.log('INTERESTING: rss fetch:',rss_crit)
-            rss_requests[rss_crit] = true
-        }
+        var rss_crit = JSON.stringify(crit) //?why did it ever parse?
+        var key = `rss_fetch_${rss_crit}`
         callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
+        rc.incr(key) //creates if not present.
+        rc.expire(key,'86400') //24 hours...
     })
 
     /**
@@ -237,11 +238,14 @@ if (cluster.isMaster){ //preps the downloads
         const LenderFundraisingLoans = require("./react/src/scripts/api/kivajs/LenderFundraisingLoans")
         new LenderFundraisingLoans(lenderid).ids()
             .done(ids => callback(null,JSON.stringify(ids)))
-            .fail(x=>callback(404))
+            .fail(x => callback(404))
     })
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         console.log("HEARTBEAT: " + JSON.stringify(settings))
+        var key = `heartbeat_${settings.install}_${settings.lender}`
+        rc.set(key, JSON.stringify(settings))
+        rc.expire(key,'360') //6 minutes...
         callback(200)
     })
 
@@ -404,11 +408,9 @@ if (cluster.isMaster){ //preps the downloads
             console.error('socket.io error: ', e)
         }
     }
-    //console.log('ENV', process.env)
     if (process.env.NODE_ENV == 'production') {
         connectChannel('loan.posted', function (data) {
             data = JSON.parse(data)
-            //console.log("!!! loan.posted")
             if (kivaloans)
                 kivaloans.queueNewLoanNotice(data.p.loan.id)
         })
@@ -416,7 +418,6 @@ if (cluster.isMaster){ //preps the downloads
         connectChannel('loan.purchased', function (data) {
             data = JSON.parse(data)
             var ids = data.p.loans.select(l=>l.id)
-            //console.log("!!! loan.purchased: " + ids.length)
             if (kivaloans)
                 kivaloans.queueToRefresh(ids)
         })
@@ -515,7 +516,6 @@ else  //workers handle all communication with the clients.
     //app.use(express.static(__dirname + '/public'))
 
     var setCustomCacheControl = (res, path) => {
-        //console.log('setHeaders:', path, mime.lookup(path))
         var maxAge = 86400
         switch (mime.lookup(path)){
             case 'text/html': maxAge = 0
@@ -682,7 +682,7 @@ else  //workers handle all communication with the clients.
                 res.sendStatus(err)
             else {
                 res.type('application/json')
-                res.header('Cache-Control', `public, max-age=1800`) //30m todo: is this a bad idea?
+                res.header('Cache-Control', `public, max-age=300`) //5m todo: is this a bad idea?
                 res.send(result)
             }
         })
