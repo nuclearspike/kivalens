@@ -192,21 +192,19 @@ var Loan = React.createClass({
                 visionResults: visionLabels.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')
             })
         }
-        if (!loan.visionLabels) {
-            loan.visionLabels = [] //stops future look ups.. this is a terrible inference
+        if (!loan.kl_visionLabels) {
+            loan.kl_visionLabels = [] //stops future look ups.. this is a terrible inference
             this.setState({visionStatus: 'fetching'})
             req.kl.get(`vision/loan/${loan.id}`) //todo: turn into a proper call with no biz logic here.
                 .done(result => {
-                    loan.visionLabels = result && Array.isArray(result) ? result: []
+                    loan.kl_visionLabels = result && Array.isArray(result) ? result: []
                     if (loan.id != this.props.params.id) return //
                     displayVisionResults(result)
                 })
-                .fail(x=> {
-                    this.setState({visionStatus: 'failed'})
-                })
+                .fail(x=> this.setState({visionStatus: 'failed'}))
         } else {
-            if (loan.visionLabels.length)
-                displayVisionResults(loan.visionLabels)
+            if (loan.kl_visionLabels.length)
+                displayVisionResults(loan.kl_visionLabels)
         }
     },
     tabSelect(activeTab){

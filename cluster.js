@@ -171,9 +171,7 @@ if (cluster.isMaster){ //preps the downloads
         rc.get(vlkey,(err,result) => {
             if (result){
                 console.log("found redis key: ", loan_id)
-                result = JSON.parse(result)
-                loan.kl_visionLabels = result
-                callback(null, result)
+                callback(null, loan.kl_visionLabels = JSON.parse(result))
             } else {
                 const req = new vision.Request({
                     image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
@@ -202,9 +200,7 @@ if (cluster.isMaster){ //preps the downloads
         })
     }
 
-    const removeVisionFromRedis = (loan_id)=>{
-        rc.del(`vision_label_${loan_id}`)
-    }
+    const removeVisionFromRedis = loan_id => rc.del(`vision_label_${loan_id}`)
 
     //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
     const pullVisionFromFromRedis = () => {
@@ -214,9 +210,12 @@ if (cluster.isMaster){ //preps the downloads
             rc.mget(keys_to_fetch, (err, values)=>{
                 if (!err){
                     console.log(`Found ${values.length} vision labels from redis`)
-                    loans_with_data.zip(values, (loan, value)=> loan.kl_visionLabels = value)
+                    loans_with_data.zip(values, (loan, value)=> loan.kl_visionLabels = JSON.parse(value))
                 }
             })
+            //how many are in redis that are gone? this should delete, too...
+            //var deadKeys = keys.where(k=> keys_to_fetch.indexOf(k) == -1) THIS IS NOT CORRECT. keys_to_fetch doesn't indicate which are dead. this needs to find the keys that aren't in kivaloans
+            //deadKeys.forEach(key => rc.del(key))
         })
         setInterval(function(){
             kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(100).forEach(loan=>doVisionLookup(loan.id))
@@ -224,6 +223,10 @@ if (cluster.isMaster){ //preps the downloads
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
+
+    hub.on("vision-all", (ignore, sender, callback) => {
+        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels})))
+    })
 
     /**
      * get the updates since given batch number
@@ -308,8 +311,6 @@ if (cluster.isMaster){ //preps the downloads
     kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
         if (progress.loan_load_progress && progress.loan_load_progress.label)
             console.log(progress.loan_load_progress.label)
-        if (progress.loans_loaded)
-            pullVisionFromFromRedis()
         if (progress.loan_not_fundraising)
             removeVisionFromRedis(progress.loan_not_fundraising.id)
         if (progress.new_loans)
@@ -318,6 +319,8 @@ if (cluster.isMaster){ //preps the downloads
             loansChanged = true
         if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
             prepForRequests()
+        if (progress.loans_loaded) //should happen after prep for requests to not slow down server boot.
+            pullVisionFromFromRedis()
     })
 
     const prepForRequests = function(){
@@ -724,6 +727,18 @@ else  //workers handle all communication with the clients.
             else {
                 res.type('application/json')
                 res.header('Cache-Control', `public, max-age=300`) //5m todo: is this a bad idea?
+                res.send(result)
+            }
+        })
+    })
+
+    app.get("/api/vision/loans", (req,res)=>{
+        hub.requestMaster('vision-all', null, (err, result) =>{
+            if (err)
+                res.sendStatus(err)
+            else {
+                res.type('application/json')
+                res.header('Cache-Control', `public, max-age=5`)
                 res.send(result)
             }
         })
