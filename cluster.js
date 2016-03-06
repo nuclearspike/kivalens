@@ -218,8 +218,8 @@ if (cluster.isMaster){ //preps the downloads
             //deadKeys.forEach(key => rc.del(key))
         })
         setInterval(function(){
-            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(100).forEach(loan=>doVisionLookup(loan.id))
-        },60000)
+            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(25).forEach(loan=>doVisionLookup(loan.id))
+        },15000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
