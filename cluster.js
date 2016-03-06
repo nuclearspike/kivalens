@@ -242,10 +242,14 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('heartbeat', (settings, sender, callback)=>{
-        console.log("HEARTBEAT: " + JSON.stringify(settings))
+        //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
         var key = `heartbeat_${settings.install}_${settings.lender}`
         rc.set(key, JSON.stringify(settings))
         rc.expire(key,'360') //6 minutes...
+
+        rc.set('on_past_24h_'+ key, JSON.stringify(settings))
+        rc.expire('on_past_24h_'+ key,'86400') //24 hours...
+
         callback(200)
     })
 
