@@ -257,9 +257,9 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('rss', (crit, sender, callback) => {
+        callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
         var rss_crit = JSON.stringify(crit) //?why did it ever parse?
         var key = `rss_fetch_${rss_crit}`
-        callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
         rc.incr(key) //creates if not present.
         rc.expire(key,'86400') //24 hours...
     })
@@ -270,9 +270,45 @@ if (cluster.isMaster){ //preps the downloads
     hub.on('lenderloans', (lenderid, sender, callback) => {
         console.log("INTERESTING: lenderloans", lenderid)
         const LenderFundraisingLoans = require("./react/src/scripts/api/kivajs/LenderFundraisingLoans")
-        new LenderFundraisingLoans(lenderid).ids()
-            .done(ids => callback(null,JSON.stringify(ids)))
+
+        const storeLenderInRedis = toStore => {
+            var key = `lender_${lenderid}`
+            rc.set(key,JSON.stringify(toStore))
+            rc.expire(key,'2592000') //30 days
+        }
+
+        req.kiva.api.lender(lenderid)
             .fail(x => callback(404))
+            .done(lenderObj => {
+                rc.get(`lender_${lenderid}`,(err,c_lender)=>{
+                    var needs_refetch = true,
+                        to_store = {loan_count: lenderObj.loan_count, fundraising_loans :[]}
+                    if (!err && c_lender){
+                        //cached lender exists
+                        c_lender = JSON.parse(c_lender)
+                        needs_refetch = c_lender.loan_count != lenderObj.loan_count
+                        if (!needs_refetch){
+                            if (c_lender.fundraising_loans && Array.isArray(c_lender.fundraising_loans) && kivaloans.isReady()){
+                                to_store.fundraising_loans.removeAll(id => !kivaloans.getById(id))
+                            }
+                            to_store.fundraising_loans = c_lender.fundraising_loans
+                            callback(null, to_store.fundraising_loans)
+                            storeLenderInRedis(to_store)
+                        }
+                    }
+
+                    if (needs_refetch){
+                        new LenderFundraisingLoans(lenderid).ids()
+                            .done(ids => {
+                                to_store.fundraising_loans = ids
+                                callback(null, to_store.fundraising_loans)
+                                storeLenderInRedis(to_store)
+                            })
+                            .fail(x => callback(404))
+                    }
+                })
+            })
+
     })
 
     hub.on('heartbeat', (settings, sender, callback)=>{
@@ -514,7 +550,7 @@ else  //workers handle all communication with the clients.
             res.type('application/json;  charset=utf-8')
             res.header('Content-Encoding', 'gzip')
             res.header('Content-Length', stats.size)
-            res.header('Cache-Control', `public, max-age=3600`) //1 hour
+            res.header('Cache-Control', `public, max-age=600`) //10 minutes
             res.sendFile(fn)
         } catch(e){
             res.sendStatus(404)

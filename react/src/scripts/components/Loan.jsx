@@ -175,15 +175,17 @@ var Loan = React.createClass({
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, similar: [], inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
         if (loan.id != this.props.params.id) return
         window.currentLoan = loan
         this.setState(this.loanToState(loan))
-        req.kiva.api.similarTo(loan.id)
-            .done(similar => this.setState({similar: similar.where(l=>l.id != loan.id)}))
-            .fail(x=>this.setState({similar:[]}))
+        if (!loan.kl_similar) {
+            req.kiva.api.similarTo(loan.id)
+                .done(similar => this.setState({similar: loan.kl_similar = similar.where(l=>l.id != loan.id)}))
+                .fail(x=>this.setState({similar: loan.kl_similar = []}))
+        }
 
         //I don't like this pattern at all!
         const displayVisionResults = visionLabels => {
