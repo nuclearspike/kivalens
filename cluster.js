@@ -202,10 +202,9 @@ if (cluster.isMaster){ //preps the downloads
         })
     }
 
-    setInterval(function(){
-        if (!kivaloans.isReady()) return
-        kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(100).forEach(loan=>doVisionLookup(loan.id))
-   },60000)
+    const removeVisionFromRedis = (loan_id)=>{
+        rc.del(`vision_label_${loan_id}`)
+    }
 
     //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
     const pullVisionFromFromRedis = () => {
@@ -214,11 +213,14 @@ if (cluster.isMaster){ //preps the downloads
             var keys_to_fetch = loans_with_data.select(loan => `vision_label_${loan.id}`)
             rc.mget(keys_to_fetch, (err, values)=>{
                 if (!err){
-                    console.log(`Found ${values.length} values from redis`)
-                    loans_with_data.zip(values, (loan, value)=>{loan.kl_visionLabels = value})
+                    console.log(`Found ${values.length} vision labels from redis`)
+                    loans_with_data.zip(values, (loan, value)=> loan.kl_visionLabels = value)
                 }
             })
         })
+        setInterval(function(){
+            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(100).forEach(loan=>doVisionLookup(loan.id))
+        },60000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
@@ -308,6 +310,10 @@ if (cluster.isMaster){ //preps the downloads
             console.log(progress.loan_load_progress.label)
         if (progress.loans_loaded)
             pullVisionFromFromRedis()
+        if (progress.loan_not_fundraising)
+            removeVisionFromRedis(progress.loan_not_fundraising.id)
+        if (progress.new_loans)
+            progress.new_loans.forEach(loan => doVisionLookup(loan.id))
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
             loansChanged = true
         if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
