@@ -603,7 +603,7 @@ else  //workers handle all communication with the clients.
             return
         }
         if (!crit.loan) crit.loan = {}
-        crit.loan.limit_results = 20
+        crit.loan.limit_results = 100
 
         hub.requestMaster('rss', crit, result => {
             var RSS = require('rss')
