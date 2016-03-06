@@ -144,10 +144,17 @@ if (cluster.isMaster){ //preps the downloads
 
     /**
      * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
+     *
+     * const redis = require('redis')
+     const rc = redis.createClient('redis://redistogo:247b58881aa54e7b414ee21995c6982a@grouper.redistogo.com:10786/')
+
+     rc.keys('*',function(err,response){
+    console.log(response)
+    rc.mget(response,function(err2,response2){console.log(err2,response2)})
+})
      */
-
-
-    hub.on("vision", (loan_id, sender, callback) => {
+    const doVisionLookup = (loan_id, callback) => {
+        if (typeof callback !== 'function') callback = () => true
         var loan = kivaloans.getById(loan_id)
         if (!loan) {
             callback(404)
@@ -163,36 +170,48 @@ if (cluster.isMaster){ //preps the downloads
         var vlkey = `vision_label_${loan_id}`
         rc.get(vlkey,(err,result) => {
             if (result){
-                console.log("found redis key: ", loan_id, result)
+                console.log("found redis key: ", loan_id)
                 result = JSON.parse(result)
                 loan.kl_visionLabels = result
                 callback(null, result)
             } else {
-                //todo: check redis so that the data will persist between server restarts
                 const req = new vision.Request({
                     image: new vision.Image({url: `https://www.kiva.org/img/w800/${loan.image.id}.jpg`}),
                     features: [new vision.Feature('LABEL_DETECTION', 10)]
                 })
 
-                console.log("Making Vision API request")
+                console.log(`Making Vision API request: ${loan_id}`)
                 vision.annotate([req]).then(res => {
                     // handling response for each request
                     loan.kl_visionLabels = res.responses[0].labelAnnotations
                     if (loan.kl_visionLabels) {
-                        rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
-                        rc.expire(vlkey,'2592000') //30 days
+                        console.log(`Vision API result: ${loan_id}`)
                         callback(null, loan.kl_visionLabels)
                     } else {
+                        console.log(`Vision API NO result: ${loan_id}`)
                         loan.kl_visionLabels = [] //prevents lookup next time.
                         callback(404)
                     }
+                    rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
+                    rc.expire(vlkey,'2592000') //30 days
                 }, e => {
                     callback(404)
                     console.log('Error: ', e)
                 })
             }
         })
-    })
+    }
+
+    setInterval(function(){
+        if (!kivaloans.isReady()) return
+        rc.keys('vision_label_*',(err,response)=>{
+            //console.log('vision_label_*',response)
+            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels && response.indexOf(`vision_label_${loan.id}`) == -1).take(100).forEach(loan=>doVisionLookup(loan.id))
+        })
+    },60000)
+
+
+    hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
     /**
      * get the updates since given batch number
@@ -693,7 +712,7 @@ else  //workers handle all communication with the clients.
     })
 
     app.get("/api/vision/loan/:loan_id", (req,res)=>{
-        hub.requestMaster('vision', req.params.loan_id, (err, result) =>{
+        hub.requestMaster('vision-loan', req.params.loan_id, (err, result) =>{
             if (err)
                 res.sendStatus(err)
             else {
