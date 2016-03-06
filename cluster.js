@@ -220,7 +220,7 @@ if (cluster.isMaster){ //preps the downloads
         setInterval(function(){
             kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(25).forEach(loan=>doVisionLookup(loan.id))
             memwatch.gc()
-        },15000)
+        },60000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
