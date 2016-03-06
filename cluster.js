@@ -146,7 +146,7 @@ if (cluster.isMaster){ //preps the downloads
      * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
      *
      * const redis = require('redis')
-     const rc = redis.createClient('redis://redistogo:247b58881aa54e7b414ee21995c6982a@grouper.redistogo.com:10786/')
+     const rc = redis.createClient('redis://redistogo:<newpass>@grouper.redistogo.com:10786/')
 
      rc.keys('*',function(err,response){
     console.log(response)
