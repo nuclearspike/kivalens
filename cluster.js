@@ -90,10 +90,10 @@ if (cluster.isMaster){ //preps the downloads
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
     const redis = require('redis')
+    const guaranteeGoogleVisionForLoan = require('./vision')
     const rc = redis.createClient(process.env.REDISTOGO_URL)
 
     const vision = require('node-cloud-vision-api')
-    //limited to my home IP. todo: make heroku config and set google vision to allow heroku ip
     if (process.env.VISION_API_KEY)
         vision.init({auth: process.env.VISION_API_KEY})
     else
@@ -146,12 +146,12 @@ if (cluster.isMaster){ //preps the downloads
      * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
      *
      * const redis = require('redis')
-     const rc = redis.createClient('redis://redistogo:<newpass>@grouper.redistogo.com:10786/')
+       const rc = redis.createClient('redis://redistogo:<newpass>@grouper.redistogo.com:10786/')
 
-     rc.keys('*',function(err,response){
-    console.log(response)
-    rc.mget(response,function(err2,response2){console.log(err2,response2)})
-})
+       rc.keys('*',function(err,response){
+       console.log(response)
+       rc.mget(response,function(err2,response2){console.log(err2,response2)})
+    })
      */
     const doVisionLookup = (loan_id, callback) => {
         if (typeof callback !== 'function') callback = () => true
@@ -161,46 +161,18 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
 
-        //we've looked it up previously.
-        if (loan.kl_visionLabels) {
-            callback(null,loan.kl_visionLabels)
-            return
-        }
-
-        var vlkey = `vision_label_${loan_id}`
-        rc.get(vlkey,(err,result) => {
-            if (result){
-                console.log("found redis key: ", loan_id)
-                callback(null, loan.kl_visionLabels = JSON.parse(result))
-            } else {
-                const req = new vision.Request({
-                    image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
-                    features: [new vision.Feature('LABEL_DETECTION', 10)]
-                })
-
-                console.log(`Making Vision API request: ${loan_id}`)
-                vision.annotate([req]).then(res => {
-                    // handling response for each request
-                    loan.kl_visionLabels = res.responses[0].labelAnnotations
-                    if (loan.kl_visionLabels) {
-                        console.log(`Vision API result: ${loan_id}`)
-                        callback(null, loan.kl_visionLabels)
-                    } else {
-                        console.log(`Vision API NO result: ${loan_id}`)
-                        loan.kl_visionLabels = [] //prevents lookup next time.
-                        callback(404)
-                    }
-                    rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
-                    rc.expire(vlkey,'2592000') //30 days
-                }, e => {
-                    callback(404)
-                    console.log('Error: ', e)
-                })
-            }
+        guaranteeGoogleVisionForLoan(loan,err=>{
+            if (err || !loan.kl_visionLabels)
+                callback(err)
+            else
+                callback(null,loan.kl_visionLabels)
         })
     }
 
-    const removeVisionFromRedis = loan_id => rc.del(`vision_label_${loan_id}`)
+    const removeVisionFromRedis = loan_id => {
+        rc.del(`vision_label_${loan_id}`)
+        rc.del(`vision_faces_${loan_id}`)
+    }
 
     //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
     const pullVisionFromFromRedis = () => {
@@ -217,16 +189,29 @@ if (cluster.isMaster){ //preps the downloads
             //var deadKeys = keys.where(k=> keys_to_fetch.indexOf(k) == -1) THIS IS NOT CORRECT. keys_to_fetch doesn't indicate which are dead. this needs to find the keys that aren't in kivaloans
             //deadKeys.forEach(key => rc.del(key))
         })
+        rc.keys('vision_faces_*',(err,keys)=>{
+            var loans_with_data = kivaloans.loans_from_kiva.where(loan=>!loan.kl_faces && keys.indexOf(`vision_faces_${loan.id}`) > -1)
+            var keys_to_fetch = loans_with_data.select(loan => `vision_faces_${loan.id}`)
+            rc.mget(keys_to_fetch, (err, values)=>{
+                if (!err){
+                    console.log(`Found ${values.length} vision faces from redis`)
+                    loans_with_data.zip(values, (loan, value)=> loan.kl_faces = JSON.parse(value))
+                }
+            })
+            //how many are in redis that are gone? this should delete, too...
+            //var deadKeys = keys.where(k=> keys_to_fetch.indexOf(k) == -1) THIS IS NOT CORRECT. keys_to_fetch doesn't indicate which are dead. this needs to find the keys that aren't in kivaloans
+            //deadKeys.forEach(key => rc.del(key))
+        })
         setInterval(function(){
-            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(25).forEach(loan=>doVisionLookup(loan.id))
+            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels||!loan.kl_faces).take(25).forEach(loan=>guaranteeGoogleVisionForLoan(loan))
             memwatch.gc()
-        },60000)
+        },15000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
     hub.on("vision-all", (ignore, sender, callback) => {
-        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels})))
+        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels, kl_faces: loan.kl_faces})))
     })
 
     /**
