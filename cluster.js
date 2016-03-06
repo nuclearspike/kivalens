@@ -204,12 +204,22 @@ if (cluster.isMaster){ //preps the downloads
 
     setInterval(function(){
         if (!kivaloans.isReady()) return
-        rc.keys('vision_label_*',(err,response)=>{
-            //console.log('vision_label_*',response)
-            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels && response.indexOf(`vision_label_${loan.id}`) == -1).take(100).forEach(loan=>doVisionLookup(loan.id))
-        })
-    },60000)
+        kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels).take(100).forEach(loan=>doVisionLookup(loan.id))
+   },60000)
 
+    //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
+    const pullVisionFromFromRedis = () => {
+        rc.keys('vision_label_*',(err,keys)=>{
+            var loans_with_data = kivaloans.loans_from_kiva.where(loan=>!loan.kl_visionLabels && keys.indexOf(`vision_label_${loan.id}`) > -1)
+            var keys_to_fetch = loans_with_data.select(loan => `vision_label_${loan.id}`)
+            rc.mget(keys_to_fetch, (err, values)=>{
+                if (!err){
+                    console.log(`Found ${values.length} values from redis`)
+                    loans_with_data.zip(values, (loan, value)=>{loan.kl_visionLabels = value})
+                }
+            })
+        })
+    }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
@@ -296,6 +306,8 @@ if (cluster.isMaster){ //preps the downloads
     kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
         if (progress.loan_load_progress && progress.loan_load_progress.label)
             console.log(progress.loan_load_progress.label)
+        if (progress.loans_loaded)
+            pullVisionFromFromRedis()
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
             loansChanged = true
         if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
