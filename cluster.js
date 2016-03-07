@@ -198,7 +198,7 @@ if (cluster.isMaster){ //preps the downloads
             //deadKeys.forEach(key => rc.del(key))
         })
         var currentlyActive = 0
-        const MAX_VISION = 10
+        const MAX_VISION = 20
         setInterval(function(){
             //console.log('VISION: currentlyActive: ',currentlyActive)
             if (currentlyActive == 0)
@@ -211,7 +211,7 @@ if (cluster.isMaster){ //preps the downloads
                     })
                 })
             memwatch.gc()
-        },60000)
+        },5000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
