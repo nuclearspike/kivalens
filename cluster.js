@@ -93,12 +93,6 @@ if (cluster.isMaster){ //preps the downloads
     const guaranteeGoogleVisionForLoan = require('./vision')
     const rc = redis.createClient(process.env.REDISTOGO_URL)
 
-    const vision = require('node-cloud-vision-api')
-    if (process.env.VISION_API_KEY)
-        vision.init({auth: process.env.VISION_API_KEY})
-    else
-        console.log("NO VISION API KEY. GOOGLE CLOUD VISION CALLS WILL FAIL.")
-
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 
     //RENDER INDEX
@@ -202,10 +196,21 @@ if (cluster.isMaster){ //preps the downloads
             //var deadKeys = keys.where(k=> keys_to_fetch.indexOf(k) == -1) THIS IS NOT CORRECT. keys_to_fetch doesn't indicate which are dead. this needs to find the keys that aren't in kivaloans
             //deadKeys.forEach(key => rc.del(key))
         })
+        var currentlyActive = 0
+        const MAX_VISION = 20
         setInterval(function(){
-            kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels||!loan.kl_faces).take(25).forEach(loan=>guaranteeGoogleVisionForLoan(loan))
+            //console.log('VISION: currentlyActive: ',currentlyActive)
+            if (currentlyActive == 0)
+                kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels||!loan.kl_faces).take(MAX_VISION - currentlyActive).forEach(loan=>{
+                    currentlyActive++
+                    guaranteeGoogleVisionForLoan(loan,x=>{
+                        currentlyActive--
+                        //if (currentlyActive < 2)
+                        //    console.log('VISION: wrap up. currentlyActive: ',currentlyActive)
+                    })
+                })
             memwatch.gc()
-        },15000)
+        },5000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
