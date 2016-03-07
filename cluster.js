@@ -164,6 +164,7 @@ if (cluster.isMaster){ //preps the downloads
     }
 
     const removeVisionFromRedis = loan_id => {
+        console.log('VISION REDIS REMOVE LOAN ' + loan_id)
         rc.del(`vision_label_${loan_id}`)
         rc.del(`vision_faces_${loan_id}`)
     }
@@ -197,7 +198,7 @@ if (cluster.isMaster){ //preps the downloads
             //deadKeys.forEach(key => rc.del(key))
         })
         var currentlyActive = 0
-        const MAX_VISION = 20
+        const MAX_VISION = 10
         setInterval(function(){
             //console.log('VISION: currentlyActive: ',currentlyActive)
             if (currentlyActive == 0)
@@ -210,7 +211,7 @@ if (cluster.isMaster){ //preps the downloads
                     })
                 })
             memwatch.gc()
-        },5000)
+        },60000)
     }
 
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
