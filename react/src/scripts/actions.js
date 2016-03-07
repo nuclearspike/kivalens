@@ -10,7 +10,8 @@ a.loans = Reflux.createActions({
     "filter": {children: ["completed"]},
     "detail": {children: ["completed"]},
     "basket": {children: ["add", "remove","select","changed","batchAdd","clear"]},
-    "backgroundResync":{ children: ["removed", "added", "updated"]}
+    "backgroundResync":{ children: ["removed", "added", "updated"]}, //?
+    "refresh": {children: ["completed"]}
 })
 
 //used anymore?

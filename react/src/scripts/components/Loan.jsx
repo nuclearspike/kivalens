@@ -208,13 +208,32 @@ var Loan = React.createClass({
             if (loan.kl_visionLabels.length)
                 displayVisionResults(loan.kl_visionLabels)
         }
+
+        //loanToState??
+        if (loan.kl_faces){
+            var faces = extend({},loan.kl_faces)
+            Object.keys(faces).forEach(key => {
+                if (faces[key] && Array.isArray(faces[key]) && faces[key].length == 0)
+                    delete faces[key]
+            })
+            if (!Object.keys(faces).length) faces = null
+
+            var visionFaces = []; //needs ; because of parenthesis
+            (['joy','sorrow','anger','surprise','headwear']).map(key=>{
+                if (faces[key])
+                    visionFaces.push(`${key} (${faces[key].select(word=>humanize(word)).join(', ').toLowerCase()})`)
+            })
+            this.setState({visionFaces})
+        } else {
+            this.setState({visionFaces: null})
+        }
     },
     tabSelect(activeTab){
         this.setState({activeTab})
         localStorage.loan_active_tab = activeTab
     },
     render() {
-        let {loan, matching, partner, activeTab, inBasket, visionStatus, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
+        let {loan, matching, partner, activeTab, visionFaces, inBasket, visionStatus, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
         if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -234,13 +253,18 @@ var Loan = React.createClass({
                             <If condition={loan.borrowers.length > 1}>
                                 <p>In no particular order:</p>
                             </If>
-                            <p>Pictured: {pictured? pictured: '(none)'} </p>
+                            <p>Pictured: {pictured ? pictured: '(none)'} </p>
                             <p>Not Pictured: {not_pictured ? not_pictured: '(none)'} </p>
                             <If condition={visionStatus == 'fetching'}>
                                 <Alert>Google Cloud Vision is examining the picture carefully...</Alert>
                             </If>
                             <If condition={visionStatus == 'found'}>
                                 <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
+                            </If>
+                            <If condition={visionFaces != null}>
+                                <p>
+                                    Google found faces with the following: {visionFaces.map((found,key)=> <span key={key}>{found}{key < visionFaces.length-1? ', ':''}</span>)}
+                                </p>
                             </If>
                         </Panel>
                     </Tab>

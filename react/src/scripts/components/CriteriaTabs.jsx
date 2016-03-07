@@ -32,6 +32,13 @@ allOptions.bonus_credit_eligibility = {label: "Bonus Credit", multi: false, sele
 allOptions.repayment_interval = {label: "Repayment Interval", multi: true, select_options:[{value:'Monthly', label:"Monthly"},{value:"Irregularly", label:"Irregularly"},{value:"At end of term", label:"At end of term"}]}
 allOptions.sort = {label: 'Sort', multi: false, select_options: [{value: null, label: "Final repayment date (default)"},{"value": "half_back", label: "Date half is paid back, then 75%, then full"},{value:'newest',label:'Newest'},{value:'expiring',label:'Expiring'},{value:'popularity',label:'Popularity ($/hour)'},{value: 'still_needed', label: "$ Still Needed"}]}
 
+//face detection
+allOptions.vision_face_joy = {label: 'Face: Joy', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
+allOptions.vision_face_sorrow = {label: 'Face: Sorrow', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
+allOptions.vision_face_anger = {label: 'Face: Anger', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
+allOptions.vision_face_surprise = {label: 'Face: Surprise', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
+allOptions.vision_face_headwear = {label: 'Face: Headwear', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
+
 //partner selects
 allOptions.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, intArray:true, select_options: [{"value":'1',"label":"Anti-Poverty Focus"},{"value":'3',"label":"Client Voice"},{"value":'5',"label":"Entrepreneurial Support"},{"value":'6',"label":"Facilitation of Savings"},{"value":'4',"label":"Family and Community Empowerment"},{"value":'7',"label":"Innovation"},{"value":'2',"label":"Vulnerable Group Focus"}]}
 allOptions.region = {label: 'Region', allAnyNone: true, multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
@@ -459,18 +466,20 @@ const SliderRow = React.createClass({
 const CriteriaTabs = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, DelayStateTriggerMixin('criteria','performSearch', 50)],
     getInitialState() {
-        return { activeTab: 1, portfolioTab: '', helper_charts: {}, helper_chart_height: 400, needLenderID: false,
+        return { activeTab: 1, portfolioTab: '', helper_charts: {}, visionFaceKeys:[], helper_chart_height: 400, needLenderID: false,
              criteria: s.criteria.syncGetLast(), KLA: {}, RSSLinkTo: 'kiva', loansReady: false, descriptionsLoaded: false}
     },
     componentDidMount() {
         var opts = lsj.get("Options")
-        this.setState({kiva_lender_id: opts.kiva_lender_id, isMobile: mobileAndTabletCheck()})
+        var visionFaceKeys = opts.betaTester ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
+        this.setState({kiva_lender_id: opts.kiva_lender_id, visionFaceKeys, isMobile: mobileAndTabletCheck()})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
         this.listenTo(a.criteria.reload, this.reloadCriteria)
         this.listenTo(a.loans.filter.completed, this.filteredDone)
         this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
         this.listenTo(a.loans.load.descriptions, this.checkDescriptionsLoaded)
+        this.listenTo(a.loans.refresh, this.performSearch)
         this.listenTo(a.loans.load.secondaryLoad, status=>{if (status == 'complete') this.performSearch()})
         if (kivaloans.isReady()) this.loansReady()
         this.checkDescriptionsLoaded()
@@ -585,6 +594,22 @@ const CriteriaTabs = React.createClass({
             case 'charges_fees_and_interest':
                 data = loans.select(l => l.getPartner().charges_fees_and_interest).groupByWithCount()
                 break
+            //VISION STUFF
+            case 'vision_face_joy':
+                data = loans.select(l => l.kl_faces && l.kl_faces.joy? l.kl_faces.joy: []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+                break
+            case 'vision_face_sorrow':
+                data = loans.select(l => l.kl_faces && l.kl_faces.sorrow? l.kl_faces.sorrow: []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+                break
+            case 'vision_face_anger':
+                data = loans.select(l => l.kl_faces && l.kl_faces.anger? l.kl_faces.anger: []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+                break
+            case 'vision_face_surprise':
+                data = loans.select(l => l.kl_faces && l.kl_faces.surprise? l.kl_faces.surprise: []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+                break
+            case 'vision_face_headwear':
+                data = loans.select(l => l.kl_faces && l.kl_faces.headwear? l.kl_faces.headwear: []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+                break
             default:
                 return
         }
@@ -650,7 +675,7 @@ const CriteriaTabs = React.createClass({
         this.setState({helper_charts: {}})
     },
     render() {
-        let {isMobile, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
+        let {isMobile, visionFaceKeys, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
         var cursor = Cursor.build(this).refine('criteria')
         var cLoan = cursor.refine('loan')
         var cPartner = cursor.refine('partner')
@@ -678,7 +703,11 @@ const CriteriaTabs = React.createClass({
                         <InputRow label='Name' cursor={cLoan.refine('name')} />
 
                         <For each='name' index='i' of={['country_code','sector','activity','themes','tags','repayment_interval','currency_exchange_loss_liability','bonus_credit_eligibility','sort']}>
-                            <SelectRow key={i} name={name} cursor={cLoan.refine(name)} aanCursor={cLoan.refine(`${name}_all_any_none`)}  onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+                            <SelectRow key={i} name={name} cursor={cLoan.refine(name)} aanCursor={cLoan.refine(`${name}_all_any_none`)} onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+                        </For>
+
+                        <For each='name' index='i' of={visionFaceKeys}>
+                            <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)} aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)} onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)} onBlur={this.removeGraphs}/>
                         </For>
 
                         <LimitResult cursor={cLoan.refine('limit_to')}/>

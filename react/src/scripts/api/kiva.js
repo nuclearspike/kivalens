@@ -319,7 +319,11 @@ class Loans {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     this.endDownloadTimer('KLLoans')
                     req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
-                    req.kl.get(`vision/loans`).done(data => data.forEach(vd => this.mergeExtraLoanData(vd)))
+                    //if (base_options.betaTester) //this will need a notify for it to cause refresh.
+                    req.kl.get(`vision/loans`).done(data => {
+                        data.forEach(vd => this.mergeExtraLoanData(vd))
+                        this.notify({vision_data_loaded:true})
+                    })
                 }
             }.bind(this)
 
@@ -504,6 +508,14 @@ class Loans {
         ct.addAnyAllNoneTester('country_code',null,'any',loan=>loan.location.country_code)
         ct.addAnyAllNoneTester('tags',        null,'all',loan=>loan.kls_tags, true)
         ct.addAnyAllNoneTester('themes',      null,'all',loan=>loan.themes, true)
+
+        //face detection
+        ct.addAnyAllNoneTester('vision_face_joy',      null,'any',loan=>loan.kl_faces && loan.kl_faces.joy? loan.kl_faces.joy: [], true)
+        ct.addAnyAllNoneTester('vision_face_sorrow',   null,'any',loan=>loan.kl_faces && loan.kl_faces.sorrow? loan.kl_faces.sorrow: [], true)
+        ct.addAnyAllNoneTester('vision_face_anger',    null,'any',loan=>loan.kl_faces && loan.kl_faces.anger? loan.kl_faces.anger: [], true)
+        ct.addAnyAllNoneTester('vision_face_surprise', null,'any',loan=>loan.kl_faces && loan.kl_faces.surprise? loan.kl_faces.surprise: [], true)
+        ct.addAnyAllNoneTester('vision_face_headwear', null,'any',loan=>loan.kl_faces && loan.kl_faces.headwear? loan.kl_faces.headwear: [], true)
+
 
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
         ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)

@@ -191,15 +191,7 @@ if (cluster.isMaster){ //preps the downloads
             rc.mget(keys_to_fetch, (err, values)=>{
                 if (!err){
                     console.log(`Found ${values.length} vision faces from redis`)
-                    loans_with_data.zip(values, (loan, value)=> {
-                        var faceData = JSON.parse(value)
-                        if (Array.isArray(faceData)) { //only needs to run once on heroku.
-                            faceData = processFaceData(faceData)
-                            rc.set(`vision_faces_${loan.id}`,JSON.stringify(faceData))
-                            rc.expire(`vision_faces_${loan.id}`,'2592000') //30 days
-                        }
-                        loan.kl_faces = faceData
-                    })
+                    loans_with_data.zip(values, (loan, value) => loan.kl_faces = JSON.parse(value))
                 }
             })
             //how many are in redis that are gone? this should delete, too...

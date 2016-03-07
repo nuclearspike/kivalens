@@ -23,8 +23,8 @@ var Search = React.createClass({
         //it should only fetch loans that are filtered.
         this.listenTo(a.loans.filter.completed, (loans,sameAsLastTime) => {
             console.log('a.loans.filter.completed',loans.length,sameAsLastTime)
-            if (loans.length)
-                this.setState({notification: {active: true, message:`${loans.length} loans`}})
+            //if (loans.length)
+            this.setState({notification: {active: true, message:`${loans.length} loans`}})
             if (sameAsLastTime) return
             var newState = {filtered_loans: loans, loan_count: loans.length}
             if (loans.length)
