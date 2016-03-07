@@ -90,7 +90,8 @@ if (cluster.isMaster){ //preps the downloads
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
     const redis = require('redis')
-    const guaranteeGoogleVisionForLoan = require('./vision')
+    const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
+    const processFaceData = require('./vision').processFaceData
     const rc = redis.createClient(process.env.REDISCLOUD_URL)
 
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
@@ -190,7 +191,15 @@ if (cluster.isMaster){ //preps the downloads
             rc.mget(keys_to_fetch, (err, values)=>{
                 if (!err){
                     console.log(`Found ${values.length} vision faces from redis`)
-                    loans_with_data.zip(values, (loan, value)=> loan.kl_faces = JSON.parse(value))
+                    loans_with_data.zip(values, (loan, value)=> {
+                        var faceData = JSON.parse(value)
+                        if (Array.isArray(faceData)) { //only needs to run once on heroku.
+                            faceData = processFaceData(faceData)
+                            rc.set(`vision_faces_${loan.id}`,JSON.stringify(faceData))
+                            rc.expire(`vision_faces_${loan.id}`,'2592000') //30 days
+                        }
+                        loan.kl_faces = faceData
+                    })
                 }
             })
             //how many are in redis that are gone? this should delete, too...
@@ -217,7 +226,7 @@ if (cluster.isMaster){ //preps the downloads
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
     hub.on("vision-all", (ignore, sender, callback) => {
-        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels, kl_faces: loan.kl_faces})))
+        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels || loan.kl_faces).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels, kl_faces: loan.kl_faces})))
     })
 
     /**

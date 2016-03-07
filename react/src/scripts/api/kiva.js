@@ -319,6 +319,7 @@ class Loans {
                     this.loan_download.resolve(loansToAdd, false, 5 * 60000)
                     this.endDownloadTimer('KLLoans')
                     req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
+                    req.kl.get(`vision/loans`).done(data => data.forEach(vd => this.mergeExtraLoanData(vd)))
                 }
             }.bind(this)
 
@@ -671,6 +672,11 @@ class Loans {
     }
     setBaseKivaParams(base_kiva_params){
         this.base_kiva_params = base_kiva_params
+    }
+    mergeExtraLoanData(data){ //takes data objects that have a loan id as "id" and merges properties.
+        var loan = this.getById(data.id)
+        if (loan)
+            extend(loan, data)
     }
     setKivaLoans(loans, reset, trustNoDupes){
         if (!loans.length) return

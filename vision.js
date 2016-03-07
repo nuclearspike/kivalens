@@ -18,14 +18,11 @@ else
  * "headwearLikelihood":"VERY_UNLIKELY"
  */
 
-const processFaces = annotations => {
-    return annotations.map(a=>{
-        return {joyLikelihood: a.joyLikelihood,
-            sorrowLikelihood: a.sorrowLikelihood,
-            angerLikelihood: a.angerLikelihood,
-            surpriseLikelihood: a.surpriseLikelihood,
-            headwearLikelihood: a.headwearLikelihood}
-    })
+
+const processFaceData = annotations => {
+    var result =  {joy:[],sorrow:[],anger:[],surprise:[],headwear:[]}
+    Object.keys(result).forEach(key=> result[key] = annotations.where(a=> ['VERY_LIKELY','LIKELY','POSSIBLE'].contains(a[`${key}Likelihood`])).select(a => a[`${key}Likelihood`]).distinct())
+    return result
 }
 
 function guaranteeGoogleVisionForLoan(loan, doneCallback) {
@@ -75,9 +72,9 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
         vision.annotate([req]).then(res => {
             if (doFaceDetection) {
                 if (res.responses[0].faceAnnotations) { //wouldn't have it if didn't need it.
-                    loan.kl_faces = processFaces(res.responses[0].faceAnnotations)
+                    loan.kl_faces = processFaceData(res.responses[0].faceAnnotations)
                 } else {
-                    loan.kl_faces = []
+                    loan.kl_faces = {joy:[],sorrow:[],anger:[],surprise:[],headwear:[]}
                 }
                 rc.set(facesKey, JSON.stringify(loan.kl_faces))
                 rc.expire(facesKey, '2592000') //30 days
@@ -100,6 +97,5 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
     })
 }
 
-//guaranteeGoogleVisionForLoan(loan)
-
-module.exports = guaranteeGoogleVisionForLoan
+exports.guaranteeGoogleVisionForLoan = guaranteeGoogleVisionForLoan
+exports.processFaceData = processFaceData
