@@ -91,7 +91,7 @@ if (cluster.isMaster){ //preps the downloads
     var latest = 0
     const redis = require('redis')
     const guaranteeGoogleVisionForLoan = require('./vision')
-    const rc = redis.createClient(process.env.REDISTOGO_URL)
+    const rc = redis.createClient(process.env.REDISCLOUD_URL)
 
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 

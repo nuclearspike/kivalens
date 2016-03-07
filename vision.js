@@ -1,7 +1,7 @@
 "use strict"
 const vision = require('node-cloud-vision-api')
 const redis = require('redis')
-const rc = redis.createClient(process.env.REDISTOGO_URL)
+const rc = redis.createClient(process.env.REDISCLOUD_URL)
 
 if (process.env.VISION_API_KEY)
     vision.init({auth: process.env.VISION_API_KEY})
