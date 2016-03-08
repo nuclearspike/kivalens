@@ -205,7 +205,7 @@ if (cluster.isMaster){ //preps the downloads
         setInterval(function(){
             //console.log('VISION: currentlyActive: ',currentlyActive)
             if (currentlyActive == 0)
-                kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels||!loan.kl_faces).take(MAX_VISION - currentlyActive).forEach(loan=>{
+                kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_faces).take(MAX_VISION - currentlyActive).forEach(loan=>{
                     currentlyActive++
                     guaranteeGoogleVisionForLoan(loan,x=>--currentlyActive)
                 })
@@ -530,7 +530,7 @@ else  //workers handle all communication with the clients.
     if (process.env.BLOCKED_IPS) {
         console.log('BLOCKING IPS: ' + process.env.BLOCKED_IPS)
         var ipfilter = require('express-ipfilter')
-        app.use(ipfilter(process.env.BLOCKED_IPS.split(',')))
+        app.use(ipfilter(process.env.BLOCKED_IPS.split(','), { log: false }))
     }
 
     //some security
@@ -825,7 +825,6 @@ else  //workers handle all communication with the clients.
             }
         })
     })
-
 
     //deprecated
     app.get("/api/vision/loan/:loan_id", (req,res)=>{

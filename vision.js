@@ -52,10 +52,10 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
             doFaceDetection = true
         }
 
-        if (!loan.kl_visionLabels && !result[1]) {
-            features.push(new vision.Feature('LABEL_DETECTION', 10))
-            doVisionLabels = true
-        }
+        //if (!loan.kl_visionLabels && !result[1]) {
+            //features.push(new vision.Feature('LABEL_DETECTION', 10))
+            //doVisionLabels = true
+        //}
 
         if (!features.length){ //we have everything we need.
             loan.kl_faces        = loan.kl_faces || JSON.parse(result[0])
@@ -81,7 +81,7 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
                 rc.set(facesKey, JSON.stringify(loan.kl_faces))
                 rc.expire(facesKey, '2592000') //30 days
             }
-            if (doVisionLabels) {
+            /**if (doVisionLabels) {
                 if (res.responses[0].labelAnnotations) {
                     loan.kl_visionLabels = res.responses[0].labelAnnotations
                 } else {
@@ -89,9 +89,9 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
                 }
                 rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
                 rc.expire(vlkey, '2592000') //30 days
-            }
+            }**/
             doneCallback()
-            console.log(JSON.stringify(loan.kl_faces))
+            //console.log(JSON.stringify(loan.kl_faces))
         }, e => {
             doneCallback(404)
             console.log('Error: ', e)
