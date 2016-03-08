@@ -210,7 +210,7 @@ if (cluster.isMaster){ //preps the downloads
                     guaranteeGoogleVisionForLoan(loan,x=>--currentlyActive)
                 })
             memwatch.gc()
-        },60000)
+        },300000)
     }
 
     const predHasVision = l=>l && (l.kl_faces || l.kl_visionLabels)
@@ -319,6 +319,15 @@ if (cluster.isMaster){ //preps the downloads
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
+        var restartIfBefore = new Date('2016-03-08T22:10:15.803Z')
+        var minsRunning = (Date.now() - restartIfBefore.getTime())/ 60000
+
+        if (parseInt(settings.uptime) > minsRunning){
+            console.log("FORCING RESTART for " + JSON.stringify(settings))
+            callback(205)
+            return
+        }
+
         callback(200)
 
         var key = `heartbeat_${settings.install}_${settings.lender}`

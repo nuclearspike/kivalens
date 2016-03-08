@@ -26,7 +26,7 @@ var utilsStore = Reflux.createStore({
         setInterval(this.doHeartbeat,5*60000)
     },
     doHeartbeat(){
-        var lender_id = this.lenderObj? lenderObj.lender_id : 'unknown'
+        var lender_id = this.lenderObj? this.lenderObj.lender_id : 'unknown'
         var install_id = lsj.get("Extras").install_id
         var uptime = Math.floor((Date.now() - window.pageStarted)/ 60000)
         req.kl.get(`heartbeat/${install_id}/${lender_id}/${uptime}`).fail((msg,status) => {
