@@ -524,7 +524,7 @@ class Loans {
 
 
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
-        ct.addSimpleEquals(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
+        ct.addFieldContainsOneOfArrayTester(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
         ct.addRangeTesters('repaid_in',         loan=>loan.kls_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrower_count)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
