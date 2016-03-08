@@ -648,7 +648,7 @@ const CriteriaTabs = React.createClass({
                 data: data.select(d => d.count)
             }]
         }
-        var helper_chart_height = Math.max(300, Math.min(data.length * 20, 1300))
+        var helper_chart_height = Math.max(300, Math.min(data.length * 30, 1300))
         var newState = {helper_charts: {}, helper_chart_height}
         newState.helper_charts[group] = config
         this.setState(newState)
@@ -828,7 +828,7 @@ const CriteriaTabs = React.createClass({
                                         to send you an email when loans match your criteria</NewTabLink>.
                                     </p>
                                     <p>
-                                        It will only show the first 20 matching loans and it currently doesn't support
+                                        It will only show the first 100 matching loans and it currently doesn't support
                                         anything that requires any knowledge of your portfolio (excluding your
                                         fundraising loans or portfolio balancing).
                                     </p>
