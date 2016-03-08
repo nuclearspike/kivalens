@@ -30,6 +30,12 @@ var Search = React.createClass({
             if (loans.length)
                 newState.hasHadLoans = true
             this.setState(newState)
+
+            if (!this.fetchingExtra) {
+                this.fetchingExtra = true
+                var toFillOut = loans.where(l=>!l.kl_repayments || !l.description.texts.en).take(100)
+                if (toFillOut.length) kivaloans.fetchDescrAndRepayments(toFillOut).done(x=>this.fetchingExtra = false)
+            }
       })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
