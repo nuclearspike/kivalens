@@ -34,7 +34,10 @@ var Search = React.createClass({
             if (!this.fetchingExtra) {
                 this.fetchingExtra = true
                 var toFillOut = loans.where(l=>!l.kl_repayments || !l.description.texts.en).take(40)
-                if (toFillOut.length) kivaloans.fetchDescrAndRepayments(toFillOut).always(x=>this.fetchingExtra = false)
+                if (toFillOut.length)
+                    kivaloans.fetchDescrAndRepayments(toFillOut).always(x=>this.fetchingExtra = false)
+                else
+                    this.fetchingExtra = false
             }
       })
         //if we enter the page and loading loans is not done yet.

@@ -25,6 +25,17 @@ const NoUpdate = React.createClass({
     render(){return <div>{this.props.children}</div>}
 })
 
+const DeadZone = React.createClass({
+    shouldComponentUpdate({until}){
+
+        var newValue = until()
+        var shouldUpdate = this.oldValue != newValue
+        this.oldValue = newValue
+        return shouldUpdate
+    },
+    render(){return <div>{this.props.children}</div>}
+})
+
 const RepaymentGraphs= React.createClass({
     getInitialState(){
         let {loan} = this.props
@@ -173,39 +184,42 @@ var Loan = React.createClass({
             //kivaloans.partner_download.done(x=>this.displayLoan(loan))
         //}
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
-        var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        return {loan, matching, partner, basket_perc, funded_perc, pictured, not_pictured, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
         if (loan.id != this.props.params.id) return
+
         window.currentLoan = loan
-        this.setState(this.loanToState(loan))
+        var newState = this.loanToState(loan)
+
+        //if we're already displaying this loan, only update the dyn fields
+        if (this.state.loan && this.state.loan.id == loan.id) {
+            this.setState(newState)
+            return
+        }
+
+        newState.pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        newState.not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+
         if (!loan.kl_similar) {
             req.kiva.api.similarTo(loan.id)
                 .done(similar => this.setState({similar: loan.kl_similar = similar.where(l=>l.id != loan.id)}))
                 .fail(x=>this.setState({similar: loan.kl_similar = []}))
         }
 
-        if (this.lastLookup != loan.id) {
+        /**if (this.lastLookup != loan.id) {
             this.lastLookup = loan.id
             if (!loan.kl_repayments || !loan.description.texts.en)
                 kivaloans.fetchDescrAndRepayments(loan).done(x=>a.loans.live.updated(loan))
-        }
+        }**/
 
-        //I don't like this pattern at all!
-        const displayVisionResults = visionLabels => {
-            this.setState({
-                visionResults: visionLabels.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')
-            })
-        }
+        newState.visionResults = null
 
         if (loan.kl_visionLabels && loan.kl_visionLabels.length)
-            displayVisionResults(loan.kl_visionLabels)
+            newState.visionResults = loan.kl_visionLabels.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')
         else
-            this.setState({visionResults: null})
+            newState.visionResults = null
 
-        //loanToState??
         if (loan.kl_faces){
             var faces = extend({},loan.kl_faces)
             Object.keys(faces).forEach(key => {
@@ -214,15 +228,15 @@ var Loan = React.createClass({
             })
             if (!Object.keys(faces).length) faces = null
 
-            var visionFaces = []; //needs ; because of parenthesis
+            newState.visionFaces = []; //needs ; because of parenthesis
             (['joy','sorrow','anger','headwear']).forEach(key=>{
                 if (faces && faces[key])
-                    visionFaces.push(`${key} (${faces[key].select(word=>humanize(word)).join(', ').toLowerCase()})`)
+                    newState.visionFaces.push(`${key} (${faces[key].select(word=>humanize(word)).join(', ').toLowerCase()})`)
             })
-            this.setState({visionFaces})
-        } else {
-            this.setState({visionFaces: null})
-        }
+        } else
+            newState.visionFaces = null
+
+        this.setState(newState)
     },
     tabSelect(activeTab){
         this.setState({activeTab})
@@ -232,6 +246,8 @@ var Loan = React.createClass({
         let {loan, matching, partner, activeTab, visionFaces, inBasket, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
         if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
+        //this.renderCount = this.renderCount || 0
+        //this.renderCount++
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div>
@@ -254,7 +270,7 @@ var Loan = React.createClass({
                             <If condition={visionResults != null}>
                                 <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
                             </If>
-                            <If condition={visionFaces != null}>
+                            <If condition={visionFaces != null && visionFaces.length}>
                                 <p>
                                     Google found faces with the following: {visionFaces.map((found,key)=> <span key={key}>{found}{key < visionFaces.length-1? ', ':''}</span>)}
                                 </p>
@@ -264,10 +280,12 @@ var Loan = React.createClass({
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
                         <Grid fluid>
                             <Col lg={8}>
-                                <ProgressBar>
-                                    <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
-                                    <ProgressBar bsStyle="warning" now={basket_perc} key={2}/>
-                                </ProgressBar>
+                                <DeadZone until={x=>funded_perc*(basket_perc+1)}>
+                                    <ProgressBar>
+                                        <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
+                                        <ProgressBar bsStyle="warning" now={basket_perc} key={2}/>
+                                    </ProgressBar>
+                                </DeadZone>
                                 <Row>
                                     <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
                                 </Row>
@@ -311,33 +329,33 @@ var Loan = React.createClass({
                     </Tab>
 
                     <Tab eventKey={3} title="Partner" className="ample-padding-top">
-                            <h2>{partner.name}</h2>
-                            <Col lg={6}>
-                            <dl className="dl-horizontal">
-                                <dt>Rating</dt><dd>{partner.rating}</dd>
-                                <dt>Start Date</dt><dd>{new Date(partner.start_date).toString("MMM d, yyyy")}</dd>
-                                <dt>{partner.countries.length == 1 ? 'Country' : 'Countries'}</dt><dd>{partner.countries.select(c => c.name).join(', ')}</dd>
-                                <dt>Delinquency</dt><dd>{numeral(partner.delinquency_rate).format('0.000')}% {partner.delinquency_rate_note}</dd>
-                                <dt>Loans at Risk Rate</dt><dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
-                                <dt>Default</dt><dd>{numeral(partner.default_rate).format('0.000')}% {partner.default_rate_note}</dd>
-                                <dt>Total Raised</dt><dd>${numeral(partner.total_amount_raised).format('0,0')}</dd>
-                                <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
-                                <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
-                                <dt>Profitablility</dt>
-                                <If condition={partner.profitability}>
-                                    <dd>{numeral(partner.profitability).format('0.0')}%</dd>
-                                <Else/>
-                                    <dd>(unknown)</dd>
-                                </If>
-                                <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
-                                <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
-                                <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
-                                <If condition={partner.url}>
-                                    <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
-                                </If>
-                            </dl>
+                        <h2>{partner.name}</h2>
+                        <Col lg={6}>
+                        <dl className="dl-horizontal">
+                            <dt>Rating</dt><dd>{partner.rating}</dd>
+                            <dt>Start Date</dt><dd>{new Date(partner.start_date).toString("MMM d, yyyy")}</dd>
+                            <dt>{partner.countries.length == 1 ? 'Country' : 'Countries'}</dt><dd>{partner.countries.select(c => c.name).join(', ')}</dd>
+                            <dt>Delinquency</dt><dd>{numeral(partner.delinquency_rate).format('0.000')}% {partner.delinquency_rate_note}</dd>
+                            <dt>Loans at Risk Rate</dt><dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
+                            <dt>Default</dt><dd>{numeral(partner.default_rate).format('0.000')}% {partner.default_rate_note}</dd>
+                            <dt>Total Raised</dt><dd>${numeral(partner.total_amount_raised).format('0,0')}</dd>
+                            <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
+                            <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
+                            <dt>Profitablility</dt>
+                            <If condition={partner.profitability}>
+                                <dd>{numeral(partner.profitability).format('0.0')}%</dd>
+                            <Else/>
+                                <dd>(unknown)</dd>
+                            </If>
+                            <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
+                            <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
+                            <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
+                            <If condition={partner.url}>
+                                <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
+                            </If>
+                        </dl>
 
-                            </Col>
+                        </Col>
                         <Col lg={6}>
                             <If condition={partner.image}>
                                 <KivaImage className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
