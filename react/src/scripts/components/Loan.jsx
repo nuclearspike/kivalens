@@ -183,8 +183,10 @@ var Loan = React.createClass({
             //there's surely a better way like getLoanFromKiva shouldn't return until partner download done.
             //kivaloans.partner_download.done(x=>this.displayLoan(loan))
         //}
+        var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
-        return {loan, matching, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
         if (loan.id != this.props.params.id) return
@@ -197,9 +199,6 @@ var Loan = React.createClass({
             this.setState(newState)
             return
         }
-
-        newState.pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        newState.not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
 
         if (!loan.kl_similar) {
             req.kiva.api.similarTo(loan.id)
