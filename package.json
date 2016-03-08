@@ -13,6 +13,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.3",
     "express-http-proxy": "^0.6.0",
+    "express-ipfilter": "0.0.24",
     "extend": "^3.0.0",
     "helmet": "^1.1.0",
     "jquery-deferred": "^0.3.0",

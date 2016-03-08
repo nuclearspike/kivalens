@@ -92,7 +92,7 @@ if (cluster.isMaster){ //preps the downloads
     const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
     //const processFaceData = require('./vision').processFaceData
     const redis = require('redis')
-    const rc = redis.createClient(process.env.REDISCLOUD_URL)
+    const rc = process.env.REDISCLOUD_URL? redis.createClient(process.env.REDISCLOUD_URL) : null
 
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 
@@ -165,6 +165,7 @@ if (cluster.isMaster){ //preps the downloads
     }
 
     const removeVisionFromRedis = loan_id => {
+        if (!rc) return
         console.log('VISION REDIS REMOVE LOAN ' + loan_id)
         rc.del(`vision_label_${loan_id}`)
         rc.del(`vision_faces_${loan_id}`)
@@ -172,6 +173,7 @@ if (cluster.isMaster){ //preps the downloads
 
     //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
     const pullVisionFromFromRedis = () => {
+        if (!rc) return
         rc.keys('vision_label_*',(err,keys)=>{
             var loans_with_data = kivaloans.loans_from_kiva.where(loan=>!loan.kl_visionLabels && keys.indexOf(`vision_label_${loan.id}`) > -1)
             var keys_to_fetch = loans_with_data.select(loan => `vision_label_${loan.id}`)
@@ -261,6 +263,7 @@ if (cluster.isMaster){ //preps the downloads
         callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
         var rss_crit = JSON.stringify(crit) //?why did it ever parse?
         var key = `rss_fetch_${rss_crit}`
+        if (!rc) return
         rc.incr(key) //creates if not present.
         rc.expire(key,'86400') //24 hours...
     })
@@ -273,6 +276,7 @@ if (cluster.isMaster){ //preps the downloads
         const LenderFundraisingLoans = require("./react/src/scripts/api/kivajs/LenderFundraisingLoans")
 
         const storeLenderInRedis = toStore => {
+            if (!rc) return
             var key = `lender_${lenderid}`
             rc.set(key,JSON.stringify(toStore))
             rc.expire(key,'2592000') //30 days
@@ -281,6 +285,7 @@ if (cluster.isMaster){ //preps the downloads
         req.kiva.api.lender(lenderid)
             .fail(x => callback(404))
             .done(lenderObj => {
+                if (!rc) return
                 rc.get(`lender_${lenderid}`,(err,c_lender)=>{
                     var needs_refetch = true,
                         to_store = {loan_count: lenderObj.loan_count, fundraising_loans :[]}
@@ -314,14 +319,14 @@ if (cluster.isMaster){ //preps the downloads
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
+        callback(200)
+
         var key = `heartbeat_${settings.install}_${settings.lender}`
+        if (!rc) return
         rc.set(key, JSON.stringify(settings))
         rc.expire(key,'360') //6 minutes...
-
         rc.set('on_past_24h_'+ key, JSON.stringify(settings))
         rc.expire('on_past_24h_'+ key,'86400') //24 hours...
-
-        callback(200)
     })
 
     const KLPageSplits = 4
@@ -517,11 +522,16 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
-
     var main = express()
 
     // compress all requests
     app.use(compression())
+
+    if (process.env.BLOCKED_IPS) {
+        console.log('BLOCKING IPS: ' + process.env.BLOCKED_IPS)
+        var ipfilter = require('express-ipfilter')
+        app.use(ipfilter(process.env.BLOCKED_IPS.split(',')))
+    }
 
     //some security
     app.use(helmet())

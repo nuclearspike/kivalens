@@ -1,11 +1,12 @@
 "use strict"
 const vision = require('node-cloud-vision-api')
 const redis = require('redis')
-const rc = redis.createClient(process.env.REDISCLOUD_URL)
-
-if (process.env.VISION_API_KEY)
+const rc = process.env.REDISCLOUD_URL? redis.createClient(process.env.REDISCLOUD_URL) : null
+var blind = true
+if (process.env.VISION_API_KEY) {
     vision.init({auth: process.env.VISION_API_KEY})
-else
+    blind = false
+} else
     console.log("NO VISION API KEY. GOOGLE CLOUD VISION CALLS WILL FAIL.")
 
 
@@ -27,6 +28,7 @@ const processFaceData = annotations => {
 
 function guaranteeGoogleVisionForLoan(loan, doneCallback) {
     if (typeof doneCallback !== 'function') doneCallback = () => true
+    if (blind || !rc) doneCallback()
 
     var facesKey = `vision_faces_${loan.id}`,
         vlkey = `vision_label_${loan.id}`,
