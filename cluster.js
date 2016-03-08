@@ -199,7 +199,7 @@ if (cluster.isMaster){ //preps the downloads
             //deadKeys.forEach(key => rc.del(key))
         })
         var currentlyActive = 0
-        const MAX_VISION = 20
+        const MAX_VISION = 50
         setInterval(function(){
             //console.log('VISION: currentlyActive: ',currentlyActive)
             if (currentlyActive == 0)
@@ -208,7 +208,7 @@ if (cluster.isMaster){ //preps the downloads
                     guaranteeGoogleVisionForLoan(loan,x=>--currentlyActive)
                 })
             memwatch.gc()
-        },5000)
+        },60000)
     }
 
     const predHasVision = l=>l && (l.kl_faces || l.kl_visionLabels)
