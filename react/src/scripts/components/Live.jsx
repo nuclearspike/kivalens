@@ -191,15 +191,15 @@ const Live = React.createClass({
                         <li>
                             When you first start a new KivaLens session (or click your browser's "Reload" button), your
                             browser downloads the entire KivaLens app and after that doesn't talk to the KivaLens
-                            server again when clicking between pages.
+                            server when clicking between pages.
                         </li>
                         <li>
-                            Once the app has loaded, KivaLens pulls it's listing of loans from the KivaLens server
+                            Once the page has loaded, KivaLens pulls its listing of loans from the KivaLens server
                             (which has pulled them from Kiva' API, stripped out everything it doesn't need and has them
                             ready to go) and keeps all of the loan and partner data in your browser's memory.
                         </li>
                         <li>
-                            With all of the activity on Kiva, the data that KivaLens pulled quickly becomes stale. To
+                            With all of the activity on Kiva, the data that KivaLens pulled can quickly become stale. To
                             keep it fresh, KivaLens listens to Kiva's live data-stream of both lending activity
                             and newly posted loans and updates it's own listing automatically. Each time you do a
                             search, it's searching the most recent data.
@@ -212,18 +212,9 @@ const Live = React.createClass({
                             published in the live data stream.
                         </li>
                         <li>
-                            Every time you visit the Basket page, KivaLens will make sure all of the loans in your
-                            basket have the most recent data.
-                        </li>
-                        <li>
-                            Every 2 minutes, KivaLens looks at it's list of loans and it gathers 1) Loans that are popular
-                            with a high velocity 2) Loans that are about to expire 3) Loans that are close to being
-                            fully funded 4) Some of the loans that are currently displaying in your search and it checks
-                            with Kiva to get the most recent data on them.
-                        </li>
-                        <li>
-                            After 5 minutes then once every 10 minutes, KivaLens silently performs a resync of it's
-                            data with Kiva's API to catch any changes not included in the datastream notifications.
+                            After 5 minutes then once every 10 minutes, KivaLens silently performs a full resync of it's
+                            data with Kiva's API to catch any changes not included in the datastream notifications. This
+                            also fixes any issues from your computer having been asleep with a tab open to KivaLens.
                         </li>
                         <li>
                             When you search for a loan in KivaLens, it searches the loans that it has in

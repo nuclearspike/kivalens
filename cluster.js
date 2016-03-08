@@ -156,7 +156,7 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
 
-        guaranteeGoogleVisionForLoan(loan,err=>{
+        guaranteeGoogleVisionForLoan(loan, err=>{
             if (err || !loan.kl_visionLabels)
                 callback(err)
             else
@@ -205,20 +205,24 @@ if (cluster.isMaster){ //preps the downloads
             if (currentlyActive == 0)
                 kivaloans.filter({loan:{sort:'newest'}}).where(loan=>!loan.kl_visionLabels||!loan.kl_faces).take(MAX_VISION - currentlyActive).forEach(loan=>{
                     currentlyActive++
-                    guaranteeGoogleVisionForLoan(loan,x=>{
-                        currentlyActive--
-                        //if (currentlyActive < 2)
-                        //    console.log('VISION: wrap up. currentlyActive: ',currentlyActive)
-                    })
+                    guaranteeGoogleVisionForLoan(loan,x=>--currentlyActive)
                 })
             memwatch.gc()
         },5000)
     }
 
+    const predHasVision = l=>l && (l.kl_faces || l.kl_visionLabels)
+    const selVisionData = l=>({id: l.id, kl_visionLabels: l.kl_visionLabels, kl_faces: l.kl_faces})
+
+    //deprecated...
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
+    hub.on("vision-fillin", (loan_ids, sender, callback) => {
+        callback(null, loan_ids.map(id => kivaloans.getById(id)).where(predHasVision).select(selVisionData))
+    })
+
     hub.on("vision-all", (ignore, sender, callback) => {
-        callback(null,kivaloans.filter({loan:{}}).where(loan=>loan.kl_visionLabels || loan.kl_faces).select(loan=>({id: loan.id, kl_visionLabels: loan.kl_visionLabels, kl_faces: loan.kl_faces})))
+        callback(null,kivaloans.filter({loan:{}}).where(predHasVision).select(selVisionData))
     })
 
     /**
@@ -773,6 +777,24 @@ else  //workers handle all communication with the clients.
         })
     })
 
+    app.get("/api/vision/loans/:loan_ids", (req,res)=>{
+        var loan_ids = req.params.loan_ids.split(',')
+        if (!Array.isArray(loan_ids)){
+            res.sendStatus(404)
+            return
+        }
+        hub.requestMaster('vision-fillin', loan_ids, (err, result) =>{
+            if (err)
+                res.sendStatus(err)
+            else {
+                res.type('application/json')
+                res.header('Cache-Control', `public, max-age=5`)
+                res.send(result)
+            }
+        })
+    })
+
+    //deprecated
     app.get("/api/vision/loan/:loan_id", (req,res)=>{
         hub.requestMaster('vision-loan', req.params.loan_id, (err, result) =>{
             if (err)

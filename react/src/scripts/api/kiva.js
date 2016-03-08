@@ -324,6 +324,12 @@ class Loans {
                         data.forEach(vd => this.mergeExtraLoanData(vd))
                         this.notify({vision_data_loaded:true})
                     })
+
+                    setInterval(function(){
+                        var ids = this.filter({}).where(l=>!l.kl_visionLabels || !l.kl_faces).select(l=>l.id)
+                        if (ids.length)
+                            req.kl.get(`vision/loans/${ids.join(',')}`).done(data=>data.forEach(vd => this.mergeExtraLoanData(vd)))
+                    }.bind(this), 60000)
                 }
             }.bind(this)
 
