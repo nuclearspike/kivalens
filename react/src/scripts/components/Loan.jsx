@@ -36,7 +36,7 @@ const RepaymentGraphs= React.createClass({
         this.setState({loan, config: this.produceConfig(loan)})
     },
     ensureRepaymentsGraph(loan){
-        if (loan.kl_repay_categories || !loan.terms.scheduled_payments) return
+        if (loan.kl_repay_categories || !loan.kl_repayments || !loan.kl_repayments.length) return
         loan.kl_repay_categories = loan.kl_repayments.select(payment => payment.display)
         loan.kl_repay_data       = loan.kl_repayments.select(payment => payment.amount)
         loan.kl_repay_percent    = loan.kl_repayments.select(payment => payment.percent)
@@ -187,27 +187,23 @@ var Loan = React.createClass({
                 .fail(x=>this.setState({similar: loan.kl_similar = []}))
         }
 
+        if (this.lastLookup != loan.id) {
+            this.lastLookup = loan.id
+            if (!loan.kl_repayments || !loan.description.texts.en)
+                kivaloans.fetchDescrAndRepayments(loan).done(x=>a.loans.live.updated(loan))
+        }
+
         //I don't like this pattern at all!
         const displayVisionResults = visionLabels => {
             this.setState({
-                visionStatus: 'found',
                 visionResults: visionLabels.map(saw => `${saw.description} (${Math.round(saw.score * 100)}%)`).join(', ')
             })
         }
-        if (!loan.kl_visionLabels) {
-            loan.kl_visionLabels = [] //stops future look ups.. this is a terrible inference
-            this.setState({visionStatus: 'fetching'})
-            req.kl.get(`vision/loan/${loan.id}`) //todo: turn into a proper call with no biz logic here.
-                .done(result => {
-                    loan.kl_visionLabels = result && Array.isArray(result) ? result: []
-                    if (loan.id != this.props.params.id) return //
-                    displayVisionResults(result)
-                })
-                .fail(x=> this.setState({visionStatus: 'failed'}))
-        } else {
-            if (loan.kl_visionLabels.length)
-                displayVisionResults(loan.kl_visionLabels)
-        }
+
+        if (loan.kl_visionLabels && loan.kl_visionLabels.length)
+            displayVisionResults(loan.kl_visionLabels)
+        else
+            this.setState({visionResults: null})
 
         //loanToState??
         if (loan.kl_faces){
@@ -219,8 +215,8 @@ var Loan = React.createClass({
             if (!Object.keys(faces).length) faces = null
 
             var visionFaces = []; //needs ; because of parenthesis
-            (['joy','sorrow','anger','surprise','headwear']).map(key=>{
-                if (faces[key])
+            (['joy','sorrow','anger','headwear']).forEach(key=>{
+                if (faces && faces[key])
                     visionFaces.push(`${key} (${faces[key].select(word=>humanize(word)).join(', ').toLowerCase()})`)
             })
             this.setState({visionFaces})
@@ -233,7 +229,7 @@ var Loan = React.createClass({
         localStorage.loan_active_tab = activeTab
     },
     render() {
-        let {loan, matching, partner, activeTab, visionFaces, inBasket, visionStatus, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
+        let {loan, matching, partner, activeTab, visionFaces, inBasket, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
         if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner.atheistScore
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -255,10 +251,7 @@ var Loan = React.createClass({
                             </If>
                             <p>Pictured: {pictured ? pictured: '(none)'} </p>
                             <p>Not Pictured: {not_pictured ? not_pictured: '(none)'} </p>
-                            <If condition={visionStatus == 'fetching'}>
-                                <Alert>Google Cloud Vision is examining the picture carefully...</Alert>
-                            </If>
-                            <If condition={visionStatus == 'found'}>
+                            <If condition={visionResults != null}>
                                 <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
                             </If>
                             <If condition={visionFaces != null}>

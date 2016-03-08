@@ -498,11 +498,15 @@ const CriteriaTabs = React.createClass({
         if (!(this.last_select && this.last_select.key)) return
         if (sameAsLastTime) return
         //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
+        if (!this.fetchingExtra) {
+            this.fetchingExtra = true
+            var toFillOut = loans.where(l=>!l.kl_repayments || !l.description.texts.en).take(100)
+            if (toFillOut.length) kivaloans.fetchDescrAndRepayments(toFillOut).done(x=>this.fetchingExtra = false)
+        }
         let {key, group} = this.last_select
         var cg = this.state.criteria[group]
-        if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`])) {
+        if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`]))
             this.genHelperGraphs(group, key, loans)
-        }
     },
     reloadCriteria(criteria = {}){
         this.setState({criteria: extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})

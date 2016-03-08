@@ -257,7 +257,7 @@ class Loans {
         const kl_getDesc = function(batch, pages, lengths) {
             var receivedDesc = 0
             var descToProc = []
-            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/descriptions/${page}`,{},{},{contentLength:lengths[page-1]}).done(descriptions => {
+            Array.range(1, pages).forEach(page => req.kl.get(`loans/${batch}/keywords/${page}`,{},{},{contentLength:lengths[page-1]}).done(descriptions => {
                 receivedDesc++
                 descToProc = descToProc.concat(descriptions)
                 if (receivedDesc == pages) {
@@ -326,7 +326,7 @@ class Loans {
                     })
 
                     setInterval(function(){
-                        var ids = this.filter({}).where(l=>!l.kl_visionLabels || !l.kl_faces).select(l=>l.id)
+                        var ids = this.filter({}).where(l=>!l.kl_visionLabels || !l.kl_faces).select(l=>l.id).take(100)
                         if (ids.length)
                             req.kl.get(`vision/loans/${ids.join(',')}`).done(data=>data.forEach(vd => this.mergeExtraLoanData(vd)))
                     }.bind(this), 60000)
@@ -383,6 +383,11 @@ class Loans {
     }
     notify(message){
         this.notify_promise.notify(message)
+    }
+    fetchDescrAndRepayments(loans){
+        if (!Array.isArray(loans)) loans = [loans]
+        return req.kl.get(`extra/loans/${loans.select(l=>l.id).join(',')}`)
+            .then(data=>data.forEach(vd => this.mergeExtraLoanData(vd))) //this looks up a loan we already have...
     }
     checkHotLoans(){
         if (!this.isReady()) return

@@ -234,8 +234,8 @@ const About = React.createClass({
 
                 <li>
                     <b>RSS Feeds</b> Once your criteria is set, you can go to the "RSS" tab and it will give you a URL
-                    that you can paste into your favorite RSS reader or use a site like
-                    <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> that will watch for
+                    that you can paste into your favorite RSS reader or use a site
+                    like <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> that will watch for
                     new items in the feed and you can create a "Recipe" where you can set it to email, text/SMS,
                     instant message, or many more things.
                 </li>

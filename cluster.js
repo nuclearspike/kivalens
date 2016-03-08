@@ -84,7 +84,7 @@ function hashFile(fn, fo, cb) {
 }
 
 if (cluster.isMaster){ //preps the downloads
-    const blankResponse = {loanChunks:'', newestTime:null, descriptions:''}
+    const blankResponse = {loanChunks:'', newestTime:null, keywords:''}
     var partnersGzipped = false
     var ejs = require('ejs')
     var loansToServe = {0: extend({},blankResponse)} //start empty.
@@ -223,6 +223,10 @@ if (cluster.isMaster){ //preps the downloads
 
     hub.on("vision-all", (ignore, sender, callback) => {
         callback(null,kivaloans.filter({loan:{}}).where(predHasVision).select(selVisionData))
+    })
+
+    hub.on("loans-supplemental", (loan_ids, sender, callback) => {
+        callback(null, loan_ids.map(id => kivaloans.getById(id)).where(l=>l).select(loan => ({id: loan.id, kl_repayments: loan.kl_repayments, description: {texts: {en: loan.description.texts.en}}})))
     })
 
     /**
@@ -373,10 +377,10 @@ if (cluster.isMaster){ //preps the downloads
 
         kivaloans.loans_from_kiva.removeAll(l=>l.status != 'fundraising')
         var allLoans = ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
-        //additional unprocessing and collecting descriptions
-        var descriptions = []
+        //additional unprocessing and collecting keywords
+        var keywords = []
         allLoans.forEach(loan => {
-            descriptions.push({id: loan.id, t: loan.kls_use_or_descr_arr}) //only need to do descr... use already there.
+            keywords.push({id: loan.id, t: loan.kls_use_or_descr_arr}) //only need to do descr... use already there.
             delete loan.description //.texts.en
             delete loan.kls_use_or_descr_arr
             if (!loan.kls_age) delete loan.kls_age
@@ -399,8 +403,8 @@ if (cluster.isMaster){ //preps the downloads
         prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
         var bigloanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
         prepping.loanChunks = Array.range(0, KLPageSplits).select(x=>false)
-        var bigDesc = descriptions.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
-        prepping.descriptions = Array.range(0, KLPageSplits).select(x=>false)
+        var bigDesc = keywords.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
+        prepping.keywords = Array.range(0, KLPageSplits).select(x=>false)
 
         const writeBuffer = function(name, buffer, cb){
             var fn = `/tmp/${name}.kl`
@@ -412,7 +416,7 @@ if (cluster.isMaster){ //preps the downloads
 
         function finishIfReady(){
             //don't know when prepping isn't there, but there was an error in the logs that it was undefined here and crashed master.
-            if (prepping && prepping.loanChunks.all(c=>c) && prepping.descriptions.all(c=>c) && partnersGzipped) {
+            if (prepping && prepping.loanChunks.all(c=>c) && prepping.keywords.all(c=>c) && partnersGzipped) {
                 outputMemUsage("Master finishIfReady start")
                 loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
@@ -420,13 +424,13 @@ if (cluster.isMaster){ //preps the downloads
                     if (batch > 0)
                         Array.range(1,KLPageSplits).forEach(page => {
                             fs.unlink(`/tmp/loans-${batch}-${page}.kl`)
-                            fs.unlink(`/tmp/descriptions-${batch}-${page}.kl`)
+                            fs.unlink(`/tmp/keywords-${batch}-${page}.kl`)
                         })
                     delete loansToServe[batch]
                 })
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
 
-                var startResponse = {batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.descriptions}
+                var startResponse = {batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.keywords}
                 var message = { downloadReady: JSON.stringify(startResponse)}
                 doGarbageCollection("Master finishIfReady: before notify")
                 notifyAllWorkers(message)
@@ -460,8 +464,8 @@ if (cluster.isMaster){ //preps the downloads
 
         bigDesc.map((chunk, page) => {
             zlib.gzip(chunk, gzipOpt, function (_, result) {
-                writeBuffer(`descriptions-${latest}-${page+1}`, result, x=>{
-                    prepping.descriptions[page] = chunk.length
+                writeBuffer(`keywords-${latest}-${page+1}`, result, x=>{
+                    prepping.keywords[page] = chunk.length
                     finishIfReady()
                 })
             })
@@ -693,18 +697,18 @@ else  //workers handle all communication with the clients.
         serveGzipFile(res, 'partners')
     })
 
-    app.get('/api/loans/:batch/descriptions/:page', function(req,res){
+    app.get('/api/loans/:batch/keywords/:page', function(req,res){
         var batch = parseInt(req.params.batch)
         if (!batch) {
             res.sendStatus(404)
             return
         }
         if (batch != startResponse.batch)
-            console.log(`INTERESTING: /loans/descriptions batch: ${batch} latest: ${startResponse.batch}`)
+            console.log(`INTERESTING: /loans/keywords batch: ${batch} latest: ${startResponse.batch}`)
 
         var page = parseInt(req.params.page)
 
-        serveGzipFile(res, `descriptions-${batch}-${page}`)
+        serveGzipFile(res, `keywords-${batch}-${page}`)
     })
 
     app.get('/api/since/:batch', (req, res) =>{
@@ -718,6 +722,24 @@ else  //workers handle all communication with the clients.
             res.send(result)
         })
     })
+
+    app.get("/api/extra/loans/:loan_ids", (req,res)=>{
+        var loan_ids = req.params.loan_ids.split(',')
+        if (!Array.isArray(loan_ids)){
+            res.sendStatus(404)
+            return
+        }
+        hub.requestMaster('loans-supplemental', loan_ids, (err, result) =>{
+            if (err)
+                res.sendStatus(err)
+            else {
+                res.type('application/json')
+                res.header('Cache-Control', `public, max-age=600`)
+                res.send(result)
+            }
+        })
+    })
+
 
     app.get('/api/lender/:lender/loans/fundraising',(req,res)=>{
         /**
@@ -793,6 +815,7 @@ else  //workers handle all communication with the clients.
             }
         })
     })
+
 
     //deprecated
     app.get("/api/vision/loan/:loan_id", (req,res)=>{
