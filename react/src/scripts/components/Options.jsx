@@ -164,7 +164,7 @@ const Options = React.createClass({
                     <Panel header='Debug/Beta Testing'>
                         <Input
                             type="checkbox"
-                            label="Show me features that are being beta-tested (this option currently switches on emotion detection and searching... and hats! It'll find pics with headwear, too.)"
+                            label="Show me features that are being beta-tested (this option currently does nothing.)"
                             checkedLink={this.linkState('betaTester')} />
                         <Input
                             type="checkbox"
