@@ -471,7 +471,7 @@ const CriteriaTabs = React.createClass({
     },
     componentDidMount() {
         var opts = lsj.get("Options")
-        var visionFaceKeys = opts.betaTester ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
+        var visionFaceKeys = opts.betaTester || true ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
         this.setState({kiva_lender_id: opts.kiva_lender_id, visionFaceKeys, isMobile: mobileAndTabletCheck()})
         this.listenTo(a.loans.load.completed, this.loansReady)
         this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)

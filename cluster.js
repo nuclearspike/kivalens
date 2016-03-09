@@ -127,8 +127,9 @@ if (cluster.isMaster){ //preps the downloads
     const gzipOpt = {level : zlib.Z_BEST_COMPRESSION}
 
     const numCPUs = require('os').cpus().length
+    const maxWorkers = process.env.MAX_WORKERS || 7
     console.log("*** CPUs: " + numCPUs)
-    for (var i=0; i< Math.min(numCPUs-1, 7); i++)
+    for (var i=0; i< Math.min(numCPUs-1, maxWorkers); i++)
         cluster.fork()
 
     // Listen for dying workers
@@ -317,9 +318,10 @@ if (cluster.isMaster){ //preps the downloads
 
     })
 
+    const restartIfBefore = new Date('2016-03-08T22:10:15.803Z')
+
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
-        var restartIfBefore = new Date('2016-03-08T22:10:15.803Z')
         var minsRunning = (Date.now() - restartIfBefore.getTime())/ 60000
 
         if (parseInt(settings.uptime) > minsRunning){
