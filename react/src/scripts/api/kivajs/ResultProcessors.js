@@ -1,6 +1,7 @@
 'use strict'
 
 const isServer = require("./kivaBase").isServer
+const Loan = require("./Loan")
 const extend = require('extend')
 require('linqjs')
 require('datejs')
@@ -96,7 +97,10 @@ class ResultProcessors {
             loan.kls_age = getAge(loan.description.texts.en)
     }
     static processLoan(loan){
-        if (typeof loan != 'object') return //for an ids_only search... should never get called though!
+        if (typeof loan != 'object') {
+            console.trace("when is this happening.")
+            return
+        } //for an ids_only search... should never get called though!
 
         loan.kl_processed = new Date()
         loan.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
@@ -131,7 +135,7 @@ class ResultProcessors {
         }
 
         //i don't like this.
-        if (typeof loan.kls_half_back === 'string') { //true when
+        if (typeof loan.kls_half_back === 'string') { //true when from kl api
             loan.kls_half_back = new Date(loan.kls_half_back)
             loan.kls_75_back = new Date(loan.kls_75_back)
             loan.kls_final_repayment = new Date(loan.kls_final_repayment)
@@ -141,8 +145,8 @@ class ResultProcessors {
             ResultProcessors.processLoanDescription(loan)
 
             loan.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
-            loan.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000) }.bind(loan)
-            loan.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - today) / (24 * 60 * 60 * 1000) }.bind(loan)
+            loan.kl_expiring_in_days = function(){ return (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000) }.bind(loan)
+            loan.kl_disbursal_in_days = function(){ return (new Date(loan.terms.disbursal_date) - Date.now()) / (24 * 60 * 60 * 1000) }.bind(loan)
 
             loan.kl_percent_women = loan.borrowers.percentWhere(b => b.gender == "F")
 
