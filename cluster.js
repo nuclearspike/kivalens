@@ -119,7 +119,7 @@ if (cluster.isMaster){ //preps the downloads
             })
         })
     }
-    regenIndex({batch: 0, pages: 0}) //files aren't ready to serve yet, instructs client to go to Kiva.
+    regenIndex({batch: 0, pages: 0}) //files aren't ready to serve yet, instructs client to pull loans from Kiva's API.
 
     outputMemUsage("STARTUP")
     console.log("STARTING MASTER")
@@ -172,7 +172,7 @@ if (cluster.isMaster){ //preps the downloads
         rc.del(`vision_faces_${loan_id}`)
     }
 
-    //upon first load, we pull the data out of redis and attach it to the loans... so that we can eventually do filtering on it or pass them down in a separate request
+    //upon first load, we pull the data out of redis and attach it to the loans
     const pullVisionFromFromRedis = () => {
         if (!rc) return
         rc.keys('vision_label_*',(err,keys)=>{
@@ -186,7 +186,7 @@ if (cluster.isMaster){ //preps the downloads
             })
             //how many are in redis that are gone? this should delete, too...
             //var deadKeys = keys.where(k=> keys_to_fetch.indexOf(k) == -1) THIS IS NOT CORRECT. keys_to_fetch doesn't indicate which are dead. this needs to find the keys that aren't in kivaloans
-            //deadKeys.forEach(key => rc.del(key))
+            //deadKeys.forEach(key => rc.del(key)) these dead ones will expire after 30 days if not caught
         })
         rc.keys('vision_faces_*',(err,keys)=>{
             var loans_with_data = kivaloans.loans_from_kiva.where(loan=>!loan.kl_faces && keys.indexOf(`vision_faces_${loan.id}`) > -1)
@@ -211,7 +211,7 @@ if (cluster.isMaster){ //preps the downloads
                     guaranteeGoogleVisionForLoan(loan,x=>--currentlyActive)
                 })
             memwatch.gc()
-        },300000)
+        },30000)
     }
 
     const predHasVision = l=>l && (l.kl_faces || l.kl_visionLabels)
@@ -271,6 +271,9 @@ if (cluster.isMaster){ //preps the downloads
 
     /**
      * get all of the fundraising ids for a given lender.
+     * first checks the lender endpoint, if the number of loans made matches what was last pulled and
+     * stored in redis, then pull the redis ids and remove any that are no longer fundraising (and resave)
+     * if the number is different, then do a full pull from Kiva looking for fundraising loans.
      */
     hub.on('lenderloans', (lenderid, sender, callback) => {
         console.log("INTERESTING: lenderloans", lenderid)
@@ -318,13 +321,17 @@ if (cluster.isMaster){ //preps the downloads
 
     })
 
-    const restartIfBefore = new Date('2016-03-08T22:10:15.803Z')
+    //when major changes happen where old clients cannot talk with new API endpoints
+    //or if a major bug is found, then when clients check in with their heartbeat, they
+    //are told to reload the page if they were loaded prior to the new release. not
+    //the most robust way of doing this, but it's handy!
+    const restartIfBefore = new Date('2016-03-13T08:10:21.057Z')
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
         var minsRunning = (Date.now() - restartIfBefore.getTime())/ 60000
 
-        if (parseInt(settings.uptime) > minsRunning){
+        if (kivaloans.isReady() && parseInt(settings.uptime) > minsRunning){
             console.log("FORCING RESTART for " + JSON.stringify(settings))
             callback(205)
             return
@@ -505,9 +512,10 @@ if (cluster.isMaster){ //preps the downloads
             console.error('socket.io error: ', e)
         }
     }
-    if (process.env.NODE_ENV == 'production') {
+    if (true || process.env.NODE_ENV == 'production') {
         connectChannel('loan.posted', function (data) {
             data = JSON.parse(data)
+            console.log("loan.posted " + data.p.loan.id)
             if (kivaloans)
                 kivaloans.queueNewLoanNotice(data.p.loan.id)
         })
@@ -515,6 +523,7 @@ if (cluster.isMaster){ //preps the downloads
         connectChannel('loan.purchased', function (data) {
             data = JSON.parse(data)
             var ids = data.p.loans.select(l=>l.id)
+            console.log("loan.purchased " + ids.join(', '))
             if (kivaloans)
                 kivaloans.queueToRefresh(ids)
         })
