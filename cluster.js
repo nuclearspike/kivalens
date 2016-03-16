@@ -376,7 +376,7 @@ if (cluster.isMaster){ //preps the downloads
             removeVisionFromRedis(progress.loan_not_fundraising.id)
         if (progress.new_loans) {
             //is this happening.
-            console.log("PROGRESS.NEW_LOANS:", JSON.stringify(progress.new_loans))
+            //console.log("PROGRESS.NEW_LOANS:", JSON.stringify(progress.new_loans))
             progress.new_loans.forEach(loan => doVisionLookup(loan.id))
         }
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
