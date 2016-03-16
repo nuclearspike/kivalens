@@ -26,7 +26,7 @@ const Teams = React.createClass({
         //this.listenTo(loanActions.filter.completed, this.redoCharts)
         var lender_id = lsj.get('Options').kiva_lender_id
         if (!lender_id) {
-            this.setState({error: "You do not have your Kiva Lender ID set on the Options page."})
+            this.setState({error: "Please set your Kiva Lender ID set on the Options page to use this feature."})
         } else {
             this.setState({loadingTeams:true})
             new LenderTeams(lender_id).start() //should this be kiva.lender.teams().done(

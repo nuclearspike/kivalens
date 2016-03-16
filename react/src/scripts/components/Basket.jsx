@@ -6,7 +6,7 @@ import {Grid,Row,Col,Input,ButtonGroup,Button,Modal,ProgressBar,Panel,Alert} fro
 import {BasketListItem,Loan} from '.';
 import a from '../actions'
 import s from '../stores'
-import InfiniteList from 'react-infinite-list'
+import InfiniteList from './InfiniteList.jsx'
 import extend from 'extend'
 
 const Basket = React.createClass({
@@ -120,6 +120,7 @@ const Basket = React.createClass({
                         items={basket_items}
                         height={600}
                         itemHeight={100}
+                        itemsCount={basket_count}
                         listItemClass={BasketListItem} />
                 </Col>
                 <Col md={8}>

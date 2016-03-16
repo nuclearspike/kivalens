@@ -1,13 +1,15 @@
 'use strict'
 
 import React from 'react'
+import ReactDOM from 'react-dom'
 import Reflux from 'reflux'
 import {Notification} from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
 import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
 import a from '../actions'
 import s from '../stores'
-import InfiniteList from 'react-infinite-list'
+import InfiniteList from './InfiniteList.jsx'
+
 
 var Search = React.createClass({
     mixins: [Reflux.ListenerMixin],
@@ -121,8 +123,10 @@ var Search = React.createClass({
                     </If>
                     <LoadingLoansPanel/>
                     <InfiniteList
-                        className="loan_list_container"
+                        ref="results"
+                        className="loan_list_container slow-transition"
                         items={this.state.filtered_loans}
+                        itemsCount={this.state.filtered_loans.length}
                         height={900}
                         itemHeight={100}
                         listItemClass={LoanListItem} />

@@ -324,7 +324,8 @@ if (cluster.isMaster){ //preps the downloads
     //when major changes happen where old clients cannot talk with new API endpoints
     //or if a major bug is found, then when clients check in with their heartbeat, they
     //are told to reload the page if they were loaded prior to the new release. not
-    //the most robust way of doing this, but it's handy!
+    //the most robust way of doing this, but it's handy! best to not have it be "now" time
+    //so that only long-running users are reset.
     const restartIfBefore = new Date('2016-03-13T08:10:21.057Z')
 
     hub.on('heartbeat', (settings, sender, callback)=>{
@@ -373,8 +374,11 @@ if (cluster.isMaster){ //preps the downloads
             console.log(progress.loan_load_progress.label)
         if (progress.loan_not_fundraising)
             removeVisionFromRedis(progress.loan_not_fundraising.id)
-        if (progress.new_loans)
+        if (progress.new_loans) {
+            //is this happening.
+            console.log("PROGRESS.NEW_LOANS:", JSON.stringify(progress.new_loans))
             progress.new_loans.forEach(loan => doVisionLookup(loan.id))
+        }
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
             loansChanged = true
         if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))

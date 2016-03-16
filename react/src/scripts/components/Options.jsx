@@ -153,7 +153,7 @@ const Options = React.createClass({
                                     <li key={i}>
                                         {p.id}: <KivaLink path={`partners/${p.id}`}>{p.name}</KivaLink>
                                         <If condition={p.kl_hasLoans}>
-                                            <span> (Has loans loaded)</span>
+                                            <span> (Has loans fundraising)</span>
                                         </If>
                                     </li>
                                 </For>

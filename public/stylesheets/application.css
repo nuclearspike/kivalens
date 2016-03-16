@@ -1,3 +1,63 @@
+.slow-transition-old div a {
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease; }
+
+.loan_list_item {
+  -webkit-transition: all 300ms ease;
+  transition: all 300ms ease; }
+
+.infinite-list-content {
+  -webkit-perspective: 300px;
+  -ms-perspective: 300px;
+  -o-perspective: 300px;
+  perspective: 300px;
+  -webkit-perspective-origin: 50% 50%;
+  -ms-perspective-origin: 50% 50%;
+  -o-perspective-origin: 50% 50%;
+  perspective-origin: 50% 50%; }
+
+.loan_list_item.gone {
+  /**-webkit-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -moz-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -ms-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -o-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );**/
+  -webkit-transform: translateX(-70%);
+      -ms-transform: translateX(-70%);
+          transform: translateX(-70%); }
+
+.loan_list_item.gone-test {
+  -webkit-transform: translate3d(0, 100px, -100px) rotateX(90deg);
+  -ms-transform: translate3d(0, 100px, -100px) rotateX(90deg);
+  transform: translate3d(0, 100px, -100px) rotateX(90deg); }
+
+/** animations **/
+/**
+
+.loan_list_item.future {
+  -webkit-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -moz-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -ms-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -o-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+}
+
+
+.cards div a.past {
+  -webkit-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -moz-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -ms-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  -o-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+  transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
+}
+.cards div a.future {
+  -webkit-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -moz-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -ms-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  -o-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+  transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
+}
+**/
 .loan_list_container {
   height: 500px;
   width: 100%;
@@ -137,7 +197,8 @@ ul.spacedList li {
   background-color: #cfcfcf !important; }
 
 .blur-me {
-  filter: blur(20px); }
+  -webkit-filter: blur(20px);
+          filter: blur(20px); }
 
 div.notification-bar {
   font-size: 2rem !important; }
@@ -163,8 +224,6 @@ div.notification-bar {
 .Select div,
 .Select input,
 .Select span {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box; }
 
 .Select.is-disabled > .Select-control {
@@ -286,7 +345,6 @@ div.notification-bar {
 
 .Select-loading {
   -webkit-animation: Select-animation-spin 400ms infinite linear;
-  -o-animation: Select-animation-spin 400ms infinite linear;
   animation: Select-animation-spin 400ms infinite linear;
   width: 16px;
   height: 16px;
@@ -300,7 +358,6 @@ div.notification-bar {
 
 .Select-clear-zone {
   -webkit-animation: Select-animation-fadeIn 200ms;
-  -o-animation: Select-animation-fadeIn 200ms;
   animation: Select-animation-fadeIn 200ms;
   color: #999;
   cursor: pointer;
@@ -471,7 +528,8 @@ div.notification-bar {
 
 @keyframes Select-animation-spin {
   to {
-    transform: rotate(1turn); } }
+    -webkit-transform: rotate(1turn);
+            transform: rotate(1turn); } }
 
 @-webkit-keyframes Select-animation-spin {
   to {
@@ -533,6 +591,7 @@ div.notification-bar {
 
 .simpleFade-enter.simpleFade-enter-active {
   opacity: 1;
+  -webkit-transition: opacity 200ms ease-in;
   transition: opacity 200ms ease-in; }
 
 .simpleFade-leave {
@@ -540,4 +599,5 @@ div.notification-bar {
 
 .simpleFade-leave.simpleFade-leave-active {
   opacity: 0.01;
+  -webkit-transition: opacity 100ms ease-in;
   transition: opacity 100ms ease-in; }

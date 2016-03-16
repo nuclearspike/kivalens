@@ -7,13 +7,18 @@ import {KivaImage} from '.'
 import cx from 'classnames'
 import a from '../actions'
 import s from '../stores/'
+import extend from 'extend'
 
 const LoanListItem = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
-        return this.isInBasket()
+        return extend(this.isInBasket(),{justLoaded:true})
     },
     componentDidMount() {
+        setTimeout(function(){
+            this.setState({justLoaded:false})
+        }.bind(this),50)
+
         this.listenTo(a.loans.basket.changed, this.basketChanged)
         this.listenTo(a.loans.live.loanNotFundraising, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
         this.loanUpdated(this.props)
@@ -29,16 +34,14 @@ const LoanListItem = React.createClass({
         return { inBasket: s.loans.syncInBasket(this.props.id) }
     },
     loanUpdated(loan){
-        if (loan.status != 'fundraising') {
+        if (loan.status != 'fundraising')
             this.setState({loanNotFundraising: true})
-            //this.forceUpdate()
-        }
     },
     render() {
         var loan = this.props
         return <ListGroupItem
                 onDoubleClick={a.loans.basket.add.bind(this, loan.id, 25)}
-                className={cx('loan_list_item', {in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
+                className={cx('loan_list_item', {gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>
                 <KivaImage className="float_left" type="square" loan={loan} image_width={113} height={90} width={90}/>

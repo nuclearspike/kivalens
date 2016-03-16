@@ -24,11 +24,11 @@ class Loan {
     }
 
     kl_expiring_in_days(){ //today is not defined
-        return (this.kl_planned_expiration_date - today) / (24 * 60 * 60 * 1000)
+        return (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000)
     }
 
     kl_disbursal_in_days(){ //today is not defined
-        return (new Date(this.terms.disbursal_date) - today) / (24 * 60 * 60 * 1000)
+        return (new Date(this.terms.disbursal_date) - Date.now()) / (24 * 60 * 60 * 1000)
     }
 
     getPartner(){

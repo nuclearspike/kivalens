@@ -81,7 +81,7 @@ var loanStore = Reflux.createStore({
     syncInBasket(loan_id){ return basket_loans.first(bi => bi.loan_id == loan_id) != undefined },
     syncBasketCount(){ return basket_loans.length },
     syncGetBasket(){
-        return basket_loans.map(bi => ({amount: bi.amount, loan: kivaloans.getById(bi.loan_id)})).where(bi => bi.loan != undefined)
+        return basket_loans.map(bi => ({id: bi.loan_id, amount: bi.amount, loan: kivaloans.getById(bi.loan_id)})).where(bi => bi.loan != undefined)
     },
     onBasketClear(){
         basket_loans = []

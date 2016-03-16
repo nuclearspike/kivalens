@@ -54,14 +54,14 @@ const Criteria = React.createClass({
             return <MenuItem eventKey={i} key={i} className={cx({'menu_selected': lastSaved == saved})} onClick={a.criteria.switchToSaved.bind(this, saved)}>{saved}</MenuItem>
         })
         if (menuItems.length) {
-            menuItems.push(<MenuItem divider />)
+            menuItems.push(<MenuItem divider key="divider-saved" />)
         }
         if (lastSaved) {
             if (canNotify)
                 menuItems.push(<MenuItem eventKey={1000} key='notify_on_new' onClick={this.toggleNotify.bind(this, lastSaved)}>{shouldNotifyOnNew ? 'Do NOT ':''}Notify on New for '{lastSaved}'</MenuItem>)
             menuItems.push(<MenuItem eventKey={1001} key='save_current' onClick={s.criteria.syncSaveLastByName.bind(this, lastSaved)}>Re-save '{lastSaved}'</MenuItem>)
             menuItems.push(<MenuItem eventKey={1002} key='delete_saved' onClick={s.criteria.syncDelete.bind(this, lastSaved)}>Delete '{lastSaved}'</MenuItem>)
-            menuItems.push(<MenuItem divider />)
+            menuItems.push(<MenuItem divider key="divider-actions" />)
         }
         menuItems.push(<MenuItem eventKey={1003} key='save_current_as' onClick={this.promptForName}>Save Current Criteria As...</MenuItem>)
 

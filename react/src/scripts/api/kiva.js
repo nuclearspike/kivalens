@@ -575,7 +575,7 @@ class Loans {
                         loans = loans.orderBy(loan => loan.kl_planned_expiration_date.getTime()).thenBy(loan => loan.id)
                         break
                     case 'still_needed':
-                        loans = loans.orderBy(loan => loan.kl_still_needed())
+                        loans = loans.orderBy(loan => loan.kl_still_needed)
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
@@ -918,7 +918,6 @@ class Loans {
 
         if (notify) this.notify({backgroundResync:{state: 'started'}})
 
-
         const processLoans = function(loans){
             var loans_added = [], loans_updated = 0
             //for every loan found in a search from Kiva... these are not full details!
@@ -934,6 +933,7 @@ class Loans {
                     loans_added.push(loan.id)
                 }
             })
+
             cl("############### LOANS UPDATED:", loans_updated)
             if (loans_updated > 0) that.notify({background_updated: loans_updated})
 
@@ -952,6 +952,7 @@ class Loans {
         if (!canWebWork()) {
             new LoansSearch(this.base_kiva_params, false).start().done(processLoans)
         } else {
+            //todo: does this cause a separate thread
             var work = require('webworkify')
             var ww = work(require('../api/wwBackgroundResync.js'))
             ww.addEventListener('message', function (ev) {

@@ -1,16 +1,17 @@
 "use strict"
 /**
- * an attempt at having this executed in a thread. it doesn't like
- * kiva.js for whatever reason.
+ * an attempt at having this executed in a thread.
  */
 console.log('started thread file')
 
 //self.importScripts('./react/src/scripts/api/kivajs/LenderFundraisingLoans.js')
-const LFL = require('./react/src/scripts/api/kivajs/LenderFundraisingLoans')
-console.log('required LFL', typeof LFL)
 
 function lenderLoans(lender_id){
+    const LFL = require('./react/src/scripts/api/kivajs/LenderFundraisingLoans')
+    console.log('required LFL', typeof LFL)
+
     //var LenderFundraisingLoans = require('./react/src/scripts/api/kiva').LenderFundraisingLoans
+
     console.log("type of ", typeof LFL)
     thread.emit("data", 'processed', {lender_id:lender_id})
     return "BOOK"

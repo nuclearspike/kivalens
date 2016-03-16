@@ -195,7 +195,7 @@ const Live = React.createClass({
                         </li>
                         <li>
                             Once the page has loaded, KivaLens pulls its listing of loans from the KivaLens server
-                            (which has pulled them from Kiva' API, stripped out everything it doesn't need and has them
+                            (which has pulled them from Kiva's API, stripped out everything it doesn't need and has them
                             ready to go) and keeps all of the loan and partner data in your browser's memory.
                         </li>
                         <li>
@@ -207,9 +207,8 @@ const Live = React.createClass({
                         <li>
                             Every time you click on a loan, KivaLens will first immediately display what it has while
                             simultaneously requesting the most recent version of the loan and will seamlessly merge
-                            any changes once it has the data. What could change? The amount other lenders have in
-                            their baskets or user tags are examples of data that changes over time that doesn't get
-                            published in the live data stream.
+                            any changes once it has the data. What could change? User tags is an example of data that
+                            changes over time but doesn't get published in the live data stream.
                         </li>
                         <li>
                             After 5 minutes then once every 10 minutes, KivaLens silently performs a full resync of it's

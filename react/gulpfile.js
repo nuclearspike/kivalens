@@ -84,8 +84,9 @@ gulp.task("production", function(){
 
 
 gulp.task("delete_rogue_react", function(){ //todo: temp fix!
-    var clean = require('gulp-clean')
-    return gulp.src('node_modules/react-infinite-list/node_modules/react', {read: false}).pipe(clean({force: true}))
+    //this is not needed as the infinite-list is now brought into my package.
+    //var clean = require('gulp-clean')
+    //return gulp.src('node_modules/react-infinite-list/node_modules/react', {read: false}).pipe(clean({force: true}))
 })
 
 gulp.task('scripts', function() { return compile(false) })

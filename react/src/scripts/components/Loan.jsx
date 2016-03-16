@@ -5,7 +5,7 @@ import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
-import InfiniteList from 'react-infinite-list'
+import InfiniteList from './InfiniteList.jsx'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron,Alert} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, NewTabLink, LoanLink, KivaLink, LoanListItem} from '.'
@@ -247,6 +247,7 @@ var Loan = React.createClass({
         var atheistScore = partner.atheistScore
         //this.renderCount = this.renderCount || 0
         //this.renderCount++
+
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div>
@@ -389,13 +390,14 @@ var Loan = React.createClass({
                         </Col>
                     </Tab>
 
-                    <Tab eventKey={4} title="Similar" disabled={similar.length == 0} className="ample-padding-top">
+                    <Tab eventKey={4} title="Similar" disabled={similar && similar.length == 0} className="ample-padding-top">
                         <Col lg={6}>
                             <InfiniteList
                                 className="loan_list_container"
                                 items={similar}
                                 height={300}
                                 itemHeight={100}
+                                itemsCount={similar ? similar.length : 0}
                                 listItemClass={LoanListItem} />
                         </Col>
                     </Tab>
