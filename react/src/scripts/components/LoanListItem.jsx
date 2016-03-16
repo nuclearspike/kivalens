@@ -12,23 +12,27 @@ import extend from 'extend'
 const LoanListItem = React.createClass({
     mixins: [Reflux.ListenerMixin],
     getInitialState() {
-        return extend(this.isInBasket(),{justLoaded:true})
+        return extend(this.isInBasket(),{justLoaded:true,selected:s.loans.selected_id == this.props.id})
     },
     componentDidMount() {
         setTimeout(function(){
             this.setState({justLoaded:false})
         }.bind(this),50)
 
+        this.listenTo(a.loans.selection, this.testSelection)
         this.listenTo(a.loans.basket.changed, this.basketChanged)
         this.listenTo(a.loans.live.loanNotFundraising, loan => {if (loan.id == this.props.id) this.loanUpdated(loan)})
         this.loanUpdated(this.props)
     },
+    testSelection(id){
+        var selected = this.props.id == id
+        if (selected != this.state.selected)
+            this.setState({selected})
+    },
     basketChanged(){
         var st = this.isInBasket()
-        if (st.inBasket != this.state.inBasket) {
+        if (st.inBasket != this.state.inBasket)
             this.setState(st)
-            //this.forceUpdate()
-        }
     },
     isInBasket(){
         return { inBasket: s.loans.syncInBasket(this.props.id) }
@@ -39,9 +43,10 @@ const LoanListItem = React.createClass({
     },
     render() {
         var loan = this.props
+        let {selected} = this.state
         return <ListGroupItem
                 onDoubleClick={a.loans.basket.add.bind(this, loan.id, 25)}
-                className={cx('loan_list_item', {gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
+                className={cx('loan_list_item', {selected, gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>
                 <KivaImage className="float_left" type="square" loan={loan} image_width={113} height={90} width={90}/>

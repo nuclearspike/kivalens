@@ -128,8 +128,11 @@ var loanStore = Reflux.createStore({
         if (loan)
             a.loans.detail.completed(loan) //return immediately with the last one we got (typically at start up)
         else
-            loan = {id: id} //bad.. when does this happen?
+            loan = {id} //bad.. when does this happen?
         kivaloans.refreshLoan(loan).done(l => a.loans.detail.completed(l)) //kick off a process to get an updated version
+    },
+    onSelection(id){
+        this.selected_id = id
     },
     onFilter(c){
         function arraysEqual (a1, a2) {

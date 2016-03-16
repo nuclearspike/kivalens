@@ -1,86 +1,38 @@
-.slow-transition-old div a {
-  -webkit-transition: all 600ms ease;
-  -moz-transition: all 600ms ease;
-  -ms-transition: all 600ms ease;
-  -o-transition: all 600ms ease;
-  transition: all 600ms ease;
-}
-
 //all transitions on loan list items are 300ms
 .loan_list_item {
-  -webkit-transition: all 300ms ease;
-  -moz-transition: all 300ms ease;
-  -ms-transition: all 300ms ease;
-  -o-transition: all 300ms ease;
   transition: all 300ms ease;
+  z-index: 10;
 }
 
-//container sets the 3d stuff
-.infinite-list-content {
-  -webkit-perspective: 300px;
-  -moz-perspective: 300px;
-  -ms-perspective: 300px;
-  -o-perspective: 300px;
-  perspective: 300px;
+.side-tilted-container {
+  -webkit-perspective: 1000px;
+  -webkit-perspective-origin: 50% 100px;
+  .side-tilted {
+    -webkit-transform: rotateY(15deg) translateX(5px);
+  }
+}
 
-  -webkit-perspective-origin: 50% 50%;
-  -moz-perspective-origin: 50% 50%;
-  -ms-perspective-origin: 50% 50%;
-  -o-perspective-origin: 50% 50%;
-  perspective-origin: 50% 50%;
+.flat-3d {
+  -webkit-transform: rotate3d(0,0,0,0deg);
+}
+
+.loan_list_item.selected {
+  z-index: 12;
+  //transform: rotateY(0deg); // translateX(30px) translateZ(100px);
+  background-color: aliceblue;
 }
 
 .loan_list_item.gone {
-  /**-webkit-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -moz-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -ms-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -o-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );**/
-  transform: translateX( -70% );
+  z-index: 1;
+  -webkit-transform: translate3d( 0, -50px, -50px ) rotateX( -90deg );
+  //transform: translateX( -70% );
 }
-
-.loan_list_item.gone-test {
-  -webkit-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -moz-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -ms-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -o-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-}
-
-
-/** animations **/
-/**
-
-.loan_list_item.future {
-  -webkit-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -moz-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -ms-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -o-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-}
-
-
-.cards div a.past {
-  -webkit-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -moz-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -ms-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  -o-transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-  transform: translate3d( 0, -100px, -100px ) rotateX( -90deg );
-}
-.cards div a.future {
-  -webkit-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -moz-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -ms-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  -o-transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-  transform: translate3d( 0, 100px, -100px ) rotateX( 90deg );
-}
-**/
-
 
 .loan_list_container {
   height: 500px;
   width: 100%;
   overflow-y: scroll;
+  //box-shadow: inset 0 0 10px #000000;
 }
 
 div.panel.radioPanel {

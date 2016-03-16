@@ -3,7 +3,7 @@ import loans from './loanStore'
 import live from './liveStore'
 import utils from './utilsStore'
 
-var s = {criteria: criteria, loans: loans, live: live, utils: utils}
+var s = {criteria, loans, live, utils}
 
 export default s
 window.kl_stores = s

@@ -77,6 +77,8 @@
     </div>
 </div>
 
+</body>
+
 <script>
     if (typeof localStorage == 'object'){
         var lenderObj = localStorage.getItem('lenderObj')
@@ -106,7 +108,6 @@
 </script>
 <% js.forEach(function(file) { %>
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
-</body>
 <script>
     window.isBootstrapLoaded = false
     window.bootstrapLoaded = function(){

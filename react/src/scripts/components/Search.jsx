@@ -20,9 +20,19 @@ var Search = React.createClass({
         var show_secondary_load = (kivaloans.secondary_load == 'started')
         return {filtered_loans, show_secondary_load, loan_count: filtered_loans.length, notification: {active: false, message: ''}}
     },
+    onScroll(){
+        var d = ReactDOM.findDOMNode(this.refs.perspective)
+        d.setAttribute('style',"perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
+    },
+    componentWillUnmount(){
+        if (/webkit/i.test(navigator.userAgent))
+            document.removeEventListener('scroll', this.onScroll)
+    },
     componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
+        if (/webkit/i.test(navigator.userAgent))
+            document.addEventListener('scroll', this.onScroll)
         this.listenTo(a.loans.filter.completed, (loans,sameAsLastTime) => {
             console.log('a.loans.filter.completed',loans.length,sameAsLastTime)
             //if (loans.length)
@@ -83,10 +93,11 @@ var Search = React.createClass({
         this.setState({outdatedUrl: null})
     },
     render()  {
-        var style = {height:'100%', width: '100%'}
+        //var style = {height:'100%', width: '100%'}
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
         return (
-            <div style={style} >
+            <div>
+                <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
                 <If condition={showBulkAdd}>
                     <BulkAddModal onHide={this.modalHidden} />
                 </If>
@@ -99,39 +110,40 @@ var Search = React.createClass({
                         </p>
                     </Alert>
                 </If>
-                <Col md={4}>
-                    <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
-                    <ButtonGroup justified className="top-only">
-                        <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
-                        <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
-                    </ButtonGroup>
-                    <If condition={show_secondary_load}>
-                        <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
-                            More loans are still loading. Carry on. {secondary_load_status}
-                        </Alert>
-                    </If>
-                    <If condition={backgroundResyncState == 'started'}>
-                        <Alert className="not-rounded" style={{marginBottom:'0px'}} >
-                            Continue using the site while the loans are refreshed...
-                        </Alert>
-                    </If>
-                    <If condition={hasHadLoans && loan_count == 0}>
-                        <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
-                            There are no matching loans for your current criteria. Loosen the criteria, select a
-                            different Saved Search or click the "Clear" button to start over.
-                        </Alert>
-                    </If>
-                    <LoadingLoansPanel/>
-                    <InfiniteList
-                        ref="results"
-                        className="loan_list_container slow-transition"
-                        items={this.state.filtered_loans}
-                        itemsCount={this.state.filtered_loans.length}
-                        height={900}
-                        itemHeight={100}
-                        listItemClass={LoanListItem} />
+                <Col md={4} ref="perspective" className="side-tilted-container">
+                    <div className="side-tilted">
+                        <ButtonGroup justified className="top-only">
+                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
+                            <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
+                        </ButtonGroup>
+                        <If condition={show_secondary_load}>
+                            <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
+                                More loans are still loading. Carry on. {secondary_load_status}
+                            </Alert>
+                        </If>
+                        <If condition={backgroundResyncState == 'started'}>
+                            <Alert className="not-rounded" style={{marginBottom:'0px'}} >
+                                Continue using the site while the loans are refreshed...
+                            </Alert>
+                        </If>
+                        <If condition={hasHadLoans && loan_count == 0}>
+                            <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
+                                There are no matching loans for your current criteria. Loosen the criteria, select a
+                                different Saved Search or click the "Clear" button to start over.
+                            </Alert>
+                        </If>
+                        <LoadingLoansPanel/>
+                        <InfiniteList
+                            ref="results"
+                            className="loan_list_container"
+                            items={this.state.filtered_loans}
+                            itemsCount={this.state.filtered_loans.length}
+                            height={900}
+                            itemHeight={100}
+                            listItemClass={LoanListItem} />
+                    </div>
                 </Col>
-                <Col md={8}>
+                <Col md={8} className="flat-3d">
                     {this.props.children}
                 </Col>
             </div>

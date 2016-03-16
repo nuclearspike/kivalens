@@ -27,7 +27,6 @@ const NoUpdate = React.createClass({
 
 const DeadZone = React.createClass({
     shouldComponentUpdate({until}){
-
         var newValue = until()
         var shouldUpdate = this.oldValue != newValue
         this.oldValue = newValue
@@ -143,7 +142,10 @@ var Loan = React.createClass({
         var at = this.savedActiveTab()
         return extend({},at,ls)
     },
-    componentWillUnmount(){ clearInterval(this.refreshInterval) },
+    componentWillUnmount(){
+        clearInterval(this.refreshInterval)
+        a.loans.selection(null)
+    },
     componentDidMount(){
         this.listenTo(a.loans.detail.completed, this.displayLoan) //when loan gets refreshed or switched
         this.listenTo(a.loans.basket.changed, ()=>{ if (this.state.loan) this.setState({inBasket: s.loans.syncInBasket(this.state.loan.id)}) })
@@ -189,6 +191,7 @@ var Loan = React.createClass({
         return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
     },
     displayLoan(loan){
+        a.loans.selection(loan.id)
         if (loan.id != this.props.params.id) return
 
         window.currentLoan = loan
@@ -324,7 +327,7 @@ var Loan = React.createClass({
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                             </Col>
-                            {(activeTab == 2 && loan.kls_half_back)? <RepaymentGraphs loan={loan}/> : <span/>}
+                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : <span/>}
                         </Grid>
                     </Tab>
 

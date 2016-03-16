@@ -516,7 +516,7 @@ if (cluster.isMaster){ //preps the downloads
             console.error('socket.io error: ', e)
         }
     }
-    if (true || process.env.NODE_ENV == 'production') {
+    if (process.env.NODE_ENV == 'production') {
         connectChannel('loan.posted', function (data) {
             data = JSON.parse(data)
             console.log("loan.posted " + data.p.loan.id)

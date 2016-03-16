@@ -2,8 +2,8 @@
 
 import React from 'react'
 import Reflux from 'reflux'
-import {Grid,Row,Col,Input,ButtonGroup,Button,Modal,ProgressBar,Panel,Alert} from 'react-bootstrap';
-import {BasketListItem,Loan} from '.';
+import {Grid,Row,Col,Input,ButtonGroup,Button,Modal,ProgressBar,Panel,Alert} from 'react-bootstrap'
+import {BasketListItem,Loan} from '.'
 import a from '../actions'
 import s from '../stores'
 import InfiniteList from './InfiniteList.jsx'
