@@ -4,11 +4,41 @@
   z-index: 10;
 }
 
+.facepage {
+  -webkit-perspective: 5000px;
+  -webkit-perspective-origin: 50% 100px;
+}
+
 .side-tilted-container {
   -webkit-perspective: 1000px;
   -webkit-perspective-origin: 50% 100px;
+
+  .side-results {
+    background: white;
+    -webkit-transition: all 1000ms ease;
+    -webkit-transform: rotateY(0deg) translateX(0px);
+  }
   .side-tilted {
     -webkit-transform: rotateY(15deg) translateX(5px);
+    .btn {  z-index: 10; }
+  }
+  .side-shadow-sometimes {
+    -webkit-transition: all 1000ms ease;
+    -webkit-box-shadow: -25px 10px 117px -16px rgba(0,0,0,0.0);
+    height: 900px;
+    width: 300px;
+    position: absolute;
+    top: 20px;
+  }
+  .side-tilted-shadow {
+    -webkit-transition: all 1000ms ease;
+    -webkit-box-shadow: -25px 10px 117px -16px rgba(0,0,0,0.75);
+    background: black;
+    opacity: .75;
+    height: 900px;
+    width: 300px;
+    position: absolute;
+    top: 20px;
   }
 }
 
@@ -18,7 +48,7 @@
 
 .loan_list_item.selected {
   z-index: 12;
-  //transform: rotateY(0deg); // translateX(30px) translateZ(100px);
+  transform: rotateY(0deg); // translateX(30px) translateZ(100px);
   background-color: aliceblue;
 }
 

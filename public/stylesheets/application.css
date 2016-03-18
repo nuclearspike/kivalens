@@ -3,17 +3,45 @@
   transition: all 300ms ease;
   z-index: 10; }
 
+.facepage {
+  -webkit-perspective: 5000px;
+  -webkit-perspective-origin: 50% 100px; }
+
 .side-tilted-container {
   -webkit-perspective: 1000px;
   -webkit-perspective-origin: 50% 100px; }
+  .side-tilted-container .side-results {
+    background: white;
+    -webkit-transition: all 1000ms ease;
+    -webkit-transform: rotateY(0deg) translateX(0px); }
   .side-tilted-container .side-tilted {
     -webkit-transform: rotateY(15deg) translateX(5px); }
+    .side-tilted-container .side-tilted .btn {
+      z-index: 10; }
+  .side-tilted-container .side-shadow-sometimes {
+    -webkit-transition: all 1000ms ease;
+    -webkit-box-shadow: -25px 10px 117px -16px transparent;
+    height: 900px;
+    width: 300px;
+    position: absolute;
+    top: 20px; }
+  .side-tilted-container .side-tilted-shadow {
+    -webkit-transition: all 1000ms ease;
+    -webkit-box-shadow: -25px 10px 117px -16px rgba(0, 0, 0, 0.75);
+    background: black;
+    opacity: .75;
+    height: 900px;
+    width: 300px;
+    position: absolute;
+    top: 20px; }
 
 .flat-3d {
   -webkit-transform: rotate3d(0, 0, 0, 0deg); }
 
 .loan_list_item.selected {
   z-index: 12;
+  -webkit-transform: rotateY(0deg);
+          transform: rotateY(0deg);
   background-color: aliceblue; }
 
 .loan_list_item.gone {

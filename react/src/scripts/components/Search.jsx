@@ -7,6 +7,7 @@ import {Notification} from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
 import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
 import a from '../actions'
+import cx from 'classnames'
 import s from '../stores'
 import InfiniteList from './InfiniteList.jsx'
 
@@ -22,11 +23,15 @@ var Search = React.createClass({
     },
     onScroll(){
         var d = ReactDOM.findDOMNode(this.refs.perspective)
-        d.setAttribute('style',"perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
+        d.setAttribute('style',"-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
     },
     componentWillUnmount(){
         if (/webkit/i.test(navigator.userAgent))
             document.removeEventListener('scroll', this.onScroll)
+    },
+    componentWillReceiveProps({location}){
+        if (location && location.pathname != this.props.location.pathname)
+            this.setState({floatResults: location.pathname != '/search'})
     },
     componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
@@ -34,7 +39,7 @@ var Search = React.createClass({
         if (/webkit/i.test(navigator.userAgent))
             document.addEventListener('scroll', this.onScroll)
         this.listenTo(a.loans.filter.completed, (loans,sameAsLastTime) => {
-            console.log('a.loans.filter.completed',loans.length,sameAsLastTime)
+            cl('a.loans.filter.completed',loans.length,sameAsLastTime)
             //if (loans.length)
             this.setState({notification: {active: true, message:`${loans.length} loans`}})
             if (sameAsLastTime) return
@@ -94,7 +99,7 @@ var Search = React.createClass({
     },
     render()  {
         //var style = {height:'100%', width: '100%'}
-        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
+        let {outdatedUrl, showBulkAdd, notification, floatResults, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
         return (
             <div>
                 <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
@@ -111,36 +116,37 @@ var Search = React.createClass({
                     </Alert>
                 </If>
                 <Col md={4} ref="perspective" className="side-tilted-container">
-                    <div className="side-tilted">
-                        <ButtonGroup justified className="top-only">
-                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
-                            <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
-                        </ButtonGroup>
-                        <If condition={show_secondary_load}>
-                            <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
-                                More loans are still loading. Carry on. {secondary_load_status}
-                            </Alert>
-                        </If>
-                        <If condition={backgroundResyncState == 'started'}>
-                            <Alert className="not-rounded" style={{marginBottom:'0px'}} >
-                                Continue using the site while the loans are refreshed...
-                            </Alert>
-                        </If>
-                        <If condition={hasHadLoans && loan_count == 0}>
-                            <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
-                                There are no matching loans for your current criteria. Loosen the criteria, select a
-                                different Saved Search or click the "Clear" button to start over.
-                            </Alert>
-                        </If>
-                        <LoadingLoansPanel/>
-                        <InfiniteList
-                            ref="results"
-                            className="loan_list_container"
-                            items={this.state.filtered_loans}
-                            itemsCount={this.state.filtered_loans.length}
-                            height={900}
-                            itemHeight={100}
-                            listItemClass={LoanListItem} />
+                    <div className={cx({"side-tilted-shadow":floatResults,'side-shadow-sometimes':!floatResults})}> </div>
+                    <div className={cx('side-results', {"side-tilted":floatResults})}>
+                            <ButtonGroup justified className="top-only">
+                                <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
+                                <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
+                            </ButtonGroup>
+                            <If condition={show_secondary_load}>
+                                <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
+                                    More loans are still loading. Carry on. {secondary_load_status}
+                                </Alert>
+                            </If>
+                            <If condition={backgroundResyncState == 'started'}>
+                                <Alert className="not-rounded" style={{marginBottom:'0px'}} >
+                                    Continue using the site while the loans are refreshed...
+                                </Alert>
+                            </If>
+                            <If condition={hasHadLoans && loan_count == 0}>
+                                <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
+                                    There are no matching loans for your current criteria. Loosen the criteria, select a
+                                    different Saved Search or click the "Clear" button to start over.
+                                </Alert>
+                            </If>
+                            <LoadingLoansPanel/>
+                            <InfiniteList
+                                ref="results"
+                                className="loan_list_container"
+                                items={this.state.filtered_loans}
+                                itemsCount={this.state.filtered_loans.length}
+                                height={900}
+                                itemHeight={100}
+                                listItemClass={LoanListItem} />
                     </div>
                 </Col>
                 <Col md={8} className="flat-3d">
@@ -150,5 +156,7 @@ var Search = React.createClass({
         )
     }
 })
+
+//
 
 export default Search;
