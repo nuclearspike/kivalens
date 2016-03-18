@@ -15,7 +15,8 @@
     -webkit-transition: all 1000ms ease;
     -webkit-transform: rotateY(0deg) translateX(0px); }
   .side-tilted-container .side-tilted {
-    -webkit-transform: rotateY(15deg) translateX(5px); }
+    -webkit-transform: rotateY(15deg) translateX(5px);
+    -webkit-transform-origin: 100% 50%; }
     .side-tilted-container .side-tilted .btn {
       z-index: 10; }
   .side-tilted-container .side-shadow-sometimes {
