@@ -49,7 +49,7 @@ const LoanListItem = React.createClass({
                 className={cx('loan_list_item', {selected, gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>
-                <KivaImage className="float_left" type="square" loan={loan} image_width={113} height={90} width={90}/>
+                <KivaImage key={loan.id} type="square" loan={loan} image_width={113} height={90} width={90}/>
                 <div className="details">
                     <p><b>{loan.name}</b></p>
                     {loan.location.country} | {loan.sector} <span className="hidden-md">| {loan.activity}</span>

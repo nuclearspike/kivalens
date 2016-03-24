@@ -253,7 +253,7 @@ var Loan = React.createClass({
 
         if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
-            <div>
+            <div className="Loan">
                 <h1 style={{marginTop:'0px'}}>{loan.name}
                     <If condition={inBasket}>
                         <Button bsStyle="danger" className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
@@ -263,7 +263,7 @@ var Loan = React.createClass({
                 </h1>
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top">
-                        <KivaImage loan={loan} type="width" image_width={800} width="100%"/>
+                        <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%"/>
                         <Panel>
                             <If condition={loan.borrowers.length > 1}>
                                 <p>In no particular order:</p>

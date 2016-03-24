@@ -7,6 +7,16 @@
   -webkit-perspective: 5000px;
   -webkit-perspective-origin: 50% 100px; }
 
+img.loaded {
+  -webkit-transition: all 300ms ease;
+  transition: all 300ms ease;
+  opacity: 1; }
+
+img.not_loaded {
+  -webkit-transition: all 300ms ease;
+  transition: all 300ms ease;
+  opacity: 0; }
+
 .side-tilted-container {
   -webkit-perspective: 1000px;
   -webkit-perspective-origin: 50% 100px; }
@@ -80,15 +90,25 @@ div.panel.radioPanel div.radio {
   border-top-right-radius: 0 !important;
   border-top-left-radius: 0 !important; }
 
+.Loan .KivaImage {
+  min-height: 200px;
+  min-width: 200px;
+  background-size: 200px 200px; }
+
 .loan_list_item {
   height: 100px;
   width: 100%;
   padding-top: 5px !important;
   padding-bottom: 5px !important;
   overflow-y: hidden; }
-  .loan_list_item img {
+  .loan_list_item .KivaImage {
+    float: left;
     margin-right: 5px;
-    margin-left: -20px; }
+    margin-left: -20px;
+    background-size: 90px 90px; }
+    .loan_list_item .KivaImage img {
+      width: 90px;
+      height: 90px; }
 
 .snowstack #caption {
   position: fixed;
