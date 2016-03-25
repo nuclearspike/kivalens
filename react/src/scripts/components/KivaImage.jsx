@@ -38,10 +38,12 @@ const KivaImage = React.createClass({
         else
             loading_image_url = `https://www.kiva.org/img/${image_dir}/726677.jpg`
 
+        var style = !loaded ? {backgroundImage:`url("${loading_image_url}")`} : {}
+
         //width:this.props.width,height:this.props.height,
-        return <div className="KivaImage" style={{backgroundRepeat:'no-repeat',backgroundImage:`url("${loading_image_url}")`}}>
-                {this.props.useThumbAsBackground && !loaded? <div style={{padding:5}}>Larger version loading...</div>: null}
-                <img className={cx({'loaded':loaded,'not_loaded':!loaded})} onLoad={this.imageLoaded} alt={alt_text} src={image_url}/>
+        return <div className={cx("KivaImage",{loaded,'not_loaded':!loaded})} style={style}>
+                <div className="loading_notice">Larger version loading...</div>
+                <img width={this.props.width} height={this.props.height} onLoad={this.imageLoaded} alt={alt_text} src={image_url}/>
             </div>
 
         //return (<img {...this.props} alt={alt_text} src={image_url} />)

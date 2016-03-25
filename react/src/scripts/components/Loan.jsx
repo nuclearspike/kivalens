@@ -262,7 +262,7 @@ var Loan = React.createClass({
                     </If>
                 </h1>
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
-                    <Tab eventKey={1} title="Image" className="ample-padding-top">
+                    <Tab eventKey={1} title="Image" className="ample-padding-top fullsizeImage">
                         <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%"/>
                         <Panel>
                             <If condition={loan.borrowers.length > 1}>
@@ -361,7 +361,7 @@ var Loan = React.createClass({
                         </Col>
                         <Col lg={6}>
                             <If condition={partner.image}>
-                                <KivaImage className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
+                                <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
                             </If>
                             <KivaLink path={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
                         </Col>
