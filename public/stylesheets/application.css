@@ -1,3 +1,7 @@
+#graph_container div {
+  -webkit-transition: all 3000ms ease;
+  transition: all 3000ms ease; }
+
 .loan_list_item {
   -webkit-transition: all 300ms ease;
   transition: all 300ms ease;

@@ -1,4 +1,9 @@
-"use strict";
+"use strict"
+/*
+* the req object is used for all calls to KL and Kiva APIs, as well as others.
+* this will fetch the loans given in the array.
+* req.kiva.api.loans([123,234,345]).done(loans => console.log(loans))
+*/
 
 const isServer = require("./kivaBase").isServer
 const ResultProcessors = require("./ResultProcessors")
@@ -25,7 +30,7 @@ req.kiva = {
     ajax: new SemRequest(`${kivaBase}ajax/`,true,!isServer(),{},5*60)
 }
 
-//max of 100, not enforced in this call.
+//max of 100, not enforced or checked in this call.
 req.kiva.api.loans = (ids, process) => {
     if (process === undefined) process = true
     var p = req.kiva.api.get(`loans/${ids.join(',')}.json`).then(res => res.loans)

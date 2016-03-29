@@ -1,3 +1,7 @@
+#graph_container div {
+  transition: all 3000ms ease;
+}
+
 //all transitions on loan list items are 300ms
 .loan_list_item {
   transition: all 300ms ease;
