@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "gulp": "gulp",
-    "kl": "npm run gulp scripts; npm run gulp styles; npm run gulp",
+    "kl": "npm run gulp scripts && npm run gulp styles && npm run gulp",
     "prod": "npm run gulp prod"
   },
   "repository": {
