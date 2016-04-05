@@ -1,7 +1,3 @@
-#graph_container div {
-  -webkit-transition: all 3000ms ease;
-  transition: all 3000ms ease; }
-
 .loan_list_item {
   -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
@@ -191,6 +187,11 @@ ul.spacedList li {
   overflow: auto;
   position: relative; }
 
+.infinite-list-content {
+  margin: 0;
+  position: absolute;
+  width: 100%; }
+
 @media (max-width: 768px) {
   .loan_list_container {
     height: 300px !important; } }
@@ -200,11 +201,6 @@ ul.spacedList li {
 
 .notification-bar {
   z-index: 30000; }
-
-.infinite-list-content {
-  margin: 0;
-  position: absolute;
-  width: 100%; }
 
 .ample-padding-top {
   padding-top: 15px; }

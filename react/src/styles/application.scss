@@ -1,5 +1,5 @@
 #graph_container div {
-  transition: all 3000ms ease;
+  //transition: all 3000ms ease;
 }
 
 //all transitions on loan list items are 300ms
@@ -234,6 +234,13 @@ ul.spacedList li {padding-top: 10px}
   position: relative;
 }
 
+.infinite-list-content {
+  margin: 0;
+  position: absolute;
+  width: 100%;
+}
+
+
 @media (max-width: 768px) {
   .loan_list_container {height: 300px !important;}
 }
@@ -244,12 +251,6 @@ ul.spacedList li {padding-top: 10px}
 
 .notification-bar { //react-notification
   z-index: 30000;
-}
-
-.infinite-list-content {
-  margin: 0;
-  position: absolute;
-  width: 100%;
 }
 
 .ample-padding-top {

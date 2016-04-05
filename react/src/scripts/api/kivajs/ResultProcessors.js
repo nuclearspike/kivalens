@@ -159,7 +159,6 @@ class ResultProcessors {
             //some very old loans do not have scheduled payments and ones dl from kl server have them removed now.
             if (loan.terms.scheduled_payments && loan.terms.scheduled_payments.length) {
 
-
                 //replace Kiva's version since it has too many entries.
                 if (!loan.kls)
                     loan.terms.scheduled_payments = loan.terms.scheduled_payments.groupBy(p=>p.due_date).select(g => ({due_date: g[0].due_date, amount: g.sum(p=>p.amount)}))
@@ -167,7 +166,7 @@ class ResultProcessors {
                 //for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
                 var repayments = loan.terms.scheduled_payments.select(p => {
                     var date = new Date(p.due_date)
-                    return {date: date, display: date.toString("MMM-yyyy"), amount: p.amount}
+                    return { date: date, display: date.toString("MMM-yyyy"), amount: p.amount }
                 })
 
                 //fill in the gaps for southern-guy-toothy-shaped repayments.
@@ -197,7 +196,9 @@ class ResultProcessors {
                         loan.kls_75_back_actual = parseFloat(((running_total * 100) / loan.loan_amount).toFixed(2))
                     }
                 })
-                loan.kls_final_repayment =  loan.kl_repayments.last().date
+
+                loan.kls_final_repayment = new Date(loan.terms.scheduled_payments.last().due_date)
+                //loan.kls_final_repayment =  loan.kl_repayments.last().date
                 //when looking at really old loans, can be null
                 var today = Date.today()
                 loan.kls_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
