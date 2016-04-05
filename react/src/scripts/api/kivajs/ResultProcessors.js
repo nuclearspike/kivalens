@@ -197,14 +197,13 @@ class ResultProcessors {
                     }
                 })
 
-                loan.kls_final_repayment = new Date(loan.terms.scheduled_payments.last().due_date)
-                //loan.kls_final_repayment =  loan.kl_repayments.last().date
+                loan.kls_final_repayment = new Date(loan.terms.scheduled_payments.last().due_date);
+                //loan.kls_final_repayment =  loan.kl_repayments.last().date //doesn't have timezone
                 //when looking at really old loans, can be null
                 var today = Date.today()
                 loan.kls_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
             }
             ///REPAYMENT STUFF: END
-
 
             //memory clean up, delete all non-english descriptions.
             loan.description.languages.where(lang => lang != 'en').forEach(lang => delete loan.description.texts[lang])

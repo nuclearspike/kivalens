@@ -242,7 +242,7 @@ const About = React.createClass({
 
                 <li>
                     <b>Emotion Detection!</b> KivaLens uses Google Vision API to analyze Kiva borrower photos for emotion
-                    (joy, sorrow, anger) likelihood as well as the likelihood the picture contains someone with
+                    (joy, sorrow, anger) likelihood as well as the likelihood someone is wearing
                     head-wear. You can search on these detected emotions/headwear likelihoods.
                 </li>
             </ul>
