@@ -655,7 +655,7 @@ const CriteriaTabs = React.createClass({
     focusSelect(group, key){
         if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
-        this.last_select = {group: group, key: key}
+        this.last_select = {group, key}
 
         //do we ignore what is in the select
         var ignore_values = false
@@ -769,6 +769,14 @@ const CriteriaTabs = React.createClass({
                     <Row className="ample-padding-top">
                         <Col md={12}>
                             <Panel header='Portfolio Balancing'>
+                                <p>
+                                    Portfolio Balancing allows you to find loans that are either similiar to or unlike
+                                    the loans you have in your portfolio (either just the active/paying-back loans
+                                    or all of them. So, if you wanted to get loans from every sector
+                                    or country, it's easy! Or if you wanted to help make sure you aren't getting too
+                                    many loans from a handful of partners to protect yourself from losses due to
+                                    institutional failure, that's easy, too!
+                                </p>
                                 Notes:
                                 <ul className="spacedList">
                                     <li>

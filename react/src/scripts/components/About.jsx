@@ -54,8 +54,8 @@ const About = React.createClass({
             <p>
                 All of the data that KivaLens displays is either a direct presentation of or computation from data that
                 is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the
-                exception
-                of data from the Atheist Team's research. If you have any questions about why a loan is showing
+                exception of data from the Atheist Team's research and Google's emotion detection. If you have any
+                questions about why a loan is showing
                 certain data (where you have confirmed that it's the same on Kiva's own site) or if you have questions
                 about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's
                 Help Center or contact Kiva Customer Service</KivaLink>.
@@ -99,7 +99,7 @@ const About = React.createClass({
 
                 <li>
                     <b>Better Sorts for Repayments!</b> You  have the ability to sort by final repayment date (which is
-                    better than "repayment terms" sort on Kiva since it's from the lender perspective), but I've
+                    better than "repayment terms" sort on Kiva since it's from the lender perspective), but
                     there's a new sort by when the loan is scheduled to repay -- by percentages. Let me explain.
                     Let's say you have 3 loans, all with a final repayment date 3 months away. The new sort will
                     prioritize which pays more sooner. So, let's say loan #1 has a equal amount you get back each

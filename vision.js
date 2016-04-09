@@ -28,14 +28,17 @@ const processFaceData = annotations => {
 
 function guaranteeGoogleVisionForLoan(loan, doneCallback) {
     if (typeof doneCallback !== 'function') doneCallback = () => true
-    if (blind || !rc) doneCallback()
+    if (blind || !rc) {
+        doneCallback()
+        return
+    }
 
     var facesKey = `vision_faces_${loan.id}`,
         vlkey = `vision_label_${loan.id}`,
         doFaceDetection = false,
         doVisionLabels = false
 
-    if (loan.kl_faces && loan.kl_visionLabels) {
+    if (loan.kl_faces) { // && loan.kl_visionLabels
         doneCallback()
         return
     }
