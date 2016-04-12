@@ -292,14 +292,14 @@ if (cluster.isMaster){ //preps the downloads
                 if (!rc) return
                 rc.get(`lender_${lenderid}`,(err,c_lender)=>{
                     var needs_refetch = true,
-                        to_store = {loan_count: lenderObj.loan_count, fundraising_loans :[]}
+                        to_store = {loan_count: lenderObj.loan_count, fundraising_loans: []}
                     if (!err && c_lender){
                         //cached lender exists
                         c_lender = JSON.parse(c_lender)
                         needs_refetch = c_lender.loan_count != lenderObj.loan_count
                         if (!needs_refetch){
                             if (c_lender.fundraising_loans && Array.isArray(c_lender.fundraising_loans) && kivaloans.isReady()){
-                                to_store.fundraising_loans.removeAll(id => !kivaloans.getById(id))
+                                c_lender.fundraising_loans.removeAll(id => !kivaloans.getById(id))
                             }
                             to_store.fundraising_loans = c_lender.fundraising_loans
                             callback(null, to_store.fundraising_loans)
