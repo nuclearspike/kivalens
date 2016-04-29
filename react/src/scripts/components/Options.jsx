@@ -117,6 +117,14 @@ const Options = React.createClass({
                                 While it can know that you made a loan to a borrower, it does not know how much you
                                 loaned or what team you attributed the loan to.
                             </li>
+                            <li>
+                                This does not log you into KivaLens. Since it doesn't get any password and is just
+                                using your publicly known ID, this doesn't save any of your options or Saved Searches
+                                with KivaLens because anyone can put anyone else's Lender ID in. KivaLens does not store
+                                any of your options on the server, they are stored with your browser so be careful about
+                                clearing all of your browser data or KivaLens will forget who you are and you'll need to
+                                rebuild all of your Saved Searches.
+                            </li>
                         </ul>
                     </Panel>
                     <Panel header="Speed!">

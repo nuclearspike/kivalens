@@ -772,7 +772,7 @@ const CriteriaTabs = React.createClass({
                                 <p>
                                     Portfolio Balancing allows you to find loans that are either similiar to or unlike
                                     the loans you have in your portfolio (either just the active/paying-back loans
-                                    or all of them. So, if you wanted to get loans from every sector
+                                    or all of them). So, if you wanted to get loans from every sector
                                     or country, it's easy! Or if you wanted to help make sure you aren't getting too
                                     many loans from a handful of partners to protect yourself from losses due to
                                     institutional failure, that's easy, too!
