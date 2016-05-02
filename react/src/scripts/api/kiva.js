@@ -327,11 +327,11 @@ class Loans {
                         this.notify({vision_data_loaded:true})
                     })
 
-                    setInterval(function(){
-                        var ids = this.filter({}).where(l=>!l.kl_faces).select(l=>l.id).take(100)
+                    /**setInterval(function(){
+                        var ids = this.filter({}, false).where(l=>!l.kl_faces).select(l=>l.id).take(100)
                         if (ids.length)
                             req.kl.get(`vision/loans/${ids.join(',')}`).done(data=>data.forEach(vd => this.mergeExtraLoanData(vd)))
-                    }.bind(this), 60000)
+                    }.bind(this), 60000)**/
                 }
             }.bind(this)
 
@@ -505,7 +505,7 @@ class Loans {
         return result
     }
     filter(c, cacheResults, loans_to_filter){
-        if (cacheResults === undefined) cacheResults = true
+        if (cacheResults == undefined) cacheResults = true
         if (!this.isReady()) return []
         //needs a copy of it and to guarantee the groups are there.
         extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
