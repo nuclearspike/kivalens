@@ -82,7 +82,7 @@ const ChartDistribution = React.createClass({
         return loans.groupBy(selector).select(g=>({name: selector(g[0]), y: g.length}))
     },
     redoCharts(loans,sameAsLastTime){
-        if (sameAsLastTime) return
+        //if (sameAsLastTime) return
         if (['xs','sm'].contains(findBootstrapEnv())) return
         var countryData  = this.groupByForChart(loans, l=>l.location.country)
         var sectorData   = this.groupByForChart(loans, l=>l.sector)

@@ -49,11 +49,15 @@
     "yargs": "^4.1.0"
   },
   "dependencies": {
+    "JSONPath": "^0.11.2",
     "classnames": "^2.1.5",
     "datejs": "^1.0.0-rc3",
     "extend": "^3.0.0",
     "history": "^1.16.0",
     "jquery-deferred": "^0.3.0",
+    "jsonpath": "^0.2.2",
+    "jsonpath-object-transform": "^1.0.4",
+    "jsonpath-plus": "^0.15.0",
     "linqjs": "0.0.6",
     "numeral": "^1.5.3",
     "react": "^0.14.8",

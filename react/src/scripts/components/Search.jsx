@@ -19,11 +19,16 @@ var Search = React.createClass({
         if (filtered_loans.length == 0)
             filtered_loans = s.loans.syncFilterLoans()
         var show_secondary_load = (kivaloans.secondary_load == 'started')
-        return {filtered_loans, show_secondary_load, loan_count: filtered_loans.length, notification: {active: false, message: ''}}
+        return {
+            filtered_loans,
+            show_secondary_load,
+            loan_count: filtered_loans.length,
+            notification: {active: false, message: ''}
+        }
     },
     onScroll(){
         var d = ReactDOM.findDOMNode(this.refs.perspective)
-        d.setAttribute('style',"-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
+        d.setAttribute('style', "-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
     },
     componentWillUnmount(){
         if (/webkit/i.test(navigator.userAgent))
@@ -38,11 +43,11 @@ var Search = React.createClass({
         //it should only fetch loans that are filtered.
         if (/webkit/i.test(navigator.userAgent))
             document.addEventListener('scroll', this.onScroll)
-        this.listenTo(a.loans.filter.completed, (loans,sameAsLastTime) => {
-            cl('a.loans.filter.completed',loans.length,sameAsLastTime)
+        this.listenTo(a.loans.filter.completed, (loans, sameAsLastTime) => {
+            cl('a.loans.filter.completed', loans.length, sameAsLastTime)
             //if (loans.length)
-            this.setState({notification: {active: true, message:`${loans.length} loans`}})
-            if (sameAsLastTime) return
+            this.setState({notification: {active: true, message: `${loans.length} loans`}})
+            //if (sameAsLastTime) return
             var newState = {filtered_loans: loans, loan_count: loans.length}
             if (loans.length)
                 newState.hasHadLoans = true
@@ -56,7 +61,7 @@ var Search = React.createClass({
                 else
                     this.fetchingExtra = false
             }
-      })
+        })
         //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
@@ -102,12 +107,14 @@ var Search = React.createClass({
         let {outdatedUrl, showBulkAdd, notification, floatResults, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
         return (
             <div>
-                <Notification dismissAfter={5000} isActive={notification.active} message={notification.message} action={''} />
+                <Notification dismissAfter={5000} isActive={notification.active} message={notification.message}
+                              action={''}/>
                 <If condition={showBulkAdd}>
-                    <BulkAddModal onHide={this.modalHidden} />
+                    <BulkAddModal onHide={this.modalHidden}/>
                 </If>
                 <If condition={outdatedUrl}>
-                    <Alert className="not-rounded" style={{marginTop:'-20px'}} bsStyle="warning" onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
+                    <Alert className="not-rounded" style={{marginTop:'-20px'}} bsStyle="warning"
+                           onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
                         <p>
                             The link or bookmark you used is outdated. To ensure faster page loading
                             and that you can always get back to the right place, please bookmark this
@@ -116,37 +123,39 @@ var Search = React.createClass({
                     </Alert>
                 </If>
                 <Col md={4} ref="perspective" className="side-tilted-container">
-                    <div className={cx({"side-tilted-shadow":floatResults,'side-shadow-sometimes':!floatResults})}> </div>
+                    <div
+                        className={cx({"side-tilted-shadow":floatResults,'side-shadow-sometimes':!floatResults})}></div>
                     <div className={cx('side-results', {"side-tilted":floatResults})}>
-                            <ButtonGroup justified className="top-only">
-                                <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
-                                <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'} onClick={this.changeCriteria}>Change Criteria</Button>
-                            </ButtonGroup>
-                            <If condition={show_secondary_load}>
-                                <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
-                                    More loans are still loading. Carry on. {secondary_load_status}
-                                </Alert>
-                            </If>
-                            <If condition={backgroundResyncState == 'started'}>
-                                <Alert className="not-rounded" style={{marginBottom:'0px'}} >
-                                    Continue using the site while the loans are refreshed...
-                                </Alert>
-                            </If>
-                            <If condition={hasHadLoans && loan_count == 0}>
-                                <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
-                                    There are no matching loans for your current criteria. Loosen the criteria, select a
-                                    different Saved Search or click the "Clear" button to start over.
-                                </Alert>
-                            </If>
-                            <LoadingLoansPanel/>
-                            <InfiniteList
-                                ref="results"
-                                className="loan_list_container"
-                                items={this.state.filtered_loans}
-                                itemsCount={this.state.filtered_loans.length}
-                                height={900}
-                                itemHeight={100}
-                                listItemClass={LoanListItem} />
+                        <ButtonGroup justified className="top-only">
+                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
+                            <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'}
+                                    onClick={this.changeCriteria}>Change Criteria</Button>
+                        </ButtonGroup>
+                        <If condition={show_secondary_load}>
+                            <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
+                                More loans are still loading. Carry on. {secondary_load_status}
+                            </Alert>
+                        </If>
+                        <If condition={backgroundResyncState == 'started'}>
+                            <Alert className="not-rounded" style={{marginBottom:'0px'}}>
+                                Continue using the site while the loans are refreshed...
+                            </Alert>
+                        </If>
+                        <If condition={hasHadLoans && loan_count == 0}>
+                            <Alert className="not-rounded-top" style={{marginBottom:'0px'}}>
+                                There are no matching loans for your current criteria. Loosen the criteria, select a
+                                different Saved Search or click the "Clear" button to start over.
+                            </Alert>
+                        </If>
+                        <LoadingLoansPanel/>
+                        <InfiniteList
+                            ref="results"
+                            className="loan_list_container"
+                            items={this.state.filtered_loans}
+                            itemsCount={this.state.filtered_loans.length}
+                            height={900}
+                            itemHeight={100}
+                            listItemClass={LoanListItem}/>
                     </div>
                 </Col>
                 <Col md={8} className="flat-3d">

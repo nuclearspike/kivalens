@@ -2,6 +2,8 @@
 
 require('linqjs')
 require('datejs')
+//global.jp = require('jsonpath')
+//global.jpt = require('jsonpath-object-transform')
 var extend = require('extend')
 var Deferred = require("jquery-deferred").Deferred
 var when = require("jquery-deferred").when
