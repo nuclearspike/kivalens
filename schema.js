@@ -95,6 +95,20 @@ var schema = new graphql.GraphQLSchema({
                         })
                     })
                 }
+            },
+            loans: {
+                type: new graphql.GraphQLList(loanType),
+                args: {
+                    sectors: {type: graphql.GraphQLString },
+                },
+                resolve: function(_, args) {
+                    return new Promise((resolve, reject) => {
+                        const crit = { loan : { sector: args.sectors } }
+                        hub.requestMaster('filter-loans', crit, result => {
+                            resolve(result)
+                        })
+                    })
+                }
             }
         }
     })

@@ -264,6 +264,10 @@ if (cluster.isMaster){ //preps the downloads
         callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
     })
 
+    hub.on('filter-loans', (crit, sender, callback) => {
+        callback(kivaloans.filter(crit))
+    })
+    
     hub.on('rss', (crit, sender, callback) => {
         callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
         var rss_crit = JSON.stringify(crit) //?why did it ever parse?
