@@ -3,8 +3,6 @@ var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
 
-var graphql = require('graphql');
-
 const locationType = new graphql.GraphQLObjectType({
     name: "Location",
     fields: {
