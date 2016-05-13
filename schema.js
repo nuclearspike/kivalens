@@ -78,14 +78,9 @@ var schema = new graphql.GraphQLSchema({
         fields: {
             loan: {
                 type: loanType,
-                // `args` describes the arguments that the `loan` query accepts
                 args: {
                     id: {type: graphql.GraphQLInt}
                 },
-                // The resolve function describes how to "resolve" or fulfill
-                // the incoming query.
-                // In this case we use the `id` argument from above as a key
-                // to get the User from `data`
                 resolve: function (_, args) {
                     return new Promise((resolve, reject) => {
                         hub.requestMaster('loan-id', args.id, (err, result) => {
