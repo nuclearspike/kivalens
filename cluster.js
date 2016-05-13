@@ -232,6 +232,10 @@ if (cluster.isMaster){ //preps the downloads
         callback(null, loan_ids.map(id => kivaloans.getById(id)).where(l=>l).select(loan => ({id: loan.id, kl_repayments: loan.kl_repayments, description: {texts: {en: loan.description.texts.en}}})))
     })
 
+    hub.on("loan-id", (loan_id, sender, callback) => {
+        callback(null, kivaloans.getById(loan_id))
+    })
+
     /**
      * get the updates since given batch number
      */
@@ -546,10 +550,15 @@ else  //workers handle all communication with the clients.
     var serveStatic = require('serve-static')
     var mime = require('mime-types')
 
+    var graphqlHTTP = require('express-graphql');
+    var schema = require('./schema');
     var main = express()
+    
 
     // compress all requests
     app.use(compression())
+
+    app.use('/graphql', graphqlHTTP({ schema: schema, graphiql: true, pretty: true }));
 
     if (process.env.BLOCKED_IPS) {
         console.log('BLOCKING IPS: ' + process.env.BLOCKED_IPS)

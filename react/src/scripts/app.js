@@ -75,6 +75,23 @@ const App = React.createClass({
     }
 })
 
+/**
+import GraphiQL from 'graphiql';
+import fetch from 'isomorphic-fetch';
+
+const GraphIQL = ()=>{
+    function graphQLFetcher(graphQLParams) {
+        console.log("graphQLParams:", graphQLParams)
+        return fetch(window.location.origin + '/graphql', {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(graphQLParams),
+        }).then(response => response.json());
+    }
+    return <GraphiQL fetcher={graphQLFetcher} />;
+    <Route path="/graphiql" component={GraphIQL}/>
+}**/
+
 function LoadReactApp(){
     if (window.isBootstrapLoaded && document.getElementById("react-app")){
         ReactDOM.render((<Router onUpdate={() => window.scrollTo(0, 0)} history={history}>
