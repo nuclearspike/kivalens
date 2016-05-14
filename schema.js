@@ -3,36 +3,52 @@ var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
 
+/**
+ * "limit_to": {
+      "enabled": true,
+      "count": 1,
+      "limit_by": "Partner"
+    }
+ */
+
 const criteriaLoanType = new graphql.GraphQLInputObjectType({
-    name: "CriteriaLoanType",
+    name: "LoanCriteria",
     description: "Criteria related to the loan itself",
     fields: {
         "name": { type: graphql.GraphQLString },
         "use": { type: graphql.GraphQLString },
         "country_code": { type: graphql.GraphQLString },
+        "country_code_all_any_none": { type: graphql.GraphQLString },
         "sector": { type: graphql.GraphQLString },
+        "sector_all_any_none": { type: graphql.GraphQLString },
         "activity": { type: graphql.GraphQLString },
+        "activity_all_any_none": { type: graphql.GraphQLString },
         "themes": { type: graphql.GraphQLString },
+        "themes_all_any_none": { type: graphql.GraphQLString },
         "tags": { type: graphql.GraphQLString },
-        "repayment_interval": { type: graphql.GraphQLString },
+        "tags_all_any_none": { type: graphql.GraphQLString },
+        "repayment_interval": {
+            type: graphql.GraphQLString,
+            description: "Options: Monthly, At end of term, Irregularly"
+        },
         "currency_exchange_loss_liability": { type: graphql.GraphQLString },
         "bonus_credit_eligibility": { type: graphql.GraphQLString },
         "sort": {
             type: graphql.GraphQLString,
-            description: "Options: half_back, popularity, newest, expiring, still_needed"
+            description: "Options: half_back, popularity, newest, expiring, still_needed or blank for default (repaid first)"
         },
         "repaid_in_min": { type: graphql.GraphQLFloat },
         "repaid_in_max": { type: graphql.GraphQLFloat },
-        "borrower_count_min": { type: graphql.GraphQLFloat },
-        "borrower_count_max": { type: graphql.GraphQLFloat },
+        "borrower_count_min": { type: graphql.GraphQLInt },
+        "borrower_count_max": { type: graphql.GraphQLInt },
         "percent_female_min": { type: graphql.GraphQLFloat },
         "percent_female_max": { type: graphql.GraphQLFloat },
-        "age_min": { type: graphql.GraphQLFloat },
-        "age_max": { type: graphql.GraphQLFloat },
-        "loan_amount_min": { type: graphql.GraphQLFloat },
-        "loan_amount_max": { type: graphql.GraphQLFloat },
-        "still_needed_min": { type: graphql.GraphQLFloat },
-        "still_needed_max": { type: graphql.GraphQLFloat },
+        "age_min": { type: graphql.GraphQLInt },
+        "age_max": { type: graphql.GraphQLInt },
+        "loan_amount_min": { type: graphql.GraphQLInt },
+        "loan_amount_max": { type: graphql.GraphQLInt },
+        "still_needed_min": { type: graphql.GraphQLInt },
+        "still_needed_max": { type: graphql.GraphQLInt },
         "percent_funded_min": { type: graphql.GraphQLFloat },
         "percent_funded_max": { type: graphql.GraphQLFloat },
         "dollars_per_hour_min": { type: graphql.GraphQLFloat },
@@ -45,15 +61,46 @@ const criteriaLoanType = new graphql.GraphQLInputObjectType({
 })
 
 const criteriaPartnerType = new graphql.GraphQLInputObjectType({
-    name: "CriteriaPartnerType",
+    name: "PartnerCriteria",
     description: "Criteria related to the partner",
     fields: {
-        "name": { type: graphql.GraphQLString },
+        "region": { type: graphql.GraphQLString },
+        "region_all_any_none":{ type: graphql.GraphQLString },
+        "partners": { type: graphql.GraphQLString, description: "Comma-separated list of partner ids" },
+        "partners_all_any_none": { type: graphql.GraphQLString },
+        "social_performance": { type: graphql.GraphQLString, description:"Comma-separated list of SP ids" },
+        "social_performance_all_any_none": { type: graphql.GraphQLString },
+        "charges_fees_and_interest": { type: graphql.GraphQLString, description: "boolean string" },
+        "partner_risk_rating_min": { type: graphql.GraphQLFloat },
+        "partner_risk_rating_max": { type: graphql.GraphQLFloat },
+        "partner_arrears_min": { type: graphql.GraphQLFloat },
+        "partner_arrears_max": { type: graphql.GraphQLFloat },
+        "loans_at_risk_rate_min": { type: graphql.GraphQLFloat },
+        "loans_at_risk_rate_max": { type: graphql.GraphQLFloat },
+        "partner_default_min": { type: graphql.GraphQLFloat },
+        "partner_default_max": { type: graphql.GraphQLFloat },
+        "portfolio_yield_min": { type: graphql.GraphQLFloat },
+        "portfolio_yield_max": { type: graphql.GraphQLFloat },
+        "profit_min": { type: graphql.GraphQLFloat },
+        "profit_max": { type: graphql.GraphQLFloat },
+        "currency_exchange_loss_rate_min": { type: graphql.GraphQLFloat },
+        "currency_exchange_loss_rate_max": { type: graphql.GraphQLFloat },
+        "average_loan_size_percent_per_capita_income_min": { type: graphql.GraphQLFloat },
+        "average_loan_size_percent_per_capita_income_max": { type: graphql.GraphQLFloat },
+        "years_on_kiva_min": { type: graphql.GraphQLFloat },
+        "years_on_kiva_max": { type: graphql.GraphQLFloat },
+        "loans_posted_min": { type: graphql.GraphQLInt },
+        "loans_posted_max": { type: graphql.GraphQLInt },
+        "secular_rating_min": { type: graphql.GraphQLInt },
+        "secular_rating_max": { type: graphql.GraphQLInt },
+        "social_rating_min": { type: graphql.GraphQLInt },
+        "social_rating_max": { type: graphql.GraphQLInt },
     }
 })
 
 const criteriaType = new graphql.GraphQLInputObjectType({
-    name: 'CriteriaType',
+    name: 'Criteria',
+    description: 'Construct a JSON object of the critiera. "loans(criteria:{loan:{repaid_in_max:6}}) ...',
     fields: {
         loan: { type: criteriaLoanType },
         partner: { type: criteriaPartnerType }
@@ -123,9 +170,22 @@ const loanType = new graphql.GraphQLObjectType({
         use: { type: graphql.GraphQLString },
         bonus_credit_eligibility: { type: graphql.GraphQLBoolean },
         location: { type: locationType },
+        //borrower_count: { type: graphql.GraphQLInt },
         borrowers: { type: new graphql.GraphQLList(borrowerType) },
         themes: { type: new graphql.GraphQLList(graphql.GraphQLString) },
         terms: { type: termsType },
+        tags: {
+            type: new graphql.GraphQLList(graphql.GraphQLString),
+            resolve: function(_, args){
+                return _.kls_tags
+            }
+        },
+        age: {
+            type: graphql.GraphQLInt,
+            resolve: function(_, args){
+                return _.kls_age
+            }
+        },
         final_repayment: {
             type: graphql.GraphQLString,
             description: "The date of the final repayment",
@@ -158,7 +218,7 @@ const schema = new graphql.GraphQLSchema({
                 args: {
                     sectors: {
                         isDeprecated: true,
-                        deprecationReason: "Please use the criteria option instead",
+                        deprecationReason: "Please use the criteria argument instead",
                         type: graphql.GraphQLString
                     },
                     criteria: {type: criteriaType},
