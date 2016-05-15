@@ -268,6 +268,22 @@ if (cluster.isMaster){ //preps the downloads
         callback(kivaloans.filter(crit))
     })
     
+    hub.on('get-partners-by-ids', (ids, sender, callback) => {
+        callback(ids.map(id => kivaloans.getPartner(id)) )
+    })
+
+    hub.on('get-partner-by-id', (id, sender, callback) => {
+        callback(kivaloans.getPartner(id))
+    })
+
+    hub.on('get-loans-by-ids', (ids, sender, callback) => {
+        callback(ids.select(id => kivaloans.getById(id)) )
+    })
+
+    hub.on('filter-partners', (crit, sender, callback) => {
+        callback(kivaloans.filterPartners(crit, false, false))
+    })
+    
     hub.on('rss', (crit, sender, callback) => {
         callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
         var rss_crit = JSON.stringify(crit) //?why did it ever parse?

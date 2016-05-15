@@ -3,6 +3,8 @@ var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
 
+var req = require('./react/src/scripts/api/kivajs/req')
+
 /**
  * "limit_to": {
       "enabled": true,
@@ -155,45 +157,95 @@ const borrowerType = new graphql.GraphQLObjectType({
 const loanType = new graphql.GraphQLObjectType({
     name: 'Loan',
     fields: ()=>({
-        id: { type: graphql.GraphQLInt },
-        name: { type: graphql.GraphQLString },
-        status: { type: graphql.GraphQLString },
-        funded_amount: { type: graphql.GraphQLInt },
-        basket_amount: { type: graphql.GraphQLInt },
-        loan_amount: { type: graphql.GraphQLInt },
-        lender_count: { type: graphql.GraphQLInt },
-        partner_id: { type: graphql.GraphQLInt },
-        activity: { type: graphql.GraphQLString },
-        sector: { type: graphql.GraphQLString },
-        posted_date: { type: graphql.GraphQLString },
-        planned_expiration_date: { type: graphql.GraphQLString },
-        use: { type: graphql.GraphQLString },
-        bonus_credit_eligibility: { type: graphql.GraphQLBoolean },
-        location: { type: locationType },
+        id: {type: graphql.GraphQLInt},
+        name: {type: graphql.GraphQLString},
+        status: {type: graphql.GraphQLString},
+        funded_amount: {type: graphql.GraphQLInt},
+        basket_amount: {type: graphql.GraphQLInt},
+        loan_amount: {type: graphql.GraphQLInt},
+        lender_count: {type: graphql.GraphQLInt},
+        partner_id: {type: graphql.GraphQLInt},
+        activity: {type: graphql.GraphQLString},
+        sector: {type: graphql.GraphQLString},
+        posted_date: {type: graphql.GraphQLString},
+        planned_expiration_date: {type: graphql.GraphQLString},
+        use: {type: graphql.GraphQLString},
+        bonus_credit_eligibility: {type: graphql.GraphQLBoolean},
+        location: {type: locationType},
         //borrower_count: { type: graphql.GraphQLInt },
-        borrowers: { type: new graphql.GraphQLList(borrowerType) },
-        themes: { type: new graphql.GraphQLList(graphql.GraphQLString) },
-        terms: { type: termsType },
+        borrowers: {type: new graphql.GraphQLList(borrowerType)},
+        themes: {type: new graphql.GraphQLList(graphql.GraphQLString)},
+        terms: {type: termsType},
         tags: {
             type: new graphql.GraphQLList(graphql.GraphQLString),
-            resolve: function(_, args){
+            resolve: function (_, args) {
                 return _.kls_tags
             }
         },
         age: {
             type: graphql.GraphQLInt,
-            resolve: function(_, args){
+            resolve: function (_, args) {
                 return _.kls_age
             }
         },
         final_repayment: {
             type: graphql.GraphQLString,
             description: "The date of the final repayment",
-            resolve: function(_, args){
+            resolve: function (_, args) {
                 return _.kl_repayments[_.kl_repayments.length - 1].date
             }
         },
+        partner: {
+            type: partnerType,
+            resolve: function (_, args) {
+                return new Promise((resolve, reject) => {
+                    hub.requestMaster('get-partner-by-id', _.partner_id, result => {
+                        resolve(result)
+                    })
+                })
+            }
+        },
+        similar: {
+            type: new graphql.GraphQLList(loanType),
+            resolve: function(_,args){
+                return new Promise((resolve, reject) => {
+                    console.log(_.id)
+                    req.kiva.api.similarTo(_.id)
+                        .done(loans => {
+                            console.log(loans.select(l=>l.id))
+                            hub.requestMaster('get-loans-by-ids', loans.select(l=>l.id), result => {
+                                resolve(result)
+                            })
+                        })
+                        .fail(()=>resolve([]))
+                })
+            }
+        }
     })
+});
+
+const partnerType = new graphql.GraphQLObjectType({
+    name: "Partner",
+    fields: {
+        "id": { type: graphql.GraphQLInt },
+        "name": { type: graphql.GraphQLString },
+        "status": { type: graphql.GraphQLString },
+        "rating": { type: graphql.GraphQLString },
+        "start_date": { type: graphql.GraphQLString },
+        "delinquency_rate": { type: graphql.GraphQLFloat },
+        "default_rate": { type: graphql.GraphQLFloat },
+        "total_amount_raised": { type: graphql.GraphQLInt },
+        "loans_posted": { type: graphql.GraphQLInt },
+        "profitability": { type: graphql.GraphQLFloat },
+        "delinquency_rate_note": { type: graphql.GraphQLString },
+        "default_rate_note": { type: graphql.GraphQLString },
+        "portfolio_yield_note": { type: graphql.GraphQLString },
+        "charges_fees_and_interest": { type: graphql.GraphQLBoolean },
+        "average_loan_size_percent_per_capita_income": { type: graphql.GraphQLFloat },
+        "loans_at_risk_rate": { type: graphql.GraphQLFloat },
+        "currency_exchange_loss_rate": { type: graphql.GraphQLFloat },
+        "url": { type: graphql.GraphQLString },
+    }
 });
 
 const schema = new graphql.GraphQLSchema({
@@ -213,29 +265,73 @@ const schema = new graphql.GraphQLSchema({
                     })
                 }
             },
+            partner: {
+                type: partnerType,
+                args: {
+                    id: {type: graphql.GraphQLInt}
+                },
+                resolve: function(_,args){
+                    return new Promise((resolve, reject) => {
+                        if (args.id) {
+                            hub.requestMaster('get-partner-by-id', args.id, result => {
+                                resolve(result)
+                            })
+                        }
+                    })
+                }
+            },
+            partners: {
+                type: new graphql.GraphQLList(partnerType),
+                args: {
+                    criteria: {type: criteriaPartnerType},
+                    ids: {type: new graphql.GraphQLList(graphql.GraphQLInt)}
+                },
+                resolve: function(_, args) {
+                    return new Promise((resolve, reject) => {
+                        if (args.ids) {
+                            hub.requestMaster('get-partners-by-ids', args.ids, result => {
+                                resolve(result)
+                            })
+                        } else {
+                            let crit = {partner:{}, portfolio: {}}
+                            crit.partner = args.criteria
+                            hub.requestMaster('filter-partners', crit, result => {
+                                resolve(result)
+                            })
+                        }
+                    })
+                }
+            },
             loans: {
                 type: new graphql.GraphQLList(loanType),
                 args: {
+                    criteria: {type: criteriaType},
+                    ids: {type: new graphql.GraphQLList(graphql.GraphQLInt)},
                     sectors: {
                         isDeprecated: true,
                         deprecationReason: "Please use the criteria argument instead",
                         type: graphql.GraphQLString
                     },
-                    criteria: {type: criteriaType},
                 },
                 resolve: function(_, args) {
                     return new Promise((resolve, reject) => {
-                        let crit = {}
-                        if (args.sectors) {
-                            crit = { loan : { sector: args.sectors } }
+                        if (args.ids) {
+                            hub.requestMaster('get-loans-by-ids', args.ids, result => {
+                                resolve(result)
+                            })
+                        } else {
+                            let crit = {loan: {}}
+                            if (args.sectors) {
+                                crit = {loan: {sector: args.sectors}}
+                            }
+                            if (args.criteria) {
+                                crit = args.criteria
+                            }
+                            crit.loan.limit_results = 500
+                            hub.requestMaster('filter-loans', crit, result => {
+                                resolve(result)
+                            })
                         }
-                        if (args.criteria) {
-                            crit = args.criteria
-                        }
-
-                        hub.requestMaster('filter-loans', crit, result => {
-                            resolve(result)
-                        })
                     })
                 }
             }
