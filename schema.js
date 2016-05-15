@@ -209,15 +209,13 @@ const loanType = new graphql.GraphQLObjectType({
             type: new graphql.GraphQLList(loanType),
             resolve: function(_,args){
                 return new Promise((resolve, reject) => {
-                    console.log(_.id)
                     req.kiva.api.similarTo(_.id)
                         .done(loans => {
-                            console.log(loans.select(l=>l.id))
                             hub.requestMaster('get-loans-by-ids', loans.select(l=>l.id), result => {
                                 resolve(result)
                             })
                         })
-                        .fail(()=>resolve([]))
+                        .fail(()=>resolve(null))
                 })
             }
         }
@@ -325,7 +323,7 @@ const schema = new graphql.GraphQLSchema({
                                 crit = {loan: {sector: args.sectors}}
                             }
                             if (args.criteria) {
-                                crit = args.criteria
+                                crit = Object.assign({}, crit, args.criteria)
                             }
                             crit.loan.limit_results = 500
                             hub.requestMaster('filter-loans', crit, result => {
