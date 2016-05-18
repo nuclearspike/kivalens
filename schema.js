@@ -2,6 +2,7 @@
 var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
+require('datejs');
 
 var req = require('./react/src/scripts/api/kivajs/req')
 
@@ -12,6 +13,33 @@ var req = require('./react/src/scripts/api/kivajs/req')
       "limit_by": "Partner"
     }
  */
+
+const dateStringType = description => {
+    return {
+        type: graphql.GraphQLString,
+        description,
+        args: {
+            format: {
+                type: graphql.GraphQLString,
+                description: "Optional: Any DateJS format options. ex: MMM yyyy, MM-dd-yyyy. Only use when you want the time to be localized to the server's time. Otherwise, you should parse the default date in the browser/device and localize there to have it relevant."
+            }
+        },
+        resolve: function (_, args, a, fieldSchema) {
+            const fieldVal = _[fieldSchema.fieldName]
+            if (args.format) {
+                let d = new Date(fieldVal)
+                try {
+                    //console.log(d.toString(args.format))
+                    return d.toString(args.format)
+                } catch (e) {
+                    return e.message
+                }
+            } else {
+                return fieldVal
+            }
+        }
+    }
+}
 
 const criteriaLoanType = new graphql.GraphQLInputObjectType({
     name: "LoanCriteria",
@@ -120,7 +148,7 @@ const locationType = new graphql.GraphQLObjectType({
 const scheduledPaymentsType = new graphql.GraphQLObjectType({
     name: "ScheduledPayment",
     fields: {
-        "due_date": { type: graphql.GraphQLString },
+        "due_date": dateStringType("Date the repayment is due"),
         "amount": { type: graphql.GraphQLFloat },
     }
 })
@@ -167,8 +195,8 @@ const loanType = new graphql.GraphQLObjectType({
         partner_id: {type: graphql.GraphQLInt},
         activity: {type: graphql.GraphQLString},
         sector: {type: graphql.GraphQLString},
-        posted_date: {type: graphql.GraphQLString},
-        planned_expiration_date: {type: graphql.GraphQLString},
+        posted_date: dateStringType("Date and time the loan began fundraising"),
+        planned_expiration_date: dateStringType("Date and time the loan will expire if not funded"),
         use: {type: graphql.GraphQLString},
         bonus_credit_eligibility: {type: graphql.GraphQLBoolean},
         location: {type: locationType},
@@ -184,6 +212,7 @@ const loanType = new graphql.GraphQLObjectType({
         },
         age: {
             type: graphql.GraphQLInt,
+            description: "The first age found in the description. Searches for patterns like '22 years old' or 'aged 40 years' which could potentially be the age of the borrower's child or parents.",
             resolve: function (_, args) {
                 return _.kls_age
             }
@@ -229,7 +258,7 @@ const partnerType = new graphql.GraphQLObjectType({
         "name": { type: graphql.GraphQLString },
         "status": { type: graphql.GraphQLString },
         "rating": { type: graphql.GraphQLString },
-        "start_date": { type: graphql.GraphQLString },
+        "start_date": dateStringType("When the partner started joined Kiva"),
         "delinquency_rate": { type: graphql.GraphQLFloat },
         "default_rate": { type: graphql.GraphQLFloat },
         "total_amount_raised": { type: graphql.GraphQLInt },
@@ -250,19 +279,6 @@ const schema = new graphql.GraphQLSchema({
     query: new graphql.GraphQLObjectType({
         name: 'Query',
         fields: {
-            loan: {
-                type: loanType,
-                args: {
-                    id: {type: graphql.GraphQLInt}
-                },
-                resolve: function (_, args) {
-                    return new Promise((resolve, reject) => {
-                        hub.requestMaster('loan-id', args.id, (err, result) => {
-                            resolve(result)
-                        })
-                    })
-                }
-            },
             partner: {
                 type: partnerType,
                 args: {
@@ -297,6 +313,19 @@ const schema = new graphql.GraphQLSchema({
                                 resolve(result)
                             })
                         }
+                    })
+                }
+            },
+            loan: {
+                type: loanType,
+                args: {
+                    id: {type: graphql.GraphQLInt}
+                },
+                resolve: function (_, args) {
+                    return new Promise((resolve, reject) => {
+                        hub.requestMaster('loan-id', args.id, (err, result) => {
+                            resolve(result)
+                        })
                     })
                 }
             },

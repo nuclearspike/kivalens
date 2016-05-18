@@ -113,7 +113,7 @@ class ResultProcessors {
         loan.kl_still_needed = Math.max(loan.loan_amount - loan.funded_amount - loan.basket_amount,0) //api can spit back that more is basketed than remains...
         loan.kl_percent_funded = (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount
         if (loan.tags) //if tags present, always use those.
-            loan.kls_tags = loan.tags.select(tag => tag.name) //standardize to just an array without a hash.
+            loan.kls_tags = loan.tags.select(tag => tag.name.replace(/\s+/g, '')) //standardize to just an array without a hash.
         if (!loan.kls_tags) loan.kls_tags = []
 
         if (!isServer()) {

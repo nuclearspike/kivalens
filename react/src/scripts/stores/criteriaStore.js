@@ -64,22 +64,6 @@ var criteriaStore = Reflux.createStore({
                     "partner":{},
                     "portfolio": {"exclude_portfolio_loans": 'true'}
                 },
-                "Interesting Photo": {
-                    "loan": {
-                        "tags": "#InterestingPhoto",
-                        "still_needed_min": 25
-                    },
-                    "partner": {},
-                    "portfolio": {"exclude_portfolio_loans": 'true'}
-                },
-                "Inspiring Story": {
-                    "loan": {
-                        "tags": "#InspiringStory",
-                        "still_needed_min": 25
-                    },
-                    "partner": {},
-                    "portfolio": {"exclude_portfolio_loans": 'true'}
-                },
                 "Countries I Don't Have":{
                     "loan":{
                         "limit_to": {
