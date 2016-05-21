@@ -469,6 +469,9 @@ class Loans {
 
             var ct = new CritTester(c.partner)
 
+            //no UI for this one
+            ct.addAnyAllNoneTester('status',null,'any',       partner=>partner.status, false)
+
             ct.addAnyAllNoneTester('region',null,'any',       partner=>partner.kl_regions, true)
             ct.addAnyAllNoneTester('social_performance',sp_arr,'all',  partner=>partner.kl_sp, true)
             ct.addAnyAllNoneTester('partners', partners_given,'any',   partner=>partner.id)
