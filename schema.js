@@ -20,6 +20,12 @@ var req = require('./react/src/scripts/api/kivajs/req')
     }
  */
 
+/**
+ * allow formatting of dates
+ *
+ * @param description
+ * @returns {{type: *, description: *, args: {format: {type: *, description: string}}, resolve: resolve}}
+ */
 const dateStringType = description => {
     return {
         type: graphql.GraphQLString,
@@ -35,7 +41,6 @@ const dateStringType = description => {
             if (args.format) {
                 let d = new Date(fieldVal)
                 try {
-                    //console.log(d.toString(args.format))
                     return d.toString(args.format)
                 } catch (e) {
                     return e.message
@@ -172,6 +177,12 @@ const lossLiabilityType =  new graphql.GraphQLObjectType({
 const termsType = new graphql.GraphQLObjectType({
     name: "Terms",
     fields: {
+        "local_payments": {
+            type: new graphql.GraphQLList(graphql.GraphQLString),
+            description:"This field has been deprecated for borrower privacy",
+            deprecationReason: "Due to increased borrower privacy, this field is no longer available and will always return an empty array.",
+            resolve:()=>[]
+        },
         "disbursal_date": { type: graphql.GraphQLString },
         "repayment_interval": { type: graphql.GraphQLString },
         "repayment_term": { type: graphql.GraphQLInt },
@@ -265,7 +276,7 @@ const partnerType = new graphql.GraphQLObjectType({
         "name": { type: graphql.GraphQLString },
         "status": { type: graphql.GraphQLString },
         "rating": { type: graphql.GraphQLString },
-        "start_date": dateStringType("When the partner started joined Kiva"),
+        "start_date": dateStringType("When the partner joined Kiva"),
         "delinquency_rate": { type: graphql.GraphQLFloat },
         "default_rate": { type: graphql.GraphQLFloat },
         "total_amount_raised": { type: graphql.GraphQLInt },
