@@ -1,10 +1,16 @@
 "use strict";
+/**
+ * This file is loaded in the worker processes and must pass off all queries to the
+ * master since they don't keep their own copies of the loans/partners.
+ */
 var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
 require('datejs');
 
 var req = require('./react/src/scripts/api/kivajs/req')
+
+
 
 /**
  * "limit_to": {
@@ -94,6 +100,7 @@ const criteriaPartnerType = new graphql.GraphQLInputObjectType({
     name: "PartnerCriteria",
     description: "Criteria related to the partner",
     fields: {
+        "status": { type: graphql.GraphQLString },
         "region": { type: graphql.GraphQLString },
         "region_all_any_none":{ type: graphql.GraphQLString },
         "partners": { type: graphql.GraphQLString, description: "Comma-separated list of partner ids" },
@@ -221,7 +228,7 @@ const loanType = new graphql.GraphQLObjectType({
             type: graphql.GraphQLString,
             description: "The date of the final repayment",
             resolve: function (_, args) {
-                return _.kl_repayments[_.kl_repayments.length - 1].date
+                return _.kl_repayments && _.kl_repayments.length ?  _.kl_repayments[_.kl_repayments.length - 1].date : null
             }
         },
         partner: {
@@ -240,7 +247,7 @@ const loanType = new graphql.GraphQLObjectType({
                 return new Promise((resolve, reject) => {
                     req.kiva.api.similarTo(_.id)
                         .done(loans => {
-                            hub.requestMaster('get-loans-by-ids', loans.select(l=>l.id), result => {
+                            hub.requestMaster('get-loans-by-ids', loans.where(l=>l.id != _.id).select(l=>l.id), result => {
                                 resolve(result)
                             })
                         })
@@ -302,13 +309,16 @@ const schema = new graphql.GraphQLSchema({
                 },
                 resolve: function(_, args) {
                     return new Promise((resolve, reject) => {
-                        if (args.ids) {
+                        if (args.ids && Array.isArray(args.ids)) {
                             hub.requestMaster('get-partners-by-ids', args.ids, result => {
                                 resolve(result)
                             })
                         } else {
-                            let crit = {partner:{}, portfolio: {}}
-                            crit.partner = args.criteria
+                            let crit = {partner: {}, portfolio: {}}
+                            if (args.criteria) {
+                                crit.partner = args.criteria
+                            }
+
                             hub.requestMaster('filter-partners', crit, result => {
                                 resolve(result)
                             })

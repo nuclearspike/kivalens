@@ -5,8 +5,8 @@
  * CLUSTER
  *
  * this file contains code for both the master as well as the worker processes.
- * The master does all of the downloading from kiva, the workers do all of the
- * servicing of the requests to users of KivaLens.
+ * The master does all of the downloading from kiva and processes all queries from REST API/GraphQL
+ * endpoints the workers do all of the servicing of the requests to users of KivaLens.
  *
  * The master has the socket open to kiva for listening to changes to loans and it updates
  * and adds new ones accordingly. Once a minute if anything has changed, it packages all the loans
@@ -252,7 +252,11 @@ if (cluster.isMaster){ //preps the downloads
             return
         }
         console.log(`INTERESTING: loans/since count: ${loans.length}`)
-        callback(JSON.stringify(ResultProcessors.unprocessLoans(loans)))
+        try {
+            callback(JSON.stringify(ResultProcessors.unprocessLoans(loans)))
+        } catch (e) {
+            callback(null)
+        }
     })
 
     var k = require('./react/src/scripts/api/kiva')
@@ -261,11 +265,19 @@ if (cluster.isMaster){ //preps the downloads
      * filter takes a client crit object and returns the ids that match.
      */
     hub.on('filter', (crit, sender, callback) => {
-        callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
+        try {
+            callback(JSON.stringify(kivaloans.filter(crit).select(l=>l.id)))
+        } catch (e) {
+            callback(null)
+        }
     })
 
     hub.on('filter-loans', (crit, sender, callback) => {
-        callback(kivaloans.filter(crit))
+        try {
+            callback(kivaloans.filter(crit))
+        } catch (e) {
+            callback(null)
+        }
     })
     
     hub.on('get-partners-by-ids', (ids, sender, callback) => {
@@ -273,15 +285,30 @@ if (cluster.isMaster){ //preps the downloads
     })
 
     hub.on('get-partner-by-id', (id, sender, callback) => {
-        callback(kivaloans.getPartner(id))
+        try {
+            callback(kivaloans.getPartner(id))
+        } catch (e) {
+            callback(null)
+        }
     })
 
     hub.on('get-loans-by-ids', (ids, sender, callback) => {
-        callback(ids.select(id => kivaloans.getById(id)) )
+        try {
+            callback(ids.select(id => kivaloans.getById(id)))
+        } catch (e) {
+            callback(null)
+        }
     })
 
     hub.on('filter-partners', (crit, sender, callback) => {
-        callback(kivaloans.filterPartners(crit, false, false))
+        if (!crit) {
+            crit = {loan:{},partner:{}}
+        }
+        try {
+            callback(kivaloans.filterPartners(crit, false, false))
+        } catch(e) {
+            callback(null)
+        }
     })
     
     hub.on('rss', (crit, sender, callback) => {
@@ -306,43 +333,45 @@ if (cluster.isMaster){ //preps the downloads
         const storeLenderInRedis = toStore => {
             if (!rc) return
             var key = `lender_${lenderid}`
-            rc.set(key,JSON.stringify(toStore))
-            rc.expire(key,'2592000') //30 days
+            rc.set(key, JSON.stringify(toStore))
+            rc.expire(key, '2592000') //30 days
         }
-
-        req.kiva.api.lender(lenderid)
-            .fail(x => callback(404))
-            .done(lenderObj => {
-                if (!rc) return
-                rc.get(`lender_${lenderid}`,(err,c_lender)=>{
-                    var needs_refetch = true,
-                        to_store = {loan_count: lenderObj.loan_count, fundraising_loans: []}
-                    if (!err && c_lender){
-                        //cached lender exists
-                        c_lender = JSON.parse(c_lender)
-                        needs_refetch = c_lender.loan_count != lenderObj.loan_count
-                        if (!needs_refetch){
-                            if (c_lender.fundraising_loans && Array.isArray(c_lender.fundraising_loans) && kivaloans.isReady()){
-                                c_lender.fundraising_loans.removeAll(id => !kivaloans.getById(id))
-                            }
-                            to_store.fundraising_loans = c_lender.fundraising_loans
-                            callback(null, to_store.fundraising_loans)
-                            storeLenderInRedis(to_store)
-                        }
-                    }
-
-                    if (needs_refetch){
-                        new LenderFundraisingLoans(lenderid).ids()
-                            .done(ids => {
-                                to_store.fundraising_loans = ids
+        try {
+            req.kiva.api.lender(lenderid)
+                .fail(x => callback(404))
+                .done(lenderObj => {
+                    if (!rc) return
+                    rc.get(`lender_${lenderid}`, (err, c_lender)=> {
+                        var needs_refetch = true,
+                            to_store = {loan_count: lenderObj.loan_count, fundraising_loans: []}
+                        if (!err && c_lender) {
+                            //cached lender exists
+                            c_lender = JSON.parse(c_lender)
+                            needs_refetch = c_lender.loan_count != lenderObj.loan_count
+                            if (!needs_refetch) {
+                                if (c_lender.fundraising_loans && Array.isArray(c_lender.fundraising_loans) && kivaloans.isReady()) {
+                                    c_lender.fundraising_loans.removeAll(id => !kivaloans.getById(id))
+                                }
+                                to_store.fundraising_loans = c_lender.fundraising_loans
                                 callback(null, to_store.fundraising_loans)
                                 storeLenderInRedis(to_store)
-                            })
-                            .fail(x => callback(404))
-                    }
-                })
-            })
+                            }
+                        }
 
+                        if (needs_refetch) {
+                            new LenderFundraisingLoans(lenderid).ids()
+                                .done(ids => {
+                                    to_store.fundraising_loans = ids
+                                    callback(null, to_store.fundraising_loans)
+                                    storeLenderInRedis(to_store)
+                                })
+                                .fail(x => callback(404))
+                        }
+                    })
+                })
+        } catch (e) {
+            callback(null)
+        }
     })
 
     //when major changes happen where old clients cannot talk with new API endpoints
