@@ -118,6 +118,7 @@ class ResultProcessors {
 
         if (!isServer()) {
             loan.getPartner = function () {
+                if (!this.partner_id) return null //ZIP loans
                 //todo: this should not reference kivaloans...
                 if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
                 return this.kl_partner

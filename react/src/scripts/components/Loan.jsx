@@ -180,11 +180,6 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
-        //if (!partner) {
-            //this is a hack... it only happens if your first page is a loan page and partners aren't downloaded yet.
-            //there's surely a better way like getLoanFromKiva shouldn't return until partner download done.
-            //kivaloans.partner_download.done(x=>this.displayLoan(loan))
-        //}
         var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
@@ -246,12 +241,9 @@ var Loan = React.createClass({
     },
     render() {
         let {loan, matching, partner, activeTab, visionFaces, inBasket, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
-        if (!loan || !partner) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
-        var atheistScore = partner.atheistScore
-        //this.renderCount = this.renderCount || 0
-        //this.renderCount++
-
-        if (!partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
+        if (!loan) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
+        var atheistScore = partner ? partner.atheistScore : {}
+        if (partner && !partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div className="Loan">
                 <h1 style={{marginTop:'0px'}}>{loan.name}
@@ -310,9 +302,11 @@ var Loan = React.createClass({
                                     <If condition={loan.status == 'fundraising'}>
                                         <span><dt>Expires</dt><dd>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
                                     </If>
-                                    <dt>Disbursed</dt><dd>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </dd>
+                                    <If condition={loan.terms.disbursal_date}>
+                                        <DTDD term='Disbursed' def={<span>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </span>} />
+                                    </If>
                                     <If condition={loan.status == 'fundraising'}>
-                                        <span><dt>Final Repayment In</dt><dd>{numeral(loan.kls_repaid_in).format('0.0')} months</dd></span>
+                                        <DTDD term='Final Repayment In' def={<span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>}/>
                                     </If>
                                 </dl>
                                 <If condition={loan.status == 'fundraising'}>
@@ -330,68 +324,69 @@ var Loan = React.createClass({
                             {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : <span/>}
                         </Grid>
                     </Tab>
+                    <If condition={partner}>
+                        <Tab eventKey={3} title="Partner" className="ample-padding-top">
+                            <h2>{partner.name}</h2>
+                            <Col lg={6}>
+                            <dl className="dl-horizontal">
+                                <dt>Rating</dt><dd>{partner.rating}</dd>
+                                <dt>Start Date</dt><dd>{new Date(partner.start_date).toString("MMM d, yyyy")}</dd>
+                                <dt>{partner.countries.length == 1 ? 'Country' : 'Countries'}</dt><dd>{partner.countries.select(c => c.name).join(', ')}</dd>
+                                <dt>Delinquency</dt><dd>{numeral(partner.delinquency_rate).format('0.000')}% {partner.delinquency_rate_note}</dd>
+                                <dt>Loans at Risk Rate</dt><dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
+                                <dt>Default</dt><dd>{numeral(partner.default_rate).format('0.000')}% {partner.default_rate_note}</dd>
+                                <dt>Total Raised</dt><dd>${numeral(partner.total_amount_raised).format('0,0')}</dd>
+                                <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
+                                <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
+                                <dt>Profitablility</dt>
+                                <If condition={partner.profitability}>
+                                    <dd>{numeral(partner.profitability).format('0.0')}%</dd>
+                                <Else/>
+                                    <dd>(unknown)</dd>
+                                </If>
+                                <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
+                                <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
+                                <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
+                                <If condition={partner.url}>
+                                    <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
+                                </If>
+                            </dl>
 
-                    <Tab eventKey={3} title="Partner" className="ample-padding-top">
-                        <h2>{partner.name}</h2>
-                        <Col lg={6}>
-                        <dl className="dl-horizontal">
-                            <dt>Rating</dt><dd>{partner.rating}</dd>
-                            <dt>Start Date</dt><dd>{new Date(partner.start_date).toString("MMM d, yyyy")}</dd>
-                            <dt>{partner.countries.length == 1 ? 'Country' : 'Countries'}</dt><dd>{partner.countries.select(c => c.name).join(', ')}</dd>
-                            <dt>Delinquency</dt><dd>{numeral(partner.delinquency_rate).format('0.000')}% {partner.delinquency_rate_note}</dd>
-                            <dt>Loans at Risk Rate</dt><dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
-                            <dt>Default</dt><dd>{numeral(partner.default_rate).format('0.000')}% {partner.default_rate_note}</dd>
-                            <dt>Total Raised</dt><dd>${numeral(partner.total_amount_raised).format('0,0')}</dd>
-                            <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
-                            <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
-                            <dt>Profitablility</dt>
-                            <If condition={partner.profitability}>
-                                <dd>{numeral(partner.profitability).format('0.0')}%</dd>
-                            <Else/>
-                                <dd>(unknown)</dd>
-                            </If>
-                            <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
-                            <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
-                            <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
-                            <If condition={partner.url}>
-                                <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
-                            </If>
-                        </dl>
+                            </Col>
+                            <Col lg={6}>
+                                <If condition={partner.image}>
+                                    <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
+                                </If>
+                                <KivaLink path={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
+                            </Col>
+                            <Col lg={12}>
+                                <If condition={partner.kl_sp.length}>
+                                    <div>
+                                        <h3>Social Performance Strengths</h3>
+                                        <ul>
+                                            <For each="sp" index="i" of={partner.social_performance_strengths}>
+                                                <li key={i}><b>{sp.name}</b>: {sp.description}</li>
+                                            </For>
+                                        </ul>
+                                    </div>
+                                </If>
 
-                        </Col>
-                        <Col lg={6}>
-                            <If condition={partner.image}>
-                                <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
-                            </If>
-                            <KivaLink path={`partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
-                        </Col>
-                        <Col lg={12}>
-                            <If condition={partner.kl_sp.length}>
-                                <div>
-                                    <h3>Social Performance Strengths</h3>
-                                    <ul>
-                                        <For each="sp" index="i" of={partner.social_performance_strengths}>
-                                            <li key={i}><b>{sp.name}</b>: {sp.description}</li>
-                                        </For>
-                                    </ul>
-                                </div>
-                            </If>
-
-                            <If condition={showAtheistResearch && atheistScore}>
-                                <div>
-                                    <h3>Atheist Team Research</h3>
-                                    <dl className="dl-horizontal">
-                                        <dt>Secular Rating</dt><dd>{atheistScore.secularRating}</dd>
-                                        <dt>Religious Affiliation</dt><dd>{atheistScore.religiousAffiliation}</dd>
-                                        <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSecularRating}</dd>
-                                        <dt>Social Rating</dt><dd>{atheistScore.socialRating}</dd>
-                                        <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSocialRating}</dd>
-                                        <dt>Review Comments</dt><dd>{atheistScore.reviewComments}</dd>
-                                    </dl>
-                                </div>
-                            </If>
-                        </Col>
-                    </Tab>
+                                <If condition={showAtheistResearch && atheistScore}>
+                                    <div>
+                                        <h3>Atheist Team Research</h3>
+                                        <dl className="dl-horizontal">
+                                            <dt>Secular Rating</dt><dd>{atheistScore.secularRating}</dd>
+                                            <dt>Religious Affiliation</dt><dd>{atheistScore.religiousAffiliation}</dd>
+                                            <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSecularRating}</dd>
+                                            <dt>Social Rating</dt><dd>{atheistScore.socialRating}</dd>
+                                            <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSocialRating}</dd>
+                                            <dt>Review Comments</dt><dd>{atheistScore.reviewComments}</dd>
+                                        </dl>
+                                    </div>
+                                </If>
+                            </Col>
+                        </Tab>
+                    </If>
 
                     <Tab eventKey={4} title="Similar" disabled={similar && similar.length == 0} className="ample-padding-top">
                         <Col lg={6}>

@@ -470,7 +470,7 @@ class Loans {
             var ct = new CritTester(c.partner)
 
             //no UI for this one
-            ct.addAnyAllNoneTester('status',null,'any',       partner=>partner.status, false)
+            //ct.addAnyAllNoneTester('status',null,'any',       partner=>partner.status, false)
 
             ct.addAnyAllNoneTester('region',null,'any',       partner=>partner.kl_regions, true)
             ct.addAnyAllNoneTester('social_performance',sp_arr,'all',  partner=>partner.kl_sp, true)
@@ -494,9 +494,6 @@ class Loans {
 
             ct.addRangeTesters('partner_risk_rating', partner=>partner.rating, partner=>isNaN(parseFloat(partner.rating)), crit=>crit.partner_risk_rating_min == null)
             cl('crit:partner:testers', ct.testers)
-
-            //if (ct.testers.length == 0)
-            //    partner_ids = 'all' or null and [] means none match.
 
             //filter the partners
             result = this.active_partners.where(p => ct.allPass(p))
@@ -526,12 +523,13 @@ class Loans {
         ct.addAnyAllNoneTester('themes',      null,'all',loan=>loan.themes, true)
 
         //face detection
+        /**
         ct.addAnyAllNoneTester('vision_face_joy',      null,'any',loan=>loan.kl_faces && loan.kl_faces.joy? loan.kl_faces.joy: [], true)
         ct.addAnyAllNoneTester('vision_face_sorrow',   null,'any',loan=>loan.kl_faces && loan.kl_faces.sorrow? loan.kl_faces.sorrow: [], true)
         ct.addAnyAllNoneTester('vision_face_anger',    null,'any',loan=>loan.kl_faces && loan.kl_faces.anger? loan.kl_faces.anger: [], true)
         ct.addAnyAllNoneTester('vision_face_surprise', null,'any',loan=>loan.kl_faces && loan.kl_faces.surprise? loan.kl_faces.surprise: [], true)
         ct.addAnyAllNoneTester('vision_face_headwear', null,'any',loan=>loan.kl_faces && loan.kl_faces.headwear? loan.kl_faces.headwear: [], true)
-
+        **/
 
         ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
         ct.addFieldContainsOneOfArrayTester(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)

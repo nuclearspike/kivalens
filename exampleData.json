@@ -1,0 +1,106 @@
+{
+  "description": {
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "texts": {
+      "en": "Martine is a single, young 35-year-old woman with no children. After her schooling, she opened a sewing shop in a local neighborhood three years ago. Her expertise attracts a lot of customers, and consequently, she finds it impossible to satisfy them for lack of materials. This is why she is seeking a loan. It will help her buy material for embroidery and leather goods as well as products with which to make straw hats. This will increase the number of her customers and thus her profits. These profits will be reinvested into her business with the goal of diversifying her products. In the future, she would like to build a home and start a family."
+    }
+  },
+  "image": {
+    "id": 2176381
+  },
+
+  "kls_has_descr": true,
+  "kls_use_or_descr_arr": [
+    "RAW",
+    "MATERIAL",
+    "EMBROIDERY",
+    "LEATHER",
+    "GOODS",
+    "MARTINE",
+    "SINGLE",
+    "YOUNG",
+    "YEAR",
+    "WOMAN",
+    "CHILDREN",
+    "AFTER",
+    "SCHOOLING",
+    "OPENED",
+    "SEWING",
+    "SHOP",
+    "LOCAL",
+    "NEIGHBORHOOD",
+    "THREE",
+    "AGO",
+    "EXPERTISE",
+    "ATTRACTS",
+    "LOT",
+    "CUSTOMERS",
+    "CONSEQUENTLY",
+    "FINDS",
+    "IMPOSSIBLE",
+    "SATISFY",
+    "THEM",
+    "LACK",
+    "MATERIALS",
+    "WHY",
+    "SEEKING",
+    "HELP",
+    "WELL",
+    "PRODUCTS",
+    "WHICH",
+    "MAKE",
+    "STRAW",
+    "HATS",
+    "INCREASE",
+    "NUMBER",
+    "THUS",
+    "PROFITS",
+    "THESE",
+    "REINVESTED",
+    "INTO",
+    "GOAL",
+    "DIVERSIFYING",
+    "FUTURE",
+    "WOULD",
+    "LIKE",
+    "BUILD",
+    "HOME",
+    "START",
+    "FAMILY"
+  ],
+  "kls_half_back": "2017-02-01T08:00:00.000Z",
+  "kls_half_back_actual": 54.01,
+  "kls_75_back": "2017-05-01T07:00:00.000Z",
+  "kls_75_back_actual": 80.86,
+  "kls_final_repayment": "2017-07-01T07:00:00.000Z",
+  "kls_repaid_in": 14,
+}
+,
+{ //what's left...
+  "image": {
+    "id": 2119693,
+    "template_id": 1
+  },
+  "countries": [
+    {
+      "iso_code": "KE",
+      "region": "Africa",
+      "name": "Kenya",
+      "location": {
+        "geo": {
+          "level": "country",
+          "pairs": "1 38",
+          "type": "point"
+        }
+      }
+    }
+  ],
+  "kl_sp": [],
+  "kl_regions": [
+    "af"
+  ],
+  "kl_years_on_kiva": 0.12398268562881841
+}

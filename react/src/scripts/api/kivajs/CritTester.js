@@ -93,7 +93,7 @@ class CritTester {
         if (crit){
             if (crit.length > 0) {
                 var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
-                this.testers.push(entity => terms_arr.contains(selector(entity)))
+                this.testers.push(entity => selector(entity) !== null  ? terms_arr.contains(selector(entity)) : false)
             } else {
                 if (fail_if_empty) this.fail_all = true
             }
@@ -102,7 +102,7 @@ class CritTester {
     addFieldNotContainsOneOfArrayTester(crit, selector){
         if (crit && crit.length > 0) {
             var terms_arr = (Array.isArray(crit)) ? crit : crit.split(',')
-            this.testers.push(entity => !terms_arr.contains(selector(entity)))
+            this.testers.push(entity => selector(entity) !== null ? !terms_arr.contains(selector(entity)) : false)
         }
     }
     addArrayAllStartWithTester(crit, selector){

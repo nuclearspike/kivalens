@@ -105,7 +105,7 @@ const criteriaPartnerType = new graphql.GraphQLInputObjectType({
     name: "PartnerCriteria",
     description: "Criteria related to the partner",
     fields: {
-        "status": { type: graphql.GraphQLString },
+        //"status": { type: graphql.GraphQLString },
         "region": { type: graphql.GraphQLString },
         "region_all_any_none":{ type: graphql.GraphQLString },
         "partners": { type: graphql.GraphQLString, description: "Comma-separated list of partner ids" },
