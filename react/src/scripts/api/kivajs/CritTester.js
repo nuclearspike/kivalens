@@ -134,7 +134,12 @@ class CritTester {
     allPass(entity) {
         if (this.fail_all) return false //must happen first
         if (this.testers.length == 0) return true //all on 0-length array will fail :(
-        return this.testers.all(func => func(entity)) //pass the entity to all of the tester functions, all must pass
+        try {
+            return this.testers.all(func => func(entity)) //pass the entity to all of the tester functions, all must pass
+        } catch(e) {
+            console.log(e.message)
+            return false
+        }
     }
 }
 
