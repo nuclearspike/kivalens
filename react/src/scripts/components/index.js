@@ -30,7 +30,7 @@ const LoanLink = ({id, title, children, loan}) => {
         id = loan.id
         title = `View loan for ${loan.name} on Kiva.org in a new tab`
     }
-    return <KivaLink path={`lend/${id}?app_id=org.kiva.kivalens`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
+    return <KivaLink path={`lend/${id}`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
 }
 const EmailLink = ({email, subject, body, title, children}) => {
     var params = []
