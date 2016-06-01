@@ -137,7 +137,7 @@ class CritTester {
         try {
             return this.testers.all(func => func(entity)) //pass the entity to all of the tester functions, all must pass
         } catch(e) {
-            console.log(e.message)
+            console.log(`!!!!!!!!!!!! allPass: ${JSON.stringify(entity)} ${e.message}`)
             return false
         }
     }
