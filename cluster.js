@@ -968,6 +968,7 @@ else  //workers handle all communication with the clients.
     var vhost = require('vhost')
     var nspike = require('./nuclearspike_com')
 
+    main.use(allowCrossDomain)
     main.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
     main.use(vhost('nuclearspike.com', nspike))
     main.use(vhost('nuclearspike.local', nspike)) //serveStatic(__dirname + '/nuclearspike_com/public', {maxAge: '1d'}))
