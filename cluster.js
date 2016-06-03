@@ -976,6 +976,7 @@ else  //workers handle all communication with the clients.
     main.use(vhost('localhost', app))
     main.use(vhost('kivalens.org', app))
     main.use(vhost('www.kivalens.org', app))
+    main.use(vhost('kivalens.herokuapp.com', app))
 
 
     main.listen(main.get('port'), function() {
