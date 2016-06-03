@@ -311,12 +311,16 @@ if (cluster.isMaster){ //preps the downloads
     })
     
     hub.on('rss', (crit, sender, callback) => {
-        callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
-        var rss_crit = JSON.stringify(crit) //?why did it ever parse?
-        var key = `rss_fetch_${rss_crit}`
-        if (!rc) return
-        rc.incr(key) //creates if not present.
-        rc.expire(key,'86400') //24 hours...
+        try {
+            callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
+            var rss_crit = JSON.stringify(crit) //?why did it ever parse?
+            var key = `rss_fetch_${rss_crit}`
+            if (!rc) return
+            rc.incr(key) //creates if not present.
+            rc.expire(key, '86400') //24 hours...
+        } catch(e) {
+            console.log("!!!!!!!!!!!: RSS error " + rss_crit + e.message)
+        }
     })
 
     /**
