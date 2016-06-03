@@ -1,16 +1,16 @@
 "use strict";
+
 /**
  * This file is loaded in the worker processes and must pass off all queries to the
  * master since they don't keep their own copies of the loans/partners.
  */
+
 var graphql = require('graphql');
 var Hub = require('cluster-hub')
 var hub = new Hub()
 require('datejs');
 
 var req = require('./react/src/scripts/api/kivajs/req')
-
-
 
 /**
  * "limit_to": {
@@ -196,7 +196,7 @@ const borrowerType = new graphql.GraphQLObjectType({
     fields: {
         first_name: { type: graphql.GraphQLString },
         gender: { type: graphql.GraphQLString },
-        pictured: { type: graphql.GraphQLBoolean },
+        pictured: { type: graphql.GraphQLBoolean }
     }
 })
 
@@ -254,6 +254,7 @@ const loanType = new graphql.GraphQLObjectType({
         },
         similar: {
             type: new graphql.GraphQLList(loanType),
+            description: "Other loans that are similiar to this one (country, sector, etc)",
             resolve: function(_,args){
                 return new Promise((resolve, reject) => {
                     req.kiva.api.similarTo(_.id)
@@ -292,6 +293,102 @@ const partnerType = new graphql.GraphQLObjectType({
         "url": { type: graphql.GraphQLString },
     }
 });
+
+const lenderType = new graphql.GraphQLObjectType({
+    name: "Lender",
+    fields: {
+        "lender_id": { type: graphql.GraphQLString },
+        "name": { type: graphql.GraphQLString },
+        "whereabouts": { type: graphql.GraphQLString },
+        "country_code": { type: graphql.GraphQLString },
+        "member_since": dateStringType("When the lender joined Kiva"),
+        "personal_url": { type: graphql.GraphQLString },
+        "occupation": { type: graphql.GraphQLString },
+        "loan_because": { type: graphql.GraphQLString },
+        "occupational_info": { type: graphql.GraphQLString },
+        "loan_count": { type: graphql.GraphQLInt },
+        "invitee_count": { type: graphql.GraphQLInt }
+    }
+})
+
+const onNowUsersType = new graphql.GraphQLObjectType({
+    name: "OnNowUser",
+    fields: {
+        "lender_id": { type: graphql.GraphQLString },
+        "lender": {
+            type: lenderType,
+            resolve: function(_, args){
+                if (_.lender_id == "unknown") return null
+                return new Promise((resolve, reject) => {
+                    req.kiva.api.lender(_.lender_id)
+                        .done(resolve)
+                        .fail(reject)
+                })
+            }
+        },
+        "install": { type: graphql.GraphQLString },
+        "uptime": { type: graphql.GraphQLInt }
+    }
+})
+
+const statsType = new graphql.GraphQLObjectType({
+    name: "Stats",
+    fields: {
+        on: { 
+            type: new graphql.GraphQLList(onNowUsersType),
+            description: "Who is on right now",
+            resolve: function(_, args) {
+                return new Promise((resolve, reject) => {
+                    const rc = process.env.REDISCLOUD_URL ? require('redis').createClient(process.env.REDISCLOUD_URL) : null
+                    if (!rc) {
+                        resolve([])
+                        console.log("no rc. export the REDISCLOUD_URL")
+                        return
+                    }
+                    rc.keys('heartbeat_*',function(err,keys) {
+                        console.log(err,keys)
+                        rc.mget(keys,function(err,data){
+                            console.log(err,data)
+                            resolve(data.map(str => {
+                                let online = JSON.parse(str)
+                                online.lender_id = online.lender
+                                delete online.lender
+                                return online
+                            }))
+                        })
+                    })
+                })
+            }
+        },
+        on24: {
+            type: new graphql.GraphQLList(onNowUsersType),
+            description: "Who was on in the past 24 hours",
+            resolve: function(_, args) {
+                return new Promise((resolve, reject) => {
+                    const rc = process.env.REDISCLOUD_URL ? require('redis').createClient(process.env.REDISCLOUD_URL) : null
+                    if (!rc) {
+                        resolve([])
+                        console.log("no rc. export the REDISCLOUD_URL")
+                        return
+                    }
+                    rc.keys('on_past_24h_heartbeat_*',function(err,keys) {
+                        console.log(err,keys)
+                        rc.mget(keys,function(err,data){
+                            console.log(err,data)
+                            resolve(data.map(str => {
+                                let online = JSON.parse(str)
+                                online.lender_id = online.lender
+                                delete online.lender
+                                return online
+                            }))
+                        })
+                    })
+                })
+            }
+        }
+    }
+})
+
 
 const schema = new graphql.GraphQLSchema({
     query: new graphql.GraphQLObjectType({
@@ -359,7 +456,7 @@ const schema = new graphql.GraphQLSchema({
                         isDeprecated: true,
                         deprecationReason: "Please use the criteria argument instead",
                         type: graphql.GraphQLString
-                    },
+                    }
                 },
                 resolve: function(_, args) {
                     return new Promise((resolve, reject) => {
@@ -381,6 +478,18 @@ const schema = new graphql.GraphQLSchema({
                             })
                         }
                     })
+                }
+            },
+            stats: {
+                type: statsType,
+                description: "Statistics",
+                args: {
+                    key: {type: graphql.GraphQLInt}
+                },
+                resolve: (_, args)=>{
+                    if (args.key == process.env.RESET_I) {
+                        return {} //this is weird. but this switches this field active.
+                    }
                 }
             }
         }

@@ -92,8 +92,7 @@ if (cluster.isMaster){ //preps the downloads
     const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
     //const processFaceData = require('./vision').processFaceData
     const redis = require('redis')
-    const rc = process.env.REDISCLOUD_URL? redis.createClient(process.env.REDISCLOUD_URL) : null
-
+    const rc = process.env.REDISCLOUD_URL ? redis.createClient(process.env.REDISCLOUD_URL) : null
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 
     //RENDER INDEX

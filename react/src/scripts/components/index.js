@@ -11,6 +11,7 @@ import Options from './Options.jsx'
 import About from './About.jsx'
 import SnowStack from './SnowStack.jsx'
 import Face from './Face.jsx'
+import OnNow from './OnNow.jsx'
 import Live from './Live.jsx'
 import Teams from './Teams.jsx'
 import ClearBasket from './ClearBasket.jsx'
@@ -64,4 +65,4 @@ export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLin
     KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,
-    AutoLendSettings, Outdated, DidYouKnow, Face}
+    AutoLendSettings, Outdated, DidYouKnow, Face, OnNow}

@@ -37,9 +37,9 @@ class ResultProcessors {
     static unprocessLoan(loan){
         var l = extend(true, {}, loan) //make a copy, strip it out
         Object.keys(l).where(f=>f.indexOf('kl_') == 0).forEach(field => delete l[field])
-        l.kls_half_back = l.kls_half_back.toISOString()
-        l.kls_75_back = l.kls_75_back.toISOString()
-        l.kls_final_repayment = l.kls_final_repayment.toISOString()
+        l.kls_half_back = l.kls_half_back ? l.kls_half_back.toISOString() : null
+        l.kls_75_back = l.kls_75_back ? l.kls_75_back.toISOString() : null
+        l.kls_final_repayment = l.kls_final_repayment ? l.kls_final_repayment.toISOString() : null
         delete l.getPartner
         return l
     }
@@ -212,6 +212,9 @@ class ResultProcessors {
             delete loan.terms.disbursal_currency
             delete loan.terms.disbursal_amount
             delete loan.terms.loan_amount
+
+            if (!loan.partner_id)
+                loan.partner_id = null
 
             //do memory clean up of larger pieces of the loan object.
             if (loan.borrowers) //only visible
