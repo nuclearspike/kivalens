@@ -165,6 +165,15 @@ const scheduledPaymentsType = new graphql.GraphQLObjectType({
     }
 })
 
+const klScheduledPaymentsType = new graphql.GraphQLObjectType({
+    name: "KLScheduledPayment",
+    fields: {
+        "date": dateStringType("Date the repayment is due"),
+        "display": { type: graphql.GraphQLString },
+        "amount": { type: graphql.GraphQLFloat }
+    }
+})
+
 const lossLiabilityType =  new graphql.GraphQLObjectType({
     name: "LossLiability",
     fields: {
@@ -240,6 +249,16 @@ const loanType = new graphql.GraphQLObjectType({
             description: "The date of the final repayment",
             resolve: function (_, args) {
                 return _.kl_repayments && _.kl_repayments.length ?  _.kl_repayments[_.kl_repayments.length - 1].date : null
+            }
+        },
+        repayments: {
+            type: new graphql.GraphQLList(klScheduledPaymentsType),
+            description: "KivaLens-specific way of handling repayments. Allows for filled-in 0 amounts.",
+            args: {
+                show_zero_amounts: {type: graphql.GraphQLBoolean}
+            },
+            resolve: function(_, args) {
+                return args.show_zero_amounts ? _.kl_repayments : _.kl_repayments.where(r => r.amount)
             }
         },
         partner: {

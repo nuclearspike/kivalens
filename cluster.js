@@ -968,7 +968,7 @@ else  //workers handle all communication with the clients.
     var vhost = require('vhost')
     var nspike = require('./nuclearspike_com')
 
-    main.use(allowCrossDomain)
+    //main.use(allowCrossDomain) //don't think this is necessary
     main.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
     main.use(vhost('nuclearspike.com', nspike))
     main.use(vhost('nuclearspike.local', nspike)) //serveStatic(__dirname + '/nuclearspike_com/public', {maxAge: '1d'}))
@@ -976,7 +976,7 @@ else  //workers handle all communication with the clients.
     main.use(vhost('localhost', app))
     main.use(vhost('kivalens.org', app))
     main.use(vhost('www.kivalens.org', app))
-    main.use(vhost('kivalens.herokuapp.com', app))
+    main.use(vhost('kivalens.herokuapp.com', app)) //needed for KLA to have https access
 
 
     main.listen(main.get('port'), function() {
