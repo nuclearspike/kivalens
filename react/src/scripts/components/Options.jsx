@@ -120,7 +120,7 @@ const Options = React.createClass({
                             <li>
                                 This does not log you into KivaLens. Since it doesn't get any password and is just
                                 using your publicly known ID, this doesn't save any of your options or Saved Searches
-                                with KivaLens because anyone can put anyone else's Lender ID in. KivaLens does not store
+                                with KivaLens' server because anyone can put anyone else's Lender ID in. KivaLens does not store
                                 any of your options on the server, they are stored with your browser so be careful about
                                 clearing all of your browser data or KivaLens will forget who you are and you'll need to
                                 rebuild all of your Saved Searches.
@@ -148,8 +148,9 @@ const Options = React.createClass({
                             merges some of the data which allows you to search using their Secular (1-4)
                             and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
                             means that it is religion based. When activated, this will add 2 new sliders to the Partner
-                            tab for Criteria and a section displaying and explaining the ratings to the Partner tab
-                            of the loan. If a partner is not present in the MFI Research Data, it will pass by default.
+                            Criteria tab and an additional section displaying and explaining the ratings on the Partner tab
+                            of the loan. If a partner is not present in the MFI Research Data, by default, it will show up
+                            in the results.
                         </p>
                         <If condition={this.state.atheist_list_processed}>
                             <div><b>Partners not included in Atheist Data:</b>
@@ -192,7 +193,7 @@ const Options = React.createClass({
                             use the final repayment date criteria option if you want to hide longer term loans.
                         <Input
                             type="checkbox"
-                            label="Output debugging messages to the console"
+                            label="Output debugging messages to the console."
                             checkedLink={this.linkState('debugging')} />
                     </Panel>
 

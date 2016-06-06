@@ -54,7 +54,7 @@ const About = React.createClass({
             <p>
                 All of the data that KivaLens displays is either a direct presentation of or computation from data that
                 is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the
-                exception of data from the Atheist Team's research and Google's emotion detection. If you have any
+                exception of data from the Atheist Team's research. If you have any
                 questions about why a loan is showing
                 certain data (where you have confirmed that it's the same on Kiva's own site) or if you have questions
                 about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's
@@ -67,8 +67,7 @@ const About = React.createClass({
                 then <EmailLink subject="KivaLens Bug"
                                 body="I found a bug! The problem is... The steps to reproduce it are..."
                                 title="Report a bug">let me know</EmailLink> and
-                include as many details about what loan/partner and information you can so that I can reproduce the
-                problem.
+                include as many details about the what happened so I can reproduce the problem.
             </p>
             <p>
                 Any questions about the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
@@ -240,11 +239,6 @@ const About = React.createClass({
                     instant message, or many more things.
                 </li>
 
-                <li>
-                    <b>Emotion Detection!</b> KivaLens uses Google Vision API to analyze Kiva borrower photos for emotion
-                    (joy, sorrow, anger) likelihood as well as the likelihood someone is wearing
-                    head-wear. You can search on these detected emotions/headwear likelihoods.
-                </li>
             </ul>
 
             <h3>Reducing Risk</h3>
