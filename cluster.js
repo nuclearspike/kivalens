@@ -149,6 +149,7 @@ if (cluster.isMaster){ //preps the downloads
     })
      */
     const doVisionLookup = (loan_id, callback) => {
+        return
         if (typeof callback !== 'function') callback = () => true
         var loan = kivaloans.getById(loan_id)
         if (!loan) {
@@ -172,6 +173,7 @@ if (cluster.isMaster){ //preps the downloads
     }
 
     //upon first load, we pull the data out of redis and attach it to the loans
+    //deprecated
     const pullVisionFromFromRedis = () => {
         if (!rc) return
         rc.keys('vision_label_*',(err,keys)=>{
@@ -217,6 +219,7 @@ if (cluster.isMaster){ //preps the downloads
     const selVisionData = l=>({id: l.id, kl_visionLabels: l.kl_visionLabels, kl_faces: l.kl_faces})
 
     //deprecated...
+    /**
     hub.on("vision-loan", (loan_id, sender, callback) => doVisionLookup(loan_id, callback))
 
     hub.on("vision-fillin", (loan_ids, sender, callback) => {
@@ -226,7 +229,9 @@ if (cluster.isMaster){ //preps the downloads
     hub.on("vision-all", (ignore, sender, callback) => {
         callback(null,kivaloans.filter({loan:{}}).where(predHasVision).select(selVisionData))
     })
+    **/
 
+    //deprecated. switched to GraphQL.
     hub.on("loans-supplemental", (loan_ids, sender, callback) => {
         callback(null, loan_ids.map(id => kivaloans.getById(id)).where(l=>l).select(loan => ({id: loan.id, kl_repayments: loan.kl_repayments, description: {texts: {en: loan.description.texts.en}}})))
     })
@@ -428,19 +433,19 @@ if (cluster.isMaster){ //preps the downloads
     kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
         if (progress.loan_load_progress && progress.loan_load_progress.label)
             console.log(progress.loan_load_progress.label)
-        if (progress.loan_not_fundraising)
-            removeVisionFromRedis(progress.loan_not_fundraising.id)
+        //if (progress.loan_not_fundraising)
+        //    removeVisionFromRedis(progress.loan_not_fundraising.id)
         if (progress.new_loans) {
             //is this happening.
             //console.log("PROGRESS.NEW_LOANS:", JSON.stringify(progress.new_loans))
-            progress.new_loans.forEach(loan => doVisionLookup(loan.id))
+            //progress.new_loans.forEach(loan => doVisionLookup(loan.id))
         }
         if (progress.loans_loaded || progress.background_added || progress.background_updated || progress.loan_updated || progress.loan_not_fundraising || progress.new_loans)
             loansChanged = true
         if (progress.loans_loaded || (progress.backgroundResync && progress.backgroundResync.state == 'done'))
             prepForRequests()
-        if (progress.loans_loaded) //should happen after prep for requests to not slow down server boot.
-            pullVisionFromFromRedis()
+        //if (progress.loans_loaded) //should happen after prep for requests to not slow down server boot.
+        //    pullVisionFromFromRedis()
     })
 
     const prepForRequests = function(){
@@ -895,6 +900,7 @@ else  //workers handle all communication with the clients.
         })
     })
 
+    /**
     app.get("/api/vision/loans", (req,res)=>{
         hub.requestMaster('vision-all', null, (err, result) =>{
             if (err)
@@ -922,9 +928,10 @@ else  //workers handle all communication with the clients.
                 res.send(result)
             }
         })
-    })
+    })**/
 
     //deprecated
+    /**
     app.get("/api/vision/loan/:loan_id", (req,res)=>{
         hub.requestMaster('vision-loan', req.params.loan_id, (err, result) =>{
             if (err)
@@ -936,6 +943,7 @@ else  //workers handle all communication with the clients.
             }
         })
     })
+     **/
 
     app.get('/api/heartbeat/:install/:lender/:uptime', (req, res)=>{
         hub.requestMaster('heartbeat',

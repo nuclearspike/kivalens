@@ -8,6 +8,7 @@
 const isServer = require("./kivaBase").isServer
 const ResultProcessors = require("./ResultProcessors")
 const SemRequest = require('./SemRequest')
+const postUrl = require("./kivaBase").postUrl
 
 var req = {}
 var kivaBase, gdocs
@@ -19,6 +20,10 @@ if (!isServer()) {
     req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
     kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
+    req.kl.graph = query => {
+        return postUrl(`${location.protocol}//${location.host}/graphql`,
+            {}, query ).then(response => response.data)
+    }
 } else {
     kivaBase = 'https://www.kiva.org/'
     gdocs = 'https://docs.google.com/'

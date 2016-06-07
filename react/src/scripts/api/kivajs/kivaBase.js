@@ -69,6 +69,45 @@ var getUrl = function(url, options){
     return d
 }
 
+var postUrl = function(url, options, query){
+    var d = Deferred()
+
+    options = extend({parseJSON: true}, options)
+
+    function xhrTransferComplete() {
+        if (xhr.status == 200) {
+            var res = options.parseJSON ? JSON.parse(this.responseText) : this.responseText
+            d.resolve(res)
+        } else {
+            var msg = ''
+            if (this.responseText)
+                msg = this.responseText
+
+            d.reject(msg, xhr.status)
+        }
+    }
+
+    function xhrFailed(e){
+        var msg = ''
+        if (this.responseText)
+            msg = this.responseText
+
+        d.reject(msg, xhr.status)
+    }
+
+    var xhr = new XMLHttpRequest()
+    xhr.addEventListener("load", xhrTransferComplete)
+    xhr.addEventListener("error", xhrFailed)
+    xhr.addEventListener("abort", xhrFailed)
+    xhr.open("POST", url, true)
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.setRequestHeader("Accept", 'application/json,*/*')
+    if (options.includeRequestedWith) xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+    xhr.send(JSON.stringify({query: query}))
+
+    return d
+}
+
 //turns {json: 'object', app_id: 'com.me'} into ?json=object&app_id=com.me
 function serialize(obj, prefix) {
     var str = []
@@ -92,6 +131,7 @@ function setAPIOptions(options){
 
 
 exports.getUrl = getUrl
+exports.postUrl = postUrl
 exports.isServer = isServer
 exports.canWebWork = canWebWork
 exports.sem_one = sem_one

@@ -170,7 +170,8 @@ const klScheduledPaymentsType = new graphql.GraphQLObjectType({
     fields: {
         "date": dateStringType("Date the repayment is due"),
         "display": { type: graphql.GraphQLString },
-        "amount": { type: graphql.GraphQLFloat }
+        "amount": { type: graphql.GraphQLFloat },
+        "percent": { type: graphql.GraphQLFloat }
     }
 })
 
@@ -209,6 +210,20 @@ const borrowerType = new graphql.GraphQLObjectType({
     }
 })
 
+const descriptionTextType = new graphql.GraphQLObjectType({
+    name: "DescriptionText",
+    fields: {
+        en: { type: graphql.GraphQLString }
+    }
+})
+
+const descriptionType = new graphql.GraphQLObjectType({
+    name: "Descriptions",
+    fields: {
+        texts: { type: descriptionTextType },
+    }
+})
+
 const loanType = new graphql.GraphQLObjectType({
     name: 'Loan',
     fields: ()=>({
@@ -231,6 +246,16 @@ const loanType = new graphql.GraphQLObjectType({
         borrowers: {type: new graphql.GraphQLList(borrowerType)},
         themes: {type: new graphql.GraphQLList(graphql.GraphQLString)},
         terms: {type: termsType},
+        description: {type: descriptionType},
+        kl_description: {
+            type: graphql.GraphQLString,
+            args: {language: {type: graphql.GraphQLString}},
+            resolve: function(_, args) {
+                //KL currently removes all non-English descriptions... so,
+                var lang = args.language || 'en'
+                return _.description.texts[lang]
+            }
+        },
         tags: {
             type: new graphql.GraphQLList(graphql.GraphQLString),
             resolve: function (_, args) {

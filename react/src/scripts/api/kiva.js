@@ -388,8 +388,15 @@ class Loans {
     }
     fetchDescrAndRepayments(loans){
         if (!Array.isArray(loans)) loans = [loans]
-        return req.kl.get(`extra/loans/${loans.select(l=>l.id).join(',')}`)
-            .then(data=>data.forEach(vd => this.mergeExtraLoanData(vd))) //this looks up a loan we already have...
+        //req.kl.graph
+        return req.kl.graph(`{loans(ids:[${loans.select(l=>l.id).join(',')}]){
+            id
+            description{texts{en}}
+            kl_repayments:repayments {date display amount percent}
+            }}`)
+            .then(data=>data.loans.forEach(vd => this.mergeExtraLoanData(vd)))
+        //return req.kl.get(`extra/loans/${loans.select(l=>l.id).join(',')}`)
+        //    .then(data=>data.forEach(vd => this.mergeExtraLoanData(vd))) //this looks up a loan we already have...
     }
     checkHotLoans(){
         if (!this.isReady()) return
