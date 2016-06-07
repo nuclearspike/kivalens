@@ -387,7 +387,7 @@ if (cluster.isMaster){ //preps the downloads
     //are told to reload the page if they were loaded prior to the new release. not
     //the most robust way of doing this, but it's handy! best to not have it be "now" time
     //so that only long-running users are reset.
-    const restartIfBefore = new Date('2016-06-01T04:43:38.694Z')
+    const restartIfBefore = new Date("2016-06-07T04:35:45.761Z")
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)

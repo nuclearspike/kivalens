@@ -322,10 +322,10 @@ class Loans {
                     this.endDownloadTimer('KLLoans')
                     req.kl.get(`since/${batch}`).done(loans => this.setKivaLoans(loans, false))
                     //if (base_options.betaTester) //this will need a notify for it to cause refresh.
-                    req.kl.get(`vision/loans`).done(data => {
+                    /**req.kl.get(`vision/loans`).done(data => {
                         data.forEach(vd => this.mergeExtraLoanData(vd))
                         this.notify({vision_data_loaded:true})
-                    })
+                    })**/
 
                     /**setInterval(function(){
                         var ids = this.filter({}, false).where(l=>!l.kl_faces).select(l=>l.id).take(100)
@@ -864,7 +864,7 @@ class Loans {
     getLoanFromKiva(id){
         //don't use sem_get. this is only used rarely and when it is, it doesn't want to be queued
         var def = req.kiva.api.loan(id)
-        //this will only return once both the loan and all partners have been downloaded
+        //this will only resolve once both the loan and all partners have been downloaded
         return when(def, this.partner_download).then(loan => loan)
     }
     refreshLoans(loan_arr){
@@ -881,8 +881,7 @@ class Loans {
                     newLoans.push(loan)
                 }
             })
-            kl.setKivaLoans(newLoans, false) //why would this ever happen?
-            //cl("############### refreshLoans:", loan_arr.length, loans)
+            kl.setKivaLoans(newLoans, false) //happens for websockets loans (assumed)
         })
     }
     queueToRefresh(loan_id_arr){
