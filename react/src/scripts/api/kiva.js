@@ -895,7 +895,12 @@ class Loans {
         var that = this
         return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
             cl("###############!!!!!!!! newLoanNotice:", loans)
-            that.running_totals.new_loans += loans.count(l=>l.kl_posted_date.isAfter(that.startupTime))
+            try {
+                that.running_totals.new_loans += loans.count(l=>l.kl_posted_date.isAfter(that.startupTime))
+            }
+            catch (e) {
+                console.log("BAD DATE !!!!!!!!!!!!!!: ", that.startupTime, e.message)
+            }
             this.notify({new_loans: loans})
             this.notify({running_totals_change: that.running_totals})
             this.setKivaLoans(loans, false)
