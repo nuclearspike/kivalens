@@ -429,7 +429,7 @@ if (cluster.isMaster){ //preps the downloads
     var loansChanged = false
 
 
-    kivaloans = new k.Loans(5*60*1000)
+    kivaloans = new k.Loans(5*60*1000) //every 5 minutes do a full refresh
     var getOptions = ()=>({loansFromKL:false,loansFromKiva:true,mergeAtheistList:true})
     kivaloans.init(null, getOptions, {app_id: 'org.kiva.kivalens', max_concurrent: 8}).progress(progress => {
         if (progress.loan_load_progress && progress.loan_load_progress.label)

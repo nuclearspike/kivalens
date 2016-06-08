@@ -896,12 +896,14 @@ class Loans {
         if (!this.isReady()) return
         var that = this
         return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
+            loans = loans.where(l=>l.status=='fundraising')
+            if (!loans.length) return
             cl("###############!!!!!!!! newLoanNotice:", loans)
             try {
                 that.running_totals.new_loans += loans.count(l=>l.kl_posted_date.isAfter(that.startupTime))
             }
             catch (e) {
-                console.log("BAD DATE !!!!!!!!!!!!!!: ", that.startupTime, e.message, JSON.stringify(loans))
+                console.log("BAD DATE !!!!!!!!!!!!!!: ", that.startupTime, e.message, loans.select(l=>({id: l.id, posted_date: l.posted_date})))
             }
             this.notify({new_loans: loans})
             this.notify({running_totals_change: that.running_totals})
