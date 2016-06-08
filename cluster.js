@@ -134,7 +134,7 @@ if (cluster.isMaster){ //preps the downloads
     // Listen for dying workers
     cluster.on('exit', worker => {
         console.log('INTERESTING: Worker %d died :(', worker.id)
-        cluster.fork()
+        cluster.fork() //start another one.
     })
 
     /**
@@ -147,7 +147,7 @@ if (cluster.isMaster){ //preps the downloads
        console.log(response)
        rc.mget(response,function(err2,response2){console.log(err2,response2)})
     })
-     */
+
     const doVisionLookup = (loan_id, callback) => {
         return
         if (typeof callback !== 'function') callback = () => true
@@ -217,6 +217,7 @@ if (cluster.isMaster){ //preps the downloads
 
     const predHasVision = l=>l && (l.kl_faces || l.kl_visionLabels)
     const selVisionData = l=>({id: l.id, kl_visionLabels: l.kl_visionLabels, kl_faces: l.kl_faces})
+     */
 
     //deprecated...
     /**
@@ -447,6 +448,8 @@ if (cluster.isMaster){ //preps the downloads
         //if (progress.loans_loaded) //should happen after prep for requests to not slow down server boot.
         //    pullVisionFromFromRedis()
     })
+    
+    
 
     const prepForRequests = function(){
         if (!kivaloans.isReady()) {
