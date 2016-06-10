@@ -231,7 +231,7 @@ class Loans {
 
         const loadFromKiva = function() {
             kiva_getPartners()
-            setInterval(kiva_getPartners, 24*60*60000)
+            setInterval(kiva_getPartners, 6*60*60000)
 
             if (base_options.maxRepaymentTerms_on) {
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
@@ -290,6 +290,7 @@ class Loans {
             this.loans_from_kiva.forEach(l=>delete l.kl_partner)
         }.bind(this)
 
+        //pull partners from KL, only runs on client.
         const kl_getPartners = function() {
             /** partners **/
             //gets started on the load of the page to get it out of the way.
@@ -687,12 +688,12 @@ class Loans {
                             var kivaMFI = this.getPartner(parseInt(mfi.id))
                             if (kivaMFI) {
                                 kivaMFI.atheistScore = {
-                                    "secularRating": parseInt(mfi.secularRating),
-                                    "religiousAffiliation": mfi.religiousAffiliation,
-                                    "commentsOnSecularRating": mfi.commentsOnSecularRating,
-                                    "socialRating": parseInt(mfi.socialRating),
-                                    "commentsOnSocialRating": mfi.commentsOnSocialRating,
-                                    "reviewComments": mfi.reviewComments
+                                    secularRating : parseInt(mfi.secularRating),
+                                    religiousAffiliation : mfi.religiousAffiliation,
+                                    commentsOnSecularRating : mfi.commentsOnSecularRating,
+                                    socialRating : parseInt(mfi.socialRating),
+                                    commentsOnSocialRating : mfi.commentsOnSocialRating,
+                                    reviewComments : mfi.reviewComments
                                 }
                             }
                     })

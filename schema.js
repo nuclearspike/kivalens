@@ -24,9 +24,10 @@ var req = require('./react/src/scripts/api/kivajs/req')
  * allow formatting of dates
  *
  * @param description
+ * @param selector if the field name differs from the name used in the graph query, define it.
  * @returns {{type: *, description: *, args: {format: {type: *, description: string}}, resolve: resolve}}
  */
-const dateStringType = description => {
+const dateStringType = (description, selector) => {
     return {
         type: graphql.GraphQLString,
         description,
@@ -37,16 +38,17 @@ const dateStringType = description => {
             }
         },
         resolve: function (_, args, a, fieldSchema) {
-            const fieldVal = _[fieldSchema.fieldName]
+            const fieldVal =  selector ? selector(_) : _[fieldSchema.fieldName]
+            if (!fieldVal) return null
             if (args.format) {
-                let d = new Date(fieldVal)
+                let d = typeof fieldVal === 'string' ? new Date(fieldVal) : fieldVal
                 try {
                     return d.toString(args.format)
                 } catch (e) {
                     return e.message
                 }
             } else {
-                return fieldVal
+                return typeof fieldVal === 'string' ? fieldVal : fieldVal.toISOString()
             }
         }
     }
@@ -193,7 +195,7 @@ const termsType = new graphql.GraphQLObjectType({
             deprecationReason: "Due to increased borrower privacy, this field is no longer available and will always return an empty array.",
             resolve:()=>[]
         },
-        "disbursal_date": { type: graphql.GraphQLString },
+        "disbursal_date": dateStringType("Date the borrower will receive/received the loan"),
         "repayment_interval": { type: graphql.GraphQLString },
         "repayment_term": { type: graphql.GraphQLInt },
         "loss_liability": { type: lossLiabilityType },
@@ -258,24 +260,16 @@ const loanType = new graphql.GraphQLObjectType({
         },
         tags: {
             type: new graphql.GraphQLList(graphql.GraphQLString),
-            resolve: function (_, args) {
-                return _.kls_tags
-            }
+            resolve: _ => _.kls_tags
         },
         age: {
             type: graphql.GraphQLInt,
             description: "The first age found in the description. Searches for patterns like '22 years old' or 'aged 40 years' which could potentially be the age of the borrower's child or parents.",
-            resolve: function (_, args) {
-                return _.kls_age
-            }
+            resolve: _ => _.kls_age
         },
-        final_repayment: {
-            type: graphql.GraphQLString,
-            description: "The date of the final repayment",
-            resolve: function (_, args) {
-                return _.kl_repayments && _.kl_repayments.length ?  _.kl_repayments[_.kl_repayments.length - 1].date : null
-            }
-        },
+        half_back: dateStringType('The date half of the amount is back', _ => _.kls_half_back),
+        three_fourths_back: dateStringType('The date 75% of the amount is back', _ => _.kls_75_back),
+        final_repayment: dateStringType('The date of the final repayment', _ => _.kls_final_repayment),
         repayments: {
             type: new graphql.GraphQLList(klScheduledPaymentsType),
             description: "KivaLens-specific way of handling repayments. Allows for filled-in 0 amounts.",
