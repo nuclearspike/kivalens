@@ -385,57 +385,46 @@ const statsType = new graphql.GraphQLObjectType({
         on: { 
             type: new graphql.GraphQLList(onNowUsersType),
             description: "Who is on right now",
-            resolve: function(_, args) {
-                return new Promise((resolve, reject) => {
-                    const rc = process.env.REDISCLOUD_URL ? require('redis').createClient(process.env.REDISCLOUD_URL) : null
-                    if (!rc) {
-                        resolve([])
-                        console.log("no rc. export the REDISCLOUD_URL")
-                        return
-                    }
-                    rc.keys('heartbeat_*',function(err,keys) {
-                        console.log(err,keys)
-                        rc.mget(keys,function(err,data){
-                            console.log(err,data)
-                            resolve(data.map(str => {
-                                let online = JSON.parse(str)
-                                online.lender_id = online.lender
-                                delete online.lender
-                                return online
-                            }))
-                        })
-                    })
-                })
-            }
+            resolve: () => checkRCForHeartbeats('heartbeat_*')
         },
         on24: {
             type: new graphql.GraphQLList(onNowUsersType),
             description: "Who was on in the past 24 hours",
-            resolve: function(_, args) {
-                return new Promise((resolve, reject) => {
-                    const rc = process.env.REDISCLOUD_URL ? require('redis').createClient(process.env.REDISCLOUD_URL) : null
-                    if (!rc) {
-                        resolve([])
-                        console.log("no rc. export the REDISCLOUD_URL")
-                        return
-                    }
-                    rc.keys('on_past_24h_heartbeat_*',function(err,keys) {
-                        console.log(err,keys)
-                        rc.mget(keys,function(err,data){
-                            console.log(err,data)
+            resolve: () => checkRCForHeartbeats('on_past_24h_heartbeat_*')
+        }
+    }
+})
+
+function checkRCForHeartbeats(key) {
+    return new Promise(resolve => {
+        const rc = process.env.REDISCLOUD_URL ? require('redis').createClient(process.env.REDISCLOUD_URL) : null
+        if (!rc) {
+            resolve([])
+            console.log("no rc. export the REDISCLOUD_URL")
+            return
+        }
+        rc.keys(key, function (err, keys) {
+            if (keys && keys.length) {
+                console.log(err, keys)
+                rc.mget(keys, function (err, data) {
+                    console.log(err, data)
+                    if (!err && data) {
+                        try {
                             resolve(data.map(str => {
                                 let online = JSON.parse(str)
                                 online.lender_id = online.lender
                                 delete online.lender
                                 return online
                             }))
-                        })
-                    })
+                        } catch (e) {
+                            console.log("STATS ERROR 1: ", e.message)
+                        }
+                    }
                 })
             }
-        }
-    }
-})
+        })
+    })
+}
 
 
 const schema = new graphql.GraphQLSchema({
