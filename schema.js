@@ -268,7 +268,17 @@ const loanType = new graphql.GraphQLObjectType({
             resolve: _ => _.kls_age
         },
         half_back: dateStringType('The date half of the amount is back', _ => _.kls_half_back),
+        half_back_actual: {
+            type: graphql.GraphQLFloat,
+            description: "The actual percent back on the day when 50% is back",
+            resolve: _ => _.kls_half_back_actual
+        },
         three_fourths_back: dateStringType('The date 75% of the amount is back', _ => _.kls_75_back),
+        three_fourths_back_actual: {
+            type: graphql.GraphQLFloat,
+            description: "The actual percent back on the day when 75% is back",
+            resolve: _ => _.kls_75_back_actual
+        },
         final_repayment: dateStringType('The date of the final repayment', _ => _.kls_final_repayment),
         repayments: {
             type: new graphql.GraphQLList(klScheduledPaymentsType),

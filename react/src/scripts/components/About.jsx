@@ -41,12 +41,10 @@ const About = React.createClass({
 
             <h3>Rebuilt and Rethought</h3>
             <p>
-                KivaLens has been rebuilt. In July of 2015, the Silverlight version suddenly stopped being able
-                to process Kiva's API results and rather than fix it, I decided to re-invent it using different tools
-                that weren't available when KivaLens
-                was first written. Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me
-                know</EmailLink> your
-                what else you'd like to be able to do. You can also join
+                KivaLens has been rebuilt. I decided to re-invent it using different tools
+                that weren't available when KivaLens was first written with Silverlight.
+                Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me
+                know</EmailLink> what else you'd like to be able to do. You can also join
                 the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss.
             </p>
 
@@ -65,7 +63,7 @@ const About = React.createClass({
                 you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is
                 working
                 then <EmailLink subject="KivaLens Bug"
-                                body="I found a bug! The problem is... The steps to reproduce it are..."
+                                body={`I found a bug!\nThe problem is...\nThe steps to reproduce it are...`}
                                 title="Report a bug">let me know</EmailLink> and
                 include as many details about the what happened so I can reproduce the problem.
             </p>
