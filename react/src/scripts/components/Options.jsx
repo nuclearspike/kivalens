@@ -102,7 +102,7 @@ const Options = React.createClass({
                             <li><b>Team Comparison:</b> On the "Teams" page, KivaLens will allow you to compare membership, loan count and total
                                 lending on all of the teams you're on.</li>
                             <li><b>3D Loan Wall:</b> Once your lender-id is set, you can see your own&nbsp;
-                                <a href="#/portfolio">3D Loan Wall</a> based off your portfolio.</li>
+                                <a href="#/portfolio">3D Loan Wall</a> visualization using your portfolio.</li>
                         </ul>
                         <p>What this isn't:</p>
                         <ul className='spacedList'>

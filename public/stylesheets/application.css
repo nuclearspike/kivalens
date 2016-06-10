@@ -7,6 +7,12 @@
   -webkit-perspective: 5000px;
   -webkit-perspective-origin: 50% 100px; }
 
+@media (min-width: 768px) {
+  .dl-horizontal.narrow dt {
+    width: 60px; }
+  .dl-horizontal.narrow dd {
+    margin-left: 80px; } }
+
 @media (min-width: 1024px) {
   .side-tilted-container {
     -webkit-perspective: 1000px;

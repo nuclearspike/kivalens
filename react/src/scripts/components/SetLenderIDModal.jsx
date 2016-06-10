@@ -46,7 +46,7 @@ const SetLenderIDModal = React.createClass({
                     <Modal.Header closeButton>
                         <Modal.Title>Set Kiva Lender ID</Modal.Title>
                     </Modal.Header>
-
+            
                     <Modal.Body>
                         <Row>
                             <Col md={12}>
@@ -58,7 +58,7 @@ const SetLenderIDModal = React.createClass({
                                     wrapperClassName='col-lg-8'
                                     valueLink={this.linkState('kiva_lender_id')} />
                                     Your Kiva Lender ID is not your email address.&nbsp;
-                                <KivaLink path="myLenderId">Click here if you don't know yours</KivaLink>
+                                <KivaLink path="myLenderId">Click here if you don't know yours.</KivaLink>
                                 <If condition={checking}>
                                     <Alert>Checking with Kiva...</Alert>
                                 </If>

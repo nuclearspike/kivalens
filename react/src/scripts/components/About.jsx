@@ -45,7 +45,8 @@ const About = React.createClass({
                 that weren't available when KivaLens was first written with Silverlight.
                 Please <EmailLink subject="KivaLens Features" title="Send a feature request">let me
                 know</EmailLink> what else you'd like to be able to do. You can also join
-                the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss.
+                the <KivaLink path="team/kivalens?default_team=kivalens">KivaLens Lending Team</KivaLink> to discuss
+                and get announcements.
             </p>
 
             <h3>Questions/Problems?</h3>

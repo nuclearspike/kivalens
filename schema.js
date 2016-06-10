@@ -226,6 +226,36 @@ const descriptionType = new graphql.GraphQLObjectType({
     }
 })
 
+/**
+ *
+  "image": {
+    "id": 2217179,
+    "template_id": 1
+    },
+ *
+ * @type {graphql.GraphQLObjectType}
+ */
+
+const imageType = new graphql.GraphQLObjectType({
+    name: "Image",
+    description: "Images for Loans, Partners and Lenders",
+    fields: {
+        id: { type: graphql.GraphQLInt },
+        template_id: { type: graphql.GraphQLInt },
+        url: {
+            type: graphql.GraphQLString,
+            args: {
+                size: {
+                    type: graphql.GraphQLString,
+                    required: true,
+                    description: "ex: s800, w800"
+                }
+            },
+            resolve: (_, args) => `https://www.kiva.org/img/${args.size}/${_.id}.jpg`
+        }
+    }
+})
+
 const loanType = new graphql.GraphQLObjectType({
     name: 'Loan',
     fields: ()=>({
@@ -249,6 +279,7 @@ const loanType = new graphql.GraphQLObjectType({
         themes: {type: new graphql.GraphQLList(graphql.GraphQLString)},
         terms: {type: termsType},
         description: {type: descriptionType},
+        image : {type: imageType},
         kl_description: {
             type: graphql.GraphQLString,
             args: {language: {type: graphql.GraphQLString}},
@@ -339,6 +370,7 @@ const partnerType = new graphql.GraphQLObjectType({
         "loans_at_risk_rate": { type: graphql.GraphQLFloat },
         "currency_exchange_loss_rate": { type: graphql.GraphQLFloat },
         "url": { type: graphql.GraphQLString },
+        image : {type: imageType},
     }
 });
 
@@ -355,14 +387,18 @@ const lenderType = new graphql.GraphQLObjectType({
         "loan_because": { type: graphql.GraphQLString },
         "occupational_info": { type: graphql.GraphQLString },
         "loan_count": { type: graphql.GraphQLInt },
-        "invitee_count": { type: graphql.GraphQLInt }
+        "invitee_count": { type: graphql.GraphQLInt },
+        image : {type: imageType},
     }
 })
 
 const onNowUsersType = new graphql.GraphQLObjectType({
     name: "OnNowUser",
     fields: {
-        "lender_id": { type: graphql.GraphQLString },
+        "lender_id": {
+            type: graphql.GraphQLString,
+            resolve: _ => _.lender_id == "unknown" ? null : _.lender_id
+        },
         "lender": {
             type: lenderType,
             resolve: function(_, args){
