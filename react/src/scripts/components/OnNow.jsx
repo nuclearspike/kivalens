@@ -1,7 +1,7 @@
 "use strict";
 import React from 'react'
 import { Grid, Col, Row, Input } from 'react-bootstrap'
-
+import { LenderLink } from '.'
 
 const OnNow = React.createClass({
     getInitialState() {
@@ -60,10 +60,10 @@ const OnNow = React.createClass({
                 </Row>
                 <Row>
                     {onNow.map((onL, i)=>{
-                        return (<Col sm={3} key={i}>
+                        return (<Col sm={3} key={onL.install}>
                             <img src={getImg(onL)} style={{width:'200px',height:'200px',display:'block'}} />
                             <dl className="dl-horizontal narrow" style={{display:'block'}}>
-                                <dt>lender</dt> <dd>{onL.lender ? <a href={`https://www.kiva.org/lender/${onL.lender_id}`}>{onL.lender_id}</a> : onL.lender_id}</dd>
+                                <dt>lender</dt> <dd>{onL.lender ? <LenderLink lender={onL.lender_id}>{onL.lender_id}</LenderLink> : onL.lender_id}</dd>
                                 <dt>install</dt> <dd>{onL.install}</dd>
                                 <dt>uptime</dt> <dd>{onL.uptime}</dd>
                                 <dt>name</dt> <dd>{onL.lender? onL.lender.name: ""}</dd>
