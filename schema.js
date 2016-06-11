@@ -283,7 +283,7 @@ const loanType = new graphql.GraphQLObjectType({
         kl_description: {
             type: graphql.GraphQLString,
             args: {language: {type: graphql.GraphQLString}},
-            resolve: function(_, args) {
+            resolve: (_, args) => {
                 //KL currently removes all non-English descriptions... so,
                 var lang = args.language || 'en'
                 return _.description.texts[lang]
@@ -317,13 +317,13 @@ const loanType = new graphql.GraphQLObjectType({
             args: {
                 show_zero_amounts: {type: graphql.GraphQLBoolean}
             },
-            resolve: function(_, args) {
+            resolve: (_, args) => {
                 return args.show_zero_amounts ? _.kl_repayments : _.kl_repayments.where(r => r.amount)
             }
         },
         partner: {
             type: partnerType,
-            resolve: function (_, args) {
+            resolve: (_, args) => {
                 return new Promise((resolve, reject) => {
                     hub.requestMaster('get-partner-by-id', _.partner_id, result => {
                         resolve(result)
@@ -334,7 +334,7 @@ const loanType = new graphql.GraphQLObjectType({
         similar: {
             type: new graphql.GraphQLList(loanType),
             description: "Other loans that are similiar to this one (country, sector, etc)",
-            resolve: function(_,args){
+            resolve: (_,args) => {
                 return new Promise((resolve, reject) => {
                     req.kiva.api.similarTo(_.id)
                         .done(loans => {
@@ -441,9 +441,9 @@ function checkRCForHeartbeats(key) {
         }
         rc.keys(key, function (err, keys) {
             if (keys && keys.length) {
-                console.log(err, keys)
+                //console.log(err, keys)
                 rc.mget(keys, function (err, data) {
-                    console.log(err, data)
+                    //console.log(err, data)
                     if (!err && data) {
                         try {
                             resolve(data.map(str => {
