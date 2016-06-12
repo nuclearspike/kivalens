@@ -215,7 +215,7 @@ class Loans {
             this.loans_from_kiva.forEach(loan => { //todo: make this a funct that's added in processing... this is duplicated code.
                 loan.kls_repaid_in = loan.kls_final_repayment ? Math.abs((loan.kls_final_repayment.getFullYear() - today.getFullYear()) * 12 + (loan.kls_final_repayment.getMonth() - today.getMonth())) : 0
             })
-        }.bind(this),6*60*60000)
+        }.bind(this), 6*60*60000) ///
 
         var hasStarted = false
         const kiva_getPartners = function() {
@@ -223,17 +223,15 @@ class Loans {
                 console.log('INTERESTING: kiva_getPartners start')
             if (this.partner_download.state() == 'resolved') {
                 this.partner_download = Deferred()
+                this.startedAtheistDownload = false
+                this.atheist_list_processed = false
             }
-            this.getAllPartners().fail(failed => this.notify({failed})).done(result => {
-                this.partner_download.resolve(result)
-                if (base_options.mergeAtheistList)
-                    this.getAtheistList()
-            })
+            this.getAllPartners().fail(failed => this.notify({failed}))
         }.bind(this)
 
         const loadFromKiva = function() {
             kiva_getPartners()
-            setInterval(kiva_getPartners, 6*60*60000)
+            setInterval(kiva_getPartners, 6*60*60000) //
 
             if (base_options.maxRepaymentTerms_on) {
                 max_repayment_date = Date.today().addMonths(parseInt(base_options.maxRepaymentTerms))
@@ -634,16 +632,16 @@ class Loans {
         if (!loans_to_filter) console.timeEnd("filter")
         return loans_to_filter
     }
-    getAtheistList(){
-        var CSVToArray = function(strData) {
+    getAtheistList() {
+        var CSVToArray = function (strData) {
             var strDelimiter = ","
             // Create a regular expression to parse the CSV values.
             var objPattern = new RegExp((
                 // Delimiters.
             "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-                // Quoted fields.
+            // Quoted fields.
             "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-                // Standard fields.
+            // Standard fields.
             "([^\"\\" + strDelimiter + "\\r\\n]*))"), "gi");
             var arrData = [[]];
             var arrMatches = null;
@@ -665,7 +663,7 @@ class Loans {
         var CSV2JSON = function (csv) {
             var array = CSVToArray(csv);
             var objArray = [];
-            if (array.length >= 1){
+            if (array.length >= 1) {
                 //rename the fields to what I want them to be. I could rename all unused fields to be "ignore" for less memory... but
                 array[0] = ["id", "X", "Name", "Link", "Country", "Kiva Status", "Kiva Risk Rating (5 best)", "secularRating", "religiousAffiliation", "commentsOnSecularRating", "socialRating", "commentsOnSocialRating", "MFI Link", "By", "Date", "reviewComments", "P", "J", "MFI Name", "Timestamp", "MFI Name Check"]
             }
@@ -685,24 +683,23 @@ class Loans {
         req.gdocs.atheist.get()
             .fail(e=>cl(`failed to retrieve Atheist list: ${e}`))
             .then(CSV2JSON).done(mfis => {
-                this.partner_download.done(x => {
-                    mfis.forEach(mfi => {
-                            var kivaMFI = this.getPartner(parseInt(mfi.id))
-                            if (kivaMFI) {
-                                kivaMFI.atheistScore = {
-                                    secularRating : parseInt(mfi.secularRating),
-                                    religiousAffiliation : mfi.religiousAffiliation,
-                                    commentsOnSecularRating : mfi.commentsOnSecularRating,
-                                    socialRating : parseInt(mfi.socialRating),
-                                    commentsOnSocialRating : mfi.commentsOnSocialRating,
-                                    reviewComments : mfi.reviewComments
-                                }
-                            }
-                    })
-                    this.atheist_list_processed = true
-                    this.notify({atheist_list_loaded: true})
-                })
+            mfis.forEach(mfi => {
+                var kivaMFI = this.getPartner(parseInt(mfi.id))
+                if (kivaMFI) {
+                    kivaMFI.atheistScore = {
+                        secularRating: parseInt(mfi.secularRating),
+                        religiousAffiliation: mfi.religiousAffiliation,
+                        commentsOnSecularRating: mfi.commentsOnSecularRating,
+                        socialRating: parseInt(mfi.socialRating),
+                        commentsOnSocialRating: mfi.commentsOnSocialRating,
+                        reviewComments: mfi.reviewComments
+                    }
+                }
             })
+            this.atheist_list_processed = true
+            this.notify({atheist_list_loaded: true})
+        })
+        // })
     }
     convertCriteriaToKivaParams(crit) { //started to implement this on the criteriaStore
         //filter partners //todo: this needs to mesh the options.
@@ -768,22 +765,30 @@ class Loans {
         return this.indexed_loans[id] != undefined
     }
     processPartners(partners){
-        this.loans_from_kiva.forEach(l=>l.kl_partner)
-        this.partners_from_kiva = partners
+        cl("processPartners()")
+
+        partners.forEach(new_p => {
+            var e_part = this.getPartner(new_p.id)
+            if (e_part) {
+                extend(true, e_part, new_p)
+            } else {
+                this.partners_from_kiva.push(new_p)
+            }
+        })
+
         this.active_partners = partners.where(p => p.status == "active")
         //todo: temp. for debugging
         global.partners = this.partners_from_kiva
-        this.partner_download.resolve()
         //gather all country objects where partners operate, flatten and remove dupes.
         this.countries = this.active_partners.select(p => p.countries).flatten().distinct((a,b) => a.iso_code == b.iso_code).orderBy(c => c.name)
+        this.partner_download.resolve()
     }
     getAllPartners(){
         //NOTE: does not return the partners. just the promise so you know if it's done.
-        return new Partners().start().then(this.processPartners.bind(this))
+        return new Partners().start().then(this.processPartners.bind(this)).then(this.getAtheistList.bind(this))
     }
     getPartner(id){
         //todo: slightly slower than an indexed reference.
-        //this needs to use non-active partners as well, this function is used when looking at old loans.
         return this.partners_from_kiva.first(p => p.id == id)
     }
     setLender(lender_id){
