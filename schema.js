@@ -439,7 +439,7 @@ function checkRCForHeartbeats(key) {
             console.log("no rc. export the REDISCLOUD_URL")
             return
         }
-        rc.keys(key, function (err, keys) {
+        rc.keys(key, (err, keys) => {
             if (keys && keys.length) {
                 //console.log(err, keys)
                 rc.mget(keys, function (err, data) {

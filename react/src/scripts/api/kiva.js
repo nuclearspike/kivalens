@@ -224,9 +224,11 @@ class Loans {
             if (this.partner_download.state() == 'resolved') {
                 this.partner_download = Deferred()
             }
-            this.getAllPartners().fail(failed => this.notify({failed})).done(this.partner_download.resolve)
-            if (base_options.mergeAtheistList)
-                this.getAtheistList()
+            this.getAllPartners().fail(failed => this.notify({failed})).done(result => {
+                this.partner_download.resolve(result)
+                if (base_options.mergeAtheistList)
+                    this.getAtheistList()
+            })
         }.bind(this)
 
         const loadFromKiva = function() {
