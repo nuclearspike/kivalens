@@ -635,6 +635,9 @@ else  //workers handle all communication with the clients.
 
     // compress all requests
     app.use(allowCrossDomain)
+    if (typeof airbrake === 'object') {
+        app.use(airbrake.expressHandler());
+    }
     app.use(compression())
 
     app.use('/graphql', graphqlHTTP({ schema: schema, graphiql: true, pretty: true }));
