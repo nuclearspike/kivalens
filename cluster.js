@@ -30,10 +30,11 @@
  */
 require('newrelic');
 if (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_API_KEY) {
+    console.log("**** airbrake createClient")
     const airbrake = require('airbrake').createClient(process.env.AIRBRAKE_PROJECT_ID, process.env.AIRBRAKE_API_KEY)
     airbrake.handleExceptions();
 } else {
-    console.log("***** NO NEW RELIC PROJECT ID OR API KEY FOUND")
+    console.log("***** NO AIRBRAKE PROJECT ID OR API KEY FOUND")
 }
 //both master and workers need these.
 var Hub = require('cluster-hub')
@@ -635,10 +636,12 @@ else  //workers handle all communication with the clients.
 
     // compress all requests
     app.use(allowCrossDomain)
+    app.use(compression()); //first!
+
     if (typeof airbrake === 'object') {
+        console.log("**** adding airbrake to express")
         app.use(airbrake.expressHandler());
     }
-    app.use(compression())
 
     app.use('/graphql', graphqlHTTP({ schema: schema, graphiql: true, pretty: true }));
 
