@@ -825,7 +825,7 @@ class Loans {
             })
         } else {
             if (global.lenderLoans && global.lenderLoans[lender_id] && global.lenderLoans[lender_id].downloadStarted){
-                waitFor(x=>global.lenderLoans[lender_id].unprocessedIds).done(x=> {
+                waitFor(x=>global.lenderLoans[lender_id] && global.lenderLoans[lender_id].unprocessedIds).done(x=> {
                     processIds(global.lenderLoans[lender_id].unprocessedIds)
                     delete global.lenderLoans[lender_id]
                 })

@@ -28,7 +28,9 @@
  * the callbacks didn't work at all or it seemed to be lossy in it's abilities.
  *
  */
-require('newrelic');
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+    require('newrelic');
+}
 if (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_API_KEY) {
     console.log("**** airbrake createClient")
     const airbrake = require('airbrake').createClient(process.env.AIRBRAKE_PROJECT_ID, process.env.AIRBRAKE_API_KEY)
