@@ -19,6 +19,8 @@ airbrake.addFilter(notice => {
     return notice;
 });
 
+window.addEventListener("error", airbrake.onerror);
+
 import React from 'react'
 import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
