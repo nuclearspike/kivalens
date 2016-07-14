@@ -32,6 +32,8 @@ require('newrelic');
 if (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_API_KEY) {
     const airbrake = require('airbrake').createClient(process.env.AIRBRAKE_PROJECT_ID, process.env.AIRBRAKE_API_KEY)
     airbrake.handleExceptions();
+} else {
+    console.log("***** NO NEW RELIC PROJECT ID OR API KEY FOUND")
 }
 //both master and workers need these.
 var Hub = require('cluster-hub')
