@@ -137,14 +137,34 @@ if (cluster.isMaster){ //preps the downloads
     const numCPUs = require('os').cpus().length
     const maxWorkers = process.env.MAX_WORKERS || 7
     console.log("*** CPUs: " + numCPUs)
-    for (var i=0; i< Math.min(numCPUs-1, maxWorkers); i++)
-        cluster.fork()
+
+    const startWorkers = () => {
+        for (var i=0; i< Math.min(numCPUs-1, maxWorkers); i++)
+            cluster.fork()
+    }
+
+    startWorkers();
 
     // Listen for dying workers
     cluster.on('exit', worker => {
         console.log('INTERESTING: Worker %d died :(', worker.id)
         cluster.fork() //start another one.
     })
+
+    //
+    setInterval(function(){
+        console.log("WORKERS:",cluster.workers)
+        const workerKeys = Object.keys(cluster.workers)
+        if (workerKeys.length > 0) {
+            const workerToRestart = cluster.workers[workerKeys[0]];
+            console.log("INTERESTING: Graceful restart:", workerToRestart.id);
+            workerToRestart.send({'shutdown': true});
+        } else {
+            //this should never happen!
+            console.log("INTERESTING: NO WORKERS RUNNING")
+            startWorkers();
+        }
+    }, 6*60*60*1000) 
 
     /**
      * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
@@ -636,7 +656,7 @@ else  //workers handle all communication with the clients.
         }
     };
 
-    // compress all requests
+    // compress all responses
     app.use(allowCrossDomain)
     app.use(compression()); //first!
 
@@ -1018,6 +1038,9 @@ else  //workers handle all communication with the clients.
 
     //worker receiving message... todo: switch to hub.
     process.on("message", msg => {
+        if (msg.shutdown){
+            process.exit(0);
+        }
         if (msg.downloadReady){
             startResponse = JSON.parse(msg.downloadReady)
             var curBatch = startResponse.batch
