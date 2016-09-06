@@ -676,7 +676,7 @@ else  //workers handle all communication with the clients.
     //some security
     app.use(helmet())
 
-    //TODO: RESTRICT TO SAME SERVER?
+    //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
     const proxyHandler = {
         filter: req => req.xhr, //only proxy xhr requests
         forwardPath: req => require('url').parse(req.url).path,

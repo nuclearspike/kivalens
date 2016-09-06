@@ -541,8 +541,8 @@ class Loans {
         ct.addAnyAllNoneTester('vision_face_headwear', null,'any',loan=>loan.kl_faces && loan.kl_faces.headwear? loan.kl_faces.headwear: [], true)
         **/
 
-        ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=>loan.terms.repayment_interval)
-        ct.addFieldContainsOneOfArrayTester(c.loan.currency_exchange_loss_liability, loan=>loan.terms.loss_liability.currency_exchange)
+        ct.addFieldContainsOneOfArrayTester(c.loan.repayment_interval, loan=> loan.terms.repayment_interval ? loan.terms.repayment_interval : "unknown")
+        ct.addFieldContainsOneOfArrayTester(c.loan.currency_exchange_loss_liability, loan=> loan.terms.loss_liability && loan.terms.loss_liability.currency_exchange)
         ct.addRangeTesters('repaid_in',         loan=>loan.kls_repaid_in)
         ct.addRangeTesters('borrower_count',    loan=>loan.borrower_count)
         ct.addRangeTesters('percent_female',    loan=>loan.kl_percent_women)
@@ -555,7 +555,12 @@ class Loans {
         ct.addRangeTesters('disbursal_in_days', loan=>loan.kl_disbursal_in_days())
         ct.addArrayAllStartWithTester(c.loan.use,  loan=>loan.kls_use_or_descr_arr)
         ct.addArrayAllStartWithTester(c.loan.name, loan=>loan.kl_name_arr)
-        ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
+        //BOTH is also an option.
+        if (!c.partner.direct || c.partner.direct == "") {
+            ct.addFieldContainsOneOfArrayTester(this.filterPartners(c), loan=>loan.partner_id, true) //always added!
+        } else if (c.partner.direct == "direct") {
+            ct.testers.push(loan => loan.partner_id == null)
+        }
         if (c.portfolio.exclude_portfolio_loans == 'true' && this.lenderLoans[this.lender_id]  && this.lenderLoans[this.lender_id].length)
             ct.addFieldNotContainsOneOfArrayTester(this.lenderLoans[this.lender_id], loan=>loan.id)
         ct.addBalancer(c.portfolio.pb_sector,     loan=>loan.sector)
@@ -592,7 +597,9 @@ class Loans {
                     case 'none': //when all you want is a count... skip sorting.
                         break
                     default:
+                        //if (typeof window !== 'undefined') {
                         loans = loans.orderBy(loan => loan.kls_final_repayment).thenBy(loan => loan.kls_half_back).thenBy(loan => loan.kls_half_back_actual, basicReverseOrder).thenBy(loan => loan.kls_75_back).thenBy(loan => loan.kls_75_back_actual, basicReverseOrder)
+                        //}
                 }
             return loans
         }

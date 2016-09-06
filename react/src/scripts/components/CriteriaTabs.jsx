@@ -40,6 +40,7 @@ allOptions.vision_face_surprise = {label: 'Face: Surprise', allAnyNone: true, mu
 allOptions.vision_face_headwear = {label: 'Face: Headwear', allAnyNone: true, multi: true, select_options: [{"value":"POSSIBLE","label":"Possible"},{"value":"LIKELY","label":"Likely"},{"value":"VERY_LIKELY","label":"Very likely"}]}
 
 //partner selects
+allOptions.direct = {label: 'MFI or Direct',  multi: false, select_options: [{"value":'',"label":"MFI Only (default)"},{"value":'direct',"label":"Direct Only (Ignores all criteria options below)"}]}
 allOptions.social_performance = {label: 'Social Performance', allAnyNone: true, canAll: true, multi: true, intArray:true, select_options: [{"value":'1',"label":"Anti-Poverty Focus"},{"value":'3',"label":"Client Voice"},{"value":'5',"label":"Entrepreneurial Support"},{"value":'6',"label":"Facilitation of Savings"},{"value":'4',"label":"Family and Community Empowerment"},{"value":'7',"label":"Innovation"},{"value":'2',"label":"Vulnerable Group Focus"}]}
 allOptions.region = {label: 'Region', allAnyNone: true, multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
 allOptions.partners = {label: "Partners", allAnyNone: true, multi: true, intArray:true, select_options: []}
@@ -578,8 +579,11 @@ const CriteriaTabs = React.createClass({
             case 'bonus_credit_eligibility':
                 data = loans.groupByWithCount(l=>l.bonus_credit_eligibility === true)
                 break
+            case 'direct':
+                data = loans.groupByWithCount(l=> typeof l.getPartner() === 'undefined' ? 'Direct': "MFI" )
+                break
             case 'repayment_interval':
-                data = loans.groupByWithCount(l=>l.terms.repayment_interval)
+                data = loans.groupByWithCount(l=>l.terms.repayment_interval ? l.terms.repayment_interval : "unknown")
                 break
             case 'social_performance':
                 data = loans.select(l => l.getPartner().social_performance_strengths).flatten().where(sp => sp != undefined).groupByWithCount(sp => sp.name)
@@ -726,6 +730,7 @@ const CriteriaTabs = React.createClass({
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">
                     <Row>
                     <Col lg={8}>
+                        <SelectRow name="direct" cursor={cPartner.refine('direct')} aanCursor={cPartner.refine(`direct_all_any_none`)}  onFocus={this.focusSelect.bind(this, 'partner', "direct")} onBlur={this.removeGraphs} />
                         <For each='name' index='i' of={['region','partners','social_performance','charges_fees_and_interest']}>
                             <SelectRow key={i} name={name} cursor={cPartner.refine(name)} aanCursor={cPartner.refine(`${name}_all_any_none`)} onFocus={this.focusSelect.bind(this, 'partner', name)} onBlur={this.removeGraphs}/>
                         </For>

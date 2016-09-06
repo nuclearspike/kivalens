@@ -26,14 +26,14 @@ var Search = React.createClass({
             notification: {active: false, message: ''}
         }
     },
-    onScroll(){
-        var d = ReactDOM.findDOMNode(this.refs.perspective)
-        d.setAttribute('style', "-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
-    },
-    componentWillUnmount(){
-        if (/webkit/i.test(navigator.userAgent))
-            document.removeEventListener('scroll', this.onScroll)
-    },
+    //onScroll(){
+    //    var d = ReactDOM.findDOMNode(this.refs.perspective)
+    //    d.setAttribute('style', "-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
+    //},
+    //componentWillUnmount(){
+    //    if (/webkit/i.test(navigator.userAgent))
+    //        document.removeEventListener('scroll', this.onScroll)
+    //},
     componentWillReceiveProps({location}){
         if (location && location.pathname != this.props.location.pathname)
             this.setState({floatResults: location.pathname != '/search'})
@@ -41,8 +41,8 @@ var Search = React.createClass({
     componentDidMount() {
         //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
         //it should only fetch loans that are filtered.
-        if (/webkit/i.test(navigator.userAgent))
-            document.addEventListener('scroll', this.onScroll)
+        //if (/webkit/i.test(navigator.userAgent))
+        //    document.addEventListener('scroll', this.onScroll)
         this.listenTo(a.loans.filter.completed, (loans, sameAsLastTime) => {
             cl('a.loans.filter.completed', loans.length, sameAsLastTime)
             //if (loans.length)
@@ -113,7 +113,7 @@ var Search = React.createClass({
                     <BulkAddModal onHide={this.modalHidden}/>
                 </If>
                 <If condition={outdatedUrl}>
-                    <Alert className="not-rounded" style={{marginTop:'-20px'}} bsStyle="warning"
+                    <Alert className="not-rounded" style={{marginTop: '-20px'}} bsStyle="warning"
                            onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
                         <p>
                             The link or bookmark you used is outdated. To ensure faster page loading
@@ -122,27 +122,25 @@ var Search = React.createClass({
                         </p>
                     </Alert>
                 </If>
-                <Col md={4} ref="perspective" className="side-tilted-container">
-                    <div
-                        className={cx({"side-tilted-shadow":floatResults,'side-shadow-sometimes':!floatResults})}></div>
-                    <div className={cx('side-results', {"side-tilted":floatResults})}>
+                <Col md={4} ref="perspective">
+                    <div className={cx('side-results', {"side-tilted": floatResults})}>
                         <ButtonGroup justified className="top-only">
                             <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                             <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'}
                                     onClick={this.changeCriteria}>Change Criteria</Button>
                         </ButtonGroup>
                         <If condition={show_secondary_load}>
-                            <Alert className="not-rounded" style={{marginBottom:'0px'}} bsStyle="warning">
+                            <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
                                 More loans are still loading. Carry on. {secondary_load_status}
                             </Alert>
                         </If>
                         <If condition={backgroundResyncState == 'started'}>
-                            <Alert className="not-rounded" style={{marginBottom:'0px'}}>
+                            <Alert className="not-rounded" style={{marginBottom: '0px'}}>
                                 Continue using the site while the loans are refreshed...
                             </Alert>
                         </If>
                         <If condition={hasHadLoans && loan_count == 0}>
-                            <Alert className="not-rounded-top" style={{marginBottom:'0px'}}>
+                            <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
                                 There are no matching loans for your current criteria. Loosen the criteria, select a
                                 different Saved Search or click the "Clear" button to start over.
                             </Alert>
