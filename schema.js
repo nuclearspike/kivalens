@@ -333,7 +333,7 @@ const loanType = new graphql.GraphQLObjectType({
         },
         similar: {
             type: new graphql.GraphQLList(loanType),
-            description: "Other loans that are similiar to this one (country, sector, etc)",
+            description: "Other loans that are similar to this one (country, sector, etc)",
             resolve: (_,args) => {
                 return new Promise((resolve, reject) => {
                     req.kiva.api.similarTo(_.id)

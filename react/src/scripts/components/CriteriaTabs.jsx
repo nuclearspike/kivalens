@@ -580,7 +580,7 @@ const CriteriaTabs = React.createClass({
                 data = loans.groupByWithCount(l=>l.bonus_credit_eligibility === true)
                 break
             case 'direct':
-                data = loans.groupByWithCount(l=> typeof l.getPartner() === 'undefined' ? 'Direct': "MFI" )
+                data = loans.groupByWithCount(l=> l.partner_id == null ? 'Direct': "MFI" )
                 break
             case 'repayment_interval':
                 data = loans.groupByWithCount(l=>l.terms.repayment_interval ? l.terms.repayment_interval : "unknown")
@@ -775,7 +775,7 @@ const CriteriaTabs = React.createClass({
                         <Col md={12}>
                             <Panel header='Portfolio Balancing'>
                                 <p>
-                                    Portfolio Balancing allows you to find loans that are either similiar to or unlike
+                                    Portfolio Balancing allows you to find loans that are either similar to or unlike
                                     the loans you have in your portfolio (either just the active/paying-back loans
                                     or all of them). So, if you wanted to get loans from every sector
                                     or country, it's easy! Or if you wanted to help make sure you aren't getting too

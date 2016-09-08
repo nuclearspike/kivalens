@@ -211,7 +211,7 @@ const Live = React.createClass({
                             changes over time but doesn't get published in the live data stream.
                         </li>
                         <li>
-                            After 5 minutes then once every 10 minutes, KivaLens silently performs a full resync of it's
+                            After 5 minutes then once every 10 minutes, KivaLens silently performs a full resync of its
                             data with Kiva's API to catch any changes not included in the datastream notifications. This
                             also fixes any issues from your computer having been asleep with a tab open to KivaLens.
                         </li>
