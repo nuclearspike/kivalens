@@ -92,6 +92,23 @@ function hashFile(fn, fo, cb) {
     fd.pipe(hash)
 }
 
+function redisRetryStrategy(options) {
+    if (options.error.code === 'ECONNREFUSED') {
+        // End reconnecting on a specific error and flush all commands with a individual error
+        return new Error('The server refused the connection');
+    }
+    if (options.total_retry_time > 1000 * 60 * 60) {
+        // End reconnecting after a specific timeout and flush all commands with a individual error
+        return new Error('Retry time exhausted');
+    }
+    if (options.times_connected > 10) {
+        // End reconnecting with built in error
+        return undefined;
+    }
+    // reconnect after
+    return Math.max(options.attempt * 100, 3000);
+}
+
 if (cluster.isMaster){ //preps the downloads
     const blankResponse = {loanChunks:'', newestTime:null, keywords:''}
     var partnersGzipped = false
@@ -101,7 +118,7 @@ if (cluster.isMaster){ //preps the downloads
     const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
     //const processFaceData = require('./vision').processFaceData
     const redis = require('redis')
-    const rc = process.env.REDISCLOUD_URL ? redis.createClient(process.env.REDISCLOUD_URL) : null
+    const rc = process.env.REDISCLOUD_URL ? redis.createClient({url: process.env.REDISCLOUD_URL, retry_strategy: redisRetryStrategy}) : null
     const ResultProcessors = require("./react/src/scripts/api/kivajs/ResultProcessors")
 
     //RENDER INDEX

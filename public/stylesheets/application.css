@@ -1,5 +1,4 @@
 .loan_list_item {
-  -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
   z-index: 10; }
 
@@ -105,12 +104,10 @@ div.panel.radioPanel div.radio {
 .KivaImage.loaded {
   background-image: none; }
   .KivaImage.loaded img {
-    -webkit-transition: all 300ms ease;
     transition: all 300ms ease;
     opacity: 1; }
 
 .KivaImage.not_loaded img {
-  -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
   opacity: 0; }
 
@@ -621,7 +618,6 @@ div.notification-bar {
 
 .simpleFade-enter.simpleFade-enter-active {
   opacity: 1;
-  -webkit-transition: opacity 200ms ease-in;
   transition: opacity 200ms ease-in; }
 
 .simpleFade-leave {
@@ -629,5 +625,4 @@ div.notification-bar {
 
 .simpleFade-leave.simpleFade-leave-active {
   opacity: 0.01;
-  -webkit-transition: opacity 100ms ease-in;
   transition: opacity 100ms ease-in; }
