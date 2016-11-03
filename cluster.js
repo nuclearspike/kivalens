@@ -115,7 +115,7 @@ if (cluster.isMaster){ //preps the downloads
     var ejs = require('ejs')
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
-    const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
+    //const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
     //const processFaceData = require('./vision').processFaceData
     const redis = require('redis')
     const rc = process.env.REDISCLOUD_URL ? redis.createClient({url: process.env.REDISCLOUD_URL, retry_strategy: redisRetryStrategy}) : null
@@ -127,7 +127,7 @@ if (cluster.isMaster){ //preps the downloads
             //starts with random hash just to make it always in a working state.
             var hash = Math.round(Math.random() * 100000000)
             var css = [{name: 'application', hash}, {name: 'snowstack', hash}]
-            var js = [{name: 'initialdownload',hash},{name: 'vendor', hash}, {name: 'build', hash}]
+            var js = [{name: 'initialdownload', hash}, {name: 'vendor', hash}, {name: 'build', hash}]
             var todo = css.length + js.length
             const renderIndex = () => {
                 if (--todo) return //if it has anything left to do, leave.
@@ -168,7 +168,7 @@ if (cluster.isMaster){ //preps the downloads
         cluster.fork() //start another one.
     })
 
-    //
+    // every 6 hours restart a single worker.
     setInterval(function(){
         console.log("WORKERS:",cluster.workers)
         const workerKeys = Object.keys(cluster.workers)
@@ -332,7 +332,11 @@ if (cluster.isMaster){ //preps the downloads
     })
     
     hub.on('get-partners-by-ids', (ids, sender, callback) => {
-        callback(ids.map(id => kivaloans.getPartner(id)) )
+        try {
+            callback(ids.map(id => kivaloans.getPartner(id)))
+        } catch (e) {
+            callback(null)
+        }
     })
 
     hub.on('get-partner-by-id', (id, sender, callback) => {
@@ -371,7 +375,8 @@ if (cluster.isMaster){ //preps the downloads
             rc.incr(key) //creates if not present.
             rc.expire(key, '86400') //24 hours...
         } catch(e) {
-            console.log("!!!!!!!!!!!: RSS error " + rss_crit + e.message)
+            console.log("!!!!!!!!!!!: RSS error " + rss_crit + e.message);
+            callback(null)
         }
     })
 
@@ -438,22 +443,26 @@ if (cluster.isMaster){ //preps the downloads
 
     hub.on('heartbeat', (settings, sender, callback)=>{
         //the limitation here is when there are multiple tabs open to KL and each are posting the heartbeat (and have different uptimes)
-        var minsRunning = (Date.now() - restartIfBefore.getTime())/ 60000
+        try {
+            var minsRunning = (Date.now() - restartIfBefore.getTime()) / 60000
 
-        if (kivaloans.isReady() && parseInt(settings.uptime) > minsRunning){
-            console.log("FORCING RESTART for " + JSON.stringify(settings))
-            callback(205)
-            return
+            if (kivaloans.isReady() && parseInt(settings.uptime) > minsRunning) {
+                console.log("FORCING RESTART for " + JSON.stringify(settings))
+                callback(205)
+                return
+            }
+
+            callback(200)
+
+            var key = `heartbeat_${settings.install}_${settings.lender}`
+            if (!rc) return
+            rc.set(key, JSON.stringify(settings))
+            rc.expire(key, '360') //6 minutes...
+            rc.set('on_past_24h_' + key, JSON.stringify(settings))
+            rc.expire('on_past_24h_' + key, '86400') //24 hours...
+        } catch(e) {
+            callback(500)
         }
-
-        callback(200)
-
-        var key = `heartbeat_${settings.install}_${settings.lender}`
-        if (!rc) return
-        rc.set(key, JSON.stringify(settings))
-        rc.expire(key,'360') //6 minutes...
-        rc.set('on_past_24h_'+ key, JSON.stringify(settings))
-        rc.expire('on_past_24h_'+ key,'86400') //24 hours...
     })
 
     const KLPageSplits = 4
@@ -494,8 +503,7 @@ if (cluster.isMaster){ //preps the downloads
         //if (progress.loans_loaded) //should happen after prep for requests to not slow down server boot.
         //    pullVisionFromFromRedis()
     })
-    
-    
+
 
     const prepForRequests = function(){
         if (!kivaloans.isReady()) {
@@ -749,6 +757,7 @@ else  //workers handle all communication with the clients.
         })
     }
 
+    // a hash will not repeat theoretically
     const serveHashedAsset = (res, fn, mimetype) => {
         res.type(mimetype)
         res.header('Cache-Control', 'public, max-age=31536000') //1 year
