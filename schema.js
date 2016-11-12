@@ -349,6 +349,18 @@ const loanType = new graphql.GraphQLObjectType({
     })
 });
 
+const atheistScoreType = new graphql.GraphQLObjectType({
+    name: "AtheistTeamScore",
+    fields: {
+        "commentsOnSecularRating": { type: graphql.GraphQLString },
+        "commentsOnSocialRating": { type: graphql.GraphQLString },
+        "religiousAffiliation": { type: graphql.GraphQLString },
+        "reviewComments": { type: graphql.GraphQLString },
+        "secularRating": { type: graphql.GraphQLInt },
+        "socialRating": { type: graphql.GraphQLInt },
+    }
+})
+
 const partnerType = new graphql.GraphQLObjectType({
     name: "Partner",
     fields: {
@@ -371,6 +383,7 @@ const partnerType = new graphql.GraphQLObjectType({
         "currency_exchange_loss_rate": { type: graphql.GraphQLFloat },
         "url": { type: graphql.GraphQLString },
         image : {type: imageType},
+        atheistScore: { type: atheistScoreType },
     }
 });
 

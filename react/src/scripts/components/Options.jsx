@@ -182,7 +182,7 @@ const Options = React.createClass({
                         in the results.
                     </p>
                     <If condition={this.state.atheist_list_processed}>
-                        <div><b>Partners not included in Atheist Data:</b>
+                        <div><b>Partners not included in Atheist Team Research Data:</b>
                             <If condition={this.state.missingPartners.length==0}>
                                 <span> None</span>
                             </If>
