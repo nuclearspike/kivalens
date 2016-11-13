@@ -69,7 +69,7 @@ const About = React.createClass({
                 include as many details about the what happened so I can reproduce the problem.
             </p>
             <p>
-                Any questions about the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
+                Any questions about the <KivaLink path="team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious">Atheist Team</KivaLink>'s
                 MFI research should be directed to that team. I only pull, display and filter using the data,
                 I do not produce or verify it.
             </p>

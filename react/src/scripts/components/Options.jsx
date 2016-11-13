@@ -170,7 +170,7 @@ const Options = React.createClass({
                         label={`Merge Atheist Team's MFI Research Data for Secular and Social ratings`}
                         checkedLink={this.linkState('mergeAtheistList')}/>
                     <p>
-                        KivaLens pulls the <KivaLink path="team/atheists">Atheist Team</KivaLink>'s
+                        KivaLens pulls the <KivaLink path="team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious">Atheist Team</KivaLink>'s
                         MFI List from <NewTabLink
                         href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1"
                         title="View Google Doc">this Google Doc</NewTabLink> and
@@ -183,13 +183,14 @@ const Options = React.createClass({
                     </p>
                     <If condition={this.state.atheist_list_processed}>
                         <div><b>Partners not included in Atheist Team Research Data:</b>
-                            <If condition={this.state.missingPartners.length==0}>
+                            <If condition={this.state.missingPartners.length == 0}>
                                 <span> None</span>
                             </If>
                             <ul>
                                 <For each='p' index='i' of={this.state.missingPartners}>
                                     <li key={i}>
-                                        {p.id}: <KivaLink path={`about/where-kiva-works/partners/${p.id}`}>{p.name}</KivaLink>
+                                        {p.id}: <KivaLink
+                                        path={`about/where-kiva-works/partners/${p.id}`}>{p.name}</KivaLink>
                                         <If condition={p.kl_hasLoans}>
                                             <span> (Has loans fundraising)</span>
                                         </If>
