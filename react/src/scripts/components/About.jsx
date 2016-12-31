@@ -66,7 +66,7 @@ const About = React.createClass({
                 then <EmailLink subject="KivaLens Bug"
                                 body={`I found a bug!\nThe problem is...\nThe steps to reproduce it are...`}
                                 title="Report a bug">let me know</EmailLink> and
-                include as many details about the what happened so I can reproduce the problem.
+                include as many details about what happened so I can reproduce the problem.
             </p>
             <p>
                 Any questions about the <KivaLink path="team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious">Atheist Team</KivaLink>'s
@@ -162,7 +162,7 @@ const About = React.createClass({
                 </li>
 
                 <li>
-                    <b>Always Fresh!</b> KivaLens subscribes to the same live data-stream
+                    <b>Always Fresh!</b> KivaLens listens to the same live data-stream
                     that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new
                     loan posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your
                     browser are kept exactly up-to-date without needing to reload the page. You may see a loan turn

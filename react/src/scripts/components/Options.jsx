@@ -161,7 +161,7 @@ const Options = React.createClass({
                         checkedLink={this.linkState('doNotDownloadDescriptions')}/>
                     <Input
                         type="checkbox"
-                        label="Do not subscribe to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster, however, your data won't be as fresh."
+                        label="Do not listen to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster, however, your data won't be as fresh."
                         checkedLink={this.linkState('noStream')}/>
                 </Panel>
                 <Panel header='External Research'>

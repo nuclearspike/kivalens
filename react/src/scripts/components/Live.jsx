@@ -133,7 +133,7 @@ const Live = React.createClass({
                         </Alert>
                     <Else/>
                         <p>
-                            To keep data up-to-the-second fresh, KivaLens subscribes to the same live data-stream
+                            To keep data up-to-the-second fresh, KivaLens listens to the same live data-stream
                             that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses and adds new loans and updates existing
                             loans accordingly. Since starting your current KivaLens session (<TimeAgo date={kivaloans.startupTime.toISOString()}/>), the following activity has occurred
                             on Kiva.org.

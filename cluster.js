@@ -630,7 +630,7 @@ if (cluster.isMaster){ //preps the downloads
             })
             channel.on('message', onEvent)
             channels.push(channel)
-        } catch(e){
+        } catch (e) {
             console.error('socket.io error: ', e)
         }
     }
