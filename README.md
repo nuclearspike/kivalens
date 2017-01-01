@@ -12,7 +12,7 @@ eventually change. Don't judge too harshly. :D
 
 [See the live version](http://www.kivalens.org/#/search)
 
-This project needs to be switched to Redux and Webpack.
+This project needs to be switched to Redux and Webpack!
 
 There are two separate npm packages. One that compiles the client code and sets up a directory
 watch (using gulp and browserify) and the other that runs the server (just by running cluster.js with node)
