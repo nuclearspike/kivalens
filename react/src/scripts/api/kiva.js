@@ -763,7 +763,10 @@ class Loans {
     }
     searchKiva(kiva_params, max_repayment_date){
         if (!kiva_params) kiva_params = this.base_kiva_params
-        return new LoansSearch(kiva_params, true, max_repayment_date).start().done(loans => this.setKivaLoans(loans))
+        return new LoansSearch(kiva_params, true, max_repayment_date)
+            .start()
+            .fail(failed => this.notify({failed}))
+            .done(loans => this.setKivaLoans(loans))
     }
     getById(id){
         return this.indexed_loans[id]
@@ -792,7 +795,11 @@ class Loans {
     }
     getAllPartners(){
         //NOTE: does not return the partners. just the promise so you know if it's done.
-        return new Partners().start().then(this.processPartners.bind(this)).then(this.getAtheistList.bind(this))
+        return new Partners()
+            .start()
+            .fail(failed => this.notify({failed}))
+            .then(this.processPartners.bind(this))
+            .then(this.getAtheistList.bind(this))
     }
     getPartner(id){
         //todo: slightly slower than an indexed reference.
@@ -882,11 +889,15 @@ class Loans {
         //don't use sem_get. this is only used rarely and when it is, it doesn't want to be queued
         var def = req.kiva.api.loan(id)
         //this will only resolve once both the loan and all partners have been downloaded
-        return when(def, this.partner_download).then(loan => loan)
+        return when(def, this.partner_download)
+            .then(loan => loan)
     }
     refreshLoans(loan_arr){
         var kl = this
-        return new LoanBatch(loan_arr).start().then(loans => {
+        return new LoanBatch(loan_arr)
+            .start()
+            .fail(failed => this.notify({failed}))
+            .then(loans => {
             var newLoans = []
             loans.forEach(loan => {
                 var existing = kl.indexed_loans[loan.id]
@@ -910,7 +921,9 @@ class Loans {
     newLoanNotice(id_arr){
         if (!this.isReady()) return
         var that = this
-        return new LoanBatch(id_arr).start().done(loans => { //this is ok when there aren't any
+        return new LoanBatch(id_arr).start()
+            .fail(failed => this.notify({failed}))
+            .done(loans => { //this is ok when there aren't any
             loans = loans.where(l=>l.status=='fundraising')
             if (!loans.length) return
             cl("###############!!!!!!!! newLoanNotice:", loans)
@@ -929,7 +942,10 @@ class Loans {
         var def = Deferred()
         this.secondary_load = 'started'
         this.notify({secondary_load: 'started'})
-        new LoansSearch({ids_only: 'true'}, false).start().then(loans => {
+        new LoansSearch({ids_only: 'true'}, false)
+            .start()
+            .fail(failed => this.notify({failed}))
+            .then(loans => {
             //fetch the full details for the new loans and add them to the list.
             loans.removeAll(id=>this.hasLoan(id))
             this.newLoanNotice(loans).progress(n=>{

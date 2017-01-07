@@ -156,7 +156,7 @@ if (cluster.isMaster){ //preps the downloads
     console.log("*** CPUs: " + numCPUs)
 
     const startWorkers = () => {
-        for (var i=0; i< Math.min(numCPUs-1, maxWorkers); i++)
+        for (var i = 0; i < Math.min(numCPUs - 1, maxWorkers); i++)
             cluster.fork()
     }
 
