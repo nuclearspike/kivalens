@@ -80,8 +80,12 @@ var postUrl = function(url, options, query){
 
     function xhrTransferComplete() {
         if (xhr.status == 200) {
-            var res = options.parseJSON ? JSON.parse(this.responseText) : this.responseText
-            d.resolve(res)
+            try {
+                const res = options.parseJSON ? JSON.parse(this.responseText) : this.responseText;
+                d.resolve(res)
+            } catch (e) {
+                d.reject(e.message, xhr.status)
+            }
         } else {
             var msg = ''
             if (this.responseText)

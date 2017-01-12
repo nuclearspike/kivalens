@@ -16,31 +16,32 @@ import Live from './Live.jsx'
 import Teams from './Teams.jsx'
 import ClearBasket from './ClearBasket.jsx'
 import Outdated from './Outdated.jsx'
+import Donate from './Donate.jsx'
 
 const NotFound = () => <h1>Not Found</h1>
 
 //SIMPLE STATE-LESS COMPONENTS
 import React from 'react'
 
-const ClickLink = ({onClick, children}) => <a href="#" onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
-const NewTabLink = ({href, title, children}) => <a href={href} onClick={e=>rga.outboundLink({label: href},c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
-const KivaLink = ({path, title, children}) => <NewTabLink href={`https://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
-const LenderLink = ({lender, title, children}) => <KivaLink path={`lender/${lender}?super_graphs=1`} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>
-const LoanLink = ({id, title, children, loan}) => {
+const ClickLink = ({onClick, className, children}) => <a href="#" className={className} onClick={e=>{e.preventDefault(); onClick(e)}}>{children}</a>
+const NewTabLink = ({href, title, className, children}) => <a className={className} href={href} onClick={e=>rga.outboundLink({label: href},c=>{})} title={title || 'Open link in new tab'} target="_blank">{children}</a>
+const KivaLink = ({path, title, className, children}) => <NewTabLink className={className} href={`https://www.kiva.org/${path}`} title={title || 'Open page on www.kiva.org in new tab'}>{children}</NewTabLink>
+const LenderLink = ({lender, title, className, children}) => <KivaLink className={className} path={`lender/${lender}?super_graphs=1`} title={title || "View Lender's page in a new tab"}>{children}</KivaLink>
+const LoanLink = ({id, title, children, className, loan}) => {
     if (loan){
         id = loan.id
         title = `View loan for ${loan.name} on Kiva.org in a new tab`
     }
-    return <KivaLink path={`lend/${id}`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
+    return <KivaLink className={className} path={`lend/${id}`} title={title || 'View Loan in a new tab'}>{children}</KivaLink>
 }
-const EmailLink = ({email, subject, body, title, children}) => {
+const EmailLink = ({email, subject, body, title, className, children}) => {
     var params = []
     if (subject) params.push(`subject=${encodeURIComponent(subject)}`)
     if (body) params.push(`body=${encodeURIComponent(body)}`)
-    return <NewTabLink href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
+    return <NewTabLink className={className} href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
 }
-const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>}) => {
-    return <NewTabLink href="https://chrome.google.com/webstore/detail/kiva-lender-assistant/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
+const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>, className}) => {
+    return <NewTabLink className={className} href="https://chrome.google.com/webstore/detail/kiva-lender-assistant/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
 }
 //COMPONENTS
 import KLNav from './KLNav.jsx'
@@ -65,4 +66,4 @@ export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLin
     KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,
-    AutoLendSettings, Outdated, DidYouKnow, Face, OnNow}
+    AutoLendSettings, Outdated, DidYouKnow, Face, OnNow, Donate}

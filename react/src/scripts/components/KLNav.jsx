@@ -32,7 +32,8 @@ const KLNav = React.createClass({
                         <NavItem key={3} href="#/live">Live</NavItem>
                         <NavItem key={4} href="#/teams">Teams</NavItem>
                         <NavItem key={5} href="#/options">Options</NavItem>
-                        <NavItem key={6} href="#/about">About</NavItem>
+                        <NavItem key={6} href="#/donate">Donate</NavItem>
+                        <NavItem key={7} href="#/about">About</NavItem>
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>

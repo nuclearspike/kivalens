@@ -681,8 +681,8 @@ else  //workers handle all communication with the clients.
         }
     };
 
-    // compress all responses
     app.use(allowCrossDomain)
+    // compress all responses
     app.use(compression()); //first!
 
     if (typeof airbrake === 'object') {
