@@ -13,7 +13,7 @@ const Item = ({title, children}) => {
 class Donate extends Component {
     render() {
         return (
-            <Grid className="donatePage">
+            <Grid>
                 <h1>Donate</h1>
                 <h4>
                     KivaLens is now and will always be free to use for everyone.
@@ -23,18 +23,27 @@ class Donate extends Component {
                     who has donated to help keep this running!
                 </h4>
                 <Item title="PayPal">
-                    <NewTabLink className="btn btn-default" href="https://paypal.me/nuclearspike">Pay Pal Me</NewTabLink> You're already using
+                    <NewTabLink
+                        className="btn btn-default"
+                        href="https://paypal.me/nuclearspike"
+                    >
+                        Pay Pal Me
+                    </NewTabLink> You're already using
                     PayPal for Kiva, so this will probably be the easiest for most.
                 </Item>
                 <Item title="Kiva Gift Card">
-                    <NewTabLink className="btn btn-default" href="https://www.kiva.org/gifts/kiva-cards?handle=nuclearspike#/lender">
+                    <NewTabLink
+                        className="btn btn-default"
+                        href="https://www.kiva.org/gifts/kiva-cards?handle=nuclearspike#/lender"
+                    >
                         Send Kiva Gift Card
                     </NewTabLink>
                 </Item>
                 <Item title="Amazon Gift Card">
                     <NewTabLink
                         className="btn btn-default"
-                        href="https://www.amazon.com/gp/product/B0145WHYKC/ref=s9_acss_bw_cg_gclptcg_2a1_w?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-1&pf_rd_r=QHK9D4T7YV04CC6XSHGF&pf_rd_t=101&pf_rd_p=15631faf-d88b-41d2-81d7-a0cdde1f5e8a&pf_rd_i=2238192011">
+                        href="https://www.amazon.com/gp/product/B0145WHYKC/ref=s9_acss_bw_cg_gclptcg_2a1_w?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-1&pf_rd_r=QHK9D4T7YV04CC6XSHGF&pf_rd_t=101&pf_rd_p=15631faf-d88b-41d2-81d7-a0cdde1f5e8a&pf_rd_i=2238192011"
+                    >
                         Send Amazon Gift Card
                     </NewTabLink> Use recipient: "liquidmonkey@gmail.com"
                 </Item>

@@ -71,7 +71,7 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
     {"code":"TD","name":"Chad"},{"code":"CL","name":"Chile"},{"code":"CN","name":"China"},{"code":"CO","name":"Colombia"},
     {"code":"CG","name":"Congo (Rep.)"},{"code":"CR","name":"Costa Rica"},{"code":"CI","name":"Cote D'Ivoire"},{"code":"DO","name":"Dominican Republic"},
     {"code":"EC","name":"Ecuador"},{"code":"EG","name":"Egypt"},{"code":"SV","name":"El Salvador"},{"code":"GZ","name":"Gaza"},
-    {"code":"GE","name":"Georgia"},{"code":"GH","name":"Ghana"},{"code":"GT","name":"Guatemala"},{"code":"HT","name":"Haiti"},
+    {"code":"GE","name":"Georgia"},{"code":"GH","name":"Ghana"},{"code":"GU","name":"Guam"},{"code":"GT","name":"Guatemala"},{"code":"HT","name":"Haiti"},
     {"code":"HN","name":"Honduras"},{"code":"IN","name":"India"},{"code":"ID","name":"Indonesia"},{"code":"IQ","name":"Iraq"},
     {"code":"IL","name":"Israel"},{"code":"JO","name":"Jordan"},{"code":"KE","name":"Kenya"},{"code":"XK","name":"Kosovo"},
     {"code":"KG","name":"Kyrgyzstan"},{"code":"LA","name":"Lao PDR"},{"code":"LB","name":"Lebanon"},
@@ -87,7 +87,7 @@ defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","na
     {"code":"SR","name":"Suriname"},{"code":"TJ","name":"Tajikistan"},{"code":"TZ","name":"Tanzania"},
     {"code":"TH","name":"Thailand"},{"code":"CD","name":"Congo (Dem. Rep.)"},{"code":"TL","name":"Timor-Leste"},
     {"code":"TG","name":"Togo"},{"code":"TR","name":"Turkey"},{"code":"UG","name":"Uganda"},{"code":"UA","name":"Ukraine"},
-    {"code":"US","name":"United States"},{"code":"VU","name":"Vanuatu"},{"code":"VN","name":"Vietnam"},{"code":"YE","name":"Yemen"},
+    {"code":"US","name":"United States"},{"code":"VU","name":"Vanuatu"},{"code":"VN","name":"Vietnam"},{"code":"VI","name":"Virgin Islands"},{"code":"YE","name":"Yemen"},
     {"code":"ZM","name":"Zambia"},{"code":"ZW","name":"Zimbabwe"}].orderBy(c=>c.name)
 
 /**
