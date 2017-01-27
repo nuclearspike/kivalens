@@ -692,9 +692,9 @@ else  //workers handle all communication with the clients.
 
     app.use('/graphql', graphqlHTTP({ schema: schema, graphiql: true, pretty: true }));
 
+    var ipfilter = require('express-ipfilter')
     if (process.env.BLOCKED_IPS) {
         console.log('BLOCKING IPS: ' + process.env.BLOCKED_IPS)
-        var ipfilter = require('express-ipfilter')
         app.use(ipfilter(process.env.BLOCKED_IPS.split(','), { log: false }))
     }
 
