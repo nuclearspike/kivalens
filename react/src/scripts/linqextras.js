@@ -29,7 +29,7 @@ Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
 //either count() or count(l=>l.status=='fundraising') work
 Array.prototype.count = function(predicate) {
-    return typeof predicate == 'function'? this.where(predicate).length: this.length
+    return typeof predicate === 'function'? this.where(predicate).length: this.length
 }
 
 //turns var a = [1,2,3,4,5,6,7,8,9,10,11]; a.chunk(5); into => [[1,2,3,4,5],[6,7,8,9,10],[11]]

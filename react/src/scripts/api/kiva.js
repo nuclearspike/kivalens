@@ -221,6 +221,7 @@ class Loans {
         const kiva_getPartners = function() {
             if (isServer())
                 console.log('INTERESTING: kiva_getPartners start')
+            //if it already completed, reset it.
             if (this.partner_download.state() == 'resolved') {
                 this.partner_download = Deferred()
                 this.startedAtheistDownload = false

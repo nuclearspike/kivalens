@@ -6,11 +6,9 @@ import {Grid,Input,Row,Col,Panel,Alert,Button} from 'react-bootstrap'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
 import TimeAgo from 'react-timeago'
 import LocalStorageMixin from 'react-localstorage'
-import {Link} from 'react-router'
 import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal, KivaImage, LenderLink} from '.'
 import a from '../actions'
 import s from '../stores'
-import {WatchLocalStorage} from '../api/syncStorage'
 import extend from 'extend'
 
 const Options = React.createClass({
