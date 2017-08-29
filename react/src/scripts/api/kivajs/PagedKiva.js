@@ -2,7 +2,14 @@
 
 /**
  * generic class for handling any of kiva's paged responses in a data-type agnostic way. create subclasses to
- * specialize, see LoansSearch
+ * specialize, see LoansSearch. This will handle all paging issues. When it first encounters a new request, it
+ * makes the request to find out how many total pages there are and it will automatically use a semaphore to 
+ * limit the number of simultaneous connections to be able to page across all data. It's possible to have it assume 
+ * more than one page of data from the start to make it slightly faster in the cases where that is true. But this 
+ * pattern seems ok, as it only will attempt to download more pages where it knows it is possible (and not presume it
+ * is ok). This unit handles a lot of the API optimizations to dramatically increase responsiveness for all calls to
+ * Kiva's API. Calling all pages sequentially, rather than concurrently, dramatically increases the time it takes to
+ * cover all pages.
  */
 
 var Deferred = require("jquery-deferred").Deferred
