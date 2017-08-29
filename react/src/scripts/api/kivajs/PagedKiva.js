@@ -9,7 +9,8 @@
  * pattern seems ok, as it only will attempt to download more pages where it knows it is possible (and not presume it
  * is ok). This unit handles a lot of the API optimizations to dramatically increase responsiveness for all calls to
  * Kiva's API. Calling all pages sequentially, rather than concurrently, dramatically increases the time it takes to
- * cover all pages.
+ * cover all pages... which is why this calls API requests concurrently up to the max where Kiva's servers ignore 
+ * additional requests until previous requests are fulfilled.
  */
 
 var Deferred = require("jquery-deferred").Deferred
