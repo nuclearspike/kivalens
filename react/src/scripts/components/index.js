@@ -38,7 +38,7 @@ const EmailLink = ({email, subject, body, title, className, children}) => {
     var params = []
     if (subject) params.push(`subject=${encodeURIComponent(subject)}`)
     if (body) params.push(`body=${encodeURIComponent(body)}`)
-    return <NewTabLink className={className} href={`mailto:${email? email: 'liquidmonkey@gmail.com'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
+    return <NewTabLink className={className} href={`mailto:${email? email: 'contact@kivalens.org'}?${params.join('&')}`} title={title || 'Open your default email program'}>{children}</NewTabLink>
 }
 const KLALink = ({children = <span>Kiva Lender Assistant Chrome Extension</span>, className}) => {
     return <NewTabLink className={className} href="https://chrome.google.com/webstore/detail/kiva-lender-assistant/jkljjpdljndblihlcoenjbmdakaomhgo?hl=en-US" title="Go to Google Chrome WebStore">{children}</NewTabLink>
