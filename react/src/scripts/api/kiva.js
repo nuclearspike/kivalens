@@ -834,7 +834,7 @@ class Loans {
             this.notify({lender_loans_event: 'done'})
         }.bind(this)
 
-        if (this.options.lenderLoansFromKiva) {
+        if (true) { //this.options.lenderLoansFromKiva) {
             wait(500).done(x => {
                 new LenderFundraisingLoans(lender_id).ids().done(processIds).fail(markFailed)
             })

@@ -46,7 +46,7 @@ if (doKLLoad) {
     }
 }
 
-var doKLLenderLoans = (options && !options.lenderLoansFromKiva && options.kiva_lender_id)
+var doKLLenderLoans = false; // (options && !options.lenderLoansFromKiva && options.kiva_lender_id)
 if (doKLLenderLoans){
     window.lenderLoans[options.kiva_lender_id] = {downloadStarted: true}
     var xhrLL = new XMLHttpRequest();
