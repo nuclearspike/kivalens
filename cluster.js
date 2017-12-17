@@ -1023,10 +1023,16 @@ else  //workers handle all communication with the clients.
      * req.kl.get("loans/filter", {crit: encodeURIComponent(JSON.stringify({"loan":{"repaid_in_max":5,"still_needed_min":25,"limit_to":{"enabled":false,"count":1,"limit_by":"Partner"}},"partner":{},"portfolio":{"exclude_portfolio_loans":"true","pb_partner":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_country":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_sector":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"},"pb_activity":{"enabled":false,"hideshow":"hide","ltgt":"gt","percent":0,"allactive":"active"}},"notifyOnNew":true}))},true).done(r => console.log(r))
      */
     app.get('/api/loans/filter', (req, res) =>{
-        var crit = req.query.crit
-        if (crit)
-            crit = JSON.parse(decodeURIComponent(crit))
-        hub.requestMaster('filter', crit, result => res.send(result))
+        try {
+
+            var crit = req.query.crit
+            if (crit)
+                crit = JSON.parse(decodeURIComponent(crit))
+            hub.requestMaster('filter', crit, result => res.send(result))
+        } catch (e) {
+            res.sendStatus(404)
+            console.error('******* ERROR', e)
+        }
     })
 
 
