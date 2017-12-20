@@ -10,11 +10,12 @@
  * is ok). This unit handles a lot of the API optimizations to dramatically increase responsiveness for all calls to
  * Kiva's API. Calling all pages sequentially, rather than concurrently, dramatically increases the time it takes to
  * cover all pages... which is why this calls API requests concurrently up to the max where Kiva's servers ignore 
- * additional requests until previous requests are fulfilled.
+ * additional requests until previous requests are fulfilled as well as browser maximums to the same host to prevent
+ * request timeouts.
  */
 
-var Deferred = require("jquery-deferred").Deferred
-var extend = require('extend')
+const Deferred = require("jquery-deferred").Deferred
+const extend = require('extend')
 const sem_one = require('./kivaBase').sem_one
 const sem_two = require('./kivaBase').sem_two
 const Request = require('./Request').Request
@@ -67,7 +68,7 @@ class PagedKiva {
         request.state = ReqState.done
 
         //only care that we processed all pages. if the number of loans changes while paging, still continue.
-        if (this.requests.all(req => req.state == ReqState.done)) {
+        if (this.requests.all(req => req.state != ReqState.downloading || req.state != ReqState.ready)) {
             this.wrapUp();
             return
         }
@@ -78,9 +79,9 @@ class PagedKiva {
         var ignoreAfter = this.requests.first(req => !req.continuePaging)
         if (ignoreAfter) { //if one is calling cancel on everything after
             //cancel all remaining requests.
-            this.requests.skipWhile(req => req.page <= ignoreAfter.page).where(req => req.state != ReqState.cancelled).forEach(req => req.state = ReqState.cancelled)
+            this.requests.skipWhile(req => req.page <= ignoreAfter.page).where(req => req.state !== ReqState.cancelled).forEach(req => req.state = ReqState.cancelled)
             //then once all pages up to the one that called it quits are done, wrap it up.
-            if (this.requests.takeWhile(req => req.page <= ignoreAfter.page).all(req => req.state == ReqState.done)) {
+            if (this.requests.takeWhile(req => req.page <= ignoreAfter.page).all(req => req.state === ReqState.done)) {
                 this.wrapUp()
             }
         }
@@ -93,7 +94,7 @@ class PagedKiva {
 
     wrapUp() {
         this.promise.notify({label: 'Processing...'})
-        var result_objects = this.requests.where(req=>req.state==ReqState.done).select(req=>req.results).flatten()
+        var result_objects = this.requests.where(req=>req.state===ReqState.done).select(req=>req.results).flatten()
         this.promise.notify({complete: true})
         this.promise.resolve(result_objects)
     }

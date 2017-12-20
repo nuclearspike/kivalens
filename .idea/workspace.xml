@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="switch to fully https API calls, stopped doing">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../lenderassistant/background.js" afterPath="$PROJECT_DIR$/../lenderassistant/background.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" afterPath="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../lenderassistant/manifest.json" afterPath="$PROJECT_DIR$/../lenderassistant/manifest.json" />
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cluster.js" afterPath="$PROJECT_DIR$/cluster.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js" afterPath="$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -136,14 +133,14 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5028612">
+    <splitter split-orientation="horizontal" split-proportion="0.47782546">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="cluster.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cluster.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="474">
-                  <caret line="1033" column="45" lean-forward="true" selection-start-line="1033" selection-start-column="45" selection-end-line="1033" selection-end-column="45" />
+                <state relative-caret-position="-1586">
+                  <caret line="476" column="22" lean-forward="false" selection-start-line="476" selection-start-column="15" selection-end-line="476" selection-end-column="22" />
                   <folding />
                 </state>
               </provider>
@@ -230,62 +227,38 @@
           <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="12540">
-                  <caret line="836" column="22" lean-forward="false" selection-start-line="836" selection-start-column="22" selection-end-line="836" selection-end-column="22" />
+                <state relative-caret-position="56">
+                  <caret line="221" column="27" lean-forward="true" selection-start-line="221" selection-start-column="27" selection-end-line="221" selection-end-column="27" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Options.jsx" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
+          <file leaf-file-name="Partners.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Partners.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2985">
-                  <caret line="208" column="72" lean-forward="false" selection-start-line="208" selection-start-column="53" selection-end-line="208" selection-end-column="72" />
-                  <folding>
-                    <element signature="e#15#40#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="initialdownload.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/public/javascript/initialdownload.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="720">
-                  <caret line="48" column="72" lean-forward="false" selection-start-line="48" selection-start-column="53" selection-end-line="48" selection-end-column="72" />
+                <state relative-caret-position="210">
+                  <caret line="14" column="22" lean-forward="true" selection-start-line="14" selection-start-column="22" selection-end-line="14" selection-end-column="22" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/node_modules/vhost/index.js">
+          <file leaf-file-name="PagedKiva.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="0">
-                  <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding>
-                    <element signature="n#!!doc" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/package.json">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="555">
-                  <caret line="37" column="19" lean-forward="false" selection-start-line="37" selection-start-column="19" selection-end-line="37" selection-end-column="19" />
+                <state relative-caret-position="311">
+                  <caret line="70" column="58" lean-forward="false" selection-start-line="70" selection-start-column="50" selection-end-line="70" selection-end-column="58" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/package.json">
+          <file leaf-file-name="ResultProcessors.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="570">
-                  <caret line="38" column="26" lean-forward="false" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
+                <state relative-caret-position="523">
+                  <caret line="236" column="11" lean-forward="false" selection-start-line="236" selection-start-column="11" selection-end-line="236" selection-end-column="11" />
                   <folding />
                 </state>
               </provider>
@@ -294,18 +267,18 @@
           <file leaf-file-name="Request.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1230">
-                  <caret line="82" column="28" lean-forward="false" selection-start-line="82" selection-start-column="28" selection-end-line="82" selection-end-column="28" />
+                <state relative-caret-position="135">
+                  <caret line="9" column="37" lean-forward="false" selection-start-line="9" selection-start-column="26" selection-end-line="9" selection-end-column="37" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="all_start.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_start.js">
+          <file leaf-file-name="kivaBase.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/kivaBase.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1590">
-                  <caret line="106" column="1" lean-forward="false" selection-start-line="106" selection-start-column="1" selection-end-line="106" selection-end-column="1" />
+                <state relative-caret-position="140">
+                  <caret line="29" column="25" lean-forward="false" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
                   <folding />
                 </state>
               </provider>
@@ -321,11 +294,21 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="background.js" pinned="false" current-in-tab="true">
+          <file leaf-file-name="background.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="120">
-                  <caret line="8" column="30" lean-forward="false" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+                <state relative-caret-position="285">
+                  <caret line="19" column="35" lean-forward="true" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="partner.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/partner.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="0">
+                  <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -347,15 +330,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>activity</find>
-      <find>super</find>
-      <find>supergrap</find>
-      <find>supergraph</find>
-      <find>super_graph</find>
-      <find>kiva_getPartners</find>
-      <find>loansFromKiva</find>
-      <find>g</find>
-      <find>ga</find>
       <find>gaEvent</find>
       <find>liqui</find>
       <find>lis</find>
@@ -374,9 +348,18 @@
       <find>window.location.protocol + &quot;//api</find>
       <find>lenderLoansFromKiva</find>
       <find>res.send(404)</find>
-      <find>res.status(404)</find>
       <find>(404)</find>
       <find>404</find>
+      <find>res.status(404)</find>
+      <find>P</find>
+      <find>Partner</find>
+      <find>getAllPartner</find>
+      <find>partner</find>
+      <find>JSON.par</find>
+      <find>getAllPartners</find>
+      <find>partner_download</find>
+      <find>wrapUp</find>
+      <find>ReqState</find>
     </findStrings>
     <replaceStrings>
       <replace>avatar</replace>
@@ -396,7 +379,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/react/src/scripts/components/LoanListItem.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/KivaImage.jsx" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/vision.js" />
@@ -442,11 +424,12 @@
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" />
-        <option value="$PROJECT_DIR$/public/javascript/initialdownload.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/manifest.json" />
         <option value="$PROJECT_DIR$/../lenderassistant/background.js" />
         <option value="$PROJECT_DIR$/cluster.js" />
+        <option value="$PROJECT_DIR$/public/javascript/initialdownload.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js" />
       </list>
     </option>
   </component>
@@ -874,21 +857,7 @@
       <workItem from="1499561743764" duration="1436000" />
       <workItem from="1501646328568" duration="6256000" />
       <workItem from="1510221738211" duration="92000" />
-      <workItem from="1513485527849" duration="285000" />
-    </task>
-    <task id="LOCAL-00329" summary="output all loans where one caused the error">
-      <created>1465364070859</created>
-      <option name="number" value="00329" />
-      <option name="presentableId" value="LOCAL-00329" />
-      <option name="project" value="LOCAL" />
-      <updated>1465364070859</updated>
-    </task>
-    <task id="LOCAL-00330" summary="make a new deferred for partner_download or it never resolves again!">
-      <created>1465366955446</created>
-      <option name="number" value="00330" />
-      <option name="presentableId" value="LOCAL-00330" />
-      <option name="project" value="LOCAL" />
-      <updated>1465366955446</updated>
+      <workItem from="1513485527849" duration="4590000" />
     </task>
     <task id="LOCAL-00331" summary="fix? for partners not updating?">
       <created>1465367040262</created>
@@ -1219,14 +1188,29 @@
       <option name="project" value="LOCAL" />
       <updated>1505427661895</updated>
     </task>
-    <option name="localTasksCounter" value="378" />
+    <task id="LOCAL-00378" summary="stop loan filter api calls from potentially collapsing the server. also code for KLA to turn off talking by default and setting it to always https">
+      <created>1513485908808</created>
+      <option name="number" value="00378" />
+      <option name="presentableId" value="LOCAL-00378" />
+      <option name="project" value="LOCAL" />
+      <updated>1513485908811</updated>
+    </task>
+    <task id="LOCAL-00379" summary="fix for bad partners file">
+      <created>1513756591180</created>
+      <option name="number" value="00379" />
+      <option name="presentableId" value="LOCAL-00379" />
+      <option name="project" value="LOCAL" />
+      <updated>1513756591180</updated>
+    </task>
+    <option name="localTasksCounter" value="380" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="222162000" />
+    <option name="totallyTimeSpent" value="226467000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14806867" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -1265,8 +1249,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="airbrake console" />
-    <MESSAGE value="changed partner links to match new site location, added airbrake &amp; new relic" />
     <MESSAGE value="try onerror listener on window." />
     <MESSAGE value="every 6 hours, it gracefully restarts the oldest worker" />
     <MESSAGE value="zip support." />
@@ -1290,7 +1272,9 @@
     <MESSAGE value="requestAnimationFrame code was bad!" />
     <MESSAGE value="Added new contact email, upgraded package" />
     <MESSAGE value="switch to fully https API calls, stopped doing KL lender loans" />
-    <option name="LAST_COMMIT_MESSAGE" value="switch to fully https API calls, stopped doing KL lender loans" />
+    <MESSAGE value="stop loan filter api calls from potentially collapsing the server. also code for KLA to turn off talking by default and setting it to always https" />
+    <MESSAGE value="fix for bad partners file" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix for bad partners file" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1306,38 +1290,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Teams.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="36" column="4" lean-forward="false" selection-start-line="36" selection-start-column="4" selection-end-line="36" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="16" lean-forward="false" selection-start-line="17" selection-start-column="16" selection-end-line="17" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/OnNow.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="945">
           <caret line="65" column="128" lean-forward="false" selection-start-line="65" selection-start-column="128" selection-end-line="65" selection-end-column="128" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1830">
-          <caret line="122" column="38" lean-forward="false" selection-start-line="122" selection-start-column="38" selection-end-line="122" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/javascript/build.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="226">
-          <caret line="63483" column="92" lean-forward="false" selection-start-line="63483" selection-start-column="82" selection-end-line="63483" selection-end-column="92" />
         </state>
       </provider>
     </entry>
@@ -1387,13 +1343,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2400">
           <caret line="160" column="22" lean-forward="false" selection-start-line="160" selection-start-column="22" selection-end-line="160" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/partner.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1481,13 +1430,6 @@
       </provider>
     </entry>
     <entry file="file:///System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/lib/ruby/2.0.0/xmlrpc/client.rb" />
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/kivaBase.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="825">
-          <caret line="55" column="23" lean-forward="false" selection-start-line="55" selection-start-column="23" selection-end-line="55" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/stores/liveStore.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
@@ -1602,14 +1544,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12540">
-          <caret line="836" column="22" lean-forward="false" selection-start-line="836" selection-start-column="22" selection-end-line="836" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2985">
@@ -1617,14 +1551,6 @@
           <folding>
             <element signature="e#15#40#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/javascript/initialdownload.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="48" column="72" lean-forward="false" selection-start-line="48" selection-start-column="53" selection-end-line="48" selection-end-column="72" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1654,14 +1580,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1230">
-          <caret line="82" column="28" lean-forward="false" selection-start-line="82" selection-start-column="28" selection-end-line="82" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_start.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1590">
@@ -1678,14 +1596,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="30" lean-forward="false" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/lib/store.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1696,10 +1606,90 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="35" lean-forward="true" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/javascript/build.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="226">
+          <caret line="28" column="2656" lean-forward="false" selection-start-line="28" selection-start-column="2656" selection-end-line="28" selection-end-column="2656" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/partner.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="523">
+          <caret line="236" column="11" lean-forward="false" selection-start-line="236" selection-start-column="11" selection-end-line="236" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/kivaBase.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="140">
+          <caret line="29" column="25" lean-forward="false" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/cluster.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="474">
-          <caret line="1033" column="45" lean-forward="true" selection-start-line="1033" selection-start-column="45" selection-end-line="1033" selection-end-column="45" />
+        <state relative-caret-position="-1586">
+          <caret line="476" column="22" lean-forward="false" selection-start-line="476" selection-start-column="15" selection-end-line="476" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/javascript/initialdownload.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="50" lean-forward="true" selection-start-line="19" selection-start-column="50" selection-end-line="19" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Partners.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="22" lean-forward="true" selection-start-line="14" selection-start-column="22" selection-end-line="14" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="56">
+          <caret line="221" column="27" lean-forward="true" selection-start-line="221" selection-start-column="27" selection-end-line="221" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="37" lean-forward="false" selection-start-line="9" selection-start-column="26" selection-end-line="9" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="311">
+          <caret line="70" column="58" lean-forward="false" selection-start-line="70" selection-start-column="50" selection-end-line="70" selection-end-column="58" />
           <folding />
         </state>
       </provider>
