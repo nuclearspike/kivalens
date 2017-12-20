@@ -68,7 +68,9 @@ class PagedKiva {
         request.state = ReqState.done
 
         //only care that we processed all pages. if the number of loans changes while paging, still continue.
-        if (this.requests.all(req => req.state != ReqState.downloading || req.state != ReqState.ready)) {
+        //
+        // if (this.requests.all(req => req.state != ReqState.downloading || req.state != ReqState.ready)) {
+        if (this.requests.all(req => req.state == ReqState.done )) {
             this.wrapUp();
             return
         }
