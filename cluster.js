@@ -847,7 +847,7 @@ else  //workers handle all communication with the clients.
     app.get('/rss_click/:go_to/:id', (req,res) => {
         var id = req.params.id, go_to = req.params.go_to
         console.log(`INTERESTING: rss_click : ${go_to}: ${id}`)
-        if (go_to == 'kiva') { //rss output fills in 'kiva' when none specified
+        if (go_to === 'kiva') { //rss output fills in 'kiva' when none specified
             res.redirect(`https://www.kiva.org/lend/${id}?app_id=org.kiva.kivalens`)
         } else {
             res.redirect(`http://www.kivalens.org/#/search/loan/${id}`)
@@ -861,7 +861,7 @@ else  //workers handle all communication with the clients.
             res.sendStatus(404)
             return
         }
-        if (batch != startResponse.batch)
+        if (batch !== startResponse.batch)
             console.log(`INTERESTING: /loans batch: ${batch} latest: ${startResponse.batch}`)
 
         var page = parseInt(req.params.page)
@@ -879,7 +879,7 @@ else  //workers handle all communication with the clients.
             res.sendStatus(404)
             return
         }
-        if (batch != startResponse.batch)
+        if (batch !== startResponse.batch)
             console.log(`INTERESTING: /loans/keywords batch: ${batch} latest: ${startResponse.batch}`)
 
         var page = parseInt(req.params.page)

@@ -1,7 +1,13 @@
 window.kl_progress = {}
 
 function xhrPartnerTransferComplete() {
-    window.unprocessedPartners = JSON.parse(this.responseText)
+    try {
+        if (this.status == 200) {
+            window.unprocessedPartners = JSON.parse(this.responseText)
+        }
+    } catch(e) {
+        console.error('Error During Partner Transfer Complete:', e)
+    }
 }
 function xhrPartnerBail(){
     window.partnerDownloadStarted = false
