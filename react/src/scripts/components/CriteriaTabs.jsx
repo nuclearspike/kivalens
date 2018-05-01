@@ -13,7 +13,7 @@ import s from '../stores/'
 import {Grid,Row,Col,Input,Button,DropdownButton,MenuItem,Tabs,Tab,Panel,OverlayTrigger,Popover,Alert} from 'react-bootstrap'
 import {Cursor, ImmutableOptimizations} from 'react-cursor'
 import LinkedStateMixin from 'react-addons-linked-state-mixin'
-import {ClickLink, KivaLink, NewTabLink, PartnerDisplayModal, AutoLendSettings} from '.'
+import { NewTabLink, PartnerDisplayModal, AutoLendSettings} from '.'
 import TimeAgo from 'react-timeago'
 import {defaultKivaData} from '../api/kiva'
 import extend from 'extend'
@@ -76,7 +76,7 @@ allOptions.disbursal_in_days = {min: -90, max: 90, label: 'Disbursal (days)', he
 allOptions.partner_risk_rating = {min: 0, max: 5, step: 0.5, label: 'Risk Rating (stars)', helpText: "5 star means that Kiva has estimated that the institution servicing the loan has very low probability of collapse. 1 star means they may be new and untested. To include unrated partners, have the left-most slider all the way at left."}
 allOptions.partner_arrears = {min: 0, max: 50, step: 0.1, label: 'Delinq Rate (%)', helpText: "Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding"}
 allOptions.partner_default = {min: 0, max: 30, step: 0.1, label: 'Default Rate (%)', helpText: "The default rate is the percentage of ended loans (no longer paying back) which have failed to repay (measured in dollar volume, not units). How this is calculated: Default Rate = Amount of Ended Loans Defaulted / Amount of Ended Loans. For more information, please refer to Kiva's Help Center. "}
-allOptions.portfolio_yield = {min: 0, max: 100, step: 0.1, label: 'Portfolio Yield (%)', helpText: "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield."}
+allOptions.portfolio_yield = {min: 0, max: 100, step: 0.1, label: 'Portfolio Yield (%)', helpText: "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield. Also, see the About page, Reducing Risk section to understand why high Portfolio Yields are often to the poorest borrowers."}
 allOptions.profit = {min: -100, max: 100, step: 0.1, label: 'Profit (%)', helpText: "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time."}
 allOptions.loans_at_risk_rate = {min: 0, max: 100, label: 'Loans at Risk (%)', helpText: "The loans at risk rate refers to the percentage of Kiva loans being paid back by this Field Partner that are past due in repayment by at least 1 day. This delinquency can be due to either non-payment by Kiva borrowers or non-payment by the Field Partner itself. Loans at Risk Rate = Amount of paying back loans that are past due / Total amount of Kiva loans outstanding"}
 allOptions.currency_exchange_loss_rate = {min: 0, max: 10, step: 0.1, label: 'Currency Exchange Loss (%)', helpText: "Kiva calculates the Currency Exchange Loss Rate for its Field Partners as: Amount of Currency Exchange Loss / Total Loans."}
@@ -718,51 +718,55 @@ const CriteriaTabs = React.createClass({
 
         return <div>
             <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
-                <If condition={location.hostname == '$$localhost'}>
-                    <pre>{JSON.stringify(criteria, null, 2)}</pre>
-                </If>
-
-                <If condition={needLenderID}>
-                    <Alert bsStyle="danger">The options in your criteria require your Lender ID. Go to the Options page
-                        to set it.</Alert>
-                </If>
-
                 <Tab eventKey={1} title="Borrower" className="ample-padding-top">
-                    <Col lg={8}>
-                        <InputRow label='Use or Description' cursor={cLoan.refine('use')}
-                                  disabled={!descriptionsLoaded}/>
-                        <InputRow label='Name' cursor={cLoan.refine('name')}/>
-
-                        <For each='name' index='i'
-                             of={['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort']}>
-                            <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
-                                       aanCursor={cLoan.refine(`${name}_all_any_none`)}
-                                       onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
-                        </For>
-
-                        <For each='name' index='i' of={visionFaceKeys}>
-                            <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
-                                       aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)}
-                                       onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)}
-                                       onBlur={this.removeGraphs}/>
-                        </For>
-
-                        <LimitResult cursor={cLoan.refine('limit_to')}/>
-
-                        <For each='name' index='i'
-                             of={['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']}>
-                            <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
-                                       cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
-                                       options={allOptions[name]}/>
-                        </For>
-                    </Col>
-
-                    <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-                        <If condition={helper_charts.loan}>
-                            <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                                        config={helper_charts.loan}/>
+                    <Row>
+                        <If condition={location.hostname === '$$localhost'}>
+                            <pre>{JSON.stringify(criteria, null, 2)}</pre>
                         </If>
-                    </Col>
+
+                        <If condition={needLenderID}>
+                            <Alert bsStyle="danger">
+                                The options in your criteria require your Lender ID. Go to the Options page
+                                to set it.
+                            </Alert>
+                        </If>
+
+                        <Col lg={8}>
+                            <InputRow label='Use or Description' cursor={cLoan.refine('use')}
+                                      disabled={!descriptionsLoaded}/>
+                            <InputRow label='Name' cursor={cLoan.refine('name')}/>
+
+                            <For each='name' index='i'
+                                 of={['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort']}>
+                                <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
+                                           aanCursor={cLoan.refine(`${name}_all_any_none`)}
+                                           onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+                            </For>
+
+                            <For each='name' index='i' of={visionFaceKeys}>
+                                <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
+                                           aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)}
+                                           onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)}
+                                           onBlur={this.removeGraphs}/>
+                            </For>
+
+                            <LimitResult cursor={cLoan.refine('limit_to')}/>
+
+                            <For each='name' index='i'
+                                 of={['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']}>
+                                <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
+                                           cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
+                                           options={allOptions[name]}/>
+                            </For>
+                        </Col>
+
+                        <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
+                            <If condition={helper_charts.loan}>
+                                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
+                                            config={helper_charts.loan}/>
+                            </If>
+                        </Col>
+                    </Row>
                 </Tab>
 
                 <Tab eventKey={2} title="Partner" className="ample-padding-top">

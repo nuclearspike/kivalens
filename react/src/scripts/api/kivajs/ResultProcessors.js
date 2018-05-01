@@ -1,7 +1,7 @@
 'use strict'
 
 const isServer = require("./kivaBase").isServer
-const Loan = require("./Loan")
+// const Loan = require("./Loan")
 const extend = require('extend')
 require('linqjs')
 require('datejs')

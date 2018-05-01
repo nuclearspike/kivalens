@@ -19,7 +19,7 @@ watch (using gulp and browserify) and the other that runs the server (just by ru
 
 To run the project:
 * In the /react directory, run "npm run kl" and leave that console running.
-* In the root project directory, run "npm start" in a separate console window.
+* In a separate console, in the root project directory, run "npm start" in a separate console window.
 * Once the server console has finished downloading Kiva loans, go to http://localhost:5000 in a browser
 
 There is no hot module reloading set up, so changes made to the client require that you

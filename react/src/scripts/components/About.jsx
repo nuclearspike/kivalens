@@ -330,7 +330,7 @@ const About = React.createClass({
                 <li>
                     <b>Diversify!</b> When searching for loans, your criteria may keep bringing up loans from the same
                     partners
-                    over and over again. Having too much money with a handful partner means that if those partners have
+                    over and over again. Having too much money with only a handful partner means that if those partners have
                     institutional default, you could lose all of your outstanding balance. Diversity among countries
                     can also be beneficial because it protects you from your portfolio being as impacted by natural
                     disasters, wars, etc. Use KivaLens' Portfolio Balancing Criteria options (on Portfolio tab)
@@ -345,7 +345,7 @@ const About = React.createClass({
                     why I
                     changed the name from kivabank to kivalens years ago). Over time, even the most cautious lenders
                     are very likely to lose money to default or currency exchange unless you are extremely lucky.
-                    You should lend with the expectation of some loss and be happy when it everything goes perfectly.
+                    You should lend with the expectation of some loss and be happy when everything goes perfectly.
                     You are lending to help people, not for any return on your money (obviously) or even with any
                     assumptions of total repayment. Happy lending!
                 </li>
@@ -369,9 +369,9 @@ const About = React.createClass({
                 and helped incorporate a lot of the search features directly into Kiva's site which also then made
                 their way into the API as well. There are still some great things KivaLens does that Kiva does not
                 do that are handy and fun! Some projects I worked on at Kiva: Super Graphs for lenders and teams,
-                /Live, Zip, Leader boards, Message board search and time-line, the Home page, and Estimated Repayments
-                are some of the ones I enjoyed the most, many of which were "Innovation Iteration" projects
-                where engineers implement their own ideas.
+                /Live, Zip, Leader boards, Message board search with time-line, the Home page (at the time),
+                and Estimated Repayments are some of the ones I enjoyed the most, many of which were
+                "Innovation Iteration" projects where engineers implement their own ideas.
             </p>
 
             <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
@@ -383,10 +383,14 @@ const About = React.createClass({
                 install Kiva Lender Assistant here</KLALink> or&nbsp;
                 <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
                     the source code on github (developers wanted!)</NewTabLink>.
-                <If condition={KLAVersion}><span> You have KLA version {KLAVersion} installed. Chrome does a good job
-                    of keeping your extensions up to date automatically, but to check for upgrades manually,
-                    go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
-                    then click the button to update your extensions.</span></If>
+                <If condition={KLAVersion}>
+                    <span>
+                        You have KLA version {KLAVersion} installed. Chrome does a good job
+                        of keeping your extensions up to date automatically, but to check for upgrades manually,
+                        go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
+                        then click the button to update your extensions.
+                    </span>
+                </If>
             </p>
 
         </Grid>
