@@ -21,70 +21,70 @@ if (process.env.VISION_API_KEY) {
 
 
 const processFaceData = annotations => {
-    var result =  {joy:[],sorrow:[],anger:[],surprise:[],headwear:[]}
-    Object.keys(result).forEach(key=> result[key] = annotations.where(a=> ['VERY_LIKELY','LIKELY','POSSIBLE'].contains(a[`${key}Likelihood`])).select(a => a[`${key}Likelihood`]).distinct())
-    return result
+  var result = {joy: [], sorrow: [], anger: [], surprise: [], headwear: []}
+  Object.keys(result).forEach(key => result[key] = annotations.where(a => ['VERY_LIKELY', 'LIKELY', 'POSSIBLE'].contains(a[`${key}Likelihood`])).select(a => a[`${key}Likelihood`]).distinct())
+  return result
 }
 
 function guaranteeGoogleVisionForLoan(loan, doneCallback) {
-    if (typeof doneCallback !== 'function') doneCallback = () => true
-    if (blind || !rc) {
-        doneCallback()
-        return
+  if (typeof doneCallback !== 'function') doneCallback = () => true
+  if (blind || !rc) {
+    doneCallback()
+    return
+  }
+
+  var facesKey = `vision_faces_${loan.id}`,
+    vlkey = `vision_label_${loan.id}`,
+    doFaceDetection = false,
+    doVisionLabels = false
+
+  if (loan.kl_faces) { // && loan.kl_visionLabels
+    doneCallback()
+    return
+  }
+
+  rc.mget([facesKey, vlkey], (err, result) => {
+    var features = []
+    //console.log("get array", err, result)
+    if (err) {
+      doneCallback(404)
+      return
+    }
+    if (!loan.kl_faces && !result[0]) {
+      features.push(new vision.Feature('FACE_DETECTION', 4))
+      doFaceDetection = true
     }
 
-    var facesKey = `vision_faces_${loan.id}`,
-        vlkey = `vision_label_${loan.id}`,
-        doFaceDetection = false,
-        doVisionLabels = false
+    //if (!loan.kl_visionLabels && !result[1]) {
+    //features.push(new vision.Feature('LABEL_DETECTION', 10))
+    //doVisionLabels = true
+    //}
 
-    if (loan.kl_faces) { // && loan.kl_visionLabels
-        doneCallback()
-        return
+    if (!features.length) { //we have everything we need.
+      loan.kl_faces = loan.kl_faces || JSON.parse(result[0])
+      loan.kl_visionLabels = loan.kl_visionLabels || JSON.parse(result[1])
+      doneCallback()
+      return
     }
 
-    rc.mget([facesKey,vlkey],(err,result)=>{
-        var features = []
-        //console.log("get array", err, result)
-        if (err){
-            doneCallback(404)
-            return
+    //we have stuff to do.
+    const req = new vision.Request({
+      image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
+      features: features
+    })
+
+    console.log(`Making ${features.length} Vision API requests: ${loan.id}`)
+    vision.annotate([req]).then(res => {
+      if (doFaceDetection) {
+        if (res.responses[0].faceAnnotations) { //wouldn't have it if didn't need it.
+          loan.kl_faces = processFaceData(res.responses[0].faceAnnotations)
+        } else {
+          loan.kl_faces = {joy: [], sorrow: [], anger: [], surprise: [], headwear: []}
         }
-        if (!loan.kl_faces && !result[0]){
-            features.push(new vision.Feature('FACE_DETECTION', 4))
-            doFaceDetection = true
-        }
-
-        //if (!loan.kl_visionLabels && !result[1]) {
-            //features.push(new vision.Feature('LABEL_DETECTION', 10))
-            //doVisionLabels = true
-        //}
-
-        if (!features.length){ //we have everything we need.
-            loan.kl_faces        = loan.kl_faces || JSON.parse(result[0])
-            loan.kl_visionLabels = loan.kl_visionLabels || JSON.parse(result[1])
-            doneCallback()
-            return
-        }
-
-        //we have stuff to do.
-        const req = new vision.Request({
-            image: new vision.Image({url: `https://www.kiva.org/img/orig/${loan.image.id}.jpg`}),
-            features: features
-        })
-
-        console.log(`Making ${features.length} Vision API requests: ${loan.id}`)
-        vision.annotate([req]).then(res => {
-            if (doFaceDetection) {
-                if (res.responses[0].faceAnnotations) { //wouldn't have it if didn't need it.
-                    loan.kl_faces = processFaceData(res.responses[0].faceAnnotations)
-                } else {
-                    loan.kl_faces = {joy:[],sorrow:[],anger:[],surprise:[],headwear:[]}
-                }
-                rc.set(facesKey, JSON.stringify(loan.kl_faces))
-                rc.expire(facesKey, '2592000') //30 days
-            }
-            /**if (doVisionLabels) {
+        rc.set(facesKey, JSON.stringify(loan.kl_faces))
+        rc.expire(facesKey, '2592000') //30 days
+      }
+      /**if (doVisionLabels) {
                 if (res.responses[0].labelAnnotations) {
                     loan.kl_visionLabels = res.responses[0].labelAnnotations
                 } else {
@@ -93,13 +93,13 @@ function guaranteeGoogleVisionForLoan(loan, doneCallback) {
                 rc.set(vlkey, JSON.stringify(loan.kl_visionLabels))
                 rc.expire(vlkey, '2592000') //30 days
             }**/
-            doneCallback()
-            //console.log(JSON.stringify(loan.kl_faces))
-        }, e => {
-            doneCallback(404)
-            console.log('Error: ', e)
-        })
+      doneCallback()
+      //console.log(JSON.stringify(loan.kl_faces))
+    }, e => {
+      doneCallback(404)
+      console.log('Error: ', e)
     })
+  })
 }
 
 exports.guaranteeGoogleVisionForLoan = guaranteeGoogleVisionForLoan

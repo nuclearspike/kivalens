@@ -64,7 +64,7 @@ class QueuedActions {
 var defaultKivaData = {}
 defaultKivaData.sectors = ["Agriculture","Arts","Clothing","Construction","Education","Entertainment","Food","Health",
     "Housing","Manufacturing","Personal Use","Retail","Services","Transportation","Wholesale"]
-defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","name":"Armenia"},
+defaultKivaData.countries = [{"code":"AF","name":"Afghanistan"},{"code":"AM","name":"Armenia"},{"code":"FJ","name":"Fiji"},{"code":"TO","name":"Tonga"},
     {"code":"AZ","name":"Azerbaijan"},{"code":"BZ","name":"Belize"},{"code":"BJ","name":"Benin"},{"code":"BO","name":"Bolivia"},
     {"code":"BA","name":"Bosnia and Herzegovina"},{"code":"BR","name":"Brazil"},{"code":"BG","name":"Bulgaria"},
     {"code":"BF","name":"Burkina Faso"},{"code":"BI","name":"Burundi"},{"code":"KH","name":"Cambodia"},{"code":"CM","name":"Cameroon"},

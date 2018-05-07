@@ -863,7 +863,7 @@ const CriteriaTabs = React.createClass({
                                     </li>
                                 </ul>
 
-                                <If condition={activeTab == 3}>
+                                <If condition={activeTab === 3}>
                                     <div>
                                         <For each='name' index='i'
                                              of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
@@ -877,12 +877,14 @@ const CriteriaTabs = React.createClass({
                     </Row>
                 </Tab>
                 <If condition={!isMobile}>
-                    <Tab eventKey={4} title="Auto-Lend" disabled={loansReady != true}>
-                        <Col lg={12}>
-                            <If condition={activeTab == 4}>
-                                <AutoLendSettings />
-                            </If>
-                        </Col>
+                    <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
+                        <Row>
+                            <Col lg={12}>
+                                <If condition={activeTab === 4}>
+                                    <AutoLendSettings />
+                                </If>
+                            </Col>
+                        </Row>
                     </Tab>
                 </If>
                 <If condition={!isMobile}>

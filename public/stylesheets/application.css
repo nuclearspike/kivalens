@@ -46,8 +46,7 @@
 
 .loan_list_item.selected {
   z-index: 12;
-  -webkit-transform: rotateY(0deg);
-          transform: rotateY(0deg);
+  transform: rotateY(0deg);
   background-color: aliceblue; }
 
 .loan_list_item.gone {
@@ -224,8 +223,7 @@ ul.spacedList li {
   background-color: #cfcfcf !important; }
 
 .blur-me {
-  -webkit-filter: blur(20px);
-          filter: blur(20px); }
+  filter: blur(20px); }
 
 div.notification-bar {
   font-size: 2rem !important; }
@@ -371,7 +369,6 @@ div.notification-bar {
   width: 16px; }
 
 .Select-loading {
-  -webkit-animation: Select-animation-spin 400ms infinite linear;
   animation: Select-animation-spin 400ms infinite linear;
   width: 16px;
   height: 16px;
@@ -384,7 +381,6 @@ div.notification-bar {
   vertical-align: middle; }
 
 .Select-clear-zone {
-  -webkit-animation: Select-animation-fadeIn 200ms;
   animation: Select-animation-fadeIn 200ms;
   color: #999;
   cursor: pointer;
@@ -425,12 +421,6 @@ div.notification-bar {
 .is-open .Select-arrow,
 .Select-arrow-zone:hover > .Select-arrow {
   border-top-color: #666; }
-
-@-webkit-keyframes Select-animation-fadeIn {
-  from {
-    opacity: 0; }
-  to {
-    opacity: 1; } }
 
 @keyframes Select-animation-fadeIn {
   from {
@@ -555,12 +545,7 @@ div.notification-bar {
 
 @keyframes Select-animation-spin {
   to {
-    -webkit-transform: rotate(1turn);
-            transform: rotate(1turn); } }
-
-@-webkit-keyframes Select-animation-spin {
-  to {
-    -webkit-transform: rotate(1turn); } }
+    transform: rotate(1turn); } }
 
 .horizontal-slider {
   width: 100%;

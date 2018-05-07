@@ -80,7 +80,7 @@ const AutoLendSettings = React.createClass({
                     many additional options for selecting partners that are not included in the Auto-Lend settings.
                 </p>
                 <p>
-                    As your portfolio changes and as stats on partners shift over time, you'll want to come back
+                    As your portfolio changes and as stats on partners/countries/sectors shift over time, you'll want to come back
                     and perform this function again on a regular basis to keep your settings on Kiva up-to-date,
                     it is not automatic. KivaLens only uses the criteria options that impact
                     Sectors, Country, or Partner filtering from the currently criteria. It is recommended that you

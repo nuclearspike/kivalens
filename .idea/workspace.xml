@@ -2,18 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/../everythingtokivalens/.idea/everythingtokivalens.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../everythingtokivalens/.idea/everythingtokivalens.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/react-kiva.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/react-kiva.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/javascript/build.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/javascript/build.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/javascript/build.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/public/javascript/build.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/stylesheets/application.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/stylesheets/application.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/stylesheets/application.min.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/stylesheets/application.min.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/api/kiva.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vision.js" beforeDir="false" afterPath="$PROJECT_DIR$/vision.js" afterDir="false" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -147,7 +144,7 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5100143">
+    <splitter split-orientation="horizontal" split-proportion="0.57203907">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="cluster.js" pinned="false" current-in-tab="false">
@@ -159,52 +156,56 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="manifest.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/manifest.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="990">
-                  <caret line="66" column="28" selection-start-line="66" selection-start-column="28" selection-end-line="66" selection-end-column="28" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="store.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/lib/store.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state>
-                  <folding>
-                    <element signature="n#!!doc" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="linqextras.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/linqextras.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="210">
-                  <caret line="14" selection-start-line="14" selection-end-line="14" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="LenderLoans.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/LenderLoans.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="90">
-                  <caret line="6" column="26" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="26" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="About.jsx" pinned="false" current-in-tab="true">
+          <file leaf-file-name="About.jsx" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="934">
-                  <caret line="322" column="62" selection-start-line="322" selection-start-column="62" selection-end-line="322" selection-end-column="62" />
-                  <folding>
-                    <element signature="e#13#38#0" expanded="true" />
-                  </folding>
+                <state relative-caret-position="345">
+                  <caret line="23" column="30" selection-start-line="23" selection-start-column="30" selection-end-line="23" selection-end-column="30" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="210">
+                  <caret line="14" column="37" selection-start-line="14" selection-start-column="37" selection-end-line="14" selection-end-column="37" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="AutoLendSettings.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="90">
+                  <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="kiva.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="30">
+                  <caret line="2" column="2" selection-start-line="2" selection-start-column="2" selection-end-line="2" selection-end-column="2" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="package.json" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/react/package.json">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="720">
+                  <caret line="48" column="21" lean-forward="true" selection-start-line="48" selection-start-column="21" selection-end-line="48" selection-end-column="21" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="gulpfile.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="18">
+                  <caret line="49" column="7" selection-start-line="49" selection-start-column="7" selection-end-line="49" selection-end-column="7" />
                 </state>
               </provider>
             </entry>
@@ -212,8 +213,17 @@
           <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/index.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="345">
+                <state relative-caret-position="540">
                   <caret line="36" column="6" selection-start-line="36" selection-start-column="6" selection-end-line="36" selection-end-column="6" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="KLNav.jsx" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="630">
+                  <caret line="42" column="20" selection-start-line="42" selection-start-column="20" selection-end-line="42" selection-end-column="20" />
                 </state>
               </provider>
             </entry>
@@ -231,101 +241,89 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="PagedKiva.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="331">
-                  <caret line="79" selection-start-line="79" selection-end-line="79" />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="CriteriaTabs.jsx" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1445">
-                  <caret line="30" column="11" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="11" />
-                  <folding>
-                    <element signature="e#14#39#0" expanded="true" />
-                    <element signature="e#195#222#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="schema.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/schema.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="678">
-                  <caret line="116" column="34" selection-start-line="116" selection-start-column="34" selection-end-line="116" selection-end-column="34" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/README.md">
-              <provider selected="true" editor-type-id="split-provider[text-editor;MarkdownPreviewEditor]">
-                <state split_layout="SPLIT">
-                  <first_editor relative-caret-position="315">
-                    <caret line="21" column="13" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
-                  </first_editor>
-                  <second_editor>
-                    <js_state />
-                  </second_editor>
+                <state relative-caret-position="9675">
+                  <caret line="645" column="40" selection-start-line="645" selection-start-column="40" selection-end-line="645" selection-end-column="40" />
                 </state>
               </provider>
             </entry>
           </file>
           <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/package.json">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="552">
-                  <caret line="37" column="19" selection-start-line="37" selection-start-column="19" selection-end-line="37" selection-end-column="19" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="ResultProcessors.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="45">
-                  <caret line="3" column="13" selection-start-line="3" selection-start-column="9" selection-end-line="3" selection-end-column="13" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="Request.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="90">
-                  <caret line="6" column="41" selection-start-line="6" selection-start-column="41" selection-end-line="6" selection-end-column="41" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="kivaBase.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/kivaBase.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="345">
-                  <caret line="23" column="4" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="4" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="manifest.json" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/../lenderassistant/manifest.json">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="135">
-                  <caret line="9" column="29" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="29" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="background.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
+            <entry file="file://$PROJECT_DIR$/../kivalens/package.json">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="285">
-                  <caret line="19" column="35" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
+                  <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="App.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../kivalens/src/App.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="375">
+                  <caret line="25" column="2" selection-start-line="25" selection-start-column="2" selection-end-line="25" selection-end-column="2" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="vision.js" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/vision.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="210">
+                  <caret line="14" selection-start-line="14" selection-end-line="14" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Home.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../kivalens/src/Home.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="165">
+                  <caret line="11" column="1" selection-start-line="11" selection-start-column="1" selection-end-line="11" selection-end-column="1" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../kivalens/src/modules/index.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="75">
+                  <caret line="5" column="2" selection-start-line="5" selection-start-column="2" selection-end-line="5" selection-end-column="2" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../kivalens/public/index.html">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="330">
+                  <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../kivalens/README.md">
+              <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+                <state split_layout="SPLIT">
+                  <first_editor relative-caret-position="285">
+                    <caret line="19" selection-start-line="19" selection-end-line="20" />
+                  </first_editor>
+                  <second_editor />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/README.md">
+              <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+                <state split_layout="SPLIT">
+                  <first_editor relative-caret-position="225">
+                    <caret line="15" selection-start-line="15" selection-end-line="15" />
+                  </first_editor>
+                  <second_editor />
                 </state>
               </provider>
             </entry>
@@ -346,13 +344,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>d</find>
-      <find>decode</find>
-      <find>decodeURI</find>
-      <find>decodeURIC</find>
-      <find>decodeURICO</find>
-      <find>decodeURIComponent</find>
-      <find>k</find>
       <find>kiv</find>
       <find>kivaws</find>
       <find>window.location.protocol + &quot;//api</find>
@@ -376,6 +367,13 @@
       <find>something to</find>
       <find>sustainability</find>
       <find>Borrower</find>
+      <find>auto-lend</find>
+      <find>KLNav</find>
+      <find>as stats</find>
+      <find>98%</find>
+      <find>Bolivia</find>
+      <find>if that's</find>
+      <find>xhr2</find>
     </findStrings>
     <replaceStrings>
       <replace>avatar</replace>
@@ -395,12 +393,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/react/src/scripts/components/KivaImage.jsx" />
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/vision.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/ChartDistribution.jsx" />
-        <option value="$PROJECT_DIR$/exampleData.json" />
-        <option value="$PROJECT_DIR$/public/javascript/build.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/loans.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/CritTester.js" />
@@ -436,16 +428,22 @@
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
         <option value="$PROJECT_DIR$/../lenderassistant/manifest.json" />
         <option value="$PROJECT_DIR$/../lenderassistant/background.js" />
         <option value="$PROJECT_DIR$/cluster.js" />
         <option value="$PROJECT_DIR$/public/javascript/initialdownload.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kivajs/ResultProcessors.js" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
-        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
+        <option value="$PROJECT_DIR$/../kivalens/public/index.html" />
+        <option value="$PROJECT_DIR$/../kivalens/src/modules/index.js" />
+        <option value="$PROJECT_DIR$/../kivalens/src/Home.js" />
+        <option value="$PROJECT_DIR$/../kivalens/src/App.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" />
+        <option value="$PROJECT_DIR$/react/src/scripts/components/About.jsx" />
+        <option value="$PROJECT_DIR$/vision.js" />
+        <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
       </list>
     </option>
   </component>
@@ -461,10 +459,13 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="NodeModulesDirectoryManager">
+    <handled-path value="$PROJECT_DIR$/../kivalens/node_modules" />
+  </component>
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="y" value="22" />
-    <option name="width" value="1440" />
-    <option name="height" value="878" />
+    <option name="width" value="437" />
+    <option name="height" value="225" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -505,18 +506,41 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
-              <item name="react-kiva" type="b2602c69:ProjectViewProjectNode" />
-              <item name="react-kiva" type="462c0819:PsiDirectoryNode" />
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kivalensjs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kivalensjs" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kivalens" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kivalens" type="462c0819:PsiDirectoryNode" />
+              <item name="public" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kivalens" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kivalensjs" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -541,11 +565,11 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="js-jscs-nodeInterpreter" value="/usr/local/bin/node" />
     <property name="js.eslint.eslintPackage" value="" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../alex-gen/lokal-gen" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="list.type.of.created.stylesheet" value="CSS" />
-    <property name="nodejs_interpreter_path" value="$USER_HOME$/.nvm/v7.3.0/bin/node" />
+    <property name="nodejs_interpreter_path" value="node" />
     <property name="project.settings.patched" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="Push.Settings">
     <excluded-roots>
@@ -794,6 +818,8 @@
       <workItem from="1525166580512" duration="173000" />
       <workItem from="1525166772105" duration="39000" />
       <workItem from="1525166830072" duration="2088000" />
+      <workItem from="1525170697264" duration="3432000" />
+      <workItem from="1525323592285" duration="2791000" />
     </task>
     <task id="LOCAL-00333" summary="pull partners every 6 hours (not 24), graphQL schema now has more comprehensive dates">
       <created>1465518007814</created>
@@ -1142,10 +1168,10 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="231935000" />
+    <option name="totallyTimeSpent" value="238158000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="1440" height="878" extended-state="6" />
+    <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -1154,7 +1180,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.26675427" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14806867" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17643468" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" weight="0.3297568" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.20893562" />
@@ -1227,66 +1253,10 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js">
+    <entry file="file://$PROJECT_DIR$/../kivalens/src/App.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="41" selection-start-line="6" selection-start-column="41" selection-end-line="6" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/kivaBase.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="4" selection-start-line="23" selection-start-column="4" selection-end-line="23" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/manifest.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="29" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="35" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1005">
-          <caret line="67" column="18" selection-start-line="67" selection-start-column="18" selection-end-line="67" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/OnNow.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="945">
-          <caret line="65" column="128" selection-start-line="65" selection-start-column="128" selection-end-line="65" selection-end-column="128" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_idle.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="39" column="14" selection-start-line="39" selection-start-column="14" selection-end-line="39" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5235">
-          <caret line="359" column="72" selection-start-line="359" selection-start-column="72" selection-end-line="359" selection-end-column="72" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_common_start.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="1" selection-start-line="15" selection-start-column="1" selection-end-line="15" selection-end-column="1" />
+        <state relative-caret-position="195">
+          <caret line="13" column="13" lean-forward="true" selection-start-line="13" selection-start-column="13" selection-end-line="13" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -1318,13 +1288,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/lend.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5190">
-          <caret line="409" column="54" selection-start-line="409" selection-start-column="20" selection-end-line="409" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/lend.js" />
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1860">
@@ -1332,23 +1296,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;MarkdownPreviewEditor]">
-        <state split_layout="FIRST">
-          <first_editor relative-caret-position="195">
-            <caret line="13" selection-start-line="13" selection-end-line="13" />
-          </first_editor>
-          <second_editor>
-            <js_state />
-          </second_editor>
-        </state>
-      </provider>
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="398">
-          <caret line="31" column="47" selection-start-line="31" selection-start-column="47" selection-end-line="31" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/README.md" />
     <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1764">
@@ -1356,13 +1304,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/public/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9">
-          <caret line="103" column="47" selection-start-line="103" selection-start-column="47" selection-end-line="103" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/public/index.html" />
     <entry file="file://$PROJECT_DIR$/public/stylesheets/application.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
@@ -1399,20 +1341,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="78" column="19" selection-start-line="78" selection-start-column="19" selection-end-line="78" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="42" column="20" selection-start-line="42" selection-start-column="20" selection-end-line="42" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Search.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="682">
@@ -1420,20 +1348,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="383">
-          <caret line="86" column="77" selection-start-line="86" selection-start-column="77" selection-end-line="86" selection-end-column="77" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/manifest.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="990">
-          <caret line="66" column="28" selection-start-line="66" selection-start-column="28" selection-end-line="66" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/manifest.js" />
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Options.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2985">
@@ -1441,29 +1356,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="38" column="26" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_start.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1590">
-          <caret line="106" column="1" selection-start-line="106" selection-start-column="1" selection-end-line="106" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/lib/store.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/inject/all_start.js" />
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/options_custom/lib/store.js" />
     <entry file="file://$PROJECT_DIR$/public/javascript/build.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="226">
@@ -1482,13 +1376,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="11" selection-start-line="11" selection-end-line="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3315">
-          <caret line="221" column="27" selection-start-line="221" selection-start-column="27" selection-end-line="221" selection-end-column="27" />
         </state>
       </provider>
     </entry>
@@ -1513,20 +1400,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/manifest.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="29" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="35" selection-start-line="19" selection-start-column="35" selection-end-line="19" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/manifest.json" />
+    <entry file="file://$PROJECT_DIR$/../lenderassistant/background.js" />
     <entry file="file://$PROJECT_DIR$/cluster.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7140">
@@ -1536,15 +1411,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/PagedKiva.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="331">
+        <state relative-caret-position="1185">
           <caret line="79" selection-start-line="79" selection-end-line="79" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="36" column="6" selection-start-line="36" selection-start-column="6" selection-end-line="36" selection-end-column="6" />
         </state>
       </provider>
     </entry>
@@ -1555,50 +1423,142 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="934">
-          <caret line="322" column="62" selection-start-line="322" selection-start-column="62" selection-end-line="322" selection-end-column="62" />
-          <folding>
-            <element signature="e#13#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1445">
-          <caret line="30" column="11" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="11" />
-          <folding>
-            <element signature="e#14#39#0" expanded="true" />
-            <element signature="e#195#222#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/schema.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="678">
+        <state relative-caret-position="1740">
           <caret line="116" column="34" selection-start-line="116" selection-start-column="34" selection-end-line="116" selection-end-column="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="552">
+        <state relative-caret-position="555">
           <caret line="37" column="19" selection-start-line="37" selection-start-column="19" selection-end-line="37" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;MarkdownPreviewEditor]">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="315">
-            <caret line="21" column="13" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
+          <first_editor relative-caret-position="225">
+            <caret line="15" selection-start-line="15" selection-end-line="15" />
           </first_editor>
-          <second_editor>
-            <js_state />
-          </second_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9675">
+          <caret line="645" column="40" selection-start-line="645" selection-start-column="40" selection-end-line="645" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="285">
+            <caret line="19" selection-start-line="19" selection-end-line="20" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/public/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="36" column="6" selection-start-line="36" selection-start-column="6" selection-end-line="36" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/KLNav.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="630">
+          <caret line="42" column="20" selection-start-line="42" selection-start-column="20" selection-end-line="42" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/src/modules/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="2" selection-start-line="5" selection-start-column="2" selection-end-line="5" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/src/Home.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="1" selection-start-line="11" selection-start-column="1" selection-end-line="11" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="37" selection-start-line="14" selection-start-column="37" selection-end-line="14" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../kivalens/src/App.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="2" selection-start-line="25" selection-start-column="2" selection-end-line="25" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="23" column="30" selection-start-line="23" selection-start-column="30" selection-end-line="23" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vision.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kiva.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="2" selection-start-line="2" selection-start-column="2" selection-end-line="2" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="49" column="7" selection-start-line="49" selection-start-column="7" selection-end-line="49" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="48" column="21" lean-forward="true" selection-start-line="48" selection-start-column="21" selection-end-line="48" selection-end-column="21" />
         </state>
       </provider>
     </entry>

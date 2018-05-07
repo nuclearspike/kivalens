@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../everythingtokivalens/.idea/everythingtokivalens.iml" filepath="$PROJECT_DIR$/../everythingtokivalens/.idea/everythingtokivalens.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../kivalens/.idea/kivalens.iml" filepath="$PROJECT_DIR$/../kivalens/.idea/kivalens.iml" />
       <module fileurl="file://$PROJECT_DIR$/../lenderassistant/.idea/lenderassistant.iml" filepath="$PROJECT_DIR$/../lenderassistant/.idea/lenderassistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/react-kiva.iml" filepath="$PROJECT_DIR$/.idea/react-kiva.iml" />
     </modules>
