@@ -108,6 +108,7 @@
 <![endif]-->
 <script>
     window.kl_api_start = <%- JSON.stringify(start) %>;
+    window.kl_progress = {};
 </script>
 <% js.forEach(function(file) { %>
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>

@@ -98,7 +98,7 @@ const Live = React.createClass({
         var loans_during = messages.select(p=>p.loans).flatten()
 
         var top_sectors = loans_during.groupByWithCount(l=>l.sector.name).orderBy(g=>g.count, basicReverseOrder).take(10)
-        var top_countries = loans_during.groupByWithCount(l=>l.location.country.name).orderBy(g=>g.count, basicReverseOrder).take(10)
+        var top_countries = loans_during.groupByWithCount(l=> l.location ? l.location.country.name : '(Location Unknown: Error)').orderBy(g=>g.count, basicReverseOrder).take(10)
 
         var fundraising_loans = kivaloans.loans_from_kiva.where(l=>l.status=='fundraising')
         var funded_sum    = fundraising_loans.sum(l=>l.funded_amount)

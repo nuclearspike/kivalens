@@ -469,490 +469,491 @@ const SliderRow = React.createClass({
 })
 
 const CriteriaTabs = React.createClass({
-    mixins: [Reflux.ListenerMixin, LinkedStateMixin, DelayStateTriggerMixin('criteria', 'performSearch', 50)],
-    getInitialState() {
-        return {
-            activeTab: 1,
-            portfolioTab: '',
-            helper_charts: {},
-            visionFaceKeys: [],
-            helper_chart_height: 400,
-            needLenderID: false,
-            criteria: s.criteria.syncGetLast(),
-            KLA: {},
-            RSSLinkTo: 'kiva',
-            loansReady: false,
-            descriptionsLoaded: false
+  mixins: [Reflux.ListenerMixin, LinkedStateMixin, DelayStateTriggerMixin('criteria', 'performSearch', 50)],
+  getInitialState() {
+    return {
+      activeTab: 1,
+      portfolioTab: '',
+      helper_charts: {},
+      visionFaceKeys: [],
+      helper_chart_height: 400,
+      needLenderID: false,
+      criteria: s.criteria.syncGetLast(),
+      KLA: {},
+      RSSLinkTo: 'kiva',
+      loansReady: false,
+      descriptionsLoaded: false
+    }
+  },
+  componentDidMount() {
+    var opts = lsj.get("Options")
+    var visionFaceKeys = [] //opts.betaTester || true ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
+    this.setState({kiva_lender_id: opts.kiva_lender_id, visionFaceKeys, isMobile: mobileAndTabletCheck()})
+    this.listenTo(a.loans.load.completed, this.loansReady)
+    this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
+    this.listenTo(a.criteria.reload, this.reloadCriteria)
+    this.listenTo(a.loans.filter.completed, this.filteredDone)
+    this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
+    this.listenTo(a.loans.load.descriptions, this.checkDescriptionsLoaded)
+    this.listenTo(a.loans.refresh, this.performSearch)
+    this.listenTo(a.loans.load.secondaryLoad, status => {
+      if (status == 'complete') this.performSearch()
+    })
+    if (kivaloans.isReady()) this.loansReady()
+    this.checkDescriptionsLoaded()
+    KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA: state}))
+  },
+  checkDescriptionsLoaded() {
+    var criteria = s.criteria.syncGetLast()
+    if (criteria.loan && criteria.loan.use)
+      this.setState({criteria}) //only refresh the loans if the criteria has a use/descr search.
+    this.setState({descriptionsLoaded: kivaloans.allDescriptionsLoaded})
+  },
+  figureAtheistList() {
+    this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
+  },
+  filteredDone(loans, sameAsLastTime) {
+    if (!(this.last_select && this.last_select.key)) return
+    // if (sameAsLastTime) return
+    //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
+    let {key, group} = this.last_select
+    var cg = this.state.criteria[group]
+    if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`]))
+      this.genHelperGraphs(group, key, loans)
+  },
+  reloadCriteria(criteria = {}) {
+    this.setState({criteria: extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})
+  },
+  lenderLoansEvent(event) {
+    //can be either started or done.
+    var newState = {}
+    newState.portfolioTab = (event == 'started') ? " (loading...)" : ""
+    this.setState(newState)
+    this.performSearch()
+  },
+  loansReady() {
+    //this runs twice during load and every time you switch to the tab
+    //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
+    //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
+    if (allOptions.partners.select_options.length == 0)
+      allOptions.partners.select_options = kivaloans.active_partners.orderBy(p => p.name).select(p => ({
+        label: p.name,
+        value: p.id.toString()
+      }))
+    this.setState({loansReady: true})
+    this.figureAtheistList()
+  },
+  figureNeedLender(crit) {
+    var por = crit.portfolio
+    //if any of the balancers are present and enabled, show message that they need to have their lender id
+    var needLenderID = ['pb_country', 'pb_partner', 'pb_activity', 'pb_sector'].any(n => por && por[n] && por[n].enabled)
+    needLenderID = (needLenderID && kivaloans.isReady() && !kivaloans.lender_id)
+    if (this.state.needLenderID != needLenderID)
+      this.setState({needLenderID})
+  },
+  performSearch() {
+    var criteria = this.buildCriteria()
+    this.figureNeedLender(criteria)
+    a.criteria.change(criteria)
+  },
+  buildCriteria() {
+    var criteria = s.criteria.stripNullValues(extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
+    cl("######### buildCriteria: criteria", criteria)
+    return criteria
+  },
+  buildCriteriaWithout(group, key) {
+    var crit = this.buildCriteria()
+    delete crit[group][key]
+    return crit
+  },
+  performSearchWithout(group, key) {
+    return s.loans.syncFilterLoans(this.buildCriteriaWithout(group, key), false)
+  },
+  tabSelect(selectedKey) {
+    if (this.state.activeTab != selectedKey) {
+      this.setState({activeTab: selectedKey})
+    }
+  },
+  genHelperGraphs(group, key, loans) {
+    //helper graphs are the bars that show down the right side of the page.
+    var data
+    switch (key) {
+      case 'country_code':
+        data = loans.groupByWithCount(l => l.location.country)
+        break
+      case 'sector':
+        data = loans.groupByWithCount(l => l.sector)
+        break
+      case 'activity':
+        data = loans.groupByWithCount(l => l.activity)
+        break
+      case 'tags':
+        data = loans.select(l => l.kls_tags).flatten().groupByWithCount(t => humanize(t))
+        break
+      case 'themes':
+        data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupByWithCount()
+        break
+      case 'currency_exchange_loss_liability':
+        data = loans.groupByWithCount(l => l.terms.loss_liability.currency_exchange)
+        break
+      case 'bonus_credit_eligibility':
+        data = loans.groupByWithCount(l => l.bonus_credit_eligibility === true)
+        break
+      case 'direct':
+        data = loans.groupByWithCount(l => l.partner_id == null ? 'Direct' : "MFI")
+        break
+      case 'repayment_interval':
+        data = loans.groupByWithCount(l => l.terms.repayment_interval ? l.terms.repayment_interval : "unknown")
+        break
+      case 'social_performance':
+        data = loans.select(l => l.getPartner().social_performance_strengths).flatten().where(sp => sp != undefined).groupByWithCount(sp => sp.name)
+        break
+      case 'partners':
+        data = loans.groupByWithCount(l => l.getPartner().name)
+        break
+      case 'region': //this won't come out with the right number of loans....
+        data = loans.select(l => l.getPartner().countries).flatten().select(c => c.region).groupByWithCount()
+        break
+      case 'charges_fees_and_interest':
+        data = loans.select(l => l.getPartner().charges_fees_and_interest).groupByWithCount()
+        break
+      //VISION STUFF
+      // case 'vision_face_joy':
+      //     data = loans.select(l => l.kl_faces && l.kl_faces.joy ? l.kl_faces.joy : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+      //     break
+      // case 'vision_face_sorrow':
+      //     data = loans.select(l => l.kl_faces && l.kl_faces.sorrow ? l.kl_faces.sorrow : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+      //     break
+      // case 'vision_face_anger':
+      //     data = loans.select(l => l.kl_faces && l.kl_faces.anger ? l.kl_faces.anger : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+      //     break
+      // case 'vision_face_surprise':
+      //     data = loans.select(l => l.kl_faces && l.kl_faces.surprise ? l.kl_faces.surprise : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+      //     break
+      // case 'vision_face_headwear':
+      //     data = loans.select(l => l.kl_faces && l.kl_faces.headwear ? l.kl_faces.headwear : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+      //     break
+      default:
+        return
+    }
+
+    data = data.orderBy(d => d.count, basicReverseOrder)
+
+    var config = {
+      chart: {
+        type: 'bar',
+        animation: false,
+        renderTo: 'loan_options_graph'
+      },
+      title: {text: allOptions[key].label},
+      xAxis: {
+        categories: data.select(d => d.name),
+        title: {text: null}
+      },
+      yAxis: {
+        min: 0,
+        dataLabels: {enabled: false},
+        labels: {overflow: 'justify'},
+        title: {text: 'Matching Loans'}
+      },
+      plotOptions: {
+        bar: {
+          dataLabels: {
+            enabled: true,
+            format: '{y:.0f}'
+          }
         }
-    },
-    componentDidMount() {
-        var opts = lsj.get("Options")
-        var visionFaceKeys = [] //opts.betaTester || true ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
-        this.setState({kiva_lender_id: opts.kiva_lender_id, visionFaceKeys, isMobile: mobileAndTabletCheck()})
-        this.listenTo(a.loans.load.completed, this.loansReady)
-        this.listenTo(a.criteria.lenderLoansEvent, this.lenderLoansEvent)
-        this.listenTo(a.criteria.reload, this.reloadCriteria)
-        this.listenTo(a.loans.filter.completed, this.filteredDone)
-        this.listenTo(a.criteria.atheistListLoaded, this.figureAtheistList)
-        this.listenTo(a.loans.load.descriptions, this.checkDescriptionsLoaded)
-        this.listenTo(a.loans.refresh, this.performSearch)
-        this.listenTo(a.loans.load.secondaryLoad, status => {
-            if (status == 'complete') this.performSearch()
-        })
-        if (kivaloans.isReady()) this.loansReady()
-        this.checkDescriptionsLoaded()
-        KLAFeatureCheck(['setAutoLendPartners']).done(state => this.setState({KLA: state}))
-    },
-    checkDescriptionsLoaded(){
-        var criteria = s.criteria.syncGetLast()
-        if (criteria.loan && criteria.loan.use)
-            this.setState({criteria}) //only refresh the loans if the criteria has a use/descr search.
-        this.setState({descriptionsLoaded: kivaloans.allDescriptionsLoaded})
-    },
-    figureAtheistList(){
-        this.setState({displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
-    },
-    filteredDone(loans, sameAsLastTime){
-        if (!(this.last_select && this.last_select.key)) return
-        // if (sameAsLastTime) return
-        //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
-        let {key, group} = this.last_select
-        var cg = this.state.criteria[group]
-        if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`]))
-            this.genHelperGraphs(group, key, loans)
-    },
-    reloadCriteria(criteria = {}){
-        this.setState({criteria: extend(true, {}, s.criteria.syncBlankCriteria(), criteria)})
-    },
-    lenderLoansEvent(event){
-        //can be either started or done.
-        var newState = {}
-        newState.portfolioTab = (event == 'started') ? " (loading...)" : ""
-        this.setState(newState)
-        this.performSearch()
-    },
-    loansReady(){
-        //this runs twice during load and every time you switch to the tab
-        //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
-        //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-        if (allOptions.partners.select_options.length == 0)
-            allOptions.partners.select_options = kivaloans.active_partners.orderBy(p => p.name).select(p => ({
-                label: p.name,
-                value: p.id.toString()
-            }))
-        this.setState({loansReady: true})
-        this.figureAtheistList()
-    },
-    figureNeedLender(crit){
-        var por = crit.portfolio
-        //if any of the balancers are present and enabled, show message that they need to have their lender id
-        var needLenderID = ['pb_country', 'pb_partner', 'pb_activity', 'pb_sector'].any(n => por && por[n] && por[n].enabled)
-        needLenderID = (needLenderID && kivaloans.isReady() && !kivaloans.lender_id)
-        if (this.state.needLenderID != needLenderID)
-            this.setState({needLenderID})
-    },
-    performSearch(){
-        var criteria = this.buildCriteria()
-        this.figureNeedLender(criteria)
-        a.criteria.change(criteria)
-    },
-    buildCriteria(){
-        var criteria = s.criteria.stripNullValues(extend(true, {}, s.criteria.syncBlankCriteria(), this.state.criteria))
-        cl("######### buildCriteria: criteria", criteria)
-        return criteria
-    },
-    buildCriteriaWithout(group, key){
-        var crit = this.buildCriteria()
-        delete crit[group][key]
-        return crit
-    },
-    performSearchWithout(group, key){
-        return s.loans.syncFilterLoans(this.buildCriteriaWithout(group, key), false)
-    },
-    tabSelect(selectedKey){
-        if (this.state.activeTab != selectedKey) {
-            this.setState({activeTab: selectedKey})
+      },
+      legend: {enabled: false},
+      credits: {enabled: false},
+      series: [{
+        animation: false,
+        name: 'Loans',
+        data: data.select(d => d.count)
+      }]
+    }
+    var helper_chart_height = Math.max(300, Math.min(data.length * 30, 1300))
+    var newState = {helper_charts: {}, helper_chart_height}
+    newState.helper_charts[group] = config
+    this.setState(newState)
+  },
+  focusSelect(group, key) {
+    if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
+
+    this.last_select = {group, key}
+
+    //do we ignore what is in the select
+    var ignore_values = false
+
+    var cg = this.state.criteria[group]
+
+    if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`]))
+      ignore_values = true
+
+    var loans = ignore_values ? s.loans.syncFilterLoansLast() : this.performSearchWithout(group, key)
+
+    this.genHelperGraphs(group, key, loans)
+  },
+  removeGraphs() {
+    this.last_select = {}
+    this.setState({helper_charts: {}})
+  },
+  render() {
+    let {isMobile, visionFaceKeys, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
+    var cursor = Cursor.build(this).refine('criteria')
+    var cLoan = cursor.refine('loan')
+    var cPartner = cursor.refine('partner')
+    var cPortfolio = cursor.refine('portfolio')
+    var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
+
+    if (activeTab == 5) {
+      var critRSS = s.criteria.prepForRSS(extend({
+        feed: {
+          name: RSSName,
+          link_to: RSSLinkTo
         }
-    },
-    genHelperGraphs(group, key, loans){
-        //helper graphs are the bars that show down the right side of the page.
-        var data
-        switch (key) {
-            case 'country_code':
-                data = loans.groupByWithCount(l => l.location.country)
-                break
-            case 'sector':
-                data = loans.groupByWithCount(l => l.sector)
-                break
-            case 'activity':
-                data = loans.groupByWithCount(l => l.activity)
-                break
-            case 'tags':
-                data = loans.select(l => l.kls_tags).flatten().groupByWithCount(t => humanize(t))
-                break
-            case 'themes':
-                data = loans.select(l => l.themes).flatten().where(t => t != undefined).groupByWithCount()
-                break
-            case 'currency_exchange_loss_liability':
-                data = loans.groupByWithCount(l => l.terms.loss_liability.currency_exchange)
-                break
-            case 'bonus_credit_eligibility':
-                data = loans.groupByWithCount(l => l.bonus_credit_eligibility === true)
-                break
-            case 'direct':
-                data = loans.groupByWithCount(l => l.partner_id == null ? 'Direct' : "MFI")
-                break
-            case 'repayment_interval':
-                data = loans.groupByWithCount(l => l.terms.repayment_interval ? l.terms.repayment_interval : "unknown")
-                break
-            case 'social_performance':
-                data = loans.select(l => l.getPartner().social_performance_strengths).flatten().where(sp => sp != undefined).groupByWithCount(sp => sp.name)
-                break
-            case 'partners':
-                data = loans.groupByWithCount(l => l.getPartner().name)
-                break
-            case 'region': //this won't come out with the right number of loans....
-                data = loans.select(l => l.getPartner().countries).flatten().select(c => c.region).groupByWithCount()
-                break
-            case 'charges_fees_and_interest':
-                data = loans.select(l => l.getPartner().charges_fees_and_interest).groupByWithCount()
-                break
-            //VISION STUFF
-            case 'vision_face_joy':
-                data = loans.select(l => l.kl_faces && l.kl_faces.joy ? l.kl_faces.joy : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-                break
-            case 'vision_face_sorrow':
-                data = loans.select(l => l.kl_faces && l.kl_faces.sorrow ? l.kl_faces.sorrow : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-                break
-            case 'vision_face_anger':
-                data = loans.select(l => l.kl_faces && l.kl_faces.anger ? l.kl_faces.anger : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-                break
-            case 'vision_face_surprise':
-                data = loans.select(l => l.kl_faces && l.kl_faces.surprise ? l.kl_faces.surprise : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-                break
-            case 'vision_face_headwear':
-                data = loans.select(l => l.kl_faces && l.kl_faces.headwear ? l.kl_faces.headwear : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-                break
-            default:
-                return
-        }
+      }, this.state.criteria))
+      var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
+    }
 
-        data = data.orderBy(d => d.count, basicReverseOrder)
+    return <div>
+      <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
+        <Tab eventKey={1} title="Borrower" className="ample-padding-top">
+          <Row>
+            <If condition={location.hostname === '$$localhost'}>
+              <pre>{JSON.stringify(criteria, null, 2)}</pre>
+            </If>
 
-        var config = {
-            chart: {
-                type: 'bar',
-                animation: false,
-                renderTo: 'loan_options_graph'
-            },
-            title: {text: allOptions[key].label},
-            xAxis: {
-                categories: data.select(d => d.name),
-                title: {text: null}
-            },
-            yAxis: {
-                min: 0,
-                dataLabels: {enabled: false},
-                labels: {overflow: 'justify'},
-                title: {text: 'Matching Loans'}
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: true,
-                        format: '{y:.0f}'
-                    }
-                }
-            },
-            legend: {enabled: false},
-            credits: {enabled: false},
-            series: [{
-                animation: false,
-                name: 'Loans',
-                data: data.select(d => d.count)
-            }]
-        }
-        var helper_chart_height = Math.max(300, Math.min(data.length * 30, 1300))
-        var newState = {helper_charts: {}, helper_chart_height}
-        newState.helper_charts[group] = config
-        this.setState(newState)
-    },
-    focusSelect(group, key){
-        if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
+            <If condition={needLenderID}>
+              <Alert bsStyle="danger">
+                The options in your criteria require your Lender ID. Go to the Options page
+                to set it.
+              </Alert>
+            </If>
 
-        this.last_select = {group, key}
+            <Col lg={8}>
+              <InputRow label='Use or Description' cursor={cLoan.refine('use')}
+                        disabled={!descriptionsLoaded}/>
+              <InputRow label='Name' cursor={cLoan.refine('name')}/>
 
-        //do we ignore what is in the select
-        var ignore_values = false
+              <For each='name' index='i'
+                   of={['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort']}>
+                <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
+                           aanCursor={cLoan.refine(`${name}_all_any_none`)}
+                           onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
+              </For>
 
-        var cg = this.state.criteria[group]
+              <For each='name' index='i' of={visionFaceKeys}>
+                <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
+                           aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)}
+                           onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)}
+                           onBlur={this.removeGraphs}/>
+              </For>
 
-        if (cg[`${key}_all_any_none`] == 'all' || (allOptions[key].canAll && !cg[`${key}_all_any_none`]))
-            ignore_values = true
+              <LimitResult cursor={cLoan.refine('limit_to')}/>
 
-        var loans = ignore_values ? s.loans.syncFilterLoansLast() : this.performSearchWithout(group, key)
+              <For each='name' index='i'
+                   of={['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']}>
+                <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
+                           cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
+                           options={allOptions[name]}/>
+              </For>
+            </Col>
 
-        this.genHelperGraphs(group, key, loans)
-    },
-    removeGraphs(){
-        this.last_select = {}
-        this.setState({helper_charts: {}})
-    },
-    render() {
-        let {isMobile, visionFaceKeys, needLenderID, RSSName, RSSLinkTo, activeTab, loansReady, descriptionsLoaded, kiva_lender_id, criteria, helper_charts, helper_chart_height, portfolioTab, displayAtheistOptions} = this.state
-        var cursor = Cursor.build(this).refine('criteria')
-        var cLoan = cursor.refine('loan')
-        var cPartner = cursor.refine('partner')
-        var cPortfolio = cursor.refine('portfolio')
-        var lender_loans_message = kivaloans.lender_loans_message //todo: find a better way
+            <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
+              <If condition={helper_charts.loan}>
+                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
+                            config={helper_charts.loan}/>
+              </If>
+            </Col>
+          </Row>
+        </Tab>
 
-        if (activeTab == 5) {
-            var critRSS = s.criteria.prepForRSS(extend({
-                feed: {
-                    name: RSSName,
-                    link_to: RSSLinkTo
-                }
-            }, this.state.criteria))
-            var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
-        }
+        <Tab eventKey={2} title="Partner" className="ample-padding-top">
+          <Row>
+            <Col lg={8}>
+              <SelectRow name="direct" cursor={cPartner.refine('direct')}
+                         aanCursor={cPartner.refine(`direct_all_any_none`)}
+                         onFocus={this.focusSelect.bind(this, 'partner', "direct")}
+                         onBlur={this.removeGraphs}/>
+              <For each='name' index='i'
+                   of={['region', 'partners', 'social_performance', 'charges_fees_and_interest']}>
+                <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
+                           aanCursor={cPartner.refine(`${name}_all_any_none`)}
+                           onFocus={this.focusSelect.bind(this, 'partner', name)}
+                           onBlur={this.removeGraphs}/>
+              </For>
+              <For each='name' index='i'
+                   of={['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted']}>
+                <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
+                           cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
+                           options={allOptions[name]}/>
+              </For>
+              <If condition={displayAtheistOptions}>
+                <For each='name' index='i' of={['secular_rating', 'social_rating']}>
+                  <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
+                             cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
+                             options={allOptions[name]}/>
+                </For>
+              </If>
 
-        return <div>
-            <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
-                <Tab eventKey={1} title="Borrower" className="ample-padding-top">
-                    <Row>
-                        <If condition={location.hostname === '$$localhost'}>
-                            <pre>{JSON.stringify(criteria, null, 2)}</pre>
-                        </If>
+              <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
+              <PartnerDisplayModal/>
+            </Col>
 
-                        <If condition={needLenderID}>
-                            <Alert bsStyle="danger">
-                                The options in your criteria require your Lender ID. Go to the Options page
-                                to set it.
-                            </Alert>
-                        </If>
+            <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
+              <If condition={helper_charts.partner}>
+                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
+                            config={helper_charts.partner}/>
+              </If>
+            </Col>
+          </Row>
+        </Tab>
 
-                        <Col lg={8}>
-                            <InputRow label='Use or Description' cursor={cLoan.refine('use')}
-                                      disabled={!descriptionsLoaded}/>
-                            <InputRow label='Name' cursor={cLoan.refine('name')}/>
+        <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
+          <Row>
+            <Col md={10}>
+              <If condition={!kiva_lender_id && !needLenderID}>
+                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
+                  to="options">Options</Link> page. These functions won't work until you do.</Alert>
+              </If>
 
-                            <For each='name' index='i'
-                                 of={['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort']}>
-                                <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
-                                           aanCursor={cLoan.refine(`${name}_all_any_none`)}
-                                           onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
-                            </For>
+              To prevent you from accidentally lending to the same borrower twice if their loan is
+              still fundraising, just exclude those loans. {`(${lender_loans_message})`}
 
-                            <For each='name' index='i' of={visionFaceKeys}>
-                                <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
-                                           aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)}
-                                           onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)}
-                                           onBlur={this.removeGraphs}/>
-                            </For>
+              <For each='name' index='i' of={['exclude_portfolio_loans']}>
+                <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}
+                           aanCursor={cPortfolio.refine(`${name}_all_any_none`)}
+                           onFocus={this.focusSelect.bind(this, 'portfolio', name)}
+                           onBlur={this.removeGraphs}/>
+              </For>
+            </Col>
+          </Row>
+          <Row className="ample-padding-top">
+            <Col md={12}>
+              <Panel header='Portfolio Balancing'>
+                <p>
+                  Portfolio Balancing allows you to find loans that are either similar to or unlike
+                  the loans you have in your portfolio (either just the active/paying-back loans
+                  or all of them). So, if you wanted to get loans from every sector
+                  or country, it's easy! Or if you wanted to help make sure you aren't getting too
+                  many loans from a handful of partners to protect yourself from losses due to
+                  institutional failure, that's easy, too!
+                </p>
+                Notes:
+                <ul className="spacedList">
+                  <li>
+                    The summary data that KivaLens pulls for your account is not "live" data.
+                    It should rarely be over a day old, however. This means if you complete a
+                    bunch of loans and come back for more right away, the completed loans will
+                    not be accounted for in the balancing. Look for "Last Updated" to know how
+                    fresh the data is.
+                  </li>
+                  <li>
+                    If you plan to use Bulk Add in conjunction with the balancing tools then
+                    you may also want to look at the "Limit to top" option on the Borrower criteria
+                    tab.
+                    This will prevent too many from a given Partner/Country/Sector/Activity from
+                    getting into your basket to keep your portfolio from getting lopsided.
+                  </li>
+                  <li>
+                    Fetching the data from Kiva can sometimes take a few seconds. If you don't see
+                    anything happen right away, just wait. This also applies to loading saved
+                    searches that have balancing options set.
+                  </li>
+                </ul>
 
-                            <LimitResult cursor={cLoan.refine('limit_to')}/>
-
-                            <For each='name' index='i'
-                                 of={['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']}>
-                                <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
-                                           cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
-                                           options={allOptions[name]}/>
-                            </For>
-                        </Col>
-
-                        <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-                            <If condition={helper_charts.loan}>
-                                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                                            config={helper_charts.loan}/>
-                            </If>
-                        </Col>
-                    </Row>
-                </Tab>
-
-                <Tab eventKey={2} title="Partner" className="ample-padding-top">
-                    <Row>
-                        <Col lg={8}>
-                            <SelectRow name="direct" cursor={cPartner.refine('direct')}
-                                       aanCursor={cPartner.refine(`direct_all_any_none`)}
-                                       onFocus={this.focusSelect.bind(this, 'partner', "direct")}
-                                       onBlur={this.removeGraphs}/>
-                            <For each='name' index='i'
-                                 of={['region', 'partners', 'social_performance', 'charges_fees_and_interest']}>
-                                <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
-                                           aanCursor={cPartner.refine(`${name}_all_any_none`)}
-                                           onFocus={this.focusSelect.bind(this, 'partner', name)}
-                                           onBlur={this.removeGraphs}/>
-                            </For>
-                            <For each='name' index='i'
-                                 of={['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted']}>
-                                <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
-                                           cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
-                                           options={allOptions[name]}/>
-                            </For>
-                            <If condition={displayAtheistOptions}>
-                                <For each='name' index='i' of={['secular_rating', 'social_rating']}>
-                                    <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
-                                               cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
-                                               options={allOptions[name]}/>
-                                </For>
-                            </If>
-
-                            <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
-                            <PartnerDisplayModal/>
-                        </Col>
-
-                        <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-                            <If condition={helper_charts.partner}>
-                                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                                            config={helper_charts.partner}/>
-                            </If>
-                        </Col>
-                    </Row>
-                </Tab>
-
-                <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
-                    <Row>
-                        <Col md={10}>
-                            <If condition={!kiva_lender_id && !needLenderID}>
-                                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
-                                    to="options">Options</Link> page. These functions won't work until you do.</Alert>
-                            </If>
-
-                            To prevent you from accidentally lending to the same borrower twice if their loan is
-                            still fundraising, just exclude those loans. {`(${lender_loans_message})`}
-
-                            <For each='name' index='i' of={['exclude_portfolio_loans']}>
-                                <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}
-                                           aanCursor={cPortfolio.refine(`${name}_all_any_none`)}
-                                           onFocus={this.focusSelect.bind(this, 'portfolio', name)}
-                                           onBlur={this.removeGraphs}/>
-                            </For>
-                        </Col>
-                    </Row>
-                    <Row className="ample-padding-top">
-                        <Col md={12}>
-                            <Panel header='Portfolio Balancing'>
-                                <p>
-                                    Portfolio Balancing allows you to find loans that are either similar to or unlike
-                                    the loans you have in your portfolio (either just the active/paying-back loans
-                                    or all of them). So, if you wanted to get loans from every sector
-                                    or country, it's easy! Or if you wanted to help make sure you aren't getting too
-                                    many loans from a handful of partners to protect yourself from losses due to
-                                    institutional failure, that's easy, too!
-                                </p>
-                                Notes:
-                                <ul className="spacedList">
-                                    <li>
-                                        The summary data that KivaLens pulls for your account is not "live" data.
-                                        It should rarely be over a day old, however. This means if you complete a
-                                        bunch of loans and come back for more right away, the completed loans will
-                                        not be accounted for in the balancing. Look for "Last Updated" to know how
-                                        fresh the data is.
-                                    </li>
-                                    <li>
-                                        If you plan to use Bulk Add in conjunction with the balancing tools then
-                                        you may also want to look at the "Limit to top" option on the Borrower criteria
-                                        tab.
-                                        This will prevent too many from a given Partner/Country/Sector/Activity from
-                                        getting into your basket to keep your portfolio from getting lopsided.
-                                    </li>
-                                    <li>
-                                        Fetching the data from Kiva can sometimes take a few seconds. If you don't see
-                                        anything happen right away, just wait. This also applies to loading saved
-                                        searches that have balancing options set.
-                                    </li>
-                                </ul>
-
-                                <If condition={activeTab === 3}>
-                                    <div>
-                                        <For each='name' index='i'
-                                             of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                                            <BalancingRow key={i} cursor={cPortfolio.refine(name)}
-                                                          options={allOptions[name]}/>
-                                        </For>
-                                    </div>
-                                </If>
-                            </Panel>
-                        </Col>
-                    </Row>
-                </Tab>
-                <If condition={!isMobile}>
-                    <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
-                        <Row>
-                            <Col lg={12}>
-                                <If condition={activeTab === 4}>
-                                    <AutoLendSettings />
-                                </If>
-                            </Col>
-                        </Row>
-                    </Tab>
+                <If condition={activeTab === 3}>
+                  <div>
+                    <For each='name' index='i'
+                         of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
+                      <BalancingRow key={i} cursor={cPortfolio.refine(name)}
+                                    options={allOptions[name]}/>
+                    </For>
+                  </div>
                 </If>
-                <If condition={!isMobile}>
-                    <Tab eventKey={5} title="RSS">
-                        <Row className="ample-padding-top">
-                            <Col lg={12}>
-                                <If condition={activeTab == 5}>
-                                    <div>
-                                        <p>
-                                            With an RSS feed, you can use any number of RSS Readers (including some
-                                            browsers
-                                            or browser extensions), or sites like <NewTabLink
-                                            href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to
-                                            set up all sorts of actions in response to new items in the feed. You can
-                                            set
-                                            it to send you emails, SMS, Instant Messages, flash your lights, turn on
-                                            your
-                                            sprinklers... You have a lot of options! You can create as many RSS feeds
-                                            as you want. <NewTabLink
-                                            href="https://ifttt.com/recipes/147561-rss-feed-to-email">Create 'Recipe'
-                                            to send you an email when loans match your criteria</NewTabLink>.
-                                        </p>
-                                        <p>
-                                            It will only show the first 100 matching loans and it currently doesn't
-                                            support
-                                            anything that requires any knowledge of your portfolio (excluding your
-                                            fundraising loans or portfolio balancing).
-                                        </p>
-                                        <Panel header="RSS Feed Details">
-                                            <Input type="text" label='Name (this will appear in your RSS feed reader)'
-                                                   style={{height: '38px', minWidth: '50px'}}
-                                                   className='col-xs-2'
-                                                   valueLink={this.linkState('RSSName')}/>
-                                            <Input type="select" label="Links in RSS go to"
-                                                   valueLink={this.linkState('RSSLinkTo')}
-                                                   placeholder="select">
-                                                <option value="kiva">Kiva</option>
-                                                <option value="kivalens">KivaLens</option>
-                                            </Input>
+              </Panel>
+            </Col>
+          </Row>
+        </Tab>
+        <If condition={!isMobile}>
+          <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
+            <Row>
+              <Col lg={12}>
+                <If condition={activeTab === 4}>
+                  <AutoLendSettings/>
+                </If>
+              </Col>
+            </Row>
+          </Tab>
+        </If>
+        <If condition={!isMobile}>
+          <Tab eventKey={5} title="RSS">
+            <Row className="ample-padding-top">
+              <Col lg={12}>
+                <If condition={activeTab == 5}>
+                  <div>
+                    <p>
+                      With an RSS feed, you can use any number of RSS Readers (including some
+                      browsers
+                      or browser extensions), or sites like <NewTabLink
+                      href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to
+                      set up all sorts of actions in response to new items in the feed. You can
+                      set
+                      it to send you emails, SMS, Instant Messages, flash your lights, turn on
+                      your
+                      sprinklers... You have a lot of options! You can create as many RSS feeds
+                      as you want. <NewTabLink
+                      href="https://ifttt.com/recipes/147561-rss-feed-to-email">Create 'Recipe'
+                      to send you an email when loans match your criteria</NewTabLink>.
+                    </p>
+                    <p>
+                      It will only show the first 100 matching loans and it currently doesn't
+                      support
+                      anything that requires any knowledge of your portfolio (excluding your
+                      fundraising loans or portfolio balancing).
+                    </p>
+                    <Panel header="RSS Feed Details">
+                      <Input type="text" label='Name (this will appear in your RSS feed reader)'
+                             style={{height: '38px', minWidth: '50px'}}
+                             className='col-xs-2'
+                             valueLink={this.linkState('RSSName')}/>
+                      <Input type="select" label="Links in RSS go to"
+                             valueLink={this.linkState('RSSLinkTo')}
+                             placeholder="select">
+                        <option value="kiva">Kiva</option>
+                        <option value="kivalens">KivaLens</option>
+                      </Input>
 
-                                        </Panel>
-                                        <Panel header="Your Settings">
-                                            <p>These are the criteria options that will be used to generate your feed.
-                                                Anything related to your portfolio has been removed.</p>
-                                            <pre>
+                    </Panel>
+                    <Panel header="Your Settings">
+                      <p>These are the criteria options that will be used to generate your feed.
+                        Anything related to your portfolio has been removed.</p>
+                      <pre>
                                             {JSON.stringify(critRSS, null, 2)}
                                         </pre>
-                                        </Panel>
-                                        <Panel header="RSS Link">
-                                            <p>
-                                                Copy and Paste this entire URL into your RSS reader or
-                                                use <NewTabLink href="http://www.ifttt.com">If This Then
-                                                That</NewTabLink> to
-                                                create a "recipe" to respond to new items in the news feed and either
-                                                send
-                                                you an email or an SMS.
-                                            </p>
-                                            <textarea style={{width: '100%', height: '150px'}} readOnly
-                                                      value={`http://www.kivalens.org/rss/${critRSSUrl}`}/>
-                                        </Panel>
-                                    </div>
-                                </If>
-                            </Col>
-                        </Row>
-                    </Tab>
+                    </Panel>
+                    <Panel header="RSS Link">
+                      <p>
+                        Copy and Paste this entire URL into your RSS reader or
+                        use <NewTabLink href="http://www.ifttt.com">If This Then
+                        That</NewTabLink> to
+                        create a "recipe" to respond to new items in the news feed and either
+                        send
+                        you an email or an SMS.
+                      </p>
+                      <textarea style={{width: '100%', height: '150px'}} readOnly
+                                value={`http://www.kivalens.org/rss/${critRSSUrl}`}/>
+                    </Panel>
+                  </div>
                 </If>
-            </Tabs>
-        </div>
-    }
+              </Col>
+            </Row>
+          </Tab>
+        </If>
+      </Tabs>
+    </div>
+  }
 })
+
 export default CriteriaTabs
