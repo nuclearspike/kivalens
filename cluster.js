@@ -93,7 +93,7 @@ function hashFile(fn, fo, cb) {
 }
 
 function redisRetryStrategy(options) {
-    if (options.error.code === 'ECONNREFUSED') {
+    if (options.error && options.error.code === 'ECONNREFUSED') {
         // End reconnecting on a specific error and flush all commands with a individual error
         return new Error('The server refused the connection');
     }
@@ -181,7 +181,7 @@ if (cluster.isMaster){ //preps the downloads
             console.log("INTERESTING: NO WORKERS RUNNING")
             startWorkers();
         }
-    }, 6*60*60*1000) 
+    }, 6*60*60*1000)
 
     /**
      * rc.keys('vision_label_*',function(err,response){console.log(err,response)})
@@ -330,7 +330,7 @@ if (cluster.isMaster){ //preps the downloads
             callback(null)
         }
     })
-    
+
     hub.on('get-partners-by-ids', (ids, sender, callback) => {
         try {
             callback(ids.map(id => kivaloans.getPartner(id)))
@@ -365,7 +365,7 @@ if (cluster.isMaster){ //preps the downloads
             callback(null)
         }
     })
-    
+
     hub.on('rss', (crit, sender, callback) => {
         try {
             callback(JSON.stringify(ResultProcessors.unprocessLoans(kivaloans.filter(crit))))
@@ -1070,14 +1070,14 @@ else  //workers handle all communication with the clients.
 
     //worker receiving message... todo: switch to hub.
     process.on("message", msg => {
-        if (msg.shutdown){
+        if (msg.shutdown) {
             process.exit(0);
         }
-        if (msg.downloadReady){
+        if (msg.downloadReady) {
             startResponse = JSON.parse(msg.downloadReady)
             var curBatch = startResponse.batch
             startResponseHistory[curBatch] = startResponse
-            Object.keys(startResponseHistory).forEach(k=> {
+            Object.keys(startResponseHistory).forEach(k => {
                 if (curBatch - k > 2)
                     delete startResponseHistory[k]
             })
