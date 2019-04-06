@@ -707,7 +707,7 @@ class Loans {
       var objArray = [];
       if (array.length >= 1) {
         //rename the fields to what I want them to be. I could rename all unused fields to be "ignore" for less memory... but
-        array[0] = ["id", "X", "Name", "Link", "Country", "Kiva Status", "Kiva Risk Rating (5 best)", "secularRating", "religiousAffiliation", "commentsOnSecularRating", "socialRating", "commentsOnSocialRating", "MFI Link", "By", "Date", "reviewComments", "P", "J", "MFI Name", "Timestamp", "MFI Name Check"]
+        array[0] = ["id", "X", "Name", "Link", "Country", "Kiva Status", "Default Rate", "Loans at Risk", "Kiva Risk Rating (5 best)", "secularRating", "religiousAffiliation", "commentsOnSecularRating", "socialRating", "commentsOnSocialRating", "MFI Link", "By", "Date", "reviewComments", "P", "J", "MFI Name", "index", "MFI Name Check"]
       }
       for (var i = 1; i < array.length; i++) {
         objArray[i - 1] = {};

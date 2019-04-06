@@ -42,18 +42,21 @@ function compile(watch) {
         bundler = watchify(bundler)
 
     function rebundle() {
-        bundler.bundle()
-            .on('error', function(err) {
-                notifier.notify({title: 'Gulp', message: 'An error occurred during building. Check the console for details. ' + err})
-                console.error(err)
-                this.emit('end')
-            })
-            .pipe(source('build.js'))
-            .pipe(buffer())
-            .pipe(gulpif(production, uglify({output: {ascii_only:true}})))
-            .pipe(sourcemaps.init({ loadMaps: true }))
-            .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('../public/javascript'))
+      bundler.bundle()
+        .on('error', function (err) {
+          notifier.notify({
+            title: 'Gulp',
+            message: 'An error occurred during building. Check the console for details. ' + err
+          })
+          console.error(err)
+          this.emit('end')
+        })
+        .pipe(source('build.js'))
+        .pipe(buffer())
+        .pipe(gulpif(production, uglify({output: {ascii_only: true}})))
+        .pipe(sourcemaps.init({loadMaps: true}))
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('../public/javascript'))
     }
 
     if (watch) {
