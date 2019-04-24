@@ -5,11 +5,9 @@ import Reflux from 'reflux'
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 //import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {History} from 'react-router'
-import InfiniteList from './InfiniteList.jsx'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron,Alert} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, NewTabLink, LoanLink, KivaLink, LoanListItem} from '.'
-import {req} from '../api/kiva'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
@@ -198,12 +196,6 @@ var Loan = React.createClass({
             return
         }
 
-        if (!loan.kl_similar) {
-            req.kiva.api.similarTo(loan.id)
-                .done(similar => this.setState({similar: loan.kl_similar = similar.where(l=>l.id != loan.id)}))
-                .fail(x=>this.setState({similar: loan.kl_similar = []}))
-        }
-
         /**if (this.lastLookup != loan.id) {
             this.lastLookup = loan.id
             if (!loan.kl_repayments || !loan.description.texts.en)
@@ -387,18 +379,6 @@ var Loan = React.createClass({
                             </Col>
                         </Tab>
                     </If>
-
-                    <Tab eventKey={4} title="Similar" disabled={similar && similar.length == 0} className="ample-padding-top">
-                        <Col lg={6}>
-                            <InfiniteList
-                                className="loan_list_container"
-                                items={similar}
-                                height={300}
-                                itemHeight={100}
-                                itemsCount={similar ? similar.length : 0}
-                                listItemClass={LoanListItem} />
-                        </Col>
-                    </Tab>
                 </Tabs>
             </div>
         )

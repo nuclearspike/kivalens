@@ -294,16 +294,17 @@ const About = React.createClass({
         <li>
           <b>Profitability:</b> When I initially wrote KivaLens (prior to working at Kiva), I incorrectly
           assumed that a partner with a negative profitability naturally meant they were at greater risk for
-          institutional collapse and thus causing all outstanding loans to fail. While this is not only a
+          institutional collapse and thus cause all outstanding loans to fail. While this is not only a
           logical conclusion, it is also stated as a risk for negative profitability on Kiva's site.
-          However, this is not always true. There are a number of partners that receive money from
+          However, this is not always the case. There are a number of partners that receive money from
           outside sources where this money is not factored in when calculating their profitability.
           So, just because your borrower is getting a loan from a partner that has a large negative profit,
           they're not necessarily more likely to collapse; it's not that simple.
-          However, if they are not receiving money from outside sources and are operating a loss
+          However, if the partner is not receiving money from outside sources and are operating a loss
           for extended periods, they may be at higher risk of institutional default. Since there is no
           way to tell which MFIs are or are not receiving money from outside sources, the "safest"
-          bet is to choose partners with positive profitability.
+          bet is to choose partners with positive profitability. But hopefully this answers any questions
+          where you watch a partner operate at large losses for years but remain afloat.
         </li>
         <li>
           <b>Group Loans:</b> Due to the high variability with how group loans are organized by partner, you

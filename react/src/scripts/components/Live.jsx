@@ -15,20 +15,26 @@ import TimeAgo from 'react-timeago'
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
     getInitialState(){ return {oldVal: this.props.value, newVal: this.props.value} },
-    componentWillReceiveProps({value}){this.setState({oldVal: this.state.newVal, newVal: value})},
+    componentWillReceiveProps({value}) {
+      this.setState({oldVal: this.state.newVal, newVal: value})
+    },
     //add a way to override the default formatting if needed.
     render(){
         let {oldVal, newVal} = this.state
-        return <Motion defaultStyle={{x: oldVal}} style={{x: spring(newVal)}}>
-            {value => <span>{numeral(Math.round(value.x)).format('0,0')}</span>}
-        </Motion>
+        return (
+          <Motion defaultStyle={{x: oldVal}} style={{x: spring(newVal)}}>
+              {value => <span>{numeral(Math.round(value.x)).format('0,0')}</span>}
+          </Motion>
+        )
     }
 })
 
-const LabeledNumber = ({number, label}) => <div key={label} className="labeledNumber">
+const LabeledNumber = ({number, label}) => (
+  <div key={label} className="labeledNumber">
     <div className="number"><AnimInt value={number}/></div>
     <div className="name">{label}</div>
-</div>
+  </div>
+)
 
 const TopTen = React.createClass({
     shouldComponentUpdate({data}){
@@ -38,17 +44,19 @@ const TopTen = React.createClass({
     },
     render(){
         let {title, data = [], field = 'count'} = this.props
-        return <Col md={4}>
-            <Panel header={title}>
-                <If condition={data.length == 0}>
-                    <p>Waiting for more activity</p>
-                <Else/>
-                    <For each='ranked' index='i' of={data}>
-                        <LabeledNumber key={ranked.name} number={ranked[field]} label={ranked.name}/>
-                    </For>
-                </If>
-            </Panel>
-        </Col>
+        return (
+          <Col md={6}>
+              <Panel header={title}>
+                  <If condition={data.length == 0}>
+                      <p>Waiting for more activity</p>
+                  <Else/>
+                      <For each='ranked' index='i' of={data}>
+                          <LabeledNumber key={ranked.name} number={ranked[field]} label={ranked.name}/>
+                      </For>
+                  </If>
+              </Panel>
+          </Col>
+        )
     }
 })
 
@@ -179,7 +187,6 @@ const Live = React.createClass({
                                 <Row className="ample-padding-top">
                                     <TopTen title='Top Lending Countries' data={this.state.top_lending_countries} field='sum'/>
                                     <TopTen title='Top Sectors' data={this.state.top_sectors} />
-                                    <TopTen title='Top Countries' data={this.state.top_countries} />
                                 </Row>
                             </Grid>
                         </Col>
@@ -227,3 +234,5 @@ const Live = React.createClass({
 })
 
 export default Live
+
+// <TopTen title='Top Countries' data={this.state.top_countries} />
