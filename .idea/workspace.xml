@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="fix for changes to atheist spreadsheet.">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+    <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="removal of top countries on live&#10;removal of similar tab on loan page&#10;wording changes on About, AutoLendSettings">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/javascript/build.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/javascript/build.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/javascript/build.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/public/javascript/build.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/stylesheets/application.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/stylesheets/application.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/stylesheets/application.min.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/stylesheets/application.min.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/About.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cluster.js" beforeDir="false" afterPath="$PROJECT_DIR$/cluster.js" afterDir="false" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -144,14 +136,14 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.504884">
+    <splitter split-orientation="horizontal" split-proportion="0.5757021">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="538">
-                  <caret line="100" column="61" selection-start-line="100" selection-start-column="61" selection-end-line="100" selection-end-column="61" />
+                <state relative-caret-position="283">
+                  <caret line="83" column="72" selection-start-line="83" selection-start-column="72" selection-end-line="83" selection-end-column="72" />
                 </state>
               </provider>
             </entry>
@@ -174,11 +166,11 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cluster.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2490">
-                  <caret line="166" column="58" selection-start-line="166" selection-start-column="58" selection-end-line="166" selection-end-column="58" />
+                <state relative-caret-position="269">
+                  <caret line="626" column="121" selection-start-line="626" selection-start-column="109" selection-end-line="626" selection-end-column="121" />
                 </state>
               </provider>
             </entry>
@@ -265,7 +257,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="324">
+                <state relative-caret-position="525">
                   <caret line="35" column="8" selection-start-line="35" selection-start-column="8" selection-end-line="35" selection-end-column="8" />
                 </state>
               </provider>
@@ -310,20 +302,17 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="885">
-                  <caret line="59" column="5" selection-start-line="59" selection-start-column="5" selection-end-line="59" selection-end-column="5" />
+                <state relative-caret-position="301">
+                  <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/README.md">
-              <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-                <state split_layout="SPLIT">
-                  <first_editor relative-caret-position="405">
-                    <caret line="27" selection-start-line="27" selection-end-line="27" />
-                  </first_editor>
-                  <second_editor />
+            <entry file="file://$PROJECT_DIR$/schema.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="120">
+                  <caret line="8" column="32" lean-forward="true" selection-start-line="8" selection-start-column="32" selection-end-line="8" selection-end-column="32" />
                 </state>
               </provider>
             </entry>
@@ -331,7 +320,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/req.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="691">
+                <state relative-caret-position="990">
                   <caret line="66" column="11" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="11" />
                 </state>
               </provider>
@@ -353,12 +342,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>auto-lend</find>
-      <find>KLNav</find>
-      <find>as stats</find>
-      <find>98%</find>
-      <find>Bolivia</find>
-      <find>if that's</find>
       <find>xhr2</find>
       <find>kl_api_start</find>
       <find>short term</find>
@@ -383,6 +366,12 @@
       <find>from the currently</find>
       <find>Top countries</find>
       <find>top count</find>
+      <find>mongo</find>
+      <find>redis</find>
+      <find>graphql</find>
+      <find>websocket</find>
+      <find>socket</find>
+      <find>'transports'</find>
     </findStrings>
     <replaceStrings>
       <replace>avatar</replace>
@@ -445,7 +434,6 @@
         <option value="$PROJECT_DIR$/react/src/scripts/stores/criteriaStore.js" />
         <option value="$PROJECT_DIR$/../kivalens/src/App.js" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/cluster.js" />
         <option value="$PROJECT_DIR$/react/gulpfile.js" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/CriteriaTabs.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/api/kiva.js" />
@@ -453,6 +441,7 @@
         <option value="$PROJECT_DIR$/react/src/scripts/components/Loan.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx" />
         <option value="$PROJECT_DIR$/react/src/scripts/components/Live.jsx" />
+        <option value="$PROJECT_DIR$/cluster.js" />
       </list>
     </option>
   </component>
@@ -550,7 +539,11 @@
     <property name="js.eslint.eslintPackage" value="" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="list.type.of.created.stylesheet" value="CSS" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path" value="node" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.settings.patched" value="true" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
@@ -681,14 +674,9 @@
       <workItem from="1548117096886" duration="926000" />
       <workItem from="1554585082742" duration="1263000" />
       <workItem from="1555823312700" duration="454000" />
-      <workItem from="1556090666240" duration="1285000" />
-    </task>
-    <task id="LOCAL-00338" summary="fixed lend/1234 links">
-      <created>1465547572625</created>
-      <option name="number" value="00338" />
-      <option name="presentableId" value="LOCAL-00338" />
-      <option name="project" value="LOCAL" />
-      <updated>1465547572625</updated>
+      <workItem from="1556090666240" duration="3012000" />
+      <workItem from="1556314460463" duration="3000" />
+      <workItem from="1564612742596" duration="790000" />
     </task>
     <task id="LOCAL-00339" summary="version bump">
       <created>1465549300102</created>
@@ -1026,11 +1014,18 @@
       <option name="project" value="LOCAL" />
       <updated>1554585854226</updated>
     </task>
-    <option name="localTasksCounter" value="387" />
+    <task id="LOCAL-00387" summary="removal of top countries on live&#10;removal of similar tab on loan page&#10;wording changes on About, AutoLendSettings">
+      <created>1556092265470</created>
+      <option name="number" value="00387" />
+      <option name="presentableId" value="LOCAL-00387" />
+      <option name="project" value="LOCAL" />
+      <updated>1556092265470</updated>
+    </task>
+    <option name="localTasksCounter" value="388" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="270191000" />
+    <option name="totallyTimeSpent" value="272842000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1680" height="1027" extended-state="0" />
@@ -1041,7 +1036,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.20893562" />
-      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.20175439" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -1073,7 +1068,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="typos fixed, compiled" />
     <MESSAGE value="updated a bunch of packages and added redis retry strategy due to airbrake notice." />
     <MESSAGE value="added error handling around redis calls. upgraded several packages." />
     <MESSAGE value="added atheist score to the graphQL endpoint." />
@@ -1098,7 +1092,8 @@
     <MESSAGE value="just the readme" />
     <MESSAGE value="bad" />
     <MESSAGE value="fix for changes to atheist spreadsheet." />
-    <option name="LAST_COMMIT_MESSAGE" value="fix for changes to atheist spreadsheet." />
+    <MESSAGE value="removal of top countries on live&#10;removal of similar tab on loan page&#10;wording changes on About, AutoLendSettings" />
+    <option name="LAST_COMMIT_MESSAGE" value="removal of top countries on live&#10;removal of similar tab on loan page&#10;wording changes on About, AutoLendSettings" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1233,13 +1228,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/schema.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1740">
-          <caret line="116" column="34" selection-start-line="116" selection-start-column="34" selection-end-line="116" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
@@ -1306,13 +1294,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cluster.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2490">
-          <caret line="166" column="58" selection-start-line="166" selection-start-column="58" selection-end-line="166" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/views/pages/index.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1740">
@@ -1355,6 +1336,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="525">
+          <caret line="35" column="8" selection-start-line="35" selection-start-column="8" selection-end-line="35" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4155">
+          <caret line="277" column="32" selection-start-line="277" selection-start-column="32" selection-end-line="277" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../kivalens/src/App.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="195">
@@ -1376,38 +1371,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="885">
-          <caret line="59" column="5" selection-start-line="59" selection-start-column="5" selection-end-line="59" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Loan.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4155">
-          <caret line="277" column="32" selection-start-line="277" selection-start-column="32" selection-end-line="277" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/api/kivajs/req.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="691">
+        <state relative-caret-position="990">
           <caret line="66" column="11" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/gulpfile.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="301">
+          <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/AutoLendSettings.jsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="538">
-          <caret line="100" column="61" selection-start-line="100" selection-start-column="61" selection-end-line="100" selection-end-column="61" />
+        <state relative-caret-position="283">
+          <caret line="83" column="72" selection-start-line="83" selection-start-column="72" selection-end-line="83" selection-end-column="72" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/scripts/components/Live.jsx">
+    <entry file="file://$PROJECT_DIR$/cluster.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="35" column="8" selection-start-line="35" selection-start-column="8" selection-end-line="35" selection-end-column="8" />
+        <state relative-caret-position="123">
+          <caret line="621" column="37" lean-forward="true" selection-start-line="621" selection-start-column="37" selection-end-line="621" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/schema.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="16" lean-forward="true" selection-start-line="15" selection-start-column="16" selection-end-line="15" selection-end-column="16" />
         </state>
       </provider>
     </entry>

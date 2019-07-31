@@ -622,9 +622,10 @@ if (cluster.isMaster){ //preps the downloads
     //live data stream over socket.io
     var channels = []
     const connectChannel = function(channelName, onEvent) {
+        return
         console.log("connecting to socket.io channel " + channelName)
         try {
-            var channel = require('socket.io-client').connect(`http://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
+            var channel = require('socket.io-client').connect(`https://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
             channel.on('error', function (data) {
                 console.log(`socket.io channel error: ${channelName}: ${data}`)
             })
@@ -634,20 +635,28 @@ if (cluster.isMaster){ //preps the downloads
             console.error('socket.io error: ', e)
         }
     }
-    if (process.env.NODE_ENV == 'production') {
+    if (process.env.NODE_ENV === 'production') {
         connectChannel('loan.posted', function (data) {
-            data = JSON.parse(data)
-            console.log("loan.posted " + data.p.loan.id)
-            if (kivaloans)
-                kivaloans.queueNewLoanNotice(data.p.loan.id)
+            try {
+                data = JSON.parse(data)
+                console.log("loan.posted " + data.p.loan.id)
+                if (kivaloans)
+                    kivaloans.queueNewLoanNotice(data.p.loan.id)
+            } catch (e) {
+                console.error('socket.io error: ', e)
+            }
         })
 
         connectChannel('loan.purchased', function (data) {
-            data = JSON.parse(data)
-            var ids = data.p.loans.select(l=>l.id)
-            console.log("loan.purchased " + ids.join(', '))
-            if (kivaloans)
-                kivaloans.queueToRefresh(ids)
+            try {
+                data = JSON.parse(data)
+                var ids = data.p.loans.select(l=>l.id)
+                console.log("loan.purchased " + ids.join(', '))
+                if (kivaloans)
+                    kivaloans.queueToRefresh(ids)
+            } catch (e) {
+                console.error('socket.io error: ', e)
+            }
         })
     } else {
         console.log("not connecting to live stream socket.io channels.")
