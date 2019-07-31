@@ -622,7 +622,7 @@ if (cluster.isMaster){ //preps the downloads
     //live data stream over socket.io
     var channels = []
     const connectChannel = function(channelName, onEvent) {
-        return
+        // return
         console.log("connecting to socket.io channel " + channelName)
         try {
             var channel = require('socket.io-client').connect(`https://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
