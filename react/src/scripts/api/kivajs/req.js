@@ -30,7 +30,7 @@ if (!isServer()) {
 }
 
 req.kiva = {
-    api: new SemRequest('http://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},2),
+    api: new SemRequest('https://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},2),
     page: new SemRequest(`${kivaBase}`,false,!isServer(),{},5*60),
     ajax: new SemRequest(`${kivaBase}ajax/`,true,!isServer(),{},5*60)
 }
