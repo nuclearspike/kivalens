@@ -620,47 +620,47 @@ if (cluster.isMaster){ //preps the downloads
     setInterval(prepForRequests, 60000)
 
     //live data stream over socket.io
-    var channels = []
-    const connectChannel = function(channelName, onEvent) {
-        // return
-        console.log("connecting to socket.io channel " + channelName)
-        try {
-            var channel = require('socket.io-client').connect(`https://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
-            channel.on('error', function (data) {
-                console.log(`socket.io channel error: ${channelName}: ${data}`)
-            })
-            channel.on('message', onEvent)
-            channels.push(channel)
-        } catch (e) {
-            console.error('socket.io error: ', e)
-        }
-    }
-    if (process.env.NODE_ENV === 'production') {
-        connectChannel('loan.posted', function (data) {
-            try {
-                data = JSON.parse(data)
-                console.log("loan.posted " + data.p.loan.id)
-                if (kivaloans)
-                    kivaloans.queueNewLoanNotice(data.p.loan.id)
-            } catch (e) {
-                console.error('socket.io error: ', e)
-            }
-        })
-
-        connectChannel('loan.purchased', function (data) {
-            try {
-                data = JSON.parse(data)
-                var ids = data.p.loans.select(l=>l.id)
-                console.log("loan.purchased " + ids.join(', '))
-                if (kivaloans)
-                    kivaloans.queueToRefresh(ids)
-            } catch (e) {
-                console.error('socket.io error: ', e)
-            }
-        })
-    } else {
-        console.log("not connecting to live stream socket.io channels.")
-    }
+    // var channels = []
+    // const connectChannel = function(channelName, onEvent) {
+    //     // return
+    //     console.log("connecting to socket.io channel " + channelName)
+    //     try {
+    //         var channel = require('socket.io-client').connect(`https://streams.kiva.org:80/${channelName}`, {'transports': ['websocket']});
+    //         channel.on('error', function (data) {
+    //             console.log(`socket.io channel error: ${channelName}: ${data}`)
+    //         })
+    //         channel.on('message', onEvent)
+    //         channels.push(channel)
+    //     } catch (e) {
+    //         console.error('socket.io error: ', e)
+    //     }
+    // }
+    // if (process.env.NODE_ENV === 'production') {
+    //     connectChannel('loan.posted', function (data) {
+    //         try {
+    //             data = JSON.parse(data)
+    //             console.log("loan.posted " + data.p.loan.id)
+    //             if (kivaloans)
+    //                 kivaloans.queueNewLoanNotice(data.p.loan.id)
+    //         } catch (e) {
+    //             console.error('socket.io error: ', e)
+    //         }
+    //     })
+    //
+    //     connectChannel('loan.purchased', function (data) {
+    //         try {
+    //             data = JSON.parse(data)
+    //             var ids = data.p.loans.select(l=>l.id)
+    //             console.log("loan.purchased " + ids.join(', '))
+    //             if (kivaloans)
+    //                 kivaloans.queueToRefresh(ids)
+    //         } catch (e) {
+    //             console.error('socket.io error: ', e)
+    //         }
+    //     })
+    // } else {
+    //     console.log("not connecting to live stream socket.io channels.")
+    // }
 }
 else  //workers handle all communication with the clients.
 {
@@ -683,7 +683,7 @@ else  //workers handle all communication with the clients.
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
 
         // intercept OPTIONS method
-        if ('OPTIONS' == req.method) {
+        if ('OPTIONS' === req.method) {
             res.send(200);
         } else {
             next();

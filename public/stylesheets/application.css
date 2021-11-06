@@ -46,7 +46,8 @@
 
 .loan_list_item.selected {
   z-index: 12;
-  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+          transform: rotateY(0deg);
   background-color: aliceblue; }
 
 .loan_list_item.gone {
@@ -223,7 +224,8 @@ ul.spacedList li {
   background-color: #cfcfcf !important; }
 
 .blur-me {
-  filter: blur(20px); }
+  -webkit-filter: blur(20px);
+          filter: blur(20px); }
 
 div.notification-bar {
   font-size: 2rem !important; }
@@ -249,8 +251,6 @@ div.notification-bar {
 .Select div,
 .Select input,
 .Select span {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box; }
 
 .Select.is-disabled > .Select-control {
@@ -372,7 +372,6 @@ div.notification-bar {
 
 .Select-loading {
   -webkit-animation: Select-animation-spin 400ms infinite linear;
-  -o-animation: Select-animation-spin 400ms infinite linear;
   animation: Select-animation-spin 400ms infinite linear;
   width: 16px;
   height: 16px;
@@ -386,7 +385,6 @@ div.notification-bar {
 
 .Select-clear-zone {
   -webkit-animation: Select-animation-fadeIn 200ms;
-  -o-animation: Select-animation-fadeIn 200ms;
   animation: Select-animation-fadeIn 200ms;
   color: #999;
   cursor: pointer;
@@ -557,7 +555,8 @@ div.notification-bar {
 
 @keyframes Select-animation-spin {
   to {
-    transform: rotate(1turn); } }
+    -webkit-transform: rotate(1turn);
+            transform: rotate(1turn); } }
 
 @-webkit-keyframes Select-animation-spin {
   to {
