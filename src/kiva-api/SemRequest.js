@@ -9,12 +9,11 @@ import {getUrl, sem_one, serialize} from './kivaBase'
 class SemRequest {
   constructor(
     serverAndBasePath,
-    asJSON,
+    asJSON = true,
     requestedWith,
     defaultParams,
     ttlSecs,
   ) {
-    if (asJSON === undefined) asJSON = true
     this.serverAndBasePath = serverAndBasePath
     this.defaultParams = defaultParams
     this.asJSON = asJSON
@@ -28,11 +27,11 @@ class SemRequest {
     sem_one.take(
       function () {
         return this.raw(path, params, getUrlOpts)
-          .fail(e => cl(e))
+          .fail(e => global.cl(e))
           .always(x => sem_one.leave())
-          .done(def.resolve)
-          .fail(def.reject)
           .progress(def.notify)
+          .fail(def.reject)
+          .done(def.resolve)
       }.bind(this),
     )
     return def
@@ -40,7 +39,7 @@ class SemRequest {
 
   raw(path, params, getUrlOpts) {
     params = serialize(extend({}, this.defaultParams, params))
-    params = params ? `?${params}` : ''
+    params = params ? `?${params}` : '' // this wouldn't work>>..??
     return getUrl(
       `${this.serverAndBasePath}${path}${params}`,
       extend(
@@ -50,9 +49,7 @@ class SemRequest {
     ).fail(e => cl(e))
   }
 
-  get(path, params, getOpts, getUrlOpts) {
-    if (!path) path = ''
-    if (!params) params = {}
+  get(path = '', params = {}, getOpts, getUrlOpts) {
     getOpts = extend({semaphored: true, useCache: true}, getOpts)
     getUrlOpts = extend({}, getUrlOpts)
 
