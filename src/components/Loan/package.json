@@ -1,0 +1,6 @@
+{
+  "name": "Loan",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./Loan.js"
+}

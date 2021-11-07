@@ -7,11 +7,11 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-
-import StyleContext from 'isomorphic-style-loader/StyleContext';
-import ApplicationContext from './ApplicationContext';
+import React from 'react'
+import PropTypes from 'prop-types'
+import StyleContext from 'isomorphic-style-loader/StyleContext'
+import {Provider, Provider as ReduxProvider} from 'react-redux'
+import ApplicationContext from './ApplicationContext'
 
 /**
  * The top-level React component setting context (global) variables
@@ -40,11 +40,13 @@ export default function App({ context, insertCss, children }) {
   // NOTE: If you need to add or modify header, footer etc. of the app,
   // please do that inside the Layout component.
   return (
-    <StyleContext.Provider value={{ insertCss }}>
-      <ApplicationContext.Provider value={{ context }}>
-        {React.Children.only(children)}
-      </ApplicationContext.Provider>
-    </StyleContext.Provider>
+    <Provider store={context.store}>
+      <StyleContext.Provider value={{insertCss}}>
+        <ApplicationContext.Provider value={{context}}>
+          {React.Children.only(children)}
+        </ApplicationContext.Provider>
+      </StyleContext.Provider>
+    </Provider>
   );
 }
 
@@ -57,6 +59,9 @@ App.propTypes = {
     fetch: PropTypes.func.isRequired,
     pathname: PropTypes.string.isRequired,
     query: PropTypes.object,
+    // Integrate Redux
+    // http://redux.js.org/docs/basics/UsageWithReact.html
+    ...ReduxProvider.childContextTypes,
   }).isRequired,
   children: PropTypes.element.isRequired,
 };

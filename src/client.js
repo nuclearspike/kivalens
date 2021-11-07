@@ -7,27 +7,34 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import 'whatwg-fetch';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import deepForceUpdate from 'react-deep-force-update';
-import queryString from 'query-string';
-import { createPath } from 'history';
-import App from './components/App';
-import createFetch from './createFetch';
-import history from './history';
-import { updateMeta } from './DOMUtils';
-import router from './router';
+import 'whatwg-fetch'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import deepForceUpdate from 'react-deep-force-update'
+import queryString from 'query-string'
+import {createPath} from 'history'
+import App from './components/App'
+import createFetch from './createFetch'
+import configureStore from './store/configureStore'
+import history from './history'
+import {updateMeta} from './DOMUtils'
+import router from './router'
+
+import {initializeIcons} from '@uifabric/icons'
+import {loansAllFetch} from './actions/all_loans'
+import {partnersAllFetch} from './actions/partner_details'
+
+initializeIcons()
 
 // Enables critical path CSS rendering
 // https://github.com/kriasoft/isomorphic-style-loader
 const insertCss = (...styles) => {
   // eslint-disable-next-line no-underscore-dangle
-  const removeCss = styles.map(x => x._insertCss());
+  const removeCss = styles.map(x => x._insertCss())
   return () => {
-    removeCss.forEach(f => f());
-  };
-};
+    removeCss.forEach(f => f())
+  }
+}
 
 // Global (context) variables that can be easily accessed from any React component
 // https://facebook.github.io/react/docs/context.html
@@ -36,13 +43,19 @@ const context = {
   fetch: createFetch(fetch, {
     baseUrl: window.App.apiUrl,
   }),
-};
+  // Initialize a new Redux store
+  // http://redux.js.org/docs/basics/UsageWithReact.html
+  store: configureStore(window.App.state, {history}),
+  storeSubscription: null,
+}
 
-const container = document.getElementById('app');
-let currentLocation = history.location;
-let appInstance;
+context.store.dispatch(loansAllFetch()).then(context.store.dispatch(partnersAllFetch()))
 
-const scrollPositionsHistory = {};
+const container = document.getElementById('app')
+let currentLocation = history.location
+let appInstance
+
+const scrollPositionsHistory = {}
 
 // Re-render the app when window.location changes
 async function onLocationChange(location, action) {
@@ -50,7 +63,7 @@ async function onLocationChange(location, action) {
   scrollPositionsHistory[currentLocation.key] = {
     scrollX: window.pageXOffset,
     scrollY: window.pageYOffset,
-  };
+  }
   // Delete stored scroll position for next page if any
   if (action === 'PUSH') {
     delete scrollPositionsHistory[location.key];

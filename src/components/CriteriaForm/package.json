@@ -1,0 +1,6 @@
+{
+  "name": "CriteriaForm",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./CriteriaForm.js"
+}

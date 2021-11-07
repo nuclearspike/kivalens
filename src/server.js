@@ -1,57 +1,59 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
-import path from 'path';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
-import { graphql } from 'graphql';
-import expressGraphQL from 'express-graphql';
-import jwt from 'jsonwebtoken';
-import nodeFetch from 'node-fetch';
-import React from 'react';
-import ReactDOM from 'react-dom/server';
-import PrettyError from 'pretty-error';
-import App from './components/App';
-import Html from './components/Html';
-import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
-import errorPageStyle from './routes/error/ErrorPage.css';
-import createFetch from './createFetch';
-import passport from './passport';
-import router from './router';
-import models from './data/models';
-import schema from './data/schema';
+import path from 'path'
+import express from 'express'
+// import spdy from 'spdy';
+import cookieParser from 'cookie-parser'
+import bodyParser from 'body-parser'
+import expressJwt, {UnauthorizedError as Jwt401Error} from 'express-jwt'
+import {graphql} from 'graphql'
+import expressGraphQL from 'express-graphql'
+import jwt from 'jsonwebtoken'
+import nodeFetch from 'node-fetch'
+import React from 'react'
+import ReactDOM from 'react-dom/server'
+import PrettyError from 'pretty-error'
+import App from './components/App'
+import Html from './components/Html'
+import {ErrorPageWithoutStyle} from './routes/error/ErrorPage'
+import errorPageStyle from './routes/error/ErrorPage.css'
+import createFetch from './createFetch'
+import passport from './passport'
+import router from './router'
+import models from './data/models'
+import schema from './data/schema'
 // import assets from './asset-manifest.json'; // eslint-disable-line import/no-unresolved
-import chunks from './chunk-manifest.json'; // eslint-disable-line import/no-unresolved
-import config from './config';
+import chunks from './chunk-manifest.json' // eslint-disable-line import/no-unresolved
+import configureStore from './store/configureStore'
+import {setRuntimeVariable} from './actions/runtime'
+import config from './config'
+// import fs from 'fs'
 
 process.on('unhandledRejection', (reason, p) => {
-  console.error('Unhandled Rejection at:', p, 'reason:', reason);
+  console.error('Unhandled Rejection at:', p, 'reason:', reason)
   // send entire app down. Process manager will restart it
-  process.exit(1);
-});
+  process.exit(1)
+})
+
+// console.log('******** dir', __dirname )
+
+// const options = {
+//   key: fs.readFileSync('./public/server.key'),
+//   cert: fs.readFileSync('./public/server.crt'),
+// }
 
 //
 // Tell any CSS tooling (such as Material UI) to use all vendor prefixes if the
 // user agent is not known.
 // -----------------------------------------------------------------------------
-global.navigator = global.navigator || {};
-global.navigator.userAgent = global.navigator.userAgent || 'all';
+global.navigator = global.navigator || {}
+global.navigator.userAgent = global.navigator.userAgent || 'all'
 
-const app = express();
+const app = express()
 
 //
 // If you are using proxy from external machine, you can set TRUST_PROXY env
 // Default is to trust proxy headers only from loopback interface.
 // -----------------------------------------------------------------------------
-app.set('trust proxy', config.trustProxy);
+app.set('trust proxy', config.trustProxy)
 
 //
 // Register Node.js middleware
@@ -91,6 +93,7 @@ app.get(
     session: false,
   }),
 );
+
 app.get(
   '/login/facebook/return',
   passport.authenticate('facebook', {
@@ -129,7 +132,7 @@ app.get('*', async (req, res, next) => {
     // https://github.com/kriasoft/isomorphic-style-loader
     const insertCss = (...styles) => {
       // eslint-disable-next-line no-underscore-dangle
-      styles.forEach(style => css.add(style._getCss()));
+      styles.forEach(style => css.add(style._getCss()))
     };
 
     // Universal HTTP client
@@ -138,7 +141,23 @@ app.get('*', async (req, res, next) => {
       cookie: req.headers.cookie,
       schema,
       graphql,
-    });
+    })
+
+    const initialState = {
+      user: req.user || null,
+    }
+
+    const store = configureStore(initialState, {
+      fetch,
+      // I should not use `history` on server.. but how I do redirection? follow universal-router
+    })
+
+    store.dispatch(
+      setRuntimeVariable({
+        name: 'initialNow',
+        value: Date.now(),
+      }),
+    )
 
     // Global (context) variables that can be easily accessed from any React component
     // https://facebook.github.io/react/docs/context.html
@@ -147,7 +166,10 @@ app.get('*', async (req, res, next) => {
       // The twins below are wild, be careful!
       pathname: req.path,
       query: req.query,
-    };
+      // You can access redux through react-redux connect
+      store,
+      storeSubscription: null,
+    }
 
     const route = await router.resolve(context);
 
@@ -179,6 +201,7 @@ app.get('*', async (req, res, next) => {
     data.scripts = Array.from(scripts);
     data.app = {
       apiUrl: config.api.clientUrl,
+      state: context.store.getState(),
     };
 
     const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
@@ -216,11 +239,21 @@ app.use((err, req, res, next) => {
 // Launch the server
 // -----------------------------------------------------------------------------
 const promise = models.sync().catch(err => console.error(err.stack));
+
 if (!module.hot) {
   promise.then(() => {
+    // spdy
+    //   .createServer(options, app)
+    //   .listen(config.port, (err) => {
+    //     if (err) {
+    //       throw new Error(err);
+    //     }
+    //   })
+    //   console.info(`The server is running at http://localhost:${config.port}/`);
+
     app.listen(config.port, () => {
-      console.info(`The server is running at http://localhost:${config.port}/`);
-    });
+      console.info(`The server is running at http://localhost:${config.port}/`)
+    })
   });
 }
 

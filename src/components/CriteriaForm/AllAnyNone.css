@@ -1,0 +1,12 @@
+:global(div.dropright) {
+  padding: 0 !important;
+  width: 100%;
+}
+
+:global(div.dropright) button {
+  text-transform: uppercase;
+}
+
+.root form.rjsf fieldset {
+  padding: 0 !important;
+}

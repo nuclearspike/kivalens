@@ -1,0 +1,29 @@
+.ListItem {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 20px;
+  border-bottom-color: #333333;
+  border-bottom-style: dashed;
+  border-bottom-width: thin;
+}
+
+.selected {
+  background-color: #7de5ff !important;
+  border-right: darkblue double thick;
+}
+
+.basket {
+  background-color: #a9e8a9 !important;
+}
+
+.link:hover .ListItem {
+  background-color: #c1f8f4;
+}
+
+.selected.basket {
+  background-color: #70e070 !important;
+}
+
+.dead {
+  background-color: #3e3f3a;
+}
