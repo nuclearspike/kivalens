@@ -15,20 +15,20 @@ class CritTester {
   }
 
   addRangeTesters(critName, selector, overrideIf, overrideFunc) {
-    const min = this.crit_group[`${critName}_min`]
+    const min = this.critGroup[`${critName}_min`]
     if (min !== undefined) {
       const lowTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.crit_group, entity) : true
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return min <= selector(entity)
       }
       this.testers.push(lowTest)
     }
-    const max = this.crit_group[`${critName}_max`]
+    const max = this.critGroup[`${critName}_max`]
     if (max !== undefined) {
       const highTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.crit_group, entity) : true
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return selector(entity) <= max
       }
       this.testers.push(highTest)
@@ -43,11 +43,11 @@ class CritTester {
     entityFieldIsArray,
   ) {
     if (!values) {
-      values = this.crit_group[crit_name]
+      values = this.critGroup[crit_name]
     }
     if (values && values.length > 0) {
       const all_any_none =
-        this.crit_group[`${crit_name}_all_any_none`] || def_value
+        this.critGroup[`${crit_name}_all_any_none`] || def_value
       // if (all_any_none == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
       switch (all_any_none) {
         case 'any':

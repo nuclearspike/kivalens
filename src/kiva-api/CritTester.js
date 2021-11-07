@@ -8,46 +8,46 @@ import 'linqjs'
 // in the order they were added (until one fails). So it barely takes any time to set up the testers then it can quickly
 // run. It sets up highly targeted anon funcs to test exactly what the criteria specifies. used in filter() and filterPartners()
 class CritTester {
-  constructor(crit_group) {
-    this.crit_group = crit_group
+  constructor(critGroup) {
+    this.critGroup = critGroup
     this.testers = []
     this.fail_all = false
   }
 
-  addRangeTesters(crit_name, selector, overrideIf, overrideFunc) {
-    const min = this.crit_group[`${crit_name}_min`]
+  addRangeTesters(critName, selector, overrideIf, overrideFunc) {
+    const min = this.critGroup[`${critName}_min`]
     if (min !== undefined) {
-      const low_test = entity => {
+      const lowTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.crit_group, entity) : true
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return min <= selector(entity)
       }
-      this.testers.push(low_test)
+      this.testers.push(lowTest)
     }
-    const max = this.crit_group[`${crit_name}_max`]
+    const max = this.critGroup[`${critName}_max`]
     if (max !== undefined) {
-      const high_test = entity => {
+      const highTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.crit_group, entity) : true
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return selector(entity) <= max
       }
-      this.testers.push(high_test)
+      this.testers.push(highTest)
     }
   }
 
   addAnyAllNoneTester(
-    crit_name,
+    critName,
     values,
-    def_value,
+    defValue,
     selector,
     entityFieldIsArray,
   ) {
-    if (!values) values = this.crit_group[crit_name]
+    if (!values) values = this.critGroup[critName]
     if (values && values.length > 0) {
-      const all_any_none =
-        this.crit_group[`${crit_name}_all_any_none`] || def_value
-      // if (all_any_none == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
-      switch (all_any_none) {
+      const allAnyNone =
+        this.critGroup[`${critName}_all_any_none`] || defValue
+      // if (allAnyNone == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
+      switch (allAnyNone) {
         case 'any':
           if (entityFieldIsArray) this.addArrayAnyTester(values, selector)
           else this.addFieldContainsOneOfArrayTester(values, selector)
@@ -76,55 +76,55 @@ class CritTester {
 
   addArrayAnyTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const termsArr = Array.isArray(crit) ? crit : crit.split(',')
       this.testers.push(
         entity =>
           selector(entity) &&
-          terms_arr.any(term => selector(entity).contains(term)),
+          termsArr.any(term => selector(entity).contains(term)),
       )
     }
   }
 
   addArrayNoneTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const termsArr = Array.isArray(crit) ? crit : crit.split(',')
       this.testers.push(
         entity =>
           selector(entity) &&
-          !terms_arr.any(term => selector(entity).contains(term)),
+          !termsArr.any(term => selector(entity).contains(term)),
       )
     }
   }
 
   addBalancer(crit, selector) {
     if (crit && crit.enabled) {
-      if (crit.hideshow == 'show') {
-        if (Array.isArray(crit.values) && crit.values.length == 0)
+      if (crit.hideshow === 'show') {
+        if (Array.isArray(crit.values) && crit.values.length === 0)
           this.fail_all = true
         else this.addFieldContainsOneOfArrayTester(crit.values, selector)
       } else this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
     }
   }
 
-  addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty) {
+  addFieldContainsOneOfArrayTester(crit, selector, failIfEmpty) {
     if (crit) {
       if (crit.length > 0) {
-        const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+        const termsArr = Array.isArray(crit) ? crit : crit.split(',')
         this.testers.push(entity =>
           selector(entity) !== null
-            ? terms_arr.contains(selector(entity))
+            ? termsArr.contains(selector(entity))
             : false,
         )
-      } else if (fail_if_empty) this.fail_all = true
+      } else if (failIfEmpty) this.fail_all = true
     }
   }
 
   addFieldNotContainsOneOfArrayTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const termsArr = Array.isArray(crit) ? crit : crit.split(',')
       this.testers.push(entity =>
         selector(entity) !== null
-          ? !terms_arr.contains(selector(entity))
+          ? !termsArr.contains(selector(entity))
           : false,
       )
     }
@@ -132,11 +132,11 @@ class CritTester {
 
   addArrayAllStartWithTester(crit, selector) {
     if (crit && crit.trim().length > 0) {
-      let terms_arr = Array.isArray(crit) ? crit : crit.match(/(\w+)/g)
-      terms_arr = terms_arr.select(term => term.toUpperCase())
+      let termsArr = Array.isArray(crit) ? crit : crit.match(/(\w+)/g)
+      termsArr = termsArr.select(term => term.toUpperCase())
       this.testers.push(entity =>
-        terms_arr.all(search_term =>
-          selector(entity).any(w => w.startsWith(search_term)),
+        termsArr.all(searchTerm =>
+          selector(entity).any(w => w.startsWith(searchTerm)),
         ),
       )
     }
@@ -144,7 +144,7 @@ class CritTester {
 
   addSimpleEquals(crit, selector) {
     if (crit && crit.trim().length > 0) {
-      this.testers.push(entity => selector(entity) == crit)
+      this.testers.push(entity => selector(entity) === crit)
     }
   }
 
