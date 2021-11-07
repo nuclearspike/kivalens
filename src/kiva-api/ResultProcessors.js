@@ -3,7 +3,7 @@ import {isServer} from './kivaBase'
 import 'linqjs'
 import 'datejs'
 
-const common_use = [
+const commonUse = [
   'PURCHASE',
   'FOR',
   'AND',
@@ -17,7 +17,7 @@ const common_use = [
   'THE',
   'PAY',
 ]
-const common_descr = common_use.concat([
+const commonDescr = commonUse.concat([
   'THIS',
   'ARE',
   'SHE',
@@ -42,7 +42,7 @@ const getAge = text => {
   let ageMatch = ageRegEx1.exec(text)
   ageMatch = ageMatch || ageRegEx2.exec(text)
   return Array.isArray(ageMatch) && ageMatch.length == 2
-    ? parseInt(ageMatch[1])
+    ? parseInt(ageMatch[1], 10)
     : null
 }
 
@@ -76,7 +76,7 @@ class ResultProcessors {
   }
 
   static processLoanDescription(loan) {
-    const processText = function (text, ignore_words) {
+    const processText = (text, ignoreWords) => {
       if (text && text.length > 0) {
         // remove common words.
         const matches = text.match(/(\w+)/g) // splits on word boundaries
@@ -85,7 +85,7 @@ class ResultProcessors {
           .distinct() // ignores repeats
           .filter(word => typeof word === 'string' && word.length > 2) // ignores words 2 characters or less
           .select(word => word.toUpperCase()) // UPPERCASE
-          .filter(word => !ignore_words.contains(word)) // ignores common words
+          .filter(word => !ignoreWords.contains(word)) // ignores common words
       }
       return [] // no indexable words.
     }
@@ -98,25 +98,25 @@ class ResultProcessors {
       // I do not like this function at all. used in too many situations and too much is being inferred.
 
     const processDescr = true
-    let descr_arr = []
+    let descrArr = []
     if (isServer()) {
       if (loan.description.texts.en) {
-        descr_arr = processText(loan.description.texts.en, common_descr)
+        descrArr = processText(loan.description.texts.en, commonDescr)
       }
-      loan.kls_has_descr = loan.description.texts.en != undefined
+      loan.kls_has_descr = loan.description.texts.en !== undefined
     } else if (!loan.description.texts.en)
       loan.description.texts.en = loan.kls_has_descr
         ? ''
         : 'No English description available.'
     else {
       // client gets a full detail
-      descr_arr = processText(loan.description.texts.en, common_descr)
+      descrArr = processText(loan.description.texts.en, commonDescr)
     }
 
     // no matter what, this function
     if (processDescr) {
-      const use_arr = processText(loan.use, common_use)
-      loan.kls_use_or_descr_arr = use_arr.concat(descr_arr).distinct()
+      const useArr = processText(loan.use, commonUse)
+      loan.kls_use_or_descr_arr = useArr.concat(descrArr).distinct()
     } else {
       if (!loan.kls_use_or_descr_arr)
         // make sure it is an array.
@@ -139,16 +139,12 @@ class ResultProcessors {
     loan.kl_name_arr = loan.name.toUpperCase().match(/(\w+)/g)
     loan.kl_posted_date = new Date(loan.posted_date)
     loan.kl_newest_sort = loan.kl_posted_date.getTime()
-    loan.kl_posted_hours_ago = function () {
-      return (new Date() - this.kl_posted_date) / (60 * 60 * 1000)
-    }.bind(loan)
+    loan.kl_posted_hours_ago = () =>
+      (new Date() - this.kl_posted_date) / (60 * 60 * 1000)
     if (!loan.basket_amount) loan.basket_amount = 0
     if (!loan.funded_amount) loan.funded_amount = 0
-    loan.kl_dollars_per_hour = function () {
-      return (
-        (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
-      )
-    }.bind(loan)
+    loan.kl_dollars_per_hour = () =>
+      (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
     loan.kl_still_needed = Math.max(
       loan.loan_amount - loan.funded_amount - loan.basket_amount,
       0,
@@ -160,15 +156,15 @@ class ResultProcessors {
       loan.kls_tags = loan.tags.select(tag => tag.name.replace(/\s+/g, '')) // standardize to just an array without a hash.
     if (!loan.kls_tags) loan.kls_tags = []
 
-    if (!isServer()) {
-      loan.getPartner = function () {
-        if (!this.partner_id) return null // ZIP loans
-        // todo: this should not reference kivaloans...
-        if (!this.kl_partner)
-          this.kl_partner = kivaloans.getPartner(this.partner_id)
-        return this.kl_partner
-      }.bind(loan)
-    }
+    // if (!isServer()) {
+    //   loan.getPartner = function() {
+    //     if (!this.partner_id) return null; // ZIP loans
+    //     // todo: this should not reference kivaloans...
+    //     if (!this.kl_partner)
+    //       this.kl_partner = kivaloans.getPartner(this.partner_id);
+    //     return this.kl_partner;
+    //   }.bind(loan);
+    // }
 
     if (loan.kls) {
       // replace what was stripped out by the server before sending down.
@@ -205,12 +201,9 @@ class ResultProcessors {
       ResultProcessors.processLoanDescription(loan)
 
       loan.kl_planned_expiration_date = new Date(loan.planned_expiration_date)
-      loan.kl_expiring_in_days = function () {
-        return (
-          (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000)
-        )
-      }.bind(loan)
-      loan.kl_disbursal_in_days = function () {
+      loan.kl_expiring_in_days = () =>
+        (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000)
+      loan.kl_disbursal_in_days = () => {
         return (
           (new Date(loan.terms.disbursal_date) - Date.now()) /
           (24 * 60 * 60 * 1000)
@@ -297,7 +290,7 @@ class ResultProcessors {
               ((running_total * 100) / loan.loan_amount).toFixed(2),
             )
           }
-        })
+        });
 
         loan.kls_final_repayment = new Date(
           loan.terms.scheduled_payments.last().due_date,
@@ -358,7 +351,7 @@ class ResultProcessors {
       'Western Europe': 'we',
       Antarctica: 'an',
       Oceania: 'oc',
-    }
+    };
     partners.forEach(p => {
       p.kl_sp = p.social_performance_strengths
         ? p.social_performance_strengths.select(sp => sp.id)

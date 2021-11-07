@@ -1,4 +1,4 @@
-import PagedKiva from "./PagedKiva"
+import PagedKiva from './PagedKiva'
 
 class LenderLoans extends PagedKiva {
   constructor(lenderIid, options) {
@@ -7,5 +7,4 @@ class LenderLoans extends PagedKiva {
   }
 }
 
-export {LenderLoans}
 export default LenderLoans

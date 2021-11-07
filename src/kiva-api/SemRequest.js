@@ -24,16 +24,14 @@ class SemRequest {
 
   sem_get(path, params, getUrlOpts) {
     const def = Deferred()
-    sem_one.take(
-      function () {
-        return this.raw(path, params, getUrlOpts)
-          .fail(e => global.cl(e))
-          .always(x => sem_one.leave())
-          .progress(def.notify)
-          .fail(def.reject)
-          .done(def.resolve)
-      }.bind(this),
-    )
+    sem_one.take(() => {
+      return this.raw(path, params, getUrlOpts)
+        .fail(e => global.cl(e))
+        .always(x => sem_one.leave())
+        .progress(def.notify)
+        .fail(def.reject)
+        .done(def.resolve)
+    })
     return def
   }
 
@@ -67,12 +65,9 @@ class SemRequest {
       : this.raw(path, params, getUrlOpts)
     if (this.ttlSecs > 0) {
       this.requests[key] = {promise: p, requested: Date.now()}
-      setTimeout(
-        function () {
-          delete this.requests[key]
-        }.bind(this),
-        this.ttlSecs * 1000,
-      )
+      setTimeout(() => {
+        delete this.requests[key]
+      }, this.ttlSecs * 1000)
     }
     return p
   }

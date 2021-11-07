@@ -76,7 +76,7 @@ class Request {
           .progress(def.notify)
           .fail(def.reject)
       }.bind(this),
-    )
+    );
 
     if (this.collection) {
       // 'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
@@ -115,5 +115,5 @@ class Request {
   }
 }
 
-export {Request, ReqState}
+export {ReqState}
 export default Request

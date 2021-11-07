@@ -76,9 +76,9 @@ class PagedKiva {
       sem_two.capacity = api_options.max_concurrent
 
     this.updateProgress('ids')
-    request.fetchFromIds(response).done(detail_response => {
+    request.fetchFromIds(response).done(detailResponse => {
       this.updateProgress('ids')
-      this.processPageOfData(request, detail_response)
+      this.processPageOfData(request, detailResponse)
     })
   }
 
@@ -151,14 +151,14 @@ class PagedKiva {
   }
 
   wrapUp(task) {
-    const result_objects = this.requests
+    const resultObjects = this.requests
       .filter(req => req.state === ReqState.done)
       .map(req => req.results)
       .flatten()
     this.updateProgress(task)
     // this.sendNotification('details')
     // this.notify({ [task]: {complete: true} })
-    this.promise.resolve(result_objects)
+    this.promise.resolve(resultObjects)
   }
 
   setupRequest(page) {
@@ -190,5 +190,4 @@ class PagedKiva {
   }
 }
 
-export {PagedKiva}
 export default PagedKiva

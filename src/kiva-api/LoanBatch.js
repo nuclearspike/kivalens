@@ -15,8 +15,8 @@ import {Deferred} from 'jquery-deferred'
 import req from './req'
 
 class LoanBatch {
-  constructor(id_arr, process) {
-    this.ids = id_arr
+  constructor(idArr, process) {
+    this.ids = idArr
     this.process = process
   }
 
@@ -49,5 +49,4 @@ class LoanBatch {
   }
 }
 
-export {LoanBatch}
 export default LoanBatch

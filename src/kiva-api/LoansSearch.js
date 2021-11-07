@@ -6,12 +6,11 @@ import ResultProcessors from './ResultProcessors'
  *
  */
 class LoansSearch extends PagedKiva {
-  constructor(params, getDetails, max_repayment_date, preventVisitor) {
-    if (getDetails === undefined) getDetails = true
+  constructor(params, getDetails = true, maxRepaymentDate, preventVisitor) {
     params = extend({}, {status: 'fundraising'}, params)
-    if (max_repayment_date) extend(params, {sort_by: 'repayment_term'})
+    if (maxRepaymentDate) extend(params, {sort_by: 'repayment_term'})
     super('loans/search.json', params, 'loans')
-    this.max_repayment_date = max_repayment_date
+    this.max_repayment_date = maxRepaymentDate
     this.twoStage = getDetails
     if (!preventVisitor) {
       this.visitorFunct = ResultProcessors.processLoan
@@ -50,5 +49,4 @@ class LoansSearch extends PagedKiva {
   }
 }
 
-export default LoansSearch // prefer default
-// export { LoansSearch } // deprecated
+export default LoansSearch

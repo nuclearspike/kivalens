@@ -62,5 +62,4 @@ class LenderFundraisingLoans extends LenderStatusLoans {
   }
 }
 
-export {LenderFundraisingLoans}
 export default LenderFundraisingLoans

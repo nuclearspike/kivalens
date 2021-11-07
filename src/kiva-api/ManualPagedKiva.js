@@ -23,6 +23,7 @@
 import {Deferred} from 'jquery-deferred'
 import extend from 'extend'
 import {api_options} from './kivaBase'
+import req from './req'
 
 class ManualPagedKiva {
   constructor(url, params, collection) {
@@ -96,5 +97,4 @@ class ManualPagedKiva {
   }
 }
 
-export {ManualPagedKiva}
 export default ManualPagedKiva

@@ -15,5 +15,4 @@ class Partners extends PagedKiva {
   }
 }
 
-export {Partners}
 export default Partners

@@ -88,5 +88,4 @@ class FOOOLoan {
   }
 }
 
-export {Loan}
 export default Loan

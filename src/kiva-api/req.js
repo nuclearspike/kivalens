@@ -15,7 +15,7 @@ if (!isServer()) {
   // this has KivaLens-specific refs that won't work in other uses.
   // some of these can be switched to direct kiva/gdocs calls if needed on the server.
   req.kl = new SemRequest(
-    `${location.protocol}//${location.host}/api/`,
+    `${global.location.protocol}//${global.location.host}/api/`,
     true,
     false,
     {},
@@ -23,17 +23,17 @@ if (!isServer()) {
   )
   // req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
   req.klraw = new SemRequest(
-    `${location.protocol}//${location.host}/`,
+    `${global.location.protocol}//${global.location.host}/`,
     false,
     false,
     {},
     0,
   )
-  kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
-  gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
+  kivaBase = `${global.location.protocol}//${global.location.host}/proxy/kiva/`
+  gdocs = `${global.location.protocol}//${global.location.host}/proxy/gdocs/`
   req.kl.graph = query => {
     return postUrl(
-      `${location.protocol}//${location.host}/graphql`,
+      `${global.location.protocol}//${global.location.host}/graphql`,
       {},
       query,
     ).then(response => response.data)
@@ -56,8 +56,7 @@ req.kiva = {
 }
 
 // max of 100, not enforced or checked in this call.
-req.kiva.api.loans = (ids, process) => {
-  if (process === undefined) process = true
+req.kiva.api.loans = (ids, process = true) => {
   const p = req.kiva.api
     .get(`loans/${ids.join(',')}.json`)
     .then(res => res.loans)
@@ -97,7 +96,6 @@ req.gdocs = {
     },
     5,
   ),
-}
+};
 
-export {req}
 export default req
