@@ -1,7 +1,10 @@
-import extend from "extend"
+import extend from 'extend'
 
-const kivaLoanDynFields = ['status', 'funded_amount', 'basket_amount', 'tags'] //PLUS
-const s_unknown = 'unknown', s_kvSummary = 'kiva_summary', s_kvDetail = 'kiva_detail', s_kl = 'kl'
+const kivaLoanDynFields = ['status', 'funded_amount', 'basket_amount', 'tags'] // PLUS
+const s_unknown = 'unknown'
+const s_kvSummary = 'kiva_summary'
+const s_kvDetail = 'kiva_detail'
+const s_kl = 'kl'
 
 class Loan {
   constructor(remote_loan) {
@@ -11,7 +14,6 @@ class Loan {
   }
 
   process() {
-
   }
 
   kl_posted_hours_ago() {
@@ -19,25 +21,34 @@ class Loan {
   }
 
   kl_dollars_per_hour() {
-    return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
+    return (
+      (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
+    )
   }
 
-  kl_expiring_in_days() { //today is not defined
-    return (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000)
+  kl_expiring_in_days() {
+    // today is not defined
+    return (
+      (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000)
+    )
   }
 
-  kl_disbursal_in_days() { //today is not defined
-    return (new Date(this.terms.disbursal_date) - Date.now()) / (24 * 60 * 60 * 1000)
+  kl_disbursal_in_days() {
+    // today is not defined
+    return (
+      (new Date(this.terms.disbursal_date) - Date.now()) / (24 * 60 * 60 * 1000)
+    )
   }
 
   getPartner() {
-    //todo: this should not reference kivaloans...
-    if (!this.kl_partner) this.kl_partner = kivaloans.getPartner(this.partner_id)
+    // todo: this should not reference kivaloans...
+    if (!this.kl_partner)
+      this.kl_partner = kivaloans.getPartner(this.partner_id)
     return this.kl_partner
   }
 }
 
-//hmmm... just thinking through what the world would look like with this in place.
+// hmmm... just thinking through what the world would look like with this in place.
 class FOOOLoan {
   constructor(remote_loan) {
     this.kl_created = Date.now()
@@ -53,7 +64,6 @@ class FOOOLoan {
 
   readFromKL(KLLoan) {
     this.source = s_kl
-
   }
 
   readSummaryFromAPI(apiLoan) {
@@ -74,7 +84,7 @@ class FOOOLoan {
   }
 
   transformToDownload() {
-    //return a cloned object with only what a download object should contain.
+    // return a cloned object with only what a download object should contain.
   }
 }
 

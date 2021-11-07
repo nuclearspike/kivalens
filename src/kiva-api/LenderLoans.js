@@ -1,8 +1,8 @@
 import PagedKiva from "./PagedKiva"
 
 class LenderLoans extends PagedKiva {
-  constructor(lender_id, options) {
-    super(`lenders/${lender_id}/loans.json`, {}, 'loans')
+  constructor(lenderIid, options) {
+    super(`lenders/${lenderIid}/loans.json`, {}, 'loans')
     this.options = options
   }
 }

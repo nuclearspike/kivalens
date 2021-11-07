@@ -18,16 +18,20 @@
  * pk.pageCount, pk.objectCount, accessible for display
  */
 
-//this is not done yet. needs req. doesn't export...
+// this is not done yet. needs req. doesn't export...
 
 import {Deferred} from 'jquery-deferred'
 import extend from 'extend'
-import {api_options} from "./kivaBase"
+import {api_options} from './kivaBase'
 
 class ManualPagedKiva {
   constructor(url, params, collection) {
     this.url = url
-    this.params = extend({}, {page: 1, per_page: 100, app_id: api_options.app_id}, params)
+    this.params = extend(
+      {},
+      {page: 1, per_page: 100, app_id: api_options.app_id},
+      params,
+    )
     this.collection = collection
     this.pages = {}
     this.pageCount = 0
@@ -41,43 +45,46 @@ class ManualPagedKiva {
   }
 
   start() {
-    return req.kiva.api.get(this.url, this.params)
+    return req.kiva.api
+      .get(this.url, this.params)
       .then(result => {
         this.currentPage = result.paging.page
         this.pageCount = result.paging.pages
         this.objectCount = result.paging.total
         return result
-      }).then(this.processPage.bind(this))
+      })
+      .then(this.processPage.bind(this))
   }
 
   getPage(pageNum) {
-    if (pageNum > this.pageCount || pageNum < 1)
-      return Deferred().reject()
+    if (pageNum > this.pageCount || pageNum < 1) return Deferred().reject()
     if (this.pages[pageNum]) {
       return Deferred().resolve(this.pages[pageNum])
-    } else {
-      return this.sharedReq.request(this.url, extend({}, this.params, {page: pageNum})).then(this.processPage.bind(this))
     }
+    return this.sharedReq
+      .request(this.url, extend({}, this.params, {page: pageNum}))
+      .then(this.processPage.bind(this))
   }
 
   next() {
-    if (this.currentPage >= this.pageCount)
-      return Deferred().reject()
+    if (this.currentPage >= this.pageCount) return Deferred().reject()
     this.currentPage++
     return this.getPage(this.currentPage)
   }
 
   prev() {
-    if (this.currentPage <= 1)
-      return Deferred().reject()
+    if (this.currentPage <= 1) return Deferred().reject()
     this.currentPage--
     return this.getPage(this.currentPage)
   }
 
   prefetch(maxPages) {
     if (!maxPages) maxPages = 3
-    let startPage = this.currentPage + 1
-    Array.range(startPage, Math.min(maxPages, this.pageCount - startPage + 1)).forEach(this.getPage.bind(this))
+    const startPage = this.currentPage + 1
+    Array.range(
+      startPage,
+      Math.min(maxPages, this.pageCount - startPage + 1),
+    ).forEach(this.getPage.bind(this))
   }
 
   canNext() {
