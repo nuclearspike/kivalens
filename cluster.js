@@ -720,10 +720,10 @@ else  //workers handle all communication with the clients.
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
             res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); //don't pass back kiva's cookies.
             // intercept OPTIONS method
-            if ('OPTIONS' == req.method) {
+            if ('OPTIONS' === req.method) {
                 res.send(200)
             } else {
-                callback(null,data)
+                callback(null, data)
             }
         }
     }
@@ -776,7 +776,7 @@ else  //workers handle all communication with the clients.
     main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
-    app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
+    app.use('/proxy/kiva', proxy('https//www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
     //app.use(express.static(__dirname + '/public'))

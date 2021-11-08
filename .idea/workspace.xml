@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed4a3340-6f8d-41e6-8f81-45c6646153c5" name="Default" comment="Minor wording changes.">
-      <change beforePath="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" beforeDir="false" afterPath="$PROJECT_DIR$/../lenderassistant/inject/all_start.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cluster.js" beforeDir="false" afterPath="$PROJECT_DIR$/cluster.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/api/kivajs/Request.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/scripts/api/kivajs/req.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/scripts/api/kivajs/req.js" afterDir="false" />
     </list>
     <ignored path="react-kiva.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -145,8 +142,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/cluster.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="80">
-                  <caret line="673" column="36" lean-forward="true" selection-start-line="673" selection-start-column="36" selection-end-line="673" selection-end-column="36" />
+                <state relative-caret-position="218">
+                  <caret line="777" column="17" selection-start-line="777" selection-start-column="17" selection-end-line="777" selection-end-column="17" />
                 </state>
               </provider>
             </entry>
@@ -193,7 +190,7 @@
             <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="185">
-                  <caret line="75" column="38" lean-forward="true" selection-start-line="75" selection-start-column="38" selection-end-line="75" selection-end-column="38" />
+                  <caret line="75" column="38" selection-start-line="75" selection-start-column="38" selection-end-line="75" selection-end-column="38" />
                   <folding>
                     <element signature="e#13#38#0" expanded="true" />
                   </folding>
@@ -223,20 +220,20 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/react/package.json">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="285">
-                  <caret line="19" column="25" selection-start-line="19" selection-start-column="25" selection-end-line="19" selection-end-column="25" />
+                <state relative-caret-position="165">
+                  <caret line="11" column="17" lean-forward="true" selection-start-line="11" selection-start-column="17" selection-end-line="11" selection-end-column="17" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/package.json">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="360">
-                  <caret line="24" column="28" lean-forward="true" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
+                  <caret line="24" column="28" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
                 </state>
               </provider>
             </entry>
@@ -293,8 +290,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>decodeURI</find>
-      <find>decodeURIC</find>
       <find>decodeURICO</find>
       <find>decodeURIComponent</find>
       <find>k</find>
@@ -323,6 +318,8 @@
       <find>Borrower</find>
       <find>http://api</find>
       <find>https://stream</find>
+      <find>/proxy/</find>
+      <find>proxyHandler</find>
     </findStrings>
     <replaceStrings>
       <replace>avatar</replace>
@@ -644,14 +641,7 @@
       <workItem from="1556767226016" duration="430000" />
       <workItem from="1556777898452" duration="2154000" />
       <workItem from="1560327104154" duration="32000" />
-      <workItem from="1636076079846" duration="1898000" />
-    </task>
-    <task id="LOCAL-00335" summary="update to readme">
-      <created>1465541410765</created>
-      <option name="number" value="00335" />
-      <option name="presentableId" value="LOCAL-00335" />
-      <option name="project" value="LOCAL" />
-      <updated>1465541410765</updated>
+      <workItem from="1636076079846" duration="2535000" />
     </task>
     <task id="LOCAL-00336" summary="fixed About page wording. added &quot;actual&quot; back amounts to schema">
       <created>1465545039515</created>
@@ -989,11 +979,18 @@
       <option name="project" value="LOCAL" />
       <updated>1636076729990</updated>
     </task>
-    <option name="localTasksCounter" value="384" />
+    <task id="LOCAL-00384" summary="Minor wording changes.">
+      <created>1636190580499</created>
+      <option name="number" value="00384" />
+      <option name="presentableId" value="LOCAL-00384" />
+      <option name="project" value="LOCAL" />
+      <updated>1636190580499</updated>
+    </task>
+    <option name="localTasksCounter" value="385" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="237699000" />
+    <option name="totallyTimeSpent" value="238336000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="877" extended-state="0" />
@@ -1411,7 +1408,7 @@
     <entry file="file://$PROJECT_DIR$/react/src/scripts/components/About.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="185">
-          <caret line="75" column="38" lean-forward="true" selection-start-line="75" selection-start-column="38" selection-end-line="75" selection-end-column="38" />
+          <caret line="75" column="38" selection-start-line="75" selection-start-column="38" selection-end-line="75" selection-end-column="38" />
           <folding>
             <element signature="e#13#38#0" expanded="true" />
           </folding>
@@ -1420,22 +1417,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cluster.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="673" column="36" lean-forward="true" selection-start-line="673" selection-start-column="36" selection-end-line="673" selection-end-column="36" />
+        <state relative-caret-position="218">
+          <caret line="777" column="17" selection-start-line="777" selection-start-column="17" selection-end-line="777" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="17" lean-forward="true" selection-start-line="11" selection-start-column="17" selection-end-line="11" selection-end-column="17" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="360">
-          <caret line="24" column="28" lean-forward="true" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="19" column="25" selection-start-line="19" selection-start-column="25" selection-end-line="19" selection-end-column="25" />
+          <caret line="24" column="28" selection-start-line="24" selection-start-column="28" selection-end-line="24" selection-end-column="28" />
         </state>
       </provider>
     </entry>
