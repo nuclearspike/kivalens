@@ -1,8 +1,8 @@
 import extend from 'extend'
 import {Deferred} from 'jquery-deferred'
-import LenderLoans from './LenderLoans'
 import 'linqjs'
 import 'datejs'
+import LenderLoans from './LenderLoans'
 
 class LenderStatusLoans extends LenderLoans {
   constructor(lenderId, options) {

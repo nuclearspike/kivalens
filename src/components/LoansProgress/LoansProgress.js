@@ -1,17 +1,22 @@
 import React, {memo, useMemo} from 'react'
+import PT from 'prop-types'
 import {useSelector} from 'react-redux'
-// import { ProgressIndicator } from ''; causes errors to hard link with SSR and hot reloads (guessing)
 
 const LoanTypeProgress = ({label, description, progress}) => {
-  // for some reason, this unit causes a bunch of issues when SSR. the progress only shows on client and errors were resolved.
-  const ProgressIndicator = require('@fluentui/react/lib/ProgressIndicator').ProgressIndicator
-  const perc = useMemo(() => {
-    return (progress && (progress.done && progress.total)) ? progress.done / progress.total : 1
-  }, [progress, progress && progress.done, progress && progress.total])
-
   if (!process.env.BROWSER) {
     return <div/>
   }
+
+  // for some reason, this import causes a bunch of issues when SSR. the progress only shows on client and errors were resolved.
+  const {
+    ProgressIndicator,
+    // eslint-disable-next-line global-require
+  } = require('@fluentui/react/lib/ProgressIndicator')
+  const perc = useMemo(() => {
+    return progress && progress.done && progress.total
+      ? progress.done / progress.total
+      : 1
+  }, [progress, progress && progress.done, progress && progress.total])
 
   return (
     <ProgressIndicator
@@ -22,8 +27,21 @@ const LoanTypeProgress = ({label, description, progress}) => {
   )
 }
 
+LoanTypeProgress.propTypes = {
+  label: PT.string.isRequired,
+  description: PT.string.isRequired,
+  progress: PT.shape({
+    done: PT.number,
+    total: PT.number,
+  }),
+}
+
+LoanTypeProgress.defaultProps = {
+  progress: null,
+}
+
 const LoansProgress = memo(() => {
-  const progress = useSelector(({loans_progress}) => loans_progress)
+  const progress = useSelector(({loansProgress}) => loansProgress)
 
   if (Object.keys(progress).length === 0) {
     return <div/>
@@ -37,19 +55,19 @@ const LoansProgress = memo(() => {
         <LoanTypeProgress
           label="Loan IDs"
           description="Fundraising IDs download"
-          progress={progress['ids']}
+          progress={progress.ids}
         />
       )}
       {details && (
         <LoanTypeProgress
           label="Loan Details"
           description="Full Details of Loans downloaded"
-          progress={progress['details']}
+          progress={progress.details}
         />
       )}
     </div>
-  )
-})
+  );
+});
 
 LoansProgress.displayName = 'LoansProgress'
 

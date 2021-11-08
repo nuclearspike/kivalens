@@ -4,7 +4,6 @@ import {TitleField} from './Common'
 import PaneledObjectFieldTemplate from './ObjectFieldTemplate'
 import {criteriaSchema, uiCriteriaSchema} from './allOptions'
 
-
 const defaultFields = {
   TitleField,
 }
@@ -23,7 +22,7 @@ const CriteriaForm = () => {
     >
       &nbsp;
     </Form>
-  )
-}
+  );
+};
 
 export default CriteriaForm

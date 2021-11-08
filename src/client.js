@@ -13,6 +13,7 @@ import ReactDOM from 'react-dom'
 import deepForceUpdate from 'react-deep-force-update'
 import queryString from 'query-string'
 import {createPath} from 'history'
+import {initializeIcons} from '@uifabric/icons'
 import App from './components/App'
 import createFetch from './createFetch'
 import configureStore from './store/configureStore'
@@ -20,7 +21,6 @@ import history from './history'
 import {updateMeta} from './DOMUtils'
 import router from './router'
 
-import {initializeIcons} from '@uifabric/icons'
 import {loansAllFetch} from './actions/all_loans'
 import {partnersAllFetch} from './actions/partner_details'
 
@@ -49,7 +49,9 @@ const context = {
   storeSubscription: null,
 }
 
-context.store.dispatch(loansAllFetch()).then(context.store.dispatch(partnersAllFetch()))
+context.store
+  .dispatch(loansAllFetch())
+  .then(context.store.dispatch(partnersAllFetch()))
 
 const container = document.getElementById('app')
 let currentLocation = history.location

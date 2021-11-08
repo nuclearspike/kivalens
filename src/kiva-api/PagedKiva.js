@@ -14,8 +14,8 @@
 
 import extend from 'extend'
 import {Deferred} from 'jquery-deferred'
-import {api_options, sem_one as sem_two, sem_one} from './kivaBase'
-import {ReqState, Request} from './Request'
+import {apiOptions, semOne, semTwo} from './kivaBase'
+import Request, {ReqState} from './Request'
 
 // NOTES
 // Deferred.always is Promise.finally
@@ -30,7 +30,7 @@ class PagedKiva {
     this.url = url
     this.params = extend(
       {},
-      {per_page: 100, app_id: api_options.app_id},
+      {per_page: 100, app_id: apiOptions.app_id},
       params,
     )
     this.collection = collection
@@ -73,7 +73,7 @@ class PagedKiva {
     const completedPagesOfIds = this.requests.filter(req => req.ids.length > 0)
       .length
     if (completedPagesOfIds >= this.requests.length)
-      sem_two.capacity = api_options.max_concurrent
+      semTwo.capacity = apiOptions.max_concurrent
 
     this.updateProgress('ids')
     request.fetchFromIds(response).done(detailResponse => {
@@ -176,10 +176,10 @@ class PagedKiva {
   start() {
     if (this.twoStage) {
       extend(true, this.params, {ids_only: 'true'})
-      sem_one.capacity = Math.round(api_options.max_concurrent * 0.3)
-      sem_two.capacity = Math.round(api_options.max_concurrent * 0.7) + 1
+      semOne.capacity = Math.round(apiOptions.max_concurrent * 0.3)
+      semTwo.capacity = Math.round(apiOptions.max_concurrent * 0.7) + 1
     } else {
-      sem_one.capacity = api_options.max_concurrent
+      semOne.capacity = apiOptions.max_concurrent
     }
     // this.notify({label: 'Getting the basics...'})
     this.setupRequest(1)

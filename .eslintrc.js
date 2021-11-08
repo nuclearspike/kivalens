@@ -91,6 +91,10 @@ module.exports = {
 
     'react/forbid-prop-types': 'off',
     'react/destructuring-assignment': 'off',
+
+    'import/no-named-as-default': 'off',
+    'no-param-reassign': 'off',
+    'no-extend-native': 'off',
   },
 
   settings: {

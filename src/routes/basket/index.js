@@ -15,7 +15,7 @@ function action({params: {id: idString, tab}}) {
     chunks: ['home'],
     component: (
       <Layout>
-        <Basket selected_id={id} tab={tab}/>
+        <Basket selectedId={id} tab={tab}/>
       </Layout>
     ),
   }

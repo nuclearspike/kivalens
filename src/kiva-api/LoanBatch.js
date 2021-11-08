@@ -24,7 +24,7 @@ class LoanBatch {
     // kiva does not allow more than 100 loans in a batch. break the list into chunks of up to 100 and process them.
     const chunks = this.ids.chunk(100) // breaks into an array of arrays of 100.
     const def = Deferred()
-    let r_loans = []
+    let rLoans = []
 
     chunks.forEach(chunk => {
       def.notify({
@@ -33,15 +33,16 @@ class LoanBatch {
         total: 1,
         label: 'Downloading...',
       })
+
       req.kiva.api.loans(chunk, this.process).done(loans => {
-        r_loans = r_loans.concat(loans)
+        rLoans = rLoans.concat(loans)
         def.notify({
           task: 'details',
-          done: r_loans.length,
+          done: rLoans.length,
           total: this.ids.length,
-          label: `${r_loans.length}/${this.ids.length} downloaded`,
+          label: `${rLoans.length}/${this.ids.length} downloaded`,
         })
-        if (r_loans.length >= this.ids.length) def.resolve(r_loans)
+        if (rLoans.length >= this.ids.length) def.resolve(rLoans)
       })
     })
     if (chunks.length === 0) def.reject() // prevent done() processing on an empty set.

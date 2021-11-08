@@ -1,14 +1,14 @@
 import * as c from '../constants'
 import Partners from '../kiva-api/Partners'
 
-export const partnerDetailsUpdateMany = (partners) => {
+export const partnerDetailsUpdateMany = partners => {
   return {
     type: c.PARTNER_DETAILS_UPDATE_MANY,
     partners,
   }
 }
 
-export const partnerDetailsUpdate = (partner) => {
+export const partnerDetailsUpdate = partner => {
   return {
     type: c.PARTNER_DETAILS_UPDATE,
     partner,
@@ -16,8 +16,10 @@ export const partnerDetailsUpdate = (partner) => {
 }
 
 export const partnersAllFetch = () => {
-  return (dispatch) => {
-    return new Partners({app_id: 'org.kiva.kivalens'}).start().then((result) => dispatch(partnerDetailsUpdateMany(result)))
+  return dispatch => {
+    return new Partners({app_id: 'org.kiva.kivalens'})
+      .start()
+      .then(result => dispatch(partnerDetailsUpdateMany(result)))
   }
 }
 

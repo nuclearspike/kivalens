@@ -1,7 +1,7 @@
 import React, {Component, useState} from 'react'
 import PropTypes from 'prop-types'
+import {Handles, Rail, Slider, Ticks, Tracks} from 'react-compound-slider'
 import HoverOver from '../Common/HoverOver'
-import {Handles, Rail, Slider, Ticks, Tracks} from "react-compound-slider"
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -81,7 +81,7 @@ export class TooltipRail extends Component {
         />
         <div style={railCenterStyle}/>
       </>
-    )
+    );
   }
 }
 
@@ -209,7 +209,7 @@ export class Handle extends Component {
           }}
         />
       </>
-    )
+    );
   }
 }
 
@@ -264,7 +264,7 @@ Track.propTypes = {
   }).isRequired,
   getTrackProps: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
-}
+};
 
 Track.defaultProps = {
   disabled: false,
@@ -300,7 +300,7 @@ export function Tick({tick, count, format}) {
         {format(tick.value)}
       </div>
     </div>
-  )
+  );
 }
 
 Tick.propTypes = {
@@ -317,8 +317,7 @@ Tick.defaultProps = {
   format: d => d,
 }
 
-///////// My STUFF VVV
-
+// /////// My STUFF VVV
 
 const sliderStyle = {
   position: 'relative',
@@ -335,12 +334,8 @@ const MinMaxField = ({schema, formData}) => {
   return (
     <>
       <HoverOver title={schema.title} description={schema.description}/>
-      <div>
-        {JSON.stringify(values)}
-      </div>
-      <div>
-        {JSON.stringify(update)}
-      </div>
+      <div>{JSON.stringify(values)}</div>
+      <div>{JSON.stringify(update)}</div>
       <div style={{height: 150, width: '100%'}}>
         <Slider
           mode={1}
@@ -385,14 +380,16 @@ const MinMaxField = ({schema, formData}) => {
           <Ticks count={10}>
             {({ticks}) => (
               <div className="slider-ticks">
-                {ticks.map(tick => <Tick key={tick.id} tick={tick} count={ticks.length}/>)}
+                {ticks.map(tick => (
+                  <Tick key={tick.id} tick={tick} count={ticks.length}/>
+                ))}
               </div>
             )}
           </Ticks>
         </Slider>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default MinMaxField

@@ -1,6 +1,6 @@
 import {Deferred} from 'jquery-deferred'
 import extend from 'extend'
-import {getUrl, sem_one, serialize} from './kivaBase'
+import {getUrl, semOne, serialize} from './kivaBase'
 
 /**
  * semaphored access to a server. this is to replace Request.sem_get
@@ -22,12 +22,12 @@ class SemRequest {
     this.requests = {}
   }
 
-  sem_get(path, params, getUrlOpts) {
+  semGet(path, params, getUrlOpts) {
     const def = Deferred()
-    sem_one.take(() => {
+    semOne.take(() => {
       return this.raw(path, params, getUrlOpts)
         .fail(e => global.cl(e))
-        .always(x => sem_one.leave())
+        .always(() => semOne.leave())
         .progress(def.notify)
         .fail(def.reject)
         .done(def.resolve)
@@ -44,7 +44,7 @@ class SemRequest {
         {parseJSON: this.asJSON, includeRequestedWith: this.requestedWith},
         getUrlOpts,
       ),
-    ).fail(e => cl(e))
+    ).fail(e => global.cl(e))
   }
 
   get(path = '', params = {}, getOpts, getUrlOpts) {
@@ -61,7 +61,7 @@ class SemRequest {
     // should be some type of cleanup of old cached but dead requests.
 
     const p = getOpts.semaphored
-      ? this.sem_get(path, params, getUrlOpts)
+      ? this.semGet(path, params, getUrlOpts)
       : this.raw(path, params, getUrlOpts)
     if (this.ttlSecs > 0) {
       this.requests[key] = {promise: p, requested: Date.now()}

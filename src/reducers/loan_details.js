@@ -1,5 +1,5 @@
-import * as c from '../constants'
 import extend from 'extend'
+import * as c from '../constants'
 
 /**
  * here's all the loan details.
@@ -10,16 +10,19 @@ import extend from 'extend'
  * all loan ids are in separate reducer
  * action.loan = {loan object}
  * action.loans = array of {loan objects}
- **/
+ * */
 
-export default function loan_details(state = {}, action) {
+export default function loanDetails(state = {}, action) {
   switch (action.type) {
-    case c.LOAN_DETAILS_UPDATE_MANY:
+    case c.LOAN_DETAILS_UPDATE_MANY: {
       // not only adds but also replaces old versions.
       const toAdd = {}
-      action.loans.forEach(loan => toAdd[loan.id] = loan)
+      action.loans.forEach(loan => {
+        toAdd[loan.id] = loan
+      })
       // overrides old ones, introduces new ones.
       return extend(true, {}, state, toAdd)
+    }
     case c.LOAN_DETAILS_UPDATE:
       return extend(true, {}, state, {[action.loan.id]: action.loan})
     default:

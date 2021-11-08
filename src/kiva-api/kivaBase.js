@@ -10,8 +10,8 @@ import {Deferred} from 'jquery-deferred' // need to replace with Promise but can
  *  back to the holder of the deferred variable.
  */
 
-const sem_one = semaphore(8)
-const sem_two = semaphore(8)
+const semOne = semaphore(8)
+const semTwo = semaphore(8)
 
 if (typeof global.XMLHttpRequest === 'undefined') {
   // eslint-disable-next-line global-require
@@ -26,11 +26,13 @@ const canWebWork = () =>
   !!process.env.BROWSER &&
   typeof Worker !== 'undefined' &&
   typeof TextEncoder !== 'undefined'
+
 Array.prototype.flatten =
   Array.prototype.flatten ||
   function () {
     return [].concat.apply([], this)
   }
+
 Array.prototype.percentWhere = function (predicate) {
   return (this.filter(predicate).length * 100) / this.length
 }
@@ -39,6 +41,8 @@ const getUrl = (url, options) => {
   const d = Deferred()
 
   options = extend({parseJSON: true, withProgress: true}, options)
+
+  const xhr = new XMLHttpRequest()
 
   function xhrTransferComplete() {
     if (xhr.status === 200) {
@@ -55,11 +59,10 @@ const getUrl = (url, options) => {
     }
   }
 
-  function xhrFailed(e) {
+  function xhrFailed() {
     d.reject(this.responseText || '', xhr.status)
   }
 
-  const xhr = new XMLHttpRequest()
   xhr.addEventListener('load', xhrTransferComplete)
   if (options.withProgress && !isServer())
     xhr.addEventListener('progress', e => {
@@ -83,12 +86,14 @@ const getUrl = (url, options) => {
   xhr.send()
 
   return d
-};
+}
 
 const postUrl = (url, options, query) => {
   const d = Deferred()
 
   options = extend({parseJSON: true}, options)
+
+  const xhr = new XMLHttpRequest()
 
   function xhrTransferComplete() {
     if (xhr.status === 200) {
@@ -108,14 +113,10 @@ const postUrl = (url, options, query) => {
     }
   }
 
-  function xhrFailed(e) {
-    let msg = ''
-    if (this.responseText) msg = this.responseText
-
-    d.reject(msg, xhr.status)
+  function xhrFailed() {
+    d.reject(this.responseText || '', xhr.status)
   }
 
-  const xhr = new XMLHttpRequest()
   xhr.addEventListener('load', xhrTransferComplete)
   xhr.addEventListener('error', xhrFailed)
   xhr.addEventListener('abort', xhrFailed)
@@ -132,7 +133,7 @@ const postUrl = (url, options, query) => {
 // turns {json: 'object', app_id: 'com.me'} into ?json=object&app_id=com.me
 function serialize(obj, prefix) {
   const str = []
-  for (const p in obj) {
+  Object.keys(obj).forEach(p => {
     if (obj.hasOwnProperty(p)) {
       const k = prefix ? `${prefix}[${p}]` : p
       const v = obj[p]
@@ -142,15 +143,15 @@ function serialize(obj, prefix) {
           : `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
       )
     }
-  }
+  })
   return str.join('&')
 }
 
-const api_options = {max_concurrent: 8}
+const apiOptions = {max_concurrent: 8}
 
 function setAPIOptions(options) {
-  extend(api_options, options)
-  if (api_options.max_concurrent) sem_one.capacity = api_options.max_concurrent
+  extend(apiOptions, options)
+  if (apiOptions.max_concurrent) semOne.capacity = apiOptions.max_concurrent
 }
 
 export {
@@ -158,9 +159,9 @@ export {
   postUrl,
   isServer,
   canWebWork,
-  sem_one,
-  sem_two,
+  semOne,
+  semTwo,
   serialize,
-  api_options,
+  apiOptions,
   setAPIOptions,
 }

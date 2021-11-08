@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react'
-import PT from 'prop-types;'
+import PT from 'prop-types'
 import {useDispatch} from 'react-redux'
 import TimeAgo from 'react-timeago'
 import numeral from 'numeral'
@@ -72,7 +72,7 @@ const LoanTab = ({loan}) => {
           'Disbursed',
           <span>
             {new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (
-            <TimeAgo date={loan.terms.disbursal_date}/>){' '}
+            <TimeAgo date={loan.terms.disbursal_date}/>)
           </span>,
         )
       }
@@ -116,15 +116,15 @@ const LoanTab = ({loan}) => {
     )
   }, [lentPercentages])
 
-  const config = useMemo(() => {
+  const graphConfig = useMemo(() => {
     if (!loan) return null
 
     if (!loan.kl_repay_categories) {
-      loan.kl_repay_categories = loan.kl_repayments.select(
+      loan.kl_repay_categories = loan.kl_repayments.map(
         payment => payment.display,
       )
-      loan.kl_repay_data = loan.kl_repayments.select(payment => payment.amount)
-      loan.kl_repay_percent = loan.kl_repayments.select(
+      loan.kl_repay_data = loan.kl_repayments.map(payment => payment.amount)
+      loan.kl_repay_percent = loan.kl_repayments.map(
         payment => payment.percent,
       )
     }
@@ -134,7 +134,7 @@ const LoanTab = ({loan}) => {
       Math.min(loan.kl_repay_categories.length * 50, 1000),
     )
 
-    const result = {
+    return {
       chart: {
         alignTicks: false,
         type: 'bar',
@@ -203,8 +203,6 @@ const LoanTab = ({loan}) => {
         },
       ],
     };
-
-    return result
   }, [loan]);
 
   return (
@@ -253,7 +251,7 @@ const LoanTab = ({loan}) => {
         {loan.status === 'fundraising' && (
           <>
             <div id="graph_container">
-              <HighchartsReact highcharts={Highcharts} options={config}/>
+              <HighchartsReact highcharts={Highcharts} options={graphConfig}/>
             </div>
 
             <dl className="row" style={{width: '100%'}}>
@@ -326,14 +324,20 @@ LoanTab.propTypes = {
     }),
     kl_percent_women: PT.number,
     kl_posted_date: PT.object,
+    kl_repay_data: PT.object,
+    kl_repay_percent: PT.object,
     kl_planned_expiration_date: PT.object,
     kl_repay_categories: PT.arrayOf(PT.object),
     kl_repayments: PT.arrayOf({
       display: PT.string,
       amount: PT.number,
     }),
-    // kl_repay_data: PT.
+    kls_half_back_actual: PT.number,
+    kls_75_back_actual: PT.number,
+    kls_final_repayment: PT.object,
+    kls_half_back: PT.object,
+    kls_75_back: PT.object,
   }).isRequired,
-}
+};
 
 export default LoanTab

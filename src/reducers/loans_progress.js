@@ -1,5 +1,5 @@
-import * as c from '../constants'
 import extend from 'extend'
+import * as c from '../constants'
 
 /*
   {
@@ -10,11 +10,12 @@ import extend from 'extend'
   }
  */
 
-
-export default function loans_progress(state = {}, action) {
+export default function loansProgress(state = {}, action) {
   switch (action.type) {
     case c.LOANS_PROGRESS_UPDATE:
-      return extend(true, {}, state, {[action.progress.task]: action.progress})
+      return extend(true, {}, state, {
+        [action.progress.task]: action.progress,
+      })
     case c.LOANS_PROGRESS_CLEAR:
       return {}
     default:

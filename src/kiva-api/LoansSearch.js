@@ -35,17 +35,15 @@ class LoansSearch extends PagedKiva {
 
   start() {
     // this seems problematic, break this into a "post process" function, support it in the base class?
-    return super
-      .start()
-      .fail(this.promise.reject)
-      .then(loans => {
-        // after the download process is complete, if a max final payment date was specified, then remove all that don't match.
-        // may want to re-enable this at some point but right now, it's a waste to throw any loans away.
-        // could make this
-        // if (this.max_repayment_date)
-        //    loans = loans.filter(loan => loan.kls_final_repayment.isBefore(this.max_repayment_date))
-        return loans
-      })
+    return super.start().fail(this.promise.reject)
+    // .then(loans => {
+    // after the download process is complete, if a max final payment date was specified, then remove all that don't match.
+    // may want to re-enable this at some point but right now, it's a waste to throw any loans away.
+    // could make this
+    // if (this.max_repayment_date)
+    //    loans = loans.filter(loan => loan.kls_final_repayment.isBefore(this.max_repayment_date))
+    //   return loans;
+    // });
   }
 }
 

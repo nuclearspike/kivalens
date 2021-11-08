@@ -1,3 +1,7 @@
+.root {
+
+}
+
 .root :global(.form-group.field) {
   margin-bottom: 0;
 }
@@ -21,5 +25,3 @@
 .root :global(.ms-Toggle-label) {
   display: none;
 }
-
-

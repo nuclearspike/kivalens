@@ -22,7 +22,7 @@
 
 import {Deferred} from 'jquery-deferred'
 import extend from 'extend'
-import {api_options} from './kivaBase'
+import {apiOptions} from './kivaBase'
 import req from './req'
 
 class ManualPagedKiva {
@@ -30,7 +30,7 @@ class ManualPagedKiva {
     this.url = url
     this.params = extend(
       {},
-      {page: 1, per_page: 100, app_id: api_options.app_id},
+      {page: 1, per_page: 100, app_id: apiOptions.app_id},
       params,
     )
     this.collection = collection
@@ -79,8 +79,7 @@ class ManualPagedKiva {
     return this.getPage(this.currentPage)
   }
 
-  prefetch(maxPages) {
-    if (!maxPages) maxPages = 3
+  prefetch(maxPages = 3) {
     const startPage = this.currentPage + 1
     Array.range(
       startPage,

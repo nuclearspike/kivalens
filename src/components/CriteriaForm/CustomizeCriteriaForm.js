@@ -1,11 +1,11 @@
 import React from 'react'
 import Form from 'react-jsonschema-form-bs4'
-import {TitleField} from './Common'
 import {Toggle} from '@fluentui/react'
+import useStyles from 'isomorphic-style-loader/useStyles'
+import {TitleField} from './Common'
 import {Col, Container, Row} from '../bs'
 import {criteriaSchema} from './allOptions'
 import CollapsingObjectFieldTemplate from './CollapsingObjectFieldTemplate'
-import useStyles from 'isomorphic-style-loader/useStyles'
 import GroupEnabledContext from './GroupEnabledContext'
 import s from './CustomizeCriteriaForm.scss'
 
@@ -15,9 +15,7 @@ const defaultFields = {
 
 const widgets = {}
 
-const DataAsTitleField = ({formData}) => (
-  <legend>{formData}</legend>
-)
+const DataAsTitleField = ({formData}) => <legend>{formData}</legend>
 
 const DataAsDescription = ({formData}) => (
   <div style={{fontSize: 14}}>{formData}</div>
@@ -82,7 +80,7 @@ const customizeSchema = {
       },
     },
   },
-}
+};
 
 const customizeUiSchema = {
   items: {
@@ -121,14 +119,14 @@ const customizeUiSchema = {
     addable: false,
     removable: false,
   },
-}
+};
 
 function genCustomizeData(s) {
   const groups = []
-  Object.keys(s.properties).forEach((key) => {
+  Object.keys(s.properties).forEach(key => {
     const def = s.properties[key]
     const entries = []
-    Object.keys(def.properties).forEach((key) => {
+    Object.keys(def.properties).forEach(key => {
       entries.push({
         name: key,
         title: def.properties[key].title,
@@ -150,7 +148,6 @@ function genCustomizeData(s) {
 
 const data = genCustomizeData(criteriaSchema)
 
-
 const CustomizeCriteriaForm = () => {
   useStyles(s)
   return (
@@ -158,9 +155,7 @@ const CustomizeCriteriaForm = () => {
       <Row>
         <Col>
           <h1>Customize Your Searches</h1>
-          <h5>
-            Hide criteria you never use, order them the way you want.
-          </h5>
+          <h5>Hide criteria you never use, order them the way you want.</h5>
           <Form
             schema={customizeSchema}
             uiSchema={customizeUiSchema}
@@ -174,7 +169,7 @@ const CustomizeCriteriaForm = () => {
         </Col>
       </Row>
     </Container>
-  )
-}
+  );
+};
 
 export default CustomizeCriteriaForm

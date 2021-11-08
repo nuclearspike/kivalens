@@ -13,9 +13,7 @@ export default function Layout({children}) {
   return (
     <>
       <Header/>
-      <div className={s.minPage}>
-        {children}
-      </div>
+      <div className={s.minPage}>{children}</div>
       <Footer/>
     </>
   )
