@@ -776,7 +776,7 @@ else  //workers handle all communication with the clients.
     main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
-    app.use('/proxy/kiva', proxy('https//www.kiva.org', proxyHandler))
+    app.use('/proxy/kiva', proxy('http://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
     //app.use(express.static(__dirname + '/public'))
