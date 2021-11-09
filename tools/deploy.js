@@ -4,13 +4,11 @@ import {spawn} from './lib/cp'
 import {cleanDir, makeDir, moveDir} from './lib/fs'
 import run from './run'
 
-// GitHub Pages
 const remote = {
   name: 'github',
   url: 'https://github.com/nuclearspike/kivalens-transpiled.git',
-  branch: 'master',
+  branch: 'main',
   website: 'https://kivalens-stage.herokuapp.com',
-  // static: true,
 }
 
 // Heroku
