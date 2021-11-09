@@ -24,11 +24,14 @@ export default function Html({
       {scripts.map(script => (
         <link key={script} rel="preload" href={script} as="script"/>
       ))}
-      {/*<link*/}
-      {/*  rel="stylesheet"*/}
-      {/*  href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css"*/}
-      {/*/>*/}
-      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"/>
+      {/* <link */}
+      {/*  rel="stylesheet" */}
+      {/*  href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css" */}
+      {/* /> */}
+      <link
+        rel="stylesheet"
+        href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+      />
       <link
         rel="stylesheet"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
@@ -65,11 +68,11 @@ export default function Html({
     {config.analytics.googleTrackingId && (
       <script
         src="https://www.google-analytics.com/analytics.js"
-            async
-            defer
-          />
-        )}
-      </body>
+        async
+        defer
+      />
+    )}
+    </body>
     </html>
   );
 }

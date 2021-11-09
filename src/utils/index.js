@@ -1,4 +1,4 @@
-export const prettifyCamelCase = (str) => {
+export const prettifyCamelCase = str => {
   let output = ''
   if (!(typeof str === 'string' && str.length > 0)) return ''
   const len = str.length
@@ -21,12 +21,17 @@ export const prettifyCamelCase = (str) => {
   return output
 }
 
-export const humanize = (str) => {
-  return str.split('_').map((frag) => {
-    return frag.charAt(0).toUpperCase() + frag.slice(1)
-  }).join(' ')
+export const humanize = str => {
+  return str
+    .split('_')
+    .map(frag => {
+      return frag.charAt(0).toUpperCase() + frag.slice(1)
+    })
+    .join(' ')
 }
 
-export const arrayWithElements = (test) => Array.isArray(test) && test.length > 0
-export const mapArray = (arr, func) => arrayWithElements(arr) ? arr.map(func) : []
-export const humanizeArray = (arr, textIfEmpty) => arrayWithElements(arr) ? arr.map(t => humanize(t)).join(', ') : textIfEmpty
+export const arrayWithElements = test => Array.isArray(test) && test.length > 0
+export const mapArray = (arr, func) =>
+  arrayWithElements(arr) ? arr.map(func) : []
+export const humanizeArray = (arr, textIfEmpty) =>
+  arrayWithElements(arr) ? arr.map(t => humanize(t)).join(', ') : textIfEmpty

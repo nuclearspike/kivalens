@@ -17,7 +17,7 @@ export const partnerDetailsUpdate = partner => {
 
 export const partnersAllFetch = () => {
   return dispatch => {
-    return new Partners({app_id: 'org.kiva.kivalens'})
+    return new Partners()
       .start()
       .then(result => dispatch(partnerDetailsUpdateMany(result)))
   }

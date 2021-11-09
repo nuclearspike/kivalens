@@ -44,8 +44,7 @@ class CritTester {
   ) {
     if (!values) values = this.critGroup[critName]
     if (values && values.length > 0) {
-      const allAnyNone =
-        this.critGroup[`${critName}_all_any_none`] || defValue
+      const allAnyNone = this.critGroup[`${critName}_all_any_none`] || defValue
       // if (allAnyNone == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
       switch (allAnyNone) {
         case 'any':

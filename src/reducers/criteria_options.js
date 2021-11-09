@@ -6,9 +6,10 @@
  * adapt to the list if there are loans that are higher. this should be passed down from the server.
  */
 
+// UPDATE: NOT PLANNING TO USE THIS.
+
 export default function criteria_options(state = {}, action) {
   switch (action.type) {
-
     default:
       return state
   }

@@ -15,9 +15,9 @@ const Navigation = () => {
       <Link className={s.link} to="/basket">
         Basket <span style={{color: 'white'}}>{basketCount}</span>
       </Link>
-      {/*<Link className={s.link} to="/teams">*/}
-      {/*  Teams*/}
-      {/*</Link>*/}
+      {/* <Link className={s.link} to="/teams"> */}
+      {/*  Teams */}
+      {/* </Link> */}
       <Link className={s.link} to="/options">
         Options
       </Link>
@@ -26,7 +26,7 @@ const Navigation = () => {
       </Link>
     </div>
   )
-}
+};
 
 export default Navigation
 

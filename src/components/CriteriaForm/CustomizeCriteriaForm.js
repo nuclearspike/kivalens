@@ -1,4 +1,5 @@
 import React from 'react'
+import PT from 'prop-types'
 import Form from 'react-jsonschema-form-bs4'
 import {Toggle} from '@fluentui/react'
 import useStyles from 'isomorphic-style-loader/useStyles'
@@ -17,9 +18,17 @@ const widgets = {}
 
 const DataAsTitleField = ({formData}) => <legend>{formData}</legend>
 
+DataAsTitleField.propTypes = {
+  formData: PT.string.isRequired,
+}
+
 const DataAsDescription = ({formData}) => (
   <div style={{fontSize: 14}}>{formData}</div>
 )
+
+DataAsDescription.propTypes = {
+  formData: PT.string.isRequired,
+}
 
 const ToggleField = ({schema, formData, onChange}) => {
   return (
@@ -36,6 +45,14 @@ const ToggleField = ({schema, formData, onChange}) => {
       )}
     </GroupEnabledContext.Consumer>
   )
+}
+
+ToggleField.propTypes = {
+  schema: PT.shape({
+    level: PT.number,
+  }).isRequired,
+  formData: PT.shape({}).isRequired,
+  onChange: PT.func.isRequired,
 }
 
 const customizeSchema = {
@@ -121,16 +138,16 @@ const customizeUiSchema = {
   },
 };
 
-function genCustomizeData(s) {
+function genCustomizeData(schema) {
   const groups = []
-  Object.keys(s.properties).forEach(key => {
-    const def = s.properties[key]
+  Object.keys(schema.properties).forEach(key => {
+    const def = schema.properties[key]
     const entries = []
-    Object.keys(def.properties).forEach(key => {
+    Object.keys(def.properties).forEach(key2 => {
       entries.push({
-        name: key,
-        title: def.properties[key].title,
-        description: def.properties[key].description,
+        name: key2,
+        title: def.properties[key2].title,
+        description: def.properties[key2].description,
         enabled: true,
         level: 2,
       })

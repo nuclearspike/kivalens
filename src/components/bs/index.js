@@ -34,5 +34,4 @@ export {
   Jumbotron,
   ButtonGroup,
   Modal,
-}
-
+};

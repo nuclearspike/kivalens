@@ -1,6 +1,6 @@
 import * as c from '../constants'
 
-export const loansDLProgress = (progress) => {
+export const loansDLProgress = progress => {
   return {
     type: c.LOANS_PROGRESS_UPDATE,
     progress,

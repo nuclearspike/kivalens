@@ -69,22 +69,22 @@ const Basket = ({selectedId, tab}) => {
               <h1>Basket</h1>
               <ul>
                 {basket.length > 0 && (
-                  <li>
-                    If you're ready to check out at Kiva, just click the
-                    "Checkout at Kiva" button above the list.
-                  </li>
-                )}
-                {basket.length > 0 && (
-                  <li>
-                    View the loan details by selecting the loans in the list.
-                  </li>
+                  <>
+                    <li>
+                      If you&rsquo;re ready to check out at Kiva, just click the
+                      &ldquo;Checkout at Kiva&rdquo; button above the list.
+                    </li>
+                    <li>
+                      View the loan details by selecting the loans in the list.
+                    </li>
+                  </>
                 )}
                 <li>
                   To add loans to your KivaLens basket, from the search screen,
                   you can double-click the loan in the list or select the loan
-                  then click the "Add to Basket" button. If your goal is to add
-                  a large number of loans at once, use the "Bulk Add" button on
-                  Search.
+                  then click the &ldquo;Add to Basket&rdquo; button. If your
+                  goal is to add a large number of loans at once, use the
+                  &ldquo;Bulk Add&rdquo; button on Search.
                 </li>
               </ul>
             </Jumbotron>
@@ -92,8 +92,8 @@ const Basket = ({selectedId, tab}) => {
         </Col>
       </Row>
     </Container>
-  )
-}
+  );
+};
 
 Basket.propTypes = {
   selectedId: PT.number,

@@ -38,8 +38,8 @@ const ListItem = memo(({id, selected, loanLink}) => {
         </div>
       </Link>
     </span>
-  )
-})
+  );
+});
 
 ListItem.displayName = 'ListItem'
 

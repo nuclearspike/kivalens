@@ -23,7 +23,7 @@ const Home = ({news}) => {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 export default Home

@@ -1,109 +1,119 @@
-'use strict'
-const Deferred = require("jquery-deferred").Deferred
-const sem_one = require("./kivaBase").sem_one
-const sem_two = require("./kivaBase").sem_two
-const serialize = require("./kivaBase").serialize
-const api_options = require('./kivaBase').api_options
-const getUrl = require('./kivaBase').getUrl
-var extend = require('extend')
+const { Deferred } = require('jquery-deferred');
+const extend = require('extend');
+const { sem_one } = require('./kivaBase');
+const { sem_two } = require('./kivaBase');
+const { serialize } = require('./kivaBase');
+const { api_options } = require('./kivaBase');
+const { getUrl } = require('./kivaBase');
 
-const ReqState = {ready: 1, downloading: 2, done: 3, failed: 4, cancelled: 5}
+const ReqState = { ready: 1, downloading: 2, done: 3, failed: 4, cancelled: 5 };
 
 class Request {
   constructor(url, params, page, collection, isSingle) {
-    this.url = url
-    this.params = params
-    this.page = page || 1
-    this.state = ReqState.ready
-    this.collection = collection
-    this.isSingle = isSingle
-    this.ids = []
-    this.results = []
-    this.continuePaging = true
-    this.raw_result = {}
+    this.url = url;
+    this.params = params;
+    this.page = page || 1;
+    this.state = ReqState.ready;
+    this.collection = collection;
+    this.isSingle = isSingle;
+    this.ids = [];
+    this.results = [];
+    this.continuePaging = true;
+    this.raw_result = {};
   }
 
-  //fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
+  // fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
   static get(path, params) {
-    params = extend({}, params, {app_id: api_options.app_id})
-    return getUrl(`https://api.kivaws.org/v1/${path}?${serialize(params)}`, {parseJSON: true}).fail(e => cl(e))
-    //can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
+    params = extend({}, params, { app_id: api_options.app_id });
+    return getUrl(`https://api.kivaws.org/v1/${path}?${serialize(params)}`, {
+      parseJSON: true,
+    }).fail(e => cl(e));
+    // can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
   }
 
-  //semaphored access to kiva api to not overload it. also, it handles collections.
+  // semaphored access to kiva api to not overload it. also, it handles collections.
   static sem_get(url, params, collection, isSingle) {
-    var def = Deferred()
-    sem_one.take(function () {
-      this.get(url, params)
-        .always(x => sem_one.leave())
-        .done(def.resolve)
-        .fail(def.reject)
-        .progress(def.notify)
-    }.bind(this))
+    const def = Deferred();
+    sem_one.take(
+      function() {
+        this.get(url, params)
+          .always(x => sem_one.leave())
+          .done(def.resolve)
+          .fail(def.reject)
+          .progress(def.notify);
+      }.bind(this),
+    );
 
-    //should this be a wrapping function?
-    if (collection) { //'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
-      return def.then(result => isSingle ? result[collection][0] : result[collection])
-    } else {
-      return def
+    // should this be a wrapping function?
+    if (collection) {
+      // 'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
+      return def.then(result =>
+        isSingle ? result[collection][0] : result[collection],
+      );
     }
+    return def;
   }
 
   fetch() {
-    var def = Deferred()
+    const def = Deferred();
 
-    sem_one.take(function () {
-      if (this.state == ReqState.cancelled) { //this only works with single stage.
-        sem_one.leave()
-        //def.reject() //failing the process is dangerous, done() won't fire!
-        return def
-      } else {
-        if (this.page)
-          extend(this.params, {page: this.page})
-        def.fail(() => this.state = ReqState.failed)
+    sem_one.take(
+      function() {
+        if (this.state == ReqState.cancelled) {
+          // this only works with single stage.
+          sem_one.leave();
+          // def.reject() //failing the process is dangerous, done() won't fire!
+          return def;
+        }
+        if (this.page) extend(this.params, { page: this.page });
+        def.fail(() => (this.state = ReqState.failed));
         Request.get(this.url, this.params)
           .always(x => sem_one.leave(1))
           .done(result => {
-            if (result.paging.page == 1)
-              this.raw_paging = result.paging
-          }) //cannot pass the func itself since it takes params.
+            if (result.paging.page == 1) this.raw_paging = result.paging;
+          }) // cannot pass the func itself since it takes params.
           .done(def.resolve)
           .progress(def.notify)
-          .fail(def.reject)
-      }
-    }.bind(this))
+          .fail(def.reject);
+      }.bind(this),
+    );
 
-    if (this.collection) { //'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
-      return def.then(result => this.isSingle ? result[this.collection][0] : result[this.collection])
-    } else {
-      return def
+    if (this.collection) {
+      // 'loans' 'partners' etc... then do another step of processing. will resolve as undefined if no result.
+      return def.then(result =>
+        this.isSingle ? result[this.collection][0] : result[this.collection],
+      );
     }
+    return def;
   }
 
   fetchFromIds(ids) {
-    this.state = ReqState.downloading
-    this.ids = ids
+    this.state = ReqState.downloading;
+    this.ids = ids;
 
-    var def = Deferred()
+    const def = Deferred();
 
-    sem_two.take(function () { //this pattern happens several times, it should be a function.
-      if (this.state == ReqState.cancelled) { //this only works with single stage.
-        sem_two.leave()
-        //def.reject() bad idea
-        return def
-      } else {
-        def.fail(() => this.state = ReqState.failed)
+    sem_two.take(
+      function() {
+        // this pattern happens several times, it should be a function.
+        if (this.state == ReqState.cancelled) {
+          // this only works with single stage.
+          sem_two.leave();
+          // def.reject() bad idea
+          return def;
+        }
+        def.fail(() => (this.state = ReqState.failed));
         Request.get(`${this.collection}/${ids.join(',')}.json`, {})
           .always(x => sem_two.leave(1))
           .done(result => def.resolve(result[this.collection]))
-          .fail(def.reject) //does this really fire properly? no one is listening for this
-          .progress(def.notify)
-      }
-    }.bind(this))
+          .fail(def.reject) // does this really fire properly? no one is listening for this
+          .progress(def.notify);
+      }.bind(this),
+    );
 
-    return def
+    return def;
   }
 }
 
-exports.ReqState = ReqState
-exports.Request = Request
+exports.ReqState = ReqState;
+exports.Request = Request;

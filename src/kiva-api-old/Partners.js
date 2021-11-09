@@ -1,7 +1,5 @@
-'use strict'
-
-const PagedKiva = require("./PagedKiva")
-const ResultProcessors = require('./ResultProcessors')
+const PagedKiva = require('./PagedKiva');
+const ResultProcessors = require('./ResultProcessors');
 
 /**
  * Even though Kiva currently returns all partners on a single page, using this class
@@ -9,12 +7,12 @@ const ResultProcessors = require('./ResultProcessors')
  */
 class Partners extends PagedKiva {
   constructor() {
-    super(`partners.json`, {per_page: 500}, 'partners')
+    super(`partners.json`, { per_page: 500 }, 'partners');
   }
 
   start() {
-    return super.start().then(ResultProcessors.processPartners)
+    return super.start().then(ResultProcessors.processPartners);
   }
 }
 
-module.exports = Partners
+module.exports = Partners;

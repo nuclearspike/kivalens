@@ -1,21 +1,28 @@
 import React from 'react'
-import {Dropdown, DropdownButton} from '../bs'
 import Select from 'react-select'
+import {Dropdown, DropdownButton} from '../bs'
 
-const options = ['Wonky', 'Donkey', 'Span', 'Shucks'].map(i => ({value: i, label: i}))
+const options = ['Wonky', 'Donkey', 'Span', 'Shucks'].map(i => ({
+  value: i,
+  label: i,
+}))
 
 const canAllStyles = {all: 'success', any: 'primary', none: 'danger'}
 const cannotAllStyles = {any: 'success', none: 'danger'}
 
-export const AllAnyNoneSelectorField = ({formData, onChange, schema: {canAll}}) => {
-  const styles = (canAll) ? canAllStyles : cannotAllStyles
+export const AllAnyNoneSelectorField = ({
+                                          formData,
+                                          onChange,
+                                          schema: {canAll},
+                                        }) => {
+  const styles = canAll ? canAllStyles : cannotAllStyles
   return (
     <DropdownButton
       id="bg-nested-dropdown"
       title={formData}
       variant={styles[formData]}
       drop="right"
-      onSelect={(aan) => onChange(aan)}
+      onSelect={aan => onChange(aan)}
     >
       {canAll && <Dropdown.Item eventKey="all">All of these</Dropdown.Item>}
       <Dropdown.Item eventKey="any">Any of these</Dropdown.Item>
@@ -26,7 +33,6 @@ export const AllAnyNoneSelectorField = ({formData, onChange, schema: {canAll}}) 
 
 const styles = {
   multiValue: (styles, {data}) => {
-
     return {
       ...styles,
     }
@@ -34,7 +40,7 @@ const styles = {
 }
 
 export const MultiSelectField = ({formData, onChange}) => {
-  const valueChange = (value) => onChange((value || []).map(v => v.value))
+  const valueChange = value => onChange((value || []).map(v => v.value))
   const processed = (formData || []).map(value => ({label: value, value}))
   return (
     <Select

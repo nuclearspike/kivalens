@@ -1,6 +1,6 @@
 import React from 'react'
 import Layout from '../../components/Layout'
-import Loan from "../../components/Loan"
+import Loan from '../../components/Loan'
 
 async function action({params: {id: idString, tab}}) {
   const id = parseInt(idString, 10)

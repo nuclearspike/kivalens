@@ -86,7 +86,7 @@ const getUrl = (url, options) => {
   xhr.send()
 
   return d
-}
+};
 
 const postUrl = (url, options, query) => {
   const d = Deferred()

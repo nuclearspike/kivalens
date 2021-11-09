@@ -2,18 +2,8 @@
 
 }
 
-.root :global(.form-group.field) {
-  margin-bottom: 0;
-}
-
 .root :global(.card-body) {
   padding-top: 10px;
-  padding-bottom: 0;
-  padding-left: 10px;
-}
-
-.root :global(.card .card-header) {
-  padding-top: 0;
   padding-bottom: 0;
   padding-left: 10px;
 }
@@ -24,4 +14,14 @@
 
 .root :global(.ms-Toggle-label) {
   display: none;
+}
+
+.root :global(.form-group.field) {
+  margin-bottom: 0;
+}
+
+.root :global(.card .card-header) {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 10px;
 }

@@ -113,7 +113,7 @@ const PartnerTab = ({partner_id}) => {
         dtClass="col-sm-6"
       />
     ))
-  }, [partner])
+  }, [partner]);
 
   if (!partner) {
     return <div/>

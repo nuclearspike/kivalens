@@ -10,7 +10,11 @@ import 'linqjs'
 export default function basket(state = [], action) {
   switch (action.type) {
     case c.BASKET_ADD:
-      state.push({id: action.id, team_id: action.team_id, amount: action.amount})
+      state.push({
+        id: action.id,
+        team_id: action.team_id,
+        amount: action.amount,
+      })
       return state.distinct(({id}) => id)
     case c.BASKET_ADD_MANY:
       // not correct... concat with array of ids vs that it's an array of objects.

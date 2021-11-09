@@ -17,7 +17,7 @@ import ListItem from '../ListItem/ListItem'
 const BasketItem = ({id, selected, loanLink}) => {
   // should I display the amount on top of the image?
   return <ListItem id={id} selected={selected} loanLink={loanLink}/>
-}
+};
 
 BasketItem.propTypes = {
   id: PT.number.isRequired,

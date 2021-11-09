@@ -26,7 +26,11 @@ const Search = memo(({selectedId, tab}) => {
           </ButtonGroup>
           <StickyColumn>
             <LoansProgress/>
-            <Infinite containerHeight={700} elementHeight={65}>
+            <Infinite
+              preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
+              containerHeight={700}
+              elementHeight={65}
+            >
               {loanIds.map(id => (
                 <ListItem
                   key={id}

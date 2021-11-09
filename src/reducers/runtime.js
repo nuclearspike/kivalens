@@ -1,8 +1,8 @@
-import {SET_RUNTIME_VARIABLE} from '../constants'
+import * as c from '../constants'
 
 export default function runtime(state = {}, action) {
   switch (action.type) {
-    case SET_RUNTIME_VARIABLE:
+    case c.SET_RUNTIME_VARIABLE:
       return {
         ...state,
         [action.payload.name]: action.payload.value,

@@ -9,7 +9,7 @@ const PartialExactSelectorField = ({formData, onChange, schema}) => {
       title={formData}
       variant={styles[formData]}
       drop="right"
-      onSelect={(selection) => onChange(selection)}
+      onSelect={selection => onChange(selection)}
     >
       <Dropdown.Item eventKey="partial">Partial</Dropdown.Item>
       <Dropdown.Item eventKey="exact">Exact</Dropdown.Item>

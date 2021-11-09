@@ -1,12 +1,3 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 import 'whatwg-fetch'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -23,8 +14,11 @@ import router from './router'
 
 import {loansAllFetch} from './actions/all_loans'
 import {partnersAllFetch} from './actions/partner_details'
+import {setAPIOptions} from './kiva-api/kivaBase'
 
 initializeIcons()
+
+setAPIOptions({app_id: 'org.kiva.kivalens'})
 
 // Enables critical path CSS rendering
 // https://github.com/kriasoft/isomorphic-style-loader

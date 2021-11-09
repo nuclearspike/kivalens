@@ -4,8 +4,8 @@ import cx from 'classnames'
 
 const DTDD = ({term, def, dtClass, ddClass}) => (
   <>
-    <dt className={cx(dtClass, "text-right")}>{term}</dt>
-    <dd className={cx(ddClass, "text-left")}>{def}</dd>
+    <dt className={cx(dtClass, 'text-right')}>{term}</dt>
+    <dd className={cx(ddClass, 'text-left')}>{def}</dd>
   </>
 )
 

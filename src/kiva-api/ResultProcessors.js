@@ -33,7 +33,7 @@ const commonDescr = commonUse.concat([
   'INCOME',
   'WILL',
   'HAVE',
-])
+]);
 
 const ageRegEx1 = new RegExp(/([2-9]\d)[ |-]years?[ |-](?:of age|old)/i)
 const ageRegEx2 = new RegExp(/(?:aged?|is) ([2-9]\d)/i) // reduce to a single regex?
@@ -146,7 +146,9 @@ class ResultProcessors {
     if (!loan.funded_amount) loan.funded_amount = 0
     // eslint-disable-next-line func-names
     loan.kl_dollars_per_hour = function () {
-      return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
+      return (
+        (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
+      )
     }.bind(loan)
     loan.kl_still_needed = Math.max(
       loan.loan_amount - loan.funded_amount - loan.basket_amount,
@@ -353,7 +355,7 @@ class ResultProcessors {
       'Western Europe': 'we',
       Antarctica: 'an',
       Oceania: 'oc',
-    }
+    };
     partners.forEach(p => {
       p.kl_sp = p.social_performance_strengths
         ? p.social_performance_strengths.select(sp => sp.id)

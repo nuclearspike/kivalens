@@ -21,7 +21,7 @@ const actionFormatters = {
     `queryId:${a.queryId}\n   ${singleLine(inspectObject(a.result))}`,
 
   APOLLO_QUERY_STOP: a => `queryId:${a.queryId}`,
-}
+};
 
 // Server side redux action logger
 export default function createLogger() {
@@ -41,5 +41,5 @@ export default function createLogger() {
 
     console.log(` * ${action.type}: ${formattedPayload}`) // eslint-disable-line no-console
     return next(action)
-  }
+  };
 }

@@ -49,16 +49,16 @@ const BulkAddModal = memo(({loanIds}) => {
           toAdd.push({id: loanId, amount: toLend})
         }
         return amountRemaining < 25 // return true == quit
-      })
+      });
       if (toAdd.length > 0) {
         dispatch(basketAddMany(toAdd))
       }
       setMaxBasket(0)
       setMaxPerLoan(25)
       hideFunc()
-    }
+    };
     return <Button onClick={onClick}>Add a Bunch!</Button>
-  })
+  });
 
   return (
     <ModalButton
@@ -95,8 +95,8 @@ const BulkAddModal = memo(({loanIds}) => {
         onChange={maxPerLoanCB}
       />
     </ModalButton>
-  )
-})
+  );
+});
 
 BulkAddModal.displayName = 'BulkAddModal'
 

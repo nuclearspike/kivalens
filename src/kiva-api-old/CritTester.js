@@ -1,4 +1,4 @@
-require('linqjs')
+require('linqjs');
 
 // instantiate one of these to test your partner/loan criteria against the data. all functions are very generic.
 // the idea behind it is you take all of the criteria, and for anything that is set, it adds a "tester" function
@@ -9,29 +9,29 @@ require('linqjs')
 // run. It sets up highly targeted anon funcs to test exactly what the criteria specifies. used in filter() and filterPartners()
 class CritTester {
   constructor(critGroup) {
-    this.crit_group = critGroup
-    this.testers = []
-    this.fail_all = false
+    this.crit_group = critGroup;
+    this.testers = [];
+    this.fail_all = false;
   }
 
   addRangeTesters(critName, selector, overrideIf, overrideFunc) {
-    const min = this.critGroup[`${critName}_min`]
+    const min = this.critGroup[`${critName}_min`];
     if (min !== undefined) {
       const lowTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
-        return min <= selector(entity)
-      }
-      this.testers.push(lowTest)
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true;
+        return min <= selector(entity);
+      };
+      this.testers.push(lowTest);
     }
-    const max = this.critGroup[`${critName}_max`]
+    const max = this.critGroup[`${critName}_max`];
     if (max !== undefined) {
       const highTest = entity => {
         if (overrideIf && overrideIf(entity))
-          return overrideFunc ? overrideFunc(this.critGroup, entity) : true
-        return selector(entity) <= max
-      }
-      this.testers.push(highTest)
+          return overrideFunc ? overrideFunc(this.critGroup, entity) : true;
+        return selector(entity) <= max;
+      };
+      this.testers.push(highTest);
     }
   }
 
@@ -43,58 +43,58 @@ class CritTester {
     entityFieldIsArray,
   ) {
     if (!values) {
-      values = this.critGroup[crit_name]
+      values = this.critGroup[crit_name];
     }
     if (values && values.length > 0) {
       const all_any_none =
-        this.critGroup[`${crit_name}_all_any_none`] || def_value
+        this.critGroup[`${crit_name}_all_any_none`] || def_value;
       // if (all_any_none == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
       switch (all_any_none) {
         case 'any':
-          if (entityFieldIsArray) this.addArrayAnyTester(values, selector)
-          else this.addFieldContainsOneOfArrayTester(values, selector)
-          break
+          if (entityFieldIsArray) this.addArrayAnyTester(values, selector);
+          else this.addFieldContainsOneOfArrayTester(values, selector);
+          break;
         case 'all': // field is always an array for an 'all'
-          this.addArrayAllTester(values, selector)
-          break
+          this.addArrayAllTester(values, selector);
+          break;
         case 'none':
-          if (entityFieldIsArray) this.addArrayNoneTester(values, selector)
-          else this.addFieldNotContainsOneOfArrayTester(values, selector)
-          break
+          if (entityFieldIsArray) this.addArrayNoneTester(values, selector);
+          else this.addFieldNotContainsOneOfArrayTester(values, selector);
+          break;
       }
     }
   }
 
   addArrayAllTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const terms_arr = Array.isArray(crit) ? crit : crit.split(',');
       this.testers.push(
         entity =>
           selector(entity) &&
           terms_arr.all(term => selector(entity).contains(term)),
-      )
+      );
     }
   }
 
   addArrayAnyTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const terms_arr = Array.isArray(crit) ? crit : crit.split(',');
       this.testers.push(
         entity =>
           selector(entity) &&
           terms_arr.any(term => selector(entity).contains(term)),
-      )
+      );
     }
   }
 
   addArrayNoneTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const terms_arr = Array.isArray(crit) ? crit : crit.split(',');
       this.testers.push(
         entity =>
           selector(entity) &&
           !terms_arr.any(term => selector(entity).contains(term)),
-      )
+      );
     }
   }
 
@@ -102,51 +102,51 @@ class CritTester {
     if (crit && crit.enabled) {
       if (crit.hideshow == 'show') {
         if (Array.isArray(crit.values) && crit.values.length == 0)
-          this.fail_all = true
-        else this.addFieldContainsOneOfArrayTester(crit.values, selector)
-      } else this.addFieldNotContainsOneOfArrayTester(crit.values, selector)
+          this.fail_all = true;
+        else this.addFieldContainsOneOfArrayTester(crit.values, selector);
+      } else this.addFieldNotContainsOneOfArrayTester(crit.values, selector);
     }
   }
 
   addFieldContainsOneOfArrayTester(crit, selector, fail_if_empty) {
     if (crit) {
       if (crit.length > 0) {
-        const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+        const terms_arr = Array.isArray(crit) ? crit : crit.split(',');
         this.testers.push(entity =>
           selector(entity) !== null
             ? terms_arr.contains(selector(entity))
             : false,
-        )
-      } else if (fail_if_empty) this.fail_all = true
+        );
+      } else if (fail_if_empty) this.fail_all = true;
     }
   }
 
   addFieldNotContainsOneOfArrayTester(crit, selector) {
     if (crit && crit.length > 0) {
-      const terms_arr = Array.isArray(crit) ? crit : crit.split(',')
+      const terms_arr = Array.isArray(crit) ? crit : crit.split(',');
       this.testers.push(entity =>
         selector(entity) !== null
           ? !terms_arr.contains(selector(entity))
           : false,
-      )
+      );
     }
   }
 
   addArrayAllStartWithTester(crit, selector) {
     if (crit && crit.trim().length > 0) {
-      let terms_arr = Array.isArray(crit) ? crit : crit.match(/(\w+)/g)
-      terms_arr = terms_arr.select(term => term.toUpperCase())
+      let terms_arr = Array.isArray(crit) ? crit : crit.match(/(\w+)/g);
+      terms_arr = terms_arr.select(term => term.toUpperCase());
       this.testers.push(entity =>
         terms_arr.all(search_term =>
           selector(entity).any(w => w.startsWith(search_term)),
         ),
-      )
+      );
     }
   }
 
   addSimpleEquals(crit, selector) {
     if (crit && crit.trim().length > 0) {
-      this.testers.push(entity => selector(entity) == crit)
+      this.testers.push(entity => selector(entity) == crit);
     }
   }
 
@@ -155,10 +155,10 @@ class CritTester {
     const search =
       crit && crit.trim().length > 0
         ? crit
-          .match(/(\w+)/g)
-          .distinct()
-          .select(word => word.toUpperCase())
-        : []
+            .match(/(\w+)/g)
+            .distinct()
+            .select(word => word.toUpperCase())
+        : [];
     if (search.length)
       this.testers.push(entity =>
         search.all(
@@ -167,31 +167,31 @@ class CritTester {
               .toUpperCase()
               .indexOf(search_text) > -1,
         ),
-      )
+      );
   }
 
   addThreeStateTester(crit, selector) {
     // '', 'true', 'false'
     if (crit === 'true') {
-      this.testers.push(entity => selector(entity) === true)
+      this.testers.push(entity => selector(entity) === true);
     } else if (crit === 'false') {
-      this.testers.push(entity => selector(entity) === false)
+      this.testers.push(entity => selector(entity) === false);
     }
   }
 
   // this is the main event.
   allPass(entity) {
-    if (this.fail_all) return false // must happen first
-    if (this.testers.length == 0) return true // all on 0-length array will fail :(
+    if (this.fail_all) return false; // must happen first
+    if (this.testers.length == 0) return true; // all on 0-length array will fail :(
     try {
-      return this.testers.all(func => func(entity)) // pass the entity to all of the tester functions, all must pass
+      return this.testers.all(func => func(entity)); // pass the entity to all of the tester functions, all must pass
     } catch (e) {
       console.log(
         `!!!!!!!!!!!! allPass: ${JSON.stringify(entity)} ${e.message}`,
-      )
-      return false
+      );
+      return false;
     }
   }
 }
 
-module.exports = CritTester
+module.exports = CritTester;

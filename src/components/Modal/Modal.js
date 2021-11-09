@@ -33,9 +33,9 @@ const ModalButton = memo(
           </Modal.Footer>
         </Modal>
       </>
-    )
+    );
   },
-)
+);
 
 ModalButton.displayName = 'ModalButton'
 

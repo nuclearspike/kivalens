@@ -18,73 +18,80 @@
  * pk.pageCount, pk.objectCount, accessible for display
  */
 
-//this is not done yet. needs req. doesn't export...
+// this is not done yet. needs req. doesn't export...
 
-const Deferred = require("jquery-deferred").Deferred
-var extend = require('extend')
-const api_options = require('./kivaBase').api_options
+const { Deferred } = require('jquery-deferred');
+const extend = require('extend');
+const { api_options } = require('./kivaBase');
 
 class ManualPagedKiva {
   constructor(url, params, collection) {
-    this.url = url
-    this.params = extend({}, {page: 1, per_page: 100, app_id: api_options.app_id}, params)
-    this.collection = collection
-    this.pages = {}
-    this.pageCount = 0
-    this.objectCount = 0
-    this.currentPage = 0
+    this.url = url;
+    this.params = extend(
+      {},
+      { page: 1, per_page: 100, app_id: api_options.app_id },
+      params,
+    );
+    this.collection = collection;
+    this.pages = {};
+    this.pageCount = 0;
+    this.objectCount = 0;
+    this.currentPage = 0;
   }
 
   processPage(page) {
-    this.pages[page.paging.page] = page[this.collection]
-    return page[this.collection]
+    this.pages[page.paging.page] = page[this.collection];
+    return page[this.collection];
   }
 
   start() {
-    return req.kiva.api.get(this.url, this.params)
+    return req.kiva.api
+      .get(this.url, this.params)
       .then(result => {
-        this.currentPage = result.paging.page
-        this.pageCount = result.paging.pages
-        this.objectCount = result.paging.total
-        return result
-      }).then(this.processPage.bind(this))
+        this.currentPage = result.paging.page;
+        this.pageCount = result.paging.pages;
+        this.objectCount = result.paging.total;
+        return result;
+      })
+      .then(this.processPage.bind(this));
   }
 
   getPage(pageNum) {
-    if (pageNum > this.pageCount || pageNum < 1)
-      return Deferred().reject()
+    if (pageNum > this.pageCount || pageNum < 1) return Deferred().reject();
     if (this.pages[pageNum]) {
-      return Deferred().resolve(this.pages[pageNum])
-    } else {
-      return this.sharedReq.request(this.url, extend({}, this.params, {page: pageNum})).then(this.processPage.bind(this))
+      return Deferred().resolve(this.pages[pageNum]);
     }
+    return this.sharedReq
+      .request(this.url, extend({}, this.params, { page: pageNum }))
+      .then(this.processPage.bind(this));
   }
 
   next() {
-    if (this.currentPage >= this.pageCount)
-      return Deferred().reject()
-    this.currentPage++
-    return this.getPage(this.currentPage)
+    if (this.currentPage >= this.pageCount) return Deferred().reject();
+    this.currentPage++;
+    return this.getPage(this.currentPage);
   }
 
   prev() {
-    if (this.currentPage <= 1)
-      return Deferred().reject()
-    this.currentPage--
-    return this.getPage(this.currentPage)
+    if (this.currentPage <= 1) return Deferred().reject();
+    this.currentPage--;
+    return this.getPage(this.currentPage);
   }
 
   prefetch(maxPages) {
-    if (!maxPages) maxPages = 3
-    let startPage = this.currentPage + 1
-    Array.range(startPage, Math.min(maxPages, this.pageCount - startPage + 1)).forEach(this.getPage.bind(this))
+    if (!maxPages) maxPages = 3;
+    const startPage = this.currentPage + 1;
+    Array.range(
+      startPage,
+      Math.min(maxPages, this.pageCount - startPage + 1),
+    ).forEach(this.getPage.bind(this));
   }
 
   canNext() {
-    return this.currentPage < this.pageCount
+    return this.currentPage < this.pageCount;
   }
 
   canPrev() {
-    return this.currentPage > 1
+    return this.currentPage > 1;
   }
 }

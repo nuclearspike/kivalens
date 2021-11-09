@@ -16,7 +16,7 @@ const BasketSummary = memo(() => {
       {basket.length} loans ${sum}
     </div>
   )
-})
+});
 
 BasketSummary.displayName = 'BasketSummary'
 

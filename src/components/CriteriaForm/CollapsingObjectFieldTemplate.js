@@ -5,9 +5,17 @@ import {Accordion, Card} from '../bs'
 import GroupEnabledContext from './GroupEnabledContext'
 // import s from './ObjectFieldTemplate.css'
 
-
-const CollapsingObjectFieldTemplate = ({title, description, schema, properties, formData}) => {
-  const [groupEnabled, setGroupEnabled] = useState({enabled: false, setEnabled: () => true})
+const CollapsingObjectFieldTemplate = ({
+                                         title,
+                                         description,
+                                         schema,
+                                         properties,
+                                         formData,
+                                       }) => {
+  const [groupEnabled, setGroupEnabled] = useState({
+    enabled: false,
+    setEnabled: () => true,
+  })
   return (
     <Accordion key={formData.name}>
       <Card>
@@ -17,10 +25,13 @@ const CollapsingObjectFieldTemplate = ({title, description, schema, properties, 
           </Accordion.Toggle>
         )}
         <Card.Body>
-          <div style={{fontSize: 14, marginLeft: 4}}>
-            {description}
-          </div>
-          <GroupEnabledContext.Provider value={{enabled: groupEnabled.enabled, setEnabled: setGroupEnabled}}>
+          <div style={{fontSize: 14, marginLeft: 4}}>{description}</div>
+          <GroupEnabledContext.Provider
+            value={{
+              enabled: groupEnabled.enabled,
+              setEnabled: setGroupEnabled,
+            }}
+          >
             {mapArray(properties, (element, index) => (
               <div key={index}>{element.content}</div>
             ))}
@@ -33,14 +44,16 @@ const CollapsingObjectFieldTemplate = ({title, description, schema, properties, 
 CollapsingObjectFieldTemplate.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
-  properties: PropTypes.arrayOf(PropTypes.shape({
-    content: PropTypes.node,
-  })),
+  properties: PropTypes.arrayOf(
+    PropTypes.shape({
+      content: PropTypes.node,
+    }),
+  ),
   schema: PropTypes.shape({
     title_field: PropTypes.string,
     additionalProperties: PropTypes.bool,
   }),
   formData: PropTypes.object,
-}
+};
 
 export default CollapsingObjectFieldTemplate
