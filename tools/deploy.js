@@ -9,7 +9,7 @@ const remote = {
   url: 'https://github.com/nuclearspike/kivalens-transpiled.git',
   branch: 'main',
   website: 'https://kivalens-stage.herokuapp.com',
-}
+};
 
 // Heroku
 // const remote = {
