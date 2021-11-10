@@ -1,11 +1,13 @@
 import * as c from '../constants'
 
-export function basketAdd(id, amount) {
+/*
+ basketItem: object: {id:, amount:}
+ */
+export function basketAdd(basketItem) {
   return {
     type: c.BASKET_ADD,
-    id,
-    amount,
-  }
+    payload: { basketItem },
+  };
 }
 
 /*
@@ -14,19 +16,19 @@ export function basketAdd(id, amount) {
 export function basketAddMany(basketItems) {
   return {
     type: c.BASKET_ADD_MANY,
-    basketItems,
-  }
+    payload: { basketItems },
+  };
 }
 
 export function basketRemove(id) {
   return {
     type: c.BASKET_REMOVE,
-    id,
-  }
+    payload: { id },
+  };
 }
 
 export function basketClear() {
   return {
     type: c.BASKET_CLEAR,
-  }
+  };
 }

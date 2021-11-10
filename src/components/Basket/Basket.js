@@ -15,28 +15,28 @@ import s from './Basket.css'
 
 // const loanLink = (id) => `/basket/${id}`
 
-const Basket = ({selectedId, tab}) => {
-  useStyles(s, listItem)
-  const loanLink = useCallback(id => `/basket/${id}/${tab}`, [tab])
-  const dispatch = useDispatch()
-  const basket = useBasket()
+const Basket = ({ selectedId, tab }) => {
+  useStyles(s, listItem);
+  const loanLink = useCallback(id => `/basket/${id}/${tab}`, [tab]);
+  const dispatch = useDispatch();
+  const basket = useBasket();
   const selectedBasketItem = useMemo(
     () => basket.first(l => l.id === selectedId),
     [basket, selectedId],
-  )
+  );
   const removeSelectedCB = useCallback(
     () => dispatch(basketRemove(selectedId)),
     [selectedId],
-  )
+  );
   const checkoutAtKivaCB = useCallback(() => {
-    alert('Not implemented')
-  }, [])
-  const clearBasketCB = useCallback(() => dispatch(basketClear()), [])
+    alert('Not implemented');
+  }, []);
+  const clearBasketCB = useCallback(() => dispatch(basketClear()), []);
   return (
     <Container fluid>
       <Row>
-        <Col xs={12} md={3}>
-          <BasketSummary/>
+        <Col xs={12} md={4}>
+          <BasketSummary />
           <ButtonGroup>
             <Button onClick={checkoutAtKivaCB} disabled={basket.length === 0}>
               Checkout at Kiva
@@ -50,7 +50,7 @@ const Basket = ({selectedId, tab}) => {
           </ButtonGroup>
           <StickyColumn>
             <Infinite containerHeight={700} elementHeight={65}>
-              {basket.map(({id}) => (
+              {basket.map(({ id }) => (
                 <ListItem
                   key={id}
                   id={id}
@@ -61,9 +61,9 @@ const Basket = ({selectedId, tab}) => {
             </Infinite>
           </StickyColumn>
         </Col>
-        <Col xs={12} md={9}>
+        <Col xs={12} md={8}>
           {selectedId ? (
-            <Loan id={selectedId}/>
+            <Loan id={selectedId} />
           ) : (
             <Jumbotron>
               <h1>Basket</h1>
@@ -98,10 +98,11 @@ const Basket = ({selectedId, tab}) => {
 Basket.propTypes = {
   selectedId: PT.number,
   tab: PT.string,
-}
+};
 
 Basket.defaultProps = {
+  selectedId: null,
   tab: 'loan',
-}
+};
 
-export default Basket
+export default Basket;

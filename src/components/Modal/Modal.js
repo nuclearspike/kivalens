@@ -4,13 +4,13 @@ import {Button, Modal} from '../bs'
 import {useStateSetterCallbacks} from '../../store/helpers/hooks'
 
 const ModalButton = memo(
-  ({buttonText, buttonVariant, title, disabled, FooterComp, children}) => {
+  ({ buttonText, buttonVariant, title, disabled, FooterComp, children }) => {
     const [show, setShow, setHide] = useStateSetterCallbacks(false, [
       true,
       false,
-    ])
+    ]);
 
-    title = title || buttonText
+    title = title || buttonText;
 
     return (
       <>
@@ -26,7 +26,7 @@ const ModalButton = memo(
           <Modal.Body>{children}</Modal.Body>
 
           <Modal.Footer>
-            <FooterComp hideFunc={setHide}/>{' '}
+            <FooterComp hideFunc={setHide} />{' '}
             <Button variant="secondary" onClick={setHide}>
               Close
             </Button>
@@ -37,7 +37,7 @@ const ModalButton = memo(
   },
 );
 
-ModalButton.displayName = 'ModalButton'
+ModalButton.displayName = 'ModalButton';
 
 ModalButton.propTypes = {
   buttonText: PT.string.isRequired,
@@ -46,12 +46,12 @@ ModalButton.propTypes = {
   FooterComp: PT.node.isRequired,
   children: PT.node.isRequired,
   disabled: PT.bool,
-}
+};
 
 ModalButton.defaultProps = {
   buttonVariant: 'primary',
   disabled: false,
   title: null,
-}
+};
 
-export default ModalButton
+export default ModalButton;

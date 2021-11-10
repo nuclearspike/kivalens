@@ -1,20 +1,11 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
-import fs from 'fs';
-import path from 'path';
-import webpack from 'webpack';
-import WebpackAssetsManifest from 'webpack-assets-manifest';
-import nodeExternals from 'webpack-node-externals';
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
-import overrideRules from './lib/overrideRules';
-import pkg from '../package.json';
+import fs from 'fs'
+import path from 'path'
+import webpack from 'webpack'
+import WebpackAssetsManifest from 'webpack-assets-manifest'
+import nodeExternals from 'webpack-node-externals'
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer'
+import overrideRules from './lib/overrideRules'
+import pkg from '../package.json'
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const resolvePath = (...args) => path.resolve(ROOT_DIR, ...args);

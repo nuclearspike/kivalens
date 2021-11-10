@@ -2,21 +2,21 @@ import React, {memo, useMemo} from 'react'
 import PT from 'prop-types'
 import {useSelector} from 'react-redux'
 
-const LoanTypeProgress = ({label, description, progress}) => {
+const LoanTypeProgress = ({ label, description, progress }) => {
   if (!process.env.BROWSER) {
-    return <div/>
+    return <div />;
   }
 
   // for some reason, this import causes a bunch of issues when SSR. the progress only shows on client and errors were resolved.
   const {
     ProgressIndicator,
     // eslint-disable-next-line global-require
-  } = require('@fluentui/react/lib/ProgressIndicator')
+  } = require('@fluentui/react/lib/ProgressIndicator');
   const perc = useMemo(() => {
     return progress && progress.done && progress.total
       ? progress.done / progress.total
-      : 1
-  }, [progress, progress && progress.done, progress && progress.total])
+      : 1;
+  }, [progress, progress && progress.done, progress && progress.total]);
 
   return (
     <ProgressIndicator
@@ -24,8 +24,8 @@ const LoanTypeProgress = ({label, description, progress}) => {
       description={`${description} ${progress.done} / ${progress.total}`}
       percentComplete={perc}
     />
-  )
-}
+  );
+};
 
 LoanTypeProgress.propTypes = {
   label: PT.string.isRequired,
@@ -34,20 +34,20 @@ LoanTypeProgress.propTypes = {
     done: PT.number,
     total: PT.number,
   }),
-}
+};
 
 LoanTypeProgress.defaultProps = {
   progress: null,
-}
+};
 
 const LoansProgress = memo(() => {
-  const progress = useSelector(({loansProgress}) => loansProgress)
+  const progress = useSelector(({ loansProgress }) => loansProgress);
 
   if (Object.keys(progress).length === 0) {
-    return <div/>
+    return <div />;
   }
 
-  const {ids, details} = progress
+  const { ids, details } = progress;
 
   return (
     <div>
@@ -69,6 +69,6 @@ const LoansProgress = memo(() => {
   );
 });
 
-LoansProgress.displayName = 'LoansProgress'
+LoansProgress.displayName = 'LoansProgress';
 
-export default LoansProgress
+export default LoansProgress;

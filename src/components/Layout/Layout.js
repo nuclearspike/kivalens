@@ -8,15 +8,15 @@ import Header from '../Header'
 import Footer from '../Footer'
 import s from './Layout.css'
 
-export default function Layout({children}) {
-  useStyles(s, normalizeCss)
+export default function Layout({ children }) {
+  useStyles(s, normalizeCss);
   return (
     <>
-      <Header/>
+      <Header />
       <div className={s.minPage}>{children}</div>
-      <Footer/>
+      <Footer />
     </>
-  )
+  );
 }
 
 Layout.propTypes = {

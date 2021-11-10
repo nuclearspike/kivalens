@@ -10,39 +10,42 @@ import Link from '../Link'
 import {KivaLink} from '../Links'
 import PartnerTab from './PartnerTab'
 
-const Loan = ({id, tab}) => {
-  const dispatch = useDispatch()
+const Loan = ({ id, tab }) => {
+  const dispatch = useDispatch();
   useEffect(() => {
     // cannot shorten to () since this returns a promise
-    dispatch(loanDetailsFetch(id))
-  }, [id])
+    dispatch(loanDetailsFetch(id));
+  }, [id]);
 
-  const loan = useLoanDetails(id)
-  const basketItem = useSelector(({basket}) =>
+  const loan = useLoanDetails(id);
+  const basketItem = useSelector(({ basket }) =>
     basket.first(bi => bi.id === id),
-  )
-  const inBasket = !!basketItem
-  const AddToBasketCB = useCallback(() => dispatch(basketAdd(id, 25)), [id])
-  const RemoveBasketCB = useCallback(() => dispatch(basketRemove(id)), [id])
+  );
+  const inBasket = !!basketItem;
+  const AddToBasketCB = useCallback(
+    () => dispatch(basketAdd({ id, amount: 25 })),
+    [id],
+  );
+  const RemoveBasketCB = useCallback(() => dispatch(basketRemove(id)), [id]);
 
   if (!id) {
-    return <div>Select an item</div>
+    return <div>Select an item</div>;
   }
 
   // console.log('loan', loan)
   if (!loan) {
     return (
-      <Jumbotron style={{padding: '15px'}}>
+      <Jumbotron style={{ padding: '15px' }}>
         <h1>Loading...</h1>
       </Jumbotron>
-    )
+    );
   }
 
   // const inBasket = false //temp
 
   return (
     <div className="Loan">
-      <h1 style={{marginTop: '10px'}}>
+      <h1 style={{ marginTop: '10px' }}>
         <Link to="/search">Search</Link>
         {' > '}
         <KivaLink title="View loan on Kiva.org" path={`lend/${loan.id}`}>
@@ -73,16 +76,16 @@ const Loan = ({id, tab}) => {
         <b>
           {loan.location.country} | {loan.sector} | {loan.activity}
         </b>
-        <br/>
+        <br />
         {loan.use}
       </div>
 
       <Tabs id="loan-tabs" defaultActiveKey="loan">
         <Tab eventKey="loan" title="Loan">
-          <LoanTab loan={loan}/>
+          <LoanTab loan={loan} />
         </Tab>
         <Tab eventKey="partner" title="Partner">
-          <PartnerTab partner_id={loan.partner_id}/>
+          <PartnerTab partner_id={loan.partner_id} />
         </Tab>
         <Tab eventKey="image" title="Image">
           Image
@@ -95,6 +98,6 @@ const Loan = ({id, tab}) => {
 Loan.propTypes = {
   id: PT.number,
   tab: PT.string,
-}
+};
 
-export default Loan
+export default Loan;

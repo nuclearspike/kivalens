@@ -1,19 +1,19 @@
 import useStyles from 'isomorphic-style-loader/useStyles'
-import React from 'react'
+import React, {memo} from 'react'
 import Link from '../Link'
-import s from './Navigation.css'
 import {useBasket} from '../../store/helpers/hooks'
+import s from './Navigation.css'
 
-const Navigation = () => {
-  useStyles(s)
-  const basketCount = useBasket().length
+const Navigation = memo(() => {
+  useStyles(s);
+  const basketCount = useBasket().length;
   return (
     <div className={s.root} role="navigation">
       <Link className={s.link} to="/search">
         Search
       </Link>
       <Link className={s.link} to="/basket">
-        Basket <span style={{color: 'white'}}>{basketCount}</span>
+        Basket <span style={{ color: 'white' }}>{basketCount}</span>
       </Link>
       {/* <Link className={s.link} to="/teams"> */}
       {/*  Teams */}
@@ -25,10 +25,12 @@ const Navigation = () => {
         About
       </Link>
     </div>
-  )
-};
+  );
+});
 
-export default Navigation
+Navigation.displayName = 'Navigation'
+
+export default Navigation;
 
 // <span className={s.spacer}> | </span>
 // <Link className={s.link} to="/login">

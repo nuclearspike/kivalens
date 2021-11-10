@@ -9,7 +9,7 @@ import {format} from './run'
  * output (build) folder.
  */
 async function copy() {
-  await makeDir('build')
+  await makeDir('build');
   await Promise.all([
     writeFile(
       'build/package.json',

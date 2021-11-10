@@ -1,0 +1,22 @@
+.KivaImage {
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.KivaImage img {
+  float: left;
+}
+
+.loaded {
+  background-image: none;
+}
+
+.loaded img {
+  transition: all 300ms ease;
+  opacity: 1;
+}
+
+.not_loaded img {
+  transition: all 300ms ease;
+  opacity: 0;
+}

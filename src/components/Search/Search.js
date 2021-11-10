@@ -9,27 +9,27 @@ import ListItem from '../ListItem/ListItem'
 import Criteria from './Criteria'
 import Loan from '../Loan'
 import LoansProgress from '../LoansProgress'
+import BulkAddModal from './BulkAddModal'
 import s from './Search.css'
 import listItem from '../ListItem/ListItem.css'
-import BulkAddModal from './BulkAddModal'
 
-const Search = memo(({selectedId, tab}) => {
-  useStyles(s, listItem)
-  const loanIds = useSelector(({allLoans}) => allLoans)
-  const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab])
+const Search = memo(({ selectedId, tab }) => {
+  useStyles(s, listItem);
+  const loanIds = useSelector(({ allLoans }) => allLoans);
+  const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab]);
   return (
     <Container fluid className={s.root}>
       <Row>
-        <Col xs={12} md={3}>
+        <Col xs={12} md={4}>
           <ButtonGroup>
-            <BulkAddModal loanIds={loanIds}/>
+            <BulkAddModal loanIds={loanIds} />
           </ButtonGroup>
           <StickyColumn>
-            <LoansProgress/>
+            <LoansProgress />
             <Infinite
               preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
               containerHeight={700}
-              elementHeight={65}
+              elementHeight={100}
             >
               {loanIds.map(id => (
                 <ListItem
@@ -43,27 +43,27 @@ const Search = memo(({selectedId, tab}) => {
           </StickyColumn>
         </Col>
         {selectedId ? (
-          <Col xs={12} md={9}>
-            <Loan id={selectedId}/>
+          <Col xs={12} md={8}>
+            <Loan id={selectedId} />
           </Col>
         ) : (
-          <Criteria/>
+          <Criteria />
         )}
       </Row>
     </Container>
   );
 });
 
-Search.displayName = 'Search'
+Search.displayName = 'Search';
 
 Search.propTypes = {
   selectedId: PT.number,
   tab: PT.string,
-}
+};
 
 Search.defaultProps = {
   selectedId: null,
   tab: 'loan',
-}
+};
 
-export default Search
+export default Search;

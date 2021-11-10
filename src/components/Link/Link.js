@@ -1,13 +1,13 @@
-import React from 'react'
+import React, {memo} from 'react'
 import PropTypes from 'prop-types'
 import history from '../../history'
 
 function isLeftClickEvent(event) {
-  return event.button === 0
+  return event.button === 0;
 }
 
 function isModifiedEvent(event) {
-  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)
+  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
 function handleClick(props, event) {
@@ -27,15 +27,16 @@ function handleClick(props, event) {
   history.push(props.to);
 }
 
-export default function Link(props) {
+const Link = memo(props => {
   const { to, children, ...attrs } = props;
-
   return (
     <a href={to} {...attrs} onClick={e => handleClick(props, e)}>
       {children}
     </a>
   );
-}
+});
+
+Link.displayName = 'Link';
 
 Link.propTypes = {
   to: PropTypes.string.isRequired,
@@ -46,3 +47,5 @@ Link.propTypes = {
 Link.defaultProps = {
   onClick: null,
 };
+
+export default Link;

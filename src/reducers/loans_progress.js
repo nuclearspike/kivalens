@@ -14,11 +14,11 @@ export default function loansProgress(state = {}, action) {
   switch (action.type) {
     case c.LOANS_PROGRESS_UPDATE:
       return extend(true, {}, state, {
-        [action.progress.task]: action.progress,
-      })
+        [action.payload.task]: action.payload,
+      });
     case c.LOANS_PROGRESS_CLEAR:
-      return {}
+      return {};
     default:
-      return state
+      return state;
   }
 }
