@@ -1,8 +1,8 @@
-import React from 'react'
-import useStyles from 'isomorphic-style-loader/useStyles'
-import Container from 'react-bootstrap/Container'
-import s from './Options.css'
-import Link from '../Link'
+import React from 'react';
+import useStyles from 'isomorphic-style-loader/useStyles';
+import Container from 'react-bootstrap/Container';
+import Link from '../Link';
+import s from './Options.css';
 
 const Options = () => {
   useStyles(s);

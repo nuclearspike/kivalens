@@ -1,12 +1,12 @@
-import React, {memo, useCallback, useMemo} from 'react'
-import PT from 'prop-types'
-import cx from 'classnames'
-import {useDispatch} from 'react-redux'
-import {useBasket, useLoanDetails} from '../../store/helpers/hooks'
-import Link from '../Link'
-import {basketAdd, basketRemove} from '../../actions/basket'
-import KivaImage from '../KivaImage/KivaImage'
-import s from './ListItem.css'
+import React, { memo, useCallback, useMemo } from 'react';
+import PT from 'prop-types';
+import cx from 'classnames';
+import { useDispatch } from 'react-redux';
+import { useBasket, useLoanDetails } from '../../store/helpers/hooks';
+import Link from '../Link';
+import { basketAdd, basketRemove } from '../../actions/basket';
+import KivaImage from '../KivaImage/KivaImage';
+import s from './ListItem.css';
 
 const ListItem = memo(({ id, selected, loanLink }) => {
   const dispatch = useDispatch();

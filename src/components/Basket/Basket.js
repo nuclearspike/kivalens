@@ -1,17 +1,17 @@
-import React, {useCallback, useMemo} from 'react'
-import PT from 'prop-types'
-import {useDispatch} from 'react-redux'
-import useStyles from 'isomorphic-style-loader/useStyles'
-import Infinite from 'react-infinite'
-import ListItem from '../ListItem/ListItem'
-import {Button, ButtonGroup, Col, Container, Jumbotron, Row} from '../bs'
-import StickyColumn from '../Common/StickyColumn'
-import Loan from '../Loan'
-import {basketClear, basketRemove} from '../../actions/basket'
-import BasketSummary from './BasketSummary'
-import {useBasket} from '../../store/helpers/hooks'
-import listItem from '../ListItem/ListItem.css'
-import s from './Basket.css'
+import React, { useCallback, useMemo } from 'react';
+import PT from 'prop-types';
+import { useDispatch } from 'react-redux';
+import useStyles from 'isomorphic-style-loader/useStyles';
+import Infinite from 'react-infinite';
+import ListItem from '../ListItem/ListItem';
+import { Button, ButtonGroup, Col, Container, Jumbotron, Row } from '../bs';
+import StickyColumn from '../Common/StickyColumn';
+import Loan from '../Loan';
+import { basketClear, basketRemove } from '../../actions/basket';
+import { useBasket } from '../../store/helpers/hooks';
+import BasketSummary from './BasketSummary';
+import listItem from '../ListItem/ListItem.css';
+import s from './Basket.css';
 
 // const loanLink = (id) => `/basket/${id}`
 

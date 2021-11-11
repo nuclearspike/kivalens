@@ -1,7 +1,7 @@
-import * as c from '../constants'
-import {loanDetailsUpdateMany} from './loan_details'
-import LoansSearch from '../kiva-api/LoansSearch'
-import {loansDLDone, loansDLProgress} from './loans_progress'
+import * as c from '../constants';
+import LoansSearch from '../kiva-api/LoansSearch';
+import { loanDetailsUpdateMany } from './loan_details';
+import { loansDLDone, loansDLProgress } from './loans_progress';
 
 export const loansSetAllIds = ids => {
   return {
@@ -10,13 +10,12 @@ export const loansSetAllIds = ids => {
   };
 };
 
+// /{q: 'Paul'} gender: 'male', sector: 'Retail'
 export const loansAllFetch = () => {
   return dispatch => {
-    // /{q: 'Paul'} gender: 'male', sector: 'Retail'
-    return new LoansSearch()
+    return new LoansSearch({ sort: 'popular' })
       .start()
       .progress(p => {
-        // console.log('progress received', p)
         dispatch(loansDLProgress(p));
       })
       .done(result => {

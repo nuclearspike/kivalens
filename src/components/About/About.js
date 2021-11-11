@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from 'react'
-import {Container} from '../bs'
-import {EmailLink, KivaLink, KLALink, LenderLink, NewTabLink} from '../Links'
+import React, { useState } from 'react';
+import { Container } from '../bs';
+import { EmailLink, KivaLink, KLALink, LenderLink, NewTabLink } from '../Links';
 
-const hasLenderID = false
+const hasLenderID = false;
 
 const About = () => {
-  const [KLAVersion, setKLAVersion] = useState(false)
-  useEffect(() => {
-    // window.callKLAFeature('getVersion').done(({version}) => setKLAVersion(version))
-  }, [])
+  const [KLAVersion, setKLAVersion] = useState(false);
+  // useEffect(() => {
+  //  window.callKLAFeature('getVersion').done(({version}) => setKLAVersion(version))
+  // }, []);
   return (
     <Container>
       <h1>About</h1>
@@ -266,7 +266,7 @@ const About = () => {
           extension to alter your auto-lending settings on Kiva. KivaLens offers
           extensive partner criteria as well as portfolio balancing for Sector,
           Country and Activity. When you use KivaLens in conjunction with{' '}
-          <KLALink/> you can easily set your auto-lending preferences and take
+          <KLALink /> you can easily set your auto-lending preferences and take
           full advantage of Kiva's feature.
         </li>
 
@@ -505,4 +505,4 @@ const About = () => {
   );
 };
 
-export default About
+export default About;

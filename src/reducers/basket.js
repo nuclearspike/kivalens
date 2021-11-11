@@ -1,5 +1,5 @@
-import * as c from '../constants'
-import 'linqjs'
+import * as c from '../constants';
+import 'linqjs';
 
 /**
  * this is all state actions on a basket

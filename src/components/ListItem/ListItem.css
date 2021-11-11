@@ -1,7 +1,5 @@
 .ListItem {
-  padding-top: 5px;
-  padding-bottom: 20px;
-  padding-left: 5px;
+  padding: 5px 8px 20px 5px;
   border-bottom-color: #333;
   border-bottom-style: dashed;
   border-bottom-width: thin;
@@ -18,6 +16,7 @@
 .selected {
   background-color: #7de5ff !important;
   border-right: darkblue double thick;
+  padding-right: 0 !important;
 }
 
 .details {

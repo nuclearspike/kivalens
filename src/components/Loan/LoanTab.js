@@ -1,138 +1,138 @@
-import React, {useEffect, useMemo} from 'react'
-import PT from 'prop-types'
-import {useDispatch} from 'react-redux'
-import TimeAgo from 'react-timeago'
-import numeral from 'numeral'
-import * as Highcharts from 'highcharts'
-import HighchartsReact from 'highcharts-react-official'
-import {Col, OverlayTrigger, Popover, ProgressBar, Row} from '../bs'
-import {humanize, humanizeArray} from '../../utils'
-import {loanDetailsFetch} from '../../actions/loan_details'
-import DTDD from '../DTDD'
+import React, { useEffect, useMemo } from 'react';
+import PT from 'prop-types';
+import { useDispatch } from 'react-redux';
+import TimeAgo from 'react-timeago';
+import numeral from 'numeral';
+import * as Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
+import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
+import { humanize, humanizeArray } from '../../utils';
+import { loanDetailsFetch } from '../../actions/loan_details';
+import DTDD from '../DTDD';
 
-const DisplayDate = ({date}) => (
+const DisplayDate = ({ date }) => (
   <>
-    {date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={date}/>)
+    {date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={date} />)
   </>
-)
+);
 
 DisplayDate.propTypes = {
   date: PT.object.isRequired,
-}
+};
 
-const LoanTab = ({loan}) => {
-  const dispatch = useDispatch()
+const LoanTab = ({ loan }) => {
+  const dispatch = useDispatch();
 
   // this causes a double call but also refreshes
   useEffect(() => {
     // cannot shorten to () since this returns a promise
     setImmediate(() => {
-      dispatch(loanDetailsFetch(loan.id))
-    })
-  }, [loan.id])
+      dispatch(loanDetailsFetch(loan.id));
+    });
+  }, [loan.id]);
 
   const lentPercentages = useMemo(() => {
     if (!loan || !loan.status === 'fundraising') {
-      return {}
+      return {};
     }
-    const fundedPerc = (loan.funded_amount * 100) / loan.loan_amount
-    const basketPerc = (loan.basket_amount * 100) / loan.loan_amount
-    return {funded_perc: fundedPerc, basket_perc: basketPerc}
-  }, [loan])
+    const fundedPerc = (loan.funded_amount * 100) / loan.loan_amount;
+    const basketPerc = (loan.basket_amount * 100) / loan.loan_amount;
+    return { funded_perc: fundedPerc, basket_perc: basketPerc };
+  }, [loan]);
 
   const loanDictionary = useMemo(() => {
-    const result = []
-    const addTerm = (term, def) => result.push({term, def})
+    const result = [];
+    const addTerm = (term, def) => result.push({ term, def });
     if (loan) {
-      addTerm('Saved Searches', '(Not Implemented Yet)')
-      addTerm('Tags', humanizeArray(loan.tags, '(none)'))
-      addTerm('Themes', humanizeArray(loan.themes, '(none)'))
+      addTerm('Saved Searches', '(Not Implemented Yet)');
+      addTerm('Tags', humanizeArray(loan.tags, '(none)'));
+      addTerm('Themes', humanizeArray(loan.themes, '(none)'));
 
       addTerm(
         'Borrowers',
         <>
           {loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female)
         </>,
-      )
-      addTerm('Posted', <DisplayDate date={loan.kl_posted_date}/>)
+      );
+      addTerm('Posted', <DisplayDate date={loan.kl_posted_date} />);
       if (loan.status !== 'fundraising') {
-        addTerm('Status', humanize(loan.status))
+        addTerm('Status', humanize(loan.status));
       }
       if (loan.funded_date) {
-        addTerm('Funded', <DisplayDate date={new Date(loan.funded_date)}/>)
+        addTerm('Funded', <DisplayDate date={new Date(loan.funded_date)} />);
       }
       if (loan.status === 'fundraising') {
         addTerm(
           'Expires',
-          <DisplayDate date={loan.kl_planned_expiration_date}/>,
-        )
+          <DisplayDate date={loan.kl_planned_expiration_date} />,
+        );
       }
       if (loan.terms.disbursal_date) {
         addTerm(
           'Disbursed',
           <span>
             {new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (
-            <TimeAgo date={loan.terms.disbursal_date}/>)
+            <TimeAgo date={loan.terms.disbursal_date} />)
           </span>,
-        )
+        );
       }
       if (loan.status === 'fundraising') {
         addTerm(
           'Final Repayment In',
           <span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>,
-        )
+        );
       }
     }
     return result.map(dict => (
-      <DTDD key={dict.term} term={dict.term} def={dict.def}/>
-    ))
+      <DTDD key={dict.term} term={dict.term} def={dict.def} />
+    ));
   }, [loan]);
 
   const loanStats = useMemo(() => {
-    const result = []
-    const addTerm = (term, def) => result.push({term, def})
+    const result = [];
+    const addTerm = (term, def) => result.push({ term, def });
     if (loan) {
       addTerm(
         '$/Hour',
         <span>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</span>,
-      )
-      addTerm('Loan Amount', <span>${loan.loan_amount}</span>)
-      addTerm('Funded Amount', <span>${loan.funded_amount}</span>)
-      addTerm('In Baskets', <span>${loan.basket_amount}</span>)
-      addTerm('Still Needed', <span>${loan.kl_still_needed}</span>)
+      );
+      addTerm('Loan Amount', <span>${loan.loan_amount}</span>);
+      addTerm('Funded Amount', <span>${loan.funded_amount}</span>);
+      addTerm('In Baskets', <span>${loan.basket_amount}</span>);
+      addTerm('Still Needed', <span>${loan.kl_still_needed}</span>);
     }
     return result.map(dict => (
-      <DTDD key={dict.term} term={dict.term} def={dict.def}/>
-    ))
+      <DTDD key={dict.term} term={dict.term} def={dict.def} />
+    ));
   }, [loan]);
 
   const overlay = useMemo(() => {
     return (
-      <Popover id="progress-hint" style={{padding: 10}}>
+      <Popover id="progress-hint" style={{ padding: 10 }}>
         ${loan.basket_amount} in Baskets
-        <br/>${loan.funded_amount} Funded
-        <br/>${loan.kl_still_needed} Needed
+        <br />${loan.funded_amount} Funded
+        <br />${loan.kl_still_needed} Needed
       </Popover>
-    )
-  }, [lentPercentages])
+    );
+  }, [lentPercentages]);
 
   const graphConfig = useMemo(() => {
-    if (!loan) return null
+    if (!loan) return null;
 
     if (!loan.kl_repay_categories) {
       loan.kl_repay_categories = loan.kl_repayments.map(
         payment => payment.display,
-      )
-      loan.kl_repay_data = loan.kl_repayments.map(payment => payment.amount)
+      );
+      loan.kl_repay_data = loan.kl_repayments.map(payment => payment.amount);
       loan.kl_repay_percent = loan.kl_repayments.map(
         payment => payment.percent,
-      )
+      );
     }
 
     const height = Math.max(
       400,
       Math.min(loan.kl_repay_categories.length * 50, 1000),
-    )
+    );
 
     return {
       chart: {
@@ -142,24 +142,24 @@ const LoanTab = ({loan}) => {
         renderTo: 'graph_container',
         height,
       },
-      title: {text: 'Repayments'},
+      title: { text: 'Repayments' },
       xAxis: {
         categories: loan.kl_repay_categories,
-        title: {text: null},
+        title: { text: null },
       },
       yAxis: [
         {
           min: 0,
-          dataLabels: {enabled: false},
-          labels: {overflow: 'justify'},
-          title: {text: 'USD'},
+          dataLabels: { enabled: false },
+          labels: { overflow: 'justify' },
+          title: { text: 'USD' },
         },
         {
           min: 0,
           max: 100,
-          dataLabels: {enabled: false},
-          labels: {overflow: 'justify'},
-          title: {text: 'Percent'},
+          dataLabels: { enabled: false },
+          labels: { overflow: 'justify' },
+          title: { text: 'Percent' },
         },
       ],
       tooltip: {
@@ -175,7 +175,7 @@ const LoanTab = ({loan}) => {
           },
         },
         area: {
-          marker: {enabled: false},
+          marker: { enabled: false },
           dataLabels: {
             enabled: false,
             valueDecimals: 0,
@@ -183,8 +183,8 @@ const LoanTab = ({loan}) => {
           },
         },
       },
-      legend: {enabled: false},
-      credits: {enabled: false},
+      legend: { enabled: false },
+      credits: { enabled: false },
       series: [
         {
           type: 'column',
@@ -238,23 +238,23 @@ const LoanTab = ({loan}) => {
         </Row>
 
         <Row className="margin-bottom-20">
-          <Col xs={12}/>
+          <Col xs={12} />
         </Row>
 
         <dl className="row">{loanDictionary}</dl>
 
         <dl className="row">{loanStats}</dl>
 
-        <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}}/>
+        <p dangerouslySetInnerHTML={{ __html: loan.description.texts.en }} />
       </Col>
       <Col xs={12} md={4}>
         {loan.status === 'fundraising' && (
           <>
             <div id="graph_container">
-              <HighchartsReact highcharts={Highcharts} options={graphConfig}/>
+              <HighchartsReact highcharts={Highcharts} options={graphConfig} />
             </div>
 
-            <dl className="row" style={{width: '100%'}}>
+            <dl className="row" style={{ width: '100%' }}>
               <DTDD
                 term="Interval"
                 def={loan.terms.repayment_interval}
@@ -340,4 +340,4 @@ LoanTab.propTypes = {
   }).isRequired,
 };
 
-export default LoanTab
+export default LoanTab;

@@ -1,8 +1,8 @@
-import React from 'react'
-import PT from 'prop-types'
-import cx from 'classnames'
-import {useStateSetterCallbacks} from '../../store/helpers/hooks'
-import s from './KivaImage.css'
+import React from 'react';
+import PT from 'prop-types';
+import cx from 'classnames';
+import { useStateSetterCallbacks } from '../../store/helpers/hooks';
+import s from './KivaImage.css';
 
 // eslint-disable-next-line camelcase
 const KivaImage = ({
@@ -38,7 +38,7 @@ const KivaImage = ({
       })}
       style={style}
     >
-      {/*<div className="loading_notice">Larger version loading...</div>*/}
+      {/* <div className="loading_notice">Larger version loading...</div> */}
       <img
         width={width}
         height={height}
