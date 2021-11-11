@@ -1,17 +1,17 @@
-import React, {memo, useCallback} from 'react'
-import PT from 'prop-types'
-import useStyles from 'isomorphic-style-loader/useStyles'
-import {useSelector} from 'react-redux'
-import Infinite from 'react-infinite'
-import {ButtonGroup, Col, Container, Row} from '../bs'
-import StickyColumn from '../Common/StickyColumn'
-import ListItem from '../ListItem/ListItem'
-import Criteria from './Criteria'
-import Loan from '../Loan'
-import LoansProgress from '../LoansProgress'
-import BulkAddModal from './BulkAddModal'
-import s from './Search.css'
-import listItem from '../ListItem/ListItem.css'
+import React, { memo, useCallback } from 'react';
+import PT from 'prop-types';
+import useStyles from 'isomorphic-style-loader/useStyles';
+import { useSelector } from 'react-redux';
+import Infinite from 'react-infinite';
+import { ButtonGroup, Col, Container, Row } from '../bs';
+import StickyColumn from '../Common/StickyColumn';
+import ListItem from '../ListItem/ListItem';
+import Criteria from './Criteria';
+import Loan from '../Loan';
+import LoansProgress from '../LoansProgress';
+import BulkAddModal from './BulkAddModal';
+import s from './Search.css';
+import listItem from '../ListItem/ListItem.css';
 
 const Search = memo(({ selectedId, tab }) => {
   useStyles(s, listItem);
