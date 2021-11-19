@@ -18,7 +18,9 @@ if (!isServer()) {
     req.kl = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},0)
     //req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
     req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
-    kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
+
+    kivaBase = `http://kivalens-www.herokuapp.com/proxy/kiva/`
+
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
     req.kl.graph = query => {
         return postUrl(`${location.protocol}//${location.host}/graphql`,
