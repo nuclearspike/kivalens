@@ -1,0 +1,28 @@
+{
+  "name": "Kiva GraphQL Schema",
+  "schemaPath": "schema.graphql",
+  "schema": {
+    "request": {
+      "url" : "https://api.kivaws.org/graphql",
+      "method" : "POST",
+      "postIntrospectionQuery" : true,
+      "README_options" : "See the 'Options' section at https://github.com/then/then-request",
+      "options" : {
+        "headers": {
+          "user-agent" : "JS GraphQL"
+        }
+      }
+    }
+  },
+  "extensions": {
+    "endpoints": {
+      "Default GraphQL Endpoint": {
+        "url": "https://api.kivaws.org/graphql",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": false
+      }
+    }
+  }
+}

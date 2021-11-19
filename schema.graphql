@@ -1,0 +1,3095 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"The basic loans fields that are in common between partner and direct loans"
+interface LoanBasic {
+  "The activity is a structured categorization of the loan use"
+  activity: Activity!
+  "The level of borrower privacy"
+  anonymizationLevel: AnonymizationLevelEnum!
+  "The number of borrowers participating in the loan"
+  borrowerCount: Int!
+  "The one or more borrowers that are receiving this loan. If there is more than one, the primary borrower is first"
+  borrowers: [Borrower]
+  comments(limit: Int = 20, offset: Int = 0): CommentCollection
+  "Whether or not the loan is eligible for donor-advised funds."
+  dafEligible: Boolean
+  "Whether or not the loan is delinquent. This defaults to false if the user is not privileged to this loan"
+  delinquent: Boolean!
+  "The description of the loan profile in English."
+  description: String!
+  "The description of the loan profile in the original language of its posting"
+  descriptionInOriginalLanguage: String!
+  "The date on which the loan was/will actually be disbursed to the borrower"
+  disbursalDate: Date
+  "How the loan is distributed to the borrower, e.g. 'field_partner' or 'direct'"
+  distributionModel: DistributionModelEnum!
+  "The user who endorsed the loan. Only shown on fundRaising loans, null for all other statuses."
+  endorser: Lender
+  "When the loan started fundraising on Kiva. Same as posted_date in v1."
+  fundraisingDate: Date
+  "The gender of the primary borrower OR majority gender if group"
+  gender: GenderEnum!
+  "The physical location of the borrower and/or business"
+  geocode: Geocode!
+  "Whether or not the loan has currency loss to lenders. Only usable after the loan has moved into the \"ended\" state."
+  hasCurrencyExchangeLossLenders: Boolean!
+  "Unique identifier for a Kiva loan"
+  id: Int!
+  "The picture for this loan profile."
+  image: Image!
+  "If true, this loan is in a Private Fundraising Period"
+  inPfp: Boolean
+  "Is this Kiva loan matchable? e.g. is there a source of funds to provide matching if a share is purchased?"
+  isMatchable: Boolean!
+  "The number of months it will take the borrower to repay the loan"
+  lenderRepaymentTerm: Int!
+  lenders(limit: Int = 20, offset: Int = 0): LenderCollection
+  lendingActions(limit: Int = 20, offset: Int = 0): LendingActionCollection
+  "The amount of this loan, as shown to lenders"
+  loanAmount: Money!
+  "Information about this loan during its fundraising period"
+  loanFundraisingInfo: LoanFundraisingInfo!
+  "The loan match ratio"
+  matchRatio: Int
+  "The id of the loan matcher"
+  matcherAccountId: String
+  "The name of the loan matcher"
+  matcherName: String
+  "Text that is displayed if loan matching is turned on for this loan."
+  matchingText: String
+  "The minimum amount to lend for this loan"
+  minNoteSize: Money!
+  "The name of the borrower or group receiving the loan"
+  name: String!
+  "The original language on the loan"
+  originalLanguage: Language
+  "The amount of settled repayments for a loan that has started paying back"
+  paidAmount: Money!
+  "The minimum number of lenders that this loan needs to exit its private fundraising period (PFP)."
+  pfpMinLenders: Int
+  "When the loan will expire if it is not fully funded"
+  plannedExpirationDate: Date
+  "ID of the loan linked as previous to this one."
+  previousLoanId: Int
+  "When the loan became raised, e.g. fully funded. Same as funded_date in v1"
+  raisedDate: Date
+  "The repayment interval of the loan: \"monthly\", \"irregularly\",\"at_end\""
+  repaymentInterval: String
+  "The research score of the loan theme instance of the loan"
+  researchScore: Float
+  "The sector is a more general classification of the loan than activity"
+  sector: Sector!
+  "The status of a loan"
+  status: LoanStatusEnum!
+  "A list of tags on this loan"
+  tags: [String]
+  teams(limit: Int = 20, offset: Int = 0, sortBy: TeamSearchSortByEnum = newest): TeamCollection
+  "The financial terms of this loan"
+  terms: LoanTerm
+  updates(limit: Int = 20, offset: Int = 0): UpdateCollection
+  "Text describing what the loan is to be used for; a logical subset of description e.g. \"To buy a cow\""
+  use: String!
+  "Properties that apply to the logged in user in relation to a loan."
+  userProperties: LoanUserProperties
+  "Video for this loan"
+  video: Video
+  "Why this loan is considered special."
+  whySpecial: String
+}
+
+"An abstract shop item"
+interface ShopItem {
+  "A distinct string indicating a name for this type of item"
+  basketItemType: String
+  "Credits used for this item"
+  creditsUsed: [Credit]
+  "Unique identifier for a Shop Item"
+  id: Int!
+  "The price of this item"
+  price: Money
+}
+
+"A property of loan which is more descriptive than Sector. Every activity is within a sector. e.g. the 'Animal Sales' activity is within the 'Agriculture' sector. Note, some Activities have the same name as their parent Sector"
+type Activity {
+  "Unique identifier for this activity"
+  id: Int
+  "The name of the activity"
+  name: String
+}
+
+"An authentication factor"
+type AuthenticationFactor {
+  "Whether this enrollment is active"
+  active: Boolean
+  "Type of enrollment"
+  authenticator_type: String
+  "ID of this enrollment"
+  id: ID
+  "Name of enrollment device (i.e. phone number)"
+  name: String
+  "OOB Channel (sms or voice) if this is a OOB enrollment"
+  oob_channel: String
+}
+
+"Manage Authenticator Factors"
+type Authenticator {
+  "authenticator type"
+  authenticator_type: String
+  "barcode uri"
+  barcode_uri: String
+  "binding method"
+  binding_method: String
+  "oob channel"
+  oob_channel: String
+  "oob code"
+  oob_code: String
+  "recovery codes"
+  recovery_codes: [String]
+  "secret"
+  secret: String
+}
+
+"The term AutoDeposit refers to automatic recurring credit deposits and/or donations."
+type AutoDeposit {
+  "Total amount of this auto deposit"
+  amount: Money
+  "The day of the month that the auto deposit transaction takes place"
+  dayOfMonth: Int
+  "Donation amount of this auto deposit"
+  donateAmount: Money
+  "Unique identifier for this auto deposit"
+  id: Int
+  "If the auto deposit initiates payment one time only"
+  isOnetime: Boolean
+  "If the auto deposit is associated with a Monthly Good subscription"
+  isSubscriber: Boolean
+  "Braintree PaymentMethod associated with this auto deposit"
+  paymentMethod: PaymentMethod
+  "If the auto deposit status is active or cancelled"
+  status: AutoDepositStatusEnum
+}
+
+"User settings for automatic lending"
+type AutolendProfile {
+  "The time of a lender's last manual loan, or when their balance reached $25, whichever is more recent. Null for lenders who have a balance less than $25. When idleCreditOptIn=true, a lender becomes eligible for auto-lending lendAfterDaysIdle days after cIdleStartTime."
+  cIdleStartTime: Date
+  "When the lender became eligible for autolending, for non-idle-credit users. When idleCreditOptIn=false, a lender becomes eligible at this time, automatically calculated as enableAfter months after the last login time."
+  cStartTime: Date
+  "The percentage of the loan that will be given in donation"
+  donationPercentage: Int
+  "Number of months of inactivity until autolending starts"
+  enableAfter: Int
+  "Unique identifier for this autolend profile"
+  id: Int
+  "Whether this autolend profile is opted into idle credit"
+  idleCreditOptIn: Boolean
+  "Whether this autolend profile is enabled"
+  isEnabled: Boolean
+  "Whether Kiva chooses which loans this profile lends to instead of using the loan search criteria"
+  kivaChooses: Boolean
+  "The last time an auto-loan was made for this lender."
+  lastAutolendTime: Date
+  "The last time the lender made a manual loan."
+  lastManualLoanTime: Date
+  "When the lender got their last email warning that autolending would begin"
+  lastWarningEmailTime: Date
+  "Number of days funds before idle funds will be lent"
+  lendAfterDaysIdle: Int
+  "Criteria defining the type of loan to autolend to"
+  loanSearchCriteria: LoanSearchCriteria
+  "When to resume autolending, if paused."
+  pauseUntil: Date
+}
+
+"A person who receives a loan through Kiva"
+type Borrower {
+  "The amount of money this individual borrowed. The value is represented in their local currency"
+  borrowedAmount: Money
+  "The first name of the borrower"
+  firstName: String!
+  "The gender of the borrower"
+  gender: GenderEnum!
+  "Unique identifier for this borrower"
+  id: Int
+  "Groups loans have one \"primary\" borrower, the group representative. For individual loans, this field will always be true"
+  isPrimary: Boolean!
+  "If true, the borrower is pictured in the related loan image"
+  pictured: Boolean!
+}
+
+"A user comment made on a Kiva loan."
+type Comment {
+  "Name of the author of the comment"
+  authorName: String
+  "Whereabouts of the author"
+  authorWhereabouts: String
+  "Body of the comment"
+  body: String
+  "Date that the comment was created"
+  date: Date
+  "Unique identifier for this comment"
+  id: Int
+  "ID of the loan that this comment is about"
+  loanID: Int
+  "ID of the parent comment, as in a comment thread"
+  parentId: Int
+  "If the comment was made by an authenticated Kiva Lender, this is the user ID identifying that lender."
+  userId: Int
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type CommentCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Comment]
+}
+
+"Settings for what notifications a user wants to receive from Kiva."
+type CommunicationSettings {
+  "True if this user is subscribed to portfolio and balance updates."
+  accountUpdates: Boolean
+  "The frequency at which autolending notifications will be sent to this user."
+  autolendUpdates: MessageFrequencyEnum
+  "True if this user is a borrower subscribed to entrepreneur community updates."
+  borrowerNews: Boolean
+  "True if this user is subscribed to comments and messages from other lenders."
+  commentsMessages: Boolean
+  "True if this user is unsubscribed from all current and future non-legally required emails."
+  globalUnsubscribed: Boolean
+  "True if this user is a borrower subscribed to emails about getting started at Kiva."
+  leadNurturing: Boolean
+  "True if this user is subscribed to news, inspiration and promotions."
+  lenderNews: Boolean
+  "True if this user is subscribed to loan and borrower updates."
+  loanUpdates: Boolean
+  "True if the user is subscribed to monthly good updates"
+  monthlyGood: Boolean
+  "True if this user is a trustee subscribed to the borrower network digest."
+  networkDigest: Boolean
+  "True if this user is a trustee subscribed to borrower network transactions."
+  networkTransactions: Boolean
+  "True if this user is a borrower subscribed to the loan success guide."
+  onboardingSupport: Boolean
+  "The frequency at which repayment notifications will be sent to this user."
+  repaymentUpdates: MessageFrequencyEnum
+  "The frequency at which team digests will be sent to this user."
+  teamDigests: TeamMessageFrequencyEnum
+  "True if this user is a trustee subscribed to trustee news and tips."
+  trusteeNews: Boolean
+}
+
+"Community category which includes all fields related to community"
+type Community {
+  "Returns lender by publicId"
+  lender(publicId: String!): Lender
+  "Returns team by id or teamPublicId (must specify one, will default to id)"
+  team(
+    "The kiva id of the team (ie 2)"
+    id: Int,
+    "The public id team, e.g. (\"braincrave\")"
+    teamPublicId: String
+  ): Team
+  "Returns a collection of teams based on the arguments passed in"
+  teams(filters: TeamSearchFilters, limit: Int = 20, offset: Int = 0, queryString: String, sortBy: TeamSearchSortByEnum = newest): TeamCollection
+}
+
+"Holds contact information for a person or organization"
+type ContactRecord {
+  "City"
+  city: String!
+  "Country type"
+  country: Country
+  "Postal or zip code"
+  postalCode: String!
+  "State or province"
+  state: String!
+}
+
+"Simple representation of a country where Kiva operates"
+type Country {
+  "Total funds lent in the country"
+  fundsLentInCountry: Int
+  "Geocode for the center of the country"
+  geocode: Geocode
+  "The two character ISO country code"
+  isoCode: String
+  "The name of the country"
+  name: String
+  "Total number of fundraising loans in the country"
+  numLoansFundraising: Int
+  "GDP per capita (PPP), or the average annual income per person in this country, in US Dollars, as a string (may have a note about the number)"
+  ppp: String
+  "The region  the country is in, e.g. 'Central America'"
+  region: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type CountryCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Country!]!
+}
+
+"Simple representation of a country where Kiva operates with Loan Count"
+type CountryFacet {
+  "Loan count for this Country"
+  count: Int
+  "Country Info"
+  country: Country
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type CountryFacetCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [CountryFacet]
+}
+
+"A credit which an be used towards buying an item"
+type Credit {
+  "When a part of creditsUsed, this is the amount of the credit used for the parent item."
+  amount: Money
+  "When in the credit list, this is the amount of the credit applied to items in the basket."
+  applied: Money
+  "When in the credit list, this is the amount of the credit available to be used in the basket."
+  available: Money
+  "A distinct string indicating a name for this type of credit"
+  creditType: CreditTypeEnum
+  "Unique identifier for a Shop Credit"
+  id: Int!
+  "If this is a promotional credit, then this represents the promo fund"
+  promoFund: PromoFund
+}
+
+"Details for a Braintree-stored credit card"
+type CreditCard {
+  "Type type of credit card, e.g. MasterCard, Visa, etc."
+  cardType: String!
+  "Whether this credit card is a lender's default"
+  default: Boolean!
+  "The credit card's expiration date, formatted as MM/YY or MM/YYYY"
+  expirationDate: String!
+  "A URL that points to a payment method image resource (a PNG file) hosted by Braintree"
+  imageUrl: String!
+  "The last 4 digits of the credit card number"
+  last4: String!
+  "An alphanumeric value specifying this credit card in the Vault"
+  token: ID!
+}
+
+"Parent type for all credit card data for a user."
+type CreditCardVault {
+  "A condensed list of details for each credit card in Braintree a customer has"
+  creditCards: [CreditCard!]! @deprecated(reason : "No longer supported. Use PaymentMethodsType instead.")
+}
+
+"The set of mutations that can be performed on Braintree credit card data."
+type CreditCardVaultMutation {
+  "Deletes a customer's card in Braintree"
+  deleteCreditCard(
+    "A unique token identifying this card"
+    token: ID!
+  ): Boolean
+  "Save a new payment method in Braintree based on client nonce"
+  savePaymentMethod(deviceData: String, makeDefault: Boolean, nonce: String!): PaymentMethod
+  "Set a customer's default payment card in Braintree"
+  updateDefaultCreditCard(
+    "A unique token identifying this card"
+    token: ID!
+  ): Boolean
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type CreditCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Credit]
+}
+
+"Total amounts related to deposits"
+type DepositTotals {
+  "Total amount of deposit"
+  depositTotal: Money
+  "Amount of Kiva Credit added"
+  kivaCreditAdded: Money
+  "Amount of Kiva Credit used"
+  kivaCreditUsed: Money
+}
+
+"Representation of a donation"
+type Donation implements ShopItem {
+  "A distinct string indicating a name for this type of item"
+  basketItemType: String
+  "Credits used for this item"
+  creditsUsed: [Credit]
+  "Unique identifier for a Shop Item"
+  id: Int!
+  "Whether the donation came from the basket view (tip)"
+  isTip: Boolean
+  "Whether the user edited the donation amount from the suggest amount. Only really meaningful when isTip is true"
+  isUserEdited: Boolean
+  "The price of this item"
+  price: Money
+}
+
+"General category which includes all fields that don't fit into any other category"
+type General {
+  "Returns the json-encoded body of a content item from the cms"
+  cmsContent(pathId: String!): String
+  "Returns data associated with a \"config\" setting."
+  configSetting(key: String!): Setting
+  "Returns data associated with a \"feature\" setting."
+  featureSetting(key: String!): Setting
+  "Returns general Kiva stats"
+  kivaStats: KivaStats
+  "Returns the lending preferences of the visitor or logged in user"
+  lendingPreferences(visitorId: String): LendingPreferences
+  "Returns partner by id"
+  partner(id: Int!): Partner
+  "Returns a collection of partners based on the arguments passed in"
+  partners(filters: PartnerSearchFilters = {}, limit: Int = 20, offset: Int = 0, sortBy: PartnerSearchSortByEnum = name): PartnerCollection
+  "Returns data associated with a \"promo\" setting."
+  promoSetting(key: String!): Setting
+  "Returns Salesforce solution by id"
+  salesforceSolution(id: String!): SalesforceSolution
+  "(Deprecated) (Kiva app only) Returns data associated with a specific setting."
+  setting(setting: String): Setting
+  "Returns trustee by id"
+  trustee(id: Int!): Trustee
+  "Returns a collection of trustees based on the arguments passed in"
+  trustees(filters: TrusteeSearchFilters = {}, limit: Int = 20, offset: Int = 0, queryString: String, sortBy: TrusteeSearchSortByEnum = newest): TrusteeCollection
+  "Returns data associated with a \"ui\" setting."
+  uiConfigSetting(key: String!): Setting
+  "Returns data associated with a \"uiexp\" setting."
+  uiExperimentSetting(key: String!): Setting
+  "Returns update by ID"
+  update(id: Int!): Update
+  "Returns a collection of updates based on the arguments passed in."
+  updates(filters: UpdateSearchFilters, limit: Int = 20, offset: Int = 0, queryString: String, sortBy: BasicSortByEnum = newest): UpdateCollection
+  "Fetch data off the user's session. Results in JSON."
+  userSessionData(sessionKey: UserSessionKeyEnum): UserSession
+}
+
+"(Kiva app only) The set of general mutations you can perform"
+type GeneralMutation {
+  "(Kiva app only) Delete setting in settings manager."
+  deleteSetting(key: String!): Boolean
+  "Delete data at the given key for the user's session. Returns true on success."
+  deleteUserSessionData(sessionKey: UserSessionKeyEnum): Boolean
+  "Create, or update, the lending preferences of the visitor or logged in user"
+  saveLendingPreferences(causes: [Int], countries: [String], visitorId: String): LendingPreferences
+  "(Kiva app only) Create or update setting in settings manager."
+  setSetting(data_type: SettingDataTypeEnum, description: String, key: String!, value: String): Boolean
+  "Set data on the user's session. Returns true on success."
+  setUserSessionData(userSessionData: UserSessionInput!): Boolean
+  "Starts the guest account claim process."
+  startGuestAccountClaim(firstName: String!, lastName: String!, visitorId: String!): String
+}
+
+"Simple representation of Kc_Geocode"
+type Geocode {
+  "City of the geocode location"
+  city: String
+  "Country of the geocode location"
+  country: Country
+  "Latitude of the geocode location"
+  latitude: Float
+  "Longitude of the geocode location"
+  longitude: Float
+  "Postal code of the geocode location"
+  postalCode: String
+  "State or province of the geocode location"
+  state: String
+}
+
+"Representation of a Kiva image"
+type Image {
+  "A MD5 hash of the image file"
+  hash: String
+  "The height of the original image file"
+  height: Int
+  "Unique identifier for the image"
+  id: Int
+  "You can specify either a common image size enum, or a custom size, to get an image url"
+  url(
+    "Specify your own custom size. To get a square use 's' and pixels per side (ie s100). To get a rectangle use 'h' for height and 'w' for width (ie h100w200)"
+    customSize: String = "",
+    "A set of common image sizes"
+    presetSize: ImageSizeEnum = default
+  ): Url
+  "The width of the original image file"
+  width: Int
+}
+
+"Representation of a Kiva card. Kiva cards are special in that multiple cards can be bought together and they are grouped as single items with the additional fields: \"quantity\", \"individualPrice\", and \"idsInGroup\". Note that the \"price\" of the KivaCard represents the total price of all cards in the group."
+type KivaCard implements ShopItem {
+  "A distinct string indicating a name for this type of item"
+  basketItemType: String
+  "Credits used for this item"
+  creditsUsed: [Credit]
+  "Unique identifier for a Shop Item"
+  id: Int!
+  "The list of all the individual kiva card ids being bought together in this group."
+  idsInGroup: [Int]
+  "The individual price of one of the kiva cards being bought together in this group. The total price of all kiva cards is reflected in the \"price\""
+  individualPrice: Money
+  "Contains fields about the kiva card itself"
+  kivaCardObject: KivaCardObject
+  "The price of this item"
+  price: Money
+  "The quantity of kiva cards being bought together in this group."
+  quantity: String
+}
+
+"Contains fields about the kiva card mailing address"
+type KivaCardMailing {
+  address: String
+  address2: String
+  city: String
+  firstName: String
+  lastName: String
+  state: String
+  zip: String
+}
+
+"The underlying Kc KivaCard that the Shop KivaCard wraps"
+type KivaCardObject {
+  "When the card was created"
+  createTime: Date
+  "One of email, print, postal, lender"
+  deliveryType: String
+  "Kiva card mailing details"
+  mailingInfo: KivaCardMailing
+  "Message from the purchaser to the recipient"
+  message: String
+  "Kiva card recipient details"
+  recipient: KivaCardRecipient
+  "The actual string redemption code for this Kiva card"
+  redemptionCode: String
+  "Email address of the card sender"
+  senderEmail: String
+  "Name of the card sender"
+  senderName: String
+}
+
+"Contains fields about the kiva card recipient"
+type KivaCardRecipient {
+  "Email address of Card recipient"
+  email: String
+  "Name of recipient as address chosen by sender"
+  name: String
+  "The date (first second of the day) it should be delivered to recipient"
+  scheduledDeliveryDate: Date
+}
+
+"Statistics about Kiva"
+type KivaStats {
+  "The full list of activities Kiva uses to categorize loans"
+  activities: [Activity]
+  "The total amount funded on Kiva"
+  amountFunded: Int
+  "The latest donation campaign values"
+  latestDonationCampaign: LatestDonationCampaign
+  "The total number of all time Kiva borrowers"
+  numBorrowers: Int
+  "The total number of countries Kiva works in"
+  numCountries: Int
+  "The total number of all time Kiva lenders"
+  numLenders: Int
+  "The total number of funded loans since the given start date"
+  numRecentFundedLoans(
+    "The date to start search from (cannot be older than 60 days before now)"
+    start: Date!
+  ): Int
+  "The overall repayment rate"
+  repaymentRate: Float
+  "The full list of sectors Kiva uses to categorize loans"
+  sectors: [Sector]
+}
+
+"Languages that Kiva loans are submitted in."
+type Language {
+  "Unique identifier for this language"
+  id: Int
+  "If the language is active (as designated by Kiva)"
+  isActive: Boolean
+  "The two-letter ISO code of the language"
+  isoCode: String
+  "The name of the language"
+  name: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LanguageCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Language]
+}
+
+"The latest donation campaign values"
+type LatestDonationCampaign {
+  "The amount raised"
+  amount_raised: Float
+  "The total number of contributors"
+  contributor_count: Int
+  "The target amount"
+  target_amount: Float
+  "The target date of campaign"
+  target_date: Date
+  "If the target has been reached"
+  target_reached: Boolean
+  "The target year"
+  target_year: Int
+}
+
+"Lend category which includes all fields related to lending"
+type Lend {
+  "Activity info"
+  activity: [Activity]
+  "Country info along with loan count for that Country."
+  countryFacets: [CountryFacet]
+  "Returns a collection of lending actions based on the arguments passed in"
+  lendingActions(
+    endTime: Date,
+    limit: Int = 20,
+    offset: Int = 0,
+    startTime: Date = "2021-11-12T06:55:45Z",
+    "Groups loans for unique loan ids."
+    uniqueLoans: Boolean = false,
+    "Groups loans for unique locations, based on country and latitude for variety with some country repetition."
+    uniqueLocations: Boolean = false
+  ): LendingActionCollection
+  "Returns loan by id"
+  loan(id: Int!): LoanBasic
+  "Returns a list of Enabled Loan Channels"
+  loanChannels(
+    "Retrieve only Loan Channels with a loan count greater than minimum_valid_loan_count setting"
+    applyMinLoanCount: Boolean,
+    limit: Int = 20,
+    "Retrieve only Loan Channels set with multichannel eligible flag."
+    multichannelEligible: Boolean,
+    offset: Int = 0,
+    "Retrieve only Loan Channels set with the In Top Nav flag."
+    popular: Boolean
+  ): LoanChannelCollection
+  "Retrieves Loan Channels based on the list of IDs passed in"
+  loanChannelsById(ids: [Int]): [LoanChannel]
+  "Returns all possible loan search suggestions"
+  loanSearchSuggestions: [SearchSuggestion]
+  "Active loan theme filters"
+  loanThemeFilter: [LoanThemeFilter]
+  "Returns a collection of loans based on the arguments passed in"
+  loans(filters: LoanSearchFiltersInput = {distributionModel : both, status : fundraising}, limit: Int = 20, offset: Int = 0, promoOnly: BasketInput, promos: [Int], queryString: String, sortBy: LoanSearchSortByEnum = popularity): LoanBasicCollection
+  "Sector info"
+  sector: [Sector]
+  "Tag info"
+  tag: [Tag]
+}
+
+"Representation of a Kiva lender"
+type Lender {
+  "Unique identifier for a lender"
+  id: Int!
+  "The lender's image"
+  image: Image
+  "The number of registered users invited by this lender"
+  inviteeCount: Int!
+  "The lender's lender page details"
+  lenderPage: LenderPage!
+  "The total number of loans made by this lender"
+  loanCount: Int!
+  "A collection of loans made by this lender"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "The date the lender joined Kiva"
+  memberSince: Date!
+  "The public display name of the lender"
+  name: String
+  "A lender-selectable unique public identifier"
+  publicId: String
+  "A collection of teams this lender is on"
+  teams(limit: Int = 20, offset: Int = 0): TeamCollection
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LenderCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Lender]
+}
+
+"Representation of a Kiva lender message"
+type LenderMessage {
+  "The body of the message"
+  body: String
+  "The date the message was sent"
+  date: Date
+  "Unique identifier for a lender message"
+  id: Int!
+  "The Lender to whom the message was sent"
+  recipient: Lender
+  "The Lender who sent the message"
+  sender: Lender
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LenderMessageCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [LenderMessage]
+}
+
+"Representation of a Kiva LenderPage"
+type LenderPage {
+  "The city displayed on a lender page"
+  city: String
+  "The country displayed on a lender page"
+  country: Country
+  "Descriptive text on the lender page"
+  loanBecause: String
+  "The lender's occupation"
+  occupation: String
+  "Other info to list on the lender page"
+  otherInfo: String
+  "The state displayed on a lender page"
+  state: String
+  "A user-specified URL for their profile page"
+  url: String
+  "A summary of the lender's location"
+  whereabouts: String
+}
+
+"Representation of a lending action"
+type LendingAction {
+  "The most recent date the lender purchased a share of the given loan"
+  latestSharePurchaseDate: Date!
+  "The lender"
+  lender: Lender!
+  "The loan"
+  loan: LoanBasic!
+  "The total amount of all shares the lender purchased for the given loan"
+  shareAmount: Money!
+  "A list that contains all teams to which the lender contributed shares of this loan"
+  teams: [String]
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LendingActionCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [LendingAction]
+}
+
+"Lending preferences for a visitor or logged in user"
+type LendingPreferences {
+  "Loan channels for lending preferences"
+  causes: LoanChannelCollection!
+  "Countries for lending preferences"
+  countries: CountryCollection!
+  "Unique identifier for this lending preference"
+  id: Int!
+  "Loans matching the lending preferences"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "Countries that have loans matching the causes that a user has selected"
+  matchingCountries(causes: String): CountryFacetCollection
+}
+
+"Statistics about User's Lending Activity"
+type LendingStats {
+  "The activities lent to by the lender"
+  activitiesLentTo: [Activity]
+  "The percentile for the amount lent compared to all Kiva lenders"
+  amountLentPercentile: Int
+  "The countries lent to by the lender"
+  countriesLentTo: [Country]
+  "ID for federating lender stats"
+  id: Int!
+  "The partners lent to by the lender"
+  partnersLentTo: [Partner]
+  "The sectors lent to by the lender"
+  sectorsLentTo: [Sector]
+  "The total amount in lifetime deposits to Kiva."
+  totalAmountDeposited: Money
+}
+
+"LoanBalance tracks different sorts of monetary information about loans made by the user account"
+type LoanBalance {
+  "The  amount of the loan share purchased by the lender"
+  amountPurchasedByLender: Money
+  "The amount of the loan share purchased by the promo account"
+  amountPurchasedByPromo: Money
+  "The amount of the loan share repaid to the lender"
+  amountRepaidToLender: Money
+  "The amount of the loan share repaid to the promo account"
+  amountRepaidToPromo: Money
+  "The amount in arrears experienced by the lender on the loan"
+  arrearsAmount: Money
+  "The amount of currency loss experienced by the lender on the loan"
+  currencyLossToLender: Money
+  "The amount of currency loss experienced by the promo account on the loan"
+  currencyLossToPromo: Money
+  "The date of the last purchased share of the loan"
+  latestSharePurchaseTime: Date
+  "ID of a loan purchased by the lender"
+  loanId: ID
+  "The status of the Kiva loan."
+  status: LoanStatusEnum
+  "The amount of the loan share purchased by the lender and promo account combined"
+  totalAmountPurchased: Money
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LoanBasicCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [LoanBasic]
+}
+
+"Otherwise known as Categories..."
+type LoanChannel {
+  "Associated information sometimes presented atop loan listing"
+  description: String
+  "Unique identifier for the LoanChannel"
+  id: Int
+  "The picture for this loan channel."
+  image: Image
+  "Collection of loans in this loan channel"
+  loans(
+    "Exclude these ids when fetching new loans on this loan channel"
+    exclude_ids: [Int],
+    limit: Int = 20,
+    offset: Int = 0,
+    "Retrieve only loans that were not fetched for other loan channels in this query"
+    unique: Boolean
+  ): LoanBasicCollection
+  "Loan Channel Name"
+  name: String
+  "Fully formed URL param string for this loan channel"
+  queryParams: String
+  "The retina picture for this loan channel."
+  retinaImage: Image
+  "Generated url for list of matching loans"
+  url: String
+  "Priority rating for sorting Loan Channels (scale of 100)"
+  weight: Int
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type LoanChannelCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [LoanChannel!]!
+}
+
+"Representation of a Kc Loan Direct"
+type LoanDirect implements LoanBasic {
+  "The activity is a structured categorization of the loan use"
+  activity: Activity!
+  "The age of borrower when this loan was created"
+  ageAtTimeOfLoan: Int
+  "The level of borrower privacy"
+  anonymizationLevel: AnonymizationLevelEnum!
+  "The number of borrowers participating in the loan"
+  borrowerCount: Int!
+  "The one or more borrowers that are receiving this loan. If there is more than one, the primary borrower is first"
+  borrowers: [Borrower]
+  "The borrower's business description"
+  businessDescription: String!
+  "The name of the business this loan is for"
+  businessName: String!
+  comments(limit: Int = 20, offset: Int = 0): CommentCollection
+  "Whether or not the loan is eligible for donor-advised funds."
+  dafEligible: Boolean
+  "Whether or not the loan is delinquent. This defaults to false if the user is not privileged to this loan"
+  delinquent: Boolean!
+  "The description of the loan profile in English."
+  description: String!
+  "The description of the loan profile in the original language of its posting"
+  descriptionInOriginalLanguage: String!
+  "When an admin say a loan is ready for disbursal. If ready, records time of \"sign-off\""
+  disbursalApprovalTime: Date!
+  "The date on which the loan was/will actually be disbursed to the borrower"
+  disbursalDate: Date
+  "How the loan is distributed to the borrower, e.g. 'field_partner' or 'direct'"
+  distributionModel: DistributionModelEnum!
+  "Endorsement that the trustee gave to the borrower"
+  endorsement: String
+  "The user who endorsed the loan. Only shown on fundRaising loans, null for all other statuses."
+  endorser: Lender
+  "When the loan started fundraising on Kiva. Same as posted_date in v1."
+  fundraisingDate: Date
+  "The gender of the primary borrower OR majority gender if group"
+  gender: GenderEnum!
+  "The physical location of the borrower and/or business"
+  geocode: Geocode!
+  "Whether or not the loan has currency loss to lenders. Only usable after the loan has moved into the \"ended\" state."
+  hasCurrencyExchangeLossLenders: Boolean!
+  "Unique identifier for a Kiva loan"
+  id: Int!
+  "The picture for this loan profile."
+  image: Image!
+  "If true, this loan is in a Private Fundraising Period"
+  inPfp: Boolean
+  "Is this Kiva loan matchable? e.g. is there a source of funds to provide matching if a share is purchased?"
+  isMatchable: Boolean!
+  "The number of months it will take the borrower to repay the loan"
+  lenderRepaymentTerm: Int!
+  lenders(limit: Int = 20, offset: Int = 0): LenderCollection
+  lendingActions(limit: Int = 20, offset: Int = 0): LendingActionCollection
+  "The amount of this loan, as shown to lenders"
+  loanAmount: Money!
+  "Information about this loan during its fundraising period"
+  loanFundraisingInfo: LoanFundraisingInfo!
+  "The loan match ratio"
+  matchRatio: Int
+  "The id of the loan matcher"
+  matcherAccountId: String
+  "The name of the loan matcher"
+  matcherName: String
+  "Text that is displayed if loan matching is turned on for this loan."
+  matchingText: String
+  "The minimum amount to lend for this loan"
+  minNoteSize: Money!
+  "The name of the borrower or group receiving the loan"
+  name: String!
+  "The original language on the loan"
+  originalLanguage: Language
+  "The amount of settled repayments for a loan that has started paying back"
+  paidAmount: Money!
+  "The minimum number of lenders that this loan needs to exit its private fundraising period (PFP)."
+  pfpMinLenders: Int
+  "When the loan will expire if it is not fully funded"
+  plannedExpirationDate: Date
+  "ID of the loan linked as previous to this one."
+  previousLoanId: Int
+  "The borrower's stated purpose for the loan"
+  purpose: String!
+  "When the loan became raised, e.g. fully funded. Same as funded_date in v1"
+  raisedDate: Date
+  "The repayment interval of the loan: \"monthly\", \"irregularly\",\"at_end\""
+  repaymentInterval: String
+  "The research score of the loan theme instance of the loan"
+  researchScore: Float
+  "The amount of round up refund, if any"
+  roundupRefundAmount: Money!
+  "The sector is a more general classification of the loan than activity"
+  sector: Sector!
+  "The social media links for this business"
+  socialLinks: SocialLinks
+  "The status of a loan"
+  status: LoanStatusEnum!
+  "A list of tags on this loan"
+  tags: [String]
+  teams(limit: Int = 20, offset: Int = 0, sortBy: TeamSearchSortByEnum = newest): TeamCollection
+  "The financial terms of this loan"
+  terms: LoanTerm
+  "The trustee that endorses this loan"
+  trustee: Trustee
+  "The ID of the Kiva trustee that endorses this loan"
+  trusteeId: Int!
+  "The name of the trustee that endorses this loan"
+  trusteeName: String!
+  updates(limit: Int = 20, offset: Int = 0): UpdateCollection
+  "Text describing what the loan is to be used for; a logical subset of description e.g. \"To buy a cow\""
+  use: String!
+  "Properties that apply to the logged in user in relation to a loan."
+  userProperties: LoanUserProperties
+  "Video for this loan"
+  video: Video
+  "Why this loan is considered special."
+  whySpecial: String
+  "A string representation of the borrower's number of years in business, e.g. 'three_year'"
+  yearsInBusiness: String!
+}
+
+"LoanFundraisingInfo is a composite object defining information about a loan during its fundraising period"
+type LoanFundraisingInfo {
+  "The amount of the loan that has been purchased by lenders"
+  fundedAmount: Money!
+  "Whether this loan is within its planned expiration window"
+  isExpiringSoon: Boolean!
+  "The total amount of unexpired reservations for this loan"
+  reservedAmount: Money!
+}
+
+"(Kiva app only) The set of mutations you can perform on a list of Loans."
+type LoanListMutation {
+  "Favorite these loans on behalf of the logged in user. Pass true to favorite, false to unfavorite."
+  favorite(favorite: Boolean): Boolean
+  "Subscribe to updates from these loan on behalf of the logged in user. Pass true to subscribe, false to unsubscribe."
+  subscribe(subscribe: Boolean): Boolean
+}
+
+"(Kiva app only) The set of mutations you can perform on a Loan. Returns true on success."
+type LoanMutation {
+  "Add a comment on the loan."
+  addComment(body: String, parentId: Int): Boolean
+  "Favorite this loan on behalf of the logged in user. Pass true to favorite, false to unfavorite."
+  favorite(favorite: Boolean): Boolean
+  "Flag a comment on the loan."
+  flagComment(commentId: Int, description: String): Boolean
+  "Remove a comment on the loan. Only accessible to users with admin access privileges."
+  removeComment(commentId: Int): Boolean
+  "Subscribe to updates from this loan on behalf of the logged in user. Pass true to subscribe, false to unsubscribe."
+  subscribe(subscribe: Boolean): Boolean
+}
+
+"Representation of a Kc Loan Partner"
+type LoanPartner implements LoanBasic {
+  "The activity is a structured categorization of the loan use"
+  activity: Activity!
+  "The level of borrower privacy"
+  anonymizationLevel: AnonymizationLevelEnum!
+  "The number of borrowers participating in the loan"
+  borrowerCount: Int!
+  "The one or more borrowers that are receiving this loan. If there is more than one, the primary borrower is first"
+  borrowers: [Borrower]
+  comments(limit: Int = 20, offset: Int = 0): CommentCollection
+  "Whether or not the loan is eligible for donor-advised funds."
+  dafEligible: Boolean
+  "Whether or not the loan is delinquent. This defaults to false if the user is not privileged to this loan"
+  delinquent: Boolean!
+  "The description of the loan profile in English."
+  description: String!
+  "The description of the loan profile in the original language of its posting"
+  descriptionInOriginalLanguage: String!
+  "The date on which the loan was/will actually be disbursed to the borrower"
+  disbursalDate: Date
+  "How the loan is distributed to the borrower, e.g. 'field_partner' or 'direct'"
+  distributionModel: DistributionModelEnum!
+  "Important note about this loan"
+  dualStatementNote: String
+  "The user who endorsed the loan. Only shown on fundRaising loans, null for all other statuses."
+  endorser: Lender
+  "When the loan started fundraising on Kiva. Same as posted_date in v1."
+  fundraisingDate: Date
+  "The gender of the primary borrower OR majority gender if group"
+  gender: GenderEnum!
+  "The physical location of the borrower and/or business"
+  geocode: Geocode!
+  "Whether or not the loan has currency loss to lenders. Only usable after the loan has moved into the \"ended\" state."
+  hasCurrencyExchangeLossLenders: Boolean!
+  "Unique identifier for a Kiva loan"
+  id: Int!
+  "The picture for this loan profile."
+  image: Image!
+  "If true, this loan is in a Private Fundraising Period"
+  inPfp: Boolean
+  "Is this Kiva loan matchable? e.g. is there a source of funds to provide matching if a share is purchased?"
+  isMatchable: Boolean!
+  "The number of journals for the loan"
+  journalCount: Int!
+  "The number of months it will take the borrower to repay the loan"
+  lenderRepaymentTerm: Int!
+  lenders(limit: Int = 20, offset: Int = 0): LenderCollection
+  lendingActions(limit: Int = 20, offset: Int = 0): LendingActionCollection
+  "The amount of this loan, as shown to lenders"
+  loanAmount: Money!
+  "Information about this loan during its fundraising period"
+  loanFundraisingInfo: LoanFundraisingInfo!
+  "Text describing what the loan is to be used for, written in the original language by the partner; a logical subset of description. e.g. \"To buy a cow\""
+  loanUseOriginalLanguage: String!
+  "The loan match ratio"
+  matchRatio: Int
+  "The id of the loan matcher"
+  matcherAccountId: String
+  "The name of the loan matcher"
+  matcherName: String
+  "Text that is displayed if loan matching is turned on for this loan."
+  matchingText: String
+  "The minimum amount to lend for this loan"
+  minNoteSize: Money!
+  "Additional information/boilerplate text, about this loan"
+  moreInfoAboutLoan: String
+  "The name of the borrower or group receiving the loan"
+  name: String!
+  "The original language on the loan"
+  originalLanguage: Language
+  "The amount of settled repayments for a loan that has started paying back"
+  paidAmount: Money!
+  "The full partner object this loan belongs to"
+  partner: Partner
+  "The ID of the partner who facilitates this loan"
+  partnerId: Int!
+  "The name of the partner who facilitates this loan"
+  partnerName: String!
+  "The minimum number of lenders that this loan needs to exit its private fundraising period (PFP)."
+  pfpMinLenders: Int
+  "When the loan will expire if it is not fully funded"
+  plannedExpirationDate: Date
+  "ID of the loan linked as previous to this one."
+  previousLoanId: Int
+  "When the loan became raised, e.g. fully funded. Same as funded_date in v1"
+  raisedDate: Date
+  "The repayment interval of the loan: \"monthly\", \"irregularly\",\"at_end\""
+  repaymentInterval: String
+  "The research score of the loan theme instance of the loan"
+  researchScore: Float
+  "The user who edited or translated this loan."
+  reviewer: Volunteer
+  "The sector is a more general classification of the loan than activity"
+  sector: Sector!
+  "Whether to show the identity of the person who reviewed this loan"
+  showReviewer: Boolean
+  "The status of a loan"
+  status: LoanStatusEnum!
+  "A list of tags on this loan"
+  tags: [String]
+  teams(limit: Int = 20, offset: Int = 0, sortBy: TeamSearchSortByEnum = newest): TeamCollection
+  "The financial terms of this loan"
+  terms: LoanTerm
+  "List of loan themes"
+  themes: [String]
+  updates(limit: Int = 20, offset: Int = 0): UpdateCollection
+  "Text describing what the loan is to be used for; a logical subset of description e.g. \"To buy a cow\""
+  use: String!
+  "Properties that apply to the logged in user in relation to a loan."
+  userProperties: LoanUserProperties
+  "Video for this loan"
+  video: Video
+  "Why this loan is considered special."
+  whySpecial: String
+}
+
+"Representation of a loan reservation"
+type LoanReservation implements ShopItem {
+  "A distinct string indicating a name for this type of item"
+  basketItemType: String
+  "Credits used for this item"
+  creditsUsed: [Credit]
+  "Whether the repayments for this reservation should be donated to kiva"
+  donateRepayments: Boolean
+  "The time that this reservation expires"
+  expiryTime: Date
+  "Unique identifier for a Shop Item"
+  id: Int!
+  "Whether this reservation is about to end"
+  isEndingSoon: Boolean
+  "The loan that this is a reservation for"
+  loan: LoanBasic
+  "The price of this item"
+  price: Money
+  "The team that this reservation is attributed to"
+  team: Team
+}
+
+"This captures the data necessary to search for Kiva loans."
+type LoanSearchCriteria {
+  "The actual loan search filters recorded for this set of loan search criteria."
+  filters: LoanSearchFilters
+  "Query string associated with this loan search criteria"
+  queryString: String
+  "Possible values to sort loans by"
+  sortBy: LoanSearchSortByEnum
+}
+
+"The various filters you can apply to loan search results"
+type LoanSearchFilters {
+  "single activityId or array of them"
+  activity: [Int]
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->arrearsRate. A typical range is 0 - 0.5"
+  arrearsRate: MinMaxRange
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->avgBorrowerCost. A typical range is 0 - 95"
+  avgBorrowerCost: MinMaxRange
+  "City and state combo to search, e.g. San Francisco,CA"
+  cityState: [String]
+  city_state: [String] @deprecated(reason : "Use 'cityState' instead")
+  "Single country ISO-code or array of them"
+  country: [String]
+  "Single value of Kc_Loan_Basic->terms->lossLiabilityCurrencyExchange or an array of them"
+  currencyLossPossible: Boolean
+  "If the loan is marked as daf_eligible for the DAF program (true / false)"
+  dafEligible: Boolean
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->defaultRate. A typical range is 0 - 0.2"
+  defaultRate: MinMaxRange
+  "If the loan is direct (zip), partner or both (Kc_Loan_Psc::DISTRIBUTION_MODEL_DIRECT, Kc_Loan_Psc::DISTRIBUTION_MODEL_FIELD_PARTNER, Kc_Loan_Psc::DISTRIBUTION_MODEL_BOTH)"
+  distributionModel: DistributionModelEnum
+  "Exclude loans from partners with Kc_PartnerProfile->riskRating = null (non-rated). true is the only valid option (not false)."
+  excludeNonRated: Boolean
+  "Whether we should filter for loans nearing expiry as defined by Kiva\\Common\\Conf value for expiring_soon_window (true / false)"
+  expiringSoon: Boolean
+  "'male' or 'female'"
+  gender: GenderEnum
+  "If the research score for the loan theme instance of the loan is greater than or equal to 10"
+  hasResearchScore: Boolean
+  "group loan or individual loan?"
+  isGroup: Boolean
+  "Whether to select only matched loans or not"
+  isMatched: Boolean
+  "The Kiva lender ID to search for to see if the loan is a favorite of theirs"
+  lenderFavorite: Int
+  "A two-value array of {min, max} integer values (inclusive) for KcLoanTerms->lenderRepaymentTerm. A typical range is 6 - 24"
+  lenderTerm: MinMaxRange
+  "List of Kiva loan IDs. Not savable to Loan Search Criteria. Specify a status in the search filters to use this field for loans not in fundRaising."
+  loanIds: [Int]
+  "The maximum amount that may be lent to a loan"
+  loanLimit: Int
+  "The tag IDs for tags that have been successfully applied to the loan."
+  loanTags: [Int]
+  "Loan matcher's account ID, or an array of them"
+  matcherAccountId: [Int]
+  "Single partnerID or array of them, used to specify partners that should be INCLUDED from the search"
+  partner: [Int]
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->avgProfitability. A typical range is -50 - 50"
+  profitability: MinMaxRange
+  "Array of risk rating values from 0.0 to 5.0. e.g. [0.5,2.5]"
+  riskRating: MinMaxRange
+  "Single sector ID or array of them"
+  sector: [Int]
+  "Loan status to search for"
+  status: LoanSearchStatusEnum
+  "Single theme or array of them to be OR'd, e.g. 'water' or array('green', 'water')"
+  theme: [String]
+  "Single trustee ID or an array of them"
+  trustee: [Int]
+}
+
+"LoanTerms is a composite object defining the terms of a loan"
+type LoanTerm {
+  "The ISO code of the currency this loan is disbursed in"
+  currency: String!
+  "The full name of the currency this loan is disbursed in"
+  currencyFullName: String
+  "The actual amount of money, in local currency, disbursed to the borrower(s)"
+  disbursalAmount: Money
+  "The date on which the partner disbursed and/or intends to disburse the loan to the borrower"
+  disbursalDate: Date
+  "An array of payments that we expect the borrower to pay during the life of the loan. This defaults to an empty array if the user is not privileged to the loan"
+  expectedPayments: [RepaymentExpected]
+  "Whether the flexible fundraising is enabled for this loan as of now."
+  flexibleFundraisingEnabled: Boolean
+  "A simplified version of the expectedPayments info, expressed as a number of months, rounded up to the nearest month"
+  lenderRepaymentTerm: Int!
+  "The amount of this loan, as shown to lenders. This amount is generated by converting the disbursalAmount to USD and then rounding up to the nearest $25"
+  loanAmount: Money!
+  "If the foreign currency becomes devalued, is the loss eaten by partner, lender, or shared between partner and lender?  This field will be 'none' when the loan is in USD."
+  lossLiabilityCurrencyExchange: String!
+  "If the borrower doesn't repay, who loses out: the partner or the lender?"
+  lossLiabilityNonpayment: String!
+}
+
+"Type/Category of Loan Themes used for Filtering Loans, i.e. Green, Health, Refugees/Displaced, etc"
+type LoanThemeFilter {
+  "Unique identifier for Loan Theme Filter"
+  id: Int!
+  "The name (in English) of the Loan Theme Filters"
+  name: String
+}
+
+"Properties that apply to the logged in user in relation to a loan. Will return null if there is no logged in user."
+type LoanUserProperties {
+  "Amount of the current loan that is in a basket"
+  amountInBasket(
+    "The id of which basket to look in (Not required if using session)"
+    basketId: String
+  ): Money
+  "Describes whether or not the logged in user has favorited this loan."
+  favorited: Boolean
+  "Describes whether or not the logged in user has lent to this loan."
+  lentTo: Boolean
+  "Loan balances for this loan made by the logged in user."
+  loanBalance: LoanBalance
+  "Describes whether or not the this loan is eligible for any promotions on the user's basket."
+  promoEligible(
+    "Include a basket ID if you would like to see basket specific properties like isPromoEligible"
+    basketId: String
+  ): Boolean
+  "Describes the promo funds from the passed list that the loan is eligible for."
+  promoFunds(
+    "Include a basket ID if you would like to see basket specific properties like promoFunds"
+    basketId: String
+  ): [PromoFund]
+  "Describes whether or not the logged in user has subscribed to this loan."
+  subscribed: Boolean
+}
+
+"Managed Account Type"
+type ManagedAccount {
+  "Allow donations."
+  allowDonations: String
+  "Audience."
+  audience: String
+  "Form id"
+  formId: String
+  "Unique identifier for this managed account."
+  id: Int
+  "Is employee."
+  isEmployee: Boolean
+  "Criteria defining the types to query this campaign."
+  loanSearchCriteria: LoanSearchCriteria
+  "Management type for this managed account."
+  managementType: String
+  "Page id in Contentful"
+  pageId: String
+  "Send Kiva newsletter for managed account."
+  sendKivaNewsletter: String
+}
+
+"Representation of the manifest for either for a live basket or for a saved checkout receipt"
+type Manifest {
+  "A collection of credits in a basket"
+  credits(limit: Int = 20, offset: Int = 0): CreditCollection
+  "Whether there are any free credits (ie associated with a promo fund) in the basket"
+  hasFreeCredits: Boolean
+  "The id of this Manifest instance. If the Manifest is for a reciept, this will be the checkout id. If the Manifest is for a basket, this will be the basket id."
+  id: ID
+  "A collection of items in a basket"
+  items(limit: Int = 20, offset: Int = 0): ShopItemCollection
+  "Various totals that are relevant in the shop"
+  totals: ShopTotals
+  "Create time for transaction as ISO date string"
+  transactionTime: Date
+}
+
+"Allows you to specify a min and max range with convenient defaults"
+type MinMaxRange {
+  "The maximum value in the range"
+  max: Float
+  "The minimum value in the range"
+  min: Float
+}
+
+"(Kiva app only) In general mutations are only allowed for the Kiva app since they change server state. Unless otherwise specified mutations return true on success and false or null on failure."
+type Mutation {
+  "(Kiva app only) The set of general mutations you can perform"
+  general: GeneralMutation
+  "This is an example of a mutation in Kiva's GraphQL API, pass a name and we will say hello"
+  hello(
+    "Your name (non null)"
+    name: String!
+  ): String
+  "(Kiva app only) The set of mutations you can perform on a Loan"
+  loan(
+    "The loan id to perform the mutation on."
+    id: Int
+  ): LoanMutation
+  "(Kiva app only) The set of mutations you can perform on a list of Loans."
+  loans(
+    "The list of loan ids to perform the mutation on."
+    ids: [Int]
+  ): LoanListMutation
+  "(Kiva app only) The set of mutations you can perform on the data for the logged in user"
+  my: MyMutation
+  "The set of mutations you can perform in the shop"
+  shop(
+    "The id of the basket to use for child mutations. Optional, though most mutations will throw an error if it is not defined."
+    basketId: String
+  ): ShopMutation
+}
+
+"The parent type fo everything regarding the logged in user (via OAuth2)."
+type My {
+  "(Kiva app only) Returns list of all the enabled MFA factors that the user has setup"
+  authenticatorEnrollments(mfa_token: String!): [AuthenticationFactor]
+  "Returns the user's auto deposit, if it exists. Set the ignoreStatus flag to include the most recent auto deposit regardless of status."
+  autoDeposit(ignoreStatus: Boolean): AutoDeposit
+  "Returns the user's autolending profile"
+  autolendProfile: AutolendProfile
+  "Loans that the logged in user has commented on"
+  commentedLoans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "Returns the user's communication settings."
+  communicationSettings: CommunicationSettings
+  "Credit card data and actions."
+  creditCardVault: CreditCardVault @deprecated(reason : "No longer supported. Use PaymentMethodVault instead.")
+  "Whether the logged in user has verified their email address recently"
+  emailVerifiedRecently: Boolean
+  "Whether the logged in user is an admin"
+  isAdmin: Boolean
+  "Whether the logged in user is a borrower"
+  isBorrower: Boolean
+  "The lender object for the logged in user"
+  lender: Lender
+  "Returns a collection of lender messages based on the arguments passed in."
+  lenderMessages(filters: LenderMessageSearchFilters = {}, limit: Int = 20, offset: Int = 0, sortBy: BasicSortByEnum = newest): LenderMessageCollection
+  "Returns the lending preferences of the visitor or logged in user"
+  lendingPreferences(visitorId: String): LendingPreferences
+  "Returns information about the loans the lender has made"
+  lendingStats: LendingStats
+  "Loans that the logged in user has lent to"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "The category user funds are lent to if they are a monthly good subscriber. Set the ignoreStatus flag to include consideration of the most recent auto deposit regardless of status."
+  monthlyGoodCategory(ignoreStatus: Boolean): MonthlyGoodCategoryEnum
+  "The most recent fundraising/finished loan borrowed by the logged in user"
+  mostRecentBorrowedLoan: LoanBasic
+  "The most recent payment type used by the logged in user"
+  mostRecentPaymentType: String
+  "Parent type for queries related to PayPal Billing Agreements"
+  payPalBillingAgreement: PayPalBillingAgreement
+  "Braintree payment methods and actions."
+  paymentMethodVault: PaymentMethodVault
+  "Recommendation values for a user"
+  recommendations: Recommendations
+  "Returns saved search by ID"
+  savedSearch(id: Int!): SavedSearch
+  "Saved searches that the logged in user has saved"
+  savedSearches(limit: Int = 20, offset: Int = 0, sortBy: BasicSortByEnum = newest): SavedSearchCollection
+  "Returns subscription by ID"
+  subscription(id: Int!): RecurringSubscription
+  "Active subscriptions that the user has"
+  subscriptions(limit: Int = 20, offset: Int = 0): RecurringSubscriptionCollection
+  "Team recruitment data"
+  teamRecruitment(id: Int): TeamRecruitment
+  "Teams that the logged in user is on"
+  teams(limit: Int = 20, offset: Int = 0, teamIds: [Int]): TeamLenderCollection
+  "Returns a collection of transactions for the current user."
+  transactions(filter: TransactionSearchFilters, limit: Int = 20, offset: Int = 0): TransactionCollection
+  "The trustee object for the logged in user or null if they are not a trustee"
+  trustee: Trustee
+  """
+
+  Returns a collection of loan updates for the current user.
+  Use the updateIds parameter to filter for specific updates.
+  """
+  updates(filters: MyUpdatesSearchFilters, limit: Int = 20, offset: Int = 0): UpdateCollection
+  "Returns user account for logged in user (via OAuth2)."
+  userAccount: UserAccount
+  "The user preferences for the logged in user"
+  userPreferences: UserPreferences
+  "Returns statistics about the user"
+  userStats: UserStatistics
+}
+
+"(Kiva app only) The set of mutations you can perform on the logged in user's data."
+type MyMutation {
+  "Cancel the existing auto deposit for the logged in user."
+  cancelAutoDeposit: Boolean
+  "Change public visibility of Kiva profile."
+  changePublicVisibility(public: Boolean): Result
+  "Close user account."
+  closeAccount: Boolean
+  "Complete setup for an initiated OTP factor"
+  confirmOTPAuthenticatorEnrollment(binding_code: String!, mfa_token: String!): Boolean
+  "Complete setup for an initiated SMS factor"
+  confirmSMSAuthenticatorEnrollment(binding_code: String!, mfa_token: String!, oob_code: String!): Boolean
+  "Complete setup for an initiated voice factor"
+  confirmVoiceAuthenticatorEnrollment(binding_code: String!, mfa_token: String!, oob_code: String!): Boolean
+  "Construct a new auto deposit for the logged in user using their active billing agreement."
+  createAutoDeposit(autoDeposit: AutoDepositCreateInput!, deviceData: String, paymentMethodNonce: String): AutoDeposit
+  "Construct a new Monthly Good subscription for the logged in user using their active billing agreement."
+  createMonthlyGoodSubscription(autoDeposit: AutoDepositCreateInput!, category: MonthlyGoodCategoryEnum = default, deviceData: String, paymentMethodNonce: String): Boolean
+  "Construct a new saved search for the logged in user."
+  createSavedSearch(savedSearch: SavedSearchCreateInput!): SavedSearch
+  "Insert a new team recruitment"
+  createTeamRecruitment(teamRecruitment: TeamRecruitmentCreateInput): TeamRecruitment
+  "Construct a new set of user preferences for the logged in user."
+  createUserPreferences(userPreferences: UserPreferencesInput!): UserPreferences
+  "The set of mutations that can be performed on Braintree credit card data."
+  creditCardVault: CreditCardVaultMutation
+  "Delete all enabled factors"
+  deleteAllAuthenticatorEnrollments: Boolean
+  "Delete an enabled MFA factor"
+  deleteAuthenticatorEnrollment(id: ID!, mfa_token: String!): Boolean
+  "Initiate new OTP factor"
+  enrollOTPAuthenticator(mfa_token: String!): Authenticator
+  "Initiate new SMS factor"
+  enrollSMSAuthenticator(mfa_token: String!, phone_number: String!): Authenticator
+  "Initiate new voice factor"
+  enrollVoiceAuthenticator(mfa_token: String!, phone_number: String!): Authenticator
+  "Join team for the logged in user."
+  joinTeam(promoId: Int, teamId: Int!, teamRecruitmentId: Int): Boolean
+  "The set of mutations related to PayPal Billing Agreements."
+  payPalBillingAgreement: PayPalBillingAgreementMutation
+  "The set of mutations that can be performed on Braintree payment methods."
+  paymentMethodVault: PaymentMethodVaultMutation
+  "Request to change the user's account email address."
+  requestEmailChange: Boolean
+  "(Kiva app only) Request a withdrawal. Returns withdrawal request ID."
+  requestWithdrawal(withdrawalRequest: WithdrawalRequestCreateInput!): WithdrawalRequest
+  "Create, or update, the lending preferences of the visitor or logged in user"
+  saveLendingPreferences(causes: [Int], countries: [String], visitorId: String): LendingPreferences
+  "Send a password reset email to the user."
+  sendChangePasswordEmail: Boolean
+  "Send email address verification email to the user"
+  startEmailVerification(
+    "The url to send the user to after completing verification. If it is an absolute url, it must have a Kiva host."
+    doneUrl: String
+  ): Boolean
+  "Restore user to being subscribed to current and future emails."
+  subscribeToAllCommunications: Boolean
+  "Unsubscribe user from all current and future non-required emails."
+  unsubscribeFromAllCommunications: Boolean
+  "Update the existing auto deposit for the logged in user."
+  updateAutoDeposit(autoDeposit: AutoDepositUpdateInput!, deviceData: String, paymentMethodNonce: String): AutoDeposit
+  "Modify the user's autolending profile"
+  updateAutolendProfile(profile: AutolendProfileUpdateInput!): AutolendProfile
+  "Update the communication settings for the logged in user."
+  updateCommunicationSettings(communicationSettings: CommunicationSettingsUpdateInput!): Boolean
+  "Update the cookie message viewed date for the logged in user."
+  updateCookieMessageViewedDate(cookieMessageViewedDate: Date!): Boolean
+  "Update the cookie opt-out setting for the logged in user."
+  updateCookieOptOut(cookieOptOut: Boolean!): Boolean
+  "Indicate whether the repayments for this reservation should be donated to Kiva."
+  updateDonateRepayments(donateRepayments: Boolean): Result
+  "Update first name and last name for the logged in user."
+  updateFirstLastName(firstName: String, lastName: String): Result
+  "Update descriptive text on the lender page."
+  updateLoanBecause(loanBecause: String): Result
+  "Update city, state, and/or country on the lender page."
+  updateLocation(city: String, countryIsoCode: String, state: String): Result
+  updateMonthlyGoodCategory(category: MonthlyGoodCategoryEnum!): Boolean
+  "Update lender's occupation."
+  updateOccupation(occupation: String): Result
+  "Update About Me"
+  updateOtherInfo(otherInfo: String): Result
+  "Update the pii sharing opt-out setting for the logged in user."
+  updatePiiSharingOptOut(piiSharingOptOut: Boolean!): Boolean
+  "Update public ID for the logged in user."
+  updatePublicId(publicId: String): Result
+  "Update an existing saved search for the logged in user."
+  updateSavedSearch(id: Int!, savedSearch: SavedSearchUpdateInput!): SavedSearch
+  "Change the frequency that messages about a team get sent to the logged in user."
+  updateTeamMessageFrequencies(frequencies: [TeamMessageFrequencyInput]): Boolean
+  "Update a set of user preferences for the logged in user."
+  updateUserPreferences(id: Int!, userPreferences: UserPreferencesInput!): UserPreferences
+}
+
+"Representation of a Kiva partner"
+type Partner {
+  "A decimal representing the percentage of the partner’s outstanding portfolio which is overdue"
+  arrearsRate: Float
+  "Average cost incurred by the borrowers for this partner (eg interest rate + other fees)"
+  avgBorrowerCost: Int
+  "short note explaining the borrower cost to lenders"
+  avgBorrowerCostNote: String
+  "type of borrower cost (eg 'APR', 'PY', 'MPR', etc)"
+  avgBorrowerCostType: String
+  "A ratio of the partner's average loan size to the per capita income of the country they work in, e.g. if average loan size is $400 and the GDP/capita is $800 the value would be 0.5"
+  avgLoanSizePercentPerCapitaIncome: Float
+  "The field partner profitability"
+  avgProfitability: Float
+  "A true/false property for whether the partner charges fees and/or interest to borrowers"
+  chargesFeesInterest: Boolean
+  "A list of countries in which the partner operates and posts loans on Kiva"
+  countries: [Country]
+  "The percentage of loans for which losses have been realized due to currency fluctuations (amount of currency exchange loss / total toans)."
+  currencyExchangeLossRate: Float
+  "A decimal representing the percentage of the partner’s funds which were raised but ended in default"
+  defaultRate: Float
+  "A Kiva-supplied note that is shown in lieu of default rate"
+  defaultRateNote: String
+  "A Kiva-supplied note that is shown in lieu of delinquency rate"
+  delinquencyRateNote: String
+  "Unique identifier for the partner"
+  id: Int!
+  "An image suitable for representing the partner (usually the logo)"
+  image: Image
+  "An extra bit of text to be added to the bottom of all loan profiles for this partner"
+  loanAlertText: String
+  "A collection of loans this partner has posted"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "A decimal representing the percentage of the partner’s outstanding portfolio which is overdue but not yet repaid; delinquent means any repayment not paid in full by its due date"
+  loansAtRiskRate: Float
+  "The number of loans raised by the partner on Kiva"
+  loansPosted: Int
+  "The mission statement of the partner"
+  missionStatement: String
+  "The name of the partner"
+  name: String
+  "A Kiva-supplied note that is shown in lieu of portfolio yield"
+  portfolioYieldNote: String
+  "A paragraph or two written by Kiva staff, about why Kiva is working with this partner"
+  reasonWhyNarrative: String
+  "The risk rating of the partner, represented as a fractional number of stars"
+  riskRating: Float
+  "The date the partner began posting loans publicly on Kiva"
+  startDate: Date
+  "'net_billing' or 'dual_statement'"
+  statementType: String
+  "The status of the partner’s relationship with Kiva"
+  status: String
+  "The total amount of all loans in raised, payingBack, ended or defaulted statuses (in USD)"
+  totalAmountRaised: Money
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type PartnerCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Partner]
+}
+
+"Parent type for queries related to PayPal Billing Agreements"
+type PayPalBillingAgreement {
+  "(Kiva app only) Get a token to use for lenders in PayPal Express Checkout billing agreement signup"
+  getExpressCheckoutToken: String
+  "(Kiva app only) Does this lender have a PayPal Billing Agreement"
+  hasPayPalBillingAgreement: Boolean
+}
+
+"The set of mutations related to PayPal Billing Agreements."
+type PayPalBillingAgreementMutation {
+  "(Kiva app only) After successful Express Checkout billing agreement flow, create a lender PayPal Billing Agreement. Returns internal billing agreement ID."
+  createBillingAgreement(token: String!): Int
+}
+
+"Details for a Braintree-stored generic payment method"
+type PaymentMethod {
+  "Whether this payment method is a lender's default"
+  default: Boolean!
+  "Contains method-specific attributes. Intended to be used in conjunction with the image to assist users in identify this payment method."
+  description: String!
+  "Whether this payment method is expired. Some payment methods (e.g., PayPal) cannot be expired."
+  expired: Boolean!
+  "Whether this payment method is used for an active subscription"
+  hasActiveSubscription: Boolean!
+  "A URL that points to a payment method image resource (a PNG file) hosted by Braintree"
+  imageUrl: String!
+  "Type of payment method, e.g. CreditCard, PayPalAccount, etc."
+  methodType: PaymentMethodTypeEnum!
+  "One-time use referencing a payment method"
+  nonce: String!
+  "An alphanumeric value specifying this payment method in the Vault"
+  token: ID! @deprecated(reason : "Exposure via graphql should be avoided. Use nonce references instead.")
+}
+
+"Parent type for all Braintree payment methods for a user."
+type PaymentMethodVault {
+  "A list of all payment methods associated with a customer in Braintree"
+  paymentMethods: [PaymentMethod!]!
+}
+
+"The set of mutations that can be performed on Braintree payment methods."
+type PaymentMethodVaultMutation {
+  "Deletes a customer's payment method in Braintree"
+  deletePaymentMethod(
+    "A nonce generated from a previously saved payment method"
+    nonce: String!
+  ): Boolean
+  "Save a new payment method in Braintree based on client nonce."
+  savePaymentMethod(deviceData: String, makeDefault: Boolean, methodType: PaymentMethodTypeEnum!, nonce: String!): PaymentMethod
+  "Set a customer's default payment method in Braintree"
+  updateDefaultPaymentMethod(
+    "A nonce generated from a previously saved payment method"
+    nonce: String!
+  ): Boolean
+}
+
+"Represents an active promotional campaign"
+type PromoCampaign {
+  "Managed Account Type"
+  managedAccount: ManagedAccount
+  "Promo Fund Type"
+  promoFund: PromoFund
+  "Promo Group Type"
+  promoGroup: PromoGroup
+}
+
+"Represents a promotional account deployment"
+type PromoFund {
+  "A full, html containing description of the promo, user facing."
+  displayDescription: String
+  "The user facing display text for the promo fund"
+  displayName: String
+  "Unique identifier for this promo fund"
+  id: Int
+  "Promo price"
+  promoPrice: String
+}
+
+"Represents a promo group"
+type PromoGroup {
+  "The user facing display description for the promo group"
+  displayDescription: String
+  "The user facing display text for the promo group"
+  displayName: String
+  "Unique identifier for this promo group"
+  id: Int
+  "Identifier for the team for the promo group."
+  teamId: Int
+  "Type of the promo group."
+  type: String
+}
+
+"The basic set of queries you can perform"
+type Query {
+  "Community category which includes all fields related to community"
+  community: Community
+  "General category which includes all fields that don't fit into any other category"
+  general: General
+  "Hello from Kiva"
+  hello: String
+  "Lend category which includes all fields related to lending"
+  lend: Lend
+  "Exposes fields for the logged in user (via OAuth2)."
+  my: My
+  "Exposes fields for the Kiva shop"
+  shop(
+    "The id of the basket to use for child fields. Optional, though some fields will throw an error if it is not defined."
+    basketId: String
+  ): Shop
+}
+
+"Recommendation values for a user"
+type Recommendations {
+  "A user's most commonly lent-to country."
+  topCountry: String
+  "The ID of a user's most commonly lent-to sector."
+  topSectorId: String
+}
+
+"Simple representation of a recurring payment made to Kiva for a Lender"
+type RecurringSubscription {
+  "Total amount of this subscription"
+  amount: Money
+  "Donation amount of this subscription"
+  autoDonate: Money
+  "Unique identifier for this subscription"
+  id: Int
+  "PayPal's identifier for this subscription"
+  subscrId: String
+  "The type of subscription: deposit, donation, or loan"
+  type: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type RecurringSubscriptionCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [RecurringSubscription]
+}
+
+"RepaymentExpecteds are payments that the borrower is expected to pay during the life of the loan"
+type RepaymentExpected {
+  "The amount of principal for this payment, typically in USD. The loan amount for Kiva"
+  amount: Money
+  "The date by which this payment should be repaid. This is dependent on Kiva's billing cycle, and may be pushed back. Same as due_date on scheduled_payments in v1"
+  dueToKivaDate: Date
+  "The date as of which this payment should be included in calculations. Could be before or after it's actually added to the Loan object. Same as due_date on local_payments in v1"
+  effectiveDate: Date
+  "The amount of principal for this payment, in the currency that it was disbursed by the partner. The true amount of the loan the borrower received"
+  localAmount: Money
+}
+
+"A Kiva Common Result type"
+type Result {
+  "The error code or message"
+  error: String
+  "Whether the result was successful"
+  success: Boolean
+  "The result value as a string. May be a json encoded object or full error message."
+  value: String
+}
+
+"Representation of a Salesforce solution"
+type SalesforceSolution {
+  "Title for a Salesforce solution"
+  name: String
+  "Note for a Salesforce solution"
+  note: String
+}
+
+"The term SavedSearch corresponds to anyone who has signed up to be notified when a loan with their search term becomes available"
+type SavedSearch {
+  "Unique identifier for this saved search"
+  id: Int
+  "Specifies if this saved Search alerts when new loans are created that matches this search."
+  isAlert: Boolean
+  "The loan search criteria associated with this saved search"
+  loanSearchCriteria: LoanSearchCriteria
+  "Name of this saved search"
+  name: String
+  "Compiled URL containing Search criteria"
+  url: Url
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type SavedSearchCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [SavedSearch]
+}
+
+"Represents a suggested search parameter for use in auto-suggest search forms."
+type SearchSuggestion {
+  "The name of the group of this suggestion."
+  group: String
+  "The display label for this suggestion."
+  label: String
+  "The query parameter to use to search using this suggestion"
+  query: String
+}
+
+"A sector is a broad category for a loan, e.g. Agriculture, Arts, Clothing. Sectors are subdivided further by activities."
+type Sector {
+  "Unique identifier for this sector"
+  id: Int
+  "The name of this sector"
+  name: String
+}
+
+"A setting is retrieved by it's key, returning an array of string values from memcache."
+type Setting {
+  "Created Time"
+  create_time: Date
+  "Setting data type (Potentially inaccurate)"
+  data_type: String
+  "Description for setting"
+  description: String
+  "Key for setting"
+  key: String
+  "Update Time"
+  update_time: Date
+  "The value of the setting"
+  value: String
+}
+
+"(Kiva app only) Representation of the Kiva shop"
+type Shop {
+  "The contents of the current basket"
+  basket: Manifest
+  "Basket verification state"
+  basketVerificationState: VerificationStateEnum
+  "(Kiva app only) Get a client token to use for checkout"
+  getClientToken(useCustomerId: Boolean): String
+  "(Kiva app only) Get a payment token to use for Paypal Express"
+  getPaymentToken(amount: Money!, cancelUrl: String, returnUrl: String): String
+  "The ID for this Shop instance."
+  id: ID
+  "True if a lending reward is offered to the current basket"
+  lendingRewardOffered: Boolean
+  "The number of items in the basket, not including donation tips or zeroed donations"
+  nonTrivialItemCount: Int
+  "Promotion Campaign"
+  promoCampaign(
+    "The id of the promo fund id."
+    promoFundId: String
+  ): PromoCampaign
+  "The contents of a previously checked out basket"
+  receipt(checkoutId: Int, visitorId: String): Manifest
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type ShopItemCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [ShopItem]
+}
+
+"(Kiva app only) The set of mutations you can perform in the shop"
+type ShopMutation {
+  "Add credit by type. For Redemption Code, need to provide the redemption code string"
+  addCreditByType(creditType: CreditTypeEnum!, redemptionCode: String): Boolean
+  "Holiday Kiva Card promotion - adds one $25 print Kiva Card to the user's basket"
+  addOnePrintKivaCard: Boolean
+  "Apply lending reward to the basket"
+  applyLendingReward(promoFundId: String): Boolean
+  "(Kiva app only) Checkout the current basket. Returns the checkout id"
+  checkout: Int
+  "Create a new basket with the currently authenticated user as the owner. Returns the encoded basket id."
+  createBasket: String
+  "(Kiva app only) Make a payment using nonce, deposit that amount, and checkout the active basket. Returns the checkout id"
+  doNoncePaymentDepositAndCheckout(amount: Money!, deviceData: String, nonce: String!, savePaymentMethod: Boolean, visitorId: String): Int
+  "(Kiva app only) Make a payment and deposit"
+  doPaymentAndDeposit(amount: Money!, payerId: String!, token: String!): String @deprecated(reason : "Direct legacy PayPal access is deprecated")
+  "(Kiva app only) Make a payment and deposit and checkout the active basket"
+  doPaymentDepositAndCheckout(amount: Money!, payerId: String!, token: String!): String @deprecated(reason : "Direct legacy PayPal access is deprecated")
+  "The ID of this ShopMutation instance."
+  id: ID
+  "Remove a credit by type to remove all credits of that type. Optionally specify an id to remove just that one."
+  removeCreditByType(creditId: Int, creditType: CreditTypeEnum!): Boolean
+  "Initialize a basket with available data including: Owner, Kiva Credit and/or Bonus Credit"
+  setupBasketForUser: Boolean
+  "Sends a verification email for the current basket"
+  startBasketVerification: Boolean
+  "Track that a purchase occurred"
+  trackTransaction(campaign: String, campaignContent: String, medium: String, snowplowSessionId: String, snowplowUserId: String, source: String, transactionId: Int!, visitorId: String): Boolean
+  "Insert or update the donation in the basket."
+  updateDonation(donation: DonationUpdateInput!): Donation
+  "Insert or update a kiva card in the basket."
+  updateKivaCard(kivaCard: KivaCardUpdateInput!): Boolean
+  "Insert or update a loan reservation in the basket."
+  updateLoanReservation(loanReservation: LoanReservationUpdateInput!): LoanReservation
+  "Toggle donate repayments setting for this loan reservation"
+  updateLoanReservationDonateRepayments(loanReservation: LoanReservationUpdateInput!): LoanReservation
+  "Update or remove a team for this loan reservation."
+  updateLoanReservationTeam(loanReservation: LoanReservationUpdateInput!): LoanReservation
+  "Validate the current basket to ensure all items and credits are valid (ie haven't expired or been bought out). Results an empty array if all our valid, otherwise returns Result types for each invalid item or credit."
+  validateItemsAndCredits: [Result]
+  "Validate the current basket for checkout, including validating items and credits, and updating suggested donation if applicable. Returns an array of errors (or empty array if successful and nothing changed)"
+  validatePreCheckout(email: String, emailOptIn: Boolean, visitorId: String): [Result]
+}
+
+"Set of Shop totals for the manifest"
+type ShopTotals {
+  "Total amount of applied Bonus credit in the current basket"
+  bonusAppliedTotal: Money
+  "Total amount of available Bonus credit for the current basket"
+  bonusAvailableTotal: Money
+  "Total amount of credit needed to checkout the current basket"
+  creditAmountNeeded: Money
+  "Total amount of all applied credit in the current basket"
+  creditAppliedTotal: Money
+  "Total amount of all available credit for the current basket"
+  creditAvailableTotal: Money
+  "Totals related to a deposit"
+  depositTotals: DepositTotals
+  "Total amount of all donation items in the current basket"
+  donationTotal: Money
+  "Total amount of applied Free Trial credit in the current basket"
+  freeTrialAppliedTotal: Money
+  "Total amount of available Free Trial credit for the current basket"
+  freeTrialAvailableTotal: Money
+  "Total amount of all items in the current basket"
+  itemTotal: Money
+  "Total amount of all kiva card items in the current basket"
+  kivaCardTotal: Money
+  "Total amount of applied Kiva credit in the current basket"
+  kivaCreditAppliedTotal: Money
+  "Total amount of available Kiva credit for the current basket"
+  kivaCreditAvailableTotal: Money
+  "Total amount of Kiva credit that would be remaining if they complete checkout of the current basket"
+  kivaCreditRemaining: Money
+  "Total amount of Kiva credit that could be reapplied, if the user has decided not to apply it"
+  kivaCreditToReapply: Money
+  "Total amount of all loan reservation items in the current basket"
+  loanReservationTotal: Money
+  "Total amount of applied Redemption Code credit in the current basket"
+  redemptionCodeAppliedTotal: Money
+  "Total amount of available Redemption Code credit for the current basket"
+  redemptionCodeAvailableTotal: Money
+  "Total amount of applied Universal Promo Code credit in the current basket"
+  universalCodeAppliedTotal: Money
+  "Total amount of available Universal Promo Code credit for the current basket"
+  universalCodeAvailableTotal: Money
+}
+
+"Social media URLs for a business"
+type SocialLinks {
+  "The Etsy URL"
+  etsy: String
+  "The Facebook URL"
+  facebook: String
+  "The Instagram URL"
+  instagram: String
+  "The LinkedIn URL"
+  linkedin: String
+  "The Twitter URL"
+  twitter: String
+  "The business website URL"
+  website: String
+  "The Yelp URL"
+  yelp: String
+}
+
+"Loan properties which are attributed by lenders"
+type Tag {
+  "Unique identifier for this tag"
+  id: Int
+  "The name of the tag"
+  name: String
+  "Vocabulary id for the tag type"
+  vocabularyId: Int
+}
+
+"Representation of a Kiva lending team"
+type Team {
+  "The name of a team category to match against (e.g., 'Clubs')"
+  category: String
+  "The date the team was created"
+  createdDate: Date
+  "Self-descriptive text provided by the team"
+  description: String
+  "Unique identifier for a Kiva lending team"
+  id: Int!
+  "A logo or image representing the team"
+  image: Image
+  "The number of lenders who belong to this team"
+  lenderCount: Int
+  "Given a loanId, holds the number of lenders who have lent to the given loan"
+  lenderCountForLoan(id: Int): Int
+  "A collection of lenders who belong to this team"
+  lenders(limit: Int = 20, offset: Int = 0): LenderCollection
+  "The total amount in loans members have attributed to this team"
+  lentAmount: Money
+  "A string provided by the team to describe why it lends"
+  loanBecause: String
+  "The number of loans team members have attributed to this team"
+  loanCount: Int
+  "A collection of loans made by this lender"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "Type of membership, one of 'open' or 'closed'"
+  membershipType: TeamMembershipTypeEnum
+  "The name of the team"
+  name: String
+  "An alphanumeric + underscore id for the team. This is a more understandable name than the numeric team id. Used to be shortname in v1."
+  teamPublicId: String
+  "Self-descriptive text provided by the team"
+  url: String
+  "A string describing the location of the team"
+  whereabouts: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type TeamCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Team]
+}
+
+"The properties relating a single lender to a single team"
+type TeamLender {
+  "Total amount lent by the user in the name of this team."
+  amountLent: Money
+  "Unique identifier for this TeamLender."
+  id: Int!
+  "True if the user is the captain of this team."
+  isCaptain: Boolean
+  "When the user joined the team."
+  joinTime: Date
+  "How often the user wants messages from this team. Overrides the user's default setting."
+  sendTeamMessages: TeamMessageFrequencyEnum
+  "The team."
+  team: Team
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type TeamLenderCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [TeamLender]
+}
+
+"Team Recruitments are invitations issued to lenders to join a lending team"
+type TeamRecruitment {
+  "When the team was created"
+  createTime: Int
+  "The id of the team recruitment"
+  id: Int
+  "The display name of the recruiter"
+  recruiterDisplayName: String
+  recruiterId: Int
+  "security code"
+  securityCode: String
+  "The status of the team recruitment. Can be accepted, incomplete, rejected"
+  status: String
+  teamId: Int
+  "The email address of the invited user"
+  toEmail: String
+}
+
+"Representation of a Kiva transaction"
+type Transaction {
+  amount: Money
+  "The name of the category the transaction (e.g., 'loan')"
+  category: String
+  createTime: Date
+  effectiveTime: Date
+  "The loan this transaction is associated with (if any)"
+  loan: LoanBasic
+  newBalance: Money
+  type: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type TransactionCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Transaction]
+}
+
+"Analogous to a Field Partner, a Trustee is a Kiva partner that helps to endorse direct loans"
+type Trustee {
+  "Used for borrower invitation link, when a borrower follows this link to start an application, they will be marked as 'invited' by the trustee"
+  borrowerInviteToken: String
+  "Physical address of this trustee"
+  contactRecord: ContactRecord
+  "Date when this trustee began working with Kiva"
+  createTime: Date
+  "Unique identifier for this trustee"
+  id: Int
+  "Image url for this trustee"
+  image: String @deprecated(reason : "No longer populated. Use 'imageObj' instead")
+  "Image for this trustee"
+  imageObj: Image
+  "A collection of loans this trustee is associated with"
+  loans(limit: Int = 20, offset: Int = 0): LoanBasicCollection
+  "Date when this trustee began working with Kiva"
+  memberSince: Date
+  "Trustee's answer on their mission (if org) or their professional background (if individual)"
+  missionAndBackground: String!
+  "Writable name of an organizational trustee"
+  organizationName: String!
+  "Writable category for an organizational trustee"
+  organizationType: String!
+  "Key-value pairs of social network links, e.g. array('website_url' => 'www.awesome.com', 'linkedin_url' => 'zawesomest')"
+  socialLinks: [String]
+  "The most recent stats object for the trustee, or null"
+  stats: TrusteeStats
+  "Status of trustee application"
+  status: TrusteeStatusEnum!
+  "The level of the trustee, sort of like partner status, higher is better"
+  tier: TrusteeTierEnum!
+  title: String @deprecated(reason : "This was the same value as organizationName -- use it instead")
+  "Type of trustee, one of 'individual','organization', or 'vendor'"
+  trusteeType: TrusteeTypeEnum!
+  "The user id associated with this trustee"
+  userId: Int!
+  "Trustee's answer on why they became a trustee"
+  whyInterested: String!
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type TrusteeCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Trustee]
+}
+
+"Statistics related to a Kiva trustee"
+type TrusteeStats {
+  "When these trustee stats were created"
+  createTime: Date
+  "Unique identifier for this stats object"
+  id: Int
+  "Number of loans with the status 'defaulted'"
+  numDefaultedLoans: Int
+  "Number of loans with the status 'fundRaising'"
+  numFundraisingLoans: Int
+  "Number of loans with 'public' statuses that have been endorsed by the trustee"
+  numLoansEndorsedPublic: Int
+  "Number of loans with any status that have been endorsed by the trustee"
+  numLoansEndorsedTotal: Int
+  "Number of loans with the status 'payingBack' that are delinquent"
+  numPayingBackDelinquentLoans: Int
+  "Number of loans with the status 'payingBack' that are not delinquent"
+  numPayingOnTimeLoans: Int
+  "Number of loans with the status 'ended'"
+  numRepaidInFullLoans: Int
+  "Total value repaid divided by the total value of loans. Decimal number between 0 and 1."
+  repaymentRate: Float
+  "Total value of loans with public statuses for the trustee"
+  totalLoansValue: Money
+  "The id of the corresponding trustee"
+  trusteeId: Int!
+}
+
+"Updates that appear on a Kiva loan"
+type Update {
+  "The id of the user who authored this update"
+  authorId: ID
+  "The name of the person who authored this update"
+  authorName: String
+  "The body of this update"
+  body: String
+  "The body of this update translated into English"
+  bodyTranslated: String
+  "The number of comments for this update"
+  comments: Int
+  "The country that this update is relevant to"
+  country: Country
+  "The date on which this update was created"
+  date: Date
+  "Unique identifier for this Update"
+  id: Int
+  "An image for this update"
+  image: Image
+  "A (non-kiva) url to an image"
+  imageUrl: Url @deprecated(reason : "No longer populated. Use 'image' instead")
+  "The loan object associated with this update"
+  loan: LoanBasic
+  "The original language of this update (can be English)"
+  originalLanguage: String
+  "url permalink"
+  permalink: Url
+  "The number of recommendations for this update"
+  recommendations: Int
+  "The subject of this update"
+  subject: String
+  "The subject of this update translated into English"
+  subjectTranslated: String
+  "The type of the update, eg. 'loan'"
+  type: String
+}
+
+"A collection which an accept limit and offset as args, and returns an totalCount and list of values. Performance optimization: if you only want the totalCount, set the limit to 0"
+type UpdateCollection {
+  "The total number of values that are in the collection."
+  totalCount: Int!
+  "The list of values fetched as part of the collection (default number is 20)."
+  values: [Update]
+}
+
+"Representation of a logged in user and their account info (via OAuth2)."
+type UserAccount {
+  "The current value of Kiva credit (USD) in the account"
+  balance: Money
+  "Date user viewed the cookie message (GDPR)"
+  cookieMessageViewedDate: Date
+  "True if the user opted-out of non-essential analytics and marketing cookies"
+  cookieOptOut: Boolean
+  "Whether the repayments for this reservation should be donated to Kiva"
+  donateRepayments: Boolean
+  "The primary email address, used for logging into Kiva"
+  email: String
+  "List of all future expected repayments for the user."
+  expectedRepayments: [UserExpectedRepayment]
+  "List of expected repayments for the user per year (default current year)"
+  expectedRepaymentsByYear(
+    "When true, it will return the next year that contains repayments based on the year provided. In the case multiple years are requested, this parameter will be ignored. Ex: year 2020 and there was a past repayment in Mar 2020, this will return data for 2020. Ex: year 2021 and there are no repayments until Feb 2022, this will return data for 2022."
+    findNext: Boolean = false,
+    "Single year or an array of them, defaults to current year."
+    year: [Int] = [2021]
+  ): [UserExpectedRepayment]
+  "Expected repayments detail for the user for a particular month (default current month)"
+  expectedRepaymentsDetail(
+    "When true, it will return the next month/year that contains repayments based on the given parameters, including the given month."
+    findNext: Boolean = false,
+    limit: Int = 500,
+    "Month to find repayments for, defaults to current month."
+    month: Int = 11,
+    offset: Int = 0,
+    "Year to find repayments for, defaults to current year."
+    year: Int = 2021
+  ): [UserExpectedRepaymentDetail]
+  "The first name of the user"
+  firstName: String
+  "True if the user has a single deposit or more."
+  hasDeposits: Boolean
+  "Unique identifier for a Kiva user account"
+  id: Int!
+  "How to handle remaining Kiva credit if this account becomes inactive."
+  inactiveAccountSetting: String
+  "The name used to identify the user in invite urls"
+  inviterName: String
+  "True if the user has a single deposit."
+  isFirstTimeDepositor: Boolean
+  "The last or family name of the user"
+  lastName: String
+  "List of loan balances for the loans made by the user"
+  loanBalances: [LoanBalance]
+  "Date of the next expected repayment for the user."
+  nextExpectedRepaymentDate: Date
+  "Time after which this promo credit will no longer be valid"
+  nextPromoExpiration: Date
+  "True if the user opted-out of sharing information for advertising purposes."
+  piiSharingOptOut: Boolean
+  "Total balance of redeemable promo credit"
+  promoBalance: Money
+  "True if the user permits having a public presence (e.g. profile) on Kiva"
+  public: Boolean!
+  "A user-selectable unique public id"
+  publicId: String
+}
+
+"Simple representation of a expected repayment for a Kiva lender"
+type UserExpectedRepayment {
+  "The loan details for expected loan repayments"
+  loans: [LoanBasic]
+  "The total number of loans making a repayment by the repayment date"
+  loansMakingRepayments: Int
+  "The total dollar amount in repayments expected to be paid to a promo account by the repayment date"
+  promoRepayments: Money
+  "The repayment expected date"
+  repaymentDate: Date
+  "The total dollar amount in repayments expected to be paid to the lender's account by the repayment date"
+  userRepayments: Money
+}
+
+"Detailed representation of an expected repayment for a Kiva lender for a particular month"
+type UserExpectedRepaymentDetail {
+  "The total dollar amount of this repayment expected to be paid by the repayment date"
+  amount: Money
+  "Whether or not this payment is delinquent"
+  isDelinquent: Boolean
+  "The loan making this repayment"
+  loan: LoanBasic
+  "Number of past repayments"
+  pastRepayments: Int
+  "The total dollar amount of this repayment expected to be paid to a promo account by the repayment date"
+  promoAmount: Money
+  "The type of promotion when applicable"
+  promoType: Boolean
+  "The date this repayment is expected"
+  repaymentDate: Date
+  "Total payments expected"
+  totalRepayments: Int
+  "The total dollar amount of this repayment expected to be paid to the lender's account by the repayment date"
+  userAmount: Money
+}
+
+"User preferences related to a Kiva lender"
+type UserPreferences {
+  "Unique identifier for this user preference"
+  id: Int
+  "The preferences in unstructured JSON"
+  preferences: String
+}
+
+"Data stored on the user's session"
+type UserSession {
+  "The session data in JSON"
+  data: String
+  "The key for the session data"
+  sessionKey: UserSessionKeyEnum
+}
+
+"UserStatistics tracks different statistics related to a Kiva user account"
+type UserStatistics {
+  "The total amount loans made by the lender that ended in default"
+  amount_defaulted: Money
+  "The amount of donations made by the lender"
+  amount_donated: Money
+  "The amount of loans a lender made which are in arrears"
+  amount_in_arrears: Money
+  "The total amount of loans made by the lender"
+  amount_of_loans: Money
+  "The total amount of loans made by the lender's invitees"
+  amount_of_loans_by_invitees: Money
+  "The amount of the lender's outstanding loans"
+  amount_outstanding: Money
+  "The amount of loans made by the lender that have been refunded"
+  amount_refunded: Money
+  "The amount repaid for loans made by the lender"
+  amount_repaid: Money
+  "The arrears rate for the lender's portfolio"
+  arrears_rate: Float
+  "The total amount of currency loss passed along to the lender"
+  currency_loss: Money
+  "The currency loss rate for the lender"
+  currency_loss_rate: Float
+  "The default rate of the lender's loans"
+  default_rate: Float
+  "The total number loans made by the lender which ended in default"
+  num_defaulted: Int
+  "The total number of loans made by the lender that have ended"
+  num_ended: Int
+  "The total number of loans made by the lender that expired"
+  num_expired: Int
+  "The total number of loans made by the lender that are fundraising"
+  num_fund_raising: Int
+  "The total number of inactive loans made by the lender"
+  num_inactive: Int
+  "The total number of inactive expired loans made by the lender"
+  num_inactive_expired: Int
+  "The total number of loans made by the lender that are paying back"
+  num_paying_back: Int
+  "The total number of raised loans made by the lender"
+  num_raised: Int
+  "The total number of loans made by the lender that were refunded"
+  num_refunded: Int
+  "The total number of loans made by the Kiva lender that are delinquent"
+  number_delinquent: Int
+  "The total number of Kiva Cards purchased by the lender"
+  number_of_gift_certificates: Int
+  "The total number of invites sent by the lender"
+  number_of_invites: Int
+  "The total number of loans made by the lender"
+  number_of_loans: Int
+  "The total number of loans made by the lender's invitees"
+  number_of_loans_by_invitees: Int
+  "The amount of loans made by the lender that ended in default"
+  total_defaulted: Money
+  "The amount of loans made by the lender that have ended"
+  total_ended: Money
+  "The amount of loans made by the lender that expired"
+  total_expired: Money
+  "The amount of loans made by the lender that are fundraising"
+  total_fund_raising: Money
+  "The amount of inactive loans made by the lender"
+  total_inactive: Money
+  "The amount of inactive expired loans made by the lender"
+  total_inactive_expired: Money
+  "The total amount of loans made by the lender that are paying back"
+  total_paying_back: Money
+  "The amount of loans made by the lender that were refunded"
+  total_refunded: Money
+}
+
+"Representation of a Kiva video"
+type Video {
+  "Unique identifier for the video's thumbnail"
+  thumbnailImageId: Int
+  "Unique identifier for the video on YouTube"
+  youtubeId: String
+}
+
+"The term Volunteer corresponds to anyone who has been approved by RTP as an editor or translator for Kiva."
+type Volunteer {
+  "The volunteer's byline name"
+  bylineName: String
+  "The volunteer's favorite place to translate/edit"
+  favoritePlace: String
+  "The ID of the user that this volunteer corresponds to"
+  id: Int
+  "The volunteer's image"
+  image: Image
+  "Is this user an editor too?"
+  isEditor: Boolean
+  "Is this user a translator too?"
+  isTranslator: Boolean
+  "Collection of languages that a volunteer has bee enabled to review, including their primary language"
+  languages: LanguageCollection
+  "The volunteer's text entered location"
+  location: String
+  "The volunteer's primary language they translate to English"
+  primaryLanguage: Language
+  "Show volunteer name on the byline"
+  showName: Boolean
+  "Show volunteer photo on the byline"
+  showPhoto: Boolean
+}
+
+"Represents a request for the withdrawal of funds from an account."
+type WithdrawalRequest {
+  "Unique identifier for a withdrawal request"
+  id: Int!
+  "Payment type for withdrawn funds"
+  paymentType: String!
+  "Amount requested to be withdrawn"
+  price: Money!
+}
+
+"Level of borrower privacy. Defaults to 'none'."
+enum AnonymizationLevelEnum {
+  full
+  none
+  public
+}
+
+"Possible values for auto deposit status"
+enum AutoDepositStatusEnum {
+  active
+  canceled
+}
+
+"Basic sort by allows you to sort by newest or oldest"
+enum BasicSortByEnum {
+  newest
+  oldest
+}
+
+"The types of credit that can be used in the Shop context"
+enum CreditTypeEnum {
+  bonus_credit
+  free_trial
+  kiva_credit
+  redemption_code
+  universal_code
+}
+
+"Possible values for distribution model"
+enum DistributionModelEnum {
+  both
+  direct
+  fieldPartner
+}
+
+"Possible values for gender"
+enum GenderEnum {
+  female
+  male
+}
+
+"A list of common image sizes which can be used to get an image url"
+enum ImageSizeEnum {
+  default
+  lender_default
+  loan_default
+  loan_retina
+  loan_thumbnail
+  loan_thumbnail_retina
+  original
+  small
+}
+
+"Filter by messages sent or received"
+enum LenderMessageTypeEnum {
+  received
+  sent
+}
+
+"Possible values to sort loans by"
+enum LoanSearchSortByEnum {
+  amountLeft
+  expiringSoon
+  loanAmount
+  loanAmountDesc
+  newest
+  popularity
+  random
+  repaymentTerm
+}
+
+"Possible public-facing loan statuses that you can search by"
+enum LoanSearchStatusEnum {
+  all
+  funded
+  fundraising
+}
+
+"All possible loan statuses, including those that are only available to privileged users (ie lender or borrower)"
+enum LoanStatusEnum {
+  defaulted
+  deleted
+  ended
+  expired
+  funded
+  fundraising
+  inactive
+  inactiveExpired
+  issue
+  payingBack
+  raised
+  refunded
+  reviewed
+}
+
+"Possible values for communication settings with variable frequency"
+enum MessageFrequencyEnum {
+  "Send a monthly digest"
+  monthly
+  "Send a nightly digest"
+  nightly
+  "Do not send"
+  none
+}
+
+"Possible Monthly Good lending categories"
+enum MonthlyGoodCategoryEnum {
+  agriculture
+  default
+  disaster_relief_covid
+  eco_friendly
+  education
+  refugees
+  us_borrowers
+  women
+}
+
+"Possible values to sort partners by"
+enum PartnerSearchSortByEnum {
+  amountRaised
+  defaultRate
+  delinquencyRate
+  name
+  riskRating
+  status
+  timeOnKiva
+}
+
+"Possible values for partner status"
+enum PartnerStatusEnum {
+  active
+  closed
+  inactive
+  limited
+  paused
+}
+
+"Possible values for payment method methodType"
+enum PaymentMethodTypeEnum {
+  AndroidPayCard
+  ApplePayCard
+  CreditCard
+  PayPalAccount
+}
+
+"Possible values for Kiva regions"
+enum RegionEnum {
+  Africa
+  Asia
+  AustraliaNewZealand
+  CentralAmerica
+  EasternEurope
+  MiddleEast
+  NorthAmerica
+  Oceania
+  SouthAmerica
+  WesternEurope
+}
+
+"Possible values for settings manager setting data types"
+enum SettingDataTypeEnum {
+  boolean
+  float
+  integer
+  string
+}
+
+"Possible values for team categories"
+enum TeamCategoryEnum {
+  AlumniGroups
+  Businesses
+  BusinessesInternalGroups
+  Clubs
+  CollegesUniversities
+  CommonInterest
+  Events
+  Families
+  FieldPartnerFans
+  Friends
+  LocalArea
+  Memorials
+  Other
+  ReligiousCongregations
+  Schools
+  SportsGroups
+  YouthGroups
+}
+
+"Possible values for team membership"
+enum TeamMembershipTypeEnum {
+  closed
+  open
+}
+
+"Possible values for team communication settings, which have variable frequency"
+enum TeamMessageFrequencyEnum {
+  "Use my default for teams"
+  default
+  "Send a nightly digest"
+  nightly
+  "Do not send"
+  no
+  "Send a weekly digest"
+  weekly
+  "Send as they arrive"
+  yes
+}
+
+"Possible values to sort teams by"
+enum TeamSearchSortByEnum {
+  memberCount
+  newest
+  oldest
+  overallDonatedAmount
+  overallLoanCount
+  overallLoanedAmount
+  queryRelevance
+}
+
+"Possible transaction sort orders"
+enum TransactionSortEnum {
+  newest
+  oldest
+}
+
+"Possible transaction types"
+enum TransactionTypeEnum {
+  all
+  deposit
+  donation
+  gift
+  loan
+  withdrawal
+}
+
+"Possible values to sort trustees by"
+enum TrusteeSearchSortByEnum {
+  createTime
+  id
+  loanCount
+  newest
+  repaymentRate
+  totalLoanValue
+}
+
+"Possible values for trustee status"
+enum TrusteeStatusEnum {
+  approved
+  closed
+  completed
+  draft
+  hidden
+  paused
+  rejected
+}
+
+"Possible values for trustee tier"
+enum TrusteeTierEnum {
+  ACTIVE
+  CERTIFIED
+  CLOSED
+  NO_STATUS
+  PAUSED
+  PILOT
+}
+
+"Possible values for trustee type"
+enum TrusteeTypeEnum {
+  individual
+  organization
+  vendor
+}
+
+"Possible sessionKeys for user's session"
+enum UserSessionKeyEnum {
+  ABExperimentData
+  InviteSecurityCode
+  LastActiveLogin
+  LastPassiveLogin
+  LastViewedLoans
+  MessageData
+  SocialInvitationParams
+  URLDefaultTeamId
+}
+
+"Possible values for verification status."
+enum VerificationStateEnum {
+  may_be_needed
+  not_needed
+  pending
+  required
+  verified
+}
+
+"The term AutoDeposit refers to automatic recurring credit deposits and/or donations."
+input AutoDepositCreateInput {
+  "Total amount of this auto deposit"
+  amount: Money!
+  "The day of the month that the auto deposit transaction takes place"
+  dayOfMonth: Int!
+  "Donation amount of this auto deposit"
+  donateAmount: Money!
+  "Should the auto deposit initiate payment one time only?"
+  isOnetime: Boolean
+}
+
+"The term AutoDeposit refers to automatic recurring credit deposits and/or donations."
+input AutoDepositUpdateInput {
+  "Total amount of this auto deposit"
+  amount: Money
+  "The day of the month that the auto deposit transaction takes place"
+  dayOfMonth: Int
+  "Donation amount of this auto deposit"
+  donateAmount: Money
+}
+
+"User settings for automatic lending"
+input AutolendProfileUpdateInput {
+  "The percentage of the loan that will be given in donation"
+  donationPercentage: Int
+  "Number of months of inactivity until autolending starts"
+  enableAfter: Int
+  "Whether this autolend profile is opted into idle credit"
+  idleCreditOptIn: Boolean
+  "Whether this autolend profile is enabled"
+  isEnabled: Boolean
+  "Whether Kiva chooses which loans this profile lends to instead of using the loan search criteria"
+  kivaChooses: Boolean
+  "Number of days funds before idle funds will be lent"
+  lendAfterDaysIdle: Int
+  "Criteria defining the type of loan to autolend to"
+  loanSearchCriteria: LoanSearchCriteriaInput
+  "When to resume autolending, if paused."
+  pauseUntil: Date
+}
+
+"For including basket specific context"
+input BasketInput {
+  "Encrypted basket ID"
+  basketId: String
+}
+
+"Settings for what notifications a user wants to receive from Kiva."
+input CommunicationSettingsUpdateInput {
+  "True if this user is subscribed to portfolio and balance updates."
+  accountUpdates: Boolean
+  "The frequency at which autolending notifications will be sent to this user."
+  autolendUpdates: MessageFrequencyEnum
+  "True if this user is a borrower subscribed to entrepreneur community updates."
+  borrowerNews: Boolean
+  "True if this user is subscribed to comments and messages from other lenders."
+  commentsMessages: Boolean
+  "True if this user is unsubscribed from all current and future non-legally required emails."
+  globalUnsubscribed: Boolean
+  "True if this user is a borrower subscribed to emails about getting started at Kiva."
+  leadNurturing: Boolean
+  "True if this user is subscribed to news, inspiration and promotions."
+  lenderNews: Boolean
+  "True if this user is subscribed to loan and borrower updates."
+  loanUpdates: Boolean
+  "True if the user is subscribed to monthly good updates"
+  monthlyGood: Boolean
+  "True if this user is a trustee subscribed to the borrower network digest."
+  networkDigest: Boolean
+  "True if this user is a trustee subscribed to borrower network transactions."
+  networkTransactions: Boolean
+  "True if this user is a borrower subscribed to the loan success guide."
+  onboardingSupport: Boolean
+  "The frequency at which repayment notifications will be sent to this user."
+  repaymentUpdates: MessageFrequencyEnum
+  "The frequency at which team digests will be sent to this user."
+  teamDigests: TeamMessageFrequencyEnum
+  "True if this user is a trustee subscribed to trustee news and tips."
+  trusteeNews: Boolean
+}
+
+"Representation of a donation"
+input DonationUpdateInput {
+  "Whether the donation came from the basket view (tip)"
+  isTip: Boolean!
+  "The price of this item"
+  price: Money!
+}
+
+"Representation of a Kiva card. Kiva cards are special in that multiple cards can be bought together and they are grouped as single items with the additional fields: \"quantity\", \"individualPrice\", and \"idsInGroup\". Note that the \"price\" of the KivaCard represents the total price of all cards in the group."
+input KivaCardUpdateInput {
+  "The list of all the individual kiva card ids being bought together in this group."
+  idsInGroup: [Int]
+  "The individual price of one of the kiva cards being bought together in this group. The total price of all kiva cards is reflected in the \"price\""
+  individualPrice: Money
+}
+
+"The various filters you can apply to lender message search results"
+input LenderMessageSearchFilters {
+  "Only return messages since a certain date"
+  since: Date
+  "Filter by messages sent or received"
+  type: LenderMessageTypeEnum
+}
+
+"Representation of a loan reservation"
+input LoanReservationUpdateInput {
+  "Whether the repayments for this reservation should be donated to kiva"
+  donateRepayments: Boolean
+  "Unique identifier for a Shop Item"
+  id: Int!
+  "The price of this item"
+  price: Money
+  "The id of the team that this reservation is attributed to"
+  teamId: Int
+}
+
+"This captures the data necessary to search for Kiva loans."
+input LoanSearchCriteriaInput {
+  "The actual loan search filters recorded for this set of loan search criteria."
+  filters: LoanSearchFiltersInput
+  "Query string associated with this loan search criteria"
+  queryString: String
+  "Possible values to sort loans by"
+  sortBy: LoanSearchSortByEnum
+}
+
+"The various filters you can apply to loan search results"
+input LoanSearchFiltersInput {
+  "single activityId or array of them"
+  activity: [Int]
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->arrearsRate. A typical range is 0 - 0.5"
+  arrearsRate: MinMaxRangeInput
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->avgBorrowerCost. A typical range is 0 - 95"
+  avgBorrowerCost: MinMaxRangeInput
+  "City and state combo to search, e.g. San Francisco,CA"
+  cityState: [String]
+  city_state: [String]
+  "Single country ISO-code or array of them"
+  country: [String]
+  "Single value of Kc_Loan_Basic->terms->lossLiabilityCurrencyExchange or an array of them"
+  currencyLossPossible: Boolean
+  "If the loan is marked as daf_eligible for the DAF program (true / false)"
+  dafEligible: Boolean
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->defaultRate. A typical range is 0 - 0.2"
+  defaultRate: MinMaxRangeInput
+  "If the loan is direct (zip), partner or both (Kc_Loan_Psc::DISTRIBUTION_MODEL_DIRECT, Kc_Loan_Psc::DISTRIBUTION_MODEL_FIELD_PARTNER, Kc_Loan_Psc::DISTRIBUTION_MODEL_BOTH)"
+  distributionModel: DistributionModelEnum = both
+  "Exclude loans from partners with Kc_PartnerProfile->riskRating = null (non-rated). true is the only valid option (not false)."
+  excludeNonRated: Boolean
+  "Whether we should filter for loans nearing expiry as defined by Kiva\\Common\\Conf value for expiring_soon_window (true / false)"
+  expiringSoon: Boolean
+  "'male' or 'female'"
+  gender: GenderEnum
+  "If the research score for the loan theme instance of the loan is greater than or equal to 10"
+  hasResearchScore: Boolean
+  "group loan or individual loan?"
+  isGroup: Boolean
+  "Whether to select only matched loans or not"
+  isMatched: Boolean
+  "The Kiva lender ID to search for to see if the loan is a favorite of theirs"
+  lenderFavorite: Int
+  "A two-value array of {min, max} integer values (inclusive) for KcLoanTerms->lenderRepaymentTerm. A typical range is 6 - 24"
+  lenderTerm: MinMaxRangeInput
+  "List of Kiva loan IDs. Not savable to Loan Search Criteria. Specify a status in the search filters to use this field for loans not in fundRaising."
+  loanIds: [Int]
+  "The maximum amount that may be lent to a loan"
+  loanLimit: Int
+  "The tag IDs for tags that have been successfully applied to the loan."
+  loanTags: [Int]
+  "Loan matcher's account ID, or an array of them"
+  matcherAccountId: [Int]
+  "Single partnerID or array of them, used to specify partners that should be INCLUDED from the search"
+  partner: [Int]
+  "A two-value array of {min, max} values (inclusive) for Kc_PartnerStats->avgProfitability. A typical range is -50 - 50"
+  profitability: MinMaxRangeInput
+  "Array of risk rating values from 0.0 to 5.0. e.g. [0.5,2.5]"
+  riskRating: MinMaxRangeInput
+  "Single sector ID or array of them"
+  sector: [Int]
+  "Loan status to search for"
+  status: LoanSearchStatusEnum = fundraising
+  "Single theme or array of them to be OR'd, e.g. 'water' or array('green', 'water')"
+  theme: [String]
+  "Single trustee ID or an array of them"
+  trustee: [Int]
+}
+
+"Allows you to specify a min and max range with convenient defaults"
+input MinMaxRangeInput {
+  "The maximum value in the range"
+  max: Float = 100.0
+  "The minimum value in the range"
+  min: Float = 0.0
+}
+
+"The various filters you can apply to my updates search results."
+input MyUpdatesSearchFilters {
+  "Limits results to only the ids provided."
+  updateIds: [Int]
+}
+
+"The various filters you can apply to partner search results"
+input PartnerSearchFilters {
+  "True means that only nonRated partners will be returned, false does the same as null. Exception will be thrown if nonRated = true and riskRating specified at the same time"
+  nonRated: Boolean
+  "Must be a string"
+  region: RegionEnum
+  "riskRating is a two-value array of {min, max} values (inclusive), min must be <= max"
+  riskRating: MinMaxRangeInput
+  "May be a string or an array of status strings which are ORed"
+  status: PartnerStatusEnum
+}
+
+"The term SavedSearch corresponds to anyone who has signed up to be notified when a loan with their search term becomes available"
+input SavedSearchCreateInput {
+  "The actual loan search filters recorded for this set of loan search criteria."
+  filters: LoanSearchFiltersInput
+  "Specifies if this saved Search alerts when new loans are created that matches this search."
+  isAlert: Boolean!
+  "Name of this saved search"
+  name: String!
+  "Query string associated with this loan search criteria"
+  queryString: String
+  "Possible values to sort loans by"
+  sortBy: LoanSearchSortByEnum
+}
+
+"The term SavedSearch corresponds to anyone who has signed up to be notified when a loan with their search term becomes available"
+input SavedSearchUpdateInput {
+  "The actual loan search filters recorded for this set of loan search criteria."
+  filters: LoanSearchFiltersInput
+  "Specifies if this saved Search alerts when new loans are created that matches this search."
+  isAlert: Boolean
+  "Name of this saved search"
+  name: String
+  "Query string associated with this loan search criteria"
+  queryString: String
+  "Possible values to sort loans by"
+  sortBy: LoanSearchSortByEnum
+}
+
+"Arguments for updating the frequency that a user receives messages from a team."
+input TeamMessageFrequencyInput {
+  "The frequency to update to."
+  frequency: TeamMessageFrequencyEnum!
+  "The id of the team to update."
+  teamId: Int!
+}
+
+"Team Recruitments are invitations issued to lenders to join a lending team"
+input TeamRecruitmentCreateInput {
+  recruiterId: Int!
+  teamId: Int!
+}
+
+"The various filters you can apply to team search results"
+input TeamSearchFilters {
+  "The name of a team category to match against (e.g. 'clubs')"
+  category: TeamCategoryEnum
+  "True or false (whether team has been deactivated)"
+  isActive: Boolean
+  "\"mature\" means has more than one member and loan, has a team image and most of its other fields filled out"
+  isMature: Boolean
+  "Team membership type, either 'open' or 'closed'"
+  membershipType: TeamMembershipTypeEnum
+}
+
+"The various filters you can apply to transaction search results"
+input TransactionSearchFilters {
+  "The transaction category to match against (e.g. 'loan')"
+  category: TransactionTypeEnum
+  "Indicates end date for transaction search"
+  endDate: Date
+  "Indicates sort order for results"
+  sortBy: TransactionSortEnum
+  "Indicates start date for transaction search"
+  startDate: Date
+}
+
+"The various filters you can apply to trustee search results"
+input TrusteeSearchFilters {
+  "If true, only trustees with loans currently fundRaising"
+  fundRaisingOnly: Boolean
+  "Trustee type, can be 'individual' or 'organization' - default is no filter"
+  type: TrusteeTypeEnum
+}
+
+"The various filters you can apply to update search results."
+input UpdateSearchFilters {
+  "Only return Updates about loans for the given partners."
+  partner: Int
+  "'loan', 'partner', 'fellow', 'kiva'"
+  type: String
+  "only return Updates relevant to a specific user"
+  userId: Int
+}
+
+"User preferences related to a Kiva lender"
+input UserPreferencesInput {
+  "The preferences in unstructured JSON"
+  preferences: String
+}
+
+"Data stored on the user's session"
+input UserSessionInput {
+  "The session data in JSON"
+  data: String
+  "The key for the session data"
+  sessionKey: UserSessionKeyEnum
+}
+
+"Represents a request for the withdrawal of funds from an account."
+input WithdrawalRequestCreateInput {
+  "Payment type for withdrawn funds"
+  paymentType: String!
+  "Amount requested to be withdrawn"
+  price: Money!
+  "Tokenized payment method or account reference"
+  token: String!
+}
+
+
+"A special type of string which is a valid url"
+scalar Url
+
+"Returns a UTC datetime in ISO8601 format. As an input field, it can accept an integer unix timestamp or any date string parsable by php strtotime()"
+scalar Date
+
+"The dollar amount in USD"
+scalar Money
+
+"A special type of string that represents an external entity"
+scalar _Any
+
+"A special type of string that represents a set of fields"
+scalar _FieldSet

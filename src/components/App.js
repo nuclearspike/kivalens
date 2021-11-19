@@ -1,17 +1,15 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
-import React from 'react'
-import PropTypes from 'prop-types'
-import StyleContext from 'isomorphic-style-loader/StyleContext'
-import {Provider, Provider as ReduxProvider} from 'react-redux'
-import ApplicationContext from './ApplicationContext'
+import React from 'react';
+import PropTypes from 'prop-types';
+import StyleContext from 'isomorphic-style-loader/StyleContext';
+import { Provider, Provider as ReduxProvider } from 'react-redux';
+import {
+  ApolloClient,
+  ApolloProvider,
+  HttpLink,
+  InMemoryCache,
+} from '@apollo/client';
+import fetch from 'cross-fetch';
+import ApplicationContext from './ApplicationContext';
 
 /**
  * The top-level React component setting context (global) variables
@@ -36,16 +34,26 @@ import ApplicationContext from './ApplicationContext'
  *   );
  */
 
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: new HttpLink({
+    uri: 'https://api.kivaws.org/graphql',
+    fetch,
+  }),
+});
+
 export default function App({ context, insertCss, children }) {
   // NOTE: If you need to add or modify header, footer etc. of the app,
   // please do that inside the Layout component.
   return (
     <Provider store={context.store}>
-      <StyleContext.Provider value={{insertCss}}>
-        <ApplicationContext.Provider value={{context}}>
-          {React.Children.only(children)}
-        </ApplicationContext.Provider>
-      </StyleContext.Provider>
+      <ApolloProvider client={client}>
+        <StyleContext.Provider value={{ insertCss }}>
+          <ApplicationContext.Provider value={{ context }}>
+            {React.Children.only(children)}
+          </ApplicationContext.Provider>
+        </StyleContext.Provider>
+      </ApolloProvider>
     </Provider>
   );
 }

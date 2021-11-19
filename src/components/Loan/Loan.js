@@ -1,14 +1,14 @@
-import React, {useCallback, useEffect} from 'react'
-import PT from 'prop-types'
-import {useDispatch, useSelector} from 'react-redux'
-import {Button, Jumbotron, Tab, Tabs} from '../bs'
-import {basketAdd, basketRemove} from '../../actions/basket'
-import {loanDetailsFetch} from '../../actions/loan_details'
-import {useLoanDetails} from '../../store/helpers/hooks'
-import LoanTab from './LoanTab'
-import Link from '../Link'
-import {KivaLink} from '../Links'
-import PartnerTab from './PartnerTab'
+import React, { useCallback, useEffect } from 'react';
+import PT from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { Button, Jumbotron, Tab, Tabs } from '../bs';
+import { basketAdd, basketRemove } from '../../actions/basket';
+import { loanDetailsFetch } from '../../actions/loan_details';
+import { useLoanDetails } from '../../store/helpers/hooks';
+import Link from '../Link';
+import { KivaLink } from '../Links';
+import LoanTab from './LoanTab';
+import PartnerTab from './PartnerTab';
 
 const Loan = ({ id, tab }) => {
   const dispatch = useDispatch();

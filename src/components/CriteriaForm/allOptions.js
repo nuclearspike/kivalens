@@ -1,10 +1,11 @@
-import React from 'react'
-import {AllAnyNoneSelectorField, MultiSelectField} from './AllAnyNoneField'
-import MinMaxField from './MinMaxField'
-import StringCriteriaField from './StringCriteriaField'
-import {Col, Row} from '../bs'
-import HoverOver from '../Common/HoverOver'
-import PartialExactSelectorField from './PartialExactSelectorField'
+import React from 'react';
+import PT from 'prop-types';
+import { Col, Row } from '../bs';
+import HoverOver from '../Common/HoverOver';
+import { AllAnyNoneSelectorField, MultiSelectField } from './AllAnyNoneField';
+import MinMaxField from './MinMaxField';
+import StringCriteriaField from './StringCriteriaField';
+import PartialExactSelectorField from './PartialExactSelectorField';
 
 export const criteriaSchema = {
   definitions: {
@@ -243,19 +244,33 @@ export const criteriaSchema = {
   },
 };
 
-function TwoFieldObjectFieldTemplate({title, description, properties}) {
+function TwoFieldObjectFieldTemplate({ title, description, properties }) {
   if (properties.length !== 2)
-    throw new Error(`Too few/many properties: ${title}`)
+    throw new Error(`Too few/many properties: ${title}`);
   return (
     <>
-      <HoverOver title={title} description={description}/>
+      <HoverOver title={title} description={description} />
       <Row>
         <Col xs={2}>{properties[0].content}</Col>
         <Col xs={10}>{properties[1].content}</Col>
       </Row>
     </>
-  )
+  );
 }
+
+TwoFieldObjectFieldTemplate.propTypes = {
+  title: PT.string.isRequired,
+  description: PT.string,
+  properties: PT.arrayOf(
+    PT.shape({
+      content: PT.string,
+    }).isRequired,
+  ).isRequired,
+};
+
+TwoFieldObjectFieldTemplate.defaultProps = {
+  description: null,
+};
 
 const AANUiSchema = {
   'ui:ObjectFieldTemplate': TwoFieldObjectFieldTemplate,
@@ -265,7 +280,7 @@ const AANUiSchema = {
   value: {
     'ui:field': MultiSelectField,
   },
-}
+};
 
 const PartialExactUiSchema = {
   'ui:ObjectFieldTemplate': TwoFieldObjectFieldTemplate,
@@ -275,7 +290,7 @@ const PartialExactUiSchema = {
   text: {
     'ui:field': StringCriteriaField,
   },
-}
+};
 
 export const uiCriteriaSchema = {
   borrower: {

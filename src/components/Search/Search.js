@@ -6,12 +6,12 @@ import Infinite from 'react-infinite';
 import { ButtonGroup, Col, Container, Row } from '../bs';
 import StickyColumn from '../Common/StickyColumn';
 import ListItem from '../ListItem/ListItem';
-import Criteria from './Criteria';
 import Loan from '../Loan';
 import LoansProgress from '../LoansProgress';
+import listItem from '../ListItem/ListItem.css';
+import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
 import s from './Search.css';
-import listItem from '../ListItem/ListItem.css';
 
 const Search = memo(({ selectedId, tab }) => {
   useStyles(s, listItem);
@@ -44,7 +44,7 @@ const Search = memo(({ selectedId, tab }) => {
         </Col>
         {selectedId ? (
           <Col xs={12} md={8}>
-            <Loan id={selectedId} />
+            <Loan key={selectedId} id={selectedId} />
           </Col>
         ) : (
           <Criteria />

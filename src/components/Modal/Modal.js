@@ -1,7 +1,7 @@
-import React, {memo} from 'react'
-import PT from 'prop-types'
-import {Button, Modal} from '../bs'
-import {useStateSetterCallbacks} from '../../store/helpers/hooks'
+import React, { memo } from 'react';
+import PT from 'prop-types';
+import { Button, Modal } from '../bs';
+import { useStateSetterCallbacks } from '../../store/helpers/hooks';
 
 const ModalButton = memo(
   ({ buttonText, buttonVariant, title, disabled, FooterComp, children }) => {
@@ -43,7 +43,7 @@ ModalButton.propTypes = {
   buttonText: PT.string.isRequired,
   buttonVariant: PT.string,
   title: PT.string,
-  FooterComp: PT.node.isRequired,
+  FooterComp: PT.func.isRequired,
   children: PT.node.isRequired,
   disabled: PT.bool,
 };

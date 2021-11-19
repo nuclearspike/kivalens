@@ -5,10 +5,17 @@ import TimeAgo from 'react-timeago';
 import numeral from 'numeral';
 import * as Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import { useQuery, gql } from '@apollo/client';
+import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
 import { humanize, humanizeArray } from '../../utils';
-import { loanDetailsFetch } from '../../actions/loan_details';
+import {
+  // loanDetailsFetch,
+  loanUpdateDynamic,
+} from '../../actions/loan_details';
+// import DYNAMIC_FIELDS from './dynamic_fields.graphql';
 import DTDD from '../DTDD';
+import s from './LoanTab.css';
 
 const DisplayDate = ({ date }) => (
   <>
@@ -16,19 +23,57 @@ const DisplayDate = ({ date }) => (
   </>
 );
 
+const DYNAMIC_FIELDS = gql`
+  query loanDynamic($id: Int!) {
+    lend {
+      loan(id: $id) {
+        disbursalDate
+        minNoteSize
+        tags
+        loanFundraisingInfo {
+          fundedAmount
+          reservedAmount
+        }
+
+        #        teams {
+        #          values {
+        #            name
+        #          }
+        #        }
+      }
+    }
+  }
+`;
+
 DisplayDate.propTypes = {
   date: PT.object.isRequired,
 };
 
 const LoanTab = ({ loan }) => {
+  useStyles(s);
   const dispatch = useDispatch();
+  const { data } = useQuery(DYNAMIC_FIELDS, {
+    variables: { id: loan.id },
+    fetchPolicy: 'no-cache',
+    errorPolicy: 'ignore',
+  });
+
+  // useEffect(() => {
+  //   if (data) {
+  //     dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
+  //   }
+  // }, [data]);
 
   // this causes a double call but also refreshes
   useEffect(() => {
-    // cannot shorten to () since this returns a promise
-    setImmediate(() => {
-      dispatch(loanDetailsFetch(loan.id));
-    });
+    const handle = setInterval(() => {
+      if (data) {
+        dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
+      }
+      // only needs to happen after the download is pre-packaged to fetch the description..
+      // dispatch(loanDetailsFetch(loan.id));
+    }, 30000);
+    return clearInterval(handle);
   }, [loan.id]);
 
   const lentPercentages = useMemo(() => {
@@ -45,15 +90,34 @@ const LoanTab = ({ loan }) => {
     const addTerm = (term, def) => result.push({ term, def });
     if (loan) {
       addTerm('Saved Searches', '(Not Implemented Yet)');
-      addTerm('Tags', humanizeArray(loan.tags, '(none)'));
+      addTerm('Tags', (loan.kls_tags || []).join(', ') || <span>&nbsp;</span>);
       addTerm('Themes', humanizeArray(loan.themes, '(none)'));
 
-      addTerm(
-        'Borrowers',
-        <>
-          {loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female)
-        </>,
-      );
+      if (loan.borrowers.length === 1) {
+        addTerm(
+          'Gender',
+          <>{loan.kl_percent_women === 100 ? 'Female' : 'Male'}</>,
+        );
+      } else if (loan.kl_percent_women >= 50) {
+        addTerm(
+          'Borrowers',
+          <>
+            {loan.borrowers.length} ({Math.round(loan.kl_percent_women)}%
+            Female)
+          </>,
+        );
+      } else {
+        addTerm(
+          'Borrowers',
+          <>
+            {loan.borrowers.length} ({Math.round(100 - loan.kl_percent_women)}%
+            Male)
+          </>,
+        );
+      }
+      if (loan.kls_age) {
+        addTerm('Age Found', loan.kls_age);
+      }
       addTerm('Posted', <DisplayDate date={loan.kl_posted_date} />);
       if (loan.status !== 'fundraising') {
         addTerm('Status', humanize(loan.status));
@@ -108,8 +172,8 @@ const LoanTab = ({ loan }) => {
 
   const overlay = useMemo(() => {
     return (
-      <Popover id="progress-hint" style={{ padding: 10 }}>
-        ${loan.basket_amount} in Baskets
+      <Popover id="progress-hint" style={{ padding: 10 }} title="Meaning">
+        ${loan.basket_amount} Reserved
         <br />${loan.funded_amount} Funded
         <br />${loan.kl_still_needed} Needed
       </Popover>
@@ -246,6 +310,8 @@ const LoanTab = ({ loan }) => {
         <dl className="row">{loanStats}</dl>
 
         <p dangerouslySetInnerHTML={{ __html: loan.description.texts.en }} />
+
+        <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre>
       </Col>
       <Col xs={12} md={4}>
         {loan.status === 'fundraising' && (
@@ -315,13 +381,20 @@ LoanTab.propTypes = {
     kls_repaid_in: PT.number,
     kl_dollars_per_hour: PT.func,
     funded_date: PT.string,
-    tags: PT.arrayOf(PT.string),
+    tags: PT.arrayOf(
+      PT.shape({
+        name: PT.string,
+        id: PT.number,
+      }),
+    ),
     themes: PT.arrayOf(PT.string),
     borrowers: PT.arrayOf(PT.shape({})),
     terms: PT.shape({
       disbursal_date: PT.string,
       repayment_interval: PT.string,
     }),
+    kls_tags: PT.arrayOf(PT.string),
+    kls_age: PT.number,
     kl_percent_women: PT.number,
     kl_posted_date: PT.object,
     kl_repay_data: PT.object,

@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PT from 'prop-types';
 import HoverOver from '../Common/HoverOver';
 import { Form } from '../bs';
 
 const StringCriteriaField = ({ schema, formData, onChange }) => {
-  const handleOnChange = ({ target: { value } }) => onChange(value);
+  const handleOnChange = useCallback(
+    ({ target: { value } }) => onChange(value),
+    [onChange],
+  );
   return (
     <>
       <HoverOver title={schema.title} description={schema.description} />

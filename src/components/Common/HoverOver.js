@@ -1,9 +1,9 @@
-import React from 'react'
-import PT from 'prop-types'
-import {OverlayTrigger, Popover} from '../bs'
+import React from 'react';
+import PT from 'prop-types';
+import { OverlayTrigger, Popover } from '../bs';
 
-const HoverOver = ({title, description}) => {
-  const placement = 'auto'
+const HoverOver = ({ title, description }) => {
+  const placement = 'auto';
   return (
     <OverlayTrigger
       trigger={['hover', 'click']}
@@ -15,16 +15,21 @@ const HoverOver = ({title, description}) => {
         </Popover>
       }
     >
-      <span style={{borderBottom: '1px dotted', cursor: 'pointer'}}>
+      <span style={{ borderBottom: '1px dotted', cursor: 'pointer' }}>
         {title}
       </span>
     </OverlayTrigger>
-  )
-}
+  );
+};
 
 HoverOver.propTypes = {
-  title: PT.string.isRequired,
-  description: PT.string.isRequired,
-}
+  title: PT.string,
+  description: PT.string,
+};
 
-export default HoverOver
+HoverOver.defaultProps = {
+  title: null,
+  description: null,
+};
+
+export default HoverOver;

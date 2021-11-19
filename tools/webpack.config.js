@@ -1,11 +1,11 @@
-import fs from 'fs'
-import path from 'path'
-import webpack from 'webpack'
-import WebpackAssetsManifest from 'webpack-assets-manifest'
-import nodeExternals from 'webpack-node-externals'
-import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer'
-import overrideRules from './lib/overrideRules'
-import pkg from '../package.json'
+import fs from 'fs';
+import path from 'path';
+import webpack from 'webpack';
+import WebpackAssetsManifest from 'webpack-assets-manifest';
+import nodeExternals from 'webpack-node-externals';
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import pkg from '../package.json';
+import overrideRules from './lib/overrideRules';
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const resolvePath = (...args) => path.resolve(ROOT_DIR, ...args);
@@ -222,6 +222,12 @@ const config = {
       {
         test: /\.md$/,
         loader: path.resolve(__dirname, './lib/markdown-loader.js'),
+      },
+
+      {
+        test: /\.(graphql|gql)$/,
+        exclude: /node_modules/,
+        loader: 'graphql-tag/loader',
       },
 
       // Return public URL for all assets unless explicitly excluded

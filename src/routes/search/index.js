@@ -15,7 +15,7 @@ function action({ params: { id: idString, tab } }) {
     chunks: ['home'],
     component: (
       <Layout>
-        <Search key={id} selectedId={id} tab={tab} />
+        <Search selectedId={id} tab={tab} />
       </Layout>
     ),
   };

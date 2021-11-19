@@ -1,0 +1,15 @@
+query loanDynamic($id: Int!) {
+  lend {
+    loan(id: $id) {
+      disbursalDate
+      minNoteSize
+      tags
+      teams {
+        values {
+          name
+        }
+      }
+    }
+  }
+}
+

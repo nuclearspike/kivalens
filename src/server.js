@@ -1,36 +1,37 @@
-import path from 'path'
-import express from 'express'
+import React from 'react';
+import path from 'path';
+import express from 'express';
+import proxy from 'express-http-proxy';
 // import spdy from 'spdy';
-import cookieParser from 'cookie-parser'
-import bodyParser from 'body-parser'
-import expressJwt, {UnauthorizedError as Jwt401Error} from 'express-jwt'
-import {graphql} from 'graphql'
-import nodeFetch from 'node-fetch'
-import React from 'react'
-import ReactDOM from 'react-dom/server'
-import PrettyError from 'pretty-error'
-import App from './components/App'
-import Html from './components/Html'
-import {ErrorPageWithoutStyle} from './routes/error/ErrorPage'
-import errorPageStyle from './routes/error/ErrorPage.css'
-import createFetch from './createFetch'
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
+import { graphql } from 'graphql';
+import nodeFetch from 'node-fetch';
+import ReactDOM from 'react-dom/server';
+import PrettyError from 'pretty-error';
+import App from './components/App';
+import Html from './components/Html';
+import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
+import errorPageStyle from './routes/error/ErrorPage.css';
+import createFetch from './createFetch';
 // import passport from './passport';
-import router from './router'
+import router from './router';
 // import models from './data/models';
 // import schema from './data/schema';
 // import assets from './asset-manifest.json'; // eslint-disable-line import/no-unresolved
-import chunks from './chunk-manifest.json' // eslint-disable-line import/no-unresolved
-import configureStore from './store/configureStore'
-import {setRuntimeVariable} from './actions/runtime'
-import config from './config'
-import {setAPIOptions} from './kiva-api/kivaBase'
+import chunks from './chunk-manifest.json'; // eslint-disable-line import/no-unresolved
+import configureStore from './store/configureStore';
+import { setRuntimeVariable } from './actions/runtime';
+import config from './config';
+import { setAPIOptions } from './kiva-api/kivaBase';
 // import fs from 'fs'
 
 process.on('unhandledRejection', (reason, p) => {
-  console.error('Unhandled Rejection at:', p, 'reason:', reason)
+  console.error('Unhandled Rejection at:', p, 'reason:', reason);
   // send entire app down. Process manager will restart it
-  process.exit(1)
-})
+  process.exit(1);
+});
 
 // console.log('******** dir', __dirname )
 
@@ -43,18 +44,18 @@ process.on('unhandledRejection', (reason, p) => {
 // Tell any CSS tooling (such as Material UI) to use all vendor prefixes if the
 // user agent is not known.
 // -----------------------------------------------------------------------------
-global.navigator = global.navigator || {}
-global.navigator.userAgent = global.navigator.userAgent || 'all'
+global.navigator = global.navigator || {};
+global.navigator.userAgent = global.navigator.userAgent || 'all';
 
-setAPIOptions({app_id: 'org.kiva.kivalens'})
+setAPIOptions({ app_id: 'org.kiva.kivalens' });
 
-const app = express()
+const app = express();
 
 //
 // If you are using proxy from external machine, you can set TRUST_PROXY env
 // Default is to trust proxy headers only from loopback interface.
 // -----------------------------------------------------------------------------
-app.set('trust proxy', config.trustProxy)
+app.set('trust proxy', config.trustProxy);
 
 //
 // Register Node.js middleware
@@ -78,12 +79,60 @@ app.use(
 app.use((err, req, res, next) => {
   // eslint-disable-line no-unused-vars
   if (err instanceof Jwt401Error) {
-    console.error('[express-jwt-error]', req.cookies.id_token)
+    console.error('[express-jwt-error]', req.cookies.id_token);
     // `clearCookie`, otherwise user can't use web-app until cookie expires
-    res.clearCookie('id_token')
+    res.clearCookie('id_token');
   }
-  next(err)
+  next(err);
 });
+
+// const proxyHandlerOld = {
+//   filter: req => req.xhr, // only proxy xhr requests
+//   forwardPath: req => require('url').parse(req.url).path,
+//   intercept: (rsp, data, req, res, callback) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+//     res.header(
+//       'Access-Control-Allow-Headers',
+//       'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID',
+//     );
+//     res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); // don't pass back kiva's cookies.
+//     // intercept OPTIONS method
+//     if (req.method === 'OPTIONS') {
+//       res.send(200);
+//     } else {
+//       callback(null, data);
+//     }
+//   },
+// };
+
+const proxyHandler = {
+  // filter: req => req.xhr, // only proxy xhr requests
+  proxyReqPathResolver: req => {
+    // console.log('**** url', req.url);
+    // return req.url;
+    // const toUse = req.url;
+    // console.log('toUse', toUse);
+    return req.url;
+  },
+  userResDecorator: (rsp, data, req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID',
+    );
+    res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); // don't pass back kiva's cookies.
+    // intercept OPTIONS method
+    if (req.method === 'OPTIONS') {
+      res.send(200);
+    } else {
+      res.send(data);
+    }
+  },
+};
+
+app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
 
 // app.use(passport.initialize());
 
@@ -127,13 +176,13 @@ app.use((err, req, res, next) => {
 // -----------------------------------------------------------------------------
 app.get('*', async (req, res, next) => {
   try {
-    const css = new Set()
+    const css = new Set();
 
     // Enables critical path CSS rendering
     // https://github.com/kriasoft/isomorphic-style-loader
     const insertCss = (...styles) => {
       // eslint-disable-next-line no-underscore-dangle
-      styles.forEach(style => css.add(style._getCss()))
+      styles.forEach(style => css.add(style._getCss()));
     };
 
     // Universal HTTP client
@@ -142,23 +191,23 @@ app.get('*', async (req, res, next) => {
       cookie: req.headers.cookie,
       // schema,
       graphql,
-    })
+    });
 
     const initialState = {
       user: req.user || null,
-    }
+    };
 
     const store = configureStore(initialState, {
       fetch,
       // I should not use `history` on server.. but how I do redirection? follow universal-router
-    })
+    });
 
     store.dispatch(
       setRuntimeVariable({
         name: 'initialNow',
         value: Date.now(),
       }),
-    )
+    );
 
     // Global (context) variables that can be easily accessed from any React component
     // https://facebook.github.io/react/docs/context.html
@@ -170,7 +219,7 @@ app.get('*', async (req, res, next) => {
       // You can access redux through react-redux connect
       store,
       storeSubscription: null,
-    }
+    };
 
     const route = await router.resolve(context);
 
@@ -253,8 +302,8 @@ if (!module.hot) {
   //   console.info(`The server is running at http://localhost:${config.port}/`);
 
   app.listen(config.port, () => {
-    console.info(`The server is running at http://localhost:${config.port}/`)
-  })
+    console.info(`The server is running at http://localhost:${config.port}/`);
+  });
   // });
 }
 

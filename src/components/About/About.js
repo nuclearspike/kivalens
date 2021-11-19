@@ -42,7 +42,7 @@ const About = () => {
         </span>
       )}
 
-      <h3>Rebuilt and Rethought</h3>
+      <h3>Rebuilt and Rethought Again</h3>
       <p>
         KivaLens has been rebuilt. I decided to re-invent it using different
         tools that weren't available when KivaLens was first written with
@@ -96,6 +96,8 @@ const About = () => {
         's MFI research should be directed to that team. I only auto-pull,
         display and filter using the data, I do not produce or verify it.
       </p>
+
+      {/*//&rdquo;*/}
 
       <h3>Features</h3>
       <ul className="spacedList">
