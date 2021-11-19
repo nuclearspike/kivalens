@@ -118,6 +118,7 @@ const proxyHandler = {
   userResDecorator: (rsp, data, req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Referrer-Policy', 'unsafe-url');
     res.header(
       'Access-Control-Allow-Headers',
       'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID',
