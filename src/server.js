@@ -111,26 +111,29 @@ const proxyHandler = {
   proxyReqPathResolver: req => {
     // console.log('**** url', req.url);
     // return req.url;
-    // const toUse = req.url;
-    // console.log('toUse', toUse);
-    return req.url;
+    const toUse = req.url;
+    console.log('toUse', toUse);
+    return toUse;
   },
-  userResDecorator: (rsp, data, req, res) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Referrer-Policy', 'unsafe-url');
-    res.header(
-      'Access-Control-Allow-Headers',
-      'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID',
-    );
-    res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); // don't pass back kiva's cookies.
-    // intercept OPTIONS method
-    if (req.method === 'OPTIONS') {
-      res.send(200);
-    } else {
-      res.send(data);
-    }
+  userResHeaderDecorator: headers => {
+    headers['Access-Control-Allow-Origin'] = '*';
+    headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE';
+    headers['Referrer-Policy'] = 'unsafe-url';
+    headers['Access-Control-Allow-Headers'] = '*';
+    headers['Access-Control-Allow-Origin'] =
+      'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID';
+    headers['Set-Cookie'] = 'ilove=kiva; Path=/; HttpOnly'; // don't pass back kiva's cookies.
+
+    return headers;
   },
+
+  //   // intercept OPTIONS method
+  //   if (userReq.method === 'OPTIONS') {
+  //     res.send(200);
+  //   } else {
+  //     res.send(data);
+  //   }
+  // },
 };
 
 app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
