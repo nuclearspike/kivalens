@@ -110,18 +110,17 @@ const proxyHandler = {
   // filter: req => req.xhr, // only proxy xhr requests
   proxyReqPathResolver: req => {
     // console.log('**** url', req.url);
-    // return req.url;
-    const toUse = req.url;
-    console.log('toUse', toUse);
-    return toUse;
+    return req.url;
+    // const toUse = req.url;
+    // console.log('toUse', toUse);
+    // return toUse;
   },
   userResHeaderDecorator: headers => {
-    headers['Access-Control-Allow-Origin'] = '*';
+    headers['Access-Control-Allow-Origin'] = '*'; // restrict to kivalens.org
     headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE';
     headers['Referrer-Policy'] = 'unsafe-url';
-    headers['Access-Control-Allow-Headers'] = '*';
-    headers['Access-Control-Allow-Origin'] =
-      'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID';
+    headers['Access-Control-Allow-Headers'] =
+      'Origin, X-Requested-With, Content-Type, Accept';
     headers['Set-Cookie'] = 'ilove=kiva; Path=/; HttpOnly'; // don't pass back kiva's cookies.
 
     return headers;

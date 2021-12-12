@@ -9,6 +9,7 @@ const KivaImage = ({
   loan,
   imageId: imageIdProp,
   width,
+  imageWidth,
   height,
   type,
   useThumbAsBackground,
@@ -19,9 +20,10 @@ const KivaImage = ({
 
   const altText = loan ? loan.name : '';
 
-  const imageWidth = width;
+  const urlImageWidth = imageWidth || width;
 
-  const imageDir = type === 'square' ? `s${imageWidth}` : `w${imageWidth}`;
+  const imageDir =
+    type === 'square' ? `s${urlImageWidth}` : `w${urlImageWidth}`;
 
   const imageUrl = `https://www.kiva.org/img/${imageDir}/${imageId}.jpg`;
   const loadingImageUrl = useThumbAsBackground
@@ -58,7 +60,8 @@ KivaImage.propTypes = {
     }),
   }),
   imageId: PT.number,
-  width: PT.number,
+  width: PT.oneOfType([PT.number, PT.string]),
+  imageWidth: PT.number,
   height: PT.number,
   type: PT.string,
   useThumbAsBackground: PT.bool,
@@ -68,7 +71,10 @@ KivaImage.defaultProps = {
   loan: null,
   imageId: null,
   useThumbAsBackground: false,
-  type: null,
+  type: 'width',
+  width: 100,
+  imageWidth: null,
+  height: null,
 };
 
 export default KivaImage;

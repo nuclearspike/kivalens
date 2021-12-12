@@ -11,8 +11,19 @@ const Options = () => {
       <h1>Options</h1>
       <Link to="/search/customize">Customize Search Options</Link>
       <div>
-        default loan amount when double-clicking loans or using the "add to
-        basket" button
+        <h3>To Do:</h3>
+        <ul>
+          <li>
+            default loan amount when double-clicking loans or using the "add to
+            basket" button
+          </li>
+          <li>
+            default % to tip kiva
+          </li>
+          <li>
+            set username
+          </li>
+        </ul>
       </div>
     </Container>
   );

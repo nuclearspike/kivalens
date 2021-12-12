@@ -9,6 +9,7 @@ import Link from '../Link';
 import { KivaLink } from '../Links';
 import LoanTab from './LoanTab';
 import PartnerTab from './PartnerTab';
+import ImageTab from './ImageTab'
 
 const Loan = ({ id, tab }) => {
   const dispatch = useDispatch();
@@ -85,10 +86,10 @@ const Loan = ({ id, tab }) => {
           <LoanTab loan={loan} />
         </Tab>
         <Tab eventKey="partner" title="Partner">
-          <PartnerTab partner_id={loan.partner_id} />
+          <PartnerTab partnerId={loan.partner_id} />
         </Tab>
         <Tab eventKey="image" title="Image">
-          Image
+          <ImageTab loan={loan} />
         </Tab>
       </Tabs>
     </div>
@@ -96,8 +97,12 @@ const Loan = ({ id, tab }) => {
 };
 
 Loan.propTypes = {
-  id: PT.number,
+  id: PT.number.isRequired,
   tab: PT.string,
+};
+
+Loan.defaultProps = {
+  tab: 'loan',
 };
 
 export default Loan;

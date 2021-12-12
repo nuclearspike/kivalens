@@ -452,7 +452,7 @@ const About = () => {
       <p>
         Kiva Lens is now open-source, so feel free to{' '}
         <EmailLink subject="KivaLens Developer">email me</EmailLink> about
-        working on it. It uses React 16 (Hooks), Webpack, react-bootstrap, node,
+        working on it. It uses React 16 (Hooks), Redux, Webpack, react-bootstrap, node,
         ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express
         node js server and more. You can check out the source code (in progress)
         at my{' '}
