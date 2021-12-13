@@ -3,7 +3,8 @@ import PT from 'prop-types';
 import KivaImage from '../KivaImage/KivaImage';
 import { Card, Col, Row } from '../bs';
 
-const selectNames = (arr) => arr.map(b => `${b.first_name} (${b.gender})`).join(', ');
+const selectNames = arr =>
+  arr.map(b => `${b.first_name} (${b.gender})`).join(', ');
 
 const ImageTab = memo(({ loan }) => {
   const imageCaption = useMemo(() => {

@@ -397,14 +397,16 @@ LoanTab.propTypes = {
     kls_age: PT.number,
     kl_percent_women: PT.number,
     kl_posted_date: PT.object,
-    kl_repay_data: PT.object,
-    kl_repay_percent: PT.object,
+    kl_repay_data: PT.arrayOf(PT.number),
+    kl_repay_percent: PT.arrayOf(PT.number),
     kl_planned_expiration_date: PT.object,
-    kl_repay_categories: PT.arrayOf(PT.object),
-    kl_repayments: PT.arrayOf({
-      display: PT.string,
-      amount: PT.number,
-    }),
+    kl_repay_categories: PT.arrayOf(PT.string),
+    kl_repayments: PT.arrayOf(
+      PT.shape({
+        display: PT.string,
+        amount: PT.number,
+      }),
+    ),
     kls_half_back_actual: PT.number,
     kls_75_back_actual: PT.number,
     kls_final_repayment: PT.object,

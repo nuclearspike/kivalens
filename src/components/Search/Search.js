@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import PT from 'prop-types';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { useSelector } from 'react-redux';
@@ -9,29 +9,45 @@ import ListItem from '../ListItem/ListItem';
 import Loan from '../Loan';
 import LoansProgress from '../LoansProgress';
 import listItem from '../ListItem/ListItem.css';
+import { useCriteria, useLoanAllDetails } from '../../store/helpers/hooks';
 import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
+import performSearch from './performSearch';
 import s from './Search.css';
+// eslint-disable-next-line css-modules/no-unused-class
 
 const Search = memo(({ selectedId, tab }) => {
   useStyles(s, listItem);
+  const criteria = useCriteria();
   const loanIds = useSelector(({ allLoans }) => allLoans);
+  const allDetails = useLoanAllDetails();
+  const results = useMemo(() => {
+    if (!process.env.BROWSER) {
+      return [];
+    }
+    /**
+     * filter all by criteria
+     */
+    return performSearch(criteria, loanIds, allDetails) || [];
+  }, [criteria, loanIds, allDetails]);
+
   const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab]);
   return (
     <Container fluid className={s.root}>
       <Row>
         <Col xs={12} md={4}>
           <ButtonGroup>
-            <BulkAddModal loanIds={loanIds} />
+            <BulkAddModal loanIds={results} />
           </ButtonGroup>
           <StickyColumn>
             <LoansProgress />
+            <div>Count: {results.length}</div>
             <Infinite
               preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
               containerHeight={700}
               elementHeight={100}
             >
-              {loanIds.map(id => (
+              {results.map(id => (
                 <ListItem
                   key={id}
                   id={id}

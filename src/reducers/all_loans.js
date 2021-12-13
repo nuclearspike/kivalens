@@ -1,4 +1,4 @@
-import * as c from '../constants'
+import * as c from '../constants';
 
 /**
  * here's all the loans in an array of ids.
@@ -10,8 +10,8 @@ import * as c from '../constants'
 export default function allLoans(state = [], action) {
   switch (action.type) {
     case c.LOANS_SET_ALL:
-      return action.ids
+      return action.ids;
     default:
-      return state
+      return state;
   }
 }

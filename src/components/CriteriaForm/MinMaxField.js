@@ -1,7 +1,7 @@
-import React, {Component, useState} from 'react'
-import PropTypes from 'prop-types'
-import {Handles, Rail, Slider, Ticks, Tracks} from 'react-compound-slider'
-import HoverOver from '../Common/HoverOver'
+import React, { Component, useCallback, useState } from 'react';
+import PropTypes from 'prop-types';
+import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
+import HoverOver from '../Common/HoverOver';
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -14,7 +14,7 @@ const railStyle = {
   cursor: 'pointer',
   zIndex: 300,
   // border: '1px solid grey',
-}
+};
 
 const railCenterStyle = {
   position: 'absolute',
@@ -25,36 +25,36 @@ const railCenterStyle = {
   cursor: 'pointer',
   pointerEvents: 'none',
   backgroundColor: 'rgb(155,155,155)',
-}
+};
 
 export class TooltipRail extends Component {
   state = {
     value: null,
     percent: null,
-  }
+  };
 
   onMouseEnter = () => {
-    document.addEventListener('mousemove', this.onMouseMove)
-  }
+    document.addEventListener('mousemove', this.onMouseMove);
+  };
 
   onMouseLeave = () => {
-    this.setState({value: null, percent: null})
-    document.removeEventListener('mousemove', this.onMouseMove)
-  }
+    this.setState({ value: null, percent: null });
+    document.removeEventListener('mousemove', this.onMouseMove);
+  };
 
   onMouseMove = e => {
-    const {activeHandleID, getEventData} = this.props
+    const { activeHandleID, getEventData } = this.props;
 
     if (activeHandleID) {
-      this.setState({value: null, percent: null})
+      this.setState({ value: null, percent: null });
     } else {
-      this.setState(getEventData(e))
+      this.setState(getEventData(e));
     }
-  }
+  };
 
   render() {
-    const {value, percent} = this.state
-    const {activeHandleID, getRailProps} = this.props
+    const { value, percent } = this.state;
+    const { activeHandleID, getRailProps } = this.props;
 
     return (
       <>
@@ -79,7 +79,7 @@ export class TooltipRail extends Component {
             onMouseLeave: this.onMouseLeave,
           })}
         />
-        <div style={railCenterStyle}/>
+        <div style={railCenterStyle} />
       </>
     );
   }
@@ -89,11 +89,11 @@ TooltipRail.propTypes = {
   getEventData: PropTypes.func,
   activeHandleID: PropTypes.string,
   getRailProps: PropTypes.func.isRequired,
-}
+};
 
 TooltipRail.defaultProps = {
   disabled: false,
-}
+};
 
 // *******************************************************
 // SLIDER RAIL (no tooltips)
@@ -106,7 +106,7 @@ const railOuterStyle = {
   borderRadius: 7,
   cursor: 'pointer',
   // border: '1px solid grey',
-}
+};
 
 const railInnerStyle = {
   position: 'absolute',
@@ -116,44 +116,44 @@ const railInnerStyle = {
   borderRadius: 7,
   pointerEvents: 'none',
   backgroundColor: 'rgb(155,155,155)',
-}
+};
 
-export function SliderRail({getRailProps}) {
+export function SliderRail({ getRailProps }) {
   return (
     <>
       <div style={railOuterStyle} {...getRailProps()} />
-      <div style={railInnerStyle}/>
+      <div style={railInnerStyle} />
     </>
-  )
+  );
 }
 
 SliderRail.propTypes = {
   getRailProps: PropTypes.func.isRequired,
-}
+};
 
 // *******************************************************
 // HANDLE COMPONENT
 // *******************************************************
 export class Handle extends Component {
-  state = {mouseOver: false}
+  state = { mouseOver: false };
 
   onMouseEnter = () => {
-    this.setState({mouseOver: true})
-  }
+    this.setState({ mouseOver: true });
+  };
 
   onMouseLeave = () => {
-    this.setState({mouseOver: false})
-  }
+    this.setState({ mouseOver: false });
+  };
 
   render() {
     const {
       domain: [min, max],
-      handle: {id, value, percent},
+      handle: { id, value, percent },
       isActive,
       disabled,
       getHandleProps,
-    } = this.props
-    const {mouseOver} = this.state
+    } = this.props;
+    const { mouseOver } = this.state;
 
     return (
       <>
@@ -223,16 +223,16 @@ Handle.propTypes = {
   getHandleProps: PropTypes.func.isRequired,
   isActive: PropTypes.bool.isRequired,
   disabled: PropTypes.bool,
-}
+};
 
 Handle.defaultProps = {
   disabled: false,
-}
+};
 
 // *******************************************************
 // TRACK COMPONENT
 // *******************************************************
-export function Track({source, target, getTrackProps, disabled}) {
+export function Track({ source, target, getTrackProps, disabled }) {
   return (
     <div
       style={{
@@ -248,7 +248,7 @@ export function Track({source, target, getTrackProps, disabled}) {
       }}
       {...getTrackProps()}
     />
-  )
+  );
 }
 
 Track.propTypes = {
@@ -268,12 +268,12 @@ Track.propTypes = {
 
 Track.defaultProps = {
   disabled: false,
-}
+};
 
 // *******************************************************
 // TICK COMPONENT
 // *******************************************************
-export function Tick({tick, count, format}) {
+export function Tick({ tick, count, format }) {
   return (
     <div>
       <div
@@ -311,45 +311,72 @@ Tick.propTypes = {
   }).isRequired,
   count: PropTypes.number.isRequired,
   format: PropTypes.func.isRequired,
-}
+};
 
 Tick.defaultProps = {
   format: d => d,
-}
+};
 
 // /////// My STUFF VVV
 
 const sliderStyle = {
   position: 'relative',
   width: '100%',
-}
+};
 
-const defaultValues = [15, 50]
+// const defaultValues = [15, 50];
 
-const MinMaxField = ({schema, formData}) => {
-  const [domain, setDomain] = useState([schema.min, schema.max])
-  const [values, setValues] = useState(defaultValues.slice())
-  const [update, setUpdate] = useState(defaultValues.slice())
-  const [reversed, setReversed] = useState(false)
+const nanToUndef = val => (Number.isNaN(val) || val === null ? undefined : val);
+const prepForComp = (val, def) => nanToUndef(val) || def;
+const prepToStore = (val, def) => (val === def ? undefined : val);
+
+const MinMaxField = ({ schema, formData, onChange }) => {
+  const { min: storedMin, max: storedMax } = formData;
+  const domain = [schema.min, schema.max];
+  const reversed = false;
+  const valuesForComp = [
+    prepForComp(storedMin, schema.min),
+    prepForComp(storedMax, schema.max),
+  ];
+
+  const displayMin = prepToStore(storedMin, schema.min) || 'min';
+  const displayMax = prepToStore(storedMax, schema.max) || 'max';
+
+  // const [domain, setDomain] = useState([schema.min, schema.max]);
+  // const [valuesForComp, setValues] = useState([storedMin, storedMax]);
+  // const [update, setUpdate] = useState(defaultValues.slice());
+  // const [reversed, setReversed] = useState(false);
+
+  const userAlteredCB = useCallback(
+    newValues => {
+      const [min, max] = newValues;
+      const minToStore = prepToStore(min, schema.min);
+      const maxToStore = prepToStore(max, schema.max);
+      if (minToStore !== storedMin || maxToStore !== storedMax) {
+        onChange({ min: minToStore, max: maxToStore });
+      }
+    },
+    [onChange, storedMin, storedMax],
+  );
+
   return (
     <>
-      <HoverOver title={schema.title} description={schema.description}/>
-      <div>{JSON.stringify(values)}</div>
-      <div>{JSON.stringify(update)}</div>
-      <div style={{height: 150, width: '100%'}}>
+      <HoverOver title={schema.title} description={schema.description} />
+      <div><small>{displayMin}-{displayMax}</small></div>
+      <div style={{ marginTop: 10, height: 50, width: '100%' }}>
         <Slider
           mode={1}
           step={schema.step || 1}
           rootStyle={sliderStyle}
           domain={domain}
           reversed={reversed}
-          onUpdate={setUpdate}
-          onChange={setValues}
-          values={values}
+          // onUpdate={setUpdate}
+          onChange={userAlteredCB}
+          values={valuesForComp}
         >
           <Rail>{railProps => <TooltipRail {...railProps} />}</Rail>
           <Handles>
-            {({handles, activeHandleID, getHandleProps}) => (
+            {({ handles, activeHandleID, getHandleProps }) => (
               <div className="slider-handles">
                 {handles.map(handle => (
                   <Handle
@@ -364,9 +391,9 @@ const MinMaxField = ({schema, formData}) => {
             )}
           </Handles>
           <Tracks left={false} right={false}>
-            {({tracks, getTrackProps}) => (
+            {({ tracks, getTrackProps }) => (
               <div className="slider-tracks">
-                {tracks.map(({id, source, target}) => (
+                {tracks.map(({ id, source, target }) => (
                   <Track
                     key={id}
                     source={source}
@@ -378,10 +405,10 @@ const MinMaxField = ({schema, formData}) => {
             )}
           </Tracks>
           <Ticks count={10}>
-            {({ticks}) => (
+            {({ ticks }) => (
               <div className="slider-ticks">
                 {ticks.map(tick => (
-                  <Tick key={tick.id} tick={tick} count={ticks.length}/>
+                  <Tick key={tick.id} tick={tick} count={ticks.length} />
                 ))}
               </div>
             )}
@@ -392,4 +419,19 @@ const MinMaxField = ({schema, formData}) => {
   );
 };
 
-export default MinMaxField
+MinMaxField.propTypes = {
+  schema: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+    min: PropTypes.number,
+    max: PropTypes.number,
+    step: PropTypes.number,
+  }).isRequired,
+  formData: PropTypes.shape({
+    min: PropTypes.number,
+    max: PropTypes.number,
+  }).isRequired,
+  onChange: PropTypes.func.isRequired,
+};
+
+export default MinMaxField;

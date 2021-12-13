@@ -1,14 +1,14 @@
-import React from 'react'
-import Layout from '../../components/Layout'
-import About from '../../components/About'
+import React from 'react';
+import Layout from '../../components/Layout';
+import About from '../../components/About';
 
 function action() {
   return {
     chunks: ['about'],
-    // title: about.title,
+    title: 'About',
     component: (
       <Layout>
-        <About/>
+        <About />
       </Layout>
     ),
   };

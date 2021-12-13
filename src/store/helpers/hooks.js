@@ -9,8 +9,15 @@ import store from 'store2';
 
 export const useLoanDetails = id =>
   useSelector(({ loanDetails }) => loanDetails[id]);
+
+export const useLoanAllDetails = () =>
+  useSelector(({ loanDetails }) => loanDetails);
+
 export const usePartnerDetails = id =>
   useSelector(({ partnerDetails }) => partnerDetails[id]);
+
+export const useCriteria = () => useSelector(({ criteria }) => criteria);
+
 export const useBasket = () => useSelector(({ basket }) => basket);
 
 export const useStateSetterCallbacks = (initial, valueArray) => {

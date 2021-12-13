@@ -15,7 +15,7 @@ const PartnerTab = ({ partnerId }) => {
   //   // dispatch(partnerDetailsFetch(partnerId))
   // }, [partnerId])
   const partner = usePartnerDetails(partnerId);
-  const showAtheistResearch = useStored('Options.mergeAtheistList', true);
+  const [showAtheistResearch] = useStored('Options.mergeAtheistList', true);
 
   const partnerDictionary = useMemo(() => {
     // ugh. i should have just had it render to react for each entry!
