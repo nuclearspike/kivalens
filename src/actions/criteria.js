@@ -2,12 +2,14 @@ import debounce from 'lodash.debounce';
 import * as c from '../constants';
 
 // happens immediately. use for loading saved searches
-export function alterCriteria(criteria) {
-  return {
-    type: c.SET_CRITERIA,
-    payload: criteria,
-  };
-}
+export const alterCriteria = criteria => ({
+  type: c.CRITERIA_SET,
+  payload: criteria,
+});
+
+export const clearCriteria = () => ({
+  type: c.CRITERIA_CLEAR,
+});
 
 const debouncedAlter = debounce((criteria, dispatch) => {
   dispatch(alterCriteria(criteria));

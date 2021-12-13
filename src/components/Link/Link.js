@@ -1,6 +1,6 @@
-import React, {memo} from 'react'
-import PropTypes from 'prop-types'
-import history from '../../history'
+import React, { memo } from 'react';
+import PropTypes from 'prop-types';
+import history from '../../history';
 
 function isLeftClickEvent(event) {
   return event.button === 0;

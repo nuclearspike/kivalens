@@ -73,3 +73,15 @@ export const useStored = (keyName, initial) => {
 
   return [current, setCurrentCB];
 };
+
+export const useOnClient = () => {
+  const [client, setOnClient] = useState(false);
+  if (process.env.BROWSER) {
+    useEffect(() => {
+      // Do not have it start out as true on client, the first render should match the server or console errors
+      const handle = setTimeout(() => setOnClient(true), 10);
+      return () => clearTimeout(handle);
+    }, [true]);
+  }
+  return client;
+};

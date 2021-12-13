@@ -4,6 +4,9 @@ import { arrayWithElements } from '../../utils';
 const performSearch = (criteria, loanIds, loanDetails) => {
   if (
     !criteria ||
+    !criteria.borrower ||
+    !criteria.loan ||
+    !criteria.partner ||
     !arrayWithElements(loanIds) ||
     typeof loanDetails !== 'object'
   ) {
@@ -12,6 +15,7 @@ const performSearch = (criteria, loanIds, loanDetails) => {
   // first filter partners, then pass in partner ids as one of the tests for loans
 
   const ct = new CritTester(criteria.borrower);
+
   ct.addRangeTesters('borrower_count', loan => loan.borrowers.length);
   ct.addRangeTesters('percent_female', loan => loan.kl_percent_women);
   ct.addRangeTesters('age_mentioned', loan => loan.kls_age);
@@ -54,8 +58,6 @@ const performSearch = (criteria, loanIds, loanDetails) => {
   //     loan.terms.loss_liability && loan.terms.loss_liability.currency_exchange,
   // );
   //
-
-
 
   //
   // MORE TO COPY!!!

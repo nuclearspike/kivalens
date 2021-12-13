@@ -1,7 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 
 export const SET_RUNTIME_VARIABLE = 'SET_RUNTIME_VARIABLE';
-export const SET_CRITERIA = 'SET_CRITERIA';
+export const CRITERIA_SET = 'CRITERIA_SET';
+export const CRITERIA_CLEAR = 'CRITERIA_CLEAR';
 // export const SET_CRITERIA_OPTION = 'SET_CRITERIA_OPTION';
 export const SET_CRITERIA_CUSTOMIZATION = 'SET_CRITERIA_CUSTOMIZATION';
 export const LOANS_SET_ALL = 'LOANS_SET_ALL';
@@ -19,3 +20,50 @@ export const BASKET_ADD_MANY = 'BASKET_ADD_MANY';
 export const BASKET_REMOVE = 'BASKET_REMOVE';
 export const BASKET_CLEAR = 'BASKET_CLEAR';
 export const BASKET_CLEAN = 'BASKET_CLEAN';
+
+export const emptyCrit = {
+  borrower: {
+    name: {
+      partial_exact: 'partial',
+    },
+    borrower_count: {},
+    percent_female: {},
+    age_mentioned: {},
+  },
+  loan: {
+    use_or_description: {
+      partial_exact: 'partial',
+    },
+    repaid_in: {},
+    loan_amount: {},
+    dollars_per_hour: {},
+    still_needed: {},
+    percent_funded: {},
+    expiring_in_days: {},
+    disbursal: {},
+    sectors: {
+      aan: 'any',
+    },
+    activities: {
+      aan: 'any',
+    },
+    themes: {
+      aan: 'all',
+    },
+    tags: {
+      aan: 'all',
+    },
+    countries: {
+      aan: 'any',
+    },
+    currency_loss: '',
+    bonus_credit: '',
+  },
+  partner: {
+    name: {
+      partial_exact: 'partial',
+    },
+  },
+  balancing: {},
+  results: {},
+};

@@ -28,7 +28,7 @@ const Search = memo(({ selectedId, tab }) => {
     /**
      * filter all by criteria
      */
-    return performSearch(criteria, loanIds, allDetails) || [];
+    return performSearch(criteria, loanIds, allDetails);
   }, [criteria, loanIds, allDetails]);
 
   const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab]);
