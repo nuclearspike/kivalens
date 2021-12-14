@@ -15,6 +15,7 @@ import router from './router';
 import { loansAllFetch } from './actions/all_loans';
 import { partnersAllFetch } from './actions/partner_details';
 import { setAPIOptions } from './kiva-api/kivaBase';
+import {atheistListFetch} from './actions/atheist_list'
 
 initializeIcons();
 
@@ -45,7 +46,8 @@ const context = {
 
 context.store
   .dispatch(loansAllFetch())
-  .then(context.store.dispatch(partnersAllFetch()));
+  .then(context.store.dispatch(partnersAllFetch()))
+  .then(context.store.dispatch(atheistListFetch()));
 
 const container = document.getElementById('app');
 let currentLocation = history.location;

@@ -1,5 +1,7 @@
+import { batch } from 'react-redux';
 import * as c from '../constants';
 import Partners from '../kiva-api/Partners';
+import { markDone, markLoading } from './loading';
 
 export const partnerDetailsUpdateMany = partners => {
   return {
@@ -17,9 +19,13 @@ export const partnerDetailsUpdate = partner => {
 
 export const partnersAllFetch = () => {
   return dispatch => {
-    return new Partners()
-      .start()
-      .then(result => dispatch(partnerDetailsUpdateMany(result)));
+    dispatch(markLoading('partners'));
+    return new Partners().start().then(result => {
+      batch(() => {
+        dispatch(partnerDetailsUpdateMany(result));
+        dispatch(markDone('partners'));
+      });
+    });
   };
 };
 

@@ -42,8 +42,9 @@ LoanTypeProgress.defaultProps = {
 
 const LoansProgress = memo(() => {
   const progress = useSelector(({ loansProgress }) => loansProgress);
+  const loadingLoans = useSelector(({ loading }) => loading.loans);
 
-  if (Object.keys(progress).length === 0) {
+  if (!loadingLoans) {
     return <div />;
   }
 
@@ -54,7 +55,7 @@ const LoansProgress = memo(() => {
       {ids && (
         <LoanTypeProgress
           label="Loan IDs"
-          description="Fundraising IDs download"
+          description="Fundraising IDs downloaded"
           progress={progress.ids}
         />
       )}

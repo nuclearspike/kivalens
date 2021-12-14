@@ -1,19 +1,19 @@
-import extend from 'extend'
-import PagedKiva from './PagedKiva'
-import ResultProcessors from './ResultProcessors'
+import extend from 'extend';
+import PagedKiva from './PagedKiva';
+import ResultProcessors from './ResultProcessors';
 
 /**
  *
  */
 class LoansSearch extends PagedKiva {
   constructor(params, getDetails = true, maxRepaymentDate, preventVisitor) {
-    params = extend({}, {status: 'fundraising'}, params)
-    if (maxRepaymentDate) extend(params, {sort_by: 'repayment_term'})
-    super('loans/search.json', params, 'loans')
-    this.max_repayment_date = maxRepaymentDate
-    this.twoStage = getDetails
+    params = extend({}, { status: 'fundraising' }, params);
+    if (maxRepaymentDate) extend(params, { sort_by: 'repayment_term' });
+    super('loans/search.json', params, 'loans');
+    this.max_repayment_date = maxRepaymentDate;
+    this.twoStage = getDetails;
     if (!preventVisitor) {
-      this.visitorFunct = ResultProcessors.processLoan
+      this.visitorFunct = ResultProcessors.processLoan;
     }
   }
 
@@ -27,15 +27,15 @@ class LoansSearch extends PagedKiva {
             loan.kls_final_repayment.isAfter(this.max_repayment_date),
         )
       ) {
-        return false
+        return false;
       }
     }
-    return true
+    return true;
   }
 
   start() {
     // this seems problematic, break this into a "post process" function, support it in the base class?
-    return super.start().fail(this.promise.reject)
+    return super.start().fail(this.promise.reject);
     // .then(loans => {
     // after the download process is complete, if a max final payment date was specified, then remove all that don't match.
     // may want to re-enable this at some point but right now, it's a waste to throw any loans away.
@@ -47,4 +47,4 @@ class LoansSearch extends PagedKiva {
   }
 }
 
-export default LoansSearch
+export default LoansSearch;

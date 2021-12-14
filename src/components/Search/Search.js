@@ -20,6 +20,7 @@ const Search = memo(({ selectedId, tab }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
   const loanIds = useSelector(({ allLoans }) => allLoans);
+  const loadingLoans = useSelector(({ loading }) => loading.loans);
   const allDetails = useLoanAllDetails();
   const results = useMemo(() => {
     if (!process.env.BROWSER) {
@@ -30,8 +31,8 @@ const Search = memo(({ selectedId, tab }) => {
      */
     return performSearch(criteria, loanIds, allDetails);
   }, [criteria, loanIds, allDetails]);
-
   const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab]);
+
   return (
     <Container fluid className={s.root}>
       <Row>
@@ -41,10 +42,10 @@ const Search = memo(({ selectedId, tab }) => {
           </ButtonGroup>
           <StickyColumn>
             <LoansProgress />
-            <div>Count: {results.length}</div>
+            {!loadingLoans && <div>Count: {results.length}</div>}
             <Infinite
               preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
-              containerHeight={700}
+              containerHeight={750}
               elementHeight={100}
             >
               {results.map(id => (

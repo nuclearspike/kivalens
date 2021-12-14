@@ -5,8 +5,9 @@ import { usePartnerDetails, useStored } from '../../store/helpers/hooks';
 import { KivaLink, NewTabLink } from '../Links';
 import { arrayWithElements, humanize } from '../../utils';
 import DTDD from '../DTDD';
-import { Col, Row } from '../bs';
+import { Col, Jumbotron, Row } from '../bs';
 import KivaImage from '../KivaImage/KivaImage';
+import { useSelector } from 'react-redux';
 
 const PartnerTab = ({ partnerId }) => {
   // const dispatch = useDispatch()
@@ -15,6 +16,8 @@ const PartnerTab = ({ partnerId }) => {
   //   // dispatch(partnerDetailsFetch(partnerId))
   // }, [partnerId])
   const partner = usePartnerDetails(partnerId);
+  const loadingPartnerData = useSelector(({ loading }) => loading.partners);
+  const atheistData = useSelector(({ atheistList }) => atheistList[partnerId]);
   const [showAtheistResearch] = useStored('Options.mergeAtheistList', true);
 
   const partnerDictionary = useMemo(() => {
@@ -119,19 +122,50 @@ const PartnerTab = ({ partnerId }) => {
 
   const atheistDictionary = useMemo(() => {
     if (!showAtheistResearch) return <div />;
+    const result = [];
+    const addTerm = (term, def) => result.push({ term, def });
     // this isn't set to download yet! let alone
-    return <>jjj</>;
-  }, [partner, showAtheistResearch]);
+    if (atheistData) {
+      addTerm('Secular Rating', atheistData.secularRating);
+      addTerm('Religious Affiliation', atheistData.religiousAffiliation);
+      addTerm('Comments on Rating', atheistData.commentsOnSecularRating);
+      addTerm('Social Rating', atheistData.socialRating);
+      addTerm('Comments on Rating', atheistData.commentsOnSocialRating);
+      addTerm('Review Comments', atheistData.reviewComments);
+    }
+
+    return result.map(dict => (
+      <DTDD
+        key={dict.term}
+        term={dict.term}
+        def={dict.def}
+        dtClass="col-sm-3"
+        ddClass="col-sm-9"
+      />
+    ));
+  }, [atheistData, showAtheistResearch]);
+
+  if (loadingPartnerData) {
+    return (
+      <Jumbotron style={{ padding: '15px' }}>
+        <h1>Loading Partner Data...</h1>
+      </Jumbotron>
+    );
+  }
 
   if (!partner) {
-    return <div />;
+    return (
+      <Jumbotron style={{ padding: '15px' }}>
+        <h1>Error: Partner does not exist</h1>
+      </Jumbotron>
+    );
   }
 
   return (
     <>
       <Row>
         <Col xs={12}>
-          <h4>{partner.name}</h4>
+          <h2>{partner.name}</h2>
         </Col>
         <Col xs={12} lg={6}>
           <dl className="row">{partnerDictionary}</dl>
@@ -152,6 +186,7 @@ const PartnerTab = ({ partnerId }) => {
       {arrayWithElements(partner.kl_sp) && (
         <Row>
           <Col xs={12}>
+            <hr />
             <h3>Social Performance Strengths</h3>
             {partner.social_performance_strengths.map(sp => (
               <li key={sp.name}>
@@ -164,7 +199,9 @@ const PartnerTab = ({ partnerId }) => {
       {atheistDictionary && (
         <Row>
           <Col xs={12}>
-            <></>
+            <hr />
+            <h3>Atheist Team Research</h3>
+            <dl className="row">{atheistDictionary}</dl>
           </Col>
         </Row>
       )}

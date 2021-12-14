@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux'
 import store from 'store2';
 
 /**
@@ -84,4 +84,11 @@ export const useOnClient = () => {
     }, [true]);
   }
   return client;
+};
+
+//
+export const useDispatchCallback = (arrOfFunc) => {
+  const dispatch = useDispatch();
+
+  return [dispatch, ...[]];
 };

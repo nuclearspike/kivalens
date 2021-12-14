@@ -7,6 +7,8 @@ import allLoans from './all_loans';
 import loanDetails from './loan_details';
 import loansProgress from './loans_progress';
 import partnerDetails from './partner_details';
+import loading from './loading';
+import atheistList from './atheist_list'
 
 export default combineReducers({
   user,
@@ -17,4 +19,6 @@ export default combineReducers({
   basket,
   runtime,
   criteria,
+  loading,
+  atheistList,
 });

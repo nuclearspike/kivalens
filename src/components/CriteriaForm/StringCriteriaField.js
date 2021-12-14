@@ -26,8 +26,12 @@ StringCriteriaField.propTypes = {
     description: PT.string,
     placeholder: PT.string,
   }).isRequired,
-  formData: PT.object.isRequired,
+  formData: PT.object,
   onChange: PT.func.isRequired,
+};
+
+StringCriteriaField.defaultProps = {
+  formData: undefined,
 };
 
 export default StringCriteriaField;

@@ -20,6 +20,9 @@ export const BASKET_ADD_MANY = 'BASKET_ADD_MANY';
 export const BASKET_REMOVE = 'BASKET_REMOVE';
 export const BASKET_CLEAR = 'BASKET_CLEAR';
 export const BASKET_CLEAN = 'BASKET_CLEAN';
+export const LOADING_SET = 'LOADING_SET';
+export const LOADING_CLEAR = 'LOADING_CLEAR';
+export const ATHEIST_LIST_SET = 'ATHEIST_LIST_SET';
 
 export const emptyCrit = {
   borrower: {

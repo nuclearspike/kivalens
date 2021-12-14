@@ -116,7 +116,7 @@ const LoanTab = ({ loan }) => {
         );
       }
       if (loan.kls_age) {
-        addTerm('Age Found', loan.kls_age);
+        addTerm('Age Mentioned', loan.kls_age);
       }
       addTerm('Posted', <DisplayDate date={loan.kl_posted_date} />);
       if (loan.status !== 'fundraising') {
