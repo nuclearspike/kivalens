@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container } from '../bs';
 import { EmailLink, KivaLink, KLALink, LenderLink, NewTabLink } from '../Links';
+import KivaLogo from '../KivaImage/KivaLogo'
 
 const hasLenderID = false;
 
@@ -62,6 +63,7 @@ const About = () => {
         All of the data that KivaLens displays is either a direct presentation
         of or computation from data that is pulled from{' '}
         <NewTabLink href="https://build.kiva.org/api">
+          <KivaLogo />
           Kiva.org's Public API
         </NewTabLink>{' '}
         with the exception of data from the Atheist Team's research. If you have

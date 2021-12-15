@@ -58,12 +58,6 @@ const LoanTab = ({ loan }) => {
     errorPolicy: 'ignore',
   });
 
-  // useEffect(() => {
-  //   if (data) {
-  //     dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
-  //   }
-  // }, [data]);
-
   // this causes a double call but also refreshes
   useEffect(() => {
     const handle = setInterval(() => {
@@ -72,6 +66,7 @@ const LoanTab = ({ loan }) => {
       }
       // only needs to happen after the download is pre-packaged to fetch the description..
       // dispatch(loanDetailsFetch(loan.id));
+      // todo: review after pre-packaging is done
     }, 30000);
     return clearInterval(handle);
   }, [loan.id]);

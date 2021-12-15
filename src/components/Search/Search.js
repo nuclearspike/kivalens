@@ -14,6 +14,7 @@ import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
 import performSearch from './performSearch';
 import s from './Search.css';
+import ListContainer from './ListContainer';
 // eslint-disable-next-line css-modules/no-unused-class
 
 const loanLink = id => `/search/${id}`;
@@ -44,20 +45,24 @@ const Search = memo(({ selectedId }) => {
           <StickyColumn>
             <LoansProgress />
             {!loadingLoans && <div>Count: {results.length}</div>}
-            <Infinite
-              preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
-              containerHeight={550}
-              elementHeight={100}
-            >
-              {results.map(id => (
-                <ListItem
-                  key={id}
-                  id={id}
-                  selected={id === selectedId}
-                  loanLink={loanLink}
-                />
-              ))}
-            </Infinite>
+            <ListContainer defaultHeight={325}>
+              {height => (
+                <Infinite
+                  preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
+                  containerHeight={height}
+                  elementHeight={100}
+                >
+                  {results.map(id => (
+                    <ListItem
+                      key={id}
+                      id={id}
+                      selected={id === selectedId}
+                      loanLink={loanLink}
+                    />
+                  ))}
+                </Infinite>
+              )}
+            </ListContainer>
           </StickyColumn>
         </Col>
         {selectedId ? (

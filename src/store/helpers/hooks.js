@@ -75,6 +75,7 @@ export const useStored = (keyName, initial) => {
   return [current, setCurrentCB];
 };
 
+// have this be a runtime var!
 export const useOnClient = () => {
   const [client, setOnClient] = useState(false);
   if (process.env.BROWSER) {

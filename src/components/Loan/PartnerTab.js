@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import PT from 'prop-types';
 import numeral from 'numeral';
+import { useSelector } from 'react-redux';
 import { usePartnerDetails, useStored } from '../../store/helpers/hooks';
 import { KivaLink, NewTabLink } from '../Links';
 import { arrayWithElements, humanize } from '../../utils';
 import DTDD from '../DTDD';
 import { Col, Jumbotron, Row } from '../bs';
 import KivaImage from '../KivaImage/KivaImage';
-import { useSelector } from 'react-redux';
 
 const PartnerTab = ({ partnerId }) => {
   // const dispatch = useDispatch()
@@ -128,9 +128,12 @@ const PartnerTab = ({ partnerId }) => {
     if (atheistData) {
       addTerm('Secular Rating', atheistData.secularRating);
       addTerm('Religious Affiliation', atheistData.religiousAffiliation);
-      addTerm('Comments on Rating', atheistData.commentsOnSecularRating);
+      addTerm(
+        'Comments on Secular Rating',
+        atheistData.commentsOnSecularRating,
+      );
       addTerm('Social Rating', atheistData.socialRating);
-      addTerm('Comments on Rating', atheistData.commentsOnSocialRating);
+      addTerm('Comments on Social Rating', atheistData.commentsOnSocialRating);
       addTerm('Review Comments', atheistData.reviewComments);
     }
 
@@ -170,12 +173,20 @@ const PartnerTab = ({ partnerId }) => {
     <>
       <Row>
         <Col xs={12}>
-          <h2>{partner.name}</h2>
+          <h2>
+            <KivaLink
+              title={`View ${partner.name} on Kiva`}
+              path={`about/where-kiva-works/partners/${partner.id}`}
+            >
+              {partner.name}
+            </KivaLink>
+          </h2>
         </Col>
-        <Col xs={12} lg={6}>
+        <Col xs={12} md={8} lg={6}>
           <dl className="row">{partnerDictionary}</dl>
         </Col>
-        <Col xs={12} lg={6}>
+        <Col xs={12} md={0} lg={2} />
+        <Col xs={12} md={8} lg={4}>
           <KivaImage
             key={partner.id}
             type="width"
@@ -183,9 +194,6 @@ const PartnerTab = ({ partnerId }) => {
             imageWidth={600}
             width="100%"
           />
-          <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}>
-            View Partner on Kiva.org
-          </KivaLink>
         </Col>
       </Row>
       {arrayWithElements(partner.kl_sp) && (

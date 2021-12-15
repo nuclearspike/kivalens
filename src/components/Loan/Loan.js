@@ -6,7 +6,7 @@ import { basketAdd, basketRemove } from '../../actions/basket';
 import { loanDetailsFetch } from '../../actions/loan_details';
 import { useLoanDetails, useRuntimeVars } from '../../store/helpers/hooks';
 import Link from '../Link';
-import { KivaLink } from '../Links';
+import {LoanLink} from '../Links'
 import LoanTab from './LoanTab';
 import PartnerTab from './PartnerTab';
 import ImageTab from './ImageTab';
@@ -57,9 +57,11 @@ const Loan = ({ id }) => {
       <h1 style={{ marginTop: '10px' }}>
         <Link to="/search">Search</Link>
         {' > '}
-        <KivaLink title="View loan on Kiva.org" path={`lend/${loan.id}`}>
-          {loan.name}
-        </KivaLink>
+        <LoanLink loan={loan} />
+        {/*<KivaLink title="View loan on Kiva.org" path={`lend/${loan.id}`}>*/}
+        {/*  <KivaLogo />*/}
+        {/*  {loan.name}*/}
+        {/*</KivaLink>*/}
         {inBasket ? (
           <Button
             variant="danger"
