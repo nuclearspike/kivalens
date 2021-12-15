@@ -114,7 +114,7 @@ export const LoanLink = ({
 }) => {
   if (loan) {
     id = loan.id;
-    title = `View loan for ${loan.name} on Kiva.org in a new tab`;
+    title = title || `View loan for ${loan.name} on Kiva.org in a new tab`;
     if (!children) {
       children = loan.name;
     }

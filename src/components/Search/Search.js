@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import PT from 'prop-types';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { useSelector } from 'react-redux';
@@ -29,9 +29,6 @@ const Search = memo(({ selectedId }) => {
     if (!process.env.BROWSER) {
       return [];
     }
-    /**
-     * filter all by criteria
-     */
     return performSearch(criteria, loanIds, allDetails);
   }, [criteria, loanIds, allDetails]);
 
@@ -44,8 +41,8 @@ const Search = memo(({ selectedId }) => {
           </ButtonGroup>
           <StickyColumn>
             <LoansProgress />
-            {!loadingLoans && <div>Count: {results.length}</div>}
-            <ListContainer defaultHeight={325}>
+            {!loadingLoans && results.length && <div>Count: {results.length}</div>}
+            <ListContainer defaultHeight={550}>
               {height => (
                 <Infinite
                   preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
@@ -81,12 +78,10 @@ Search.displayName = 'Search';
 
 Search.propTypes = {
   selectedId: PT.number,
-  tab: PT.string,
 };
 
 Search.defaultProps = {
   selectedId: null,
-  tab: 'loan',
 };
 
 export default Search;

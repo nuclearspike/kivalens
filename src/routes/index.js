@@ -47,10 +47,6 @@ const routes = {
       load: () => import(/* webpackChunkName: 'search' */ './basket'),
     },
     {
-      path: '/basket/:id/:tab',
-      load: () => import(/* webpackChunkName: 'search' */ './basket'),
-    },
-    {
       path: '/options',
       load: () => import(/* webpackChunkName: 'options' */ './options'),
     },

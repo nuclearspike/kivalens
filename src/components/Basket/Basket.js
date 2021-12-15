@@ -13,11 +13,11 @@ import BasketSummary from './BasketSummary';
 import listItem from '../ListItem/ListItem.css';
 import s from './Basket.css';
 
-// const loanLink = (id) => `/basket/${id}`
+const loanLink = id => `/basket/${id}`;
 
-const Basket = ({ selectedId, tab }) => {
+const Basket = ({ selectedId }) => {
   useStyles(s, listItem);
-  const loanLink = useCallback(id => `/basket/${id}/${tab}`, [tab]);
+
   const dispatch = useDispatch();
   const basket = useBasket();
   const selectedBasketItem = useMemo(
@@ -31,6 +31,7 @@ const Basket = ({ selectedId, tab }) => {
   const checkoutAtKivaCB = useCallback(() => {
     alert('Not implemented');
   }, []);
+
   const clearBasketCB = useCallback(() => dispatch(basketClear()), []);
   return (
     <Container fluid>
@@ -97,12 +98,10 @@ const Basket = ({ selectedId, tab }) => {
 
 Basket.propTypes = {
   selectedId: PT.number,
-  tab: PT.string,
 };
 
 Basket.defaultProps = {
   selectedId: null,
-  tab: 'loan',
 };
 
 export default Basket;
