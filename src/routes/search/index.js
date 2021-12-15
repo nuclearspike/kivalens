@@ -2,20 +2,14 @@ import React from 'react';
 import Search from '../../components/Search';
 import Layout from '../../components/Layout';
 
-function action({ params: { id: idString, tab } }) {
-  if (idString && !tab) {
-    return {
-      redirect: `/search/${idString}/loan`,
-    };
-  }
-
+function action({ params: { id: idString } }) {
   const id = idString ? parseInt(idString, 10) : null;
   return {
     title: 'Find a loan',
     chunks: ['home'],
     component: (
       <Layout>
-        <Search selectedId={id} tab={tab} />
+        <Search selectedId={id} />
       </Layout>
     ),
   };

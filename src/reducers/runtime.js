@@ -1,4 +1,4 @@
-import * as c from '../constants'
+import * as c from '../constants';
 
 export default function runtime(state = {}, action) {
   switch (action.type) {
@@ -6,8 +6,8 @@ export default function runtime(state = {}, action) {
       return {
         ...state,
         [action.payload.name]: action.payload.value,
-      }
+      };
     default:
-      return state
+      return state;
   }
 }

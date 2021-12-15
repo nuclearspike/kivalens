@@ -24,10 +24,10 @@ export default function loanDetails(state = {}, action) {
         toAdd[loan.id] = loan;
       });
       // overrides old ones, introduces new ones.
-      return extend(true, {}, state, toAdd);
+      return extend({}, state, toAdd);
     }
     case c.LOAN_DETAILS_UPDATE:
-      return extend(true, {}, state, { [action.loan.id]: action.loan });
+      return extend({}, state, { [action.loan.id]: action.loan });
     default:
       return state;
   }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {useDispatch, useSelector} from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux';
 import store from 'store2';
+import { setRuntimeVariable } from '../../actions/runtime';
 
 /**
  * This unit is for common selectors or other common hooks.
@@ -86,9 +87,14 @@ export const useOnClient = () => {
   return client;
 };
 
-//
-export const useDispatchCallback = (arrOfFunc) => {
+export const useRuntimeVars = (name, defaultValue) => {
   const dispatch = useDispatch();
-
-  return [dispatch, ...[]];
+  const oldValue = useSelector(({ runtime }) => runtime[name]) || defaultValue;
+  const setValue = useCallback(
+    value => {
+      dispatch(setRuntimeVariable({ name, value }));
+    },
+    [name],
+  );
+  return [oldValue, setValue, dispatch];
 };

@@ -1,27 +1,35 @@
 import React, { useCallback, useEffect } from 'react';
 import PT from 'prop-types';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Button, Jumbotron, Tab, Tabs } from '../bs';
 import { basketAdd, basketRemove } from '../../actions/basket';
 import { loanDetailsFetch } from '../../actions/loan_details';
-import { useLoanDetails } from '../../store/helpers/hooks';
+import { useLoanDetails, useRuntimeVars } from '../../store/helpers/hooks';
 import Link from '../Link';
 import { KivaLink } from '../Links';
 import LoanTab from './LoanTab';
 import PartnerTab from './PartnerTab';
-import ImageTab from './ImageTab'
+import ImageTab from './ImageTab';
 
-const Loan = ({ id, tab }) => {
-  const dispatch = useDispatch();
-  useEffect(() => {
-    // cannot shorten to () since this returns a promise
-    dispatch(loanDetailsFetch(id));
-  }, [id]);
+const Loan = ({ id }) => {
+  const [loanActiveTab, setLoanActiveTabCB, dispatch] = useRuntimeVars(
+    'LoanActiveTab',
+    'loan',
+  );
 
   const loan = useLoanDetails(id);
+
+  useEffect(() => {
+    // cannot shorten to () since this returns a promise
+    if (!loan) {
+      dispatch(loanDetailsFetch(id));
+    }
+  }, [id, loan]);
+
   const basketItem = useSelector(({ basket }) =>
     basket.first(bi => bi.id === id),
   );
+
   const inBasket = !!basketItem;
   const AddToBasketCB = useCallback(
     () => dispatch(basketAdd({ id, amount: 25 })),
@@ -81,7 +89,11 @@ const Loan = ({ id, tab }) => {
         {loan.use}
       </div>
 
-      <Tabs id="loan-tabs" defaultActiveKey="loan">
+      <Tabs
+        id="loan-tabs"
+        activeKey={loanActiveTab}
+        onSelect={setLoanActiveTabCB}
+      >
         <Tab eventKey="loan" title="Loan">
           <LoanTab loan={loan} />
         </Tab>

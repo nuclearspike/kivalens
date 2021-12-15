@@ -156,7 +156,12 @@ const PartnerTab = ({ partnerId }) => {
   if (!partner) {
     return (
       <Jumbotron style={{ padding: '15px' }}>
-        <h1>Error: Partner does not exist</h1>
+        <h1>No Trustee Endorsement</h1>
+        <p>
+          <KivaLink path="trustees/1552">
+            More about loans without endorsements {'>>'}
+          </KivaLink>
+        </p>
       </Jumbotron>
     );
   }

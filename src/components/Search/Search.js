@@ -16,7 +16,9 @@ import performSearch from './performSearch';
 import s from './Search.css';
 // eslint-disable-next-line css-modules/no-unused-class
 
-const Search = memo(({ selectedId, tab }) => {
+const loanLink = id => `/search/${id}`;
+
+const Search = memo(({ selectedId }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
   const loanIds = useSelector(({ allLoans }) => allLoans);
@@ -31,7 +33,6 @@ const Search = memo(({ selectedId, tab }) => {
      */
     return performSearch(criteria, loanIds, allDetails);
   }, [criteria, loanIds, allDetails]);
-  const loanLink = useCallback(id => `/search/${id}/${tab}`, [tab]);
 
   return (
     <Container fluid className={s.root}>
@@ -45,7 +46,7 @@ const Search = memo(({ selectedId, tab }) => {
             {!loadingLoans && <div>Count: {results.length}</div>}
             <Infinite
               preloadBatchSize={Infinite.containerHeightScaleFactor(2)}
-              containerHeight={750}
+              containerHeight={550}
               elementHeight={100}
             >
               {results.map(id => (
@@ -61,7 +62,7 @@ const Search = memo(({ selectedId, tab }) => {
         </Col>
         {selectedId ? (
           <Col xs={12} md={8}>
-            <Loan key={selectedId} id={selectedId} />
+            <Loan id={selectedId} />
           </Col>
         ) : (
           <Criteria />
