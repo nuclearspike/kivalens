@@ -12,10 +12,9 @@ import history from './history';
 import { updateMeta } from './DOMUtils';
 import router from './router';
 
-import { loansAllFetch } from './actions/all_loans';
-import { partnersAllFetch } from './actions/partner_details';
-import { setAPIOptions } from './kiva-api/kivaBase';
-import {atheistListFetch} from './actions/atheist_list'
+import { setAPIOptions } from './kiva-api/kivaBase.mjs';
+import { loansSmartFetch } from './actions/all_loans';
+import { setRuntimeVariable } from './actions/runtime';
 
 initializeIcons();
 
@@ -44,10 +43,13 @@ const context = {
   storeSubscription: null,
 };
 
-context.store
-  .dispatch(loansAllFetch())
-  .then(context.store.dispatch(partnersAllFetch()))
-  .then(context.store.dispatch(atheistListFetch()));
+const { dispatch } = context.store;
+
+dispatch(loansSmartFetch());
+
+setImmediate(() => {
+  dispatch(setRuntimeVariable({ name: 'onClient', value: true }));
+});
 
 const container = document.getElementById('app');
 let currentLocation = history.location;

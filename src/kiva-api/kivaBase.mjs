@@ -1,8 +1,10 @@
-import extend from 'extend'
-import 'linqjs'
-import 'datejs'
-import semaphore from 'semaphore'
-import {Deferred} from 'jquery-deferred' // need to replace with Promise but can't be!
+import extend from 'extend';
+import 'linqjs';
+import 'datejs';
+import semaphore from 'semaphore';
+import jqd from 'jquery-deferred'; // need to replace with Promise but can't be!
+import XHR2 from 'xhr2';
+const { Deferred } = jqd;
 
 /**
  * jquery-deferred is similar to Promise but with some critical differences!
@@ -11,20 +13,31 @@ import {Deferred} from 'jquery-deferred' // need to replace with Promise but can
  *
  *  here's the old docs for Kiva's REST API
  *  https://web.archive.org/web/20110714173244/http://build.kiva.org/api#GET*|loans|search
+ *
+ *
+ * The API files are unique since they need to be .mjs so that they can be loaded in threads
+ * in the server and still use import statements.
  */
 
 const semOne = semaphore(8);
 const semTwo = semaphore(8);
 
-if (typeof global.XMLHttpRequest === 'undefined') {
-  // eslint-disable-next-line global-require
-  global.XMLHttpRequest = require('xhr2');
+const XHR = () => {
+  if (typeof global !== 'undefined' && typeof global.XMLHttpRequest !== 'undefined') {
+    return new global.XMLHttpRequest;
+  }
+  return new XHR2;
 }
 
-// eslint-disable-next-line no-console,no-undef
-if (!global.cl) global.cl = () => console.log(...arguments);
+if (typeof global !== 'undefined') {
+  // eslint-disable-next-line no-console,no-undef
+  if (process.env.BROWSER) {
+    if (!global.cl) global.cl = () => console.log(...arguments);
+  }
+}
 
 const isServer = () => !process.env.BROWSER;
+
 const canWebWork = () =>
   !!process.env.BROWSER &&
   typeof Worker !== 'undefined' &&
@@ -45,7 +58,7 @@ const getUrl = (url, options) => {
 
   options = extend({ parseJSON: true, withProgress: true }, options);
 
-  const xhr = new XMLHttpRequest();
+  const xhr = XHR();
 
   function xhrTransferComplete() {
     if (xhr.status === 200) {
@@ -96,7 +109,7 @@ const postUrl = (url, options, query) => {
 
   options = extend({ parseJSON: true }, options);
 
-  const xhr = new XMLHttpRequest();
+  const xhr = XHR();
 
   function xhrTransferComplete() {
     if (xhr.status === 200) {

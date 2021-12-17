@@ -75,19 +75,6 @@ export const useStored = (keyName, initial) => {
   return [current, setCurrentCB];
 };
 
-// have this be a runtime var!
-export const useOnClient = () => {
-  const [client, setOnClient] = useState(false);
-  if (process.env.BROWSER) {
-    useEffect(() => {
-      // Do not have it start out as true on client, the first render should match the server or console errors
-      const handle = setTimeout(() => setOnClient(true), 10);
-      return () => clearTimeout(handle);
-    }, [true]);
-  }
-  return client;
-};
-
 export const useRuntimeVars = (name, defaultValue) => {
   const dispatch = useDispatch();
   const oldValue = useSelector(({ runtime }) => runtime[name]) || defaultValue;
@@ -98,4 +85,19 @@ export const useRuntimeVars = (name, defaultValue) => {
     [name],
   );
   return [oldValue, setValue, dispatch];
+};
+
+export const useOnClient = () => {
+  return useSelector(({ runtime }) => runtime.onClient);
+
+  // const [client, setOnClient] = useState(false);
+  // const [client, setOnClient] = useRuntimeVars('onClient', false);
+  // if (process.env.BROWSER) {
+  //   useEffect(() => {
+  //     // Do not have it start out as true on client, the first render should match the server or console errors
+  //     const handle = setTimeout(() => setOnClient(true), 10);
+  //     return () => clearTimeout(handle);
+  //   }, [true]);
+  // }
+  // return client;
 };

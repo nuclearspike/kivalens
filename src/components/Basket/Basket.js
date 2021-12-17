@@ -9,8 +9,8 @@ import StickyColumn from '../Common/StickyColumn';
 import Loan from '../Loan';
 import { basketClear, basketRemove } from '../../actions/basket';
 import { useBasket } from '../../store/helpers/hooks';
-import BasketSummary from './BasketSummary';
 import listItem from '../ListItem/ListItem.css';
+import BasketSummary from './BasketSummary';
 import s from './Basket.css';
 
 const loanLink = id => `/basket/${id}`;
@@ -28,6 +28,12 @@ const Basket = ({ selectedId }) => {
     () => dispatch(basketRemove(selectedId)),
     [selectedId],
   );
+
+  const selectedIsInBasket = useMemo(() => {
+    if (!selectedId) return false;
+    return !!basket.first(bi => bi.id === selectedId);
+  }, [selectedId, basket]);
+
   const checkoutAtKivaCB = useCallback(() => {
     alert('Not implemented');
   }, []);
@@ -63,7 +69,7 @@ const Basket = ({ selectedId }) => {
           </StickyColumn>
         </Col>
         <Col xs={12} md={8}>
-          {selectedId ? (
+          {selectedIsInBasket ? (
             <Loan id={selectedId} />
           ) : (
             <Jumbotron>

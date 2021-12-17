@@ -10,7 +10,7 @@ import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
 import { humanize, humanizeArray } from '../../utils';
 import {
-  // loanDetailsFetch,
+  loanDetailsFetch,
   loanUpdateDynamic,
 } from '../../actions/loan_details';
 // import DYNAMIC_FIELDS from './dynamic_fields.graphql';
@@ -30,16 +30,11 @@ const DYNAMIC_FIELDS = gql`
         disbursalDate
         minNoteSize
         tags
+        status
         loanFundraisingInfo {
           fundedAmount
           reservedAmount
         }
-
-        #        teams {
-        #          values {
-        #            name
-        #          }
-        #        }
       }
     }
   }
@@ -58,14 +53,18 @@ const LoanTab = ({ loan }) => {
     errorPolicy: 'ignore',
   });
 
+  useEffect(() => {
+    // only needs to happen after the download is pre-packaged to fetch the description..
+    dispatch(loanDetailsFetch(loan.id));
+  }, [loan.id]);
+
   // this causes a double call but also refreshes
   useEffect(() => {
     const handle = setInterval(() => {
       if (data) {
         dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
       }
-      // only needs to happen after the download is pre-packaged to fetch the description..
-      // dispatch(loanDetailsFetch(loan.id));
+
       // todo: review after pre-packaging is done
     }, 30000);
     return clearInterval(handle);
@@ -135,7 +134,7 @@ const LoanTab = ({ loan }) => {
           </span>,
         );
       }
-      if (loan.status === 'fundraising') {
+      if (loan.status === 'fundraising' && loan.kl_repayments.length > 0) {
         addTerm(
           'Final Repayment In',
           <span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>,
@@ -158,7 +157,7 @@ const LoanTab = ({ loan }) => {
       addTerm('Loan Amount', <span>${loan.loan_amount}</span>);
       addTerm('Funded Amount', <span>${loan.funded_amount}</span>);
       addTerm('In Baskets', <span>${loan.basket_amount}</span>);
-      addTerm('Still Needed', <span>${loan.kl_still_needed}</span>);
+      addTerm('Still Needed', <span>${loan.kl_still_needed()}</span>);
     }
     return result.map(dict => (
       <DTDD key={dict.term} term={dict.term} def={dict.def} />
@@ -170,7 +169,7 @@ const LoanTab = ({ loan }) => {
       <Popover id="progress-hint" style={{ padding: 10 }} title="Meaning">
         ${loan.basket_amount} Reserved
         <br />${loan.funded_amount} Funded
-        <br />${loan.kl_still_needed} Needed
+        <br />${loan.kl_still_needed()} Needed
       </Popover>
     );
   }, [lentPercentages]);
@@ -262,7 +261,7 @@ const LoanTab = ({ loan }) => {
         },
       ],
     };
-  }, [loan]);
+  }, [loan, loan.kl_processed]);
 
   return (
     <Row>
@@ -309,7 +308,7 @@ const LoanTab = ({ loan }) => {
         <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre>
       </Col>
       <Col xs={12} md={4}>
-        {loan.status === 'fundraising' && (
+        {loan.status === 'fundraising' && loan.kl_repayments.length > 0 && (
           <>
             <div id="graph_container">
               <HighchartsReact highcharts={Highcharts} options={graphConfig} />
@@ -372,7 +371,7 @@ LoanTab.propTypes = {
     loan_amount: PT.number,
     basket_amount: PT.number,
     funded_amount: PT.number,
-    kl_still_needed: PT.number,
+    kl_still_needed: PT.func,
     kls_repaid_in: PT.number,
     kl_dollars_per_hour: PT.func,
     funded_date: PT.string,
@@ -392,6 +391,7 @@ LoanTab.propTypes = {
     kls_age: PT.number,
     kl_percent_women: PT.number,
     kl_posted_date: PT.object,
+    kl_processed: PT.object,
     kl_repay_data: PT.arrayOf(PT.number),
     kl_repay_percent: PT.arrayOf(PT.number),
     kl_planned_expiration_date: PT.object,

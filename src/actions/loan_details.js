@@ -30,16 +30,24 @@ export const loanDetailsFetch = id => {
 
 export const loanUpdateDynamic = (
   id,
-  // eslint-disable-next-line camelcase
-  { reservedAmount: basket_amount, fundedAmount: funded_amount, tags: kl_tags },
+  {
+    // eslint-disable-next-line camelcase
+    reservedAmount: basket_amount,
+    // eslint-disable-next-line camelcase
+    fundedAmount: funded_amount,
+    // eslint-disable-next-line camelcase
+    tags,
+    status,
+  },
 ) => {
   return {
     type: c.LOAN_DETAILS_UPDATE,
     loan: {
       id,
-      kl_tags,
+      kls_tags: tags, // .map(tag => tag.replace(/^#/g, '')),
       basket_amount,
       funded_amount,
+      status,
     },
   };
 };

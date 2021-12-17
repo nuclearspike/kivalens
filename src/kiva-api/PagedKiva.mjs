@@ -13,12 +13,14 @@
  */
 
 import extend from 'extend';
-import { Deferred } from 'jquery-deferred';
-import { apiOptions, semOne, semTwo } from './kivaBase';
-import Request, { ReqState } from './Request';
+import jqd from 'jquery-deferred';
+import { apiOptions, semOne, semTwo } from './kivaBase.mjs';
+import Request, { ReqState } from './Request.mjs';
+
+const { Deferred } = jqd;
 
 // NOTES
-// Deferred.always is Promise.finally
+// Deferred.always == Promise.finally
 
 /*
     BAD DESIGN: Requests are reused. They first get the ids, then they get the loans for those ids. so their

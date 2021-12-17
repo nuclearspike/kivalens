@@ -22,7 +22,7 @@
 
 import {Deferred} from 'jquery-deferred'
 import extend from 'extend'
-import {apiOptions} from './kivaBase'
+import {apiOptions} from './kivaBase.mjs'
 import req from './req'
 
 class ManualPagedKiva {

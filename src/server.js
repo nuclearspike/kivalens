@@ -1,8 +1,9 @@
 import React from 'react';
 import path from 'path';
+import { Worker } from 'worker_threads';
+import fs from 'fs';
 import express from 'express';
 import proxy from 'express-http-proxy';
-// import spdy from 'spdy';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
@@ -10,22 +11,70 @@ import { graphql } from 'graphql';
 import nodeFetch from 'node-fetch';
 import ReactDOM from 'react-dom/server';
 import PrettyError from 'pretty-error';
+import forceSSL from 'express-force-ssl';
 import App from './components/App';
 import Html from './components/Html';
 import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
 import createFetch from './createFetch';
-// import passport from './passport';
 import router from './router';
-// import models from './data/models';
-// import schema from './data/schema';
-// import assets from './asset-manifest.json'; // eslint-disable-line import/no-unresolved
 import chunks from './chunk-manifest.json'; // eslint-disable-line import/no-unresolved
 import configureStore from './store/configureStore';
 import { setRuntimeVariable } from './actions/runtime';
 import config from './config';
-import { setAPIOptions } from './kiva-api/kivaBase';
+import { setAPIOptions } from './kiva-api/kivaBase.mjs';
+// import passport from './passport';
+// import spdy from 'spdy';
+// import models from './data/models';
+// import schema from './data/schema';
+// import assets from './asset-manifest.json'; // eslint-disable-line import/no-unresolved
 // import fs from 'fs'
+
+let currentBatchNum = 0;
+let preppingBatchNum = 0;
+
+const runThread = (module, workerData) => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(`./src/threads/${module}.mjs`, { workerData });
+    worker.on('message', message => {
+      if (message.dispatch) {
+        // dispatch(message.dispatch)???
+      }
+
+      if (message.progress) {
+        console.log(message.progress);
+      }
+
+      if (message.resolve) {
+        resolve(message.resolve);
+      }
+    });
+    worker.on('error', reject);
+    worker.on('exit', code => {
+      if (code !== 0) reject(new Error(`stopped with ${code} exit code`));
+    });
+  });
+};
+
+const run = async () => {
+  preppingBatchNum = new Date().getTime();
+  const result = await runThread('prepFastFiles', { batch: preppingBatchNum });
+  console.log('FastFiles Prep:', result);
+};
+
+const runFastFilesPrep = () => {
+  run()
+    .catch(err => console.error(err))
+    .then(() => {
+      currentBatchNum = preppingBatchNum;
+      preppingBatchNum = 0;
+    });
+};
+
+runFastFilesPrep();
+setInterval(() => {
+  runFastFilesPrep();
+}, 5 * 60000).unref();
 
 process.on('unhandledRejection', (reason, p) => {
   console.error('Unhandled Rejection at:', p, 'reason:', reason);
@@ -55,7 +104,9 @@ const app = express();
 // If you are using proxy from external machine, you can set TRUST_PROXY env
 // Default is to trust proxy headers only from loopback interface.
 // -----------------------------------------------------------------------------
-app.set('trust proxy', config.trustProxy);
+if (process.env.DYNO) {
+  app.set('trust proxy'); // , config.trustProxy
+}
 
 //
 // Register Node.js middleware
@@ -135,7 +186,42 @@ const proxyHandler = {
   // },
 };
 
+app.get('/robots.txt', (req, res) => res.sendStatus(404));
+
 app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
+
+app.set('forceSSLOptions', {
+  trustXFPHeader: true, // needed for heroku
+  sslRequiredMessage: 'SSL Required.',
+});
+
+const smartForceSSL = () => {
+  if (!__DEV__) {
+    return forceSSL;
+  }
+  return (req, res, next) => next();
+};
+
+const serveEncodedFile = (res, fullPath, encoding) => {
+  console.log('serve encoded', fullPath);
+  try {
+    const stats = fs.statSync(fullPath);
+    res.type('application/json;  charset=utf-8');
+    res.header('Content-Encoding', encoding);
+    res.header('Content-Length', stats.size);
+    res.header('Cache-Control', `public, max-age=600`);
+    res.sendFile(fullPath);
+  } catch (e) {
+    res.sendStatus(404);
+  }
+};
+
+app.get('/batches/:batchNum/:file/:pageNum', (req, res) => {
+  const { batchNum, file, pageNum } = req.params;
+  const encoding = 'gzip';
+  const fullPath = `/tmp/${file}-${batchNum}-${pageNum}.kl.${encoding}`;
+  serveEncodedFile(res, fullPath, encoding);
+});
 
 // app.use(passport.initialize());
 
@@ -177,7 +263,7 @@ app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
 //
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
-app.get('*', async (req, res, next) => {
+app.get('*', smartForceSSL(), async (req, res, next) => {
   try {
     const css = new Set();
 
@@ -209,6 +295,13 @@ app.get('*', async (req, res, next) => {
       setRuntimeVariable({
         name: 'initialNow',
         value: Date.now(),
+      }),
+    );
+
+    store.dispatch(
+      setRuntimeVariable({
+        name: 'batchNum',
+        value: currentBatchNum,
       }),
     );
 

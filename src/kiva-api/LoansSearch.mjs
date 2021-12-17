@@ -1,6 +1,6 @@
 import extend from 'extend';
-import PagedKiva from './PagedKiva';
-import ResultProcessors from './ResultProcessors';
+import PagedKiva from './PagedKiva.mjs';
+import ResultProcessors from './ResultProcessors.mjs';
 
 /**
  *

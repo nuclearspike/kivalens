@@ -170,7 +170,7 @@ const CustomizeCriteriaForm = () => {
   useStyles(s);
   const onC = useOnClient();
   if (!onC) {
-    return <div />;
+    return <p />;
   }
   return (
     <Container className={s.root}>

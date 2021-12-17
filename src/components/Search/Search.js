@@ -9,7 +9,7 @@ import ListItem from '../ListItem/ListItem';
 import Loan from '../Loan';
 import LoansProgress from '../LoansProgress';
 import listItem from '../ListItem/ListItem.css';
-import { useCriteria, useLoanAllDetails } from '../../store/helpers/hooks';
+import {useCriteria, useLoanAllDetails, useOnClient} from '../../store/helpers/hooks'
 import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
 import performSearch from './performSearch';
@@ -25,12 +25,20 @@ const Search = memo(({ selectedId }) => {
   const loanIds = useSelector(({ allLoans }) => allLoans);
   const loadingLoans = useSelector(({ loading }) => loading.loans);
   const allDetails = useLoanAllDetails();
+  const onClient = useOnClient();
   const results = useMemo(() => {
     if (!process.env.BROWSER) {
       return [];
     }
     return performSearch(criteria, loanIds, allDetails);
   }, [criteria, loanIds, allDetails]);
+
+  if (!onClient) {
+    // can't be a div or React gets confused and mounts the wrong element
+    return (
+      <p/>
+    )
+  }
 
   return (
     <Container fluid className={s.root}>

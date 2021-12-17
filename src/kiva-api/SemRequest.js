@@ -1,9 +1,11 @@
-import {Deferred} from 'jquery-deferred'
-import extend from 'extend'
-import {getUrl, semOne, serialize} from './kivaBase'
+import { Deferred } from 'jquery-deferred';
+import extend from 'extend';
+import { getUrl, semOne, serialize } from './kivaBase.mjs';
 
 /**
  * semaphored access to a server. this is to replace Request.sem_get
+ *
+ * currently only used in req.js
  */
 
 class SemRequest {
@@ -14,63 +16,63 @@ class SemRequest {
     defaultParams,
     ttlSecs,
   ) {
-    this.serverAndBasePath = serverAndBasePath
-    this.defaultParams = defaultParams
-    this.asJSON = asJSON
-    this.requestedWith = requestedWith
-    this.ttlSecs = ttlSecs || 0
-    this.requests = {}
+    this.serverAndBasePath = serverAndBasePath;
+    this.defaultParams = defaultParams;
+    this.asJSON = asJSON;
+    this.requestedWith = requestedWith;
+    this.ttlSecs = ttlSecs || 0;
+    this.requests = {};
   }
 
   semGet(path, params, getUrlOpts) {
-    const def = Deferred()
+    const def = Deferred();
     semOne.take(() => {
       return this.raw(path, params, getUrlOpts)
         .fail(e => global.cl(e))
         .always(() => semOne.leave())
         .progress(def.notify)
         .fail(def.reject)
-        .done(def.resolve)
-    })
-    return def
+        .done(def.resolve);
+    });
+    return def;
   }
 
   raw(path, params, getUrlOpts) {
-    params = serialize(extend({}, this.defaultParams, params))
-    params = params ? `?${params}` : '' // this wouldn't work>>..??
+    params = serialize(extend({}, this.defaultParams, params));
+    params = params ? `?${params}` : ''; // this wouldn't work>>..??
     return getUrl(
       `${this.serverAndBasePath}${path}${params}`,
       extend(
-        {parseJSON: this.asJSON, includeRequestedWith: this.requestedWith},
+        { parseJSON: this.asJSON, includeRequestedWith: this.requestedWith },
         getUrlOpts,
       ),
-    ).fail(e => global.cl(e))
+    ).fail(e => global.cl(e));
   }
 
   get(path = '', params = {}, getOpts, getUrlOpts) {
-    getOpts = extend({semaphored: true, useCache: true}, getOpts)
-    getUrlOpts = extend({}, getUrlOpts)
+    getOpts = extend({ semaphored: true, useCache: true }, getOpts);
+    getUrlOpts = extend({}, getUrlOpts);
 
-    const key = `${path}?${JSON.stringify(params)}`
+    const key = `${path}?${JSON.stringify(params)}`;
     if (getOpts.useCache && this.requests[key]) {
-      const req = this.requests[key]
+      const req = this.requests[key];
       if (req) {
-        return req.promise
+        return req.promise;
       }
     }
     // should be some type of cleanup of old cached but dead requests.
 
     const p = getOpts.semaphored
       ? this.semGet(path, params, getUrlOpts)
-      : this.raw(path, params, getUrlOpts)
+      : this.raw(path, params, getUrlOpts);
     if (this.ttlSecs > 0) {
-      this.requests[key] = {promise: p, requested: Date.now()}
+      this.requests[key] = { promise: p, requested: Date.now() };
       setTimeout(() => {
-        delete this.requests[key]
-      }, this.ttlSecs * 1000)
+        delete this.requests[key];
+      }, this.ttlSecs * 1000);
     }
-    return p
+    return p;
   }
 }
 
-export default SemRequest
+export default SemRequest;

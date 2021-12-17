@@ -1,5 +1,5 @@
-import { isServer, postUrl } from './kivaBase';
-import ResultProcessors from './ResultProcessors';
+import { isServer, postUrl } from './kivaBase.mjs';
+import ResultProcessors from './ResultProcessors.mjs';
 import SemRequest from './SemRequest';
 
 /*

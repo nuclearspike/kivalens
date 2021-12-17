@@ -1,4 +1,4 @@
-import PagedKiva from './PagedKiva'
+import PagedKiva from './PagedKiva.mjs'
 
 class LenderLoans extends PagedKiva {
   constructor(lenderIid, options) {

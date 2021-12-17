@@ -1,7 +1,9 @@
 import extend from 'extend'
 import semaphore from 'semaphore'
-import {Deferred} from 'jquery-deferred'
-import {apiOptions, getUrl, serialize} from './kivaBase'
+import jqd from 'jquery-deferred'
+import {apiOptions, getUrl, serialize} from './kivaBase.mjs'
+
+const {Deferred} = jqd;
 
 const semOne = semaphore(8)
 const semTwo = semaphore(8)
@@ -27,7 +29,7 @@ class Request {
     params = extend({}, params, {app_id: apiOptions.app_id})
     return getUrl(`https://api.kivaws.org/v1/${path}?${serialize(params)}`, {
       parseJSON: true,
-    }).fail(e => cl(e))
+    }).fail(e => typeof global !== 'undefined' && cl(e))
     // can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
   }
 
@@ -106,7 +108,7 @@ class Request {
         }
         def.fail(() => (this.state = ReqState.failed))
         Request.get(`${this.collection}/${ids.join(',')}.json`, {})
-          .always(x => semTwo.leave(1))
+          .always(() => semTwo.leave(1))
           .progress(def.notify)
           .done(result => def.resolve(result[this.collection]))
           .fail(def.reject) // does this really fire properly? no one is listening for this

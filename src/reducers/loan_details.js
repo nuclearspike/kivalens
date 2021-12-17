@@ -21,13 +21,15 @@ export default function loanDetails(state = {}, action) {
       // not only adds but also replaces old versions.
       const toAdd = {};
       action.loans.forEach(loan => {
-        toAdd[loan.id] = loan;
+        toAdd[loan.id] = extend(true, {}, state[loan.id], loan);
       });
       // overrides old ones, introduces new ones.
       return extend({}, state, toAdd);
     }
     case c.LOAN_DETAILS_UPDATE:
-      return extend({}, state, { [action.loan.id]: action.loan });
+      return extend({}, state, {
+        [action.loan.id]: extend({}, state[action.loan.id], action.loan),
+      });
     default:
       return state;
   }

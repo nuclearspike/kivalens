@@ -1,7 +1,7 @@
 import extend from 'extend';
 import 'linqjs';
 import 'datejs';
-import { isServer } from './kivaBase';
+import { isServer } from './kivaBase.mjs';
 
 const commonUse = [
   'PURCHASE',
@@ -63,16 +63,20 @@ class ResultProcessors {
   // remove any KivaLens-added fields/functions
   static unprocessLoan(loan) {
     const l = extend(true, {}, loan); // make a copy, strip it out
-    Object.keys(l)
-      .filter(f => f.indexOf('kl_') === 0)
-      .forEach(field => delete l[field]);
-    l.kls_half_back = l.kls_half_back ? l.kls_half_back.toISOString() : null;
-    l.kls_75_back = l.kls_75_back ? l.kls_75_back.toISOString() : null;
-    l.kls_final_repayment = l.kls_final_repayment
-      ? l.kls_final_repayment.toISOString()
-      : null;
-    delete l.getPartner;
+    this.unprocessLoanDestructive(l);
     return l;
+  }
+
+  static unprocessLoanDestructive(loan) {
+    Object.keys(loan)
+      .filter(f => f.indexOf('kl_') === 0)
+      .forEach(field => delete loan[field]);
+    loan.kls_half_back = loan.kls_half_back ? loan.kls_half_back.toISOString() : null;
+    loan.kls_75_back = loan.kls_75_back ? loan.kls_75_back.toISOString() : null;
+    loan.kls_final_repayment = loan.kls_final_repayment
+      ? loan.kls_final_repayment.toISOString()
+      : null;
+    delete loan.getPartner;
   }
 
   static processLoanDescription(loan) {
@@ -150,21 +154,27 @@ class ResultProcessors {
         return (
           (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
         );
-      } else {
-        return (
-          0
-        )
       }
+      return 0;
     }.bind(loan);
-    loan.kl_still_needed = Math.max(
-      loan.loan_amount - loan.funded_amount - loan.basket_amount,
-      0,
-    ); // api can spit back that more is basketed than remains...
-    loan.kl_percent_funded =
-      (100 * (loan.funded_amount + loan.basket_amount)) / loan.loan_amount;
-    if (loan.tags)
+    loan.kl_still_needed = function() {
+      return Math.max(
+        this.loan_amount - this.funded_amount - this.basket_amount,
+        0,
+        // api can spit back that more is basketed than remains...
+      );
+    }.bind(loan);
+    loan.kl_percent_funded = function() {
+      return Math.round(
+        (100 * (this.funded_amount + this.basket_amount)) / this.loan_amount,
+      );
+    }.bind(loan);
+
+    if (Array.isArray(loan.tags))
       // if tags present, always use those.
-      loan.kls_tags = loan.tags.select(tag => tag.name.replace(/\s+/g, '')); // standardize to just an array without a hash.
+      // loan.kls_tags = loan.tags.select(tag => tag.name.replace(/\s+/g, '')); // standardize to just an array without a hash.
+      loan.kls_tags = loan.tags.map(tag => tag.name); // .replace(/^#/g, '')); // standardize to just an array without a hash.
+
     if (!loan.kls_tags) loan.kls_tags = [];
 
     // if (!isServer()) {

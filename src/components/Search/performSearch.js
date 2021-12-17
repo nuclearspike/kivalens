@@ -26,9 +26,9 @@ const performSearch = (criteria, loanIds, loanDetails) => {
 
   ct.switchGroup(criteria.loan);
 
-  ct.addRangeTesters('still_needed', loan => loan.kl_still_needed);
+  ct.addRangeTesters('still_needed', loan => loan.kl_still_needed());
   ct.addRangeTesters('loan_amount', loan => loan.loan_amount);
-  ct.addRangeTesters('percent_funded', loan => loan.kl_percent_funded);
+  ct.addRangeTesters('percent_funded', loan => loan.kl_percent_funded());
   ct.addRangeTesters('dollars_per_hour', loan => loan.kl_dollars_per_hour());
   ct.addRangeTesters('expiring_in_days', loan => loan.kl_expiring_in_days());
   ct.addRangeTesters('disbursal', loan => loan.kl_disbursal_in_days());
