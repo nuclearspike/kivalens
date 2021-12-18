@@ -1,6 +1,6 @@
-import React, {memo, useMemo} from 'react'
-import PT from 'prop-types'
-import {useSelector} from 'react-redux'
+import React, { memo, useMemo } from 'react';
+import PT from 'prop-types';
+import { useSelector } from 'react-redux';
 
 const LoanTypeProgress = ({ label, description, progress }) => {
   if (!process.env.BROWSER) {

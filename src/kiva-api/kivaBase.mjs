@@ -11,7 +11,7 @@ const { Deferred } = jqd;
  * .notify is one of the main ones. It allows for updates to progress to make it
  *  back to the holder of the deferred variable.
  *
- *  here's the old docs for Kiva's REST API
+ *  here's the old docs for Kiva's REST API wayback machine
  *  https://web.archive.org/web/20110714173244/http://build.kiva.org/api#GET*|loans|search
  *
  *

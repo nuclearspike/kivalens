@@ -8,7 +8,8 @@ import loanDetails from './loan_details';
 import loansProgress from './loans_progress';
 import partnerDetails from './partner_details';
 import loading from './loading';
-import atheistList from './atheist_list'
+import atheistList from './atheist_list';
+import lookups from './lookups';
 
 export default combineReducers({
   user,
@@ -21,4 +22,5 @@ export default combineReducers({
   criteria,
   loading,
   atheistList,
+  lookups,
 });

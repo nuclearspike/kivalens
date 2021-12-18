@@ -2,13 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import StyleContext from 'isomorphic-style-loader/StyleContext';
 import { Provider, Provider as ReduxProvider } from 'react-redux';
-import {
-  ApolloClient,
-  ApolloProvider,
-  HttpLink,
-  InMemoryCache,
-} from '@apollo/client';
-import fetch from 'cross-fetch';
+import { ApolloProvider } from '@apollo/client';
+import apolloKivaClient from '../kivaClient';
+import { getLookupValues } from '../actions/lookups';
 import ApplicationContext from './ApplicationContext';
 
 /**
@@ -34,20 +30,13 @@ import ApplicationContext from './ApplicationContext';
  *   );
  */
 
-const client = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: new HttpLink({
-    uri: 'https://api.kivaws.org/graphql',
-    fetch,
-  }),
-});
-
 export default function App({ context, insertCss, children }) {
   // NOTE: If you need to add or modify header, footer etc. of the app,
   // please do that inside the Layout component.
+  context.store.dispatch(getLookupValues());
   return (
     <Provider store={context.store}>
-      <ApolloProvider client={client}>
+      <ApolloProvider client={apolloKivaClient}>
         <StyleContext.Provider value={{ insertCss }}>
           <ApplicationContext.Provider value={{ context }}>
             {React.Children.only(children)}

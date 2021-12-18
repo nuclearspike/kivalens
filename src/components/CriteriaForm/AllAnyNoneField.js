@@ -1,21 +1,18 @@
-import React from 'react'
-import Select from 'react-select'
-import {Dropdown, DropdownButton} from '../bs'
+import React, { useContext } from 'react';
+import PT from 'prop-types';
+import Select from 'react-select';
+import { Dropdown, DropdownButton } from '../bs';
+import LookupContext from './LookupContext';
 
-const options = ['Wonky', 'Donkey', 'Span', 'Shucks'].map(i => ({
-  value: i,
-  label: i,
-}))
-
-const canAllStyles = {all: 'success', any: 'primary', none: 'danger'}
-const cannotAllStyles = {any: 'success', none: 'danger'}
+const canAllStyles = { all: 'success', any: 'primary', none: 'danger' };
+const cannotAllStyles = { any: 'success', none: 'danger' };
 
 export const AllAnyNoneSelectorField = ({
-                                          formData,
-                                          onChange,
-                                          schema: {canAll},
-                                        }) => {
-  const styles = canAll ? canAllStyles : cannotAllStyles
+  formData,
+  onChange,
+  schema: { canAll },
+}) => {
+  const styles = canAll ? canAllStyles : cannotAllStyles;
   return (
     <DropdownButton
       id="bg-nested-dropdown"
@@ -28,20 +25,24 @@ export const AllAnyNoneSelectorField = ({
       <Dropdown.Item eventKey="any">Any of these</Dropdown.Item>
       <Dropdown.Item eventKey="none">None of these</Dropdown.Item>
     </DropdownButton>
-  )
-}
+  );
+};
 
 const styles = {
-  multiValue: (styles, {data}) => {
+  multiValue: (styles, { data }) => {
     return {
       ...styles,
-    }
+    };
   },
-}
+};
 
-export const MultiSelectField = ({formData, onChange}) => {
-  const valueChange = value => onChange((value || []).map(v => v.value))
-  const processed = (formData || []).map(value => ({label: value, value}))
+export const MultiSelectField = ({ formData, onChange }) => {
+  const valueChange = value => onChange((value || []).map(v => v.value));
+  const processed = (formData || []).map(value => ({ label: value, value }));
+  const options = useContext(LookupContext).map(i => ({
+    value: i,
+    label: i,
+  }));
   return (
     <Select
       isMulti
@@ -49,8 +50,13 @@ export const MultiSelectField = ({formData, onChange}) => {
       onChange={valueChange}
       value={processed}
     />
-  )
-}
+  );
+};
+
+MultiSelectField.propTypes = {
+  formData: PT.arrayOf(PT.string).isRequired,
+  onChange: PT.func.isRequired,
+};
 
 // const aanSchema = {
 //   type: 'object',

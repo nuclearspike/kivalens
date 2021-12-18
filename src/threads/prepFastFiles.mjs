@@ -1,15 +1,24 @@
 import fs from 'fs';
 import zlib from 'zlib';
-import brotli from 'brotli';
 import { parentPort, workerData } from 'worker_threads';
 import LoansSearch from '../kiva-api/LoansSearch.mjs';
 import Partners from '../kiva-api/Partners.mjs';
 import '../utils/linqextras.mjs';
 import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 
+// clean up old directories.
 
 const gzipOpt = { level : 9 };
-const brotliOpt = { quality: 11, mode: 1 }
+const brotliOpt = {
+  chunkSize: 32 * 1024,
+  params: {
+    [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
+    [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+  }
+};
+
+const baseTempDir = `/tmp/batches/${workerData.batch}/`
+fs.mkdirSync(baseTempDir, { recursive: true });
 
 // const KLPageSplits = 4;
 
@@ -22,17 +31,27 @@ const gzipP = (input) => {
   });
 };
 
-const genHandler = (name, forcePage = undefined) => {
+const brotliP = (input) => {
+  return new Promise((resolve, reject) => {
+    zlib.brotliCompress(input, brotliOpt, (error, result) => {
+      if(!error) resolve(result);
+      else reject(Error(error));
+    });
+  });
+};
+
+const genHandler = (name) => {
   parentPort.postMessage({
     progress: `genHandler ${name}`,
   });
-  return async (chunk, page) => {
-    const filename = `/tmp/${name}-${workerData.batch}-${forcePage !== undefined ? forcePage :page + 1}.kl`;
+  return async (chunk) => {
+    // -${forcePage !== undefined ? forcePage :page + 1}
+    const filename = `${baseTempDir}${name}.kl`;
     const str_chunk = JSON.stringify(chunk);
     return (
       Promise.all([
         fs.promises.writeFile(`${filename}.gzip`, await gzipP(str_chunk)),
-        // fs.promises.writeFile(`${filename}.br`, brotli.compress(str_chunk)), //brotliOpt
+        fs.promises.writeFile(`${filename}.br`, await brotliP(str_chunk)),
       ])
     )
   }
@@ -63,7 +82,7 @@ const prepLoanForDownload = (loan) => {
   loan.kls = true
 };
 
-const loans = new LoansSearch({ q: '' })
+const loans = new LoansSearch({ region: 'as' }) // q: 'Mary',
   .start()
   .progress(p => {
     if (p.done !== p.total) {
@@ -72,6 +91,7 @@ const loans = new LoansSearch({ q: '' })
       });
     }
   })
+  .fail((e) => console.error(e))
   .then((loans) => {
     const keywords = [];
 
@@ -86,14 +106,12 @@ const loans = new LoansSearch({ q: '' })
     // ...keywords.chunk(chunkSize).map(genHandler('keywords')),
 
     return Promise.all( [
-      genHandler('loans', 0)(loans, 0),
-      genHandler('keywords', 0)(keywords, 0),
+      genHandler('loans')(loans),
+      genHandler('keywords')(keywords),
     ]);
   });
 
-const partners = new Partners().start().then((partners) => (
-  genHandler('partners', 0)(partners, 0)
-));
+const partners = new Partners().start().then((p) => genHandler('partners')(p));
 
 Promise.all([
   loans.promise(),
@@ -102,6 +120,7 @@ Promise.all([
   parentPort.postMessage({
     resolve: {
       done: true,
+      dir: baseTempDir,
     },
   });
 });

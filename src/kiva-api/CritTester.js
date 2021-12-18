@@ -19,7 +19,7 @@ class CritTester {
   }
 
   addRangeTesters(critName, selector, overrideIf, overrideFunc) {
-    const critGroup = this.critGroup;
+    const { critGroup } = this;
     const critProp = critGroup[critName];
     const { min, max } = critProp || {};
     if (min !== undefined) {
@@ -47,10 +47,11 @@ class CritTester {
     selector,
     entityFieldIsArray,
   ) {
-    if (!values) values = this.critGroup[critName];
+    if (!this.critGroup[critName]) return;
+    if (!values) values = this.critGroup[critName].value;
+    let allAnyNone = 'all';
     if (values && values.length > 0) {
-      const allAnyNone = this.critGroup[`${critName}_all_any_none`] || defValue;
-      // if (allAnyNone == 'all' && !entityFieldIsArray) throw new Exception('Invalid Option')
+      allAnyNone = this.critGroup[`${critName}`].aan || defValue;
       switch (allAnyNone) {
         case 'any':
           if (entityFieldIsArray) this.addArrayAnyTester(values, selector);
@@ -59,7 +60,8 @@ class CritTester {
         case 'all': // field is always an array for an 'all'
           this.addArrayAllTester(values, selector);
           break;
-        case 'none':
+        default:
+          // none
           if (entityFieldIsArray) this.addArrayNoneTester(values, selector);
           else this.addFieldNotContainsOneOfArrayTester(values, selector);
           break;
@@ -148,7 +150,9 @@ class CritTester {
 
   addArrayAllPartialExactWithTester(crit, selector) {
     if (crit && crit.text && crit.text.trim().length > 0) {
-      let termsArr = Array.isArray(crit.text) ? crit.text : crit.text.match(/(\w+)/g);
+      let termsArr = Array.isArray(crit.text)
+        ? crit.text
+        : crit.text.match(/(\w+)/g);
       termsArr = termsArr.map(term => term.toUpperCase());
       if (crit.partial_exact === 'exact') {
         this.testers.push(entity =>

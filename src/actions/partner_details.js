@@ -34,7 +34,7 @@ export const partnersFastFetch = () => {
   return (dispatch, getState) => {
     dispatch(markLoading('partners'));
     const { batchNum } = getState().runtime;
-    return fetch(`${window.location.origin}/batches/${batchNum}/partners/0`)
+    return fetch(`/batches/${batchNum}/partners`)
       .catch(() => {
         // if the server restarted or something?
         dispatch(loansKivaFetch());

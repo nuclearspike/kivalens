@@ -23,6 +23,9 @@ import configureStore from './store/configureStore';
 import { setRuntimeVariable } from './actions/runtime';
 import config from './config';
 import { setAPIOptions } from './kiva-api/kivaBase.mjs';
+import { getLookups } from './kivaClient';
+import { defaultLookupState } from './reducers/lookups';
+import { LOOKUPS_SET } from './constants';
 // import passport from './passport';
 // import spdy from 'spdy';
 // import models from './data/models';
@@ -62,19 +65,55 @@ const run = async () => {
   console.log('FastFiles Prep:', result);
 };
 
+if (__DEV__ && currentBatchNum === 0) {
+  // only relevant for DEV. heroku will always have dirs wiped on dyno restart
+  const allDirs = fs
+    .readdirSync('/tmp/batches', { withFileTypes: true })
+    .filter(ent => ent.isDirectory()) // nothing should ever be in this dir anyway.
+    .map(ent => ent.name)
+    .orderBy(e => e);
+
+  const last = allDirs.last();
+
+  if (last) {
+    const toRemove = allDirs.filter(e => e !== last);
+    Promise.all(
+      toRemove.map(rem =>
+        fs.promises.rmdir(`/tmp/batches/${rem}/`, {
+          recursive: true,
+          force: true,
+        }),
+      ),
+    ).then(() => console.log(`Dirs Removed: ${toRemove.length}`));
+
+    console.log('Using most recent directory', last);
+    currentBatchNum = parseInt(last, 10);
+  }
+}
+
 const runFastFilesPrep = () => {
+  // if we're already prepping, don't start another prep
+  // this has the potential to stop everything if the preppingBatchNum is not returned to 0
+  if (!__DEV__) return;
+  if (preppingBatchNum > 0) {
+    return;
+  }
   run()
     .catch(err => console.error(err))
     .then(() => {
       currentBatchNum = preppingBatchNum;
+    })
+    .finally(() => {
       preppingBatchNum = 0;
     });
 };
 
-runFastFilesPrep();
+if (currentBatchNum === 0) {
+  runFastFilesPrep();
+}
 setInterval(() => {
   runFastFilesPrep();
-}, 5 * 60000).unref();
+}, 30 * 60000).unref();
 
 process.on('unhandledRejection', (reason, p) => {
   console.error('Unhandled Rejection at:', p, 'reason:', reason);
@@ -173,7 +212,6 @@ const proxyHandler = {
     headers['Access-Control-Allow-Headers'] =
       'Origin, X-Requested-With, Content-Type, Accept';
     headers['Set-Cookie'] = 'ilove=kiva; Path=/; HttpOnly'; // don't pass back kiva's cookies.
-
     return headers;
   },
 
@@ -186,7 +224,7 @@ const proxyHandler = {
   // },
 };
 
-app.get('/robots.txt', (req, res) => res.sendStatus(404));
+// app.get('/robots.txt', (req, res) => res.sendStatus(404));
 
 app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler));
 
@@ -203,12 +241,12 @@ const smartForceSSL = () => {
 };
 
 const serveEncodedFile = (res, fullPath, encoding) => {
-  console.log('serve encoded', fullPath);
+  // console.log('serve encoded', fullPath);
   try {
-    const stats = fs.statSync(fullPath);
+    const { size } = fs.statSync(fullPath);
     res.type('application/json;  charset=utf-8');
     res.header('Content-Encoding', encoding);
-    res.header('Content-Length', stats.size);
+    res.header('Content-Length', size);
     res.header('Cache-Control', `public, max-age=600`);
     res.sendFile(fullPath);
   } catch (e) {
@@ -216,10 +254,11 @@ const serveEncodedFile = (res, fullPath, encoding) => {
   }
 };
 
-app.get('/batches/:batchNum/:file/:pageNum', (req, res) => {
-  const { batchNum, file, pageNum } = req.params;
-  const encoding = 'gzip';
-  const fullPath = `/tmp/${file}-${batchNum}-${pageNum}.kl.${encoding}`;
+app.get('/batches/:batchNumString/:file', (req, res) => {
+  const { batchNumString, file } = req.params;
+  const batchNum = parseInt(batchNumString, 10);
+  const encoding = req.acceptsEncodings('br') || 'gzip';
+  const fullPath = `/tmp/batches/${batchNum}/${file}.kl.${encoding}`;
   serveEncodedFile(res, fullPath, encoding);
 });
 
@@ -260,6 +299,16 @@ app.get('/batches/:batchNum/:file/:pageNum', (req, res) => {
 //   })),
 // );
 
+// fetch values once on startup, set in apollo store to go out with page.
+let lookups = defaultLookupState;
+const setupLookups = () => {
+  getLookups().then(lu => {
+    lookups = lu;
+  });
+};
+setupLookups();
+setInterval(setupLookups, 6 * 60 * 60000).unref();
+
 //
 // Register server-side rendering middleware
 // -----------------------------------------------------------------------------
@@ -274,7 +323,7 @@ app.get('*', smartForceSSL(), async (req, res, next) => {
       styles.forEach(style => css.add(style._getCss()));
     };
 
-    // Universal HTTP client
+    // Universal HTTP apolloClient
     const fetch = createFetch(nodeFetch, {
       baseUrl: config.api.serverUrl,
       cookie: req.headers.cookie,
@@ -288,7 +337,6 @@ app.get('*', smartForceSSL(), async (req, res, next) => {
 
     const store = configureStore(initialState, {
       fetch,
-      // I should not use `history` on server.. but how I do redirection? follow universal-router
     });
 
     store.dispatch(
@@ -304,6 +352,11 @@ app.get('*', smartForceSSL(), async (req, res, next) => {
         value: currentBatchNum,
       }),
     );
+
+    store.dispatch({
+      type: LOOKUPS_SET,
+      payload: lookups,
+    });
 
     // Global (context) variables that can be easily accessed from any React component
     // https://facebook.github.io/react/docs/context.html

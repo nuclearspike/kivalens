@@ -1,7 +1,7 @@
 import { applyMiddleware, createStore } from 'redux';
 import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
-import { name, version } from '../../package.json';
+import pkg from '../../package.json';
 import rootReducer from '../reducers';
 import createHelpers from './createHelpers';
 import createLogger from './logger';
@@ -18,7 +18,7 @@ export default function configureStore(initialState, helpersConfig) {
     // https://github.com/zalmoxisus/redux-devtools-extension#14-using-in-production
     const composeEnhancers = composeWithDevTools({
       // Options: https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md#options
-      name: `${name}@${version}`,
+      name: `${pkg.name}@${pkg.version}`,
     });
 
     // https://redux.js.org/docs/api/applyMiddleware.html

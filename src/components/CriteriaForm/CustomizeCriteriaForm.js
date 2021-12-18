@@ -4,12 +4,12 @@ import Form from 'react-jsonschema-form-bs4';
 import { Toggle } from '@fluentui/react';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, Container, Row } from '../bs';
+import { useOnClient } from '../../store/helpers/hooks';
 import { TitleField } from './Common';
 import { criteriaSchema } from './allOptions';
 import CollapsingObjectFieldTemplate from './CollapsingObjectFieldTemplate';
 import GroupEnabledContext from './GroupEnabledContext';
 import s from './CustomizeCriteriaForm.scss';
-import {useOnClient} from '../../store/helpers/hooks'
 
 const defaultFields = {
   TitleField,

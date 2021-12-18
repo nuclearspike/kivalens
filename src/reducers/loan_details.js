@@ -17,7 +17,7 @@ import * as c from '../constants';
 
 export default function loanDetails(state = {}, action) {
   switch (action.type) {
-    case c.LOAN_DETAILS_UPDATE_MANY: {
+    case c.LOAN_DETAILS_UPDATE_MANY_ARR: {
       // not only adds but also replaces old versions.
       const toAdd = {};
       action.loans.forEach(loan => {
@@ -25,6 +25,10 @@ export default function loanDetails(state = {}, action) {
       });
       // overrides old ones, introduces new ones.
       return extend({}, state, toAdd);
+    }
+    case c.LOAN_DETAILS_UPDATE_MANY_OBJ: {
+      // does this work??
+      return extend({}, state, action.payload);
     }
     case c.LOAN_DETAILS_UPDATE:
       return extend({}, state, {

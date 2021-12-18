@@ -1,11 +1,13 @@
 import React from 'react';
 import PT from 'prop-types';
+import { useSelector } from 'react-redux';
 import { Col, Row } from '../bs';
 import HoverOver from '../Common/HoverOver';
 import { AllAnyNoneSelectorField, MultiSelectField } from './AllAnyNoneField';
 import MinMaxField from './MinMaxField';
 import StringCriteriaField from './StringCriteriaField';
 import PartialExactSelectorField from './PartialExactSelectorField';
+import LookupContext from './LookupContext';
 
 export const criteriaSchema = {
   definitions: {
@@ -178,26 +180,31 @@ export const criteriaSchema = {
           title: 'Sectors',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
+          lookup: 'sectors',
         },
         activities: {
           title: 'Activities',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
+          lookup: 'activities',
         },
         themes: {
           title: 'Themes',
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
+          lookup: 'themes',
         },
         tags: {
           title: 'Tags',
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
+          lookup: 'tags',
         },
         countries: {
           title: 'Countries',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
+          lookup: 'countries',
         },
         currency_loss: {
           title: 'Currency Loss',
@@ -244,19 +251,29 @@ export const criteriaSchema = {
   },
 };
 
-function TwoFieldObjectFieldTemplate({ title, description, properties }) {
-  if (properties.length !== 2)
+const TwoFieldObjectFieldTemplate = ({
+  schema,
+  title,
+  description,
+  properties,
+}) => {
+  if (properties.length !== 2) {
     throw new Error(`Too few/many properties: ${title}`);
+  }
+  const values = useSelector(({ lookups }) => lookups[schema.lookup]);
+
   return (
     <>
       <HoverOver title={title} description={description} />
       <Row>
-        <Col xs={2}>{properties[0].content}</Col>
-        <Col xs={10}>{properties[1].content}</Col>
+        <LookupContext.Provider value={values}>
+          <Col xs={2}>{properties[0].content}</Col>
+          <Col xs={10}>{properties[1].content}</Col>
+        </LookupContext.Provider>
       </Row>
     </>
   );
-}
+};
 
 TwoFieldObjectFieldTemplate.propTypes = {
   title: PT.string.isRequired,
@@ -266,6 +283,9 @@ TwoFieldObjectFieldTemplate.propTypes = {
       content: PT.string,
     }).isRequired,
   ).isRequired,
+  schema: PT.shape({
+    lookup: PT.string,
+  }).isRequired,
 };
 
 TwoFieldObjectFieldTemplate.defaultProps = {

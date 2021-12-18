@@ -28,7 +28,7 @@ class SemRequest {
     const def = Deferred();
     semOne.take(() => {
       return this.raw(path, params, getUrlOpts)
-        .fail(e => global.cl(e))
+        .fail(e => typeof cl === 'function' && cl(e))
         .always(() => semOne.leave())
         .progress(def.notify)
         .fail(def.reject)
@@ -46,7 +46,7 @@ class SemRequest {
         { parseJSON: this.asJSON, includeRequestedWith: this.requestedWith },
         getUrlOpts,
       ),
-    ).fail(e => global.cl(e));
+    ).fail(e => typeof cl === 'function' && cl(e));
   }
 
   get(path = '', params = {}, getOpts, getUrlOpts) {

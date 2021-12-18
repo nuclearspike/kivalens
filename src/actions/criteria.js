@@ -13,9 +13,9 @@ export const clearCriteria = () => ({
 
 const debouncedAlter = debounce((criteria, dispatch) => {
   dispatch(alterCriteria(criteria));
-}, 500);
+}, 300);
 
-// has a 500ms delay before action is dispatched. used when user input is in progress, to not cause a lot of refreshes
+// has a 300ms delay before action is dispatched. used when user input is in progress, to not cause a lot of refreshes
 export function alterCriteriaDebounce(criteria) {
   return dispatch => debouncedAlter(criteria, dispatch);
 }

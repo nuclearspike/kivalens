@@ -3,7 +3,7 @@ import req from '../kiva-api/req';
 
 export const loanDetailsUpdateMany = loans => {
   return {
-    type: c.LOAN_DETAILS_UPDATE_MANY,
+    type: c.LOAN_DETAILS_UPDATE_MANY_ARR,
     loans,
   };
 };

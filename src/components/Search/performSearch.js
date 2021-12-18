@@ -33,21 +33,21 @@ const performSearch = (criteria, loanIds, loanDetails) => {
   ct.addRangeTesters('expiring_in_days', loan => loan.kl_expiring_in_days());
   ct.addRangeTesters('disbursal', loan => loan.kl_disbursal_in_days());
   ct.addArrayAllPartialExactWithTester(
-    criteria.loan.use_or_description, // todo: honor exact/partial
+    criteria.loan.use_or_description,
     loan => loan.kls_use_or_descr_arr,
   );
-  ct.addRangeTesters('repaid_in', loan => loan.kls_repaid_in);
+  ct.addRangeTesters('repaid_in', loan => loan.kls_repaid_in());
 
-  // ct.addAnyAllNoneTester('sector', null, 'any', loan => loan.sector);
-  // ct.addAnyAllNoneTester('activity', null, 'any', loan => loan.activity);
+  ct.addAnyAllNoneTester('sectors', null, 'any', loan => loan.sector);
+  ct.addAnyAllNoneTester('activities', null, 'any', loan => loan.activity);
   // ct.addAnyAllNoneTester(
   //   'country_code',
   //   null,
   //   'any',
   //   loan => loan.location.country_code,
   // );
-  // ct.addAnyAllNoneTester('tags', null, 'all', loan => loan.kls_tags, true);
-  // ct.addAnyAllNoneTester('themes', null, 'all', loan => loan.themes, true);
+  ct.addAnyAllNoneTester('tags', null, 'all', loan => loan.kls_tags, true);
+  ct.addAnyAllNoneTester('themes', null, 'all', loan => loan.themes, true);
 
   // ct.addFieldContainsOneOfArrayTester(criteria.loan.repayment_interval, loan =>
   //   loan.terms.repayment_interval ? loan.terms.repayment_interval : 'unknown',

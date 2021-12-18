@@ -151,11 +151,10 @@ class ResultProcessors {
     // eslint-disable-next-line func-names
     loan.kl_dollars_per_hour = function() {
       if (this.status === 'fundraising') {
-        return (
-          (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago()
-        );
+        return (this.funded_amount + this.basket_amount) / this.kl_posted_hours_ago();
       }
-      return 0;
+      const hoursFundraising = (new Date(this.funded_date) - this.kl_posted_date) / (60 * 60 * 1000)
+      return (this.loan_amount / hoursFundraising);
     }.bind(loan);
     loan.kl_still_needed = function() {
       return Math.max(
@@ -246,16 +245,16 @@ class ResultProcessors {
         loan.terms.scheduled_payments.length
       ) {
         // replace Kiva's version since it has too many entries.
-        if (!loan.kls)
+        if (!loan.kls) {
           loan.terms.scheduled_payments = loan.terms.scheduled_payments
             .groupBy(p => p.due_date)
             .select(g => ({
               due_date: g[0].due_date,
               amount: g.sum(p => p.amount),
-            }));
-
+            }))
+        }
         // for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
-        const repayments = loan.terms.scheduled_payments.select(p => {
+        const repayments = loan.terms.scheduled_payments.map(p => {
           const date = new Date(p.due_date);
           return { date, display: date.toString('MMM-yyyy'), amount: p.amount };
         });
@@ -267,9 +266,9 @@ class ResultProcessors {
               .month()
               .set({ day: 1 })
               .clearTime(),
-            repayments.first().date,
+            repayments.first().date.clearTime(),
           ),
-        ).clearTime();
+        );
         const lastDate = repayments.last().date.clearTime();
         while (nextDate <= lastDate) {
           const displayToTest = nextDate.toString('MMM-yyyy');
@@ -317,15 +316,19 @@ class ResultProcessors {
         );
         // loan.kls_final_repayment =  loan.kl_repayments.last().date //doesn't have timezone
         // when looking at really old loans, can be null
-        const today = Date.today();
-        loan.kls_repaid_in = loan.kls_final_repayment
-          ? Math.abs(
-              (loan.kls_final_repayment.getFullYear() - today.getFullYear()) *
-                12 +
-                (loan.kls_final_repayment.getMonth() - today.getMonth()),
-            )
-          : 0;
       }
+
+      // this calculation needs to be always present.
+      loan.kls_repaid_in = function() {
+        const today = Date.today();
+        return this.kls_final_repayment
+          ? Math.abs(
+            (this.kls_final_repayment.getFullYear() - today.getFullYear()) *
+            12 +
+            (this.kls_final_repayment.getMonth() - today.getMonth()),
+          )
+          : 0;
+      }.bind(loan)
       // /REPAYMENT STUFF: END
 
       // memory clean up, delete all non-english descriptions.

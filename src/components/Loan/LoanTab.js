@@ -8,7 +8,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { useQuery, gql } from '@apollo/client';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
-import { humanize, humanizeArray } from '../../utils';
+import { arrayWithElements, humanize, humanizeArray } from '../../utils';
 import {
   loanDetailsFetch,
   loanUpdateDynamic,
@@ -112,10 +112,10 @@ const LoanTab = ({ loan }) => {
       if (loan.kls_age) {
         addTerm('Age Mentioned', loan.kls_age);
       }
-      addTerm('Posted', <DisplayDate date={loan.kl_posted_date} />);
       if (loan.status !== 'fundraising') {
         addTerm('Status', humanize(loan.status));
       }
+      addTerm('Posted', <DisplayDate date={loan.kl_posted_date} />);
       if (loan.funded_date) {
         addTerm('Funded', <DisplayDate date={new Date(loan.funded_date)} />);
       }
@@ -134,10 +134,10 @@ const LoanTab = ({ loan }) => {
           </span>,
         );
       }
-      if (loan.status === 'fundraising' && loan.kl_repayments.length > 0) {
+      if (loan.status === 'fundraising') {
         addTerm(
           'Final Repayment In',
-          <span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>,
+          <span>{Math.round(loan.kls_repaid_in())} months</span>,
         );
       }
     }
@@ -155,16 +155,18 @@ const LoanTab = ({ loan }) => {
         <span>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</span>,
       );
       addTerm('Loan Amount', <span>${loan.loan_amount}</span>);
-      addTerm('Funded Amount', <span>${loan.funded_amount}</span>);
-      addTerm('In Baskets', <span>${loan.basket_amount}</span>);
-      addTerm('Still Needed', <span>${loan.kl_still_needed()}</span>);
+      if (loan.status === 'fundraising') {
+        addTerm('Funded Amount', <span>${loan.funded_amount}</span>);
+        addTerm('In Baskets', <span>${loan.basket_amount}</span>);
+        addTerm('Still Needed', <span>${loan.kl_still_needed()}</span>);
+      }
     }
     return result.map(dict => (
       <DTDD key={dict.term} term={dict.term} def={dict.def} />
     ));
   }, [loan]);
 
-  const overlay = useMemo(() => {
+  const loanProgressOverlay = useMemo(() => {
     return (
       <Popover id="progress-hint" style={{ padding: 10 }} title="Meaning">
         ${loan.basket_amount} Reserved
@@ -177,7 +179,7 @@ const LoanTab = ({ loan }) => {
   const graphConfig = useMemo(() => {
     if (!loan) return null;
 
-    if (!loan.kl_repay_categories) {
+    if (!arrayWithElements(loan.kl_repay_categories)) {
       loan.kl_repay_categories = loan.kl_repayments.map(
         payment => payment.display,
       );
@@ -270,7 +272,7 @@ const LoanTab = ({ loan }) => {
           <Col xs={12}>
             {lentPercentages && (
               <OverlayTrigger
-                overlay={overlay}
+                overlay={loanProgressOverlay}
                 trigger={['hover', 'focus', 'click']}
                 placement="top"
               >
@@ -298,11 +300,10 @@ const LoanTab = ({ loan }) => {
         <Row className="margin-bottom-20">
           <Col xs={12} />
         </Row>
-
         <dl className="row">{loanDictionary}</dl>
-
         <dl className="row">{loanStats}</dl>
 
+        {/* has html in it. <br/> etc. */}
         <p dangerouslySetInnerHTML={{ __html: loan.description.texts.en }} />
 
         <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre>
@@ -333,16 +334,19 @@ const LoanTab = ({ loan }) => {
                   dtClass="col-sm-6"
                 />
               )}
-              {loan.kls_75_back_actual < 100 && (
-                <DTDD
-                  term={
-                    <span>{Math.round(loan.kls_75_back_actual)}% back by</span>
-                  }
-                  def={loan.kls_75_back.toString('MMM d, yyyy')}
-                  ddClass="col-sm-6"
-                  dtClass="col-sm-6"
-                />
-              )}
+              {loan.kls_75_back_actual < 100 &&
+                loan.kls_half_back_actual !== loan.kls_75_back_actual && (
+                  <DTDD
+                    term={
+                      <span>
+                        {Math.round(loan.kls_75_back_actual)}% back by
+                      </span>
+                    }
+                    def={loan.kls_75_back.toString('MMM d, yyyy')}
+                    ddClass="col-sm-6"
+                    dtClass="col-sm-6"
+                  />
+                )}
               {loan.kls_final_repayment && (
                 <DTDD
                   term="Final repayment"
@@ -372,7 +376,7 @@ LoanTab.propTypes = {
     basket_amount: PT.number,
     funded_amount: PT.number,
     kl_still_needed: PT.func,
-    kls_repaid_in: PT.number,
+    kls_repaid_in: PT.func,
     kl_dollars_per_hour: PT.func,
     funded_date: PT.string,
     tags: PT.arrayOf(
