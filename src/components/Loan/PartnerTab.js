@@ -121,7 +121,7 @@ const PartnerTab = ({ partnerId }) => {
   }, [partner]);
 
   const atheistDictionary = useMemo(() => {
-    if (!showAtheistResearch) return <div />;
+    if (!showAtheistResearch) return null;
     const result = [];
     const addTerm = (term, def) => result.push({ term, def });
     // this isn't set to download yet! let alone
@@ -209,7 +209,7 @@ const PartnerTab = ({ partnerId }) => {
           </Col>
         </Row>
       )}
-      {atheistDictionary && (
+      {arrayWithElements(atheistDictionary) && (
         <Row>
           <Col xs={12}>
             <hr />

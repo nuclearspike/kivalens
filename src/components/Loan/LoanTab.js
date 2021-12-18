@@ -152,13 +152,25 @@ const LoanTab = ({ loan }) => {
     if (loan) {
       addTerm(
         '$/Hour',
-        <span>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</span>,
+        <span>${numeral(loan.kl_dollars_per_hour()).format('0,0.00')}</span>,
       );
-      addTerm('Loan Amount', <span>${loan.loan_amount}</span>);
+      addTerm(
+        'Loan Amount',
+        <span>${numeral(loan.loan_amount).format('0,0')}</span>,
+      );
       if (loan.status === 'fundraising') {
-        addTerm('Funded Amount', <span>${loan.funded_amount}</span>);
-        addTerm('In Baskets', <span>${loan.basket_amount}</span>);
-        addTerm('Still Needed', <span>${loan.kl_still_needed()}</span>);
+        addTerm(
+          'Funded Amount',
+          <span>${numeral(loan.funded_amount).format('0,0')}</span>,
+        );
+        addTerm(
+          'In Baskets',
+          <span>${numeral(loan.basket_amount).format('0,0')}</span>,
+        );
+        addTerm(
+          'Still Needed',
+          <span>${numeral(loan.kl_still_needed()).format('0,0')}</span>,
+        );
       }
     }
     return result.map(dict => (
