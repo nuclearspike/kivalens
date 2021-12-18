@@ -44,7 +44,7 @@ const PartnerTab = ({ partnerId }) => {
       );
       addTerm(
         'Loans at Risk Rate',
-        <span>{numeral(partner.partners_at_risk_rate).format('0.000')}%</span>,
+        <span>{numeral(partner.loans_at_risk_rate).format('0.000')}%</span>,
       );
       addTerm(
         'Default',
@@ -71,7 +71,7 @@ const PartnerTab = ({ partnerId }) => {
       addTerm(
         'Profitability',
         partner.profitability ? (
-          <span>{numeral(partner.partners_at_risk_rate).format('0.000')}%</span>
+          <span>{numeral(partner.profitability).format('0.000')}%</span>
         ) : (
           '(unknown)'
         ),

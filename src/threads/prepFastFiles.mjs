@@ -82,7 +82,7 @@ const prepLoanForDownload = (loan) => {
   loan.kls = true
 };
 
-const loans = new LoansSearch({ region: 'as' }) // q: 'Mary',
+const loans = new LoansSearch({ sort: 'newest' }) // q: 'Mary', region: 'as'
   .start()
   .progress(p => {
     if (p.done !== p.total) {
