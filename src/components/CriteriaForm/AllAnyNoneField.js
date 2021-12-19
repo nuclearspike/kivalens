@@ -1,7 +1,12 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import PT from 'prop-types';
 import Select from 'react-select';
+import { useDispatch } from 'react-redux';
 import { Dropdown, DropdownButton } from '../bs';
+import {
+  clearHelperGraphs,
+  getHelperGraphs,
+} from '../../actions/helper_graphs';
 import LookupContext from './LookupContext';
 
 const canAllStyles = { all: 'success', any: 'primary', none: 'danger' };
@@ -39,16 +44,29 @@ const styles = {
 export const MultiSelectField = ({ formData, onChange }) => {
   const valueChange = value => onChange((value || []).map(v => v.value));
   const processed = (formData || []).map(value => ({ label: value, value }));
-  const options = useContext(LookupContext).map(i => ({
+  const lookupContext = useContext(LookupContext);
+  const options = lookupContext.values.map(i => ({
     value: i,
     label: i,
   }));
+  const dispatch = useDispatch();
+
+  const onFocusCB = useCallback(() => {
+    dispatch(getHelperGraphs(lookupContext.lookup));
+  }, [lookupContext.lookup]);
+
+  const onBlurCB = useCallback(() => {
+    dispatch(clearHelperGraphs());
+  }, []);
+
   return (
     <Select
       isMulti
       options={options}
       onChange={valueChange}
       value={processed}
+      onFocus={onFocusCB}
+      onBlur={onBlurCB}
     />
   );
 };

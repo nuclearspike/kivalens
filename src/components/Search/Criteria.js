@@ -1,5 +1,7 @@
 import React, { memo, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import HighchartsReact from 'highcharts-react-official';
+import * as Highcharts from 'highcharts';
 import { Button, Col } from '../bs';
 import Link from '../Link';
 import CriteriaForm from '../CriteriaForm';
@@ -7,15 +9,16 @@ import StickyColumn from '../Common/StickyColumn';
 import { clearCriteria } from '../../actions/criteria';
 
 const stickyColsDiv = {
-  borderStyle: 'solid',
-  borderColor: 'black',
-  borderWidth: 1,
+  // borderStyle: 'solid',
+  // borderColor: 'black',
+  borderWidth: 0,
   height: '100%',
   width: '100%',
 };
 
 const CriteriaCols = memo(() => {
   const dispatch = useDispatch();
+  const config = useSelector(({ helperGraphs }) => helperGraphs.config);
   const clearCriteriaCB = useCallback(() => dispatch(clearCriteria()), []);
   return (
     <>
@@ -30,7 +33,13 @@ const CriteriaCols = memo(() => {
       </Col>
       <Col xs={12} md={2}>
         <StickyColumn>
-          <div style={stickyColsDiv}>graphs</div>
+          <div style={stickyColsDiv}>
+            <div id="loan_options_graph">
+              {config && (
+                <HighchartsReact highcharts={Highcharts} options={config} />
+              )}
+            </div>
+          </div>
         </StickyColumn>
       </Col>
     </>

@@ -25,6 +25,8 @@ export const LOADING_SET = 'LOADING_SET';
 export const LOADING_CLEAR = 'LOADING_CLEAR';
 export const ATHEIST_LIST_SET = 'ATHEIST_LIST_SET';
 export const LOOKUPS_SET = 'LOOKUPS_SET';
+export const HELPER_GRAPH_SET = 'HELPER_GRAPH_SET';
+export const HELPER_GRAPH_CLEAR = 'HELPER_GRAPH_CLEAR';
 
 export const emptyCrit = {
   borrower: {

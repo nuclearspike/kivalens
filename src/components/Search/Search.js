@@ -3,7 +3,7 @@ import PT from 'prop-types';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import Infinite from 'react-infinite';
-import { ButtonGroup, Col, Container, Row } from '../bs';
+import { ButtonGroup, Col, Container, Jumbotron, Row } from '../bs';
 import StickyColumn from '../Common/StickyColumn';
 import ListItem from '../ListItem/ListItem';
 import Loan from '../Loan';
@@ -62,8 +62,16 @@ const Search = memo(({ selectedId }) => {
   }, [results]);
 
   if (!onClient) {
-    // can't be a div or React gets confused and mounts the wrong element
-    return <p />;
+    // can't be a div or React gets confused and mounts the wrong element on client load
+    return (
+      <p style={{ padding: 50 }}>
+        <section>
+          <Jumbotron style={{ padding: 15 }}>
+            Please wait while the loans load...
+          </Jumbotron>
+        </section>
+      </p>
+    );
   }
 
   return (

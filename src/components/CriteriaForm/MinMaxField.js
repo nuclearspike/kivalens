@@ -1,7 +1,8 @@
-import React, { Component, useCallback, useState } from 'react';
+import React, { Component, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
 import HoverOver from '../Common/HoverOver';
+import { useStateSetterCallbacks } from '../../store/helpers/hooks';
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -118,14 +119,12 @@ const railInnerStyle = {
   backgroundColor: 'rgb(155,155,155)',
 };
 
-export function SliderRail({ getRailProps }) {
-  return (
-    <>
-      <div style={railOuterStyle} {...getRailProps()} />
-      <div style={railInnerStyle} />
-    </>
-  );
-}
+export const SliderRail = ({ getRailProps }) => (
+  <>
+    <div style={railOuterStyle} {...getRailProps()} />
+    <div style={railInnerStyle} />
+  </>
+);
 
 SliderRail.propTypes = {
   getRailProps: PropTypes.func.isRequired,
@@ -134,84 +133,74 @@ SliderRail.propTypes = {
 // *******************************************************
 // HANDLE COMPONENT
 // *******************************************************
-export class Handle extends Component {
-  state = { mouseOver: false };
+export const Handle = ({
+  domain: [min, max],
+  handle: { id, value, percent },
+  isActive,
+  disabled,
+  getHandleProps,
+}) => {
+  const [mouseOver, onMouseEnter, onMouseLeave] = useStateSetterCallbacks(
+    false,
+    [true, false],
+  );
 
-  onMouseEnter = () => {
-    this.setState({ mouseOver: true });
-  };
-
-  onMouseLeave = () => {
-    this.setState({ mouseOver: false });
-  };
-
-  render() {
-    const {
-      domain: [min, max],
-      handle: { id, value, percent },
-      isActive,
-      disabled,
-      getHandleProps,
-    } = this.props;
-    const { mouseOver } = this.state;
-
-    return (
-      <>
-        {(mouseOver || isActive) && !disabled ? (
-          <div
-            style={{
-              left: `${percent}%`,
-              position: 'absolute',
-              marginLeft: '-11px',
-              marginTop: '-35px',
-            }}
-          >
-            <div className="tooltip">
-              <span className="tooltiptext">Value: {value}</span>
-            </div>
+  return (
+    <>
+      {(mouseOver || isActive) && !disabled ? (
+        <div
+          style={{
+            left: `${percent}%`,
+            position: 'absolute',
+            marginLeft: '-11px',
+            marginTop: '-35px',
+          }}
+        >
+          <div className="tooltip">
+            <span className="tooltiptext">Value: {value}</span>
           </div>
-        ) : null}
-        <div
-          style={{
-            left: `${percent}%`,
-            position: 'absolute',
-            transform: 'translate(-50%, -50%)',
-            WebkitTapHighlightColor: 'rgba(0,0,0,0)',
-            zIndex: 400,
-            width: 26,
-            height: 42,
-            cursor: 'pointer',
-            // border: '1px solid grey',
-            backgroundColor: 'none',
-          }}
-          {...getHandleProps(id, {
-            onMouseEnter: this.onMouseEnter,
-            onMouseLeave: this.onMouseLeave,
-          })}
-        />
-        <div
-          role="slider"
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
-          style={{
-            left: `${percent}%`,
-            position: 'absolute',
-            transform: 'translate(-50%, -50%)',
-            WebkitTapHighlightColor: 'rgba(0,0,0,0)',
-            zIndex: 300,
-            width: 24,
-            height: 24,
-            border: 0,
-            borderRadius: '50%',
-            boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
-            backgroundColor: disabled ? '#666' : '#8b6068',
-          }}
-        />
-      </>
-    );
-  }
-}
+        </div>
+      ) : null}
+      <div
+        style={{
+          left: `${percent}%`,
+          position: 'absolute',
+          transform: 'translate(-50%, -50%)',
+          WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+          zIndex: 400,
+          width: 26,
+          height: 42,
+          cursor: 'pointer',
+          // border: '1px solid grey',
+          backgroundColor: 'none',
+        }}
+        {...getHandleProps(id, {
+          onMouseEnter,
+          onMouseLeave,
+        })}
+      />
+      <div
+        role="slider"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        style={{
+          left: `${percent}%`,
+          position: 'absolute',
+          transform: 'translate(-50%, -50%)',
+          WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+          zIndex: 300,
+          width: 24,
+          height: 24,
+          border: 0,
+          borderRadius: '50%',
+          boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
+          backgroundColor: disabled ? '#666' : '#8b6068',
+        }}
+      />
+    </>
+  );
+};
 
 Handle.propTypes = {
   domain: PropTypes.array.isRequired,
@@ -232,24 +221,22 @@ Handle.defaultProps = {
 // *******************************************************
 // TRACK COMPONENT
 // *******************************************************
-export function Track({ source, target, getTrackProps, disabled }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        transform: 'translate(0%, -50%)',
-        height: 14,
-        zIndex: 1,
-        backgroundColor: disabled ? '#999' : '#8b6068',
-        borderRadius: 7,
-        cursor: 'pointer',
-        left: `${source.percent}%`,
-        width: `${target.percent - source.percent}%`,
-      }}
-      {...getTrackProps()}
-    />
-  );
-}
+export const Track = ({ source, target, getTrackProps, disabled }) => (
+  <div
+    style={{
+      position: 'absolute',
+      transform: 'translate(0%, -50%)',
+      height: 14,
+      zIndex: 1,
+      backgroundColor: disabled ? '#999' : '#8b6068',
+      borderRadius: 7,
+      cursor: 'pointer',
+      left: `${source.percent}%`,
+      width: `${target.percent - source.percent}%`,
+    }}
+    {...getTrackProps()}
+  />
+);
 
 Track.propTypes = {
   source: PropTypes.shape({
@@ -273,35 +260,33 @@ Track.defaultProps = {
 // *******************************************************
 // TICK COMPONENT
 // *******************************************************
-export function Tick({ tick, count, format }) {
-  return (
-    <div>
-      <div
-        style={{
-          position: 'absolute',
-          marginTop: 17,
-          width: 1,
-          height: 5,
-          backgroundColor: 'rgb(200,200,200)',
-          left: `${tick.percent}%`,
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          marginTop: 25,
-          fontSize: 10,
-          textAlign: 'center',
-          marginLeft: `${-(100 / count) / 2}%`,
-          width: `${100 / count}%`,
-          left: `${tick.percent}%`,
-        }}
-      >
-        {format(tick.value)}
-      </div>
+export const Tick = ({ tick, count, format }) => (
+  <div>
+    <div
+      style={{
+        position: 'absolute',
+        marginTop: 17,
+        width: 1,
+        height: 5,
+        backgroundColor: 'rgb(200,200,200)',
+        left: `${tick.percent}%`,
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        marginTop: 25,
+        fontSize: 10,
+        textAlign: 'center',
+        marginLeft: `${-(100 / count) / 2}%`,
+        width: `${100 / count}%`,
+        left: `${tick.percent}%`,
+      }}
+    >
+      {format(tick.value)}
     </div>
-  );
-}
+  </div>
+);
 
 Tick.propTypes = {
   tick: PropTypes.shape({
@@ -310,7 +295,7 @@ Tick.propTypes = {
     percent: PropTypes.number.isRequired,
   }).isRequired,
   count: PropTypes.number.isRequired,
-  format: PropTypes.func.isRequired,
+  format: PropTypes.func,
 };
 
 Tick.defaultProps = {
@@ -362,7 +347,11 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   return (
     <>
       <HoverOver title={schema.title} description={schema.description} />
-      <div><small>{displayMin}-{displayMax}</small></div>
+      <div>
+        <small>
+          {displayMin}-{displayMax}
+        </small>
+      </div>
       <div style={{ marginTop: 10, height: 50, width: '100%' }}>
         <Slider
           mode={1}

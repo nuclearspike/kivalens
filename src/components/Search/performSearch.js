@@ -1,7 +1,7 @@
 import CritTester from '../../kiva-api/CritTester';
 import { arrayWithElements } from '../../utils';
 
-const performSearch = (criteria, loanIds, loanDetails) => {
+const performSearch = (criteria, loanIds, loanDetails, output = 'loanIds') => {
   if (
     !criteria ||
     !criteria.borrower ||
@@ -65,10 +65,15 @@ const performSearch = (criteria, loanIds, loanDetails) => {
 
   ct.testers.push(loan => loan.status === 'fundraising');
 
-  return loanIds
+  const loans = loanIds
     .map(id => loanDetails[id])
-    .filter(loan => loan && ct.allPass(loan))
-    .map(l => l.id);
+    .filter(loan => loan && ct.allPass(loan));
+
+  if (output === 'loans') {
+    return loans;
+  }
+
+  return loans.map(l => l.id);
 };
 
 export default performSearch;

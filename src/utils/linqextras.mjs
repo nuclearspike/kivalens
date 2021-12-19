@@ -21,3 +21,10 @@ Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
 
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
+
+export const basicReverseOrder = function(a,b) {
+  //this is a hack. OrderByDescending has issues! Not sure what the conditions are.
+  if (a > b) return -1
+  if (a < b) return 1
+  return 0
+}

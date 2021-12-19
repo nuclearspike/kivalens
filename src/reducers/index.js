@@ -10,6 +10,7 @@ import partnerDetails from './partner_details';
 import loading from './loading';
 import atheistList from './atheist_list';
 import lookups from './lookups';
+import helperGraphs from './helper_graphs';
 
 export default combineReducers({
   user,
@@ -23,4 +24,5 @@ export default combineReducers({
   loading,
   atheistList,
   lookups,
+  helperGraphs,
 });
