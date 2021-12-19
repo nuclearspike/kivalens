@@ -17,7 +17,6 @@ const CriteriaForm = () => {
   const criteria = useCriteria();
   const dispatch = useDispatch();
   const onCriteriaChangeCB = useCallback(({ formData: newCriteria }) => {
-    // console.log('crit change', newCriteria);
     dispatch(alterCriteriaDebounce(newCriteria));
   }, []);
   return (

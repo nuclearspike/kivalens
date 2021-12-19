@@ -154,15 +154,27 @@ class CritTester {
         ? crit.text
         : crit.text.match(/(\w+)/g);
       termsArr = termsArr.map(term => term.toUpperCase());
-      if (crit.partial_exact === 'exact') {
+      if (crit.startswith_exact === 'exactAnd') {
         this.testers.push(entity =>
           termsArr.all(searchTerm =>
             selector(entity).any(w => w === searchTerm),
           ),
         );
-      } else {
+      } else if (crit.startswith_exact === 'exactOr') {
+        this.testers.push(entity =>
+          termsArr.any(searchTerm =>
+            selector(entity).any(w => w === searchTerm),
+          ),
+        );
+      } else if (crit.startswith_exact === 'startsWithAnd') {
         this.testers.push(entity =>
           termsArr.all(searchTerm =>
+            selector(entity).any(w => w.startsWith(searchTerm)),
+          ),
+        );
+      } else {
+        this.testers.push(entity =>
+          termsArr.any(searchTerm =>
             selector(entity).any(w => w.startsWith(searchTerm)),
           ),
         );

@@ -318,7 +318,7 @@ const LoanTab = ({ loan }) => {
         {/* has html in it. <br/> etc. */}
         <p dangerouslySetInnerHTML={{ __html: loan.description.texts.en }} />
 
-        <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre>
+        {/* <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre> */}
       </Col>
       <Col xs={12} md={4}>
         {loan.status === 'fundraising' && loan.kl_repayments.length > 0 && (

@@ -2,7 +2,7 @@ import React from 'react';
 import { AllAnyNoneSelectorField, MultiSelectField } from './AllAnyNoneField';
 import MinMaxField from './MinMaxField';
 import StringCriteriaField from './StringCriteriaField';
-import PartialExactSelectorField from './PartialExactSelectorField';
+import PartialExactSelectorField from './StartsWithExactSelectorField';
 import TwoFieldObjectFieldTemplate from './TwoFieldObjectFieldTemplate';
 
 export const criteriaSchema = {
@@ -53,9 +53,9 @@ export const criteriaSchema = {
     string_partial_exact: {
       type: 'object',
       properties: {
-        partial_exact: {
+        startswith_exact: {
           type: 'string',
-          default: 'partial',
+          default: 'startsWithOr',
         },
         text: {
           type: 'string',
@@ -74,7 +74,7 @@ export const criteriaSchema = {
         name: {
           title: 'Name',
           description:
-            "Text entered allows for partial searches, so 'chris' will find 'christopher', 'christina', etc.",
+            "Text entered allows for either starts-with or exact searches. With 'starts with' 'chris' will find 'christopher', 'christina', etc. With 'exact' then 'chris' will only with only 'chris' not 'christopher' or 'christina'.",
           $ref: '#/definitions/string_partial_exact',
         },
         borrower_count: {
@@ -259,7 +259,7 @@ const AANUiSchema = {
 
 const PartialExactUiSchema = {
   'ui:ObjectFieldTemplate': TwoFieldObjectFieldTemplate,
-  partial_exact: {
+  startswith_exact: {
     'ui:field': PartialExactSelectorField,
   },
   text: {

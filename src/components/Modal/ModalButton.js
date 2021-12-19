@@ -26,7 +26,7 @@ const ModalButton = memo(
           <Modal.Body>{children}</Modal.Body>
 
           <Modal.Footer>
-            <FooterComp hideFunc={setHide} />{' '}
+            {FooterComp && <FooterComp hideFunc={setHide} />}{' '}
             <Button variant="secondary" onClick={setHide}>
               Close
             </Button>

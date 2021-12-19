@@ -31,7 +31,8 @@ export const HELPER_GRAPH_CLEAR = 'HELPER_GRAPH_CLEAR';
 export const emptyCrit = {
   borrower: {
     name: {
-      partial_exact: 'partial',
+      startswith_exact: 'startsWithOr',
+      text: '',
     },
     borrower_count: {},
     percent_female: {},
@@ -39,7 +40,8 @@ export const emptyCrit = {
   },
   loan: {
     use_or_description: {
-      partial_exact: 'partial',
+      startswith_exact: 'startsWithOr',
+      text: '',
     },
     repaid_in: {},
     loan_amount: {},
@@ -68,7 +70,8 @@ export const emptyCrit = {
   },
   partner: {
     name: {
-      partial_exact: 'partial',
+      startswith_exact: 'startsWithOr',
+      text: '',
     },
   },
   balancing: {},

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
 import HoverOver from '../Common/HoverOver';
 import { useStateSetterCallbacks } from '../../store/helpers/hooks';
+import ModalLink from '../Modal/ModalLink';
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -346,7 +347,11 @@ const MinMaxField = ({ schema, formData, onChange }) => {
 
   return (
     <>
-      <HoverOver title={schema.title} description={schema.description} />
+      <HoverOver title={schema.title} description={schema.description} />{' '}
+      <ModalLink linkText="edit" title={`Edit ${schema.title}`}>
+        EDIT THE VALUES... Allow user to directly edit with number input boxes
+        what the values are.
+      </ModalLink>
       <div>
         <small>
           {displayMin}-{displayMax}

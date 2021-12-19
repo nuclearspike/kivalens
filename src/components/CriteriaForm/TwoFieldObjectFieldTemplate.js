@@ -27,8 +27,8 @@ const TwoFieldObjectFieldTemplate = ({
       <HoverOver title={title} description={description} />
       <Row>
         <LookupContext.Provider value={context}>
-          <Col xs={2}>{properties[0].content}</Col>
-          <Col xs={10}>{properties[1].content}</Col>
+          <Col xs={3}>{properties[0].content}</Col>
+          <Col xs={9}>{properties[1].content}</Col>
         </LookupContext.Provider>
       </Row>
     </>

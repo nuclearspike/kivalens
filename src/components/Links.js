@@ -7,18 +7,24 @@ const trackOutbound = () => {
   // e=>rga.outboundLink({label: href},c=>{})
 };
 
-// export const ClickLink = ({ onClick, className, children }) => (
-//   <a
-//     href="#"
-//     className={className}
-//     onClick={e => {
-//       e.preventDefault();
-//       onClick(e);
-//     }}
-//   >
-//     {children}
-//   </a>
-// );
+export const ClickLink = ({ onClick, className, children }) => (
+  <a
+    href="#"
+    className={className}
+    onClick={e => {
+      e.preventDefault();
+      onClick(e);
+    }}
+  >
+    {children}
+  </a>
+);
+
+ClickLink.propTypes = {
+  onClick: PT.func.isRequired,
+  className: PT.string,
+  children: PT.node.isRequired,
+};
 
 export const NewTabLink = ({ href, title, className, children }) => (
   <a

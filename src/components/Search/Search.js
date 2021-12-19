@@ -3,6 +3,7 @@ import PT from 'prop-types';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import Infinite from 'react-infinite';
+import { Spinner } from 'react-bootstrap';
 import { ButtonGroup, Col, Container, Jumbotron, Row } from '../bs';
 import StickyColumn from '../Common/StickyColumn';
 import ListItem from '../ListItem/ListItem';
@@ -67,7 +68,7 @@ const Search = memo(({ selectedId }) => {
       <p style={{ padding: 50 }}>
         <section>
           <Jumbotron style={{ padding: 15 }}>
-            Please wait while the loans load...
+            <Spinner animation="grow" variant="success" /> Loading Loans...
           </Jumbotron>
         </section>
       </p>
