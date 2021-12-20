@@ -3,7 +3,7 @@ import user from './user';
 import runtime from './runtime';
 import criteria from './criteria';
 import basket from './basket';
-import allLoans from './all_loans';
+import allLoanIds from './all_loans';
 import loanDetails from './loan_details';
 import loansProgress from './loans_progress';
 import partnerDetails from './partner_details';
@@ -14,7 +14,7 @@ import helperGraphs from './helper_graphs';
 
 export default combineReducers({
   user,
-  allLoans,
+  allLoanIds,
   partnerDetails,
   loanDetails,
   loansProgress,

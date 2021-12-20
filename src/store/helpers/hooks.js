@@ -101,3 +101,8 @@ export const useOnClient = () => {
   // }
   // return client;
 };
+
+// export const useAllLoans = () => {
+//   const loanIds = useSelector(({ allLoanIds }) => allLoanIds);
+//   const allDetails = useLoanAllDetails();
+// }

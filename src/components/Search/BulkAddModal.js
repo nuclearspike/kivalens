@@ -29,7 +29,7 @@ const BulkAddModal = memo(({ loanIds }) => {
       let amountRemaining = Math.min(maxBasket, basketSpace);
       const toAdd = [];
       loanIds.some(loanId => {
-        const bi = basket.first(bi => loanId === bi.id);
+        const bi = basket.first(bItem => loanId === bItem.id);
         if (bi) {
           return false;
         }

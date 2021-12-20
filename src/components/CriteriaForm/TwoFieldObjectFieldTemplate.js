@@ -40,7 +40,7 @@ TwoFieldObjectFieldTemplate.propTypes = {
   description: PT.string,
   properties: PT.arrayOf(
     PT.shape({
-      content: PT.string,
+      content: PT.object,
     }).isRequired,
   ).isRequired,
   schema: PT.shape({

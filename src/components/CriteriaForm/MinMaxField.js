@@ -1,9 +1,11 @@
-import React, { Component, useCallback } from 'react';
+import React, { useCallback, useState, Component } from 'react';
 import PropTypes from 'prop-types';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
+import Form from 'react-jsonschema-form-bs4';
 import HoverOver from '../Common/HoverOver';
 import { useStateSetterCallbacks } from '../../store/helpers/hooks';
 import ModalLink from '../Modal/ModalLink';
+import { Button } from '../bs';
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -316,8 +318,32 @@ const nanToUndef = val => (Number.isNaN(val) || val === null ? undefined : val);
 const prepForComp = (val, def) => nanToUndef(val) || def;
 const prepToStore = (val, def) => (val === def ? undefined : val);
 
+const schemaModal = {
+  type: 'object',
+  properties: {
+    min_value: {
+      type: 'number',
+      title: 'Min Value',
+    },
+    max_value: {
+      type: 'number',
+      title: 'Max Value',
+    },
+  },
+};
+
+const uiSchemaModal = {
+  min_value: {
+    'ui:widget': 'updown',
+  },
+  max_value: {
+    'ui:widget': 'updown',
+  },
+};
+
 const MinMaxField = ({ schema, formData, onChange }) => {
   const { min: storedMin, max: storedMax } = formData;
+  const [modalFormData, setModalFormData] = useState({});
   const domain = [schema.min, schema.max];
   const reversed = false;
   const valuesForComp = [
@@ -338,6 +364,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
       const [min, max] = newValues;
       const minToStore = prepToStore(min, schema.min);
       const maxToStore = prepToStore(max, schema.max);
+      setModalFormData({ min_value: minToStore, max_value: maxToStore });
       if (minToStore !== storedMin || maxToStore !== storedMax) {
         onChange({ min: minToStore, max: maxToStore });
       }
@@ -345,12 +372,44 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     [onChange, storedMin, storedMax],
   );
 
+  const onModalChangeCB = useCallback(({ formData: newModalFormData }) => {
+    setModalFormData(newModalFormData);
+  });
+
+  const FooterComp = useCallback(({ hideFunc }) => {
+    const onClick = () => {
+      userAlteredCB([modalFormData.min_value, modalFormData.max_value]);
+      hideFunc();
+    };
+    return <Button onClick={onClick}>Save Changes</Button>;
+  });
+
+  // const modalData = useMemo(() => {
+  //   return {
+  //     min_value: displayMin,
+  //     max_value: displayMax,
+  //   };
+  // }, [displayMin, displayMax]);
+
   return (
     <>
       <HoverOver title={schema.title} description={schema.description} />{' '}
-      <ModalLink linkText="edit" title={`Edit ${schema.title}`}>
-        EDIT THE VALUES... Allow user to directly edit with number input boxes
-        what the values are.
+      <ModalLink
+        linkText="edit"
+        title={`Edit ${schema.title}`}
+        FooterComp={FooterComp}
+      >
+        <p>
+          Clear the field (set to blank) if you want to remove any restriction.
+        </p>
+        <Form
+          schema={schemaModal}
+          uiSchema={uiSchemaModal}
+          onChange={onModalChangeCB}
+          formData={modalFormData}
+        >
+          {' '}
+        </Form>
       </ModalLink>
       <div>
         <small>

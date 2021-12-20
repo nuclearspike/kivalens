@@ -1,5 +1,10 @@
 import * as c from '../constants';
 import req from '../kiva-api/req';
+import apolloKivaClient, {
+  LOAN_DYNAMIC_FIELDS,
+  LOANS_DYNAMIC_FIELDS,
+} from '../kivaClient';
+import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 
 export const loanDetailsUpdateMany = loans => {
   return {
@@ -28,27 +33,30 @@ export const loanDetailsFetch = id => {
   };
 };
 
-export const loanUpdateDynamic = (
-  id,
-  {
-    // eslint-disable-next-line camelcase
-    reservedAmount: basket_amount,
-    // eslint-disable-next-line camelcase
-    fundedAmount: funded_amount,
-    // eslint-disable-next-line camelcase
-    tags,
-    status,
-  },
-) => {
+export const loanUpdateDynamic = dynLoan => {
   return {
     type: c.LOAN_DETAILS_UPDATE,
-    loan: {
-      id,
-      kls_tags: tags, // .map(tag => tag.replace(/^#/g, '')),
-      basket_amount,
-      funded_amount,
-      status,
-    },
+    loan: ResultProcessors.processGQLDynLoan(dynLoan),
+  };
+};
+
+export const loanUpdateDynamicFetchOne = id => {
+  return dispatch => {
+    apolloKivaClient
+      .query({
+        query: LOAN_DYNAMIC_FIELDS,
+        variables: { id },
+        fetchPolicy: 'no-cache',
+        errorPolicy: 'ignore',
+      })
+      .then(result => {
+        const {
+          data: {
+            lend: { loan },
+          },
+        } = result;
+        dispatch(loanUpdateDynamic(loan.id, loan));
+      });
   };
 };
 
@@ -57,5 +65,35 @@ export const loanDetailsFetchMany = ids => {
     return req.kiva.api
       .loans(ids)
       .then(result => dispatch(loanDetailsUpdateMany(result)));
+  };
+};
+
+export const loanUpdateDynamicFetchMany = ids => {
+  return dispatch => {
+    return apolloKivaClient
+      .query({
+        query: LOANS_DYNAMIC_FIELDS,
+        variables: { ids },
+        fetchPolicy: 'no-cache',
+        errorPolicy: 'ignore',
+      })
+      .then(result => {
+        const {
+          data: {
+            lend: {
+              loans: { values },
+            },
+          },
+        } = result;
+        const updated = values.ids();
+        // kiva won't respond with details for loans that aren't fundraising!!!!
+        const ignored = ids.filter(id => !updated.contains(id));
+        if (ignored.length > 0) {
+          dispatch(loanDetailsFetchMany(ignored));
+        }
+        //
+        const toUpdate = values.map(ResultProcessors.processGQLDynLoan);
+        dispatch(loanDetailsUpdateMany(toUpdate));
+      });
   };
 };

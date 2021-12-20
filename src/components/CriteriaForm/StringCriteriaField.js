@@ -26,7 +26,7 @@ StringCriteriaField.propTypes = {
     description: PT.string,
     placeholder: PT.string,
   }).isRequired,
-  formData: PT.object,
+  formData: PT.string,
   onChange: PT.func.isRequired,
 };
 

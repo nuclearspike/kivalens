@@ -11,9 +11,10 @@ import configureStore from './store/configureStore';
 import history from './history';
 import { updateMeta } from './DOMUtils';
 import router from './router';
+import './utils/linqextras.mjs';
 
 import { setAPIOptions } from './kiva-api/kivaBase.mjs';
-import { loansSmartFetch } from './actions/all_loans';
+import { keepFreshTick, loansSmartFetch } from './actions/all_loans';
 import { setRuntimeVariable } from './actions/runtime';
 
 initializeIcons();
@@ -47,9 +48,11 @@ const { dispatch } = context.store;
 
 dispatch(loansSmartFetch());
 
-setImmediate(() => {
+setTimeout(() => {
   dispatch(setRuntimeVariable({ name: 'onClient', value: true }));
-});
+}, 100);
+
+setInterval(() => dispatch(keepFreshTick()), 60000);
 
 const container = document.getElementById('app');
 let currentLocation = history.location;

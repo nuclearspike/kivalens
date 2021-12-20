@@ -386,6 +386,17 @@ class ResultProcessors {
     });
     return partners;
   }
+
+  static processGQLDynLoan(dynLoan) {
+    return {
+      id: dynLoan.id,
+      kls_tags: dynLoan.tags,
+      basket_amount: parseFloat(dynLoan.loanFundraisingInfo.reservedAmount),
+      funded_amount: parseFloat(dynLoan.loanFundraisingInfo.fundedAmount),
+      status: dynLoan.status,
+      kl_dyn_updated: new Date().getTime(),
+    }
+  }
 }
 
 export default ResultProcessors;

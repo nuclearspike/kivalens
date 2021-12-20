@@ -1,23 +1,23 @@
-import extend from 'extend'
-import {Deferred} from 'jquery-deferred'
-import 'linqjs'
-import 'datejs'
-import LenderLoans from './LenderLoans'
+import extend from 'extend';
+import { Deferred } from 'jquery-deferred';
+import 'linqjs';
+import 'datejs';
+import LenderLoans from './LenderLoans';
 
 class LenderStatusLoans extends LenderLoans {
   constructor(lenderId, options) {
     // test for options.status... then can remove test in result()
-    super(lenderId, extend(true, {}, options))
+    super(lenderId, extend(true, {}, options));
   }
 
   start() {
     // returns actual loan objects.
     return super.start().then(loans => {
       if (this.options.status) {
-        return loans.filter(loan => loan.status === this.options.status)
+        return loans.filter(loan => loan.status === this.options.status);
       }
-      return loans
-    })
+      return loans;
+    });
   }
 }
 
@@ -29,7 +29,7 @@ class LenderFundraisingLoans extends LenderStatusLoans {
         status: 'fundraising',
         fundraising_only: true,
       }),
-    )
+    );
   }
 
   continuePaging(loans) {
@@ -40,7 +40,7 @@ class LenderFundraisingLoans extends LenderStatusLoans {
       !loans.any(loan => loan.status === 'fundraising')
     ) {
       // if all loans on the page would have expired. this could miss some mega-mega lenders in corner cases.
-      const today = Date.today()
+      const today = Date.today();
       // older loans do not have a planned_expiration_date field.
       if (
         loans.all(
@@ -49,17 +49,17 @@ class LenderFundraisingLoans extends LenderStatusLoans {
             new Date(loan.planned_expiration_date).isBefore(today),
         )
       )
-        return false
+        return false;
     }
-    return true
+    return true;
   }
 
   ids() {
-    const d = Deferred()
-    this.promise.fail(d.reject)
-    super.start().then(loans => d.resolve(loans.select(loan => loan.id)))
-    return d
+    const d = Deferred();
+    this.promise.fail(d.reject);
+    super.start().then(loans => d.resolve(loans.select(loan => loan.id)));
+    return d;
   }
 }
 
-export default LenderFundraisingLoans
+export default LenderFundraisingLoans;

@@ -5,7 +5,7 @@ import TimeAgo from 'react-timeago';
 import numeral from 'numeral';
 import * as Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
 import { arrayWithElements, humanize, humanizeArray } from '../../utils';
@@ -15,6 +15,7 @@ import {
 } from '../../actions/loan_details';
 // import DYNAMIC_FIELDS from './dynamic_fields.graphql';
 import DTDD from '../DTDD';
+import { LOAN_DYNAMIC_FIELDS } from '../../kivaClient';
 import s from './LoanTab.css';
 
 const DisplayDate = ({ date }) => (
@@ -23,23 +24,6 @@ const DisplayDate = ({ date }) => (
   </>
 );
 
-const DYNAMIC_FIELDS = gql`
-  query loanDynamic($id: Int!) {
-    lend {
-      loan(id: $id) {
-        disbursalDate
-        minNoteSize
-        tags
-        status
-        loanFundraisingInfo {
-          fundedAmount
-          reservedAmount
-        }
-      }
-    }
-  }
-`;
-
 DisplayDate.propTypes = {
   date: PT.object.isRequired,
 };
@@ -47,7 +31,7 @@ DisplayDate.propTypes = {
 const LoanTab = ({ loan }) => {
   useStyles(s);
   const dispatch = useDispatch();
-  const { data } = useQuery(DYNAMIC_FIELDS, {
+  const { data } = useQuery(LOAN_DYNAMIC_FIELDS, {
     variables: { id: loan.id },
     fetchPolicy: 'no-cache',
     errorPolicy: 'ignore',
@@ -64,7 +48,6 @@ const LoanTab = ({ loan }) => {
       if (data) {
         dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
       }
-
       // todo: review after pre-packaging is done
     }, 30000);
     return clearInterval(handle);

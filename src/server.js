@@ -26,6 +26,7 @@ import { setAPIOptions } from './kiva-api/kivaBase.mjs';
 import { getLookups } from './kivaClient';
 import { defaultLookupState } from './reducers/lookups';
 import { LOOKUPS_SET } from './constants';
+import './utils/linqextras.mjs';
 // import passport from './passport';
 // import spdy from 'spdy';
 // import models from './data/models';

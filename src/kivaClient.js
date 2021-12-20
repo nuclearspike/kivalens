@@ -9,6 +9,18 @@ const apolloKivaClient = new ApolloClient({
   }),
 });
 
+const DYN_FIELDS_FRAGMENT = gql`
+  fragment DYN_LOAN_FIELDS on LoanBasic {
+    id
+    tags
+    status
+    loanFundraisingInfo {
+      fundedAmount
+      reservedAmount
+    }
+  }
+`;
+
 const lookups = gql`
   {
     lend {
@@ -31,6 +43,30 @@ const lookups = gql`
       }
     }
   }
+`;
+
+export const LOAN_DYNAMIC_FIELDS = gql`
+  query loanDynamic($id: Int!) {
+    lend {
+      loan(id: $id) {
+        ...DYN_LOAN_FIELDS
+      }
+    }
+  }
+  ${DYN_FIELDS_FRAGMENT}
+`;
+
+export const LOANS_DYNAMIC_FIELDS = gql`
+  query loanDynamic($ids: [Int]!) {
+    lend {
+      loans(filters: { loanIds: $ids }) {
+        values {
+          ...DYN_LOAN_FIELDS
+        }
+      }
+    }
+  }
+  ${DYN_FIELDS_FRAGMENT}
 `;
 
 // element to element, useful for filters and ordering.

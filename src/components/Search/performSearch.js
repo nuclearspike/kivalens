@@ -73,7 +73,7 @@ const performSearch = (criteria, loanIds, loanDetails, output = 'loanIds') => {
     return loans;
   }
 
-  return loans.map(l => l.id);
+  return loans.ids();
 };
 
 export default performSearch;

@@ -1,8 +1,13 @@
 import { batch } from 'react-redux';
+import dayjs from 'dayjs';
 import * as c from '../constants';
 import LoansSearch from '../kiva-api/LoansSearch.mjs';
 import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
-import { loanDetailsUpdateMany } from './loan_details';
+import { combineIdsAndLoans } from '../utils/linqextras.mjs';
+import {
+  loanDetailsUpdateMany,
+  loanUpdateDynamicFetchMany,
+} from './loan_details';
 import { loansDLDone, loansDLProgress } from './loans_progress';
 import { markDone, markLoading } from './loading';
 import { partnersFastFetch, partnersKivaFetch } from './partner_details';
@@ -28,7 +33,7 @@ export const loansKivaFetch = () => {
         batch(() => {
           dispatch(loansDLDone());
           dispatch(loanDetailsUpdateMany(result));
-          dispatch(loansSetAllIds(result.map(l => l.id)));
+          dispatch(loansSetAllIds(result.ids()));
           dispatch(markDone('loans'));
         });
       });
@@ -55,7 +60,7 @@ export const loansFastFetch = () => {
         ResultProcessors.processLoans(loans);
         batch(() => {
           dispatch(loanDetailsUpdateMany(loans));
-          dispatch(loansSetAllIds(loans.map(l => l.id)));
+          dispatch(loansSetAllIds(loans.ids()));
           dispatch(markDone('loans'));
         });
       })
@@ -91,5 +96,34 @@ export const loansSmartFetch = (forceKiva = false) => {
     return dispatch(loansKivaFetch())
       .then(dispatch(partnersKivaFetch()))
       .then(dispatch(atheistListFetch()));
+  };
+};
+
+export const keepFreshTick = () => {
+  return (dispatch, getState) => {
+    const { allLoanIds, loanDetails } = getState();
+    const loans = combineIdsAndLoans(allLoanIds, loanDetails);
+    let readyToUpdate = loans.filter(l => l.kl_dyn_updated === undefined);
+
+    if (readyToUpdate.length === 0) {
+      // all loans have gone through at least one update.
+      const fiveMinsAgo = dayjs()
+        .subtract(5, 'minute')
+        .toDate()
+        .getTime();
+      readyToUpdate = loans
+        .orderBy(l => l.kl_dyn_updated)
+        .filter(l => l.kl_dyn_updated < fiveMinsAgo); // not sure this works.
+    }
+
+    dispatch(loanUpdateDynamicFetchMany(readyToUpdate.take(20).ids()));
+  };
+};
+
+export const pruneOldLoans = () => {
+  return (dispatch, getState) => {
+    const { allLoanIds, loanDetails } = getState();
+    const goodIds = combineIdsAndLoans(allLoanIds, loanDetails).ids();
+    dispatch(loansSetAllIds(goodIds.ids()));
   };
 };

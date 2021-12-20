@@ -7,7 +7,7 @@ import * as c from '../constants';
 // state = array of ids []
 // details are in separate reducer: loan_details.js
 
-export default function allLoans(state = [], action) {
+export default function allLoanIds(state = [], action) {
   switch (action.type) {
     case c.LOANS_SET_ALL:
       return action.ids;

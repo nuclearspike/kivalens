@@ -15,7 +15,11 @@ import {
   useLoanAllDetails,
   useOnClient,
 } from '../../store/helpers/hooks';
-import { loanDetailsFetchMany } from '../../actions/loan_details';
+import {
+  loanDetailsFetchMany,
+  // loanUpdateDynamicFetchMany,
+} from '../../actions/loan_details';
+import { combineIdsAndLoans } from '../../utils/linqextras.mjs';
 import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
 import performSearch from './performSearch';
@@ -29,21 +33,21 @@ const Search = memo(({ selectedId }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
   const dispatch = useDispatch();
-  const loanIds = useSelector(({ allLoans }) => allLoans);
+  const loanIds = useSelector(({ allLoanIds }) => allLoanIds);
   const loadingLoans = useSelector(({ loading }) => loading.loans);
   const allDetails = useLoanAllDetails();
   const onClient = useOnClient();
 
   const prepNextInList = useCallback(
     res => {
-      const toFetch = res
-        .map(id => allDetails[id])
+      const toFetch = combineIdsAndLoans(res, allDetails, false)
         // this should be filled in for everything or the filter won't work!
         .filter(l => l && !l.description.texts.en)
-        .take(20);
+        .take(100);
 
       if (toFetch.length > 0) {
-        dispatch(loanDetailsFetchMany(toFetch.map(l => l.id)));
+        dispatch(loanDetailsFetchMany(toFetch.ids()));
+        // dispatch(loanUpdateDynamicFetchMany(toFetch.ids()));
       }
       return res;
     },
@@ -57,6 +61,7 @@ const Search = memo(({ selectedId }) => {
     return prepNextInList(performSearch(criteria, loanIds, allDetails));
   }, [criteria, loanIds]);
 
+  // prep items in results.
   useEffect(() => {
     const handle = setTimeout(() => prepNextInList(results), 2000);
     return () => clearTimeout(handle);
@@ -65,13 +70,18 @@ const Search = memo(({ selectedId }) => {
   if (!onClient) {
     // can't be a div or React gets confused and mounts the wrong element on client load
     return (
-      <p style={{ padding: 50 }}>
+      <Container fluid className={s.root}>
         <section>
-          <Jumbotron style={{ padding: 15 }}>
-            <Spinner animation="grow" variant="success" /> Loading Loans...
-          </Jumbotron>
+          <Row>
+            <Col xs={2} md={4} />
+            <Col xs={4} md={4}>
+              <Jumbotron style={{ padding: 15, marginTop: 50 }}>
+                <Spinner animation="grow" variant="success" /> Loading Loans...
+              </Jumbotron>
+            </Col>
+          </Row>
         </section>
-      </p>
+      </Container>
     );
   }
 

@@ -7,7 +7,7 @@ import performSearch from '../components/Search/performSearch';
 export const getHelperGraphs = selected => {
   return (dispatch, getState) => {
     let data;
-    const { partnerDetails, criteria, allLoans, loanDetails } = getState();
+    const { partnerDetails, criteria, allLoanIds, loanDetails } = getState();
     const crit = extend(true, {}, criteria); // must do deep copy, or mods to crit alter stored criteria sub objects
     switch (selected) {
       case 'sectors':
@@ -23,7 +23,7 @@ export const getHelperGraphs = selected => {
     }
 
     // must alter criteria to exclude the thing it's currently displaying.
-    const loans = performSearch(crit, allLoans, loanDetails, 'loans');
+    const loans = performSearch(crit, allLoanIds, loanDetails, 'loans');
     switch (selected) {
       case 'country_code':
         data = loans.groupByWithCount(l => l.location.country);
