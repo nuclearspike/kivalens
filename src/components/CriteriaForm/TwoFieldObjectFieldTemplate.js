@@ -25,12 +25,19 @@ const TwoFieldObjectFieldTemplate = ({
   return (
     <>
       <HoverOver title={title} description={description} />
-      <Row>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          flexWrap: 'nowrap',
+        }}
+      >
         <LookupContext.Provider value={context}>
-          <Col xs={3}>{properties[0].content}</Col>
-          <Col xs={9}>{properties[1].content}</Col>
+          <div style={{ minWidth: 72 }}>{properties[0].content}</div>
+          <div style={{ flex: 1 }}>{properties[1].content}</div>
         </LookupContext.Provider>
-      </Row>
+      </div>
     </>
   );
 };

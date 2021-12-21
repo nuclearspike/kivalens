@@ -103,8 +103,11 @@ export const keepFreshTick = () => {
   return (dispatch, getState) => {
     const { allLoanIds, loanDetails } = getState();
     const loans = combineIdsAndLoans(allLoanIds, loanDetails);
+
+    // first find any that have never been updated.
     let readyToUpdate = loans.filter(l => l.kl_dyn_updated === undefined);
 
+    // if all have been updated, then start to find
     if (readyToUpdate.length === 0) {
       // all loans have gone through at least one update.
       const fiveMinsAgo = dayjs()

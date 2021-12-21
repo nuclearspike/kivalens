@@ -5,7 +5,7 @@ import { useStateSetterCallbacks } from '../../store/helpers/hooks';
 import { ClickLink } from '../Links';
 
 const ModalLink = memo(
-  ({ linkText, title, disabled, FooterComp, children }) => {
+  ({ linkText, linkTitle, title, disabled, FooterComp, children }) => {
     const [show, setShow, setHide] = useStateSetterCallbacks(false, [
       true,
       false,
@@ -15,7 +15,7 @@ const ModalLink = memo(
 
     return (
       <>
-        <ClickLink onClick={setShow} disabled={disabled}>
+        <ClickLink title={linkTitle} onClick={setShow} disabled={disabled}>
           <small>{linkText}</small>
         </ClickLink>
 
@@ -43,6 +43,7 @@ ModalLink.displayName = 'ModalButton';
 ModalLink.propTypes = {
   linkText: PT.string.isRequired,
   title: PT.string,
+  linkTitle: PT.string,
   FooterComp: PT.func.isRequired,
   children: PT.node.isRequired,
   disabled: PT.bool,

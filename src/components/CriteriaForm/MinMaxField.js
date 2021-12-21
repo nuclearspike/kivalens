@@ -6,6 +6,7 @@ import HoverOver from '../Common/HoverOver';
 import { useStateSetterCallbacks } from '../../store/helpers/hooks';
 import ModalLink from '../Modal/ModalLink';
 import { Button } from '../bs';
+import { ClickLink } from '../Links';
 
 // *******************************************************
 // TOOLTIP RAIL
@@ -314,9 +315,9 @@ const sliderStyle = {
 
 // const defaultValues = [15, 50];
 
-const nanToUndef = val => (Number.isNaN(val) || val === null ? undefined : val);
+const nanToUndef = val => (Number.isNaN(val) ? undefined : val); // || val === null
 const prepForComp = (val, def) => nanToUndef(val) || def;
-const prepToStore = (val, def) => (val === def ? undefined : val);
+const prepToStore = (val, def) => (val === def ? null : val);
 
 const schemaModal = {
   type: 'object',
@@ -335,15 +336,21 @@ const schemaModal = {
 const uiSchemaModal = {
   min_value: {
     'ui:widget': 'updown',
+    'ui:autofocus': true,
+    'ui:placeholder': 'Input value or leave blank to have no specific minimum',
   },
   max_value: {
     'ui:widget': 'updown',
+    'ui:placeholder': 'Input value or leave blank to have no specific maximum',
   },
 };
 
 const MinMaxField = ({ schema, formData, onChange }) => {
   const { min: storedMin, max: storedMax } = formData;
-  const [modalFormData, setModalFormData] = useState({});
+  const [modalFormData, setModalFormData] = useState({
+    min_value: storedMin,
+    max_value: storedMax,
+  });
   const domain = [schema.min, schema.max];
   const reversed = false;
   const valuesForComp = [
@@ -356,18 +363,21 @@ const MinMaxField = ({ schema, formData, onChange }) => {
 
   // const [domain, setDomain] = useState([schema.min, schema.max]);
   // const [valuesForComp, setValues] = useState([storedMin, storedMax]);
-  // const [update, setUpdate] = useState(defaultValues.slice());
-  // const [reversed, setReversed] = useState(false);
+  const [update, setUpdate] = useState(valuesForComp);
+  const [updateMin, updateMax] = update;
+  const displayUpdateMin = prepToStore(updateMin, schema.min) || 'min';
+  const displayUpdateMax = prepToStore(updateMax, schema.max) || 'max';
 
   const userAlteredCB = useCallback(
     newValues => {
       const [min, max] = newValues;
       const minToStore = prepToStore(min, schema.min);
       const maxToStore = prepToStore(max, schema.max);
-      setModalFormData({ min_value: minToStore, max_value: maxToStore });
       if (minToStore !== storedMin || maxToStore !== storedMax) {
         onChange({ min: minToStore, max: maxToStore });
       }
+      setModalFormData({ min_value: minToStore, max_value: maxToStore });
+      setUpdate([minToStore, maxToStore]); // misbehaves if not last
     },
     [onChange, storedMin, storedMax],
   );
@@ -375,6 +385,10 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   const onModalChangeCB = useCallback(({ formData: newModalFormData }) => {
     setModalFormData(newModalFormData);
   });
+
+  const clearValuesCB = useCallback(() => {
+    userAlteredCB([schema.min, schema.max]);
+  }, []);
 
   const FooterComp = useCallback(({ hideFunc }) => {
     const onClick = () => {
@@ -393,37 +407,76 @@ const MinMaxField = ({ schema, formData, onChange }) => {
 
   return (
     <>
-      <HoverOver title={schema.title} description={schema.description} />{' '}
-      <ModalLink
-        linkText="edit"
-        title={`Edit ${schema.title}`}
-        FooterComp={FooterComp}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          flexWrap: 'nowrap',
+          marginBottom: 15,
+        }}
       >
-        <p>
-          Clear the field (set to blank) if you want to remove any restriction.
-        </p>
-        <Form
-          schema={schemaModal}
-          uiSchema={uiSchemaModal}
-          onChange={onModalChangeCB}
-          formData={modalFormData}
+        <div style={{ minWidth: 30 }}>
+          <HoverOver title={schema.title} description={schema.description} />
+        </div>
+        <div
+          style={{
+            flex: 1,
+            textAlign: 'right',
+            paddingRight: 10,
+            color: 'darkolivegreen',
+          }}
         >
-          {' '}
-        </Form>
-      </ModalLink>
-      <div>
-        <small>
-          {displayMin}-{displayMax}
-        </small>
+          {(displayUpdateMin !== displayMin ||
+            displayUpdateMax !== displayMax) && (
+            <small>
+              {displayUpdateMin}-{displayUpdateMax}
+            </small>
+          )}
+        </div>
+        {/* <div style={{ paddingRight: 10 }}> */}
+
+        {/* </div> */}
+        <div style={{ paddingRight: 10 }}>
+          <ModalLink
+            linkText={`${displayMin} - ${displayMax}`}
+            linkTitle={`Edit ${schema.title} values in popup.`}
+            title={`Edit ${schema.title}`}
+            FooterComp={FooterComp}
+          >
+            <p>
+              Valid Range: {schema.min} through {schema.max}
+            </p>
+            <Form
+              schema={schemaModal}
+              uiSchema={uiSchemaModal}
+              onChange={onModalChangeCB}
+              formData={modalFormData}
+            >
+              {' '}
+            </Form>
+          </ModalLink>
+        </div>
+        <div>
+          <small>
+            <ClickLink
+              title={`Reset values to defaults for ${schema.title}.`}
+              onClick={clearValuesCB}
+            >
+              clear
+            </ClickLink>
+          </small>
+        </div>
       </div>
-      <div style={{ marginTop: 10, height: 50, width: '100%' }}>
+
+      <div style={{ marginTop: 20, height: 50, width: '100%' }}>
         <Slider
           mode={1}
           step={schema.step || 1}
           rootStyle={sliderStyle}
           domain={domain}
           reversed={reversed}
-          // onUpdate={setUpdate}
+          onUpdate={setUpdate}
           onChange={userAlteredCB}
           values={valuesForComp}
         >

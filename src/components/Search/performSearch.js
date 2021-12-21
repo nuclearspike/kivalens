@@ -49,15 +49,15 @@ const performSearch = (criteria, loanIds, loanDetails, output = 'loanIds') => {
   ct.addAnyAllNoneTester('tags', null, 'all', loan => loan.kls_tags, true);
   ct.addAnyAllNoneTester('themes', null, 'all', loan => loan.themes, true);
 
-  // ct.addFieldContainsOneOfArrayTester(criteria.loan.repayment_interval, loan =>
-  //   loan.terms.repayment_interval ? loan.terms.repayment_interval : 'unknown',
-  // );
-  // ct.addFieldContainsOneOfArrayTester(
-  //   criteria.loan.currency_exchange_loss_liability,
-  //   loan =>
-  //     loan.terms.loss_liability && loan.terms.loss_liability.currency_exchange,
-  // );
-  //
+  ct.addFieldContainsOneOfArrayTester(criteria.loan.repayment_interval, loan =>
+    loan.terms.repayment_interval ? loan.terms.repayment_interval : 'unknown',
+  );
+  ct.addFieldContainsOneOfArrayTester(
+    criteria.loan.currency_exchange_loss_liability,
+    loan =>
+      loan.terms.loss_liability && loan.terms.loss_liability.currency_exchange,
+  );
+
 
   //
   // MORE TO COPY!!!

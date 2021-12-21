@@ -7,10 +7,11 @@ const trackOutbound = () => {
   // e=>rga.outboundLink({label: href},c=>{})
 };
 
-export const ClickLink = ({ onClick, className, children }) => (
+export const ClickLink = ({ onClick, title, className, children }) => (
   <a
     href="#"
     className={className}
+    title={title}
     onClick={e => {
       e.preventDefault();
       onClick(e);
@@ -22,6 +23,7 @@ export const ClickLink = ({ onClick, className, children }) => (
 
 ClickLink.propTypes = {
   onClick: PT.func.isRequired,
+  title: PT.string,
   className: PT.string,
   children: PT.node.isRequired,
 };

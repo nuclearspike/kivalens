@@ -42,7 +42,10 @@ const styles = {
 };
 
 export const MultiSelectField = ({ formData, onChange }) => {
-  const valueChange = value => onChange((value || []).map(v => v.value));
+  const valueChange = useCallback(
+    value => onChange((value || []).map(v => v.value)),
+    [onChange],
+  );
   const processed = (formData || []).map(value => ({ label: value, value }));
   const lookupContext = useContext(LookupContext);
   const options = lookupContext.values.map(i => ({

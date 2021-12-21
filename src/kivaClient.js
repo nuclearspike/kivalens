@@ -57,9 +57,9 @@ export const LOAN_DYNAMIC_FIELDS = gql`
 `;
 
 export const LOANS_DYNAMIC_FIELDS = gql`
-  query loanDynamic($ids: [Int]!) {
+  query loansDynamic($ids: [Int]!) {
     lend {
-      loans(filters: { loanIds: $ids }) {
+      loans(filters: { loanIds: $ids, status: all }) {
         values {
           ...DYN_LOAN_FIELDS
         }

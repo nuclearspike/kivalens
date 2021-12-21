@@ -60,13 +60,10 @@ export const loanUpdateDynamicFetchOne = id => {
   };
 };
 
-export const loanDetailsFetchMany = ids => {
-  return dispatch => {
-    return req.kiva.api
-      .loans(ids)
-      .then(result => dispatch(loanDetailsUpdateMany(result)));
-  };
-};
+export const loanDetailsFetchMany = ids => dispatch =>
+  req.kiva.api
+    .loans(ids)
+    .then(result => dispatch(loanDetailsUpdateMany(result)));
 
 export const loanUpdateDynamicFetchMany = ids => {
   return dispatch => {
@@ -85,13 +82,6 @@ export const loanUpdateDynamicFetchMany = ids => {
             },
           },
         } = result;
-        const updated = values.ids();
-        // kiva won't respond with details for loans that aren't fundraising!!!!
-        const ignored = ids.filter(id => !updated.contains(id));
-        if (ignored.length > 0) {
-          dispatch(loanDetailsFetchMany(ignored));
-        }
-        //
         const toUpdate = values.map(ResultProcessors.processGQLDynLoan);
         dispatch(loanDetailsUpdateMany(toUpdate));
       });

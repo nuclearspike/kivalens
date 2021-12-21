@@ -1,5 +1,7 @@
 import 'linqjs';
 
+const hasValue = value => value !== null && value !== undefined;
+
 // instantiate one of these to test your partner/loan criteria against the data. all functions are very generic.
 // the idea behind it is you take all of the criteria, and for anything that is set, it adds a "tester" function
 // to it's array of testers. All testers must pass or the entity fails to match the criteria. so, the criteria
@@ -22,7 +24,7 @@ class CritTester {
     const { critGroup } = this;
     const critProp = critGroup[critName];
     const { min, max } = critProp || {};
-    if (min !== undefined) {
+    if (hasValue(min)) {
       const lowTest = entity => {
         if (overrideIf && overrideIf(entity))
           return overrideFunc ? overrideFunc(critGroup, entity) : true;
@@ -30,7 +32,7 @@ class CritTester {
       };
       this.testers.push(lowTest);
     }
-    if (max !== undefined) {
+    if (hasValue(max)) {
       const highTest = entity => {
         if (overrideIf && overrideIf(entity))
           return overrideFunc ? overrideFunc(critGroup, entity) : true;

@@ -10,6 +10,7 @@ export const getHelperGraphs = selected => {
     const { partnerDetails, criteria, allLoanIds, loanDetails } = getState();
     const crit = extend(true, {}, criteria); // must do deep copy, or mods to crit alter stored criteria sub objects
     switch (selected) {
+      // loan values that need to be killed with an object.
       case 'sectors':
       case 'activities':
       case 'themes':
@@ -17,6 +18,13 @@ export const getHelperGraphs = selected => {
       case 'countries':
         crit.loan[selected] = {};
         break;
+
+      // loan values that need to be killed with empty arrays
+      case 'repayment_interval':
+      case 'currency_exchange_loss_liability':
+        crit.loan[selected] = [];
+        break;
+
       // partner stuff.
       default:
         break;

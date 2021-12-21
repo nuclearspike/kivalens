@@ -4,6 +4,7 @@ import MinMaxField from './MinMaxField';
 import StringCriteriaField from './StringCriteriaField';
 import PartialExactSelectorField from './StartsWithExactSelectorField';
 import TwoFieldObjectFieldTemplate from './TwoFieldObjectFieldTemplate';
+import SelectMultiField from './SelectMultiField';
 
 export const criteriaSchema = {
   definitions: {
@@ -202,10 +203,18 @@ export const criteriaSchema = {
           defaultAan: 'any',
           lookup: 'countries',
         },
-        currency_loss: {
+        currency_exchange_loss_liability: {
           title: 'Currency Loss',
           type: 'string',
           default: '',
+          helper_graph: 'currency_exchange_loss_liability',
+          enum: ['shared', 'none', 'partner', 'lender'],
+          enumNames: [
+            'Shared Loss',
+            'No Currency Exchange Loss',
+            'Partner Covers',
+            'Lender Covers',
+          ],
         },
         bonus_credit: {
           title: 'Bonus Credit',
@@ -215,6 +224,8 @@ export const criteriaSchema = {
         repayment_interval: {
           title: 'Repayment Interval',
           type: 'string',
+          helper_graph: 'repayment_interval',
+          enum: ['Monthly', 'Irregularly', 'At end of term'],
         },
       },
     },
@@ -242,6 +253,23 @@ export const criteriaSchema = {
           title: 'Sort',
           type: 'string',
         },
+        limit_to_top: {
+          type: 'object',
+          properties: {
+            enabled: {
+              title: 'Enabled',
+              type: 'boolean',
+            },
+            count: {
+              title: 'Count',
+              type: 'integer',
+            },
+            per: {
+              title: 'Per',
+              type: 'string',
+            },
+          },
+        },
       },
     },
   },
@@ -264,6 +292,8 @@ const PartialExactUiSchema = {
   },
   text: {
     'ui:field': StringCriteriaField,
+    'ui:placeholder':
+      'Use a space between multiple words to search for more than one term',
   },
 };
 
@@ -307,6 +337,12 @@ export const uiCriteriaSchema = {
     },
     disbursal: {
       'ui:field': MinMaxField,
+    },
+    repayment_interval: {
+      'ui:field': SelectMultiField,
+    },
+    currency_exchange_loss_liability: {
+      'ui:field': SelectMultiField,
     },
   },
   partner: {
