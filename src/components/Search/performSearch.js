@@ -46,7 +46,7 @@ const performSort = (loans, sort) => {
 };
 
 const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
-  const { criteria, partnerDetails } = appState;
+  const { criteria, partnerDetails, atheistList } = appState;
   let spArr = [];
   try {
     spArr =
@@ -117,16 +117,24 @@ const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
     criteria.partner.charges_fees_and_interest,
     partner => partner.charges_fees_and_interest,
   );
-  ct.addRangeTesters(
-    'secular_rating',
-    partner => partner.atheistScore.secularRating,
-    partner => !partner.atheistScore,
-  );
-  ct.addRangeTesters(
-    'social_rating',
-    partner => partner.atheistScore.socialRating,
-    partner => !partner.atheistScore,
-  );
+
+  // atheist list criteria
+  const isConstrained = ({ min, max }) => min || max;
+  if (
+    isConstrained(criteria.partner.secular_rating) ||
+    isConstrained(criteria.partner.social_rating)
+  ) {
+    const cta = new CritTester(criteria.partner);
+    cta.addRangeTesters('secular_rating', partner => partner.secularRating);
+    cta.addRangeTesters('social_rating', partner => partner.socialRating);
+
+    const passingAtheistList = Object.keys(atheistList)
+      .map(id => atheistList[id])
+      .filter(p => cta.allPass(p))
+      .ids();
+
+    ct.testers.push(p => passingAtheistList.contains(p.id));
+  }
 
   // let result = []; // this.active_partners.filter(p => ct.allPass(p));
   let result = Object.keys(partnerDetails)

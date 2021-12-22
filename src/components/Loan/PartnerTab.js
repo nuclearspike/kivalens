@@ -175,7 +175,7 @@ const PartnerTab = ({ partnerId }) => {
         <Col xs={12}>
           <h2>
             <KivaLink
-              title={`View ${partner.name} on Kiva`}
+              title={`View ${partner.name} on Kiva in new tab`}
               path={`about/where-kiva-works/partners/${partner.id}`}
             >
               {partner.name}
