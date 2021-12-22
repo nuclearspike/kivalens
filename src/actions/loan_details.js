@@ -65,25 +65,22 @@ export const loanDetailsFetchMany = ids => dispatch =>
     .loans(ids)
     .then(result => dispatch(loanDetailsUpdateMany(result)));
 
-export const loanUpdateDynamicFetchMany = ids => {
-  return dispatch => {
-    return apolloKivaClient
-      .query({
-        query: LOANS_DYNAMIC_FIELDS,
-        variables: { ids },
-        fetchPolicy: 'no-cache',
-        errorPolicy: 'ignore',
-      })
-      .then(result => {
-        const {
-          data: {
-            lend: {
-              loans: { values },
-            },
+export const loanUpdateDynamicFetchMany = ids => dispatch =>
+  apolloKivaClient
+    .query({
+      query: LOANS_DYNAMIC_FIELDS,
+      variables: { ids },
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'ignore',
+    })
+    .then(result => {
+      const {
+        data: {
+          lend: {
+            loans: { values },
           },
-        } = result;
-        const toUpdate = values.map(ResultProcessors.processGQLDynLoan);
-        dispatch(loanDetailsUpdateMany(toUpdate));
-      });
-  };
-};
+        },
+      } = result;
+      const toUpdate = values.map(ResultProcessors.processGQLDynLoan);
+      dispatch(loanDetailsUpdateMany(toUpdate));
+    });

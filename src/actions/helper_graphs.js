@@ -31,9 +31,9 @@ export const getHelperGraphs = selected => {
     }
 
     // must alter criteria to exclude the thing it's currently displaying.
-    const loans = performSearch(crit, allLoanIds, loanDetails, 'loans');
+    const loans = performSearch(getState(), 'loans');
     switch (selected) {
-      case 'country_code':
+      case 'countries':
         data = loans.groupByWithCount(l => l.location.country);
         break;
       case 'sectors':

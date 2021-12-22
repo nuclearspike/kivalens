@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import store from 'store2';
 import { setRuntimeVariable } from '../../actions/runtime';
+import { arrayWithElements } from '../../utils';
 
 /**
  * This unit is for common selectors or other common hooks.
@@ -100,6 +101,18 @@ export const useOnClient = () => {
   //   }, [true]);
   // }
   // return client;
+};
+
+export const useMergeEnumAndNames = schema => {
+  return useMemo(() => {
+    if (arrayWithElements(schema.enumNames)) {
+      return schema.enum.zip(schema.enumNames, (value, label) => ({
+        value,
+        label,
+      }));
+    }
+    return schema.enum.map(value => ({ label: value, value }));
+  }, [schema]);
 };
 
 // export const useAllLoans = () => {

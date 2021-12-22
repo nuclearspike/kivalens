@@ -32,7 +32,7 @@ const PartnerTab = ({ partnerId }) => {
       );
       addTerm(
         partner.countries.length === 1 ? 'Country' : 'Countries',
-        partner.countries.select(c => c.name).join(', '),
+        partner.countries.map(c => c.name).join(', '),
       );
 
       addTerm(

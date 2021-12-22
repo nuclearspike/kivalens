@@ -197,7 +197,7 @@ const LoanTab = ({ loan }) => {
         renderTo: 'graph_container',
         height,
       },
-      title: { text: 'Repayments' },
+      title: { text: '' },
       xAxis: {
         categories: loan.kl_repay_categories,
         title: { text: null },
@@ -306,11 +306,8 @@ const LoanTab = ({ loan }) => {
       <Col xs={12} md={4}>
         {loan.status === 'fundraising' && loan.kl_repayments.length > 0 && (
           <>
-            <div id="graph_container">
-              <HighchartsReact highcharts={Highcharts} options={graphConfig} />
-            </div>
-
-            <dl className="row" style={{ width: '100%' }}>
+            <h4 style={{ textAlign: 'center' }}>Repayments</h4>
+            <dl className="row" style={{ paddingTop: 10, width: '100%' }}>
               <DTDD
                 term="Interval"
                 def={loan.terms.repayment_interval}
@@ -351,6 +348,10 @@ const LoanTab = ({ loan }) => {
                 />
               )}
             </dl>
+
+            <div id="graph_container">
+              <HighchartsReact highcharts={Highcharts} options={graphConfig} />
+            </div>
           </>
         )}
       </Col>

@@ -33,6 +33,7 @@ const Search = memo(({ selectedId }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
   const dispatch = useDispatch();
+  const appState = useSelector(all => all);
   const loanIds = useSelector(({ allLoanIds }) => allLoanIds);
   const loadingLoans = useSelector(({ loading }) => loading.loans);
   const allDetails = useLoanAllDetails();
@@ -58,8 +59,8 @@ const Search = memo(({ selectedId }) => {
     if (!process.env.BROWSER) {
       return [];
     }
-    return prepNextInList(performSearch(criteria, loanIds, allDetails));
-  }, [criteria, loanIds]);
+    return prepNextInList(performSearch(appState));
+  }, [criteria, loanIds]); // not allDetails or funded loans don't display in list.
 
   // prep items in results.
   useEffect(() => {

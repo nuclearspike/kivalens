@@ -377,9 +377,9 @@ class ResultProcessors {
     };
     partners.forEach(p => {
       p.kl_sp = p.social_performance_strengths
-        ? p.social_performance_strengths.select(sp => sp.id)
+        ? p.social_performance_strengths.map(sp => sp.id)
         : [];
-      p.kl_regions = p.countries.select(c => regionsLU[c.region]).distinct();
+      p.kl_regions = p.countries.map(c => regionsLU[c.region]).distinct();
       p.kl_years_on_kiva =
         (Date.today().getTime() - new Date(p.start_date).getTime()) /
         (365.25 * 24 * 60 * 60000); // in years.

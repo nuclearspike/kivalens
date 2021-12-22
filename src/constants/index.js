@@ -66,7 +66,7 @@ export const emptyCrit = {
       aan: 'any',
     },
     currency_loss: '',
-    bonus_credit: '',
+    bonus_credit_eligibility: '',
   },
   partner: {
     name: {

@@ -8,49 +8,49 @@ import {
 } from '../../actions/helper_graphs';
 import { arrayWithElements } from '../../utils';
 import HoverOver from '../Common/HoverOver';
+import {useMergeEnumAndNames} from '../../store/helpers/hooks'
 
 const SelectSingleField = ({ formData, schema, onChange }) => {
   const valueChangeCB = useCallback(
-    value => onChange((value || []).map(v => v.value)),
+    (value, { action }) => {
+      // console.log('action', action);
+      if (action === 'clear') {
+        onChange(null);
+      } else {
+        onChange(value.value);
+      }
+    },
     [onChange],
   );
 
   const storedValue = useMemo(() => {
+    const value = formData;
     if (arrayWithElements(schema.enumNames)) {
-      return (formData || []).map(value => {
-        const found = schema.enum.indexOf(value);
-        if (found > -1) {
-          const label = schema.enumNames[found];
-          return { label, value };
-        }
-        return { label: value, value }; // better than nothing.
-      });
+      const found = schema.enum.indexOf(value);
+      if (found > -1) {
+        const label = schema.enumNames[found];
+        return { label, value };
+      }
     }
-    return (formData || []).map(value => ({ label: value, value }));
-    // must also handle when there's enumNames
+    return {
+      value,
+      label: value,
+    };
   }, [formData]);
 
-  const options = useMemo(() => {
-    if (arrayWithElements(schema.enumNames)) {
-      return schema.enum.zip(schema.enumNames, (value, label) => ({
-        value,
-        label,
-      }));
-    }
-    return schema.enum.map(value => ({ label: value, value }));
-  }, [schema]);
+  const options = useMergeEnumAndNames(schema);
 
   const dispatch = useDispatch();
 
   const onFocusCB = useCallback(() => {
     if (schema.helper_graph) {
-      dispatch(getHelperGraphs(schema.helper_graph));
+      setTimeout(() => dispatch(getHelperGraphs(schema.helper_graph)), 100);
     }
   }, [schema]);
 
   const onBlurCB = useCallback(() => {
     if (schema.helper_graph) {
-      dispatch(clearHelperGraphs());
+      setTimeout(() => dispatch(clearHelperGraphs()), 50);
     }
   }, []);
 
@@ -58,7 +58,6 @@ const SelectSingleField = ({ formData, schema, onChange }) => {
     <>
       <HoverOver title={schema.title} description={schema.description} />
       <Select
-        isMulti
         options={options}
         value={storedValue}
         onChange={valueChangeCB}

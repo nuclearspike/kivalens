@@ -41,6 +41,7 @@ const styles = {
   },
 };
 
+// this component is based off of lookup values, not just any set of enums.
 export const MultiSelectField = ({ formData, onChange }) => {
   const valueChange = useCallback(
     value => onChange((value || []).map(v => v.value)),
@@ -55,11 +56,15 @@ export const MultiSelectField = ({ formData, onChange }) => {
   const dispatch = useDispatch();
 
   const onFocusCB = useCallback(() => {
-    dispatch(getHelperGraphs(lookupContext.lookup));
+    if (lookupContext.lookup) {
+      setTimeout(() => dispatch(getHelperGraphs(lookupContext.lookup)), 100);
+    }
   }, [lookupContext.lookup]);
 
   const onBlurCB = useCallback(() => {
-    dispatch(clearHelperGraphs());
+    if (lookupContext.lookup) {
+      setTimeout(() => dispatch(clearHelperGraphs()), 50);
+    }
   }, []);
 
   return (

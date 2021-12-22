@@ -8,10 +8,17 @@ import {
 } from '../../actions/helper_graphs';
 import { arrayWithElements } from '../../utils';
 import HoverOver from '../Common/HoverOver';
+import {useMergeEnumAndNames} from '../../store/helpers/hooks'
 
 const SelectMultiField = ({ formData, schema, onChange }) => {
   const valueChangeCB = useCallback(
-    value => onChange((value || []).map(v => v.value)),
+    (value, { action }) => {
+      if (action === 'clear') {
+        onChange([]);
+      } else {
+        onChange((value || []).map(v => v.value));
+      }
+    },
     [onChange],
   );
 
@@ -30,27 +37,19 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
     // must also handle when there's enumNames
   }, [formData]);
 
-  const options = useMemo(() => {
-    if (arrayWithElements(schema.enumNames)) {
-      return schema.enum.zip(schema.enumNames, (value, label) => ({
-        value,
-        label,
-      }));
-    }
-    return schema.enum.map(value => ({ label: value, value }));
-  }, [schema]);
+  const options = useMergeEnumAndNames(schema);
 
   const dispatch = useDispatch();
 
   const onFocusCB = useCallback(() => {
     if (schema.helper_graph) {
-      dispatch(getHelperGraphs(schema.helper_graph));
+      setTimeout(() => dispatch(getHelperGraphs(schema.helper_graph)), 100);
     }
   }, [schema]);
 
   const onBlurCB = useCallback(() => {
     if (schema.helper_graph) {
-      dispatch(clearHelperGraphs());
+      setTimeout(() => dispatch(clearHelperGraphs()), 50);
     }
   }, []);
 
@@ -70,7 +69,7 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
 };
 
 SelectMultiField.propTypes = {
-  formData: PT.string.isRequired,
+  formData: PT.array.isRequired,
   schema: PT.object,
   onChange: PT.func,
 };
