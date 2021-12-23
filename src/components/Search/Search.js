@@ -15,10 +15,7 @@ import {
   useLoanAllDetails,
   useOnClient,
 } from '../../store/helpers/hooks';
-import {
-  loanDetailsFetchMany,
-  // loanUpdateDynamicFetchMany,
-} from '../../actions/loan_details';
+import { fetchGQLDynamicDetailsForLoans } from '../../actions/loan_details';
 import { combineIdsAndLoans } from '../../utils/linqextras.mjs';
 import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
@@ -41,14 +38,14 @@ const Search = memo(({ selectedId }) => {
 
   const prepNextInList = useCallback(
     res => {
-      const toFetch = combineIdsAndLoans(res, allDetails, false)
+      const toFetch = combineIdsAndLoans(res, allDetails, true)
         // this should be filled in for everything or the filter won't work!
-        .filter(l => l && !l.description.texts.en)
-        .take(100);
+        .filter(l => l && !l.kl_dyn_updated)
+        .take(20)
+        .ids();
 
       if (toFetch.length > 0) {
-        dispatch(loanDetailsFetchMany(toFetch.ids()));
-        // dispatch(loanUpdateDynamicFetchMany(toFetch.ids()));
+        dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true, true));
       }
       return res;
     },
@@ -62,11 +59,10 @@ const Search = memo(({ selectedId }) => {
     return prepNextInList(performSearch(appState));
   }, [criteria, loanIds]); // not allDetails or funded loans don't display in list.
 
-  // prep items in results.
   useEffect(() => {
-    const handle = setTimeout(() => prepNextInList(results), 2000);
-    return () => clearTimeout(handle);
-  }, [results]);
+    const handle = setInterval(() => prepNextInList(results), 20000);
+    return () => clearInterval(handle);
+  }, [results, prepNextInList]);
 
   if (!onClient) {
     // can't be a div or React gets confused and mounts the wrong element on client load

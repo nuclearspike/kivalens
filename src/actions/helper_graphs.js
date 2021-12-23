@@ -77,10 +77,7 @@ export const getHelperGraphs = selected => {
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
-            if (p) {
-              return p.social_performance_strengths;
-            }
-            return [];
+            return p ? p.social_performance_strengths : [];
           })
           .flatten()
           .filter(sp => sp !== undefined)
@@ -90,10 +87,7 @@ export const getHelperGraphs = selected => {
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
-            if (p) {
-              return p.name;
-            }
-            return null;
+            return p ? p.name : null;
           })
           .groupByWithCount(l => l.getPartner().name);
         break;
@@ -101,10 +95,7 @@ export const getHelperGraphs = selected => {
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
-            if (p) {
-              return p.countries;
-            }
-            return [];
+            return p ? p.countries : [];
           })
           .flatten()
           .map(c => c.region)
@@ -114,10 +105,7 @@ export const getHelperGraphs = selected => {
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
-            if (p) {
-              return p.charges_fees_and_interest;
-            }
-            return null;
+            return p ? p.charges_fees_and_interest : null;
           })
           .groupByWithCount();
         break;

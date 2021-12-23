@@ -5,9 +5,9 @@ import LoansSearch from '../kiva-api/LoansSearch.mjs';
 import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 import { combineIdsAndLoans } from '../utils/linqextras.mjs';
 import {
-  loanDetailsUpdateMany,
-  loanUpdateDynamicFetchMany,
-} from './loan_details';
+  updateDetailsForLoans,
+  fetchGQLDynamicDetailsForLoans, fetchGQLDynamicDetailsForPopularLoans,
+} from './loan_details'
 import { loansDLDone, loansDLProgress } from './loans_progress';
 import { markDone, markLoading } from './loading';
 import { partnersFastFetch, partnersKivaFetch } from './partner_details';
@@ -32,7 +32,7 @@ export const loansKivaFetch = () => {
         // details need to be present prior to being referenced by ID to avoid needing checks.
         batch(() => {
           dispatch(loansDLDone());
-          dispatch(loanDetailsUpdateMany(result));
+          dispatch(updateDetailsForLoans(result));
           dispatch(loansSetAllIds(result.ids()));
           dispatch(markDone('loans'));
         });
@@ -59,7 +59,7 @@ export const loansFastFetch = () => {
       .then(loans => {
         ResultProcessors.processLoans(loans);
         batch(() => {
-          dispatch(loanDetailsUpdateMany(loans));
+          dispatch(updateDetailsForLoans(loans));
           dispatch(loansSetAllIds(loans.ids()));
           dispatch(markDone('loans'));
         });
@@ -72,7 +72,7 @@ export const loansFastFetch = () => {
             .then(keywords => {
               // update all use or descr arrays
               dispatch(
-                loanDetailsUpdateMany(
+                updateDetailsForLoans(
                   keywords.map(kw => ({
                     id: kw.id,
                     kls_use_or_descr_arr: kw.t,
@@ -119,7 +119,10 @@ export const keepFreshTick = () => {
         .filter(l => l.kl_dyn_updated < fiveMinsAgo); // not sure this works.
     }
 
-    dispatch(loanUpdateDynamicFetchMany(readyToUpdate.take(20).ids()));
+    // 20 is a Kiva limit or I would do more.
+    dispatch(fetchGQLDynamicDetailsForLoans(readyToUpdate.take(20).ids()));
+    // get the updated funded/basket amounts for the most popular loans so sorts work right.
+    dispatch(fetchGQLDynamicDetailsForPopularLoans());
   };
 };
 

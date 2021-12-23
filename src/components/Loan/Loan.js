@@ -3,7 +3,7 @@ import PT from 'prop-types';
 import { useSelector } from 'react-redux';
 import { Button, Jumbotron, Tab, Tabs } from '../bs';
 import { basketAdd, basketRemove } from '../../actions/basket';
-import { loanDetailsFetch } from '../../actions/loan_details';
+import { fetchAPIDetailsForLoan } from '../../actions/loan_details';
 import { useLoanDetails, useRuntimeVars } from '../../store/helpers/hooks';
 import Link from '../Link';
 import { LoanLink } from '../Links';
@@ -22,7 +22,7 @@ const Loan = ({ id }) => {
   useEffect(() => {
     // cannot shorten to () since this returns a promise
     if (!loan) {
-      dispatch(loanDetailsFetch(id));
+      dispatch(fetchAPIDetailsForLoan(id));
     }
   }, [id, loan]);
 

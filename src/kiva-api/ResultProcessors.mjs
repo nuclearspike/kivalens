@@ -234,89 +234,7 @@ class ResultProcessors {
         b => b.gender === 'F',
       );
 
-      // /REPAYMENT STUFF: START
-      const amount50 = loan.loan_amount * 0.5;
-      const amount75 = loan.loan_amount * 0.75;
-      loan.kl_repayments = [];
-
-      // some very old loans do not have scheduled payments and ones dl from kl server have them removed now.
-      if (
-        loan.terms.scheduled_payments &&
-        loan.terms.scheduled_payments.length
-      ) {
-        // replace Kiva's version since it has too many entries.
-        if (!loan.kls) {
-          loan.terms.scheduled_payments = loan.terms.scheduled_payments
-            .groupBy(p => p.due_date)
-            .select(g => ({
-              due_date: g[0].due_date,
-              amount: g.sum(p => p.amount),
-            }))
-        }
-        // for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
-        const repayments = loan.terms.scheduled_payments.map(p => {
-          const date = new Date(p.due_date);
-          return { date, display: date.toString('MMM-yyyy'), amount: p.amount };
-        });
-
-        // fill in the gaps for southern-guy-toothy-shaped repayments.
-        let nextDate = new Date(
-          Math.min(
-            Date.next()
-              .month()
-              .set({ day: 1 })
-              .clearTime(),
-            repayments.first().date.clearTime(),
-          ),
-        );
-        const lastDate = repayments.last().date.clearTime();
-        while (nextDate <= lastDate) {
-          const displayToTest = nextDate.toString('MMM-yyyy');
-          const repayment = repayments.first(r => r.display === displayToTest);
-          if (!repayment)
-            // new Date() because it needs to make a copy of the date object or they all hold a ref.
-            repayments.push({
-              date: new Date(nextDate.getTime()),
-              display: displayToTest,
-              amount: 0,
-            });
-          nextDate = nextDate
-            .next()
-            .month()
-            .set({ day: 1 })
-            .clearTime(); // clearTime() to correct for DST bs?
-        }
-        // remove the leading 0 payment months. ordering needed to get the newly added ones in their proper spot.
-        loan.kl_repayments = repayments
-          .orderBy(p => p.date)
-          .skipWhile(p => p.amount === 0);
-
-        // two fold purpose: added a running percentage for all the repayments and track when the payments hit 50 and 75%
-        let runningTotal = 0;
-        loan.kl_repayments.forEach(payment => {
-          // there's got to be a more accurate algorithm to handle this efficiently...
-          runningTotal += payment.amount;
-          payment.percent = (runningTotal * 100) / loan.loan_amount;
-          if (!loan.kls_half_back && runningTotal >= amount50) {
-            loan.kls_half_back = payment.date;
-            loan.kls_half_back_actual = parseFloat(
-              ((runningTotal * 100) / loan.loan_amount).toFixed(2),
-            );
-          }
-          if (!loan.kls_75_back && runningTotal >= amount75) {
-            loan.kls_75_back = payment.date;
-            loan.kls_75_back_actual = parseFloat(
-              ((runningTotal * 100) / loan.loan_amount).toFixed(2),
-            );
-          }
-        });
-
-        loan.kls_final_repayment = new Date(
-          loan.terms.scheduled_payments.last().due_date,
-        );
-        // loan.kls_final_repayment =  loan.kl_repayments.last().date //doesn't have timezone
-        // when looking at really old loans, can be null
-      }
+      ResultProcessors.processRepaymentData(loan);
 
       // this calculation needs to be always present.
       loan.kls_repaid_in = function() {
@@ -387,15 +305,123 @@ class ResultProcessors {
     return partners;
   }
 
+  static processRepaymentData(loan) {
+    // /REPAYMENT STUFF: START
+    const amount50 = loan.loan_amount * 0.5;
+    const amount75 = loan.loan_amount * 0.75;
+    loan.kl_repayments = [];
+
+    // some very old loans do not have scheduled payments and ones dl from kl server have them removed now.
+    if (
+      loan.terms.scheduled_payments &&
+      loan.terms.scheduled_payments.length
+    ) {
+      // replace Kiva's version since it has too many entries.
+      if (!loan.kls) {
+        loan.terms.scheduled_payments = loan.terms.scheduled_payments
+          .groupBy(p => p.due_date)
+          .map(g => ({
+            due_date: g[0].due_date,
+            amount: g.sum(p => p.amount),
+          }))
+      }
+      // for some loans, kiva will spit out non-summarized data and give 4+ repayment records for the same day.
+      const repayments = loan.terms.scheduled_payments.map(p => {
+        const date = new Date(p.due_date);
+        return { date, display: date.toString('MMM-yyyy'), amount: p.amount };
+      });
+
+      // fill in the gaps for southern-guy-toothy-shaped repayments.
+      let nextDate = new Date(
+        Math.min(
+          Date.next()
+            .month()
+            .set({ day: 1 })
+            .clearTime(),
+          repayments.first().date.clearTime(),
+        ),
+      );
+      const lastDate = repayments.last().date.clearTime();
+      while (nextDate <= lastDate) {
+        const displayToTest = nextDate.toString('MMM-yyyy');
+        const repayment = repayments.first(r => r.display === displayToTest);
+        if (!repayment)
+          // new Date() because it needs to make a copy of the date object or they all hold a ref.
+          repayments.push({
+            date: new Date(nextDate.getTime()),
+            display: displayToTest,
+            amount: 0,
+          });
+        nextDate = nextDate
+          .next()
+          .month()
+          .set({ day: 1 })
+          .clearTime(); // clearTime() to correct for DST bs?
+      }
+      // remove the leading 0 payment months. ordering needed to get the newly added ones in their proper spot.
+      loan.kl_repayments = repayments
+        .orderBy(p => p.date)
+        .skipWhile(p => p.amount === 0);
+
+      // two fold purpose: added a running percentage for all the repayments and track when the payments hit 50 and 75%
+      let runningTotal = 0;
+      loan.kl_repayments.forEach(payment => {
+        // there's got to be a more accurate algorithm to handle this efficiently...
+        runningTotal += payment.amount;
+        payment.percent = (runningTotal * 100) / loan.loan_amount;
+        if (!loan.kls_half_back && runningTotal >= amount50) {
+          loan.kls_half_back = payment.date;
+          loan.kls_half_back_actual = parseFloat(
+            ((runningTotal * 100) / loan.loan_amount).toFixed(2),
+          );
+        }
+        if (!loan.kls_75_back && runningTotal >= amount75) {
+          loan.kls_75_back = payment.date;
+          loan.kls_75_back_actual = parseFloat(
+            ((runningTotal * 100) / loan.loan_amount).toFixed(2),
+          );
+        }
+      });
+
+      loan.kls_final_repayment = new Date(
+        loan.terms.scheduled_payments.last().due_date,
+      );
+      // loan.kls_final_repayment =  loan.kl_repayments.last().date //doesn't have timezone
+      // when looking at really old loans, can be null
+    }
+    return loan;
+  }
+
+  /**
+   *
+   * @param dynLoan
+   * @returns {{terms: *, kl_dyn_updated: number, basket_amount: number, funded_date: *, kls_tags: *, funded_amount: number, loan_amount: number, id: *, status: *}}
+   *
+   * unlike many other static methods, this does NOT modify the passed in param, you MUST use the return value.
+   */
   static processGQLDynLoan(dynLoan) {
-    return {
+    const result = {
       id: dynLoan.id,
       kls_tags: dynLoan.tags,
       basket_amount: parseFloat(dynLoan.loanFundraisingInfo.reservedAmount),
       funded_amount: parseFloat(dynLoan.loanFundraisingInfo.fundedAmount),
       status: dynLoan.status,
+      funded_date: dynLoan.raisedDate,
+      loan_amount: parseFloat(dynLoan.loan_amount),
+      terms: dynLoan.terms, // if not present, no damage.
       kl_dyn_updated: new Date().getTime(),
+    };
+
+    if (dynLoan.description) {
+      result.description = { texts: { en: dynLoan.description } };
+    };
+
+    if (dynLoan.terms)  {
+      result.terms.scheduled_payments = dynLoan.terms.scheduled_payments.map(({ due_date, amount }) => ({ due_date, amount: parseFloat(amount) }))
+      ResultProcessors.processRepaymentData(result)
     }
+
+    return result;
   }
 }
 

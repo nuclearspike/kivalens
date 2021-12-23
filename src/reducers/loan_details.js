@@ -27,12 +27,12 @@ export default function loanDetails(state = {}, action) {
       return extend({}, state, toAdd);
     }
     case c.LOAN_DETAILS_UPDATE_MANY_OBJ: {
-      // does this work??
-      return extend({}, state, action.payload);
+      // does this work?? not used
+      return extend(true, {}, state, action.payload);
     }
     case c.LOAN_DETAILS_UPDATE:
       return extend({}, state, {
-        [action.loan.id]: extend({}, state[action.loan.id], action.loan),
+        [action.loan.id]: extend(true, {}, state[action.loan.id], action.loan),
       });
     default:
       return state;

@@ -12,17 +12,17 @@ Array.prototype.chunk = function(chunkSize) {
 //this is a common enough pattern in KL that it makes sense to standardize and shorten.
 Array.prototype.groupByWithCount = function(selector){
   if (!selector) selector = e=>e
-  return this.groupBy(selector).select(g => ({name: selector(g[0]), count: g.length}))
+  return this.groupBy(selector).map(g => ({name: selector(g[0]), count: g.length}))
 }
 
 Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
-  return this.groupBy(selector).select(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
+  return this.groupBy(selector).map(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
 }
 
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
-export const fundraising = (l) => l.status === 'fundraising';
+export const fundraising = l => l.status === 'fundraising';
 
 Array.prototype.ids = function(){ return this.map(e => e.id)}
 Array.prototype.fundraising = function(){ return this.filter(fundraising)}

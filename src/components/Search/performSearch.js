@@ -1,6 +1,6 @@
 import CritTester from '../../kiva-api/CritTester';
 import { arrayWithElements } from '../../utils';
-import { basicReverseOrder } from '../../utils/linqextras.mjs';
+import { basicReverseOrder, fundraising } from '../../utils/linqextras.mjs';
 
 const performSort = (loans, sort) => {
   if (loans.length > 1)
@@ -223,7 +223,7 @@ const performSearch = (appState, output = 'loanIds') => {
   // MORE TO COPY!!!
   //
 
-  ct.testers.push(loan => loan.status === 'fundraising');
+  ct.testers.push(fundraising);
 
   // perform the filtering!!
   let loans = loanIds

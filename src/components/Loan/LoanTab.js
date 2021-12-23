@@ -1,21 +1,15 @@
-import React, { useEffect, useMemo } from 'react';
+import React, {memo, useEffect, useMemo, useState} from 'react'
 import PT from 'prop-types';
 import { useDispatch } from 'react-redux';
 import TimeAgo from 'react-timeago';
 import numeral from 'numeral';
 import * as Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { useQuery } from '@apollo/client';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { Col, OverlayTrigger, Popover, ProgressBar, Row } from '../bs';
 import { arrayWithElements, humanize, humanizeArray } from '../../utils';
-import {
-  loanDetailsFetch,
-  loanUpdateDynamic,
-} from '../../actions/loan_details';
-// import DYNAMIC_FIELDS from './dynamic_fields.graphql';
+import { fetchGQLDynamicDetailsForLoan } from '../../actions/loan_details';
 import DTDD from '../DTDD';
-import { LOAN_DYNAMIC_FIELDS } from '../../kivaClient';
 import s from './LoanTab.css';
 
 const DisplayDate = ({ date }) => (
@@ -28,33 +22,36 @@ DisplayDate.propTypes = {
   date: PT.object.isRequired,
 };
 
-const LoanTab = ({ loan }) => {
+const LoanTab = memo(({ loan }) => {
   useStyles(s);
   const dispatch = useDispatch();
-  const { data } = useQuery(LOAN_DYNAMIC_FIELDS, {
-    variables: { id: loan.id },
-    fetchPolicy: 'no-cache',
-    errorPolicy: 'ignore',
-  });
+  const includeDescr = !loan.description.texts.en;
+  const includeTerms = !loan.terms.scheduled_payments;
+  const [tick, setTick] = useState(0);
 
-  useEffect(() => {
-    // only needs to happen after the download is pre-packaged to fetch the description..
-    dispatch(loanDetailsFetch(loan.id));
-  }, [loan.id]);
+  // TODO: have it recognize if the dyn_updated is OLD, not just not populated.
+  if (!loan.kl_dyn_updated) {
+    dispatch(
+      fetchGQLDynamicDetailsForLoan(loan.id, includeDescr, includeTerms),
+    );
+  }
 
-  // this causes a double call but also refreshes
   useEffect(() => {
     const handle = setInterval(() => {
-      if (data) {
-        dispatch(loanUpdateDynamic(loan.id, data.lend.loan));
-      }
-      // todo: review after pre-packaging is done
+      setTick(tick + 1);
+    }, 1000);
+    return () => clearInterval(handle);
+  }, [loan.id, tick, setTick]);
+
+  useEffect(() => {
+    const handle = setInterval(() => {
+      dispatch(fetchGQLDynamicDetailsForLoan(loan.id, false, false));
     }, 30000);
-    return clearInterval(handle);
+    return () => clearInterval(handle);
   }, [loan.id]);
 
   const lentPercentages = useMemo(() => {
-    if (!loan || !loan.status === 'fundraising') {
+    if (!loan || loan.status !== 'fundraising') {
       return {};
     }
     const fundedPerc = (loan.funded_amount * 100) / loan.loan_amount;
@@ -117,12 +114,6 @@ const LoanTab = ({ loan }) => {
           </span>,
         );
       }
-      if (loan.status === 'fundraising') {
-        addTerm(
-          'Final Repayment In',
-          <span>{Math.round(loan.kls_repaid_in())} months</span>,
-        );
-      }
     }
     return result.map(dict => (
       <DTDD key={dict.term} term={dict.term} def={dict.def} />
@@ -159,7 +150,7 @@ const LoanTab = ({ loan }) => {
     return result.map(dict => (
       <DTDD key={dict.term} term={dict.term} def={dict.def} />
     ));
-  }, [loan]);
+  }, [loan, tick]);
 
   const loanProgressOverlay = useMemo(() => {
     return (
@@ -175,13 +166,9 @@ const LoanTab = ({ loan }) => {
     if (!loan) return null;
 
     if (!arrayWithElements(loan.kl_repay_categories)) {
-      loan.kl_repay_categories = loan.kl_repayments.map(
-        payment => payment.display,
-      );
-      loan.kl_repay_data = loan.kl_repayments.map(payment => payment.amount);
-      loan.kl_repay_percent = loan.kl_repayments.map(
-        payment => payment.percent,
-      );
+      loan.kl_repay_categories = loan.kl_repayments.map(p => p.display);
+      loan.kl_repay_data = loan.kl_repayments.map(p => p.amount);
+      loan.kl_repay_percent = loan.kl_repayments.map(p => p.percent);
     }
 
     const height = Math.max(
@@ -303,6 +290,7 @@ const LoanTab = ({ loan }) => {
 
         {/* <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre> */}
       </Col>
+
       <Col xs={12} md={4}>
         {loan.status === 'fundraising' && loan.kl_repayments.length > 0 && (
           <>
@@ -342,7 +330,12 @@ const LoanTab = ({ loan }) => {
               {loan.kls_final_repayment && (
                 <DTDD
                   term="Final repayment"
-                  def={loan.kls_final_repayment.toString('MMM d, yyyy')}
+                  def={
+                    <span>
+                      {loan.kls_final_repayment.toString('MMM d, yyyy')}
+                      <br />({Math.round(loan.kls_repaid_in())} months)
+                    </span>
+                  }
                   ddClass="col-sm-6"
                   dtClass="col-sm-6"
                 />
@@ -357,12 +350,15 @@ const LoanTab = ({ loan }) => {
       </Col>
     </Row>
   );
-};
+});
+
+LoanTab.displayName = 'LoanTab';
 
 LoanTab.propTypes = {
   loan: PT.shape({
     id: PT.number,
     status: PT.string,
+    kl_dyn_updated: PT.number,
     description: PT.shape({
       texts: PT.shape({
         en: PT.string,
@@ -386,6 +382,12 @@ LoanTab.propTypes = {
     terms: PT.shape({
       disbursal_date: PT.string,
       repayment_interval: PT.string,
+      scheduled_payments: PT.arrayOf(
+        PT.shape({
+          amount: PT.number,
+          due_date: PT.string,
+        }),
+      ),
     }),
     kls_tags: PT.arrayOf(PT.string),
     kls_age: PT.number,

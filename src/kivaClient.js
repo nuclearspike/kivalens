@@ -14,9 +14,18 @@ const DYN_FIELDS_FRAGMENT = gql`
     id
     tags
     status
+    raisedDate
     loanFundraisingInfo {
       fundedAmount
       reservedAmount
+    }
+    loan_amount: loanAmount
+    description @include(if: $includeDescr)
+    terms @include(if: $includeTerms) {
+      scheduled_payments: expectedPayments {
+        amount
+        due_date: dueToKivaDate
+      }
     }
   }
 `;
@@ -46,7 +55,11 @@ const lookups = gql`
 `;
 
 export const LOAN_DYNAMIC_FIELDS = gql`
-  query loanDynamic($id: Int!) {
+  query loanDynamic(
+    $id: Int!
+    $includeDescr: Boolean = false
+    $includeTerms: Boolean = false
+  ) {
     lend {
       loan(id: $id) {
         ...DYN_LOAN_FIELDS
@@ -57,9 +70,32 @@ export const LOAN_DYNAMIC_FIELDS = gql`
 `;
 
 export const LOANS_DYNAMIC_FIELDS = gql`
-  query loansDynamic($ids: [Int]!) {
+  query loansDynamic(
+    $ids: [Int]!
+    $includeDescr: Boolean = false
+    $includeTerms: Boolean = false
+  ) {
     lend {
       loans(filters: { loanIds: $ids, status: all }) {
+        values {
+          ...DYN_LOAN_FIELDS
+        }
+      }
+    }
+  }
+  ${DYN_FIELDS_FRAGMENT}
+`;
+
+/**
+ * Only used
+ */
+export const LOANS_BY_POPULARITY = gql`
+  query loansPopular(
+    $includeDescr: Boolean = false
+    $includeTerms: Boolean = false
+  ) {
+    lend {
+      loans(sortBy: popularity) {
         values {
           ...DYN_LOAN_FIELDS
         }
@@ -79,7 +115,7 @@ export const getLookups = async () => {
   return apolloKivaClient
     .query({
       query: lookups,
-      // fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
     .then(({ data: { lend } }) => ({

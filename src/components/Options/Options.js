@@ -19,7 +19,6 @@ const Options = memo(() => {
           </li>
           <li>default % to tip kiva</li>
           <li>set username</li>
-          <li>show atheist list searches and data</li>
         </ul>
       </div>
     </Container>

@@ -34,7 +34,10 @@ export const emptyCrit = {
       startswith_exact: 'startsWithOr',
       text: '',
     },
-    borrower_count: {},
+    borrower_count: {
+      min: null,
+      max: null,
+    },
     percent_female: {},
     age_mentioned: {},
   },
@@ -66,7 +69,7 @@ export const emptyCrit = {
       aan: 'any',
     },
     currency_loss: '',
-    bonus_credit_eligibility: '',
+    bonus_credit_eligibility: null,
   },
   partner: {
     name: {
