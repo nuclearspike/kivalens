@@ -1,4 +1,4 @@
-import React, {memo, useEffect, useMemo, useState} from 'react'
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import PT from 'prop-types';
 import { useDispatch } from 'react-redux';
 import TimeAgo from 'react-timeago';
@@ -36,10 +36,11 @@ const LoanTab = memo(({ loan }) => {
     );
   }
 
+  // this will cause a recalculation of the $/hour stat.
   useEffect(() => {
     const handle = setInterval(() => {
       setTick(tick + 1);
-    }, 1000);
+    }, 2000);
     return () => clearInterval(handle);
   }, [loan.id, tick, setTick]);
 
@@ -135,7 +136,11 @@ const LoanTab = memo(({ loan }) => {
       if (loan.status === 'fundraising') {
         addTerm(
           'Funded Amount',
-          <span>${numeral(loan.funded_amount).format('0,0')}</span>,
+          <span>
+            ${numeral(loan.funded_amount).format('0,0')} (
+            {Math.round(lentPercentages.funded_perc)}
+            {'%'})
+          </span>,
         );
         addTerm(
           'In Baskets',
