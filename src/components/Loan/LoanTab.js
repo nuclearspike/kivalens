@@ -25,15 +25,12 @@ DisplayDate.propTypes = {
 const LoanTab = memo(({ loan }) => {
   useStyles(s);
   const dispatch = useDispatch();
-  const includeDescr = !loan.description.texts.en;
-  const includeTerms = !loan.terms.scheduled_payments;
   const [tick, setTick] = useState(0);
 
   // TODO: have it recognize if the dyn_updated is OLD, not just not populated.
   if (!loan.kl_dyn_updated) {
-    dispatch(
-      fetchGQLDynamicDetailsForLoan(loan.id, includeDescr, includeTerms),
-    );
+    const includeExtras = !loan.description.texts.en;
+    dispatch(fetchGQLDynamicDetailsForLoan(loan.id, includeExtras));
   }
 
   // this will cause a recalculation of the $/hour stat.
@@ -45,11 +42,14 @@ const LoanTab = memo(({ loan }) => {
   }, [loan.id, tick, setTick]);
 
   useEffect(() => {
-    const handle = setInterval(() => {
-      dispatch(fetchGQLDynamicDetailsForLoan(loan.id, false, false));
-    }, 30000);
-    return () => clearInterval(handle);
-  }, [loan.id]);
+    if (loan.status === 'fundraising') {
+      const handle = setInterval(() => {
+        dispatch(fetchGQLDynamicDetailsForLoan(loan.id));
+      }, 30000);
+      return () => clearInterval(handle);
+    }
+    return () => true;
+  }, [loan.id, loan.status]);
 
   const lentPercentages = useMemo(() => {
     if (!loan || loan.status !== 'fundraising') {
@@ -62,7 +62,9 @@ const LoanTab = memo(({ loan }) => {
 
   const loanDictionary = useMemo(() => {
     const result = [];
-    const addTerm = (term, def) => result.push({ term, def });
+    const addTerm = (term, def) => {
+      result.push(<DTDD key={term} term={term} def={def} />);
+    };
     if (loan) {
       addTerm('Saved Searches', '(Not Implemented Yet)');
       addTerm('Tags', (loan.kls_tags || []).join(', ') || <span>&nbsp;</span>);
@@ -116,14 +118,14 @@ const LoanTab = memo(({ loan }) => {
         );
       }
     }
-    return result.map(dict => (
-      <DTDD key={dict.term} term={dict.term} def={dict.def} />
-    ));
+    return result;
   }, [loan]);
 
   const loanStats = useMemo(() => {
     const result = [];
-    const addTerm = (term, def) => result.push({ term, def });
+    const addTerm = (term, def) => {
+      result.push(<DTDD key={term} term={term} def={def} />);
+    };
     if (loan) {
       addTerm(
         '$/Hour',
@@ -137,9 +139,9 @@ const LoanTab = memo(({ loan }) => {
         addTerm(
           'Funded Amount',
           <span>
-            ${numeral(loan.funded_amount).format('0,0')} (
+            ${numeral(loan.funded_amount).format('0,0')} {'('}
             {Math.round(lentPercentages.funded_perc)}
-            {'%'})
+            {'%)'}
           </span>,
         );
         addTerm(
@@ -152,9 +154,7 @@ const LoanTab = memo(({ loan }) => {
         );
       }
     }
-    return result.map(dict => (
-      <DTDD key={dict.term} term={dict.term} def={dict.def} />
-    ));
+    return result;
   }, [loan, tick]);
 
   const loanProgressOverlay = useMemo(() => {

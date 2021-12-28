@@ -4,10 +4,8 @@ import { Dropdown, DropdownButton } from '../bs';
 import { humanize } from '../../utils';
 
 const styles = {
-  startsWithOr: 'info',
-  startsWithAnd: 'info',
-  exactOr: 'warning',
-  exactAnd: 'warning',
+  starts_With: 'info',
+  exact: 'warning',
 };
 
 const StartsWithExactSelectorField = ({ formData, onChange }) => (
@@ -18,17 +16,13 @@ const StartsWithExactSelectorField = ({ formData, onChange }) => (
     drop="right"
     onSelect={selection => onChange(selection)}
   >
-    <Dropdown.Item eventKey="startsWithOr">
-      Starts With OR (ANY of the listed words must partially match)
+    <Dropdown.Item eventKey="starts_With" active={formData === 'starts_With'}>
+      Starts With: words must partially match (‘transport’ will match
+      ‘transport’ & ‘transportation’)
     </Dropdown.Item>
-    <Dropdown.Item eventKey="startsWithAnd">
-      Starts With AND (ALL of the listed words must partially match)
-    </Dropdown.Item>
-    <Dropdown.Item eventKey="exactOr">
-      Exact OR (ANY of the listed words must exactly match)
-    </Dropdown.Item>
-    <Dropdown.Item eventKey="exactAnd">
-      Exact AND (ALL of the listed words must exactly match)
+    <Dropdown.Item eventKey="exact" active={formData === 'exact'}>
+      Exact: words must match exactly (‘transport‘ will not match
+      ‘transportation‘)
     </Dropdown.Item>
   </DropdownButton>
 );

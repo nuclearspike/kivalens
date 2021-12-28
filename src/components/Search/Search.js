@@ -45,7 +45,7 @@ const Search = memo(({ selectedId }) => {
         .ids();
 
       if (toFetch.length > 0) {
-        dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true, true));
+        dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true));
       }
       return res;
     },

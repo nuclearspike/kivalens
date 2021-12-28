@@ -6,6 +6,7 @@ import PartialExactSelectorField from './StartsWithExactSelectorField';
 import TwoFieldObjectFieldTemplate from './TwoFieldObjectFieldTemplate';
 import SelectMultiField from './SelectMultiField';
 import SelectSingleField from './SelectSingleField';
+import AnyAllSelectorField from './AnyAllSelectorField';
 
 export const criteriaSchema = {
   definitions: {
@@ -57,7 +58,11 @@ export const criteriaSchema = {
       properties: {
         startswith_exact: {
           type: 'string',
-          default: 'startsWithOr',
+          default: 'starts_With',
+        },
+        any_all: {
+          type: 'string',
+          default: 'any',
         },
         text: {
           type: 'string',
@@ -85,6 +90,12 @@ export const criteriaSchema = {
             'The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right.',
           min: 1,
           max: 20,
+          step: 1,
+          presets: [
+            { name: 'Individuals', min: null, max: 1 },
+            { name: 'Groups (any size)', min: 2, max: null },
+            { name: 'Large Groups (10+)', min: 10, max: null },
+          ],
           $ref: '#/definitions/double_range',
         },
         percent_female: {
@@ -93,6 +104,11 @@ export const criteriaSchema = {
             "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed.",
           min: 0,
           max: 100,
+          presets: [
+            { name: 'Only Women', min: 100, max: null },
+            { name: 'About Evenly Split', min: 40, max: 60 },
+            { name: 'Only Men', min: null, max: 1 },
+          ],
           $ref: '#/definitions/double_range',
         },
         age_mentioned: {
@@ -101,6 +117,11 @@ export const criteriaSchema = {
             "KivaLens looks for variations of the pattern '20-99 year(s) old' in the description and uses the first one mentioned... which may be the age of the borrower's parent or child. Read the description to double-check it! More than half of the loans have ages that can be pulled out, but many cannot. You must set the lower slider to something other than 'min' or loans with no ages found will be included as well.",
           min: 19,
           max: 100,
+          presets: [
+            { name: 'Young (19-39)', min: null, max: 39 },
+            { name: 'Middle Aged (40-59)', min: 40, max: 59 },
+            { name: 'Elderly (60+)', min: 60, max: null },
+          ],
           $ref: '#/definitions/double_range',
         },
       },
@@ -112,7 +133,7 @@ export const criteriaSchema = {
         use_or_description: {
           title: 'Use or Description',
           description:
-            "Kiva has a 'loan use' (very short) as well as the long description for the loan. Text entered will do partial searches so 'build' will find 'build', 'building', and 'builder'.",
+            "Kiva has a 'loan use' (very short) as well as the long description for the loan..",
           $ref: '#/definitions/string_partial_exact',
         },
         repaid_in: {
@@ -121,6 +142,12 @@ export const criteriaSchema = {
             "The number of months between today and the final scheduled repayment. Kiva's sort by repayment terms, which is how many months the borrower has to pay back, creates sorting and filtering issues due to when the loan was posted and the disbursal date. KivaLens just looks at the final scheduled repayment date relative to today.",
           min: 0,
           max: 90,
+          presets: [
+            { name: 'Short Term (<= 6mo)', min: null, max: 6 },
+            { name: 'Within a Year (<= 12mo)', min: null, max: 12 },
+            { name: 'Within 2 Years (<= 24mo)', min: null, max: 24 },
+            { name: 'More than 2 Years (>= 24mo)', min: 24, max: null },
+          ],
           $ref: '#/definitions/double_range',
         },
         loan_amount: {
@@ -147,6 +174,11 @@ export const criteriaSchema = {
           min: 0,
           max: 1000,
           step: 25,
+          presets: [
+            { name: 'Only one more lender needed', min: null, max: 25 },
+            { name: 'Still needs lenders', min: 25, max: null },
+            { name: 'Fully funded (including baskets)', min: null, max: 0 },
+          ],
           $ref: '#/definitions/double_range',
         },
         percent_funded: {
@@ -164,6 +196,12 @@ export const criteriaSchema = {
             'The number of days left before the loan expires if not funded.',
           min: 0,
           max: 35,
+          presets: [
+            { name: 'Expiring today!', min: null, max: 1 },
+            { name: 'Expiring within 2 days', min: null, max: 2 },
+            { name: 'Expiring within 7 days', min: null, max: 7 },
+            { name: 'Expiring in over a month', min: 30, max: null },
+          ],
           $ref: '#/definitions/double_range',
         },
         disbursal: {
@@ -249,7 +287,7 @@ export const criteriaSchema = {
           title: 'Risk Rating (stars)',
           $ref: '#/definitions/double_range',
           description:
-            '5 star means that Kiva has estimated that the institution servicing the loan has very low probability of collapse. 1 star means they may be new and untested. To include unrated partners, have the left-most slider all the way at left.',
+            '5 star means that Kiva has estimated that the *institution servicing the loan* has very low probability of collapse, it does not indicate faith in individual borrowers or groups. 1 star means the partner may be new and untested. To include unrated partners, have the left-most slider all the way at left.',
           min: 0,
           max: 5,
           step: 0.5,
@@ -285,7 +323,7 @@ export const criteriaSchema = {
           title: 'Profit (%)',
           $ref: '#/definitions/double_range',
           description:
-            "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time.",
+            "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time unless they are receiving outside funding.",
           min: -100,
           max: 100,
           step: 0.1,
@@ -322,6 +360,11 @@ export const criteriaSchema = {
           min: 0,
           max: 12,
           step: 0.25,
+          presets: [
+            { name: 'Brand New (<= 1yr)', min: null, max: 1 },
+            { name: 'Relatively New (<= 5yr)', min: null, max: 5 },
+            { name: 'Long Term (>= 10 yr)', min: 10, max: null },
+          ],
         },
         loans_posted: {
           title: 'Loans Posted',
@@ -338,6 +381,21 @@ export const criteriaSchema = {
             '4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda.',
           min: 1,
           max: 4,
+          step: 1,
+          presets: [
+            { name: 'Religious Only (1)', min: null, max: 1 },
+            {
+              name: 'Religious as well as Not entirely religious (<= 2)',
+              min: null,
+              max: 2,
+            },
+            {
+              name: 'Mostly secular but mildly religious (>= 3)',
+              min: 3,
+              max: null,
+            },
+            { name: 'Secular Only (4)', min: 4, max: null },
+          ],
         },
         social_rating: {
           title: 'Social Score (Atheist List)',
@@ -346,6 +404,7 @@ export const criteriaSchema = {
             '4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct).',
           min: 1,
           max: 4,
+          step: 1,
         },
       },
     },
@@ -416,10 +475,12 @@ const PartialExactUiSchema = {
   startswith_exact: {
     'ui:field': PartialExactSelectorField,
   },
+  any_all: {
+    'ui:field': AnyAllSelectorField,
+  },
   text: {
     'ui:field': StringCriteriaField,
-    'ui:placeholder':
-      'Use a space between multiple words to search for more than one term',
+    'ui:placeholder': 'Use a space between multiple words',
   },
 };
 

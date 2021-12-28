@@ -156,30 +156,37 @@ class CritTester {
         ? crit.text
         : crit.text.match(/(\w+)/g);
       termsArr = termsArr.map(term => term.toUpperCase());
-      if (crit.startswith_exact === 'exactAnd') {
-        this.testers.push(entity =>
-          termsArr.all(searchTerm =>
-            selector(entity).any(w => w === searchTerm),
-          ),
-        );
-      } else if (crit.startswith_exact === 'exactOr') {
-        this.testers.push(entity =>
-          termsArr.any(searchTerm =>
-            selector(entity).any(w => w === searchTerm),
-          ),
-        );
-      } else if (crit.startswith_exact === 'startsWithAnd') {
-        this.testers.push(entity =>
-          termsArr.all(searchTerm =>
-            selector(entity).any(w => w.startsWith(searchTerm)),
-          ),
-        );
+
+      if (crit.startswith_exact === 'exact') {
+        if (crit.any_all === 'all') {
+          this.testers.push(entity =>
+            termsArr.all(searchTerm =>
+              selector(entity).any(w => w === searchTerm),
+            ),
+          );
+        } else {
+          this.testers.push(entity =>
+            termsArr.any(searchTerm =>
+              selector(entity).any(w => w === searchTerm),
+            ),
+          );
+        }
       } else {
-        this.testers.push(entity =>
-          termsArr.any(searchTerm =>
-            selector(entity).any(w => w.startsWith(searchTerm)),
-          ),
-        );
+        // starts with is default
+        if (crit.any_all === 'all') {
+          this.testers.push(entity =>
+            termsArr.all(searchTerm =>
+              selector(entity).any(w => w.startsWith(searchTerm)),
+            ),
+          );
+        } else {
+          // or is default
+          this.testers.push(entity =>
+            termsArr.any(searchTerm =>
+              selector(entity).any(w => w.startsWith(searchTerm)),
+            ),
+          );
+        }
       }
     }
   }

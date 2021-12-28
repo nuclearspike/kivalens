@@ -221,14 +221,16 @@ class ResultProcessors {
       ResultProcessors.processLoanDescription(loan);
 
       loan.kl_planned_expiration_date = new Date(loan.planned_expiration_date);
-      loan.kl_expiring_in_days = () =>
-        (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000);
-      loan.kl_disbursal_in_days = () => {
+      loan.kl_expiring_in_days = function () {
+        return (this.kl_planned_expiration_date - Date.now()) / (24 * 60 * 60 * 1000);
+      }.bind(loan)
+
+      loan.kl_disbursal_in_days = function() {
         return (
-          (new Date(loan.terms.disbursal_date) - Date.now()) /
+          (new Date(this.terms.disbursal_date) - Date.now()) /
           (24 * 60 * 60 * 1000)
         );
-      };
+      }.bind(loan);
 
       loan.kl_percent_women = loan.borrowers.percentWhere(
         b => b.gender === 'F',
@@ -420,6 +422,10 @@ class ResultProcessors {
       result.terms.scheduled_payments = dynLoan.terms.scheduled_payments.map(({ due_date, amount }) => ({ due_date, amount: parseFloat(amount) }))
       ResultProcessors.processRepaymentData(result)
     }
+
+    if (dynLoan.borrowers) {
+      result.borrowers = dynLoan.borrowers;
+    };
 
     return result;
   }

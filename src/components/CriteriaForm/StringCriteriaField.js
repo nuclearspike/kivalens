@@ -3,18 +3,22 @@ import PT from 'prop-types';
 import HoverOver from '../Common/HoverOver';
 import { Form } from '../bs';
 
-const StringCriteriaField = ({ schema, formData, onChange }) => {
+const StringCriteriaField = props => {
+  const { schema, formData, onChange, uiSchema } = props;
   const handleOnChange = useCallback(
     ({ target: { value } }) => onChange(value),
     [onChange],
   );
+
+  // console.log('StringCriteriaField', schema.title, schema, props);
+
   return (
     <>
       <HoverOver title={schema.title} description={schema.description} />
       <Form.Control
         onChange={handleOnChange}
         value={formData}
-        placeholder={schema.placeholder}
+        placeholder={uiSchema['ui:placeholder']}
       />
     </>
   );
@@ -26,6 +30,7 @@ StringCriteriaField.propTypes = {
     description: PT.string,
     placeholder: PT.string,
   }).isRequired,
+  uiSchema: PT.object.isRequired,
   formData: PT.string,
   onChange: PT.func.isRequired,
 };

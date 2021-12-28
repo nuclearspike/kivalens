@@ -31,7 +31,7 @@ export const HELPER_GRAPH_CLEAR = 'HELPER_GRAPH_CLEAR';
 export const emptyCrit = {
   borrower: {
     name: {
-      startswith_exact: 'startsWithOr',
+      startswith_exact: 'starts_With',
       text: '',
     },
     borrower_count: {
@@ -43,7 +43,7 @@ export const emptyCrit = {
   },
   loan: {
     use_or_description: {
-      startswith_exact: 'startsWithOr',
+      startswith_exact: 'starts_With',
       text: '',
     },
     repaid_in: {},
@@ -73,7 +73,7 @@ export const emptyCrit = {
   },
   partner: {
     name: {
-      startswith_exact: 'startsWithOr',
+      startswith_exact: 'starts_With',
       text: '',
     },
     partner_risk_rating: {},

@@ -8,7 +8,7 @@ import {
 } from '../../actions/helper_graphs';
 import { arrayWithElements } from '../../utils';
 import HoverOver from '../Common/HoverOver';
-import {useMergeEnumAndNames} from '../../store/helpers/hooks'
+import { useMergeEnumAndNames } from '../../store/helpers/hooks';
 
 const SelectMultiField = ({ formData, schema, onChange }) => {
   const valueChangeCB = useCallback(
@@ -69,9 +69,9 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
 };
 
 SelectMultiField.propTypes = {
-  formData: PT.array.isRequired,
-  schema: PT.object,
-  onChange: PT.func,
+  formData: PT.array,
+  schema: PT.object.isRequired,
+  onChange: PT.func.isRequired,
 };
 
 export default SelectMultiField;

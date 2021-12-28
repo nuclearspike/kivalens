@@ -1,21 +1,21 @@
-import React, {useState} from 'react'
-import PropTypes from 'prop-types'
-import {mapArray} from '../../utils'
-import {Accordion, Card} from '../bs'
-import GroupEnabledContext from './GroupEnabledContext'
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { mapArray } from '../../utils';
+import { Accordion, Card } from '../bs';
+import GroupEnabledContext from './GroupEnabledContext';
 // import s from './ObjectFieldTemplate.css'
 
 const CollapsingObjectFieldTemplate = ({
-                                         title,
-                                         description,
-                                         schema,
-                                         properties,
-                                         formData,
-                                       }) => {
+  title,
+  description,
+  schema,
+  properties,
+  formData,
+}) => {
   const [groupEnabled, setGroupEnabled] = useState({
     enabled: false,
     setEnabled: () => true,
-  })
+  });
   return (
     <Accordion key={formData.name}>
       <Card>
@@ -25,7 +25,7 @@ const CollapsingObjectFieldTemplate = ({
           </Accordion.Toggle>
         )}
         <Card.Body>
-          <div style={{fontSize: 14, marginLeft: 4}}>{description}</div>
+          <div style={{ fontSize: 14, marginLeft: 4 }}>{description}</div>
           <GroupEnabledContext.Provider
             value={{
               enabled: groupEnabled.enabled,
@@ -39,8 +39,9 @@ const CollapsingObjectFieldTemplate = ({
         </Card.Body>
       </Card>
     </Accordion>
-  )
-}
+  );
+};
+
 CollapsingObjectFieldTemplate.propTypes = {
   title: PropTypes.string,
   description: PropTypes.string,
@@ -48,12 +49,12 @@ CollapsingObjectFieldTemplate.propTypes = {
     PropTypes.shape({
       content: PropTypes.node,
     }),
-  ),
+  ).isRequired,
   schema: PropTypes.shape({
     title_field: PropTypes.string,
     additionalProperties: PropTypes.bool,
-  }),
-  formData: PropTypes.object,
+  }).isRequired,
+  formData: PropTypes.object.isRequired,
 };
 
-export default CollapsingObjectFieldTemplate
+export default CollapsingObjectFieldTemplate;

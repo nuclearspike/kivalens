@@ -4,7 +4,7 @@ import KivaImage from '../KivaImage/KivaImage';
 import { Card, Col, Row } from '../bs';
 
 const selectNames = arr =>
-  arr.map(b => `${b.first_name} (${b.gender})`).join(', ');
+  arr.map(b => `${b.firstName} (${b.gender[0].toUpperCase()})`).join(', ');
 
 const ImageTab = memo(({ loan }) => {
   const imageCaption = useMemo(() => {

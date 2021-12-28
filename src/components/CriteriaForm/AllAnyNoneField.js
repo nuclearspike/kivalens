@@ -7,6 +7,7 @@ import {
   clearHelperGraphs,
   getHelperGraphs,
 } from '../../actions/helper_graphs';
+import { humanize } from '../../utils';
 import LookupContext from './LookupContext';
 
 const canAllStyles = { all: 'success', any: 'primary', none: 'danger' };
@@ -21,17 +22,27 @@ export const AllAnyNoneSelectorField = ({
   return (
     <DropdownButton
       id="bg-nested-dropdown"
-      title={formData}
+      title={humanize(formData)}
       variant={styles[formData]}
       drop="right"
       onSelect={aan => onChange(aan)}
     >
-      {canAll && <Dropdown.Item eventKey="all">All of these</Dropdown.Item>}
-      <Dropdown.Item eventKey="any">Any of these</Dropdown.Item>
-      <Dropdown.Item eventKey="none">None of these</Dropdown.Item>
+      {canAll && (
+        <Dropdown.Item eventKey="all" active={formData === 'all'}>
+          All of these
+        </Dropdown.Item>
+      )}
+      <Dropdown.Item eventKey="any" active={formData === 'any'}>
+        Any of these
+      </Dropdown.Item>
+      <Dropdown.Item eventKey="none" active={formData === 'none'}>
+        None of these
+      </Dropdown.Item>
     </DropdownButton>
   );
 };
+
+AllAnyNoneSelectorField.displayName = 'AllAnyNoneSelectorField';
 
 const styles = {
   multiValue: (styles, { data }) => {

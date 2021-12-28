@@ -39,15 +39,11 @@ export const fetchAPIDetailsForLoans = ids => dispatch =>
     .loans(ids)
     .then(result => dispatch(updateDetailsForLoans(result)));
 
-export const fetchGQLDynamicDetailsForLoan = (
-  id,
-  includeDescr,
-  includeTerms,
-) => dispatch =>
+export const fetchGQLDynamicDetailsForLoan = (id, includeExtras) => dispatch =>
   apolloKivaClient
     .query({
       query: LOAN_DYNAMIC_FIELDS,
-      variables: { id, includeDescr, includeTerms },
+      variables: { id, includeExtras },
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
@@ -62,13 +58,12 @@ export const fetchGQLDynamicDetailsForLoan = (
 
 export const fetchGQLDynamicDetailsForLoans = (
   ids,
-  includeDescr,
-  includeTerms,
+  includeExtras = false,
 ) => dispatch =>
   apolloKivaClient
     .query({
       query: LOANS_DYNAMIC_FIELDS,
-      variables: { ids, includeDescr, includeTerms },
+      variables: { ids, includeExtras },
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })

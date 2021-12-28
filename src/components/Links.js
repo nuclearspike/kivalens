@@ -14,7 +14,9 @@ export const ClickLink = ({ onClick, title, className, children }) => (
     title={title}
     onClick={e => {
       e.preventDefault();
-      onClick(e);
+      if (onClick) {
+        onClick(e);
+      }
     }}
   >
     {children}
