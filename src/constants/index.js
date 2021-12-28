@@ -84,18 +84,23 @@ export const emptyCrit = {
     },
     sectors: {
       aan: 'any',
+      value: [],
     },
     activities: {
       aan: 'any',
+      value: [],
     },
     themes: {
       aan: 'all',
+      value: [],
     },
     tags: {
       aan: 'all',
+      value: [],
     },
     countries: {
       aan: 'any',
+      value: [],
     },
     currency_loss: '',
     currency_exchange_loss_liability: '',

@@ -106,7 +106,9 @@ export const criteriaSchema = {
           max: 100,
           presets: [
             { name: 'Only Women', min: 100, max: null },
+            { name: 'Mostly Women', min: 60, max: null },
             { name: 'About Evenly Split', min: 40, max: 60 },
+            { name: 'Mostly Men', min: null, max: 40 },
             { name: 'Only Men', min: null, max: 1 },
           ],
           $ref: '#/definitions/double_range',
