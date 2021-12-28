@@ -19,7 +19,7 @@ const DYN_FIELDS_FRAGMENT = gql`
       fundedAmount
       reservedAmount
     }
-    loan_amount: loanAmount
+    loanAmount
     borrowers @include(if: $includeExtras) {
       pictured
       firstName

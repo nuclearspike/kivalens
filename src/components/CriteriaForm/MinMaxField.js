@@ -106,16 +106,19 @@ const MinMaxField = ({ schema, formData, onChange }) => {
       setModalFormData({ min_value: minToStore, max_value: maxToStore });
       setUpdate([minToStore, maxToStore]); // misbehaves if not last
     },
-    [onChange, storedMin, storedMax],
+    [onChange, storedMin, storedMax, setModalFormData],
   );
 
-  const onModalChangeCB = useCallback(({ formData: newModalFormData }) => {
-    setModalFormData(newModalFormData);
-  });
+  const onModalChangeCB = useCallback(
+    ({ formData: newModalFormData }) => {
+      setModalFormData(newModalFormData);
+    },
+    [setModalFormData],
+  );
 
   const clearValuesCB = useCallback(() => {
-    userAlteredCB([schema.min, schema.max]);
-  }, []);
+    userAlteredCB([null, null]);
+  }, [userAlteredCB]);
 
   const FooterComp = useCallback(({ hideFunc }) => {
     const onClick = () => {

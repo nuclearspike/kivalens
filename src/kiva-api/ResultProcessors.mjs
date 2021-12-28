@@ -194,17 +194,25 @@ class ResultProcessors {
       };
       loan.status = loan.status || 'fundraising';
       // this is clumsy... can't we just populate borrower_count and percent_female?
-      loan.borrowers = Array.range(1, loan.klb.M || 0).select(x => ({
-        gender: 'M',
-        first_name: '...',
-      }));
-      loan.borrowers = loan.borrowers.concat(
-        Array.range(1, loan.klb.F || 0).select(() => ({
-          gender: 'F',
-          first_name: '...',
-        })),
-      );
-      loan.borrower_count = loan.borrowers.length;
+      // loan.borrowers = Array.range(1, loan.klb.M || 0).map(x => ({
+      //   gender: 'M',
+      //   first_name: '...',
+      // }));
+      // loan.borrowers = loan.borrowers.concat(
+      //   Array.range(1, loan.klb.F || 0).map(() => ({
+      //     gender: 'F',
+      //     first_name: '...',
+      //   })),
+      // );
+      if (loan.klb) {
+        loan.borrower_count = loan.klb.M + loan.klb.F;
+        loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count
+      } else {
+        loan.borrower_count = loan.borrowers.length;
+        loan.kl_percent_women = loan.borrowers.percentWhere(
+          b => b.gender === 'F' || b.gender === 'female',
+        );
+      }
       loan.kls = false;
     }
 
@@ -232,6 +240,7 @@ class ResultProcessors {
         );
       }.bind(loan);
 
+      // only works on KIVA REST API.
       loan.kl_percent_women = loan.borrowers.percentWhere(
         b => b.gender === 'F',
       );
@@ -409,7 +418,7 @@ class ResultProcessors {
       funded_amount: parseFloat(dynLoan.loanFundraisingInfo.fundedAmount),
       status: dynLoan.status,
       funded_date: dynLoan.raisedDate,
-      loan_amount: parseFloat(dynLoan.loan_amount),
+      loan_amount: parseFloat(dynLoan.loanAmount),
       terms: dynLoan.terms, // if not present, no damage.
       kl_dyn_updated: new Date().getTime(),
     };
@@ -425,6 +434,9 @@ class ResultProcessors {
 
     if (dynLoan.borrowers) {
       result.borrowers = dynLoan.borrowers;
+      result.kl_percent_women = dynLoan.borrowers.percentWhere(
+        b => b.gender === 'female'
+      );
     };
 
     return result;
