@@ -204,16 +204,17 @@ class ResultProcessors {
       //     first_name: '...',
       //   })),
       // );
-      if (loan.klb) {
-        loan.borrower_count = loan.klb.M + loan.klb.F;
-        loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count
-      } else {
-        loan.borrower_count = loan.borrowers.length;
-        loan.kl_percent_women = loan.borrowers.percentWhere(
-          b => b.gender === 'F' || b.gender === 'female',
-        );
-      }
       loan.kls = false;
+    }
+
+    if (loan.klb) {
+      loan.borrower_count = loan.klb.M + loan.klb.F;
+      loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count
+    } else if (loan.borrowers) {
+      loan.borrower_count = loan.borrowers.length;
+      loan.kl_percent_women = loan.borrowers.percentWhere(
+        b => b.gender === 'F' || b.gender === 'female',
+      );
     }
 
     // i don't like this.
@@ -224,7 +225,7 @@ class ResultProcessors {
       loan.kls_final_repayment = new Date(loan.kls_final_repayment);
     }
 
-    if (loan.description.texts) {
+    if (loan.description.texts) { // bad: inferring too much from a field's presence.
       // the presence implies this is a detail result; this doesn't run during the background refresh.
       ResultProcessors.processLoanDescription(loan);
 
@@ -239,11 +240,6 @@ class ResultProcessors {
           (24 * 60 * 60 * 1000)
         );
       }.bind(loan);
-
-      // only works on KIVA REST API.
-      loan.kl_percent_women = loan.borrowers.percentWhere(
-        b => b.gender === 'F',
-      );
 
       ResultProcessors.processRepaymentData(loan);
 

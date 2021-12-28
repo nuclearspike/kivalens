@@ -19,6 +19,8 @@ Array.prototype.groupBySelectWithSum = function(selector, sumSelector){
   return this.groupBy(selector).map(g => ({name: selector(g[0]), sum: g.sum(sumSelector)}))
 }
 
+Array.prototype.percentWhere = function(predicate) {return this.filter(predicate).length * 100 / this.length}
+
 //flatten takes a multi dimensional array and flattens it [[1,2],[2,3,4]] => [1,2,2,3,4]
 Array.prototype.flatten = function(){ return [].concat.apply([], this) }
 
