@@ -26,7 +26,7 @@ const CriteriaCols = memo(() => {
         <h1>Search Criteria</h1>
         <h5>Not Fully Implemented</h5>
         <div>
-          <Link to="/search/customize">Customize</Link>{' '}
+          {/*<Link to="/search/customize">Customize</Link>{' '}*/}
           <Button onClick={clearCriteriaCB}>Clear</Button>
         </div>
         <CriteriaForm />

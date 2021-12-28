@@ -188,15 +188,15 @@ const About = () => {
           once!
         </li>
 
-        <li>
-          <b>Mobile!</b> Since the new site is just HTML and Javascript rather
-          than Silverlight, it will run on everything and it's designed to
-          automatically adapt to the size of the device you're using, so if
-          you're on a phone, it will hide the graphs, and stack everything into
-          one column; on a tablet, it displays differently depending on its
-          orientation and laptop/desktop users have the easiest experience
-          taking advantage of the width to show you more.
-        </li>
+        {/*<li>*/}
+        {/*  <b>Mobile!</b> Since the new site is just HTML and Javascript rather*/}
+        {/*  than Silverlight, it will run on everything and it's designed to*/}
+        {/*  automatically adapt to the size of the device you're using, so if*/}
+        {/*  you're on a phone, it will hide the graphs, and stack everything into*/}
+        {/*  one column; on a tablet, it displays differently depending on its*/}
+        {/*  orientation and laptop/desktop users have the easiest experience*/}
+        {/*  taking advantage of the width to show you more.*/}
+        {/*</li>*/}
 
         <li>
           <b>See graphs!</b> View graphs that show the distribution of the
@@ -223,23 +223,23 @@ const About = () => {
         {/*  the page will automatically update as more lenders lend money. */}
         {/* </li> */}
 
-        <li>
-          <b>Hide Loans in your portfolio</b> so that you don't accidentally
-          lend to them more than you want. To use this, go to "Options" to input
-          your kiva lender-id. From the Criteria "Portfolio" tab and select the
-          appropriate option.
-        </li>
+        {/*<li>*/}
+        {/*  <b>Hide Loans in your portfolio</b> so that you don't accidentally*/}
+        {/*  lend to them more than you want. To use this, go to "Options" to input*/}
+        {/*  your kiva lender-id. From the Criteria "Portfolio" tab and select the*/}
+        {/*  appropriate option.*/}
+        {/*</li>*/}
 
-        <li>
-          <b>Saved Searches</b> Save your favorite searches to quickly jump back
-          to them. The site will start you out with some default saved searches
-          to give you an idea of how to use them. As you view loan details, the
-          "Saved Searches" line will show you which Saved Searches have that
-          loan in their results. Saved Searches are stored with your browser, so
-          if you clear you browser settings, you'll lose your Saved Searches.
-          Also, Save Searches are not shared across devices (you set up a Saved
-          Search on your laptop, it won't show on your phone).
-        </li>
+        {/*<li>*/}
+        {/*  <b>Saved Searches</b> Save your favorite searches to quickly jump back*/}
+        {/*  to them. The site will start you out with some default saved searches*/}
+        {/*  to give you an idea of how to use them. As you view loan details, the*/}
+        {/*  "Saved Searches" line will show you which Saved Searches have that*/}
+        {/*  loan in their results. Saved Searches are stored with your browser, so*/}
+        {/*  if you clear you browser settings, you'll lose your Saved Searches.*/}
+        {/*  Also, Save Searches are not shared across devices (you set up a Saved*/}
+        {/*  Search on your laptop, it won't show on your phone).*/}
+        {/*</li>*/}
 
         <li>
           <b>Filter on the Atheist Team's MFI research</b> with sliders for
@@ -249,30 +249,30 @@ const About = () => {
           Options tab.
         </li>
 
-        <li>
-          <b>Portfolio Balancing</b> Whether you're a "Country Collector," or
-          maybe that you don't want to have too many active loans from only a
-          few partners, or if you want to find more sectors like your favorites,
-          use the Portfolio Balancing tools to help you accomplish your lending
-          goals.
-        </li>
+        {/*<li>*/}
+        {/*  <b>Portfolio Balancing</b> Whether you're a "Country Collector," or*/}
+        {/*  maybe that you don't want to have too many active loans from only a*/}
+        {/*  few partners, or if you want to find more sectors like your favorites,*/}
+        {/*  use the Portfolio Balancing tools to help you accomplish your lending*/}
+        {/*  goals.*/}
+        {/*</li>*/}
 
         {/* <li> */}
         {/*  <b>3D Loan Wall</b> When you have your lender id entered you can view a 3D "wall" of images */}
         {/*  of the borrowers in your portfolio. */}
         {/* </li> */}
 
-        <li>
-          <b>Auto-Lending Preferences</b> Kiva has had{' '}
-          <KivaLink path="settings/credit">Auto-Lending</KivaLink> for years but
-          the options are a bit anemic. Since browser extensions have far more
-          permissions than a web page does, KivaLens is able to tell the
-          extension to alter your auto-lending settings on Kiva. KivaLens offers
-          extensive partner criteria as well as portfolio balancing for Sector,
-          Country and Activity. When you use KivaLens in conjunction with{' '}
-          <KLALink /> you can easily set your auto-lending preferences and take
-          full advantage of Kiva's feature.
-        </li>
+        {/*<li>*/}
+        {/*  <b>Auto-Lending Preferences</b> Kiva has had{' '}*/}
+        {/*  <KivaLink path="settings/credit">Auto-Lending</KivaLink> for years but*/}
+        {/*  the options are a bit anemic. Since browser extensions have far more*/}
+        {/*  permissions than a web page does, KivaLens is able to tell the*/}
+        {/*  extension to alter your auto-lending settings on Kiva. KivaLens offers*/}
+        {/*  extensive partner criteria as well as portfolio balancing for Sector,*/}
+        {/*  Country and Activity. When you use KivaLens in conjunction with{' '}*/}
+        {/*  <KLALink /> you can easily set your auto-lending preferences and take*/}
+        {/*  full advantage of Kiva's feature.*/}
+        {/*</li>*/}
 
         {/* <li> */}
         {/*  <b>Notifications</b> When you have the <KLALink/> installed, you can set your Saved Searches to play */}
@@ -288,23 +288,23 @@ const About = () => {
         {/*  notification. */}
         {/* </li> */}
 
-        <li>
-          <b>Compare Teams</b> On the "Teams" page, you can compare the
-          membership count, loan count, and total amount loaned for your teams.
-        </li>
+        {/*<li>*/}
+        {/*  <b>Compare Teams</b> On the "Teams" page, you can compare the*/}
+        {/*  membership count, loan count, and total amount loaned for your teams.*/}
+        {/*</li>*/}
 
-        <li>
-          <b>RSS Feeds</b> Once your criteria is set, you can go to the "RSS"
-          tab and it will give you a URL that you can paste into your favorite
-          RSS reader or use a site like{' '}
-          <NewTabLink href="http://www.ifttt.com">
-            IFTTT (If This Then That)
-          </NewTabLink>{' '}
-          that will watch for new items in the feed and you can create a
-          "Recipe" where you can set it to email, text/SMS, instant message, or
-          many more things like change the colors or lights in your room (if
-          you're using Philips Hue lights).
-        </li>
+        {/*<li>*/}
+        {/*  <b>RSS Feeds</b> Once your criteria is set, you can go to the "RSS"*/}
+        {/*  tab and it will give you a URL that you can paste into your favorite*/}
+        {/*  RSS reader or use a site like{' '}*/}
+        {/*  <NewTabLink href="http://www.ifttt.com">*/}
+        {/*    IFTTT (If This Then That)*/}
+        {/*  </NewTabLink>{' '}*/}
+        {/*  that will watch for new items in the feed and you can create a*/}
+        {/*  "Recipe" where you can set it to email, text/SMS, instant message, or*/}
+        {/*  many more things like change the colors or lights in your room (if*/}
+        {/*  you're using Philips Hue lights).*/}
+        {/*</li>*/}
       </ul>
 
       <h3>Reducing Risk</h3>
@@ -450,19 +450,19 @@ const About = () => {
         </li>
       </ul>
 
-      <h3>Open-source</h3>
-      <p>
-        Kiva Lens is now open-source, so feel free to{' '}
-        <EmailLink subject="KivaLens Developer">email me</EmailLink> about
-        working on it. It uses React 16 (Hooks), Redux, Webpack, react-bootstrap, node,
-        ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express
-        node js server and more. You can check out the source code (in progress)
-        at my{' '}
-        <NewTabLink href="https://github.com/nuclearspike/kivalens">
-          github repository
-        </NewTabLink>
-        .
-      </p>
+      {/*<h3>Open-source</h3>*/}
+      {/*<p>*/}
+      {/*  Kiva Lens is now open-source, so feel free to{' '}*/}
+      {/*  <EmailLink subject="KivaLens Developer">email me</EmailLink> about*/}
+      {/*  working on it. It uses React 16 (Hooks), Redux, Webpack, react-bootstrap, node,*/}
+      {/*  ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express*/}
+      {/*  node js server and more. You can check out the source code (in progress)*/}
+      {/*  at my{' '}*/}
+      {/*  <NewTabLink href="https://github.com/nuclearspike/kivalens">*/}
+      {/*    github repository*/}
+      {/*  </NewTabLink>*/}
+      {/*  .*/}
+      {/*</p>*/}
 
       <h3>History</h3>
       <p>

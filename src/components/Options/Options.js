@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import Container from 'react-bootstrap/Container';
-import Link from '../Link';
 import s from './Options.css';
 
 const Options = memo(() => {
@@ -9,7 +8,6 @@ const Options = memo(() => {
   return (
     <Container>
       <h1>Options</h1>
-      <Link to="/search/customize">Customize Search Options</Link>
       <div>
         <h3>To Do:</h3>
         <ul>

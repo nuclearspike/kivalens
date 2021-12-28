@@ -30,10 +30,10 @@ const routes = {
       path: '/search',
       load: () => import(/* webpackChunkName: 'search' */ './search'),
     },
-    {
-      path: '/search/customize',
-      load: () => import(/* webpackChunkName: 'search' */ './customize'),
-    },
+    // {
+    //   path: '/search/customize',
+    //   load: () => import(/* webpackChunkName: 'search' */ './customize'),
+    // },
     {
       path: '/search/:id',
       load: () => import(/* webpackChunkName: 'search' */ './search'),

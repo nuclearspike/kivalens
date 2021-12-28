@@ -1,6 +1,6 @@
-import React from 'react'
-import CustomizeForm from '../../components/CriteriaForm/CustomizeCriteriaForm'
-import Layout from '../../components/Layout'
+import React from 'react';
+// import CustomizeForm from '../../components/CriteriaForm/CustomizeCriteriaForm';
+import Layout from '../../components/Layout';
 
 function action() {
   return {
@@ -8,10 +8,10 @@ function action() {
     chunks: ['home'],
     component: (
       <Layout>
-        <CustomizeForm/>
+        {/*<CustomizeForm />*/}
       </Layout>
     ),
-  }
+  };
 }
 
-export default action
+export default action;
