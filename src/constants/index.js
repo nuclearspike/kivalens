@@ -32,27 +32,56 @@ export const emptyCrit = {
   borrower: {
     name: {
       startswith_exact: 'starts_With',
+      any_all: 'any',
       text: '',
     },
     borrower_count: {
       min: null,
       max: null,
     },
-    percent_female: {},
-    age_mentioned: {},
+    percent_female: {
+      min: null,
+      max: null,
+    },
+    age_mentioned: {
+      min: null,
+      max: null,
+    },
   },
   loan: {
     use_or_description: {
       startswith_exact: 'starts_With',
+      any_all: 'any',
       text: '',
     },
-    repaid_in: {},
-    loan_amount: {},
-    dollars_per_hour: {},
-    still_needed: {},
-    percent_funded: {},
-    expiring_in_days: {},
-    disbursal: {},
+    repaid_in: {
+      min: null,
+      max: null,
+    },
+    loan_amount: {
+      min: null,
+      max: null,
+    },
+    dollars_per_hour: {
+      min: null,
+      max: null,
+    },
+    still_needed: {
+      min: null,
+      max: null,
+    },
+    percent_funded: {
+      min: null,
+      max: null,
+    },
+    expiring_in_days: {
+      min: null,
+      max: null,
+    },
+    disbursal: {
+      min: null,
+      max: null,
+    },
     sectors: {
       aan: 'any',
     },
@@ -69,26 +98,72 @@ export const emptyCrit = {
       aan: 'any',
     },
     currency_loss: '',
+    currency_exchange_loss_liability: '',
     bonus_credit_eligibility: null,
+    repayment_interval: null,
   },
   partner: {
     name: {
       startswith_exact: 'starts_With',
+      any_all: 'any',
       text: '',
     },
-    partner_risk_rating: {},
-    partner_arrears: {},
-    partner_default: {},
-    portfolio_yield: {},
-    profit: {},
-    loans_at_risk_rate: {},
-    currency_exchange_loss_rate: {},
-    average_loan_size_percent_per_capita_income: {},
-    years_on_kiva: {},
-    loans_posted: {},
-    secular_rating: {},
-    social_rating: {},
+    partner_risk_rating: {
+      min: null,
+      max: null,
+    },
+    partner_arrears: {
+      min: null,
+      max: null,
+    },
+    partner_default: {
+      min: null,
+      max: null,
+    },
+    portfolio_yield: {
+      min: null,
+      max: null,
+    },
+    profit: {
+      min: null,
+      max: null,
+    },
+    loans_at_risk_rate: {
+      min: null,
+      max: null,
+    },
+    currency_exchange_loss_rate: {
+      min: null,
+      max: null,
+    },
+    average_loan_size_percent_per_capita_income: {
+      min: null,
+      max: null,
+    },
+    years_on_kiva: {
+      min: null,
+      max: null,
+    },
+    loans_posted: {
+      min: null,
+      max: null,
+    },
+    secular_rating: {
+      min: null,
+      max: null,
+    },
+    social_rating: {
+      min: null,
+      max: null,
+    },
   },
   balancing: {},
-  results: {},
+  results: {
+    sort: '',
+    limit_to_top: {
+      enabled: false,
+      count: null,
+      per: '',
+    },
+  },
 };

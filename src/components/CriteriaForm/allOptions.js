@@ -422,7 +422,7 @@ export const criteriaSchema = {
           title: 'Sort',
           type: 'string',
           enum: [
-            null,
+            '',
             'half_back',
             'newest',
             'expiring',
