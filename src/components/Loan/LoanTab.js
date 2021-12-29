@@ -48,6 +48,8 @@ const LoanTab = memo(({ loan }) => {
       }, 30000);
       return () => clearInterval(handle);
     }
+    // happens when loan moves from fundraising to funded, it needs to update to funded.
+    dispatch(fetchGQLDynamicDetailsForLoan(loan.id));
     return () => true;
   }, [loan.id, loan.status]);
 
