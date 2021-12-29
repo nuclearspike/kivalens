@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import PT from 'prop-types';
 import HoverOver from '../Common/HoverOver';
-import LookupContext from './LookupContext';
+import FormSchemaContext from './FormSchemaContext';
 
 /**
  *
@@ -14,6 +14,13 @@ import LookupContext from './LookupContext';
  * Bad pattern. This is made for 2 specific criteria types. Just make a compound element.
  */
 
+const flexContainer = {
+  display: 'flex',
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  flexWrap: 'nowrap',
+};
+
 const TwoFieldObjectFieldTemplate = ({
   schema,
   title,
@@ -24,29 +31,16 @@ const TwoFieldObjectFieldTemplate = ({
     throw new Error(`Too few/many properties: ${title}`);
   }
 
-  let context;
+  let values;
   if (schema.lookup) {
-    const values = useSelector(({ lookups }) => lookups[schema.lookup]);
-    context = useMemo(() => {
-      return {
-        lookup: schema.lookup,
-        values,
-      };
-    }, [schema, values]);
+    values = useSelector(({ lookups }) => lookups[schema.lookup]);
   }
 
   return (
     <>
       <HoverOver title={title} description={description} />
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          flexWrap: 'nowrap',
-        }}
-      >
-        <LookupContext.Provider value={context}>
+      <div style={flexContainer}>
+        <FormSchemaContext.Provider value={{ schema, values }}>
           <div style={{ minWidth: 72 }}>{properties[0].content}</div>
           {properties.length === 2 && (
             <div style={{ flex: 1 }}>{properties[1].content}</div>
@@ -57,7 +51,7 @@ const TwoFieldObjectFieldTemplate = ({
               <div style={{ flex: 1 }}>{properties[2].content}</div>
             </>
           )}
-        </LookupContext.Provider>
+        </FormSchemaContext.Provider>
       </div>
     </>
   );

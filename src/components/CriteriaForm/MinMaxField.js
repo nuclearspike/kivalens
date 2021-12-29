@@ -1,11 +1,22 @@
-import React, { useCallback, useState, forwardRef, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+} from 'react';
 import PropTypes from 'prop-types';
 import Form from 'react-jsonschema-form-bs4';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
+import { useDispatch } from 'react-redux';
 import HoverOver from '../Common/HoverOver';
 import ModalLink from '../Modal/ModalLink';
 import { Button, Dropdown } from '../bs';
 import { ClickLink } from '../Links';
+import {
+  // clearHelperGraphs,
+  getHelperGraphs,
+} from '../../actions/helper_graphs';
 import { Handle, Tick, TooltipRail, Track } from './MinMaxSlider';
 
 // /////// My STUFF VVV
@@ -46,6 +57,11 @@ const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
 
 CustomToggle.displayName = 'CustomToggle';
 
+CustomToggle.propTypes = {
+  children: PropTypes.node.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
 const schemaModal = {
   type: 'object',
   properties: {
@@ -73,12 +89,15 @@ const uiSchemaModal = {
 };
 
 const MinMaxField = ({ schema, formData, onChange }) => {
+  // console.log('minmax', schema, rest);
   const { min: storedMin, max: storedMax } = formData;
   const [modalFormData, setModalFormData] = useState({
     min_value: storedMin,
     max_value: storedMax,
   });
-  const domain = [schema.min, schema.max];
+  const dispatch = useDispatch();
+  const ref = useRef(null);
+  const domain = useMemo(() => [schema.min, schema.max], [schema]);
   const reversed = false;
   const valuesForComp = [
     prepForComp(storedMin, schema.min),
@@ -95,6 +114,34 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   const displayUpdateMin = prepToStore(updateMin, schema.min) || 'min';
   const displayUpdateMax = prepToStore(updateMax, schema.max) || 'max';
 
+  const focusInCB = useCallback(() => {
+    // dispatch(clearHelperGraphs());
+    if (schema.field) {
+      // dispatch(getHelperGraphs(schema));
+      setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
+    }
+  }, [ref.current]);
+
+  const focusOutCB = useCallback(() => {
+    // ref.current.style.background = '';
+    // dispatch(clearHelperGraphs());
+  }, [ref.current]);
+
+  useEffect(() => {
+    if (ref.current === null) {
+      return () => true;
+    }
+
+    ref.current.addEventListener('focusin', focusInCB, { passive: true });
+    ref.current.addEventListener('click', focusInCB, { passive: true });
+    ref.current.addEventListener('focusout', focusOutCB, { passive: true });
+    return () => {
+      ref.current.removeEventListener('focusout', focusOutCB);
+      ref.current.removeEventListener('click', focusInCB);
+      ref.current.removeEventListener('focusin', focusInCB);
+    };
+  }, [ref.current, focusInCB, focusOutCB]);
+
   const userAlteredCB = useCallback(
     newValues => {
       const [min, max] = newValues;
@@ -105,8 +152,9 @@ const MinMaxField = ({ schema, formData, onChange }) => {
       }
       setModalFormData({ min_value: minToStore, max_value: maxToStore });
       setUpdate([minToStore, maxToStore]); // misbehaves if not last
+      focusInCB();
     },
-    [onChange, storedMin, storedMax, setModalFormData],
+    [onChange, storedMin, storedMax, setModalFormData, focusInCB],
   );
 
   const onModalChangeCB = useCallback(
@@ -148,6 +196,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
               {schema.presets.map(({ name, min, max }) => (
                 <Dropdown.Item
                   key={name}
+                  active={storedMin === min && storedMax === max}
                   onSelect={() => userAlteredCB([min, max])}
                 >
                   {name}
@@ -158,7 +207,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
         </div>
       )
     );
-  }, [schema.presets, userAlteredCB]);
+  }, [schema.presets, userAlteredCB, storedMin, storedMax]);
 
   // const modalData = useMemo(() => {
   //   return {
@@ -168,7 +217,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   // }, [displayMin, displayMax]);
 
   return (
-    <>
+    <div ref={ref}>
       <div
         style={{
           display: 'flex',
@@ -185,7 +234,6 @@ const MinMaxField = ({ schema, formData, onChange }) => {
         {presetsDrop}
         <div
           style={{
-            // textAlign: 'right',
             paddingRight: 10,
             color: 'darkolivegreen',
           }}
@@ -197,9 +245,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
             </small>
           )}
         </div>
-        {/* <div style={{ paddingRight: 10 }}> */}
 
-        {/* </div> */}
         <div style={{ paddingRight: 10 }}>
           <ModalLink
             linkText={`${displayMin} - ${displayMax}`}
@@ -284,13 +330,14 @@ const MinMaxField = ({ schema, formData, onChange }) => {
           </Ticks>
         </Slider>
       </div>
-    </>
+    </div>
   );
 };
 
 MinMaxField.propTypes = {
   schema: PropTypes.shape({
     title: PropTypes.string,
+    field: PropTypes.string,
     description: PropTypes.string,
     min: PropTypes.number,
     max: PropTypes.number,

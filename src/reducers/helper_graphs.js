@@ -1,5 +1,9 @@
 import extend from 'extend';
-import { HELPER_GRAPH_SET, HELPER_GRAPH_CLEAR } from '../constants';
+import {
+  HELPER_GRAPH_SET,
+  HELPER_GRAPH_CLEAR,
+  CRITERIA_CLEAR,
+} from '../constants';
 
 /**
  * payload is the name of the thing that's being loaded.
@@ -13,9 +17,11 @@ export const defaultHelperGraphState = {
 export default function helperGraphs(state = defaultHelperGraphState, action) {
   switch (action.type) {
     case HELPER_GRAPH_SET:
-      return extend({}, state, action.payload);
+      return action.payload;
+    // return extend({}, state, state, action.payload);
+    case CRITERIA_CLEAR:
     case HELPER_GRAPH_CLEAR:
-      return defaultHelperGraphState;
+      return extend({}, defaultHelperGraphState);
     default:
       return state;
   }

@@ -6,8 +6,9 @@ import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 import { combineIdsAndLoans } from '../utils/linqextras.mjs';
 import {
   updateDetailsForLoans,
-  fetchGQLDynamicDetailsForLoans, fetchGQLDynamicDetailsForPopularLoans,
-} from './loan_details'
+  fetchGQLDynamicDetailsForLoans,
+  fetchGQLDynamicDetailsForPopularLoans,
+} from './loan_details';
 import { loansDLDone, loansDLProgress } from './loans_progress';
 import { markDone, markLoading } from './loading';
 import { partnersFastFetch, partnersKivaFetch } from './partner_details';

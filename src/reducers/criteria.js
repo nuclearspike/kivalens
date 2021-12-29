@@ -9,10 +9,9 @@ import { CRITERIA_SET, CRITERIA_CLEAR, emptyCrit } from '../constants';
 export default function criteria(state = emptyCrit, action) {
   switch (action.type) {
     case CRITERIA_SET:
-      // console.log('SET_CRITERIA', action);
-      return extend({}, action.payload);
+      return extend(true, {}, action.payload);
     case CRITERIA_CLEAR:
-      return extend({}, emptyCrit);
+      return extend(true, {}, emptyCrit);
     default:
       return state;
   }

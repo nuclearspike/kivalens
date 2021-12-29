@@ -209,7 +209,9 @@ class ResultProcessors {
 
     if (loan.klb) {
       loan.borrower_count = loan.klb.M + loan.klb.F;
-      loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count
+      loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count;
+      loan.borrowers = loan.borrowers || [];
+      delete loan.klb;
     } else if (loan.borrowers) {
       loan.borrower_count = loan.borrowers.length;
       loan.kl_percent_women = loan.borrowers.percentWhere(

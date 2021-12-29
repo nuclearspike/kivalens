@@ -8,7 +8,7 @@ import {
   getHelperGraphs,
 } from '../../actions/helper_graphs';
 import { humanize } from '../../utils';
-import LookupContext from './LookupContext';
+import FormSchemaContext from './FormSchemaContext';
 
 const canAllStyles = { all: 'success', any: 'primary', none: 'danger' };
 const cannotAllStyles = { any: 'success', none: 'danger' };
@@ -59,22 +59,22 @@ export const MultiSelectField = ({ formData, onChange }) => {
     [onChange],
   );
   const processed = (formData || []).map(value => ({ label: value, value }));
-  const lookupContext = useContext(LookupContext);
-  const options = lookupContext.values.map(i => ({
+  const { schema: schemaContext, values } = useContext(FormSchemaContext);
+  const options = values.map(i => ({
     value: i,
     label: i,
   }));
   const dispatch = useDispatch();
 
   const onFocusCB = useCallback(() => {
-    if (lookupContext.lookup) {
-      setTimeout(() => dispatch(getHelperGraphs(lookupContext.lookup)), 100);
+    if (schemaContext.lookup) {
+      setTimeout(() => dispatch(getHelperGraphs(schemaContext)), 100);
     }
-  }, [lookupContext.lookup]);
+  }, [schemaContext.lookup]);
 
   const onBlurCB = useCallback(() => {
-    if (lookupContext.lookup) {
-      setTimeout(() => dispatch(clearHelperGraphs()), 50);
+    if (schemaContext.lookup) {
+      dispatch(clearHelperGraphs());
     }
   }, []);
 

@@ -4,11 +4,45 @@ import { basicReverseOrder } from '../utils/linqextras.mjs';
 import { HELPER_GRAPH_CLEAR, HELPER_GRAPH_SET } from '../constants';
 import performSearch from '../components/Search/performSearch';
 
-export const getHelperGraphs = selected => {
+export const getHelperGraphs = props => {
+  let field;
+  let lookup;
+  let presets;
+  let selector;
+  let title;
+  let selected;
+
+  if (typeof props === 'object') {
+    ({ field, lookup, presets, selector, title } = props);
+    selected = field || lookup;
+  } else {
+    // phase out!
+    selected = props;
+    title = humanize(props);
+  }
+
   return (dispatch, getState) => {
     let data;
-    const { partnerDetails, criteria, allLoanIds, loanDetails } = getState();
-    const crit = extend(true, {}, criteria); // must do deep copy, or mods to crit alter stored criteria sub objects
+    const appState = getState();
+    const {
+      partnerDetails,
+      criteria,
+      allLoanIds,
+      loanDetails,
+      helperGraphs,
+      atheistList,
+    } = appState;
+
+    // don't do it again.
+    if (
+      helperGraphs &&
+      helperGraphs.selected &&
+      helperGraphs.selected === selected
+    ) {
+      return;
+    }
+
+    const critExcludeSelected = extend(true, {}, criteria); // must do deep copy, or mods to critExcludeSelected alter stored criteria sub objects
     switch (selected) {
       // loan values that need to be killed with an object.
       case 'sectors':
@@ -16,23 +50,84 @@ export const getHelperGraphs = selected => {
       case 'themes':
       case 'tags':
       case 'countries':
-        crit.loan[selected] = {};
+        critExcludeSelected.loan[selected] = {};
+        break;
+
+      case 'borrower_count':
+      case 'percent_female':
+      case 'age_mentioned':
+        critExcludeSelected.borrower[selected] = { min: null, max: null };
         break;
 
       // loan values that need to be killed with empty arrays
       case 'repayment_interval':
       case 'currency_exchange_loss_liability':
-        crit.loan[selected] = [];
+        critExcludeSelected.loan[selected] = [];
         break;
 
       // partner stuff.
+      case 'years_on_kiva':
+      case 'secular_rating':
+        critExcludeSelected.partner[selected] = { min: null, max: null };
+        break;
+
       default:
         break;
     }
 
-    // must alter criteria to exclude the thing it's currently displaying.
-    const loans = performSearch(getState(), 'loans');
+    // must alter criteria to exclude the thing that's currently selected.
+    const loans = performSearch(
+      {
+        partnerDetails,
+        criteria: critExcludeSelected,
+        allLoanIds,
+        loanDetails,
+        atheistList,
+      },
+      'loans',
+    );
+
+    const minMaxGroupCounts = (group, critField) => {
+      return presets.map(preset => {
+        const presetCriteria = extend(true, {}, critExcludeSelected);
+        presetCriteria[group][critField] = {
+          min: preset.min,
+          max: preset.max,
+        };
+        const ids = performSearch({
+          partnerDetails,
+          criteria: presetCriteria,
+          allLoanIds,
+          loanDetails,
+          atheistList,
+        });
+        return {
+          name: preset.name,
+          count: ids.length,
+        };
+      });
+    };
+
     switch (selected) {
+      case 'borrower_count':
+      case 'percent_female':
+      case 'age_mentioned':
+        data = minMaxGroupCounts('borrower', field);
+        break;
+
+      case 'repaid_in':
+      case 'still_needed':
+      case 'expiring_in_days':
+        // case 'loan_amount':
+        // case 'dollars_per_hour':
+        data = minMaxGroupCounts('loan', field);
+        break;
+
+      case 'years_on_kiva':
+      case 'secular_rating':
+        data = minMaxGroupCounts('partner', field);
+        break;
+
       case 'countries':
         data = loans.groupByWithCount(l => l.location.country);
         break;
@@ -42,6 +137,7 @@ export const getHelperGraphs = selected => {
       case 'activities':
         data = loans.groupByWithCount(l => l.activity);
         break;
+
       case 'tags':
         data = loans
           .map(l => l.kls_tags)
@@ -127,7 +223,7 @@ export const getHelperGraphs = selected => {
         renderTo: 'loan_options_graph',
         height,
       },
-      title: { text: humanize(selected) }, // allOptions[selected].label
+      title: { text: title }, // allOptions[selected].label
       xAxis: {
         categories: data.map(d => d.name),
         title: { text: null },

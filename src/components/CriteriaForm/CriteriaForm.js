@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import Form from 'react-jsonschema-form-bs4';
 import { useDispatch } from 'react-redux';
 import { useCriteria } from '../../store/helpers/hooks';
-import { alterCriteriaDebounce } from '../../actions/criteria';
+import { alterCriteria } from '../../actions/criteria';
 import { TitleField } from './Common';
 import PaneledObjectFieldTemplate from './ObjectFieldTemplate';
 import { criteriaSchema, uiCriteriaSchema } from './allOptions';
@@ -17,7 +17,7 @@ const CriteriaForm = () => {
   const criteria = useCriteria();
   const dispatch = useDispatch();
   const onCriteriaChangeCB = useCallback(({ formData: newCriteria }) => {
-    dispatch(alterCriteriaDebounce(newCriteria));
+    dispatch(alterCriteria(newCriteria));
   }, []);
   return (
     <Form

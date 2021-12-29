@@ -53,7 +53,7 @@ const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
       typeof criteria.partner.social_performance === 'string'
         ? criteria.partner.social_performance
             .split(',')
-            .where(sp => sp && !Number.isNaN(sp))
+            .filter(sp => sp && !Number.isNaN(sp))
             .select(sp => parseInt(sp, 10))
         : [];
     // cannot be reduced to select(parseInt) :(
@@ -130,6 +130,7 @@ const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
 
     const passingAtheistList = Object.keys(atheistList)
       .map(id => atheistList[id])
+      .nonBlank()
       .filter(p => cta.allPass(p))
       .ids();
 

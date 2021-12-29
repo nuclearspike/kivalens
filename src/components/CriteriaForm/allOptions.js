@@ -86,6 +86,8 @@ export const criteriaSchema = {
         },
         borrower_count: {
           title: 'Borrower Count',
+          field: 'borrower_count',
+          selector: l => l.borrower_count,
           description:
             'The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right.',
           min: 1,
@@ -100,6 +102,8 @@ export const criteriaSchema = {
         },
         percent_female: {
           title: 'Percent Female',
+          field: 'percent_female',
+          selector: l => l.percent_female,
           description:
             "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed.",
           min: 0,
@@ -115,6 +119,8 @@ export const criteriaSchema = {
         },
         age_mentioned: {
           title: 'Age Mentioned',
+          field: 'age_mentioned',
+          selector: l => l.age_mentioned,
           description:
             "KivaLens looks for variations of the pattern '20-99 year(s) old' in the description and uses the first one mentioned... which may be the age of the borrower's parent or child. Read the description to double-check it! More than half of the loans have ages that can be pulled out, but many cannot. You must set the lower slider to something other than 'min' or loans with no ages found will be included as well.",
           min: 19,
@@ -140,6 +146,7 @@ export const criteriaSchema = {
         },
         repaid_in: {
           title: 'Repaid In (months)',
+          field: 'repaid_in',
           description:
             "The number of months between today and the final scheduled repayment. Kiva's sort by repayment terms, which is how many months the borrower has to pay back, creates sorting and filtering issues due to when the loan was posted and the disbursal date. KivaLens just looks at the final scheduled repayment date relative to today.",
           min: 0,
@@ -171,6 +178,7 @@ export const criteriaSchema = {
         },
         still_needed: {
           title: 'Still Needed ($)',
+          field: 'still_needed',
           description:
             'How much is still needed to fully fund the loan. Loan Amount - Funded Amount - Basket Amount. Set the lower bound to $25 to exclude loans that are fully funded with basket amounts. Set both the lower and upper bound to $25 to find loans where they just need one more lender.',
           min: 0,
@@ -194,6 +202,7 @@ export const criteriaSchema = {
         },
         expiring_in_days: {
           title: 'Expiring (days)',
+          field: 'expiring_in_days',
           description:
             'The number of days left before the loan expires if not funded.',
           min: 0,
@@ -219,12 +228,14 @@ export const criteriaSchema = {
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'sectors',
+          selector: l => l.sector,
         },
         activities: {
           title: 'Activities',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'activities',
+          selector: l => l.activity,
         },
         themes: {
           title: 'Themes',
@@ -243,6 +254,7 @@ export const criteriaSchema = {
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'countries',
+          selector: l => l.location.country,
         },
         currency_exchange_loss_liability: {
           title: 'Currency Loss',
@@ -357,15 +369,18 @@ export const criteriaSchema = {
         },
         years_on_kiva: {
           title: 'Years on Kiva',
+          field: 'years_on_kiva',
           $ref: '#/definitions/double_range',
           description: 'How long the partner has been posting loans on Kiva.',
           min: 0,
-          max: 12,
+          max: 20,
           step: 0.25,
           presets: [
             { name: 'Brand New (<= 1yr)', min: null, max: 1 },
             { name: 'Relatively New (<= 5yr)', min: null, max: 5 },
+            { name: 'Less than 10 yr (<= 10yr)', min: null, max: 10 },
             { name: 'Long Term (>= 10 yr)', min: 10, max: null },
+            { name: 'Very Long Term (>= 15 yr)', min: 15, max: null },
           ],
         },
         loans_posted: {
@@ -378,6 +393,7 @@ export const criteriaSchema = {
         },
         secular_rating: {
           title: 'Secular Score (Atheist List)',
+          field: 'secular_rating',
           $ref: '#/definitions/double_range',
           description:
             '4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda.',

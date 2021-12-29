@@ -121,7 +121,7 @@ export const getLookups = async () => {
       themes: lend.loanThemeFilter.map(eton).orderBy(etoe),
       tags: lend.tag
         .map(eton)
-        .filter(etoe)
+        .nonBlank()
         .orderBy(etoe),
       populated: true,
     }));

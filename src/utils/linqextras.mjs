@@ -36,8 +36,10 @@ export const basicReverseOrder = function(a,b) {
   return 0
 }
 
+Array.prototype.nonBlank = function() { return this.filter(e => e) }
+
 export const combineIdsAndLoans = function(ids, details, onlyFundraising = true) {
-  let loans = ids.map(id => details[id]).filter(e => e); // remove non-matches.
+  let loans = ids.map(id => details[id]).nonBlank();
   if (onlyFundraising) {
     loans = loans.fundraising();
   }

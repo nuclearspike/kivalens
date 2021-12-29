@@ -52,7 +52,7 @@ const LoanTab = memo(({ loan }) => {
   }, [loan.id, loan.status]);
 
   const lentPercentages = useMemo(() => {
-    if (!loan || loan.status !== 'fundraising') {
+    if (!loan) {
       return {};
     }
     const fundedPerc = (loan.funded_amount * 100) / loan.loan_amount;
