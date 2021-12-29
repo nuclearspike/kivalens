@@ -59,6 +59,13 @@ export const getHelperGraphs = props => {
         critExcludeSelected.borrower[selected] = { min: null, max: null };
         break;
 
+      case 'repaid_in':
+      case 'loan_amount':
+      case 'still_needed':
+      case 'expiring_in_days':
+        critExcludeSelected.loan[selected] = { min: null, max: null };
+        break;
+
       // loan values that need to be killed with empty arrays
       case 'repayment_interval':
       case 'currency_exchange_loss_liability':
@@ -118,8 +125,7 @@ export const getHelperGraphs = props => {
       case 'repaid_in':
       case 'still_needed':
       case 'expiring_in_days':
-        // case 'loan_amount':
-        // case 'dollars_per_hour':
+      case 'loan_amount':
         data = minMaxGroupCounts('loan', field);
         break;
 

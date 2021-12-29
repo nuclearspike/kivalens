@@ -126,7 +126,9 @@ export const criteriaSchema = {
           min: 19,
           max: 100,
           presets: [
-            { name: 'Young (19-39)', min: null, max: 39 },
+            { name: 'No Age Mentioned', min: null, max: 19 },
+            { name: 'Twenties (20-29)', min: 20, max: 29 },
+            { name: 'Thirties (30-39)', min: 30, max: 39 },
             { name: 'Middle Aged (40-59)', min: 40, max: 59 },
             { name: 'Elderly (60+)', min: 60, max: null },
           ],
@@ -161,12 +163,22 @@ export const criteriaSchema = {
         },
         loan_amount: {
           title: 'Loan Amount ($)',
+          field: 'loan_amount',
           description:
             'How much is the loan for? Smaller loans are given to poorer people, so this can help you to focus on either large loans from established borrowers or smaller loans.',
           min: 0,
           max: 10000,
           step: 25,
           $ref: '#/definitions/double_range',
+          presets: [
+            { name: '< $200', min: null, max: 200 },
+            { name: '$200 - $500', min: 200, max: 500 },
+            { name: '$500 - $750', min: 500, max: 750 },
+            { name: '$750 - $1K', min: 750, max: 1000 },
+            { name: '$1K - $2K', min: 1000, max: 2000 },
+            { name: '$2K - $3K', min: 2000, max: 3000 },
+            { name: '$3K +', min: 3000, max: null },
+          ],
         },
         dollars_per_hour: {
           title: '$/Hour',
