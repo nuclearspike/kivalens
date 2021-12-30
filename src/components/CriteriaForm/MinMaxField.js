@@ -8,15 +8,15 @@ import React, {
 import PropTypes from 'prop-types';
 import Form from 'react-jsonschema-form-bs4';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'
 import HoverOver from '../Common/HoverOver';
 import ModalLink from '../Modal/ModalLink';
 import { Button, Dropdown } from '../bs';
 import { ClickLink } from '../Links';
 import {
-  // clearHelperGraphs,
+  clearHelperGraphs,
   getHelperGraphs,
-} from '../../actions/helper_graphs';
+} from '../../actions/helper_graphs'
 import { Handle, Tick, TooltipRail, Track } from './MinMaxSlider';
 
 // /////// My STUFF VVV
@@ -104,6 +104,8 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     prepForComp(storedMax, schema.max),
   ];
 
+  const selectedHelper = useSelector(({ helperGraphs }) => helperGraphs.selected)
+
   const displayMin = prepToStore(storedMin, schema.min) || 'min';
   const displayMax = prepToStore(storedMax, schema.max) || 'max';
 
@@ -115,10 +117,11 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   const displayUpdateMax = prepToStore(updateMax, schema.max) || 'max';
 
   const focusInCB = useCallback(() => {
-    // dispatch(clearHelperGraphs());
     if (schema.field) {
-      // dispatch(getHelperGraphs(schema));
-      setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
+      if (selectedHelper !== schema.field) {
+        // dispatch(clearHelperGraphs());
+        setTimeout(() => dispatch(getHelperGraphs(schema)), 500);
+      }
     }
   }, [ref.current]);
 

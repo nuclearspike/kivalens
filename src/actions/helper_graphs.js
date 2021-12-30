@@ -11,12 +11,13 @@ export const getHelperGraphs = props => {
   let selector;
   let title;
   let selected;
+  let orderGraph = true;
 
   if (typeof props === 'object') {
     ({ field, lookup, presets, selector, title } = props);
     selected = field || lookup;
   } else {
-    // phase out!
+    // deprecated. always pass a schema object
     selected = props;
     title = humanize(props);
   }
@@ -61,8 +62,11 @@ export const getHelperGraphs = props => {
 
       case 'repaid_in':
       case 'loan_amount':
+      case 'dollars_per_hour':
       case 'still_needed':
+      case 'percent_funded':
       case 'expiring_in_days':
+      case 'disbursal':
         critExcludeSelected.loan[selected] = { min: null, max: null };
         break;
 
@@ -74,7 +78,17 @@ export const getHelperGraphs = props => {
 
       // partner stuff.
       case 'years_on_kiva':
+      case 'partner_risk_rating':
+      case 'partner_arrears':
+      case 'partner_default':
+      case 'portfolio_yield':
+      case 'profit':
+      case 'loans_at_risk_rate':
+      case 'currency_exchange_loss_rate':
+      case 'average_loan_size_percent_per_capita_income':
+      case 'loans_posted':
       case 'secular_rating':
+      case 'social_rating':
         critExcludeSelected.partner[selected] = { min: null, max: null };
         break;
 
@@ -123,25 +137,38 @@ export const getHelperGraphs = props => {
         break;
 
       case 'repaid_in':
-      case 'still_needed':
-      case 'expiring_in_days':
       case 'loan_amount':
+      case 'dollars_per_hour':
+      case 'still_needed':
+      case 'percent_funded':
+      case 'expiring_in_days':
+      case 'disbursal':
         data = minMaxGroupCounts('loan', field);
         break;
 
+        // PARTNER STUFF
       case 'years_on_kiva':
+      case 'partner_risk_rating':
+      case 'partner_arrears':
+      case 'partner_default':
+      case 'portfolio_yield':
+      case 'profit':
+      case 'loans_at_risk_rate':
+      case 'currency_exchange_loss_rate':
+      case 'average_loan_size_percent_per_capita_income':
+      case 'loans_posted':
       case 'secular_rating':
+      case 'social_rating':
+        orderGraph = false;
         data = minMaxGroupCounts('partner', field);
         break;
 
       case 'countries':
-        data = loans.groupByWithCount(l => l.location.country);
-        break;
       case 'sectors':
-        data = loans.groupByWithCount(l => l.sector);
-        break;
       case 'activities':
-        data = loans.groupByWithCount(l => l.activity);
+      case 'currency_exchange_loss_liability':
+      case 'bonus_credit_eligibility':
+        data = loans.groupByWithCount(selector);
         break;
 
       case 'tags':
@@ -156,14 +183,6 @@ export const getHelperGraphs = props => {
           .flatten()
           .filter(t => t !== undefined)
           .groupByWithCount();
-        break;
-      case 'currency_exchange_loss_liability':
-        data = loans.groupByWithCount(
-          l => l.terms.loss_liability.currency_exchange,
-        );
-        break;
-      case 'bonus_credit_eligibility':
-        data = loans.groupByWithCount(l => l.bonus_credit_eligibility === true);
         break;
       case 'direct':
         data = loans.groupByWithCount(l =>
@@ -191,7 +210,7 @@ export const getHelperGraphs = props => {
             const p = partnerDetails[l.partner_id];
             return p ? p.name : null;
           })
-          .groupByWithCount(l => l.getPartner().name);
+          .groupByWithCount();
         break;
       case 'regions': // this won't come out with the right number of loans....
         data = loans
@@ -215,7 +234,9 @@ export const getHelperGraphs = props => {
         return;
     }
 
-    data = data.orderBy(d => d.count, basicReverseOrder);
+    if (orderGraph) {
+      data = data.orderBy(d => d.count, basicReverseOrder);
+    }
 
     const height = Math.max(
       300,

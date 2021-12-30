@@ -8,6 +8,19 @@ import SelectMultiField from './SelectMultiField';
 import SelectSingleField from './SelectSingleField';
 import AnyAllSelectorField from './AnyAllSelectorField';
 
+const buildPresets = (low, high, step = 10, append = '%') => {
+  const result = [];
+  for (let i = low; i < high; i += step) {
+    result.push({
+      name: `${i} to ${i + step}${append}`,
+      min: low === i ? null : i,
+      max: high === i + step ? null : i + step,
+    });
+  }
+  // console.log(result);
+  return result;
+};
+
 export const criteriaSchema = {
   definitions: {
     all_any_none: {
@@ -182,11 +195,13 @@ export const criteriaSchema = {
         },
         dollars_per_hour: {
           title: '$/Hour',
+          field: 'dollars_per_hour',
           description:
             'Funded Amounts + Basket Amounts / Time since posting. Find the fastest funding loans.',
           min: 0,
           max: 500,
           $ref: '#/definitions/double_range',
+          presets: buildPresets(0, 500, 20, ''),
         },
         still_needed: {
           title: 'Still Needed ($)',
@@ -205,12 +220,14 @@ export const criteriaSchema = {
         },
         percent_funded: {
           title: 'Funded (%)',
+          field: 'percent_funded',
           description:
             'What percent of the loan has already been funded (includes amounts in baskets)',
           min: 0,
           max: 100,
           step: 1,
           $ref: '#/definitions/double_range',
+          presets: buildPresets(0, 100, 5),
         },
         expiring_in_days: {
           title: 'Expiring (days)',
@@ -229,11 +246,13 @@ export const criteriaSchema = {
         },
         disbursal: {
           title: 'Disbursal (days)',
+          field: 'disbursal',
           description:
             'Relative to today, when does the borrower get the money? Negative days mean the borrower already has the money and the Kiva loan is used to back-fill the loan from the MFI rather than making the borrower wait for fundraising. Positive days mean the borrower does not yet have the money.',
           min: -90,
           max: 90,
           $ref: '#/definitions/double_range',
+          presets: buildPresets(-90, 90, 10, ' days'),
         },
         sectors: {
           title: 'Sectors',
@@ -272,7 +291,8 @@ export const criteriaSchema = {
           title: 'Currency Loss',
           type: 'string',
           default: '',
-          helper_graph: 'currency_exchange_loss_liability',
+          field: 'currency_exchange_loss_liability',
+          selector: l => l.terms.loss_liability.currency_exchange,
           enum: ['shared', 'none', 'partner', 'lender'],
           enumNames: [
             'Shared Loss',
@@ -284,9 +304,10 @@ export const criteriaSchema = {
         bonus_credit_eligibility: {
           title: 'Bonus Credit',
           type: 'string',
-          helper_graph: 'bonus_credit_eligibility',
+          field: 'bonus_credit_eligibility',
           default: '',
           enum: [null, true, false],
+          selector: l => l.bonus_credit_eligibility === true,
           enumNames: [
             'Show All',
             'Only loans eligible',
@@ -295,8 +316,8 @@ export const criteriaSchema = {
         },
         repayment_interval: {
           title: 'Repayment Interval',
+          field: 'repayment_interval',
           type: 'string',
-          helper_graph: 'repayment_interval',
           enum: ['Monthly', 'Irregularly', 'At end of term'],
         },
       },
@@ -311,73 +332,98 @@ export const criteriaSchema = {
         },
         partner_risk_rating: {
           title: 'Risk Rating (stars)',
+          field: 'partner_risk_rating',
           $ref: '#/definitions/double_range',
           description:
             '5 star means that Kiva has estimated that the *institution servicing the loan* has very low probability of collapse, it does not indicate faith in individual borrowers or groups. 1 star means the partner may be new and untested. To include unrated partners, have the left-most slider all the way at left.',
           min: 0,
           max: 5,
           step: 0.5,
+          presets: [
+            {
+              name: 'Least likely for institutional default (4.5+)',
+              min: 4.5,
+              max: null,
+            },
+            { name: 'Pretty safe MFIs (4+)', min: 4, max: null },
+            { name: 'Established (3+)', min: 3, max: null },
+            { name: 'Unproven (1)', min: null, max: 1 },
+          ],
         },
         partner_arrears: {
           title: 'Delinq Rate (%)',
+          field: 'partner_arrears',
           $ref: '#/definitions/double_range',
           description:
             'Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding',
           min: 0,
           max: 50,
           step: 0.1,
+          presets: buildPresets(0, 50, 5),
         },
         partner_default: {
           title: 'Default Rate (%)',
+          field: 'partner_default',
           $ref: '#/definitions/double_range',
           description:
             "The default rate is the percentage of ended loans (no longer paying back) which have failed to repay (measured in dollar volume, not units). How this is calculated: Default Rate = Amount of Ended Loans Defaulted / Amount of Ended Loans. For more information, please refer to Kiva's Help Center. ",
           min: 0,
-          max: 30,
+          max: 15,
           step: 0.1,
+          presets: buildPresets(0, 15, 1),
         },
         portfolio_yield: {
           title: 'Portfolio Yield (%)',
+          field: 'portfolio_yield',
           $ref: '#/definitions/double_range',
           description:
             "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield. Also, see the About page, Reducing Risk section to understand why high Portfolio Yields are often to the poorest borrowers.",
           min: 0,
           max: 100,
           step: 0.1,
+          presets: buildPresets(0, 100),
         },
         profit: {
           title: 'Profit (%)',
+          field: 'profit',
           $ref: '#/definitions/double_range',
           description:
             "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time unless they are receiving outside funding.",
           min: -100,
           max: 100,
           step: 0.1,
+          presets: buildPresets(-100, 100),
         },
         loans_at_risk_rate: {
           title: 'Loans at Risk (%)',
+          field: 'loans_at_risk_rate',
           $ref: '#/definitions/double_range',
           description:
             'The loans at risk rate refers to the percentage of Kiva loans being paid back by this Field Partner that are past due in repayment by at least 1 day. This delinquency can be due to either non-payment by Kiva borrowers or non-payment by the Field Partner itself. Loans at Risk Rate = Amount of paying back loans that are past due / Total amount of Kiva loans outstanding',
           min: 0,
           max: 100,
+          presets: buildPresets(0, 100),
         },
         currency_exchange_loss_rate: {
           title: 'Currency Exchange Loss (%)',
+          field: 'currency_exchange_loss_rate',
           $ref: '#/definitions/double_range',
           description:
             'Kiva calculates the Currency Exchange Loss Rate for its Field Partners as: Amount of Currency Exchange Loss / Total Loans.',
           min: 0,
           max: 10,
           step: 0.1,
+          presets: buildPresets(0, 10, 1),
         },
         average_loan_size_percent_per_capita_income: {
           title: 'Average Loan/Capita Income',
+          field: 'average_loan_size_percent_per_capita_income',
           $ref: '#/definitions/double_range',
           description:
             "The Field Partner's average loan size is expressed as a percentage of the country's gross national annual income per capita. Loans that are smaller (that is, as a lower percentage of gross national income per capita) are generally made to more economically disadvantaged populations. However, these same loans are generally more costly for the Field Partner to originate, disburse and collect.",
           min: 0,
           max: 300,
+          presets: buildPresets(0, 300, 20),
         },
         years_on_kiva: {
           title: 'Years on Kiva',
@@ -397,11 +443,13 @@ export const criteriaSchema = {
         },
         loans_posted: {
           title: 'Loans Posted',
+          field: 'loans_posted',
           $ref: '#/definitions/double_range',
           description: 'How many loans the partner has posted to Kiva.',
           min: 0,
           max: 20000,
           step: 50,
+          presets: buildPresets(0, 20000, 1000, ' loans'),
         },
         secular_rating: {
           title: 'Secular Score (Atheist List)',
@@ -413,28 +461,43 @@ export const criteriaSchema = {
           max: 4,
           step: 1,
           presets: [
-            { name: 'Religious Only (1)', min: null, max: 1 },
-            {
-              name: 'Religious as well as Not entirely religious (<= 2)',
-              min: null,
-              max: 2,
-            },
+            { name: 'Secular Only (4)', min: 4, max: null },
             {
               name: 'Mostly secular but mildly religious (>= 3)',
               min: 3,
               max: null,
             },
-            { name: 'Secular Only (4)', min: 4, max: null },
+            {
+              name: 'Religious as well as Not entirely religious (<= 2)',
+              min: null,
+              max: 2,
+            },
+            { name: 'Religious Only (1)', min: null, max: 1 },
           ],
         },
         social_rating: {
           title: 'Social Score (Atheist List)',
+          field: 'social_rating',
           $ref: '#/definitions/double_range',
           description:
             '4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct).',
           min: 1,
           max: 4,
           step: 1,
+          presets: [
+            { name: 'Excellent social initiatives (4)', min: 4, max: 4 },
+            {
+              name: 'Good social initiatives in most areas (3)',
+              min: 3,
+              max: 3,
+            },
+            {
+              name: 'Social goals without intiatives (2)',
+              min: 2,
+              max: 2,
+            },
+            { name: 'No attention to social goals (1)', min: 1, max: 1 },
+          ],
         },
       },
     },

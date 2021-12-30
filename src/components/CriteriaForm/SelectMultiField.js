@@ -42,13 +42,13 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
   const dispatch = useDispatch();
 
   const onFocusCB = useCallback(() => {
-    if (schema.helper_graph) {
-      setTimeout(() => dispatch(getHelperGraphs(schema.helper_graph)), 100);
+    if (schema.field) {
+      setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
     }
   }, [schema]);
 
   const onBlurCB = useCallback(() => {
-    if (schema.helper_graph) {
+    if (schema.field) {
       setTimeout(() => dispatch(clearHelperGraphs()), 50);
     }
   }, []);
