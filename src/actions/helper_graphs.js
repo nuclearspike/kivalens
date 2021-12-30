@@ -67,6 +67,7 @@ export const getHelperGraphs = props => {
       case 'percent_funded':
       case 'expiring_in_days':
       case 'disbursal':
+        orderGraph = false;
         critExcludeSelected.loan[selected] = { min: null, max: null };
         break;
 

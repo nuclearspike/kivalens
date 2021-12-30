@@ -447,9 +447,9 @@ export const criteriaSchema = {
           $ref: '#/definitions/double_range',
           description: 'How many loans the partner has posted to Kiva.',
           min: 0,
-          max: 20000,
+          max: 100000,
           step: 50,
-          presets: buildPresets(0, 20000, 1000, ' loans'),
+          presets: buildPresets(0, 100000, 10000, ' loans'),
         },
         secular_rating: {
           title: 'Secular Score (Atheist List)',
