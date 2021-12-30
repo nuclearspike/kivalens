@@ -240,6 +240,8 @@ export const criteriaSchema = {
             { name: 'Expiring today!', min: null, max: 1 },
             { name: 'Expiring within 2 days', min: null, max: 2 },
             { name: 'Expiring within 7 days', min: null, max: 7 },
+            { name: 'Expiring between 7 - 14 days', min: 7, max: 14 },
+            { name: 'Expiring between 14 - 30 days', min: 14, max: 30 },
             { name: 'Expiring in over a month', min: 30, max: null },
           ],
           $ref: '#/definitions/double_range',
@@ -252,7 +254,7 @@ export const criteriaSchema = {
           min: -90,
           max: 90,
           $ref: '#/definitions/double_range',
-          presets: buildPresets(-90, 90, 10, ' days'),
+          presets: buildPresets(-90, 90, 10, ''),
         },
         sectors: {
           title: 'Sectors',

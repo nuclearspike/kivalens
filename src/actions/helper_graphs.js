@@ -147,7 +147,7 @@ export const getHelperGraphs = props => {
         data = minMaxGroupCounts('loan', field);
         break;
 
-        // PARTNER STUFF
+      // PARTNER STUFF
       case 'years_on_kiva':
       case 'partner_risk_rating':
       case 'partner_arrears':
@@ -236,8 +236,11 @@ export const getHelperGraphs = props => {
     }
 
     if (orderGraph) {
+      // const graphMin = data.first(d => d.count !== 0);
       data = data.orderBy(d => d.count, basicReverseOrder);
     }
+
+    data = data.filter(d => d.count !== 0);
 
     const height = Math.max(
       300,

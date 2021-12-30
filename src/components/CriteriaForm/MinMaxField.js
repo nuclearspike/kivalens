@@ -8,7 +8,7 @@ import React, {
 import PropTypes from 'prop-types';
 import Form from 'react-jsonschema-form-bs4';
 import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux';
 import HoverOver from '../Common/HoverOver';
 import ModalLink from '../Modal/ModalLink';
 import { Button, Dropdown } from '../bs';
@@ -16,7 +16,7 @@ import { ClickLink } from '../Links';
 import {
   clearHelperGraphs,
   getHelperGraphs,
-} from '../../actions/helper_graphs'
+} from '../../actions/helper_graphs';
 import { Handle, Tick, TooltipRail, Track } from './MinMaxSlider';
 
 // /////// My STUFF VVV
@@ -119,11 +119,10 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   const focusInCB = useCallback(() => {
     if (schema.field) {
       if (selectedHelper !== schema.field) {
-        // dispatch(clearHelperGraphs());
-        setTimeout(() => dispatch(getHelperGraphs(schema)), 500);
+        setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
       }
     }
-  }, [ref.current]);
+  }, [ref.current, selectedHelper]);
 
   const focusOutCB = useCallback(() => {
     // ref.current.style.background = '';
@@ -249,7 +248,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
           )}
         </div>
 
-        <div style={{ paddingRight: 10 }}>
+        <div style={{ paddingRight: 10, minWidth: 70, textAlign: 'center' }}>
           <ModalLink
             linkText={`${displayMin} - ${displayMax}`}
             linkTitle={`Edit ${schema.title} values in popup.`}
