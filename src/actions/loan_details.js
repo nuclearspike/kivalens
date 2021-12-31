@@ -95,7 +95,7 @@ export const fetchGQLDynamicDetailsForPopularLoans = () => dispatch =>
           },
         },
       } = result;
-      dispatch(
+      return dispatch(
         updateDetailsForLoans(values.map(ResultProcessors.processGQLDynLoan)),
       );
     });
