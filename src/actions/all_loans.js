@@ -137,8 +137,8 @@ export const pruneOldLoans = () => {
   return (dispatch, getState) => {
     const { allLoanIds, loanDetails } = getState();
     const goodIds = combineIdsAndLoans(allLoanIds, loanDetails)
-      .ids()
-      .fundraising();
+      .fundraising()
+      .ids();
     dispatch(loansSetAllIds(goodIds.ids()));
   };
 };

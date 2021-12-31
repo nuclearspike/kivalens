@@ -419,7 +419,10 @@ export const criteriaSchema = {
             'The loans at risk rate refers to the percentage of Kiva loans being paid back by this Field Partner that are past due in repayment by at least 1 day. This delinquency can be due to either non-payment by Kiva borrowers or non-payment by the Field Partner itself. Loans at Risk Rate = Amount of paying back loans that are past due / Total amount of Kiva loans outstanding',
           min: 0,
           max: 100,
-          presets: buildPresets(0, 100),
+          presets: [
+            ...buildPresets(0, 20, 2, '%', true, false),
+            ...buildPresets(20, 100, 10, '%', false),
+          ],
         },
         currency_exchange_loss_rate: {
           title: 'Currency Exchange Loss (%)',
