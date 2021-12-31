@@ -30,6 +30,10 @@ const routes = {
       path: '/search',
       load: () => import(/* webpackChunkName: 'search' */ './search'),
     },
+    {
+      path: '/clear-basket',
+      load: () => import(/* webpackChunkName: 'clear-basket' */ './clear-basket'),
+    },
     // {
     //   path: '/search/customize',
     //   load: () => import(/* webpackChunkName: 'search' */ './customize'),

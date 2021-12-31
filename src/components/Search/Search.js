@@ -85,7 +85,7 @@ const Search = memo(({ selectedId }) => {
   return (
     <Container fluid className={s.root}>
       <Row>
-        <Col xs={12} md={4}>
+        <Col xs={12} md={3}>
           <ButtonGroup>
             <BulkAddModal loanIds={results} />
           </ButtonGroup>
@@ -115,7 +115,7 @@ const Search = memo(({ selectedId }) => {
           </StickyColumn>
         </Col>
         {selectedId ? (
-          <Col xs={12} md={8}>
+          <Col xs={12} md={9}>
             <Loan id={selectedId} />
           </Col>
         ) : (

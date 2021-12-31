@@ -32,3 +32,9 @@ export function basketClear() {
     type: c.BASKET_CLEAR,
   };
 }
+
+export function basketReplaceFromStore() {
+  return {
+    type: c.BASKET_REPLACE_FROM_STORE,
+  };
+}

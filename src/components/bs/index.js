@@ -15,6 +15,7 @@ import ProgressBar from 'react-bootstrap/ProgressBar';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
+import Spinner from 'react-bootstrap/Spinner';
 
 export {
   Container,
@@ -34,4 +35,5 @@ export {
   Jumbotron,
   ButtonGroup,
   Modal,
+  Spinner,
 };

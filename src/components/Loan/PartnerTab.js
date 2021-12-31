@@ -8,6 +8,7 @@ import { arrayWithElements, humanize } from '../../utils';
 import DTDD from '../DTDD';
 import { Col, Jumbotron, Row } from '../bs';
 import KivaImage from '../KivaImage/KivaImage';
+import TimeAgo from 'react-timeago'
 
 const PartnerTab = ({ partnerId }) => {
   // const dispatch = useDispatch()
@@ -28,7 +29,10 @@ const PartnerTab = ({ partnerId }) => {
       addTerm('Rating', partner.rating);
       addTerm(
         'Start Date',
-        new Date(partner.start_date).toString('MMM d, yyyy'),
+        <span>
+          {new Date(partner.start_date).toString('MMM d, yyyy ')}
+          (<TimeAgo date={partner.start_date} />)
+        </span>,
       );
       addTerm(
         partner.countries.length === 1 ? 'Country' : 'Countries',

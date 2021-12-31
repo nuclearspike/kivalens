@@ -16,6 +16,8 @@ import './utils/linqextras.mjs';
 import { setAPIOptions } from './kiva-api/kivaBase.mjs';
 import { keepFreshTick, loansSmartFetch } from './actions/all_loans';
 import { setRuntimeVariable } from './actions/runtime';
+import registerStorageWatcher from './utils/registerStorageWatcher'
+import { basketReplaceFromStore } from './actions/basket'
 
 initializeIcons();
 
@@ -59,6 +61,14 @@ let currentLocation = history.location;
 let appInstance;
 
 const scrollPositionsHistory = {};
+
+const loadBasketFromStorage = () => dispatch(basketReplaceFromStore());
+
+// keep basket in sync between site tabs.
+registerStorageWatcher('basket', loadBasketFromStorage);
+
+// initial basket load
+loadBasketFromStorage();
 
 // Re-render the app when window.location changes
 async function onLocationChange(location, action) {

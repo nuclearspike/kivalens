@@ -1,5 +1,6 @@
 import * as c from '../constants';
 import 'linqjs';
+import store from 'store2';
 
 /**
  * this is all state actions on a basket
@@ -15,15 +16,26 @@ export default function basket(state = [], { type, payload }) {
       if (!state.some(({ id }) => basketItem.id === id)) {
         state.push(basketItem);
         // must be a new object or tests won't think basket changed.
-        return [...state];
+        const all = [...state];
+        store.set('basket', JSON.stringify(all));
+        return all;
       }
       // nothing changed return existing array.
       return state;
     }
-    case c.BASKET_ADD_MANY:
-      return state.concat(payload.basketItems).distinct(bi => bi.id);
-    case c.BASKET_REMOVE:
-      return state.filter(bi => payload.id !== bi.id);
+    case c.BASKET_ADD_MANY: {
+      const all = state.concat(payload.basketItems).distinct(bi => bi.id);
+      store.set('basket', JSON.stringify(all));
+      return all;
+    }
+    case c.BASKET_REPLACE_FROM_STORE: {
+      return JSON.parse(store.get('basket'));
+    }
+    case c.BASKET_REMOVE: {
+      const all = state.filter(bi => payload.id !== bi.id);
+      store.set('basket', JSON.stringify(all));
+      return all;
+    }
     case c.BASKET_CLEAN:
       // not called yet.
       // needs to check that the ID has loans that
@@ -33,6 +45,7 @@ export default function basket(state = [], { type, payload }) {
       // needs to also reduce basket amount to what fits based on available on the loan.
       return state.filter(l => l.status !== 'fundraising');
     case c.BASKET_CLEAR:
+      store.set('basket', JSON.stringify([]));
       return [];
     default:
       return state;

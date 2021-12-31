@@ -119,7 +119,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   const focusInCB = useCallback(() => {
     if (schema.field) {
       if (selectedHelper !== schema.field) {
-        setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
+        setTimeout(() => dispatch(getHelperGraphs(schema)), 500);
       }
     }
   }, [ref.current, selectedHelper]);

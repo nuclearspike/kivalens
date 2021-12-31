@@ -1,14 +1,28 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import PT from 'prop-types';
 import { useDispatch } from 'react-redux';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import Infinite from 'react-infinite';
 import ListItem from '../ListItem/ListItem';
-import { Button, ButtonGroup, Col, Container, Jumbotron, Row } from '../bs';
+import {
+  Button,
+  ButtonGroup,
+  Col,
+  Container,
+  Jumbotron,
+  Modal,
+  ProgressBar,
+  Row,
+  Spinner,
+} from '../bs';
 import StickyColumn from '../Common/StickyColumn';
 import Loan from '../Loan';
 import { basketClear, basketRemove } from '../../actions/basket';
-import { useBasket } from '../../store/helpers/hooks';
+import {
+  useBasket,
+  useOnClient,
+  useStateSetterCallbacks,
+} from '../../store/helpers/hooks';
 import listItem from '../ListItem/ListItem.css';
 import BasketSummary from './BasketSummary';
 import s from './Basket.css';
@@ -20,10 +34,19 @@ const Basket = ({ selectedId }) => {
 
   const dispatch = useDispatch();
   const basket = useBasket();
+  const basketRef = useRef(null);
+
+  const [
+    showTransferModal,
+    openTransferModal,
+    hideTransferModal,
+  ] = useStateSetterCallbacks(false, [true, false]);
   const selectedBasketItem = useMemo(
     () => basket.first(l => l.id === selectedId),
     [basket, selectedId],
   );
+
+  const kivaFormData = useMemo(() => JSON.stringify(basket), [basket]);
   const removeSelectedCB = useCallback(
     () => dispatch(basketRemove(selectedId)),
     [selectedId],
@@ -35,10 +58,35 @@ const Basket = ({ selectedId }) => {
   }, [selectedId, basket]);
 
   const checkoutAtKivaCB = useCallback(() => {
-    alert('Not implemented');
-  }, []);
+    // open modal.
+    openTransferModal();
+    setTimeout(() => {
+      // submit kiva form.
+      basketRef.current.submit();
+    }, 300);
+  }, [openTransferModal]);
 
   const clearBasketCB = useCallback(() => dispatch(basketClear()), []);
+
+  const onClient = useOnClient();
+
+  if (!onClient) {
+    return (
+      <Container fluid>
+        <section>
+          <Row>
+            <Col xs={2} md={4} />
+            <Col xs={4} md={4}>
+              <Jumbotron style={{ padding: 15, marginTop: 50 }}>
+                <Spinner animation="grow" variant="success" /> Loading Basket...
+              </Jumbotron>
+            </Col>
+          </Row>
+        </section>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid>
       <Row>
@@ -96,6 +144,46 @@ const Basket = ({ selectedId }) => {
               </ul>
             </Jumbotron>
           )}
+
+          {process.env.BROWSER && (
+            <form
+              method="POST"
+              ref={basketRef}
+              action="https://www.kiva.org/basket/set"
+            >
+              <p>
+                Note: Checking out will replace your current basket on Kiva.
+              </p>
+              <input
+                name="callback_url"
+                value={`${window.location.origin}/clear-basket`}
+                type="hidden"
+              />
+              <input name="loans" value={kivaFormData} type="hidden" />
+              <input name="donation" value="0.00" type="hidden" />
+              <input name="app_id" value="org.kiva.kivalens" type="hidden" />
+            </form>
+          )}
+
+          <Modal
+            show={showTransferModal}
+            onHide={hideTransferModal}
+            backdrop="static"
+            keyboard={false}
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>Transferring Basket to Kiva</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Depending upon the number of loans in your basket, transferring
+              your selection to Kiva could take some time... Please wait. If you
+              receive a 404 error on Kiva, come back to KivaLens and try the
+              transfer again (your basket will still be here). Kiva currently
+              has a bug.
+              <hr />
+              <ProgressBar variant="success" striped animated now={100} />
+            </Modal.Body>
+          </Modal>
         </Col>
       </Row>
     </Container>

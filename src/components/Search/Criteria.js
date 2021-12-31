@@ -31,7 +31,7 @@ const CriteriaCols = memo(() => {
         </div>
         <CriteriaForm />
       </Col>
-      <Col xs={12} md={2}>
+      <Col xs={12} md={3}>
         <StickyColumn>
           <div style={stickyColsDiv}>
             <div id="loan_options_graph">
