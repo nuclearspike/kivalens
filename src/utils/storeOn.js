@@ -64,10 +64,12 @@ import store from 'store2';
     }
     const s = this;
     let listener;
+    // eslint-disable-next-line no-return-assign
     return s.on(
       key,
       (listener = function() {
         s.off(key, listener);
+        // eslint-disable-next-line prefer-rest-params
         return fn.apply(this, arguments);
       }),
     );

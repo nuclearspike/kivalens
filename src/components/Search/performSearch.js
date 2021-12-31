@@ -45,8 +45,15 @@ const performSort = (loans, sort) => {
   return loans;
 };
 
-const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
+const cache = { partnerCriteria: '', results: [] };
+
+const searchPartners = (appState, { idsOnly = true }) => {
   const { criteria, partnerDetails, atheistList } = appState;
+  const partnerCriteria = JSON.stringify(criteria.partner);
+  if (cache.partnerCriteria === partnerCriteria && cache.results && idsOnly) {
+    // useCache
+    return cache.results;
+  }
   let spArr = [];
   try {
     spArr =
@@ -143,7 +150,9 @@ const searchPartners = (appState, { useCache = false, idsOnly = true }) => {
     .filter(p => ct.allPass(p));
 
   if (idsOnly) {
-    result = result.map(p => p.id);
+    result = result.ids();
+    cache.partnerCriteria = partnerCriteria;
+    cache.results = result;
   }
 
   return result;
@@ -176,7 +185,7 @@ const performSearch = (appState, output = 'loanIds') => {
   // partner list limiting can have profound impact on what loans are available and should be done ASAP
   if (!criteria.partner.direct) {
     ct.addFieldContainsOneOfArrayTester(
-      searchPartners(appState, { idsOnly: true }),
+      searchPartners(appState, { useCache: true, idsOnly: true }),
       loan => loan.partner_id,
       true,
     ); // always added!
