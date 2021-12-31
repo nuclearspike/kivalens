@@ -14,8 +14,8 @@ const mustDo = [
   'cannot do zero percent female, it sets it to max',
   'before go-live, new site needs to convert old options and saved searches to new methods',
   'partner name search/exact search',
-  // 'loans posted need to go much higher! adapt to partner data',
-  '',
+  'if loans in basket while loading loans and go to /basket  it errors',
+  "basket/:id doesn't work when loading to that page (or backing into it)",
 ];
 
 const toDo = [

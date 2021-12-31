@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import PT from 'prop-types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import Infinite from 'react-infinite';
 import ListItem from '../ListItem/ListItem';
@@ -41,12 +41,14 @@ const Basket = ({ selectedId }) => {
     openTransferModal,
     hideTransferModal,
   ] = useStateSetterCallbacks(false, [true, false]);
+
   const selectedBasketItem = useMemo(
     () => basket.first(l => l.id === selectedId),
     [basket, selectedId],
   );
 
   const kivaFormData = useMemo(() => JSON.stringify(basket), [basket]);
+
   const removeSelectedCB = useCallback(
     () => dispatch(basketRemove(selectedId)),
     [selectedId],
@@ -70,7 +72,9 @@ const Basket = ({ selectedId }) => {
 
   const onClient = useOnClient();
 
-  if (!onClient) {
+  const allLoaded = useSelector(({ loading }) => Object.keys(loading).length === 0);
+
+  if (!onClient || !allLoaded) {
     return (
       <Container fluid>
         <section>

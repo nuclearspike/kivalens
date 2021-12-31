@@ -9,11 +9,11 @@ export default function loading(state = {}, action) {
   switch (action.type) {
     case LOADING_SET:
       state[action.payload] = true;
-      console.log('loading', action.payload);
+      // console.log('loading', action.payload);
       return extend({}, state);
     case LOADING_CLEAR:
       delete state[action.payload];
-      console.log('done loading', action.payload);
+      // console.log('done loading', action.payload);
       return extend({}, state);
     default:
       return state;
