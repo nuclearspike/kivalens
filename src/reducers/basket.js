@@ -29,7 +29,15 @@ export default function basket(state = [], { type, payload }) {
       return all;
     }
     case c.BASKET_REPLACE_FROM_STORE: {
-      return JSON.parse(store.get('basket'));
+      const storedBasket = store.get('basket');
+      if (storedBasket) {
+        try {
+          return JSON.parse(storedBasket);
+        } catch {
+          return [];
+        }
+      }
+      return [];
     }
     case c.BASKET_REMOVE: {
       const all = state.filter(bi => payload.id !== bi.id);

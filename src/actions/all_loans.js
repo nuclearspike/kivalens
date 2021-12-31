@@ -13,6 +13,7 @@ import { loansDLDone, loansDLProgress } from './loans_progress';
 import { markDone, markLoading } from './loading';
 import { partnersFastFetch, partnersKivaFetch } from './partner_details';
 import { atheistListFetch } from './atheist_list';
+import { basketClean } from './basket';
 
 export const loansSetAllIds = ids => ({
   type: c.LOANS_SET_ALL,
@@ -23,7 +24,7 @@ export const loansSetAllIds = ids => ({
 export const loansKivaFetch = () => {
   return dispatch => {
     dispatch(markLoading('loans'));
-    return new LoansSearch({ sort: 'newest' }) //  q: 'mary', { region: 'as' }
+    return new LoansSearch() //  q: 'mary', { region: 'as' } { sort: 'newest' }
       .start()
       .progress(p => {
         dispatch(loansDLProgress(p));
@@ -35,6 +36,7 @@ export const loansKivaFetch = () => {
           dispatch(loansDLDone());
           dispatch(updateDetailsForLoans(result));
           dispatch(loansSetAllIds(result.ids()));
+          dispatch(basketClean());
           dispatch(markDone('loans'));
         });
       });
@@ -52,16 +54,18 @@ export const loansFastFetch = () => {
     const { batchNum } = getState().runtime;
     return fetch(`/batches/${batchNum}/loans`, options)
       .catch(() => {
-        // if the server restarted or something?
+        // if the server restarted or something? any way the batchNum is not valid
         // eslint-disable-next-line no-use-before-define
         dispatch(loansSmartFetch(true));
       })
-      .then(async response => response.json())
+      .then(response => response.json())
       .then(loans => {
         ResultProcessors.processLoans(loans);
+        // batch reduces UI updates to one
         batch(() => {
           dispatch(updateDetailsForLoans(loans));
           dispatch(loansSetAllIds(loans.ids()));
+          dispatch(basketClean());
           dispatch(markDone('loans'));
         });
       })
@@ -81,7 +85,7 @@ export const loansFastFetch = () => {
                 ),
               );
             });
-        }, 100);
+        }, 200);
       });
   };
 };
@@ -108,20 +112,22 @@ export const keepFreshTick = () => {
     // first find any that have never been updated.
     let readyToUpdate = loans.filter(l => l.kl_dyn_updated === undefined);
 
-    // if all have been updated, then start to find
+    // if all have been updated, then start to find loans that haven't updated recently
     if (readyToUpdate.length === 0) {
       // all loans have gone through at least one update.
       const fiveMinsAgo = dayjs()
         .subtract(5, 'minute')
         .toDate()
         .getTime();
+
       readyToUpdate = loans
         .orderBy(l => l.kl_dyn_updated)
-        .filter(l => l.kl_dyn_updated < fiveMinsAgo); // not sure this works.
+        .filter(l => l.kl_dyn_updated < fiveMinsAgo);
     }
 
     // 20 is a Kiva limit or I would do more.
     dispatch(fetchGQLDynamicDetailsForLoans(readyToUpdate.take(20).ids()));
+
     // get the updated funded/basket amounts for the most popular loans so sorts work right.
     dispatch(fetchGQLDynamicDetailsForPopularLoans());
   };
@@ -130,7 +136,9 @@ export const keepFreshTick = () => {
 export const pruneOldLoans = () => {
   return (dispatch, getState) => {
     const { allLoanIds, loanDetails } = getState();
-    const goodIds = combineIdsAndLoans(allLoanIds, loanDetails).ids();
+    const goodIds = combineIdsAndLoans(allLoanIds, loanDetails)
+      .ids()
+      .fundraising();
     dispatch(loansSetAllIds(goodIds.ids()));
   };
 };

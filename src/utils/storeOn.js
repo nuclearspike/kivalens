@@ -77,8 +77,8 @@ import store from 'store2';
     const event = {
       key: k,
       namespace: this.namespace(),
-      newValue: e.newValue, // removed _.parse()
-      oldValue: e.oldValue, // removed _.parse()
+      newValue: _.parse(e.newValue),
+      oldValue: _.parse(e.oldValue),
       url: e.url || e.uri,
       storageArea: e.storageArea,
       source: e.source,
@@ -95,8 +95,8 @@ import store from 'store2';
   };
 
   // store2 policy is to not throw errors on old browsers
-  // const old = !window.addEventListener ? function() {} : null;
-  // _.fn('on', old || _.on);
-  // _.fn('off', old || _.off);
-  // _.fn('once', old || _.once);
-})(global, store);
+  const old = !window.addEventListener ? function() {} : null;
+  _.fn('on', old || _.on);
+  _.fn('off', old || _.off);
+  _.fn('once', old || _.once);
+})(global, store._); // store._ is the private methods as well.

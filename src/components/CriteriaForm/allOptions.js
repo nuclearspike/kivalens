@@ -8,13 +8,20 @@ import SelectMultiField from './SelectMultiField';
 import SelectSingleField from './SelectSingleField';
 import AnyAllSelectorField from './AnyAllSelectorField';
 
-const buildPresets = (low, high, step = 10, append = '%') => {
+const buildPresets = (
+  low,
+  high,
+  step = 10,
+  append = '%',
+  minIsNull = true,
+  maxIsNull = true,
+) => {
   const result = [];
   for (let i = low; i < high; i += step) {
     result.push({
       name: `${i} to ${i + step}${append}`,
-      min: low === i ? null : i,
-      max: high === i + step ? null : i + step,
+      min: low === i && minIsNull ? null : i,
+      max: high === i + step && maxIsNull ? null : i + step,
     });
   }
   // console.log(result);
@@ -201,7 +208,12 @@ export const criteriaSchema = {
           min: 0,
           max: 500,
           $ref: '#/definitions/double_range',
-          presets: buildPresets(0, 500, 20, ''),
+          presets: [
+            { name: 'Zero', min: null, max: 0 },
+            { name: '1-5', min: 1, max: 5 },
+            ...buildPresets(5, 40, 5, '', false, false),
+            ...buildPresets(40, 500, 20, '', false, true),
+          ],
         },
         still_needed: {
           title: 'Still Needed ($)',
@@ -291,9 +303,9 @@ export const criteriaSchema = {
         },
         currency_exchange_loss_liability: {
           title: 'Currency Loss',
+          field: 'currency_exchange_loss_liability',
           type: 'string',
           default: '',
-          field: 'currency_exchange_loss_liability',
           selector: l => l.terms.loss_liability.currency_exchange,
           enum: ['shared', 'none', 'partner', 'lender'],
           enumNames: [
@@ -304,10 +316,10 @@ export const criteriaSchema = {
           ],
         },
         bonus_credit_eligibility: {
-          title: 'Bonus Credit',
+          title: 'Bonus Credit (not implemented)',
           type: 'string',
           field: 'bonus_credit_eligibility',
-          default: '',
+          default: null,
           enum: [null, true, false],
           selector: l => l.bonus_credit_eligibility === true,
           enumNames: [
@@ -329,7 +341,7 @@ export const criteriaSchema = {
       title: 'Partner',
       properties: {
         name: {
-          title: 'Name',
+          title: 'Name (not implemented)',
           $ref: '#/definitions/string_partial_exact',
         },
         partner_risk_rating: {
@@ -361,7 +373,10 @@ export const criteriaSchema = {
           min: 0,
           max: 50,
           step: 0.1,
-          presets: buildPresets(0, 50, 5),
+          presets: [
+            ...buildPresets(1, 5, 1, '%', true, false),
+            ...buildPresets(5, 50, 5, '%', false),
+          ],
         },
         partner_default: {
           title: 'Default Rate (%)',
@@ -383,7 +398,7 @@ export const criteriaSchema = {
           min: 0,
           max: 100,
           step: 0.1,
-          presets: buildPresets(0, 100),
+          presets: buildPresets(0, 100, 5),
         },
         profit: {
           title: 'Profit (%)',
@@ -505,7 +520,7 @@ export const criteriaSchema = {
     },
     balancing: {
       type: 'object',
-      title: 'Balancing',
+      title: 'Balancing (not implemented)',
       description: '',
       properties: {},
     },
@@ -535,6 +550,7 @@ export const criteriaSchema = {
         },
         limit_to_top: {
           type: 'object',
+          title: 'Limit to top (not implemented)',
           properties: {
             enabled: {
               title: 'Enabled',
