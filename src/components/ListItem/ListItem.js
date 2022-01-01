@@ -16,6 +16,7 @@ const ListItem = memo(({ id, selected, loanLink }) => {
     basket,
     id,
   ]);
+
   const doubleClickCB = useCallback(() => {
     if (basketItem) {
       dispatch(basketRemove(id));
@@ -23,6 +24,14 @@ const ListItem = memo(({ id, selected, loanLink }) => {
       dispatch(basketAdd({ id, amount: 25 }));
     }
   }, [id, basketItem]);
+
+  if (!loan) {
+    return (
+      <div className={s.ListItem} style={{ height: 100 }}>
+        Loan is no longer fundraising.
+      </div>
+    );
+  }
 
   return (
     <span onDoubleClick={doubleClickCB}>

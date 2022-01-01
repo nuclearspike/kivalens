@@ -247,7 +247,7 @@ export const criteriaSchema = {
           description:
             'The number of days left before the loan expires if not funded.',
           min: 0,
-          max: 35,
+          max: 65,
           presets: [
             { name: 'Expiring today!', min: null, max: 1 },
             { name: 'Expiring within 2 days', min: null, max: 2 },
@@ -322,8 +322,8 @@ export const criteriaSchema = {
           type: 'string',
           field: 'bonus_credit_eligibility',
           default: null,
-          enum: [null, true, false],
           selector: l => l.bonus_credit_eligibility === true,
+          enum: [null, true, false],
           enumNames: [
             'Show All',
             'Only loans eligible',

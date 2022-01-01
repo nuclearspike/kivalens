@@ -34,13 +34,32 @@ export function basketClear() {
 }
 
 export function basketClean() {
-  return {
-    type: c.BASKET_CLEAN,
+  return (dispatch, getState) => {
+    const { basket, loanDetails } = getState();
+
+    // hasn't loaded yet.
+    if (Object.keys(loanDetails) === 0) {
+      return;
+    }
+
+    const toRemove = basket
+      .map(bi => ({ hasDetails: !!loanDetails[bi.id], id: bi.id }))
+      .filter(l => !l.hasDetails)
+      .ids();
+
+    if (toRemove.length > 0) {
+      dispatch({
+        type: c.BASKET_REMOVE_MANY,
+        payload: { ids: toRemove },
+      });
+    }
   };
 }
 
 export function basketReplaceFromStore() {
-  return {
-    type: c.BASKET_REPLACE_FROM_STORE,
+  return dispatch => {
+    dispatch({
+      type: c.BASKET_REPLACE_FROM_STORE,
+    });
   };
 }

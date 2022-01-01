@@ -17,7 +17,7 @@ import {
 } from '../bs';
 import StickyColumn from '../Common/StickyColumn';
 import Loan from '../Loan';
-import { basketClear, basketRemove } from '../../actions/basket';
+import { basketClear, basketRemove } from '../../actions/basket'
 import {
   useBasket,
   useOnClient,
@@ -46,6 +46,9 @@ const Basket = ({ selectedId }) => {
     () => basket.first(l => l.id === selectedId),
     [basket, selectedId],
   );
+
+  // basket.first(bi => bi.)
+  // dispatch(basketClean());
 
   const kivaFormData = useMemo(() => JSON.stringify(basket), [basket]);
 

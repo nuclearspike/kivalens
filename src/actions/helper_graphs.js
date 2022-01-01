@@ -3,6 +3,7 @@ import { humanize } from '../utils';
 import { basicReverseOrder } from '../utils/linqextras.mjs';
 import { HELPER_GRAPH_CLEAR, HELPER_GRAPH_SET } from '../constants';
 import performSearch from '../components/Search/performSearch';
+import { criteriaSetToPreset } from './criteria'
 
 export const getHelperGraphs = props => {
   let field;
@@ -11,6 +12,7 @@ export const getHelperGraphs = props => {
   let selector;
   let title;
   let selected;
+  let group;
   let orderGraph = true;
 
   if (typeof props === 'object') {
@@ -51,12 +53,14 @@ export const getHelperGraphs = props => {
       case 'themes':
       case 'tags':
       case 'countries':
+        group = 'loan';
         critExcludeSelected.loan[selected] = {};
         break;
 
       case 'borrower_count':
       case 'percent_female':
       case 'age_mentioned':
+        group = 'borrower';
         critExcludeSelected.borrower[selected] = { min: null, max: null };
         break;
 
@@ -68,12 +72,14 @@ export const getHelperGraphs = props => {
       case 'expiring_in_days':
       case 'disbursal':
         orderGraph = false;
+        group = 'loan';
         critExcludeSelected.loan[selected] = { min: null, max: null };
         break;
 
       // loan values that need to be killed with empty arrays
       case 'repayment_interval':
       case 'currency_exchange_loss_liability':
+        group = 'loan';
         critExcludeSelected.loan[selected] = [];
         break;
 
@@ -90,6 +96,7 @@ export const getHelperGraphs = props => {
       case 'loans_posted':
       case 'secular_rating':
       case 'social_rating':
+        group = 'partner';
         critExcludeSelected.partner[selected] = { min: null, max: null };
         break;
 
@@ -109,10 +116,10 @@ export const getHelperGraphs = props => {
       'loans',
     );
 
-    const minMaxGroupCounts = (group, critField) => {
+    const minMaxGroupCounts = (pGroup, critField) => {
       return presets.map(preset => {
         const presetCriteria = extend(true, {}, critExcludeSelected);
-        presetCriteria[group][critField] = {
+        presetCriteria[pGroup][critField] = {
           min: preset.min,
           max: preset.max,
         };
@@ -134,6 +141,7 @@ export const getHelperGraphs = props => {
       case 'borrower_count':
       case 'percent_female':
       case 'age_mentioned':
+        group = 'borrower';
         data = minMaxGroupCounts('borrower', field);
         break;
 
@@ -144,6 +152,7 @@ export const getHelperGraphs = props => {
       case 'percent_funded':
       case 'expiring_in_days':
       case 'disbursal':
+        group = 'loan';
         data = minMaxGroupCounts('loan', field);
         break;
 
@@ -161,6 +170,7 @@ export const getHelperGraphs = props => {
       case 'secular_rating':
       case 'social_rating':
         orderGraph = false;
+        group = 'partner';
         data = minMaxGroupCounts('partner', field);
         break;
 
@@ -235,12 +245,16 @@ export const getHelperGraphs = props => {
         return;
     }
 
+    data = data.filter(d => d.count !== 0);
+
     if (orderGraph) {
       // const graphMin = data.first(d => d.count !== 0);
       data = data.orderBy(d => d.count, basicReverseOrder);
     }
 
-    data = data.filter(d => d.count !== 0);
+    function onBarClick() {
+      dispatch(criteriaSetToPreset(group, selected, this.category));
+    }
 
     const height = Math.max(
       300,
@@ -266,6 +280,13 @@ export const getHelperGraphs = props => {
         title: { text: 'Matching Loans' },
       },
       plotOptions: {
+        series: {
+          point: {
+            events: {
+              click: onBarClick,
+            },
+          },
+        },
         bar: {
           dataLabels: {
             enabled: true,

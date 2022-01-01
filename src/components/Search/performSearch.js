@@ -45,14 +45,23 @@ const performSort = (loans, sort) => {
   return loans;
 };
 
-const cache = { partnerCriteria: '', results: [] };
+const partnerCacheDefault = { criteria: '', results: [] };
+let partnerCache = partnerCacheDefault;
+
+setInterval(() => {
+  partnerCache = partnerCacheDefault;
+}, 30000);
 
 const searchPartners = (appState, { idsOnly = true }) => {
   const { criteria, partnerDetails, atheistList } = appState;
+  // currently only caches the idsOnly
   const partnerCriteria = JSON.stringify(criteria.partner);
-  if (cache.partnerCriteria === partnerCriteria && cache.results && idsOnly) {
-    // useCache
-    return cache.results;
+  if (
+    idsOnly &&
+    partnerCache.criteria === partnerCriteria &&
+    partnerCache.results
+  ) {
+    return partnerCache.results;
   }
   let spArr = [];
   try {
@@ -61,7 +70,7 @@ const searchPartners = (appState, { idsOnly = true }) => {
         ? criteria.partner.social_performance
             .split(',')
             .filter(sp => sp && !Number.isNaN(sp))
-            .select(sp => parseInt(sp, 10))
+            .map(sp => parseInt(sp, 10))
         : [];
     // cannot be reduced to select(parseInt) :(
   } catch (e) {}
@@ -71,7 +80,7 @@ const searchPartners = (appState, { idsOnly = true }) => {
     // explicitly given by user.
     partnersGiven = criteria.partner.partners
       .split(',')
-      .select(id => parseInt(id, 10)); // cannot be reduced to select(parseInt) :(
+      .map(id => parseInt(id, 10)); // cannot be reduced to select(parseInt) :(
   }
 
   // first filter partners, then pass in partner ids as one of the tests for loans
@@ -150,16 +159,40 @@ const searchPartners = (appState, { idsOnly = true }) => {
     .filter(p => ct.allPass(p));
 
   if (idsOnly) {
+    // only caches idsOnly results.
     result = result.ids();
-    cache.partnerCriteria = partnerCriteria;
-    cache.results = result;
+    partnerCache.criteria = partnerCriteria;
+    partnerCache.results = result;
   }
 
   return result;
 };
 
+const loansCacheDefault = { criteria: '', results: [] };
+let loansCache = loansCacheDefault;
+
+setInterval(() => {
+  loansCache = loansCacheDefault;
+}, 30000);
+
 const performSearch = (appState, output = 'loanIds') => {
+  const matchingPartnerIds = searchPartners(appState, {
+    useCache: true,
+    idsOnly: true,
+  });
+
   const { criteria, allLoanIds: loanIds, loanDetails } = appState;
+  const loansCriteria = JSON.stringify({
+    borrower: criteria.borrower,
+    loan: criteria.loan,
+    partners: matchingPartnerIds,
+    output,
+  });
+
+  if (loansCache.criteria === loansCriteria && loansCache.results) {
+    return loansCache.results;
+  }
+
   if (
     !criteria ||
     !criteria.borrower ||
@@ -185,7 +218,7 @@ const performSearch = (appState, output = 'loanIds') => {
   // partner list limiting can have profound impact on what loans are available and should be done ASAP
   if (!criteria.partner.direct) {
     ct.addFieldContainsOneOfArrayTester(
-      searchPartners(appState, { useCache: true, idsOnly: true }),
+      matchingPartnerIds,
       loan => loan.partner_id,
       true,
     ); // always added!
@@ -274,12 +307,16 @@ const performSearch = (appState, output = 'loanIds') => {
   // perform sort
   loans = performSort(loans, criteria.results.sort);
 
+  loansCache.criteria = loansCriteria;
+
   if (output === 'loans') {
+    loansCache.results = loans;
     return loans;
   }
 
   // default returns only ids.
-  return loans.ids();
+  loansCache.results = loans.ids();
+  return loansCache.results;
 };
 
 export default performSearch;

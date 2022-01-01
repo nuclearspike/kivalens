@@ -44,14 +44,24 @@ export default function basket(state = [], { type, payload }) {
       store.set('basket', JSON.stringify(all));
       return all;
     }
-    case c.BASKET_CLEAN:
+    case c.BASKET_REMOVE_MANY: {
+      const all = state.filter(bi => !payload.ids.contains(bi.id));
+      store.set('basket', JSON.stringify(all));
+      return all;
+    }
+    case c.BASKET_CLEAN: {
       // not called yet.
       // needs to check that the ID has loans that
       // are all still fundraising!
       // todo: not yet complete
       // this still needs a wrapping process that updates all of the loans in the basket before cleaning.
       // needs to also reduce basket amount to what fits based on available on the loan.
-      return state.filter(l => l.status !== 'fundraising');
+      const after = state.filter(l => l.status !== 'fundraising');
+      if (after.length !== state.length) {
+        return after;
+      }
+      return state;
+    }
     case c.BASKET_CLEAR:
       store.set('basket', JSON.stringify([]));
       return [];
