@@ -176,6 +176,11 @@ setInterval(() => {
 }, 30000);
 
 const performSearch = (appState, output = 'loanIds') => {
+  const allLoaded = Object.keys(appState.loading).length === 0;
+  if (!allLoaded) {
+    return [];
+  };
+
   const matchingPartnerIds = searchPartners(appState, {
     useCache: true,
     idsOnly: true,

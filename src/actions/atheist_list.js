@@ -104,8 +104,8 @@ export const atheistListFetch = () => {
             type: c.ATHEIST_LIST_SET,
             payload,
           });
-          dispatch(markDone('atheistList'));
         });
-      });
+      })
+      .always(() => dispatch(markDone('atheistList')));
   };
 };

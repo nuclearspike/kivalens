@@ -93,6 +93,7 @@ export const loansFastFetch = () => {
 export const loansSmartFetch = (forceKiva = false) => {
   return (dispatch, getState) => {
     const { batchNum } = getState().runtime;
+    // const batchNum = 0;
     if (batchNum > 0 && !forceKiva) {
       return dispatch(loansFastFetch())
         .then(dispatch(partnersFastFetch()))
@@ -104,32 +105,42 @@ export const loansSmartFetch = (forceKiva = false) => {
   };
 };
 
+let currentlyDoingFreshTick = false;
 export const keepFreshTick = () => {
+  if (currentlyDoingFreshTick) {
+    console.log('keepFreshTick', 'currentlyDoingFreshTick === true');
+    return () => true;
+  }
   return (dispatch, getState) => {
     // get the updated funded/basket amounts for the most popular loans so sorts work right.
-    dispatch(fetchGQLDynamicDetailsForPopularLoans()).then(() => {
-      const { allLoanIds, loanDetails } = getState();
-      const loans = combineIdsAndLoans(allLoanIds, loanDetails);
+    currentlyDoingFreshTick = true;
+    dispatch(fetchGQLDynamicDetailsForPopularLoans())
+      .then(() => {
+        const { allLoanIds, loanDetails } = getState();
+        const loans = combineIdsAndLoans(allLoanIds, loanDetails);
 
-      // first find any that have never been updated.
-      let readyToUpdate = loans.filter(l => l.kl_dyn_updated === undefined);
+        // first find any that have never been updated.
+        let readyToUpdate = loans.filter(l => l.kl_dyn_updated === undefined);
 
-      // if all have been updated, then start to find loans that haven't updated recently
-      if (readyToUpdate.length === 0) {
-        // all loans have gone through at least one update.
-        const fiveMinsAgo = dayjs()
-          .subtract(5, 'minute')
-          .toDate()
-          .getTime();
+        // if all have been updated, then start to find loans that haven't updated recently
+        if (readyToUpdate.length === 0) {
+          // all loans have gone through at least one update.
+          const fiveMinsAgo = dayjs()
+            .subtract(5, 'minute')
+            .toDate()
+            .getTime();
 
-        readyToUpdate = loans
-          .orderBy(l => l.kl_dyn_updated)
-          .filter(l => l.kl_dyn_updated < fiveMinsAgo);
-      }
+          readyToUpdate = loans
+            .orderBy(l => l.kl_dyn_updated)
+            .filter(l => l.kl_dyn_updated < fiveMinsAgo);
+        }
 
-      // 20 is a Kiva limit or I would do more.
-      dispatch(fetchGQLDynamicDetailsForLoans(readyToUpdate.take(20).ids()));
-    });
+        // 20 is a Kiva limit or I would do more.
+        dispatch(fetchGQLDynamicDetailsForLoans(readyToUpdate.take(20).ids()));
+      })
+      .finally(() => {
+        currentlyDoingFreshTick = false;
+      });
   };
 };
 

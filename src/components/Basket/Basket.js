@@ -75,7 +75,7 @@ const Basket = ({ selectedId }) => {
 
   const onClient = useOnClient();
 
-  const allLoaded = useSelector(({ loading }) => Object.keys(loading).length === 0);
+  const allLoaded = Object.keys(useSelector(({ loading }) => loading)).length === 0;
 
   if (!onClient || !allLoaded) {
     return (

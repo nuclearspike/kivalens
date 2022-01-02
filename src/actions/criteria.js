@@ -1,6 +1,6 @@
-import * as c from '../constants';
-import { criteriaSchema } from '../components/CriteriaForm/allOptions'
 import extend from 'extend';
+import * as c from '../constants';
+import { criteriaSchema } from '../components/CriteriaForm/allOptions';
 
 // happens immediately. use for loading saved searches
 export const alterCriteria = criteria => ({
@@ -8,6 +8,7 @@ export const alterCriteria = criteria => ({
   payload: criteria,
 });
 
+// meant to only modify one single criteria, not the whole thing. for helper graph clicks
 export const criteriaSetToPreset = (group, crit, presetName) => {
   console.log('criteriaSetToPreset', group, crit, presetName);
   return (dispatch, getState) => {
@@ -19,8 +20,7 @@ export const criteriaSetToPreset = (group, crit, presetName) => {
     const presetValues = presets.first(p => p.name === presetName);
     if (presetValues) {
       const newCrit = extend(true, {}, criteria);
-      const values = { min: presetValues.min, max: presetValues.max };
-      newCrit[group][crit] = values;
+      newCrit[group][crit] = { min: presetValues.min, max: presetValues.max };
       dispatch(alterCriteria(newCrit));
     }
   };

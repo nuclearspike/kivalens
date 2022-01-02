@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
 import PT from 'prop-types';
 import useStyles from 'isomorphic-style-loader/useStyles';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,9 +17,9 @@ import {
 } from '../../store/helpers/hooks';
 import { fetchGQLDynamicDetailsForLoans } from '../../actions/loan_details';
 import { combineIdsAndLoans } from '../../utils/linqextras.mjs';
+import { displayedResultsSetFromCriteria } from '../../actions/displayed_results';
 import Criteria from './Criteria';
 import BulkAddModal from './BulkAddModal';
-import performSearch from './performSearch';
 import s from './Search.css';
 import ListContainer from './ListContainer';
 // eslint-disable-next-line css-modules/no-unused-class
@@ -29,35 +29,48 @@ const loanLink = id => `/search/${id}`;
 const Search = memo(({ selectedId }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
+  const alreadyDoingPrep = useRef(false);
   const dispatch = useDispatch();
-  const appState = useSelector(all => all);
-  const loanIds = useSelector(({ allLoanIds }) => allLoanIds);
-  const loadingLoans = useSelector(({ loading }) => loading.loans);
+  const allLoaded =
+    Object.keys(useSelector(({ loading }) => loading)).length === 0;
   const allDetails = useLoanAllDetails();
+  const results = useSelector(
+    ({ displayedResults }) => displayedResults.matching,
+  );
   const onClient = useOnClient();
 
+  // take out of Search and put into Store.
   const prepNextInList = useCallback(
     res => {
-      const toFetch = combineIdsAndLoans(res, allDetails, true)
-        // this should be filled in for everything or the filter won't work!
-        .filter(l => l && !l.kl_dyn_updated)
-        .take(20)
-        .ids();
+      if (!allLoaded) {
+        return [];
+      }
+      if (!alreadyDoingPrep.current) {
+        alreadyDoingPrep.current = true;
+        const toFetch = combineIdsAndLoans(res, allDetails, true)
+          // this should be filled in for everything or the filter won't work!
+          .take(20)
+          .ids();
 
-      if (toFetch.length > 0) {
-        dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true));
+        if (toFetch.length > 0) {
+          dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true)).then(() => {
+            alreadyDoingPrep.current = false;
+          });
+        } else {
+          alreadyDoingPrep.current = false;
+        }
       }
       return res;
     },
-    [allDetails],
+    [allLoaded, allDetails],
   );
 
-  const results = useMemo(() => {
-    if (!process.env.BROWSER) {
-      return [];
+  useEffect(() => {
+    if (!process.env.BROWSER || !allLoaded) {
+      return;
     }
-    return prepNextInList(performSearch(appState));
-  }, [criteria, loanIds]); // not allDetails or funded loans don't display in list.
+    dispatch(displayedResultsSetFromCriteria());
+  }, [criteria, allLoaded]);
 
   useEffect(() => {
     const handle = setInterval(() => prepNextInList(results), 20000);
@@ -91,9 +104,7 @@ const Search = memo(({ selectedId }) => {
           </ButtonGroup>
           <StickyColumn>
             <LoansProgress />
-            {!loadingLoans && results.length && (
-              <div>Count: {results.length}</div>
-            )}
+            {allLoaded && <div>Count: {results.length}</div>}
             <ListContainer defaultHeight={550}>
               {height => (
                 <Infinite
