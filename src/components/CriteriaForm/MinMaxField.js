@@ -104,7 +104,9 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     prepForComp(storedMax, schema.max),
   ];
 
-  const selectedHelper = useSelector(({ helperGraphs }) => helperGraphs.selected)
+  const selectedHelper = useSelector(
+    ({ helperGraphs }) => helperGraphs.selected,
+  );
 
   const displayMin = prepToStore(storedMin, schema.min) || 'min';
   const displayMax = prepToStore(storedMax, schema.max) || 'max';
@@ -116,7 +118,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   // set control values to stored values if they change.
   useEffect(() => {
     const values = [storedMin, storedMax];
-    setModalFormData(values);
+    setModalFormData({ min_value: storedMin, max_value: storedMax });
     setUpdate(values);
   }, [storedMin, storedMax]);
 
