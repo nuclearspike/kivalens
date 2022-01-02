@@ -112,6 +112,14 @@ const MinMaxField = ({ schema, formData, onChange }) => {
   // const [domain, setDomain] = useState([schema.min, schema.max]);
   // const [valuesForComp, setValues] = useState([storedMin, storedMax]);
   const [update, setUpdate] = useState(valuesForComp);
+
+  // set control values to stored values if they change.
+  useEffect(() => {
+    const values = [storedMin, storedMax];
+    setModalFormData(values);
+    setUpdate(values);
+  }, [storedMin, storedMax]);
+
   const [updateMin, updateMax] = update;
   const displayUpdateMin = prepToStore(updateMin, schema.min) || 'min';
   const displayUpdateMax = prepToStore(updateMax, schema.max) || 'max';
@@ -178,6 +186,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     return <Button onClick={onClick}>Save Changes</Button>;
   });
 
+  // produce the presets dropdown
   const presetsDrop = useMemo(() => {
     return (
       schema.presets && (
