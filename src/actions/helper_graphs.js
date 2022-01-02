@@ -3,7 +3,7 @@ import { humanize } from '../utils';
 import { basicReverseOrder } from '../utils/linqextras.mjs';
 import { HELPER_GRAPH_CLEAR, HELPER_GRAPH_SET } from '../constants';
 import performSearch from '../components/Search/performSearch';
-import { criteriaSetToPreset } from './criteria'
+import { criteriaSetToPreset } from './criteria';
 
 export const getHelperGraphs = props => {
   let field;
@@ -34,6 +34,7 @@ export const getHelperGraphs = props => {
       loanDetails,
       helperGraphs,
       atheistList,
+      loading,
     } = appState;
 
     // don't do it again.
@@ -112,6 +113,7 @@ export const getHelperGraphs = props => {
         allLoanIds,
         loanDetails,
         atheistList,
+        loading,
       },
       'loans',
     );
@@ -129,6 +131,7 @@ export const getHelperGraphs = props => {
           allLoanIds,
           loanDetails,
           atheistList,
+          loading,
         });
         return {
           name: preset.name,

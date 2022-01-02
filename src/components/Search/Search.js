@@ -29,41 +29,41 @@ const loanLink = id => `/search/${id}`;
 const Search = memo(({ selectedId }) => {
   useStyles(s, listItem);
   const criteria = useCriteria();
-  const alreadyDoingPrep = useRef(false);
+  // const alreadyDoingPrep = useRef(false);
   const dispatch = useDispatch();
   const allLoaded =
     Object.keys(useSelector(({ loading }) => loading)).length === 0;
-  const allDetails = useLoanAllDetails();
+  // const allDetails = useLoanAllDetails();
   const results = useSelector(
     ({ displayedResults }) => displayedResults.matching,
   );
   const onClient = useOnClient();
 
   // take out of Search and put into Store.
-  const prepNextInList = useCallback(
-    res => {
-      if (!allLoaded) {
-        return [];
-      }
-      if (!alreadyDoingPrep.current) {
-        alreadyDoingPrep.current = true;
-        const toFetch = combineIdsAndLoans(res, allDetails, true)
-          // this should be filled in for everything or the filter won't work!
-          .take(20)
-          .ids();
-
-        if (toFetch.length > 0) {
-          dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true)).then(() => {
-            alreadyDoingPrep.current = false;
-          });
-        } else {
-          alreadyDoingPrep.current = false;
-        }
-      }
-      return res;
-    },
-    [allLoaded, allDetails],
-  );
+  // const prepNextInList = useCallback(
+  //   res => {
+  //     if (!allLoaded) {
+  //       return [];
+  //     }
+  //     if (!alreadyDoingPrep.current) {
+  //       alreadyDoingPrep.current = true;
+  //       const toFetch = combineIdsAndLoans(res, allDetails, true)
+  //         // this should be filled in for everything or the filter won't work!
+  //         .take(20)
+  //         .ids();
+  //
+  //       if (toFetch.length > 0) {
+  //         dispatch(fetchGQLDynamicDetailsForLoans(toFetch, true)).then(() => {
+  //           alreadyDoingPrep.current = false;
+  //         });
+  //       } else {
+  //         alreadyDoingPrep.current = false;
+  //       }
+  //     }
+  //     return res;
+  //   },
+  //   [allLoaded, allDetails],
+  // );
 
   useEffect(() => {
     if (!process.env.BROWSER || !allLoaded) {
@@ -72,10 +72,10 @@ const Search = memo(({ selectedId }) => {
     dispatch(displayedResultsSetFromCriteria());
   }, [criteria, allLoaded]);
 
-  useEffect(() => {
-    const handle = setInterval(() => prepNextInList(results), 20000);
-    return () => clearInterval(handle);
-  }, [results, prepNextInList]);
+  // useEffect(() => {
+  //   const handle = setInterval(() => prepNextInList(results), 20000);
+  //   return () => clearInterval(handle);
+  // }, [results, prepNextInList]);
 
   if (!onClient) {
     // can't be a div or React gets confused and mounts the wrong element on client load
