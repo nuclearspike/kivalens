@@ -362,7 +362,7 @@ export const criteriaSchema = {
           title: 'Social Performance',
           field: 'social_performance',
           $ref: '#/definitions/all_any_none',
-          // ordered by popularity.
+          // ordered ABC.
           enum: [1, 3, 5, 6, 4, 7, 2],
           enumNames: [
             'Anti-Poverty Focus',
