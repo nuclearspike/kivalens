@@ -359,7 +359,7 @@ export const criteriaSchema = {
           $ref: '#/definitions/string_partial_exact',
         },
         social_performance: {
-          title: 'Social Performance (helper graphs not implemented)',
+          title: 'Social Performance',
           field: 'social_performance',
           $ref: '#/definitions/all_any_none',
           // ordered by popularity.
@@ -375,7 +375,7 @@ export const criteriaSchema = {
           ],
         },
         region: {
-          title: 'Region (helper graphs not implemented)',
+          title: 'Region',
           field: 'region',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',

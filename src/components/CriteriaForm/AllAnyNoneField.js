@@ -68,7 +68,7 @@ export const MultiSelectField = ({ formData, onChange }) => {
   );
 
   const onFocusCB = useCallback(() => {
-    if (schemaContext.lookup) {
+    if (schemaContext.lookup || schemaContext.enum) {
       setTimeout(() => dispatch(getHelperGraphs(schemaContext)), 100);
     }
   }, [schemaContext.lookup]);

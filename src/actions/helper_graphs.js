@@ -85,6 +85,12 @@ export const getHelperGraphs = props => {
         critExcludeSelected.loan[selected] = [];
         break;
 
+      case 'region':
+      case 'social_performance':
+        group = 'partner';
+        critExcludeSelected.partner[selected] = [];
+        break;
+
       // partner stuff.
       case 'years_on_kiva':
       case 'partner_risk_rating':
@@ -194,7 +200,7 @@ export const getHelperGraphs = props => {
       case 'expiring_in_days':
       case 'disbursal':
         group = 'loan';
-        data = minMaxGroupCounts2('loan', field);
+        data = minMaxGroupCounts('loan', field);
         break;
 
       // PARTNER STUFF
@@ -271,7 +277,7 @@ export const getHelperGraphs = props => {
           })
           .groupByWithCount();
         break;
-      case 'regions': // this won't come out with the right number of loans....
+      case 'region': // this won't come out with the right number of loans....
         group = 'partner';
         data = loans
           .map(l => {

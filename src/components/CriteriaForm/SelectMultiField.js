@@ -43,7 +43,7 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
 
   const onFocusCB = useCallback(() => {
     if (schema.field) {
-      setTimeout(() => dispatch(getHelperGraphs(schema)), 100);
+      setTimeout(() => dispatch(getHelperGraphs(schema)), 200);
     }
   }, [schema]);
 

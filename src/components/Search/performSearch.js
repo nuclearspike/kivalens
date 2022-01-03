@@ -70,6 +70,13 @@ const searchPartners = (appState, { idsOnly = true }) => {
       : [];
   } catch (e) {}
 
+  let pRegions = [];
+  try {
+    pRegions = Array.isArray(criteria.partner.region.value)
+      ? criteria.partner.region.value
+      : [];
+  } catch (e) {}
+
   let partnersGiven = [];
   if (criteria.partner.partners) {
     // explicitly given by user. OLD CODE, should now be just a normal array!
@@ -82,7 +89,7 @@ const searchPartners = (appState, { idsOnly = true }) => {
   const ct = new CritTester(criteria.partner);
   ct.addAnyAllNoneTester(
     'region',
-    null,
+    pRegions,
     'any',
     partner => partner.kl_regions,
     true,
@@ -130,7 +137,7 @@ const searchPartners = (appState, { idsOnly = true }) => {
   );
 
   // atheist list criteria
-  const isConstrained = ({ min, max }) => min || max;
+  const isConstrained = ({ min, max }) => min || max; // what??
   if (
     isConstrained(criteria.partner.secular_rating) ||
     isConstrained(criteria.partner.social_rating)
