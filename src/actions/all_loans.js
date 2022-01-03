@@ -57,6 +57,7 @@ export const loansFastFetch = () => {
         // if the server restarted or something? any way the batchNum is not valid
         // eslint-disable-next-line no-use-before-define
         dispatch(loansSmartFetch(true));
+        // this recovers from a failed load from KL server by restarting the load from Kiva Servers.
       })
       .then(response => response.json())
       .then(loans => {
@@ -144,6 +145,7 @@ export const keepFreshTick = () => {
   };
 };
 
+// this only sets All IDs to good ones, but does not clear old data from loanDetails
 export const pruneOldLoans = () => {
   return (dispatch, getState) => {
     const { allLoanIds, loanDetails } = getState();

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import PT from 'prop-types';
 import HoverOver from '../Common/HoverOver';
 import FormSchemaContext from './FormSchemaContext';
+import { useMergeEnumAndNames } from '../../store/helpers/hooks'
 
 /**
  *
@@ -31,16 +32,21 @@ const TwoFieldObjectFieldTemplate = ({
     throw new Error(`Too few/many properties: ${title}`);
   }
 
-  let values;
+  let options;
   if (schema.lookup) {
-    values = useSelector(({ lookups }) => lookups[schema.lookup]);
+    options = useSelector(({ lookups }) => lookups[schema.lookup]).map(i => ({
+      value: i,
+      label: i,
+    }));
+  } else if (schema.enum && schema.enumNames) {
+    options = useMergeEnumAndNames(schema);
   }
 
   return (
     <>
       <HoverOver title={title} description={description} />
       <div style={flexContainer}>
-        <FormSchemaContext.Provider value={{ schema, values }}>
+        <FormSchemaContext.Provider value={{ schema, options }}>
           <div style={{ minWidth: 72 }}>{properties[0].content}</div>
           {properties.length === 2 && (
             <div style={{ flex: 1 }}>{properties[1].content}</div>
@@ -67,6 +73,8 @@ TwoFieldObjectFieldTemplate.propTypes = {
   ).isRequired,
   schema: PT.shape({
     lookup: PT.string,
+    enum: PT.arrayOf(PT.string),
+    enumNames: PT.arrayOf(PT.string),
   }).isRequired,
 };
 

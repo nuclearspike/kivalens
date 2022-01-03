@@ -3,6 +3,7 @@ import { humanize } from '../utils';
 import { basicReverseOrder } from '../utils/linqextras.mjs';
 import { HELPER_GRAPH_CLEAR, HELPER_GRAPH_SET } from '../constants';
 import performSearch from '../components/Search/performSearch';
+import { criteriaSchema } from '../components/CriteriaForm/allOptions';
 import { criteriaSetToPreset } from './criteria';
 
 export const getHelperGraphs = props => {
@@ -140,12 +141,49 @@ export const getHelperGraphs = props => {
       });
     };
 
+    const minMaxGroupCounts2 = (pGroup, critField) => {
+      const figurePresets = loan => {
+        const {
+          presets: critPresets,
+          selector: loanField,
+        } = criteriaSchema.properties[pGroup].properties[critField];
+
+        return critPresets
+          .filter(p => {
+            const value = loanField(loan);
+            // remember we are removing presets, do not use >=/<= or it messes everything up.
+            if (p.min !== null && p.min > value) {
+              return false;
+            }
+            return !(p.max !== null && p.max < value);
+          })
+          .map(p => p.name);
+      };
+
+      const grouped = performSearch(
+        {
+          partnerDetails,
+          criteria: critExcludeSelected,
+          allLoanIds,
+          loanDetails,
+          atheistList,
+          loading,
+        },
+        'loans',
+      )
+        .map(figurePresets)
+        .flatten()
+        .groupByWithCount();
+
+      return presets.map(p => grouped.first(g => p.name === g.name)).nonBlank();
+    };
+
     switch (selected) {
       case 'borrower_count':
       case 'percent_female':
       case 'age_mentioned':
         group = 'borrower';
-        data = minMaxGroupCounts('borrower', field);
+        data = minMaxGroupCounts2('borrower', field);
         break;
 
       case 'repaid_in':
@@ -156,7 +194,7 @@ export const getHelperGraphs = props => {
       case 'expiring_in_days':
       case 'disbursal':
         group = 'loan';
-        data = minMaxGroupCounts('loan', field);
+        data = minMaxGroupCounts2('loan', field);
         break;
 
       // PARTNER STUFF
@@ -182,16 +220,19 @@ export const getHelperGraphs = props => {
       case 'activities':
       case 'currency_exchange_loss_liability':
       case 'bonus_credit_eligibility':
+        group = 'loan';
         data = loans.groupByWithCount(selector);
         break;
 
       case 'tags':
+        group = 'loan';
         data = loans
           .map(l => l.kls_tags)
           .flatten()
           .groupByWithCount(t => humanize(t));
         break;
       case 'themes':
+        group = 'loan';
         data = loans
           .map(l => l.themes)
           .flatten()
@@ -199,16 +240,19 @@ export const getHelperGraphs = props => {
           .groupByWithCount();
         break;
       case 'direct':
+        group = 'partner';
         data = loans.groupByWithCount(l =>
           l.partner_id == null ? 'Direct' : 'MFI',
         );
         break;
       case 'repayment_interval':
+        group = 'partner';
         data = loans.groupByWithCount(l =>
           l.terms.repayment_interval ? l.terms.repayment_interval : 'unknown',
         );
         break;
       case 'social_performance':
+        group = 'partner';
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
@@ -219,6 +263,7 @@ export const getHelperGraphs = props => {
           .groupByWithCount(sp => sp.name);
         break;
       case 'partners':
+        group = 'partner';
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
@@ -227,6 +272,7 @@ export const getHelperGraphs = props => {
           .groupByWithCount();
         break;
       case 'regions': // this won't come out with the right number of loans....
+        group = 'partner';
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];
@@ -237,6 +283,7 @@ export const getHelperGraphs = props => {
           .groupByWithCount();
         break;
       case 'charges_fees_and_interest':
+        group = 'partner';
         data = loans
           .map(l => {
             const p = partnerDetails[l.partner_id];

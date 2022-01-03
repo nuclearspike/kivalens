@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import PT from 'prop-types';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
@@ -58,13 +58,14 @@ export const MultiSelectField = ({ formData, onChange }) => {
     value => onChange((value || []).map(v => v.value)),
     [onChange],
   );
-  const processed = (formData || []).map(value => ({ label: value, value }));
-  const { schema: schemaContext, values } = useContext(FormSchemaContext);
-  const options = values.map(i => ({
-    value: i,
-    label: i,
-  }));
+
+  const { schema: schemaContext, options } = useContext(FormSchemaContext);
   const dispatch = useDispatch();
+  const processed = useMemo(() =>
+    (formData || []).map(selected =>
+      options.first(opt => opt.value === selected),
+    ),
+  );
 
   const onFocusCB = useCallback(() => {
     if (schemaContext.lookup) {
@@ -81,6 +82,8 @@ export const MultiSelectField = ({ formData, onChange }) => {
   return (
     <Select
       isMulti
+      menuPortalTarget={document.body}
+      styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
       options={options}
       onChange={valueChange}
       value={processed}

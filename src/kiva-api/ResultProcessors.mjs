@@ -193,30 +193,34 @@ class ResultProcessors {
         texts: { en: '' },
       };
       loan.status = loan.status || 'fundraising';
-      // this is clumsy... can't we just populate borrower_count and percent_female?
-      // loan.borrowers = Array.range(1, loan.klb.M || 0).map(x => ({
-      //   gender: 'M',
-      //   first_name: '...',
-      // }));
-      // loan.borrowers = loan.borrowers.concat(
-      //   Array.range(1, loan.klb.F || 0).map(() => ({
-      //     gender: 'F',
-      //     first_name: '...',
-      //   })),
-      // );
+
       loan.kls = false;
     }
 
     if (loan.klb) {
-      loan.borrower_count = loan.klb.M + loan.klb.F;
-      loan.kl_percent_women = loan.klb.F * 100 / loan.borrower_count;
+      loan.borrower_count = (loan.klb.M || 0) + (loan.klb.F || 0);
+      loan.kl_percent_women = (loan.klb.F || 0) * 100 / loan.borrower_count;
       loan.borrowers = loan.borrowers || [];
+
+      // this is clumsy... can't we just populate borrower_count and percent_female?
+      loan.borrowers = Array.range(1, loan.klb.M || 0).map(x => ({
+        gender: 'M',
+        first_name: '...',
+      })).concat(
+        Array.range(1, loan.klb.F || 0).map(() => ({
+          gender: 'F',
+          first_name: '...',
+        })),
+      );
       delete loan.klb;
     } else if (loan.borrowers) {
       loan.borrower_count = loan.borrowers.length;
       loan.kl_percent_women = loan.borrowers.percentWhere(
         b => b.gender === 'F' || b.gender === 'female',
       );
+    } else {
+      // when does this happen? gets corrected after a GQL when viewing loan, but that means it can't be queried
+      loan.borrowers = []
     }
 
     // i don't like this.

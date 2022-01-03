@@ -107,7 +107,7 @@ export const criteriaSchema = {
         borrower_count: {
           title: 'Borrower Count',
           field: 'borrower_count',
-          selector: l => l.borrower_count,
+          selector: l => l.borrowers.length,
           description:
             'The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right.',
           min: 1,
@@ -123,7 +123,7 @@ export const criteriaSchema = {
         percent_female: {
           title: 'Percent Female',
           field: 'percent_female',
-          selector: l => l.percent_female,
+          selector: l => l.kl_percent_women,
           description:
             "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed.",
           min: 0,
@@ -140,7 +140,7 @@ export const criteriaSchema = {
         age_mentioned: {
           title: 'Age Mentioned',
           field: 'age_mentioned',
-          selector: l => l.age_mentioned,
+          selector: l => l.kls_age,
           description:
             "KivaLens looks for variations of the pattern '20-99 year(s) old' in the description and uses the first one mentioned... which may be the age of the borrower's parent or child. Read the description to double-check it! More than half of the loans have ages that can be pulled out, but many cannot. You must set the lower slider to something other than 'min' or loans with no ages found will be included as well.",
           min: 19,
@@ -180,6 +180,7 @@ export const criteriaSchema = {
             { name: 'More than 2 Years (>= 24mo)', min: 24, max: null },
           ],
           $ref: '#/definitions/double_range',
+          selector: l => l.kls_repaid_in(),
         },
         loan_amount: {
           title: 'Loan Amount ($)',
@@ -190,6 +191,7 @@ export const criteriaSchema = {
           max: 10000,
           step: 25,
           $ref: '#/definitions/double_range',
+          selector: l => l.loan_amount,
           presets: [
             { name: '< $200', min: null, max: 200 },
             { name: '$200 - $500', min: 200, max: 500 },
@@ -208,8 +210,11 @@ export const criteriaSchema = {
           min: 0,
           max: 500,
           $ref: '#/definitions/double_range',
+          selector: l => l.kl_dollars_per_hour(),
           presets: [
             { name: 'Zero', min: null, max: 0 },
+            { name: '0-0.5', min: 0, max: 0.5 },
+            { name: '0.5-1', min: 0.5, max: 1 },
             { name: '1-5', min: 1, max: 5 },
             ...buildPresets(5, 40, 5, '', false, false),
             ...buildPresets(40, 500, 20, '', false, true),
@@ -229,6 +234,7 @@ export const criteriaSchema = {
             { name: 'Fully funded (including baskets)', min: null, max: 0 },
           ],
           $ref: '#/definitions/double_range',
+          selector: l => l.kl_still_needed(),
         },
         percent_funded: {
           title: 'Funded (%)',
@@ -240,6 +246,7 @@ export const criteriaSchema = {
           step: 1,
           $ref: '#/definitions/double_range',
           presets: buildPresets(0, 100, 5),
+          selector: l => l.kl_percent_funded(),
         },
         expiring_in_days: {
           title: 'Expiring (days)',
@@ -248,6 +255,7 @@ export const criteriaSchema = {
             'The number of days left before the loan expires if not funded.',
           min: 0,
           max: 65,
+          selector: l => l.kl_expiring_in_days(),
           presets: [
             { name: 'Expiring today!', min: null, max: 1 },
             { name: 'Expiring within 2 days', min: null, max: 2 },
@@ -269,6 +277,7 @@ export const criteriaSchema = {
           max: 90,
           $ref: '#/definitions/double_range',
           presets: buildPresets(-90, 90, 10, ''),
+          selector: l => l.terms.disbursal, // ?
         },
         sectors: {
           title: 'Sectors',
@@ -289,12 +298,14 @@ export const criteriaSchema = {
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
           lookup: 'themes',
+          selector: l => l.themes, // ?
         },
         tags: {
           title: 'Tags',
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
           lookup: 'tags',
+          selector: l => l.tags,
         },
         countries: {
           title: 'Countries',
@@ -333,6 +344,7 @@ export const criteriaSchema = {
         repayment_interval: {
           title: 'Repayment Interval',
           field: 'repayment_interval',
+          selector: l => l.repayment_interval, // ?
           type: 'string',
           enum: ['Monthly', 'Irregularly', 'At end of term'],
         },
@@ -340,11 +352,47 @@ export const criteriaSchema = {
     },
     partner: {
       type: 'object',
-      title: 'Partner',
+      title: 'Partner (not fully implemented)',
       properties: {
         name: {
           title: 'Name (not implemented)',
           $ref: '#/definitions/string_partial_exact',
+        },
+        social_performance: {
+          title: 'Social Performance (helper graphs not implemented)',
+          field: 'social_performance',
+          $ref: '#/definitions/all_any_none',
+          // ordered by popularity.
+          enum: [1, 3, 5, 6, 4, 7, 2],
+          enumNames: [
+            'Anti-Poverty Focus',
+            'Client Voice',
+            'Entrepreneurial Support',
+            'Facilitation of Savings',
+            'Family and Community Empowerment',
+            'Innovation',
+            'Vulnerable Group Focus',
+          ],
+        },
+        region: {
+          title: 'Region (helper graphs not implemented)',
+          field: 'region',
+          $ref: '#/definitions/any_none',
+          defaultAan: 'any',
+          enum: ['na', 'ca', 'sa', 'af', 'as', 'me', 'ee', 'we', 'an', 'oc'],
+          enumNames: [
+            'North America',
+            'Central America',
+            'South America',
+            'Africa',
+            'Asia',
+            'Middle East',
+            'Eastern Europe',
+            'Western Europe',
+            'Antarctica',
+            'Oceania',
+            // technically missing antarctica, an
+          ],
         },
         partner_risk_rating: {
           title: 'Risk Rating (stars)',
@@ -653,7 +701,9 @@ export const uiCriteriaSchema = {
   },
   partner: {
     name: PartialExactUiSchema,
-    // region, social perf, partners?
+    // partners?
+    social_performance: AANUiSchema,
+    region: AANUiSchema,
     partner_risk_rating: { 'ui:field': MinMaxField },
     partner_arrears: { 'ui:field': MinMaxField },
     partner_default: { 'ui:field': MinMaxField },

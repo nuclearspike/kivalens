@@ -13,8 +13,13 @@ export const criteriaSetToPreset = (group, crit, presetName) => {
   console.log('criteriaSetToPreset', group, crit, presetName);
   return (dispatch, getState) => {
     const { criteria } = getState();
-    const { presets } = criteriaSchema.properties[group].properties[crit];
-    if (!presets) {
+    let presets;
+    try {
+      ({ presets } = criteriaSchema.properties[group].properties[crit]);
+      if (!presets) {
+        return;
+      }
+    } catch {
       return;
     }
     const presetValues = presets.first(p => p.name === presetName);

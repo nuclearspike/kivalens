@@ -65,19 +65,14 @@ const searchPartners = (appState, { idsOnly = true }) => {
   }
   let spArr = [];
   try {
-    spArr =
-      typeof criteria.partner.social_performance === 'string'
-        ? criteria.partner.social_performance
-            .split(',')
-            .filter(sp => sp && !Number.isNaN(sp))
-            .map(sp => parseInt(sp, 10))
-        : [];
-    // cannot be reduced to select(parseInt) :(
+    spArr = Array.isArray(criteria.partner.social_performance.value)
+      ? criteria.partner.social_performance.value
+      : [];
   } catch (e) {}
 
   let partnersGiven = [];
   if (criteria.partner.partners) {
-    // explicitly given by user.
+    // explicitly given by user. OLD CODE, should now be just a normal array!
     partnersGiven = criteria.partner.partners
       .split(',')
       .map(id => parseInt(id, 10)); // cannot be reduced to select(parseInt) :(
@@ -179,7 +174,7 @@ const performSearch = (appState, output = 'loanIds') => {
   const allLoaded = Object.keys(appState.loading).length === 0;
   if (!allLoaded) {
     return [];
-  };
+  }
 
   const matchingPartnerIds = searchPartners(appState, {
     useCache: true,
@@ -191,6 +186,7 @@ const performSearch = (appState, output = 'loanIds') => {
     borrower: criteria.borrower,
     loan: criteria.loan,
     partners: matchingPartnerIds,
+    results: criteria.results,
     output,
   });
 
@@ -281,7 +277,7 @@ const performSearch = (appState, output = 'loanIds') => {
   // if group by for limit is defined... then do limits...
   // ...
   if (criteria.results.limit_to_top && criteria.results.limit_to_top.enabled) {
-    const count = isNaN(criteria.results.limit_to_top.count)
+    const count = Number.isNaN(criteria.results.limit_to_top.count)
       ? 1
       : criteria.results.limit_to_top.count;
     let selector;

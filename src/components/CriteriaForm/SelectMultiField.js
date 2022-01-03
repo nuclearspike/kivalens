@@ -53,11 +53,15 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
     }
   }, []);
 
+  // for menuPortalTarget and styles use.
+  // https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
   return (
     <>
       <HoverOver title={schema.title} description={schema.description} />
       <Select
         isMulti
+        menuPortalTarget={document.body}
+        styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
         options={options}
         value={storedValue}
         onChange={valueChangeCB}
