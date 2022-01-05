@@ -133,6 +133,19 @@ class ResultProcessors {
       loan.kls_age = getAge(loan.description.texts.en);
   }
 
+  static processLoanBasketAmounts(loan) {
+    loan.kl_percent_funded = Math.round(
+      ((loan.funded_amount + loan.basket_amount) * 100) / loan.loan_amount,
+    );
+
+    loan.kl_still_needed = Math.max(
+      loan.loan_amount - loan.funded_amount - loan.basket_amount,
+      0,
+    );
+
+    return loan;
+  }
+
   static processLoan(loan) {
     if (typeof loan !== 'object') {
       console.trace('processLoan is not a loan when is this happening.');
@@ -156,20 +169,8 @@ class ResultProcessors {
       const hoursFundraising = (new Date(this.funded_date) - this.kl_posted_date) / (60 * 60 * 1000)
       return (this.loan_amount / hoursFundraising);
     }.bind(loan);
-    loan.calc_still_needed = function() {
-      return Math.max(
-        this.loan_amount - this.funded_amount - this.basket_amount,
-        0,
-        // api can spit back that more is basketed than remains...
-      );
-    }.bind(loan)
-    loan.kl_still_needed = loan.calc_still_needed();
 
-    loan.kl_percent_funded = function() {
-      return Math.round(
-        (100 * (this.funded_amount + this.basket_amount)) / this.loan_amount,
-      );
-    }.bind(loan)();
+    ResultProcessors.processLoanBasketAmounts(loan);
 
     if (Array.isArray(loan.tags))
       // if tags present, always use those.
@@ -177,16 +178,6 @@ class ResultProcessors {
       loan.kls_tags = loan.tags.map(tag => tag.name); // .replace(/^#/g, '')); // standardize to just an array without a hash.
 
     if (!loan.kls_tags) loan.kls_tags = [];
-
-    // if (!isServer()) {
-    //   loan.getPartner = function() {
-    //     if (!this.partner_id) return null; // ZIP loans
-    //     // todo: this should not reference kivaloans...
-    //     if (!this.kl_partner)
-    //       this.kl_partner = kivaloans.getPartner(this.partner_id);
-    //     return this.kl_partner;
-    //   }.bind(loan);
-    // }
 
     if (loan.kls) {
       // replace what was stripped out by the server before sending down.
@@ -233,8 +224,11 @@ class ResultProcessors {
       loan.kls_final_repayment = new Date(loan.kls_final_repayment);
     }
 
-    if (loan.description.texts) { // bad: inferring too much from a field's presence.
-      // the presence implies this is a detail result; this doesn't run during the background refresh.
+    if (loan.description.texts) {
+      /*
+       bad: inferring too much from a field's presence.
+       the presence implies this is a detail result; this doesn't run during the background refresh.
+      */
       ResultProcessors.processLoanDescription(loan);
 
       loan.kl_planned_expiration_date = new Date(loan.planned_expiration_date);
@@ -282,8 +276,6 @@ class ResultProcessors {
           .filter(b => b.last_name === '')
           .forEach(b => delete b.last_name);
     }
-    // add kivalens specific fields to the loan.
-    // extend(loan, addIt)
 
     delete loan.tags;
     delete loan.journal_totals;
@@ -407,8 +399,8 @@ class ResultProcessors {
     return loan;
   }
 
+  // not used, get rid of.
   static recalcCalcFields(loan) {
-    loan.kl_still_needed = loan.calc_still_needed();
     loan.klc_expiring_in_days = loan.kl_expiring_in_days()
     loan.klc_disbursal_in_days = loan.kl_disbursal_in_days()
     loan.klc_repaid_in = loan.kls_repaid_in()
@@ -441,19 +433,8 @@ class ResultProcessors {
       result.description = { texts: { en: dynLoan.description } };
     };
 
-    // simple calcs without full loan obj.
-    result.kl_percent_funded = Math.round(
-      ((result.funded_amount + result.basket_amount) * 100) / result.loan_amount,
-    );
-
-    result.kl_still_needed = Math.max(
-      result.loan_amount - result.funded_amount - result.basket_amount,
-      0,
-    )
-
-    result.kl_percent_funded = Math.round(
-      (100 * (result.funded_amount + result.basket_amount)) / result.loan_amount,
-    );
+    // simple calcs possible without full loan obj.
+    ResultProcessors.processLoanBasketAmounts(result);
 
     if (dynLoan.terms)  {
       result.terms.scheduled_payments = dynLoan.terms.scheduled_payments.map(({ due_date, amount }) => ({ due_date, amount: parseFloat(amount) }))
