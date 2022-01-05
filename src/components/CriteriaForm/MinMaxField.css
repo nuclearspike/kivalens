@@ -1,0 +1,36 @@
+.strikeout {
+  text-decoration: line-through;
+}
+
+.modalLinkContainer {
+  padding-right: 10px;
+  min-width: 70px;
+  text-align: center;
+}
+
+.minWidth30 {
+  min-width: 30px;
+}
+
+.flexFill {
+  flex: 1;
+}
+
+.changingValues {
+  padding-right: 10px;
+  color: darkolivegreen;
+}
+
+.sliderContainer {
+  margin-top: 20px;
+  height: 50px;
+  width: 100%;
+}
+
+.flexContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  margin-bottom: 15px;
+}

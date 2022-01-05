@@ -11,15 +11,12 @@ import { Handles, Rail, Slider, Ticks, Tracks } from 'react-compound-slider';
 import { useDispatch, useSelector } from 'react-redux';
 import HoverOver from '../Common/HoverOver';
 import ModalLink from '../Modal/ModalLink';
-import { Button, Dropdown } from '../bs';
+import { Button } from '../bs';
 import { ClickLink } from '../Links';
-import {
-  clearHelperGraphs,
-  getHelperGraphs,
-} from '../../actions/helper_graphs';
+import { getHelperGraphs } from '../../actions/helper_graphs';
 import { Handle, Tick, TooltipRail, Track } from './MinMaxSlider';
-
-// /////// My STUFF VVV
+import MinMaxPresets from './MinMaxPresets';
+import s from './MinMaxField.css';
 
 const sliderStyle = {
   position: 'relative',
@@ -31,36 +28,6 @@ const sliderStyle = {
 const nanToUndef = val => (Number.isNaN(val) ? undefined : val); // || val === null
 const prepForComp = (val, def) => nanToUndef(val) || def;
 const prepToStore = (val, def) => (val === def ? null : val);
-
-// const CustomToggle = forwardRef(({ children, onClick }, ref) => (
-//   <ClickLink ref={ref} onClick={onClick}>
-//     {children}
-//     &#x25bc;
-//   </ClickLink>
-// ));
-
-const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
-  <small>
-    <a
-      href=""
-      ref={ref}
-      onClick={e => {
-        e.preventDefault();
-        onClick(e);
-      }}
-    >
-      {children}
-      &#x25bc;
-    </a>
-  </small>
-));
-
-CustomToggle.displayName = 'CustomToggle';
-
-CustomToggle.propTypes = {
-  children: PropTypes.node.isRequired,
-  onClick: PropTypes.func.isRequired,
-};
 
 const schemaModal = {
   type: 'object',
@@ -89,7 +56,6 @@ const uiSchemaModal = {
 };
 
 const MinMaxField = ({ schema, formData, onChange }) => {
-  // console.log('minmax', schema, rest);
   const { min: storedMin, max: storedMax } = formData;
   const [modalFormData, setModalFormData] = useState({
     min_value: storedMin,
@@ -104,9 +70,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     prepForComp(storedMax, schema.max),
   ];
 
-  const selectedHelper = useSelector(
-    ({ helperGraphs }) => helperGraphs.selected,
-  );
+  const selectedHelper = useSelector(({ helperGraphs: hg }) => hg.selected);
 
   const displayMin = prepToStore(storedMin, schema.min) || 'min';
   const displayMax = prepToStore(storedMax, schema.max) || 'max';
@@ -188,69 +152,15 @@ const MinMaxField = ({ schema, formData, onChange }) => {
     return <Button onClick={onClick}>Save Changes</Button>;
   });
 
-  // produce the presets dropdown
-  const presetsDrop = useMemo(() => {
-    return (
-      schema.presets && (
-        <div
-          style={{
-            paddingRight: 10,
-          }}
-        >
-          <Dropdown>
-            <Dropdown.Toggle
-              as={CustomToggle}
-              id={`${schema.title}-dropdown-presets`}
-            >
-              presets
-            </Dropdown.Toggle>
-
-            <Dropdown.Menu>
-              {schema.presets.map(({ name, min, max }) => (
-                <Dropdown.Item
-                  key={name}
-                  active={storedMin === min && storedMax === max}
-                  onSelect={() => userAlteredCB([min, max])}
-                >
-                  {name}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
-      )
-    );
-  }, [schema.presets, userAlteredCB, storedMin, storedMax]);
-
-  // const modalData = useMemo(() => {
-  //   return {
-  //     min_value: displayMin,
-  //     max_value: displayMax,
-  //   };
-  // }, [displayMin, displayMax]);
-
   return (
     <div ref={ref}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          flexWrap: 'nowrap',
-          marginBottom: 15,
-        }}
-      >
-        <div style={{ minWidth: 30 }}>
+      <div className={s.flexContainer}>
+        <div className={s.minWidth30}>
           <HoverOver title={schema.title} description={schema.description} />
         </div>
-        <div style={{ flex: 1 }} />
-        {presetsDrop}
-        <div
-          style={{
-            paddingRight: 10,
-            color: 'darkolivegreen',
-          }}
-        >
+        <div className={s.flexFill} />
+        <MinMaxPresets schema={schema} userAlteredCB={userAlteredCB} />
+        <div className={s.changingValues}>
           {(displayUpdateMin !== displayMin ||
             displayUpdateMax !== displayMax) && (
             <small>
@@ -259,7 +169,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
           )}
         </div>
 
-        <div style={{ paddingRight: 10, minWidth: 70, textAlign: 'center' }}>
+        <div className={s.modalLinkContainer}>
           <ModalLink
             linkText={`${displayMin} - ${displayMax}`}
             linkTitle={`Edit ${schema.title} values in popup.`}
@@ -291,7 +201,7 @@ const MinMaxField = ({ schema, formData, onChange }) => {
         </div>
       </div>
 
-      <div style={{ marginTop: 20, height: 50, width: '100%' }}>
+      <div className={s.sliderContainer}>
         <Slider
           mode={1}
           step={schema.step || 1}

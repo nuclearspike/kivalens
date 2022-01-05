@@ -156,18 +156,20 @@ class ResultProcessors {
       const hoursFundraising = (new Date(this.funded_date) - this.kl_posted_date) / (60 * 60 * 1000)
       return (this.loan_amount / hoursFundraising);
     }.bind(loan);
-    loan.kl_still_needed = function() {
+    loan.calc_still_needed = function() {
       return Math.max(
         this.loan_amount - this.funded_amount - this.basket_amount,
         0,
         // api can spit back that more is basketed than remains...
       );
-    }.bind(loan);
+    }.bind(loan)
+    loan.kl_still_needed = loan.calc_still_needed();
+
     loan.kl_percent_funded = function() {
       return Math.round(
         (100 * (this.funded_amount + this.basket_amount)) / this.loan_amount,
       );
-    }.bind(loan);
+    }.bind(loan)();
 
     if (Array.isArray(loan.tags))
       // if tags present, always use those.
@@ -405,6 +407,16 @@ class ResultProcessors {
     return loan;
   }
 
+  static recalcCalcFields(loan) {
+    loan.kl_still_needed = loan.calc_still_needed();
+    loan.klc_expiring_in_days = loan.kl_expiring_in_days()
+    loan.klc_disbursal_in_days = loan.kl_disbursal_in_days()
+    loan.klc_repaid_in = loan.kls_repaid_in()
+    loan.klc_posted_hours_ago = loan.kl_posted_hours_ago()
+    loan.klc_dollars_per_hour = loan.kl_dollars_per_hour()
+    return loan;
+  }
+
   /**
    *
    * @param dynLoan
@@ -428,6 +440,20 @@ class ResultProcessors {
     if (dynLoan.description) {
       result.description = { texts: { en: dynLoan.description } };
     };
+
+    // simple calcs without full loan obj.
+    result.kl_percent_funded = Math.round(
+      ((result.funded_amount + result.basket_amount) * 100) / result.loan_amount,
+    );
+
+    result.kl_still_needed = Math.max(
+      result.loan_amount - result.funded_amount - result.basket_amount,
+      0,
+    )
+
+    result.kl_percent_funded = Math.round(
+      (100 * (result.funded_amount + result.basket_amount)) / result.loan_amount,
+    );
 
     if (dynLoan.terms)  {
       result.terms.scheduled_payments = dynLoan.terms.scheduled_payments.map(({ due_date, amount }) => ({ due_date, amount: parseFloat(amount) }))

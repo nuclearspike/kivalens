@@ -48,6 +48,7 @@ export const getHelperGraphs = props => {
     }
 
     const critExcludeSelected = extend(true, {}, criteria); // must do deep copy, or mods to critExcludeSelected alter stored criteria sub objects
+
     switch (selected) {
       // loan values that need to be killed with an object.
       case 'sectors':
@@ -112,18 +113,18 @@ export const getHelperGraphs = props => {
         break;
     }
 
-    // must alter criteria to exclude the thing that's currently selected.
-    const loans = performSearch(
-      {
-        partnerDetails,
-        criteria: critExcludeSelected,
-        allLoanIds,
-        loanDetails,
-        atheistList,
-        loading,
-      },
-      'loans',
-    );
+    const loansWithoutSelected = () =>
+      performSearch(
+        {
+          partnerDetails,
+          criteria: critExcludeSelected,
+          allLoanIds,
+          loanDetails,
+          atheistList,
+          loading,
+        },
+        'loans',
+      );
 
     const minMaxGroupCounts = (pGroup, critField) => {
       return presets.map(preset => {
@@ -151,12 +152,12 @@ export const getHelperGraphs = props => {
       const figurePresets = loan => {
         const {
           presets: critPresets,
-          selector: loanField,
+          selector: fieldSelector,
         } = criteriaSchema.properties[pGroup].properties[critField];
 
         return critPresets
           .filter(p => {
-            const value = loanField(loan);
+            const value = fieldSelector(loan);
             // remember we are removing presets, do not use >=/<= or it messes everything up.
             if (p.min !== null && p.min > value) {
               return false;
@@ -189,21 +190,27 @@ export const getHelperGraphs = props => {
       case 'percent_female':
       case 'age_mentioned':
         group = 'borrower';
-        data = minMaxGroupCounts2('borrower', field);
+        data = minMaxGroupCounts2(group, field);
         break;
 
-      case 'repaid_in':
+      // fields, not funcs. uses selector
       case 'loan_amount':
-      case 'dollars_per_hour':
       case 'still_needed':
+      case 'repaid_in':
+      case 'dollars_per_hour':
       case 'percent_funded':
       case 'expiring_in_days':
       case 'disbursal':
         group = 'loan';
-        data = minMaxGroupCounts('loan', field);
+        data = minMaxGroupCounts2(group, field);
         break;
 
       // PARTNER STUFF
+      //   orderGraph = false;
+      //   group = 'partner';
+      //   data = minMaxGroupCounts2(group, field);
+      //   break;
+
       case 'years_on_kiva':
       case 'partner_risk_rating':
       case 'partner_arrears':
@@ -218,7 +225,7 @@ export const getHelperGraphs = props => {
       case 'social_rating':
         orderGraph = false;
         group = 'partner';
-        data = minMaxGroupCounts('partner', field);
+        data = minMaxGroupCounts(group, field);
         break;
 
       case 'countries':
@@ -227,19 +234,19 @@ export const getHelperGraphs = props => {
       case 'currency_exchange_loss_liability':
       case 'bonus_credit_eligibility':
         group = 'loan';
-        data = loans.groupByWithCount(selector);
+        data = loansWithoutSelected().groupByWithCount(selector);
         break;
 
       case 'tags':
         group = 'loan';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => l.kls_tags)
           .flatten()
           .groupByWithCount(t => humanize(t));
         break;
       case 'themes':
         group = 'loan';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => l.themes)
           .flatten()
           .filter(t => t !== undefined)
@@ -247,19 +254,19 @@ export const getHelperGraphs = props => {
         break;
       case 'direct':
         group = 'partner';
-        data = loans.groupByWithCount(l =>
+        data = loansWithoutSelected().groupByWithCount(l =>
           l.partner_id == null ? 'Direct' : 'MFI',
         );
         break;
       case 'repayment_interval':
         group = 'partner';
-        data = loans.groupByWithCount(l =>
+        data = loansWithoutSelected().groupByWithCount(l =>
           l.terms.repayment_interval ? l.terms.repayment_interval : 'unknown',
         );
         break;
       case 'social_performance':
         group = 'partner';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => {
             const p = partnerDetails[l.partner_id];
             return p ? p.social_performance_strengths : [];
@@ -270,16 +277,16 @@ export const getHelperGraphs = props => {
         break;
       case 'partners':
         group = 'partner';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => {
             const p = partnerDetails[l.partner_id];
             return p ? p.name : null;
           })
           .groupByWithCount();
         break;
-      case 'region': // this won't come out with the right number of loans....
+      case 'region': // this won't come out with the right number of loansWithoutSelected....
         group = 'partner';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => {
             const p = partnerDetails[l.partner_id];
             return p ? p.countries : [];
@@ -290,7 +297,7 @@ export const getHelperGraphs = props => {
         break;
       case 'charges_fees_and_interest':
         group = 'partner';
-        data = loans
+        data = loansWithoutSelected()
           .map(l => {
             const p = partnerDetails[l.partner_id];
             return p ? p.charges_fees_and_interest : null;
@@ -363,7 +370,7 @@ export const getHelperGraphs = props => {
 
     dispatch({
       type: HELPER_GRAPH_SET,
-      payload: { config, selected, visible: true },
+      payload: { config, data, selected, visible: true },
     });
   };
 };

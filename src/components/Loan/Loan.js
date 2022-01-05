@@ -1,9 +1,12 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import PT from 'prop-types';
 import { useSelector } from 'react-redux';
 import { Button, Jumbotron, Tab, Tabs } from '../bs';
 import { basketAdd, basketRemove } from '../../actions/basket';
-import { fetchAPIDetailsForLoan, fetchGQLDynamicDetailsForLoan } from '../../actions/loan_details'
+import {
+  fetchAPIDetailsForLoan,
+  fetchGQLDynamicDetailsForLoan,
+} from '../../actions/loan_details';
 import { useLoanDetails, useRuntimeVars } from '../../store/helpers/hooks';
 import Link from '../Link';
 import { LoanLink } from '../Links';
@@ -11,7 +14,7 @@ import LoanTab from './LoanTab';
 import PartnerTab from './PartnerTab';
 import ImageTab from './ImageTab';
 
-const Loan = ({ id }) => {
+const Loan = memo(({ id }) => {
   const [loanActiveTab, setLoanActiveTabCB, dispatch] = useRuntimeVars(
     'LoanActiveTab',
     'loan',
@@ -23,7 +26,7 @@ const Loan = ({ id }) => {
     if (!loan) {
       // get EVERYTHING.
       dispatch(fetchAPIDetailsForLoan(id));
-    } else {
+    } else if (!loan.kl_dyn_updated) {
       // update and include extras (descr, tags, basket, etc)
       dispatch(fetchGQLDynamicDetailsForLoan(id, true));
     }
@@ -109,7 +112,9 @@ const Loan = ({ id }) => {
       </Tabs>
     </div>
   );
-};
+});
+
+Loan.displayName = 'Loan';
 
 Loan.propTypes = {
   id: PT.number.isRequired,

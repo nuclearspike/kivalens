@@ -234,7 +234,7 @@ export const criteriaSchema = {
             { name: 'Fully funded (including baskets)', min: null, max: 0 },
           ],
           $ref: '#/definitions/double_range',
-          selector: l => l.kl_still_needed(),
+          selector: l => l.kl_still_needed,
         },
         percent_funded: {
           title: 'Funded (%)',
@@ -246,7 +246,7 @@ export const criteriaSchema = {
           step: 1,
           $ref: '#/definitions/double_range',
           presets: buildPresets(0, 100, 5),
-          selector: l => l.kl_percent_funded(),
+          selector: l => l.kl_percent_funded,
         },
         expiring_in_days: {
           title: 'Expiring (days)',
@@ -277,7 +277,7 @@ export const criteriaSchema = {
           max: 90,
           $ref: '#/definitions/double_range',
           presets: buildPresets(-90, 90, 10, ''),
-          selector: l => l.terms.disbursal, // ?
+          selector: l => l.kl_disbursal_in_days(), // ?
         },
         sectors: {
           title: 'Sectors',
@@ -391,8 +391,8 @@ export const criteriaSchema = {
             'Western Europe',
             'Antarctica',
             'Oceania',
-            // technically missing antarctica, an
           ],
+          // technically missing antarctica, an
         },
         partner_risk_rating: {
           title: 'Risk Rating (stars)',
@@ -510,6 +510,7 @@ export const criteriaSchema = {
             { name: 'Long Term (>= 10 yr)', min: 10, max: null },
             { name: 'Very Long Term (>= 15 yr)', min: 15, max: null },
           ],
+          selector: p => p.kl_years_on_kiva,
         },
         loans_posted: {
           title: 'Loans Posted',

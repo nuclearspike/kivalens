@@ -216,6 +216,7 @@ const performSearch = (appState, output = 'loanIds') => {
   ct.addRangeTesters('borrower_count', loan => loan.borrowers.length);
   ct.addRangeTesters('percent_female', loan => loan.kl_percent_women);
   ct.addRangeTesters('age_mentioned', loan => loan.kls_age);
+  ct.addRangeTesters('loan_amount', loan => loan.loan_amount);
   ct.addArrayAllPartialExactWithTester(
     criteria.borrower.name,
     loan => loan.kl_name_arr,
@@ -234,12 +235,7 @@ const performSearch = (appState, output = 'loanIds') => {
     ct.testers.push(loan => loan.partner_id == null);
   }
 
-  ct.addRangeTesters('still_needed', loan => loan.kl_still_needed());
-  ct.addRangeTesters('loan_amount', loan => loan.loan_amount);
-  ct.addRangeTesters('percent_funded', loan => loan.kl_percent_funded());
-  ct.addRangeTesters('dollars_per_hour', loan => loan.kl_dollars_per_hour());
-  ct.addRangeTesters('expiring_in_days', loan => loan.kl_expiring_in_days());
-  ct.addRangeTesters('disbursal', loan => loan.kl_disbursal_in_days());
+  ct.addRangeTesters('still_needed', loan => loan.kl_still_needed);
   ct.addThreeStateTester(
     criteria.loan.bonus_credit_eligibility,
     loan => loan.bonus_credit_eligibility === true,
@@ -248,7 +244,6 @@ const performSearch = (appState, output = 'loanIds') => {
     criteria.loan.use_or_description,
     loan => loan.kls_use_or_descr_arr,
   );
-  ct.addRangeTesters('repaid_in', loan => loan.kls_repaid_in());
 
   ct.addAnyAllNoneTester('sectors', null, 'any', loan => loan.sector);
   ct.addAnyAllNoneTester('activities', null, 'any', loan => loan.activity);
@@ -269,6 +264,12 @@ const performSearch = (appState, output = 'loanIds') => {
     loan =>
       loan.terms.loss_liability && loan.terms.loss_liability.currency_exchange,
   );
+
+  ct.addRangeTesters('repaid_in', loan => loan.kls_repaid_in());
+  ct.addRangeTesters('percent_funded', loan => loan.kl_percent_funded);
+  ct.addRangeTesters('dollars_per_hour', loan => loan.kl_dollars_per_hour());
+  ct.addRangeTesters('expiring_in_days', loan => loan.kl_expiring_in_days());
+  ct.addRangeTesters('disbursal', loan => loan.kl_disbursal_in_days());
 
   //
   // MORE TO COPY!!!

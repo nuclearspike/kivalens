@@ -152,7 +152,7 @@ const LoanTab = memo(({ loan }) => {
         );
         addTerm(
           'Still Needed',
-          <span>${numeral(loan.kl_still_needed()).format('0,0')}</span>,
+          <span>${numeral(loan.kl_still_needed).format('0,0')}</span>,
         );
       }
     }
@@ -164,7 +164,7 @@ const LoanTab = memo(({ loan }) => {
       <Popover id="progress-hint" style={{ padding: 10 }} title="Meaning">
         ${loan.basket_amount} Reserved
         <br />${loan.funded_amount} Funded
-        <br />${loan.kl_still_needed()} Needed
+        <br />${loan.kl_still_needed} Needed
       </Popover>
     );
   }, [lentPercentages]);
@@ -374,7 +374,7 @@ LoanTab.propTypes = {
     loan_amount: PT.number,
     basket_amount: PT.number,
     funded_amount: PT.number,
-    kl_still_needed: PT.func,
+    kl_still_needed: PT.number,
     kls_repaid_in: PT.func,
     kl_dollars_per_hour: PT.func,
     funded_date: PT.string,
