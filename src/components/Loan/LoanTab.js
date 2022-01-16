@@ -22,6 +22,8 @@ DisplayDate.propTypes = {
   date: PT.object.isRequired,
 };
 
+const descrStyle = { marginBottom: 80 };
+
 const LoanTab = memo(({ loan }) => {
   useStyles(s);
   const dispatch = useDispatch();
@@ -267,7 +269,13 @@ const LoanTab = memo(({ loan }) => {
               >
                 <ProgressBar>
                   <ProgressBar
-                    label="Funded"
+                    label={
+                      lentPercentages.funded_perc < 10
+                        ? ''
+                        : `Funded ${numeral(lentPercentages.funded_perc).format(
+                            '0',
+                          )}%`
+                    }
                     variant="success"
                     now={lentPercentages.funded_perc}
                     key="funded"
@@ -293,9 +301,10 @@ const LoanTab = memo(({ loan }) => {
         <dl className="row">{loanStats}</dl>
 
         {/* has html in it. <br/> etc. */}
-        <p dangerouslySetInnerHTML={{ __html: loan.description.texts.en }} />
-
-        {/* <pre>DYN DATA: {JSON.stringify(data, 1, 2)}</pre> */}
+        <p
+          style={descrStyle}
+          dangerouslySetInnerHTML={{ __html: loan.description.texts.en }}
+        />
       </Col>
 
       <Col xs={12} md={4}>

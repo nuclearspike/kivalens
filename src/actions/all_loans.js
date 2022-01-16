@@ -94,7 +94,7 @@ export const loansFastFetch = () => {
 export const loansSmartFetch = (forceKiva = false) => {
   return (dispatch, getState) => {
     const { batchNum } = getState().runtime;
-    // const batchNum = 0;
+    // const batchNum = 0; uncomment to force to use Kiva rather than KL server
     if (batchNum > 0 && !forceKiva) {
       return dispatch(loansFastFetch())
         .then(dispatch(partnersFastFetch()))

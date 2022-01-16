@@ -6,15 +6,14 @@ import s from './Options.css';
 const mustDo = [
   'default loan amount when double-clicking loans or using the "add to basket" button',
   'set username',
-  'basket shared between tabs and reloads (localStorage)',
   'saved searches',
   'quick loading on heroku servers',
   'new loans are not discovered after initial load',
   'bonus credit criteria does not work',
-  'cannot do zero percent female, it sets it to max',
-  'before go-live, new site needs to convert old options and saved searches to new methods',
+  'cannot do zero percent female, it sets it to max (bigger issue, similar things with other crit)',
+  'before go-live, new site needs to convert old options and saved searches to new storage methods',
   'partner name search/exact search',
-  'if loans in basket while loading loans and go to /basket  it errors',
+  'if loans in basket while loading loans and go to /basket it errors',
   "basket/:id doesn't work when loading to that page (or backing into it)",
 ];
 
@@ -27,6 +26,7 @@ const toDo = [
   'adjust basket amount (not current KL feature)',
   'refresh the basket data and clean funded loans when page is loaded',
   'GA view and basket data',
+  'clear up About info',
 ];
 
 const Options = memo(() => {

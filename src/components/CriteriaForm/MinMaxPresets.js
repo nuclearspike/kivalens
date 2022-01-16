@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import PT from 'prop-types';
 import { useSelector } from 'react-redux';
 import { Dropdown } from '../bs';
@@ -7,70 +7,84 @@ import s from './MinMaxField.css';
 
 const paddingTen = { paddingRight: 10 };
 
-const MinMaxPresets = ({ schema, storedMin, storedMax, userAlteredCB }) => {
-  const graphData = useSelector(({ helperGraphs: hg }) => hg.data);
-  const selectedHelper = useSelector(({ helperGraphs: hg }) => hg.selected);
-  const isSelected = schema.field && schema.field !== selectedHelper;
+const MinMaxPresets = memo(
+  ({
+    schema: { field, presets, title },
+    storedMin,
+    storedMax,
+    userAlteredCB,
+  }) => {
+    const graphData = useSelector(({ helperGraphs: { data } }) => data);
+    const selectedHelper = useSelector(
+      ({ helperGraphs: { selected } }) => selected,
+    );
+    const isSelected = field && field === selectedHelper;
 
-  const unFocusedDropDown = useMemo(() => {
-    return schema.presets.map(({ name, min, max }) => (
-      <Dropdown.Item
-        key={name}
-        active={storedMin === min && storedMax === max}
-        onSelect={() => userAlteredCB([min, max])}
-      >
-        {name}
-      </Dropdown.Item>
-    ));
-  }, [userAlteredCB, storedMin, storedMax]);
-
-  const focusedDropDown = useMemo(() => {
-    if (isSelected) {
-      return <p>not matching</p>;
-    }
-    return schema.presets.map(({ name, min, max }) => {
-      let strikeout = false;
-      let presetCount = 0;
-      if (schema.field && selectedHelper === schema.field) {
-        if (graphData) {
-          const presetData = graphData.first(p => p.name === name);
-          if (presetData) {
-            presetCount = presetData.count;
-            strikeout = presetCount === 0;
-          } else {
-            strikeout = true;
-          }
-        }
+    // so that something can pop up immediately, before being replaced by one with counts and showing 'active'
+    const unFocusedDropDown = useMemo(() => {
+      if (!presets) {
+        return null;
       }
-      return (
+      return presets.map(({ name, min, max }) => (
         <Dropdown.Item
           key={name}
-          className={strikeout && s.strikeout}
           active={storedMin === min && storedMax === max}
           onSelect={() => userAlteredCB([min, max])}
         >
-          {name} {presetCount > 0 && <small>({presetCount})</small>}
+          {name}
         </Dropdown.Item>
-      );
-    });
-  }, [userAlteredCB, storedMin, storedMax]);
+      ));
+    }, [userAlteredCB, storedMin, storedMax]);
 
-  return (
-    schema.presets && (
-      <div style={paddingTen}>
-        <Dropdown>
-          <Dropdown.Toggle
-            as={CustomToggle}
-            id={`${schema.title}-dropdown-presets`}
+    const focusedDropDown = useMemo(() => {
+      if (!isSelected || !presets) {
+        return null;
+      }
+      return presets.map(({ name, min, max }) => {
+        let strikeout = false;
+        let presetCount = 0;
+        if (field && selectedHelper === field) {
+          if (graphData) {
+            const presetData = graphData.first(p => p.name === name);
+            if (presetData) {
+              presetCount = presetData.count;
+              strikeout = presetCount === 0;
+            } else {
+              strikeout = true;
+            }
+          }
+        }
+        return (
+          <Dropdown.Item
+            key={name}
+            className={strikeout && s.strikeout}
+            active={storedMin === min && storedMax === max}
+            onSelect={() => userAlteredCB([min, max])}
           >
-            presets
-          </Dropdown.Toggle>
-          <Dropdown.Menu>{unFocusedDropDown}</Dropdown.Menu>
-        </Dropdown>
-      </div>
-    )
-  );
-};
+            {name} {presetCount > 0 && <small>({presetCount})</small>}
+          </Dropdown.Item>
+        );
+      });
+    }, [userAlteredCB, isSelected, storedMin, storedMax]);
+
+    return (
+      presets && (
+        <div style={paddingTen}>
+          <Dropdown>
+            <Dropdown.Toggle as={CustomToggle} id={`${title}-dropdown-presets`}>
+              presets
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {isSelected ? focusedDropDown : unFocusedDropDown}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      )
+    );
+  },
+);
+
+MinMaxPresets.displayName = 'MinMaxPresets';
 
 MinMaxPresets.propTypes = {
   schema: PT.shape({

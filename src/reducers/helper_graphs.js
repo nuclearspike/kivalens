@@ -12,6 +12,7 @@ import {
 export const defaultHelperGraphState = {
   config: null,
   data: null,
+  graphDescription: null,
   selected: null, // criteria name, set onFocus
 };
 

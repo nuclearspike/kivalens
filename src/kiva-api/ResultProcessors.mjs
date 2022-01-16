@@ -429,12 +429,12 @@ class ResultProcessors {
       kl_dyn_updated: new Date().getTime(),
     };
 
+    // simple calcs possible without full loan obj.
+    ResultProcessors.processLoanBasketAmounts(result);
+
     if (dynLoan.description) {
       result.description = { texts: { en: dynLoan.description } };
     };
-
-    // simple calcs possible without full loan obj.
-    ResultProcessors.processLoanBasketAmounts(result);
 
     if (dynLoan.terms)  {
       result.terms.scheduled_payments = dynLoan.terms.scheduled_payments.map(({ due_date, amount }) => ({ due_date, amount: parseFloat(amount) }))

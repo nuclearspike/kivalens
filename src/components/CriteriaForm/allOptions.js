@@ -216,8 +216,9 @@ export const criteriaSchema = {
             { name: '0-0.5', min: 0, max: 0.5 },
             { name: '0.5-1', min: 0.5, max: 1 },
             { name: '1-5', min: 1, max: 5 },
-            ...buildPresets(5, 40, 5, '', false, false),
-            ...buildPresets(40, 500, 20, '', false, true),
+            { name: '5-10', min: 5, max: 10 },
+            ...buildPresets(10, 50, 10, '', false, false),
+            ...buildPresets(50, 400, 50, '', false, true),
           ],
         },
         still_needed: {
@@ -281,6 +282,8 @@ export const criteriaSchema = {
         },
         sectors: {
           title: 'Sectors',
+          description:
+            'Business sectors. Click on the graph to add the sector to the criteria',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'sectors',
@@ -288,6 +291,8 @@ export const criteriaSchema = {
         },
         activities: {
           title: 'Activities',
+          description:
+            'Activities within a sector. Click on the graph to add the activity to the criteria.',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'activities',
@@ -322,29 +327,29 @@ export const criteriaSchema = {
           selector: l => l.terms.loss_liability.currency_exchange,
           enum: ['shared', 'none', 'partner', 'lender'],
           enumNames: [
-            'Shared Loss',
-            'No Currency Exchange Loss',
-            'Partner Covers',
-            'Lender Covers',
+            'Shared Loss (shared)',
+            'No Currency Exchange Loss (none)',
+            'Partner Covers (partner)',
+            'Lender Covers (lender)',
           ],
         },
         bonus_credit_eligibility: {
           title: 'Bonus Credit (not implemented)',
-          type: 'string',
+          type: ['string', 'null'],
           field: 'bonus_credit_eligibility',
           default: null,
           selector: l => l.bonus_credit_eligibility === true,
           enum: [null, true, false],
           enumNames: [
             'Show All',
-            'Only loans eligible',
-            'Only loans NOT eligible',
+            'Only loans eligible (true)',
+            'Only loans NOT eligible (false)',
           ],
         },
         repayment_interval: {
           title: 'Repayment Interval',
           field: 'repayment_interval',
-          selector: l => l.repayment_interval, // ?
+          selector: l => l.repayment_interval,
           type: 'string',
           enum: ['Monthly', 'Irregularly', 'At end of term'],
         },

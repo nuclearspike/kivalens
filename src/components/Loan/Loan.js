@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect } from 'react';
 import PT from 'prop-types';
 import { useSelector } from 'react-redux';
+import dayjs from 'dayjs';
 import { Button, Jumbotron, Tab, Tabs } from '../bs';
 import { basketAdd, basketRemove } from '../../actions/basket';
 import {
@@ -23,14 +24,29 @@ const Loan = memo(({ id }) => {
   const loan = useLoanDetails(id);
 
   useEffect(() => {
+    const fiveMinsAgo = dayjs()
+      .subtract(5, 'minute')
+      .toDate()
+      .getTime();
     if (!loan) {
-      // get EVERYTHING.
+      // get EVERYTHING. this should only happen on initial page load where the URL loads by ID.
       dispatch(fetchAPIDetailsForLoan(id));
-    } else if (!loan.kl_dyn_updated) {
+    } else if (
+      !loan.description.texts.en ||
+      !loan.kl_dyn_updated ||
+      loan.kl_dyn_updated < fiveMinsAgo
+    ) {
       // update and include extras (descr, tags, basket, etc)
       dispatch(fetchGQLDynamicDetailsForLoan(id, true));
     }
   }, [id, loan]);
+
+  // useEffect(() => {
+  //   const handle = setInterval(() => {
+  //     dispatch(fetchGQLDynamicDetailsForLoan(id, false));
+  //   }, 60000);
+  //   return () => clearInterval(handle);
+  // }, [id]);
 
   const basketItem = useSelector(({ basket }) =>
     basket.first(bi => bi.id === id),
@@ -118,11 +134,8 @@ Loan.displayName = 'Loan';
 
 Loan.propTypes = {
   id: PT.number.isRequired,
-  tab: PT.string,
 };
 
-Loan.defaultProps = {
-  tab: 'loan',
-};
+Loan.defaultProps = {};
 
 export default Loan;

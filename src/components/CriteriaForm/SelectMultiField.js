@@ -73,7 +73,7 @@ const SelectMultiField = ({ formData, schema, onChange }) => {
 };
 
 SelectMultiField.propTypes = {
-  formData: PT.array,
+  formData: PT.array.isRequired,
   schema: PT.object.isRequired,
   onChange: PT.func.isRequired,
 };

@@ -4,7 +4,7 @@ import { basicReverseOrder } from '../utils/linqextras.mjs';
 import { HELPER_GRAPH_CLEAR, HELPER_GRAPH_SET } from '../constants';
 import performSearch from '../components/Search/performSearch';
 import { criteriaSchema } from '../components/CriteriaForm/allOptions';
-import { criteriaSetToPreset } from './criteria';
+import { criteriaSetToBarTitle } from './criteria';
 
 export const getHelperGraphs = props => {
   let field;
@@ -308,6 +308,14 @@ export const getHelperGraphs = props => {
         return;
     }
 
+    let graphDescription = '';
+    if (criteriaSchema.properties[group]) {
+      if (criteriaSchema.properties[group].properties[selected]) {
+        graphDescription =
+          criteriaSchema.properties[group].properties[selected].description;
+      }
+    }
+
     data = data.filter(d => d.count !== 0);
 
     if (orderGraph) {
@@ -316,7 +324,7 @@ export const getHelperGraphs = props => {
     }
 
     function onBarClick() {
-      dispatch(criteriaSetToPreset(group, selected, this.category));
+      dispatch(criteriaSetToBarTitle(group, selected, this.category));
     }
 
     const height = Math.max(
@@ -370,7 +378,13 @@ export const getHelperGraphs = props => {
 
     dispatch({
       type: HELPER_GRAPH_SET,
-      payload: { config, data, selected, visible: true },
+      payload: {
+        config,
+        data,
+        graphDescription,
+        selected,
+        visible: true,
+      },
     });
   };
 };

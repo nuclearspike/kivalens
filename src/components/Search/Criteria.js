@@ -18,7 +18,9 @@ const stickyColsDiv = {
 
 const CriteriaCols = memo(() => {
   const dispatch = useDispatch();
-  const config = useSelector(({ helperGraphs }) => helperGraphs.config);
+  const { config, graphDescription } = useSelector(
+    ({ helperGraphs }) => helperGraphs,
+  );
   const clearCriteriaCB = useCallback(() => dispatch(clearCriteria()), []);
   return (
     <>
@@ -37,6 +39,7 @@ const CriteriaCols = memo(() => {
               {config && (
                 <HighchartsReact highcharts={Highcharts} options={config} />
               )}
+              <small>{graphDescription}</small>
             </div>
           </div>
         </StickyColumn>

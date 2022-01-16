@@ -159,7 +159,12 @@ const MinMaxField = ({ schema, formData, onChange }) => {
           <HoverOver title={schema.title} description={schema.description} />
         </div>
         <div className={s.flexFill} />
-        <MinMaxPresets schema={schema} userAlteredCB={userAlteredCB} />
+        <MinMaxPresets
+          schema={schema}
+          userAlteredCB={userAlteredCB}
+          storedMin={storedMin}
+          storedMax={storedMax}
+        />
         <div className={s.changingValues}>
           {(displayUpdateMin !== displayMin ||
             displayUpdateMax !== displayMax) && (
