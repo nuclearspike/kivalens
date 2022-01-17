@@ -242,7 +242,7 @@ export const getHelperGraphs = props => {
         data = loansWithoutSelected()
           .map(l => l.kls_tags)
           .flatten()
-          .groupByWithCount(t => humanize(t));
+          .groupByWithCount();
         break;
       case 'themes':
         group = 'loan';
@@ -369,7 +369,7 @@ export const getHelperGraphs = props => {
       credits: { enabled: false },
       series: [
         {
-          animation: false,
+          animation: true,
           name: 'Loans',
           data: data.map(d => d.count),
         },

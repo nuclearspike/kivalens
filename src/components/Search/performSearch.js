@@ -238,7 +238,7 @@ const performSearch = (appState, output = 'loanIds') => {
   ct.addRangeTesters('still_needed', loan => loan.kl_still_needed);
   ct.addThreeStateTester(
     criteria.loan.bonus_credit_eligibility,
-    loan => loan.bonus_credit_eligibility === true,
+    loan => !!loan.bonus_credit_eligibility,
   );
   ct.addArrayAllPartialExactWithTester(
     criteria.loan.use_or_description,

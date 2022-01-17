@@ -14,11 +14,24 @@ import { markDone, markLoading } from './loading';
 import { partnersFastFetch, partnersKivaFetch } from './partner_details';
 import { atheistListFetch } from './atheist_list';
 import { basketClean } from './basket';
+import { addValuesToLookup } from './lookups';
 
 export const loansSetAllIds = ids => ({
   type: c.LOANS_SET_ALL,
   ids,
 });
+
+// batch reduces UI updates to one
+const afterAll = (dispatch, loans) => {
+  batch(() => {
+    dispatch(updateDetailsForLoans(loans));
+    const themes = loans.map(l => l.themes).flatten();
+    dispatch(addValuesToLookup('themes', (themes || []).nonBlank().distinct()));
+    dispatch(loansSetAllIds(loans.ids()));
+    dispatch(basketClean());
+    dispatch(markDone('loans'));
+  });
+};
 
 // /{q: 'Paul'} gender: 'male', sector: 'Retail'
 export const loansKivaFetch = () => {
@@ -30,16 +43,7 @@ export const loansKivaFetch = () => {
         dispatch(loansDLProgress(p));
       })
       .fail(e => console.error(e))
-      .done(result => {
-        // details need to be present prior to being referenced by ID to avoid needing checks.
-        batch(() => {
-          dispatch(loansDLDone());
-          dispatch(updateDetailsForLoans(result));
-          dispatch(loansSetAllIds(result.ids()));
-          dispatch(basketClean());
-          dispatch(markDone('loans'));
-        });
-      });
+      .done(loans => afterAll(dispatch, loans));
   };
 };
 
@@ -62,13 +66,7 @@ export const loansFastFetch = () => {
       .then(response => response.json())
       .then(loans => {
         ResultProcessors.processLoans(loans);
-        // batch reduces UI updates to one
-        batch(() => {
-          dispatch(updateDetailsForLoans(loans));
-          dispatch(loansSetAllIds(loans.ids()));
-          dispatch(basketClean());
-          dispatch(markDone('loans'));
-        });
+        afterAll(dispatch, loans);
       })
       .then(() => {
         // set a timeout so that the page renders before keywords downloaded.
@@ -100,6 +98,7 @@ export const loansSmartFetch = (forceKiva = false) => {
         .then(dispatch(partnersFastFetch()))
         .then(dispatch(atheistListFetch()));
     }
+    // should this be promise.all? they aren't connected.
     return dispatch(loansKivaFetch())
       .then(dispatch(partnersKivaFetch()))
       .then(dispatch(atheistListFetch()));
