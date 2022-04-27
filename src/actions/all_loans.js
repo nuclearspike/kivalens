@@ -51,6 +51,7 @@ export const loansFastFetch = () => {
   const options = {
     headers: {
       'Content-Type': 'application/json',
+      'User-Agent': 'KIVALENS.loansFastFetch/1.0 all_loans.js',
     },
   };
   return (dispatch, getState) => {

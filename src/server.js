@@ -35,7 +35,10 @@ import './utils/linqextras.mjs';
 // import fs from 'fs'
 
 let currentBatchNum = 0;
-let preppingBatchNum = 0;
+const runThreads = __DEV__ || process.env.RUN_THREADS;
+
+const tmpBatchesDir = '/tmp/batches/';
+fs.mkdirSync(tmpBatchesDir, { recursive: true });
 
 const runThread = (module, workerData) => {
   return new Promise((resolve, reject) => {
@@ -61,16 +64,17 @@ const runThread = (module, workerData) => {
 };
 
 const run = async () => {
-  preppingBatchNum = new Date().getTime();
-  const result = await runThread('prepFastFiles', { batch: preppingBatchNum });
+  const prepBatch = new Date().getTime();
+  const result = await runThread('prepFastFiles', { batch: prepBatch });
   console.log('FastFiles Prep:', result);
+  return prepBatch;
 };
 
-if (__DEV__ && currentBatchNum === 0) {
+if (runThreads && currentBatchNum === 0) {
   // only relevant for DEV. heroku will always have dirs wiped on dyno restart
   const allDirs = fs
     .readdirSync('/tmp/batches', { withFileTypes: true })
-    .filter(ent => ent.isDirectory()) // nothing should ever be in this dir anyway.
+    .filter(ent => ent.isDirectory()) // no file should ever be in this dir anyway, but just to be sure.
     .map(ent => ent.name)
     .orderBy(e => e);
 
@@ -95,23 +99,23 @@ if (__DEV__ && currentBatchNum === 0) {
 const runFastFilesPrep = () => {
   // if we're already prepping, don't start another prep
   // this has the potential to stop everything if the preppingBatchNum is not returned to 0
-  if (!__DEV__) return;
-  if (preppingBatchNum > 0) {
-    return;
-  }
+
+  if (!runThreads) return;
+
   run()
     .catch(err => console.error(err))
-    .then(() => {
-      currentBatchNum = preppingBatchNum;
-    })
-    .finally(() => {
-      preppingBatchNum = 0;
+    .then(newBatchNum => {
+      if (newBatchNum > currentBatchNum) {
+        // in the off-chance two start and they finish out of order.
+        currentBatchNum = newBatchNum;
+      }
     });
 };
 
 if (currentBatchNum === 0) {
   runFastFilesPrep();
 }
+
 setInterval(() => {
   runFastFilesPrep();
 }, 30 * 60000).unref();
@@ -152,13 +156,14 @@ if (process.env.DYNO) {
 // Register Node.js middleware
 // -----------------------------------------------------------------------------
 app.use(express.static(path.resolve(__dirname, 'public')));
-app.use(cookieParser());
+app.use(cookieParser()); // not needed really... right?
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //
 // Authentication
 // -----------------------------------------------------------------------------
+// NOT USED, right?
 app.use(
   expressJwt({
     secret: config.auth.jwt.secret,
@@ -166,6 +171,7 @@ app.use(
     getToken: req => req.cookies.id_token,
   }),
 );
+
 // Error handler for express-jwt
 app.use((err, req, res, next) => {
   // eslint-disable-line no-unused-vars
