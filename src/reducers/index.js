@@ -11,7 +11,7 @@ import loading from './loading';
 import atheistList from './atheist_list';
 import lookups from './lookups';
 import helperGraphs from './helper_graphs';
-import displayedResults from './displayed_results'
+import displayedResults from './displayed_results';
 
 export default combineReducers({
   user,

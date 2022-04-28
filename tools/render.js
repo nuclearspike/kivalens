@@ -1,7 +1,7 @@
-import path from 'path'
-import fetch from 'node-fetch'
-import {makeDir, writeFile} from './lib/fs'
-import runServer from './runServer'
+import path from 'path';
+import fetch from 'node-fetch';
+import { makeDir, writeFile } from './lib/fs';
+import runServer from './runServer';
 
 // Enter your paths here which you want to render as static
 // Example:
@@ -44,7 +44,9 @@ async function render() {
       );
       const dist = path.join(dirName, fileName);
       const timeStart = new Date();
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'KIVALENS.Render/1.0 render.js' },
+      });
       const timeEnd = new Date();
       const text = await response.text();
       await makeDir(dirName);

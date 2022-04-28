@@ -109,7 +109,7 @@ export const criteriaSchema = {
           field: 'borrower_count',
           selector: l => l.borrowers.length,
           description:
-            'The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right.',
+            'The number of borrowers included in the loan. To see only individual loans, set the max to 1. To see only group loans, set the min to 2 and the max at the far right. Or just click on the bars above to set the limits.',
           min: 1,
           max: 20,
           step: 1,
@@ -125,7 +125,7 @@ export const criteriaSchema = {
           field: 'percent_female',
           selector: l => l.kl_percent_women,
           description:
-            "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed.",
+            "What percentage of the borrowers are female. For individual borrowers, the loan will either be 0% or 100%. On Kiva, a group is considered 'Female' if more than half of the members are women. So you can set the lower bound to 50% and the upper to 100% to mimic that behavior. Additionally, you could look for groups that are 100% female, or set the lower to 40% and upper to 60% to find groups that are about evenly mixed. Or just click on the bars above to set the limits.",
           min: 0,
           max: 100,
           presets: [
@@ -283,7 +283,7 @@ export const criteriaSchema = {
         sectors: {
           title: 'Sectors',
           description:
-            'Business sectors. Click on the graph to add the sector to the criteria',
+            'Business sectors. Click on the graph to add the sector to the criteria. Click again to remove it.',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'sectors',
@@ -292,7 +292,7 @@ export const criteriaSchema = {
         activities: {
           title: 'Activities',
           description:
-            'Activities within a sector. Click on the graph to add the activity to the criteria.',
+            'Activities within a sector. Click on the graph to add the activity to the criteria. Click again to remove it.',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'activities',
@@ -300,6 +300,8 @@ export const criteriaSchema = {
         },
         themes: {
           title: 'Themes',
+          description:
+            'Themes assigned by Kiva. Click on the graph to add the activity to the criteria. Click again to remove it.',
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
           lookup: 'themes',
@@ -307,6 +309,8 @@ export const criteriaSchema = {
         },
         tags: {
           title: 'Tags',
+          description:
+            'Tags assigned by Kiva. Click on the graph to add the activity to the criteria. Click again to remove it.',
           $ref: '#/definitions/all_any_none',
           defaultAan: 'any',
           lookup: 'tags',
@@ -314,6 +318,8 @@ export const criteriaSchema = {
         },
         countries: {
           title: 'Countries',
+          description:
+            'What countries the partner works in. Click on the graph to add the activity to the criteria. Click again to remove it.',
           $ref: '#/definitions/any_none',
           defaultAan: 'any',
           lookup: 'countries',
@@ -321,6 +327,8 @@ export const criteriaSchema = {
         },
         currency_exchange_loss_liability: {
           title: 'Currency Loss',
+          description:
+            'If currency exchange loss occurs between the borrower/partner currency and USD, who is liable? Shared: both lender and partner share in the losses. None: Loan is in USD. Or Partner or Lender can be fully liable. Click on the graph to add the liability option to the criteria. Click again to remove it.',
           field: 'currency_exchange_loss_liability',
           type: 'string',
           default: '',
@@ -335,10 +343,10 @@ export const criteriaSchema = {
         },
         bonus_credit_eligibility: {
           title: 'Bonus Credit (not implemented)',
-          type: ['string', 'null'],
+          type: ['boolean', 'null'],
           field: 'bonus_credit_eligibility',
           default: null,
-          selector: l => l.bonus_credit_eligibility === true,
+          selector: l => !!l.bonus_credit_eligibility,
           enum: [null, true, false],
           enumNames: [
             'Show All',
@@ -349,8 +357,8 @@ export const criteriaSchema = {
         repayment_interval: {
           title: 'Repayment Interval',
           field: 'repayment_interval',
-          selector: l => l.repayment_interval,
           type: 'string',
+          selector: l => l.repayment_interval,
           enum: ['Monthly', 'Irregularly', 'At end of term'],
         },
       },
@@ -609,19 +617,23 @@ export const criteriaSchema = {
         },
         limit_to_top: {
           type: 'object',
-          title: 'Limit to top (not implemented)',
+          title:
+            'Limit to top (partially implemented, no custom component yet)',
           properties: {
             enabled: {
               title: 'Enabled',
               type: 'boolean',
+              default: false,
             },
             count: {
               title: 'Count',
               type: 'integer',
+              default: 1,
             },
             per: {
               title: 'Per',
               type: 'string',
+              enum: ['Partner', 'Country', 'Sector', 'Activity'],
             },
           },
         },

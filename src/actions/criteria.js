@@ -1,6 +1,7 @@
 import extend from 'extend';
 import * as c from '../constants';
 import { criteriaSchema } from '../components/CriteriaForm/allOptions';
+import { enumNameToEnum } from '../utils';
 
 // happens immediately. use for loading saved searches
 export const alterCriteria = criteria => ({
@@ -14,14 +15,17 @@ export const criteriaSetToBarTitle = (group, crit, barTitle) => {
   return (dispatch, getState) => {
     const { criteria } = getState();
     try {
-      const { presets, $ref } = criteriaSchema.properties[group].properties[
-        crit
-      ];
+      const {
+        presets,
+        $ref,
+        enum: enumVals,
+        enumNames,
+      } = criteriaSchema.properties[group].properties[crit];
 
       switch ($ref) {
         case '#/definitions/double_range': {
           if (!presets) {
-            // everything should have it on prod.
+            // every double range field should have it on prod.
             console.error('Missing "presets" for', group, crit);
             return;
           }
@@ -40,12 +44,21 @@ export const criteriaSetToBarTitle = (group, crit, barTitle) => {
         case '#/definitions/all_any_none': {
           const newCrit = extend(true, {}, criteria);
           const values = newCrit[group][crit].value || [];
-          if (values.includes(barTitle)) {
+
+          // if both enum and enumValues exist on schema, then convert the name to the enum.
+          const valueToTest =
+            enumNames && enumVals
+              ? enumNameToEnum(enumNames, enumVals, barTitle)
+              : barTitle;
+
+          if (values.includes(valueToTest)) {
             // remove it
+            values.remove(valueToTest);
           } else {
             // add it
-            newCrit[group][crit].value.push(barTitle);
+            values.push(valueToTest);
           }
+          newCrit[group][crit].value = values;
           dispatch(alterCriteria(newCrit));
           break;
         }

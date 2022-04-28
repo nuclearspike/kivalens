@@ -6,7 +6,7 @@ import Partners from '../kiva-api/Partners.mjs';
 import '../utils/linqextras.mjs';
 import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 
-// clean up old directories.
+// clean up old directories. (no code)
 
 const gzipOpt = { level : 9 };
 const brotliOpt = {
@@ -17,28 +17,24 @@ const brotliOpt = {
   }
 };
 
-const baseTempDir = `/tmp/batches/${workerData.batch}/`
-fs.mkdirSync(baseTempDir, { recursive: true });
+const tmpBatchesBatchDir = `/tmp/batches/${workerData.batch}/`;
+fs.mkdirSync(tmpBatchesBatchDir, { recursive: true });
 
 // const KLPageSplits = 4;
 
-const gzipP = (input) => {
-  return new Promise((resolve, reject) => {
+const gzipP = (input) => new Promise((resolve, reject) => {
     zlib.gzip(input, gzipOpt, (error, result) => {
       if(!error) resolve(result);
       else reject(Error(error));
     });
   });
-};
 
-const brotliP = (input) => {
-  return new Promise((resolve, reject) => {
+const brotliP = (input) => new Promise((resolve, reject) => {
     zlib.brotliCompress(input, brotliOpt, (error, result) => {
       if(!error) resolve(result);
       else reject(Error(error));
     });
   });
-};
 
 const genHandler = (name) => {
   parentPort.postMessage({
@@ -46,7 +42,7 @@ const genHandler = (name) => {
   });
   return async (chunk) => {
     // -${forcePage !== undefined ? forcePage :page + 1}
-    const filename = `${baseTempDir}${name}.kl`;
+    const filename = `${tmpBatchesBatchDir}${name}.kl`;
     const str_chunk = JSON.stringify(chunk);
     return (
       Promise.all([
@@ -60,7 +56,7 @@ const genHandler = (name) => {
 /**
  * @param loan
  *
- * strip out anything that isn't needed to make the download smaller.
+ * strip out anything that isn't needed. in order to make the download smaller.
  */
 const prepLoanForDownload = (loan) => {
   delete loan.description //.texts.en
@@ -95,7 +91,7 @@ const loans = new LoansSearch({ sort: 'newest' }) // q: 'Mary', region: 'as'
   .then((loans) => {
     const keywords = [];
 
-    loans.forEach((loan) => {
+    loans.forEach(loan => {
       keywords.push({id: loan.id, t: loan.kls_use_or_descr_arr});
       ResultProcessors.unprocessLoanDestructive(loan);
       prepLoanForDownload(loan);
@@ -120,7 +116,6 @@ Promise.all([
   parentPort.postMessage({
     resolve: {
       done: true,
-      dir: baseTempDir,
     },
   });
 });

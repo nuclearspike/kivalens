@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import store from 'store2';
 import { setRuntimeVariable } from '../../actions/runtime';
-import { arrayWithElements } from '../../utils';
+import { mergeEnumAndNames } from '../../utils';
 
 /**
  * This unit is for common selectors or other common hooks.
@@ -88,31 +88,10 @@ export const useRuntimeVars = (name, defaultValue) => {
   return [oldValue, setValue, dispatch];
 };
 
-export const useOnClient = () => {
-  return useSelector(({ runtime }) => runtime.onClient);
-
-  // const [client, setOnClient] = useState(false);
-  // const [client, setOnClient] = useRuntimeVars('onClient', false);
-  // if (process.env.BROWSER) {
-  //   useEffect(() => {
-  //     // Do not have it start out as true on client, the first render should match the server or console errors
-  //     const handle = setTimeout(() => setOnClient(true), 10);
-  //     return () => clearTimeout(handle);
-  //   }, [true]);
-  // }
-  // return client;
-};
+export const useOnClient = () => useSelector(({ runtime }) => runtime.onClient);
 
 export const useMergeEnumAndNames = schema => {
-  return useMemo(() => {
-    if (arrayWithElements(schema.enumNames)) {
-      return schema.enum.zip(schema.enumNames, (value, label) => ({
-        value,
-        label,
-      }));
-    }
-    return schema.enum.map(value => ({ label: value, value }));
-  }, [schema]);
+  return useMemo(() => mergeEnumAndNames(schema), [schema]);
 };
 
 // export const useAllLoans = () => {

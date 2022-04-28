@@ -30,23 +30,28 @@ export const partnersKivaFetch = () => {
   };
 };
 
-export const partnersFastFetch = () => {
-  return (dispatch, getState) => {
-    dispatch(markLoading('partners'));
-    const { batchNum } = getState().runtime;
-    return fetch(`/batches/${batchNum}/partners`)
-      .catch(() => {
-        // if the server restarted or something?
-        dispatch(loansKivaFetch());
-      })
-      .then(async response => {
-        const partners = await response.json();
-        batch(() => {
-          dispatch(partnerDetailsUpdateMany(partners));
-          dispatch(markDone('partners'));
-        });
+const options = {
+  headers: {
+    'Content-Type': 'application/json',
+    'User-Agent': 'KIVALENS.partnersFastFetch/1.0 partner_details.js',
+  },
+};
+
+export const partnersFastFetch = () => (dispatch, getState) => {
+  dispatch(markLoading('partners'));
+  const { batchNum } = getState().runtime;
+  return fetch(`/batches/${batchNum}/partners`, options)
+    .catch(() => {
+      // if the server restarted or something?
+      dispatch(loansKivaFetch());
+    })
+    .then(async response => {
+      const partners = await response.json();
+      batch(() => {
+        dispatch(partnerDetailsUpdateMany(partners));
+        dispatch(markDone('partners'));
       });
-  };
+    });
 };
 
 // export const partnerDetailsFetchMany = (ids) => {

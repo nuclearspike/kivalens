@@ -7,19 +7,15 @@ import apolloKivaClient, {
 } from '../kivaClient';
 import ResultProcessors from '../kiva-api/ResultProcessors.mjs';
 
-export const updateDetailsForLoans = loans => {
-  return {
-    type: c.LOAN_DETAILS_UPDATE_MANY_ARR,
-    loans,
-  };
-};
+export const updateDetailsForLoans = loans => ({
+  type: c.LOAN_DETAILS_UPDATE_MANY_ARR,
+  loans,
+});
 
-export const updateDetailsForLoan = loan => {
-  return {
-    type: c.LOAN_DETAILS_UPDATE,
-    loan,
-  };
-};
+export const updateDetailsForLoan = loan => ({
+  type: c.LOAN_DETAILS_UPDATE,
+  loan,
+});
 
 export const fetchAPIDetailsForLoan = id => {
   if (!id) {
@@ -27,11 +23,10 @@ export const fetchAPIDetailsForLoan = id => {
     console.trace('NO ID!');
     throw new Error('NO ID?? Trace it.');
   }
-  return dispatch => {
-    return req.kiva.api
+  return dispatch =>
+    req.kiva.api
       .loan(id)
       .then(result => dispatch(updateDetailsForLoan(result)));
-  };
 };
 
 export const fetchAPIDetailsForLoans = ids => dispatch =>
@@ -47,14 +42,9 @@ export const fetchGQLDynamicDetailsForLoan = (id, includeExtras) => dispatch =>
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
-    .then(result => {
-      const {
-        data: {
-          lend: { loan },
-        },
-      } = result;
-      dispatch(updateDetailsForLoan(ResultProcessors.processGQLDynLoan(loan)));
-    });
+    .then(({ data: { lend: { loan } } }) =>
+      dispatch(updateDetailsForLoan(ResultProcessors.processGQLDynLoan(loan))),
+    );
 
 export const fetchGQLDynamicDetailsForLoans = (
   ids,
@@ -67,18 +57,19 @@ export const fetchGQLDynamicDetailsForLoans = (
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
-    .then(result => {
-      const {
+    .then(
+      ({
         data: {
           lend: {
             loans: { values },
           },
         },
-      } = result;
-      dispatch(
-        updateDetailsForLoans(values.map(ResultProcessors.processGQLDynLoan)),
-      );
-    });
+      }) => {
+        dispatch(
+          updateDetailsForLoans(values.map(ResultProcessors.processGQLDynLoan)),
+        );
+      },
+    );
 
 export const fetchGQLDynamicDetailsForPopularLoans = () => dispatch =>
   apolloKivaClient
@@ -87,15 +78,8 @@ export const fetchGQLDynamicDetailsForPopularLoans = () => dispatch =>
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
-    .then(result => {
-      const {
-        data: {
-          lend: {
-            loans: { values },
-          },
-        },
-      } = result;
-      return dispatch(
+    .then(({ data: { lend: { loans: { values } } } }) =>
+      dispatch(
         updateDetailsForLoans(values.map(ResultProcessors.processGQLDynLoan)),
-      );
-    });
+      ),
+    );

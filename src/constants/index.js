@@ -31,6 +31,7 @@ export const LOOKUPS_SET = 'LOOKUPS_SET';
 export const HELPER_GRAPH_SET = 'HELPER_GRAPH_SET';
 export const HELPER_GRAPH_CLEAR = 'HELPER_GRAPH_CLEAR';
 
+// default criteria
 export const emptyCrit = {
   borrower: {
     name: {
@@ -164,14 +165,20 @@ export const emptyCrit = {
       min: null,
       max: null,
     },
+    social_performance: {
+      aan: 'all',
+    },
+    region: {
+      aan: 'any',
+    },
   },
   balancing: {},
   results: {
     sort: '',
     limit_to_top: {
       enabled: false,
-      count: null,
-      per: '',
+      count: 1,
+      per: 'Country',
     },
   },
 };

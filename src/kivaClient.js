@@ -114,17 +114,23 @@ export const getLookups = async () => {
       fetchPolicy: 'no-cache',
       errorPolicy: 'ignore',
     })
-    .then(({ data: { lend } }) => ({
-      countries: lend.countryFacets.map(a => a.country.name).orderBy(etoe),
-      sectors: lend.sector.map(eton).orderBy(etoe),
-      activities: lend.activity.map(eton).orderBy(etoe),
-      themes: lend.loanThemeFilter.map(eton).orderBy(etoe),
-      tags: lend.tag
-        .map(eton)
-        .nonBlank()
-        .orderBy(etoe),
-      populated: true,
-    }));
+    .then(
+      ({
+        data: {
+          lend: { countryFacets, sector, activity, loanThemeFilter, tag },
+        },
+      }) => ({
+        countries: countryFacets.map(a => a.country.name).orderBy(etoe),
+        sectors: sector.map(eton).orderBy(etoe),
+        activities: activity.map(eton).orderBy(etoe),
+        themes: loanThemeFilter.map(eton).orderBy(etoe),
+        tags: tag
+          .map(eton)
+          .nonBlank()
+          .orderBy(etoe),
+        populated: true,
+      }),
+    );
 };
 
 export default apolloKivaClient;
