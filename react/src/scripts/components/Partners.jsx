@@ -97,7 +97,7 @@ const Partners = React.createClass({
         return (
             <div>
                 <Col md={4}>
-                    <div style={{overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 5}}>
+                    <div style={{overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden'}}>
                         <input type="text" className="form-control" placeholder="Search by name..."
                             style={{marginBottom: 8}}
                             onChange={this.onNameChange} value={this.state.nameSearch}/>

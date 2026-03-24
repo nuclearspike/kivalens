@@ -72130,7 +72130,7 @@ var Partners = _react2['default'].createClass({
                 { md: 4 },
                 _react2['default'].createElement(
                     'div',
-                    { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 5 } },
+                    { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden' } },
                     _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
                         style: { marginBottom: 8 },
                         onChange: this.onNameChange, value: this.state.nameSearch }),
