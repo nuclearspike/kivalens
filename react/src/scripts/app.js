@@ -11,15 +11,6 @@ require('./linqextras')
 require('./stores/liveStore')
 require('./api/syncStorage')
 
-const airbrakeJs = require('airbrake-js');
-const airbrake = new airbrakeJs({projectId: 127019, projectKey: 'de861f4b53489fbf4ee86054b57a6a90'});
-window.airbrake = airbrake;
-airbrake.addFilter(notice => {
-    notice.context.lender_id = kivaloans.lender_id
-    return notice;
-});
-
-window.addEventListener("error", airbrake.onerror);
 
 import React from 'react'
 import Reflux from 'reflux'
