@@ -617,7 +617,6 @@ else  //workers handle all communication with the clients.
     console.log("STARTING WORKER")
     var express = require('express')
     var app = express()
-    var proxy = require('express-http-proxy')
     var helmet = require('helmet')
     var compression = require('compression')
     var serveStatic = require('serve-static')
@@ -660,15 +659,18 @@ else  //workers handle all communication with the clients.
     //some security
     app.use(helmet())
 
-    //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
-    const proxyHandler = {
-        proxyReqPathResolver: req => require('url').parse(req.url).path,
-        userResHeaderDecorator: (headers, userReq, userRes, proxyReq, proxyRes) => {
-            headers['Access-Control-Allow-Origin'] = '*'
-            headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE'
-            headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization'
-            return headers
-        }
+    const proxyHttpsGet = (hostname, req, res) => {
+        const https = require('https')
+        const targetPath = req.url
+        https.get({hostname, path: targetPath}, proxyRes => {
+            res.set('Access-Control-Allow-Origin', '*')
+            res.set('Content-Type', proxyRes.headers['content-type'] || 'application/octet-stream')
+            res.status(proxyRes.statusCode)
+            proxyRes.pipe(res)
+        }).on('error', err => {
+            console.error('[PROXY] Error:', err)
+            res.status(502).send('Proxy error')
+        })
     }
 
     const serveGzipFile = (res, fn) =>{
@@ -745,7 +747,7 @@ else  //workers handle all communication with the clients.
             res.status(502).send('Proxy error')
         })
     })
-    app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
+    app.use('/proxy/gdocs', (req, res) => proxyHttpsGet('docs.google.com', req, res))
 
     //app.use(express.static(__dirname + '/public'))
 
