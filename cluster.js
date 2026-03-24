@@ -704,19 +704,13 @@ else  //workers handle all communication with the clients.
 
     //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
     const proxyHandler = {
-        filter: req => true, //proxy all requests
-        forwardPath: req => require('url').parse(req.url).path,
-        intercept: (rsp, data, req, res, callback) => {
-            res.header('Access-Control-Allow-Origin', '*');
-            res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-            res.header('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID');
-            res.set('Set-Cookie', 'ilove=kiva; Path=/; HttpOnly'); //don't pass back kiva's cookies.
-            // intercept OPTIONS method
-            if ('OPTIONS' === req.method) {
-                res.send(200)
-            } else {
-                callback(null, data)
-            }
+        proxyReqPathResolver: req => require('url').parse(req.url).path,
+        userResHeaderDecorator: (headers, userReq, userRes, proxyReq, proxyRes) => {
+            headers['Access-Control-Allow-Origin'] = '*'
+            headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE'
+            headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID'
+            headers['Set-Cookie'] = 'ilove=kiva; Path=/; HttpOnly'
+            return headers
         }
     }
 
