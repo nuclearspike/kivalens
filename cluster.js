@@ -1046,6 +1046,17 @@ else  //workers handle all communication with the clients.
     var vhost = require('vhost')
     var nspike = require('./nuclearspike_com')
 
+    // redirect http -> https and kivalens.org -> www.kivalens.org
+    main.use((req, res, next) => {
+        const host = req.hostname
+        const proto = req.headers['x-forwarded-proto'] || req.protocol
+        if (host === 'localhost' || host === '127.0.0.1') return next()
+        if (proto !== 'https' || host === 'kivalens.org') {
+            return res.redirect(301, `https://www.kivalens.org${req.originalUrl}`)
+        }
+        next()
+    })
+
     //main.use(allowCrossDomain) //don't think this is necessary
     main.use(vhost('www.nuclearspike.com', nspike)) //use regex instead.
     main.use(vhost('nuclearspike.com', nspike))
