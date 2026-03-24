@@ -62352,7 +62352,7 @@ var Loans = (function () {
           return partner.charges_fees_and_interest;
         });
         //should have the merge option passed in... or stored somewhere else.
-        if (this.atheist_list_processed && this.getOptions().mergeAtheistList) {
+        if (this.atheist_list_processed) {
           ct.addRangeTesters('secular_rating', function (partner) {
             return partner.atheistScore.secularRating;
           }, function (partner) {
@@ -65203,7 +65203,7 @@ var About = _react2['default'].createClass({
           { href: 'http://build.kiva.org/api' },
           'Kiva.org\'s Public API'
         ),
-        ' with the exception of data from the Atheist Team\'s research. If you have any questions about why a loan is showing certain data (where you have confirmed that it\'s the same on Kiva\'s own site) or if you have questions about what that data means, please check out ',
+        ' with the exception of data from the A+ Team\'s research. If you have any questions about why a loan is showing certain data (where you have confirmed that it\'s the same on Kiva\'s own site) or if you have questions about what that data means, please check out ',
         _react2['default'].createElement(
           _.KivaLink,
           { path: 'help', title: 'Go to Kiva Help Center' },
@@ -65231,10 +65231,10 @@ var About = _react2['default'].createClass({
         _react2['default'].createElement(
           _.KivaLink,
           {
-            path: 'team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious' },
-          'Atheist Team'
+            path: 'team/aplus' },
+          'A+ Team'
         ),
-        '\'s MFI research should be directed to that team. I only auto-pull, display and filter using the data, I do not produce or verify it.'
+        '\'s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious) MFI research should be directed to that team. I only auto-pull, display and filter using the data, I do not produce or verify it.'
       ),
       _react2['default'].createElement(
         'h3',
@@ -65412,9 +65412,9 @@ var About = _react2['default'].createClass({
           _react2['default'].createElement(
             'b',
             null,
-            'Filter on the Atheist Team\'s MFI research'
+            'Filter on the A+ Team\'s MFI research'
           ),
-          ' with sliders for Secular and Social scoring. When you click on a loan, the Partner tab will show a new section displaying data pulled from that team\'s spreadsheet. This feature is on by default, simply turn it off in the Options tab.'
+          ' with sliders for Secular and Social scoring and Religion filter. When you click on a loan, the Partner tab will show a new section displaying data pulled from that team\'s spreadsheet. This feature is on by default, simply turn it off in the Options tab.'
         ),
         _react2['default'].createElement(
           'li',
@@ -67088,8 +67088,8 @@ allOptions.currency_exchange_loss_rate = { min: 0, max: 10, step: 0.1, label: 'C
 allOptions.average_loan_size_percent_per_capita_income = { min: 0, max: 300, label: 'Average Loan/Capita Income', helpText: "The Field Partner's average loan size is expressed as a percentage of the country's gross national annual income per capita. Loans that are smaller (that is, as a lower percentage of gross national income per capita) are generally made to more economically disadvantaged populations. However, these same loans are generally more costly for the Field Partner to originate, disburse and collect." };
 allOptions.years_on_kiva = { min: 0, max: 12, step: 0.25, label: 'Years on Kiva', helpText: "How long the partner has been posting loans on Kiva." };
 allOptions.loans_posted = { min: 0, max: 20000, step: 50, label: 'Loans Posted', helpText: "How many loans the partner has posted to Kiva." };
-allOptions.secular_rating = { min: 1, max: 4, label: 'Secular Score (Atheist List)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda." };
-allOptions.social_rating = { min: 1, max: 4, label: 'Social Score (Atheist List)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)." };
+allOptions.secular_rating = { min: 1, max: 4, label: 'Secular Score (A+ Team)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda." };
+allOptions.social_rating = { min: 1, max: 4, label: 'Social Score (A+ Team)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)." };
 
 //<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value} onChange={this.blah}/>
 var DropSelectButton = _react2['default'].createClass({
@@ -67715,7 +67715,7 @@ var CriteriaTabs = _react2['default'].createClass({
         this.setState({ descriptionsLoaded: kivaloans.allDescriptionsLoaded });
     },
     figureAtheistList: function figureAtheistList() {
-        this.setState({ displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed });
+        this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
     },
     filteredDone: function filteredDone(loans, sameAsLastTime) {
         if (!(this.last_select && this.last_select.key)) return;
@@ -68440,7 +68440,7 @@ var DidYouKnow = _react2['default'].createClass({
             _react2['default'].createElement(
                 'p',
                 null,
-                'Be sure to check out the Options page if you would like to integrate the Atheist Team\'s MFI research data.'
+                'KivaLens integrates the A+ Team\'s MFI research data for Secular, Social, and Religion ratings on the Partner tab.'
             )
         );
     }
@@ -69970,7 +69970,7 @@ var Loan = _react2['default'].createClass({
         return { activeTab: localStorage.loan_active_tab ? parseInt(localStorage.loan_active_tab) : 1 };
     },
     figureAtheistDisplay: function figureAtheistDisplay() {
-        this.setState({ showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed });
+        this.setState({ showAtheistResearch: kivaloans.atheist_list_processed });
     },
     refreshLoan: function refreshLoan() {
         _actions2['default'].loans.detail(this.props.params.id);
@@ -70565,7 +70565,7 @@ var Loan = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 'h3',
                                 null,
-                                'Atheist Team Research'
+                                'A+ Team Research'
                             ),
                             _react2['default'].createElement(
                                 'dl',
@@ -71433,18 +71433,20 @@ var Options = _react2['default'].createClass({
                     { header: 'External Research' },
                     _react2['default'].createElement(_reactBootstrap.Input, {
                         type: 'checkbox',
-                        label: 'Merge Atheist Team\'s MFI Research Data for Secular and Social ratings',
-                        checkedLink: this.linkState('mergeAtheistList') }),
+                        label: 'Merge A+ Team\'s MFI Research Data for Secular, Social, and Religion ratings',
+                        checked: true,
+                        disabled: true,
+                        readOnly: true }),
                     _react2['default'].createElement(
                         'p',
                         null,
                         'KivaLens pulls the ',
                         _react2['default'].createElement(
                             _.KivaLink,
-                            { path: 'team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious' },
-                            'Atheist Team'
+                            { path: 'team/aplus' },
+                            'A+ Team'
                         ),
-                        '\'s MFI List from ',
+                        '\'s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious) MFI List from ',
                         _react2['default'].createElement(
                             _.NewTabLink,
                             {
@@ -71452,7 +71454,7 @@ var Options = _react2['default'].createClass({
                                 title: 'View Google Doc' },
                             'this Google Doc'
                         ),
-                        ' and merges some of the data which allows you to search using their Secular (1-4) and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score means that it is religion based. When activated, this will add 2 new sliders to the Partner Criteria tab and an additional section displaying and explaining the ratings on the Partner tab of the loan. If a partner is not present in the MFI Research Data, by default, it will show up in the results.'
+                        ' and merges some of the data which allows you to search using their Secular (1-4) and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score means that it is religion based. This adds 2 sliders to the Partner Criteria tab, a Religion filter, and an additional section displaying and explaining the ratings on the Partner tab of the loan. If a partner is not present in the MFI Research Data, by default, it will show up in the results.'
                     ),
                     this.state.atheist_list_processed ? _react2['default'].createElement(
                         'div',
@@ -71460,7 +71462,7 @@ var Options = _react2['default'].createClass({
                         _react2['default'].createElement(
                             'b',
                             null,
-                            'Partners not included in Atheist Team Research Data:'
+                            'Partners not included in A+ Team Research Data:'
                         ),
                         this.state.missingPartners.length == 0 ? _react2['default'].createElement(
                             'span',

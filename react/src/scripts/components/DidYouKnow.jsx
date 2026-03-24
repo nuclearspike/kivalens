@@ -22,7 +22,7 @@ const DidYouKnow = React.createClass({
                 <p>Kiva's site does not allow you to search for multiple "Tags" (where the loan must be tagged with both) but that's a great way to narrow your search!</p>
                 <p>To fill up your basket quickly with matching loans, use the "Bulk Add" button above the list of loans.</p>
                 <p>KivaLens keeps the loans up-to-the-second fresh. Check out the "Live" page to see how KivaLens is getting updates from Kiva as they happen.</p>
-                <p>Be sure to check out the Options page if you would like to integrate the Atheist Team's MFI research data.</p>
+                <p>KivaLens integrates the A+ Team's MFI research data for Secular, Social, and Religion ratings on the Partner tab.</p>
             </CycleChild>
     }
 })

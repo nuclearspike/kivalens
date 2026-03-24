@@ -51,7 +51,7 @@ const About = React.createClass({
       <p>
         All of the data that KivaLens displays is either a direct presentation of or computation from data that
         is pulled from <NewTabLink href="http://build.kiva.org/api">Kiva.org's Public API</NewTabLink> with the
-        exception of data from the Atheist Team's research. If you have any
+        exception of data from the A+ Team's research. If you have any
         questions about why a loan is showing
         certain data (where you have confirmed that it's the same on Kiva's own site) or if you have questions
         about what that data means, please check out <KivaLink path="help" title="Go to Kiva Help Center">Kiva's
@@ -68,8 +68,8 @@ const About = React.createClass({
       </p>
       <p>
         Any questions about the <KivaLink
-        path="team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious">Atheist
-        Team</KivaLink>'s
+        path="team/aplus">A+ Team</KivaLink>'s
+        (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious)
         MFI research should be directed to that team. I only auto-pull, display and filter using the data,
         I do not produce or verify it.
       </p>
@@ -188,7 +188,7 @@ const About = React.createClass({
         </li>
 
         <li>
-          <b>Filter on the Atheist Team's MFI research</b> with sliders for Secular and Social scoring.
+          <b>Filter on the A+ Team's MFI research</b> with sliders for Secular and Social scoring and Religion filter.
           When you click on a loan, the Partner tab will show a new section displaying data pulled from
           that team's spreadsheet. This feature is on by default, simply turn it off in the Options tab.
         </li>

@@ -159,21 +159,24 @@ const Options = React.createClass({
                 <Panel header='External Research'>
                     <Input
                         type="checkbox"
-                        label={`Merge Atheist Team's MFI Research Data for Secular and Social ratings`}
-                        checkedLink={this.linkState('mergeAtheistList')}/>
+                        label={`Merge A+ Team's MFI Research Data for Secular, Social, and Religion ratings`}
+                        checked={true}
+                        disabled={true}
+                        readOnly={true}/>
                     <p>
-                        KivaLens pulls the <KivaLink path="team/a_atheists_agnostics_skeptics_freethinkers_secular_humanists_and_the_nonreligious">Atheist Team</KivaLink>'s
+                        KivaLens pulls the <KivaLink path="team/aplus">A+ Team</KivaLink>'s
+                        (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious)
                         MFI List from <NewTabLink
                         href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1"
                         title="View Google Doc">this Google Doc</NewTabLink> and
                         merges some of the data which allows you to search using their Secular (1-4)
                         and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
-                        means that it is religion based. When activated, this will add 2 new sliders to the Partner
-                        Criteria tab and an additional section displaying and explaining the ratings on the Partner tab
-                        of the loan. If a partner is not present in the MFI Research Data, by default, it will show up
-                        in the results.
+                        means that it is religion based. This adds 2 sliders to the Partner
+                        Criteria tab, a Religion filter, and an additional section displaying and explaining
+                        the ratings on the Partner tab of the loan. If a partner is not present in the
+                        MFI Research Data, by default, it will show up in the results.
                     </p>
-                    {this.state.atheist_list_processed ? <div><b>Partners not included in Atheist Team Research Data:</b>
+                    {this.state.atheist_list_processed ? <div><b>Partners not included in A+ Team Research Data:</b>
                             {this.state.missingPartners.length == 0 ? <span> None</span> : null}
                             <ul>
                                 {(this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0,5)).map((p, i) => <li key={i}>

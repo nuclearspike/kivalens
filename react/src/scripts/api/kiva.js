@@ -530,7 +530,7 @@ class Loans {
       ct.addRangeTesters('loans_posted', partner => partner.loans_posted)
       ct.addThreeStateTester(c.partner.charges_fees_and_interest, partner => partner.charges_fees_and_interest)
       //should have the merge option passed in... or stored somewhere else.
-      if (this.atheist_list_processed && this.getOptions().mergeAtheistList) {
+      if (this.atheist_list_processed) {
         ct.addRangeTesters('secular_rating', partner => partner.atheistScore.secularRating, partner => !partner.atheistScore)
         ct.addRangeTesters('social_rating', partner => partner.atheistScore.socialRating, partner => !partner.atheistScore)
       }

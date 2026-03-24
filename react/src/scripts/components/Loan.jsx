@@ -169,7 +169,7 @@ var Loan = React.createClass({
         return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1}
     },
     figureAtheistDisplay(){
-        this.setState({showAtheistResearch: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed})
+        this.setState({showAtheistResearch: kivaloans.atheist_list_processed})
     },
     refreshLoan(){
         a.loans.detail(this.props.params.id)
@@ -366,7 +366,7 @@ var Loan = React.createClass({
 
 {showAtheistResearch && atheistScore ?
                                     <div>
-                                        <h3>Atheist Team Research</h3>
+                                        <h3>A+ Team Research</h3>
                                         <dl className="dl-horizontal">
                                             <dt>Secular Rating</dt><dd>{atheistScore.secularRating}</dd>
                                             <dt>Religious Affiliation</dt><dd>{atheistScore.religiousAffiliation}</dd>
