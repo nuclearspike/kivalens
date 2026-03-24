@@ -70343,15 +70343,12 @@ var Loan = _react2['default'].createClass({
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Borrowers'
+                                    loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    loan.borrowers.length,
-                                    ' (',
-                                    Math.round(loan.kl_percent_women),
-                                    '% Female) '
+                                    loan.borrowers.length === 1 ? loan.kl_percent_women === 100 ? 'Female' : 'Male' : loan.borrowers.length + ' (' + Math.round(loan.kl_percent_women) + '% Female)'
                                 ),
                                 _react2['default'].createElement(
                                     'dt',

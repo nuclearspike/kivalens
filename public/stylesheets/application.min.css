@@ -526,7 +526,8 @@ ul.spacedList li {
 }
 
 .funded {
-  background-color: #898989 !important;
+  background-color: #d5d5d5 !important;
+  opacity: 0.7;
 }
 
 .in_portfolio {

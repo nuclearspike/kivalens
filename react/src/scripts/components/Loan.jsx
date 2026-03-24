@@ -285,7 +285,7 @@ var Loan = React.createClass({
                                     <dt>Saved Searches</dt><dd>{matching}</dd>
                                     <dt>Tags</dt><dd>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
                                     <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
-                                    <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>
+                                    <dt>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</dt><dd>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</dd>
                                     <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>
 {loan.status != 'fundraising' ?
                                         <DTDD term='Status' def={humanize(loan.status)} />
