@@ -1,4 +1,5 @@
-window.kl_progress = {}
+if (!window.kl_api_start) window.kl_api_start = {batch: 0, pages: 0}
+if (!window.kl_progress) window.kl_progress = {}
 
 function xhrPartnerTransferComplete() {
     try {
