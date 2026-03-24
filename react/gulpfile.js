@@ -4,13 +4,12 @@ var gulp = require('gulp'),
     rename = require('gulp-rename')
 var autoprefixer = require('gulp-autoprefixer')
 var uglify = require('gulp-uglify')
-var minifycss = require('gulp-minify-css')
-var sass = require('gulp-sass')
+var cleanCSS = require('gulp-clean-css')
+var sass = require('gulp-sass')(require('sass'))
 var browserify = require('browserify')
 var watchify = require('watchify')
 var notifier = require('node-notifier')
 var babelify = require('babelify')
-var sourcemaps = require('gulp-sourcemaps')
 var source = require('vinyl-source-stream')
 var buffer = require('vinyl-buffer')
 var gulpif = require('gulp-if'),
@@ -20,18 +19,17 @@ var production = false; //todo: find what node production environment settings d
 
 gulp.task('styles', function(){
   notifier.notify({title: 'Gulp', message: 'Styles changed'})
-  gulp.src(['src/styles/**/*.scss'])
+  return gulp.src(['src/styles/**/*.scss'])
     .pipe(plumber({
       errorHandler: function (error) {
         console.log(error.message)
         this.emit('end')
     }}))
-    .pipe(sass())
-    //.pipe(postcss([autoprefixer]).process())
+    .pipe(sass().on('error', sass.logError))
     .pipe(gulpif(production, autoprefixer('last 5 versions')))
     .pipe(gulp.dest('../public/stylesheets/'))
     .pipe(rename({suffix: '.min'}))
-    .pipe(gulpif(production, minifycss())) //skip minification, it still goes into the .min unminified if non-prod
+    .pipe(gulpif(production, cleanCSS()))
     .pipe(gulp.dest('../public/stylesheets/'))
 })
 
@@ -42,7 +40,7 @@ function compile(watch) {
         bundler = watchify(bundler)
 
     function rebundle() {
-      bundler.bundle()
+      return bundler.bundle()
         .on('error', function (err) {
           notifier.notify({
             title: 'Gulp',
@@ -54,8 +52,6 @@ function compile(watch) {
         .pipe(source('build.js'))
         .pipe(buffer())
         .pipe(gulpif(production, uglify({output: {ascii_only: true}})))
-        .pipe(sourcemaps.init({loadMaps: true}))
-        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('../public/javascript'))
     }
 
@@ -70,37 +66,36 @@ function compile(watch) {
             console.log('waiting...')
         })
     }
-    rebundle()
 
-    gulp.src('./src/scripts/vendor/*.min.js')
-        .pipe(sourcemaps.init())
+    return rebundle()
+}
+
+function vendorScripts() {
+    return gulp.src('./src/scripts/vendor/*.min.js')
         .pipe(concat('vendor.js'))
-        .pipe(sourcemaps.write())
         .pipe(gulp.dest('../public/javascript'))
 }
 
-gulp.task("production", function(){
+gulp.task("production", function(done){
     console.log("SWITCHING TO PRODUCTION MODE")
     production = true
-    return process.env.NODE_ENV = 'production' //
+    process.env.NODE_ENV = 'production'
+    done()
 })
 
+gulp.task('scripts', gulp.parallel(
+    function bundleScripts(done) { compile(false).on('end', done) },
+    vendorScripts
+))
 
-gulp.task("delete_rogue_react", function(){ //todo: temp fix!
-    //this is not needed as the infinite-list is now brought into my package.
-    //var clean = require('gulp-clean')
-    //return gulp.src('node_modules/react-infinite-list/node_modules/react', {read: false}).pipe(clean({force: true}))
-})
+gulp.task('watch', function(done) { compile(true); done() })
 
-gulp.task('scripts', function() { return compile(false) })
-gulp.task('watch', function() { return compile(true) })
+gulp.task('prod', gulp.series('production', gulp.parallel('styles', 'scripts')))
 
-gulp.task('prod', ['production','styles','scripts'])
-
-gulp.task('default', ['styles','scripts'], function(){ //, 'browser-sync'
+gulp.task('default', gulp.series(gulp.parallel('styles', 'scripts'), function watching(done){
   notifier.notify({title: 'Gulp', message: 'Watching for changes'})
-  gulp.watch("src/styles/**/*.scss", ['styles'])
-  gulp.watch("src/scripts/**/*.jsx", ['scripts'])
-  gulp.watch("src/scripts/**/*.js", ['scripts'])
-  //gulp.watch("*.html", ['bs-reload'])
-})
+  gulp.watch("src/styles/**/*.scss", gulp.series('styles'))
+  gulp.watch("src/scripts/**/*.jsx", gulp.series('scripts'))
+  gulp.watch("src/scripts/**/*.js", gulp.series('scripts'))
+  done()
+}))

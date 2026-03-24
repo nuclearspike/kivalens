@@ -1,1 +1,1 @@
-web: node cluster.js
+web: node --expose-gc cluster.js

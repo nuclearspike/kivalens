@@ -15,9 +15,9 @@ const SnowStack = React.createClass({
         var that = this
         const selectImage = loan => {
             var image_id = loan.image.id
-            var thumb= `http://www.kiva.org/img/w800/${image_id}.jpg`
-            var zoom = thumb //`http://www.kiva.org/img/w800/${image_id}.jpg`
-            var link = `http://www.kiva.org/lend/${loan.id}`
+            var thumb= `https://www.kiva.org/img/w800/${image_id}.jpg`
+            var zoom = thumb //`https://www.kiva.org/img/w800/${image_id}.jpg`
+            var link = `https://www.kiva.org/lend/${loan.id}`
             //title:loan.name,
             return {thumb,zoom,link}
         }

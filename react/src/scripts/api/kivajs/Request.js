@@ -80,7 +80,7 @@ class Request {
     //fetch data from kiva right now. use sparingly. sem_get makes sure the browser never goes above a certain number of active requests.
     static get(path, params){
         params = extend({}, params, {app_id: api_options.app_id})
-        return getUrl(`http://api.kivaws.org/v1/${path}?${serialize(params)}`,{parseJSON: true}).fail(e => cl(e) )
+        return getUrl(`https://api.kivaws.org/v1/${path}?${serialize(params)}`,{parseJSON: true}).fail(e => cl(e) )
         //can't use the following because this is semaphored... they stack up (could now that there are more options to block semaphore?). return req.kiva.api.get(path, params).fail(e => cl(e) )
     }
 

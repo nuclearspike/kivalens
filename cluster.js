@@ -28,21 +28,10 @@
  * the callbacks didn't work at all or it seemed to be lossy in it's abilities.
  *
  */
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-    require('newrelic');
-}
-if (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_API_KEY) {
-    console.log("**** airbrake createClient")
-    const airbrake = require('airbrake').createClient(process.env.AIRBRAKE_PROJECT_ID, process.env.AIRBRAKE_API_KEY)
-    airbrake.handleExceptions();
-} else {
-    console.log("***** NO AIRBRAKE PROJECT ID OR API KEY FOUND")
-}
 //both master and workers need these.
 var Hub = require('cluster-hub')
 var hub = new Hub()
 var cluster = require('cluster')
-var memwatch = require('memwatch-next')
 var fs = require('fs')
 var extend = require('extend')
 
@@ -59,15 +48,18 @@ function outputMemUsage(event){
 //important only because heroku has memory limits and doing a gc lets me stay under and run more processes.
 //it only takes a fraction of a second anyway.
 function doGarbageCollection(name,log){
-    if (log) {
-        var u_before = process.uptime()
-        var m_before = process.memoryUsage()
-        memwatch.gc()
-        var m_after = process.memoryUsage()
-        var u_after = process.uptime()
-        console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
-    } else
-        memwatch.gc()
+    if (typeof global.gc === 'function') {
+        if (log) {
+            var u_before = process.uptime()
+            var m_before = process.memoryUsage()
+            global.gc()
+            var m_after = process.memoryUsage()
+            var u_after = process.uptime()
+            console.log(`### ${name}: gc: before: ${formatMB(m_before.rss)}MB - ${formatMB(m_before.rss - m_after.rss)}MB = ${formatMB(m_after.rss)}MB time: ${(u_after - u_before).toFixed(3)}`)
+        } else {
+            global.gc()
+        }
+    }
 }
 
 function notifyAllWorkers(msg){ //todo: cluster-hub has a method to send to all workers.
@@ -568,8 +560,8 @@ if (cluster.isMaster){ //preps the downloads
                 Object.keys(loansToServe).where(batch => batch < latest - 10).forEach(batch => {
                     if (batch > 0)
                         Array.range(1,KLPageSplits).forEach(page => {
-                            fs.unlink(`/tmp/loans-${batch}-${page}.kl`)
-                            fs.unlink(`/tmp/keywords-${batch}-${page}.kl`)
+                            fs.unlink(`/tmp/loans-${batch}-${page}.kl`, ()=>{})
+                            fs.unlink(`/tmp/keywords-${batch}-${page}.kl`, ()=>{})
                         })
                     delete loansToServe[batch]
                 })
@@ -776,7 +768,7 @@ else  //workers handle all communication with the clients.
     main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
-    app.use('/proxy/kiva', proxy('http://www.kiva.org', proxyHandler))
+    app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
     //app.use(express.static(__dirname + '/public'))
@@ -1064,6 +1056,8 @@ else  //workers handle all communication with the clients.
     main.use(vhost('www.kivalens.org', app))
     main.use(vhost('kivalens.herokuapp.com', app)) //needed for KLA to have https access
 
+    // fallback: if no vhost matched, use the kivalens app
+    main.use(app)
 
     main.listen(main.get('port'), function() {
         console.log('KivaLens Server is running on port', main.get('port'))
