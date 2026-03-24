@@ -222,6 +222,9 @@ div.panel.radioPanel div.radio {
 .menu_selected {
   background-color: #1a3d2e;
 }
+.menu_selected a, .menu_selected a:hover, .menu_selected a:focus {
+  color: #ffffff !important;
+}
 
 .loan_list_item:first-child {
   border-top-right-radius: 0 !important;

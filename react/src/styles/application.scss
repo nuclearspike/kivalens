@@ -254,6 +254,9 @@ div.panel.radioPanel {
 
 .menu_selected {
   background-color: $kiva-green-dark;
+  a, a:hover, a:focus {
+    color: #ffffff !important;
+  }
 }
 
 .loan_list_item:first-child {
