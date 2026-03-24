@@ -62803,6 +62803,7 @@ var Loans = (function () {
       this.active_partners = partners.where(function (p) {
         return p.status == "active";
       });
+      processPartnerReligions(this.partners_from_kiva);
       //todo: temp. for debugging
       global.partners = this.partners_from_kiva;
       //gather all country objects where partners operate, flatten and remove dupes.
