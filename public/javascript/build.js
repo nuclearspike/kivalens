@@ -72702,25 +72702,17 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reflux = require('reflux');
-
-var _reflux2 = _interopRequireDefault(_reflux);
-
 var _actions = require('../actions');
 
 var _actions2 = _interopRequireDefault(_actions);
 
 var LenderLoans = require("../api/kivajs/LenderLoans");
 
-var _snowstackInstance = 0;
-
 var SnowStack = _react2['default'].createClass({
     displayName: 'SnowStack',
 
-    mixins: [_reflux2['default'].ListenerMixin],
     getInitialState: function getInitialState() {
-        _snowstackInstance++;
-        return { message: 'Loading...', instanceId: _snowstackInstance };
+        return { message: 'Loading...' };
     },
     shouldComponentUpdate: function shouldComponentUpdate(np, _ref) {
         var message = _ref.message;
@@ -72737,13 +72729,15 @@ var SnowStack = _react2['default'].createClass({
         };
         var lid = this.getKivaID();
         if (lid) {
-            that.setMessage('Loading loans for ' + lid + '...');
+            that.safeSetState({ message: 'Loading loans for ' + lid + '...' });
             new LenderLoans(lid, { max_pages: 10 }).start().done(function (loans) {
-                that.setMessage(lid + '\'s portfolio (up to 200): arrow keys to move, space toggles magnify.');
-                callback(loans.select(selectImage));
+                if (!that._unmounted) {
+                    that.safeSetState({ message: lid + '\'s portfolio (up to 200): arrow keys to move, space toggles magnify.' });
+                    callback(loans.select(selectImage));
+                }
             });
         } else {
-            that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.');
+            that.safeSetState({ message: 'Fundraising loans: arrow keys to move, space toggles magnify.' });
             var interesting = kivaloans.filter({ loan: { tags: ['#InterestingPhoto'] } }, false);
             var popular = kivaloans.filter({ loan: { sort: 'popular', limit_results: 300 } }, false);
             callback(interesting.concat(popular).distinct(function (a, b) {
@@ -72751,8 +72745,8 @@ var SnowStack = _react2['default'].createClass({
             }).take(201).select(selectImage));
         }
     },
-    setMessage: function setMessage(message) {
-        this.setState({ message: message });
+    safeSetState: function safeSetState(state) {
+        if (!this._unmounted) this.setState(state);
     },
     getKivaID: function getKivaID() {
         return this.props.location && this.props.location.query && this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id;
@@ -72760,31 +72754,30 @@ var SnowStack = _react2['default'].createClass({
     startIfReady: function startIfReady() {
         var _this = this;
 
-        if (this._started) return;
+        if (this._started || this._unmounted) return;
         if (this.getKivaID() || kivaloans.isReady()) {
             this._started = true;
-            // Completely reinitialize snowstack with fresh DOM
             setTimeout(function () {
-                // Swap the camera ID to match what snowstack expects
-                var el = document.getElementById('camera-' + _this.state.instanceId);
-                if (el) el.id = 'camera';
-                snowstack_init(_this.produceImages);
+                if (_this._unmounted) return;
+                var el = document.getElementById('camera');
+                if (el) {
+                    if (typeof snowstack_reset === 'function') snowstack_reset();
+                    snowstack_init(_this.produceImages);
+                }
             }, 100);
         }
     },
     componentWillUnmount: function componentWillUnmount() {
-        if (typeof snowstack_reset === 'function') snowstack_reset();
+        this._unmounted = true;
         if (typeof snowstack_cleanup === 'function') snowstack_cleanup();
-        // Restore camera ID so cleanup doesn't affect next instance
-        var el = document.getElementById('camera');
-        if (el) el.id = 'camera-dead';
+        if (typeof snowstack_reset === 'function') snowstack_reset();
         document.body.style.removeProperty('background-color');
         document.body.style.removeProperty('overflow');
     },
     componentDidMount: function componentDidMount() {
+        this._unmounted = false;
         document.body.style.backgroundColor = 'black';
         document.body.style.overflow = 'hidden';
-        if (!this.getKivaID()) this.listenTo(_actions2['default'].loans.load.completed, this.startIfReady);
         this.startIfReady();
     },
     render: function render() {
@@ -72797,7 +72790,7 @@ var SnowStack = _react2['default'].createClass({
                 _react2['default'].createElement(
                     'div',
                     { className: 'origin view' },
-                    _react2['default'].createElement('div', { id: 'camera-' + this.state.instanceId, className: 'camera view' })
+                    _react2['default'].createElement('div', { id: 'camera', className: 'camera view' })
                 )
             ),
             _react2['default'].createElement(
@@ -72812,7 +72805,7 @@ var SnowStack = _react2['default'].createClass({
 exports['default'] = SnowStack;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634,"reflux":650}],719:[function(require,module,exports){
+},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634}],719:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {

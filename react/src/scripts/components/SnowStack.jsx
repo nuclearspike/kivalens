@@ -1,15 +1,10 @@
 import React from 'react'
-import Reflux from 'reflux'
 import a from '../actions'
 const LenderLoans = require("../api/kivajs/LenderLoans")
 
-var _snowstackInstance = 0
-
 const SnowStack = React.createClass({
-    mixins:[Reflux.ListenerMixin],
     getInitialState(){
-        _snowstackInstance++
-        return {message:'Loading...', instanceId: _snowstackInstance}
+        return {message:'Loading...'}
     },
     shouldComponentUpdate(np, {message}){return message != this.state.message},
     produceImages(callback){
@@ -23,58 +18,58 @@ const SnowStack = React.createClass({
         }
         var lid = this.getKivaID()
         if (lid) {
-            that.setMessage(`Loading loans for ${lid}...`)
+            that.safeSetState({message: `Loading loans for ${lid}...`})
             new LenderLoans(lid, {max_pages: 10}).start().done(loans => {
-                that.setMessage(`${lid}'s portfolio (up to 200): arrow keys to move, space toggles magnify.`)
-                callback(loans.select(selectImage))
+                if (!that._unmounted) {
+                    that.safeSetState({message: `${lid}'s portfolio (up to 200): arrow keys to move, space toggles magnify.`})
+                    callback(loans.select(selectImage))
+                }
             })
         } else {
-            that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.')
+            that.safeSetState({message: 'Fundraising loans: arrow keys to move, space toggles magnify.'})
             var interesting = kivaloans.filter({loan:{tags:['#InterestingPhoto']}},false)
             var popular = kivaloans.filter({loan:{sort:'popular',limit_results: 300}},false)
             callback(interesting.concat(popular).distinct((a,b)=>a.id==b.id).take(201).select(selectImage))
         }
     },
-    setMessage(message){
-        this.setState({message})
+    safeSetState(state){
+        if (!this._unmounted) this.setState(state)
     },
     getKivaID(){
         return (this.props.location && this.props.location.query && this.props.location.query.kivaid) || lsj.get('Options').kiva_lender_id
     },
     startIfReady(){
-        if (this._started) return
+        if (this._started || this._unmounted) return
         if (this.getKivaID() || kivaloans.isReady()) {
             this._started = true
-            // Completely reinitialize snowstack with fresh DOM
             setTimeout(() => {
-                // Swap the camera ID to match what snowstack expects
-                var el = document.getElementById('camera-' + this.state.instanceId)
-                if (el) el.id = 'camera'
-                snowstack_init(this.produceImages)
+                if (this._unmounted) return
+                var el = document.getElementById('camera')
+                if (el) {
+                    if (typeof snowstack_reset === 'function') snowstack_reset()
+                    snowstack_init(this.produceImages)
+                }
             }, 100)
         }
     },
     componentWillUnmount(){
-        if (typeof snowstack_reset === 'function') snowstack_reset()
+        this._unmounted = true
         if (typeof snowstack_cleanup === 'function') snowstack_cleanup()
-        // Restore camera ID so cleanup doesn't affect next instance
-        var el = document.getElementById('camera')
-        if (el) el.id = 'camera-dead'
+        if (typeof snowstack_reset === 'function') snowstack_reset()
         document.body.style.removeProperty('background-color')
         document.body.style.removeProperty('overflow')
     },
     componentDidMount() {
+        this._unmounted = false
         document.body.style.backgroundColor = 'black'
         document.body.style.overflow = 'hidden'
-        if (!this.getKivaID())
-            this.listenTo(a.loans.load.completed, this.startIfReady)
         this.startIfReady()
     },
     render() {
         return (<div style={{position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, backgroundColor: 'black', zIndex: 100}}>
             <div className="page view">
                 <div className="origin view">
-                    <div id={'camera-' + this.state.instanceId} className="camera view"/>
+                    <div id="camera" className="camera view"/>
                 </div>
             </div>
             <div style={{position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ccc', fontSize: 13, zIndex: 101}}>
