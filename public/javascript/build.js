@@ -72754,10 +72754,12 @@ var SnowStack = _react2['default'].createClass({
     startIfReady: function startIfReady() {
         var _this = this;
 
+        console.log('SnowStack.startIfReady: _started=', this._started, '_unmounted=', this._unmounted, 'kivaID=', this.getKivaID(), 'isReady=', kivaloans.isReady());
         if (this._started || this._unmounted) return;
         if (this.getKivaID() || kivaloans.isReady()) {
             this._started = true;
             setTimeout(function () {
+                console.log('SnowStack.setTimeout: _unmounted=', _this._unmounted, 'camera=', !!document.getElementById('camera'));
                 if (_this._unmounted) return;
                 var el = document.getElementById('camera');
                 if (el) {
