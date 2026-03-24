@@ -39,12 +39,10 @@ const SnowStack = React.createClass({
         return (this.props.location && this.props.location.query && this.props.location.query.kivaid) || lsj.get('Options').kiva_lender_id
     },
     startIfReady(){
-        console.log('SnowStack.startIfReady: _started=', this._started, '_unmounted=', this._unmounted, 'kivaID=', this.getKivaID(), 'isReady=', kivaloans.isReady())
         if (this._started || this._unmounted) return
         if (this.getKivaID() || kivaloans.isReady()) {
             this._started = true
             setTimeout(() => {
-                console.log('SnowStack.setTimeout: _unmounted=', this._unmounted, 'camera=', !!document.getElementById('camera'))
                 if (this._unmounted) return
                 var el = document.getElementById('camera')
                 if (el) {
