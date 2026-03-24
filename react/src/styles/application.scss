@@ -373,6 +373,24 @@ div.panel.radioPanel {
   }
 }
 
+// Borrower pills
+.borrower-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 2px 3px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.borrower-female {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+.borrower-male {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
 ul.spacedList li {padding-top: 10px}
 
 

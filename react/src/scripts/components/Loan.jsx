@@ -178,8 +178,9 @@ var Loan = React.createClass({
         var funded_perc = (loan.funded_amount * 100 /  loan.loan_amount)
         var basket_perc = (loan.basket_amount * 100 /  loan.loan_amount)
         var partner = loan.getPartner()
-        var pictured = loan.borrowers.where(b=>b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
-        var not_pictured = loan.borrowers.where(b=>!b.pictured).select(b=>`${b.first_name} (${b.gender})`).join(', ')
+        const borrowerPill = b => <span key={b.first_name+b.gender} className={`borrower-pill borrower-${b.gender == 'F' ? 'female' : 'male'}`}>{b.first_name}</span>
+        var pictured = loan.borrowers.where(b=>b.pictured).map(borrowerPill)
+        var not_pictured = loan.borrowers.where(b=>!b.pictured).map(borrowerPill)
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
         return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
     },
@@ -250,10 +251,10 @@ var Loan = React.createClass({
                         <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%"/>
                         <Panel>
                             <If condition={loan.borrowers.length > 1}>
-                                <p>In no particular order:</p>
+                                <p style={{marginBottom: 4, color: '#999', fontSize: '12px'}}>In no particular order</p>
                             </If>
-                            <p>Pictured: {pictured ? pictured: '(none)'} </p>
-                            <p>Not Pictured: {not_pictured ? not_pictured: '(none)'} </p>
+                            <p>Pictured: {pictured.length ? pictured : '(none)'} </p>
+                            <p>Not Pictured: {not_pictured.length ? not_pictured : '(none)'} </p>
                             <If condition={visionResults != null}>
                                 <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
                             </If>
