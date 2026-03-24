@@ -878,11 +878,13 @@ const CriteriaTabs = React.createClass({
         </Tab>
         <If condition={!isMobile}>
           <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
-            <Row>
+            <Row className="ample-padding-top">
               <Col lg={12}>
-                <If condition={activeTab === 4}>
-                  <AutoLendSettings/>
-                </If>
+                <Alert bsStyle="warning">
+                  <b>Auto-Lending is temporarily unavailable.</b> Kiva has made changes to their
+                  auto-lending system that are not yet compatible with KivaLens. This feature
+                  will be restored in a future update.
+                </Alert>
               </Col>
             </Row>
           </Tab>
