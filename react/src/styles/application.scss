@@ -295,12 +295,54 @@ div.panel.radioPanel {
 }
 
 .loan_list_item {
-  height: 85px;
+  height: 82px;
   width: 100%;
   padding-top: 3px !important;
   padding-bottom: 3px !important;
-  .details p {
-    margin-bottom: 3.5px;
+  border-left: 3px solid transparent !important;
+  transition: border-color 200ms ease, background-color 300ms ease;
+  &:hover {
+    border-left-color: $kiva-green !important;
+  }
+  &.selected {
+    border-left-color: $kiva-green !important;
+  }
+  .details {
+    overflow: hidden;
+    .loan-name {
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 1.3;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .loan-meta {
+      margin-bottom: 2px;
+      .loan-tag {
+        display: inline-block;
+        font-size: 11px;
+        color: $kiva-text-muted;
+        background: $kiva-bg-subtle;
+        padding: 0px 5px;
+        border-radius: 3px;
+        margin-right: 3px;
+      }
+    }
+    .loan-use {
+      font-size: 11.5px;
+      color: $kiva-text-muted;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    p {
+      margin-bottom: 3.5px;
+    }
   }
   overflow-y: hidden;
   .KivaImage {
@@ -444,7 +486,15 @@ ul.spacedList li {padding-top: 10px}
 .in_basket {
   background-color: $kiva-action !important;
   color: #ffffff !important;
+  border-left-color: #1e7e34 !important;
   a, a:hover { color: #ffffff !important; }
+  .loan-tag {
+    background: rgba(255,255,255,0.2) !important;
+    color: #ffffff !important;
+  }
+  .loan-use {
+    color: rgba(255,255,255,0.85) !important;
+  }
 }
 
 .funded {

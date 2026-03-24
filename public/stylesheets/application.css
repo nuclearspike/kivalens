@@ -262,10 +262,52 @@ div.panel.radioPanel div.radio {
 }
 
 .loan_list_item {
-  height: 85px;
+  height: 82px;
   width: 100%;
   padding-top: 3px !important;
   padding-bottom: 3px !important;
+  border-left: 3px solid transparent !important;
+  transition: border-color 200ms ease, background-color 300ms ease;
+}
+.loan_list_item:hover {
+  border-left-color: #2C8C5E !important;
+}
+.loan_list_item.selected {
+  border-left-color: #2C8C5E !important;
+}
+.loan_list_item .details {
+  overflow: hidden;
+}
+.loan_list_item .details .loan-name {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.loan_list_item .details .loan-meta {
+  margin-bottom: 2px;
+}
+.loan_list_item .details .loan-meta .loan-tag {
+  display: inline-block;
+  font-size: 11px;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 0px 5px;
+  border-radius: 3px;
+  margin-right: 3px;
+}
+.loan_list_item .details .loan-use {
+  font-size: 11.5px;
+  color: #6c757d;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .loan_list_item .details p {
   margin-bottom: 3.5px;
@@ -409,9 +451,17 @@ ul.spacedList li {
 .in_basket {
   background-color: #28a745 !important;
   color: #ffffff !important;
+  border-left-color: #1e7e34 !important;
 }
 .in_basket a, .in_basket a:hover {
   color: #ffffff !important;
+}
+.in_basket .loan-tag {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+.in_basket .loan-use {
+  color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .funded {

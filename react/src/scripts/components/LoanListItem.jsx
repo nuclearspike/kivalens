@@ -51,11 +51,13 @@ const LoanListItem = React.createClass({
                 href={`#/search/loan/${loan.id}`}>
                 <KivaImage key={loan.id} type="square" loan={loan} image_width={113} height={90} width={90}/>
                 <div className="details">
-                    <p><b>{loan.name}</b></p>
-                    {loan.location.country} | {loan.sector} <span className="hidden-md">| {loan.activity}</span>
-                    <p className="hidden-md">
-                    {loan.use}
-                    </p>
+                    <div className="loan-name">{loan.name}</div>
+                    <div className="loan-meta">
+                        <span className="loan-tag">{loan.location.country}</span>
+                        <span className="loan-tag">{loan.sector}</span>
+                        <span className="loan-tag hidden-md">{loan.activity}</span>
+                    </div>
+                    <div className="loan-use hidden-md">{loan.use}</div>
                 </div>
             </ListGroupItem>
     }
