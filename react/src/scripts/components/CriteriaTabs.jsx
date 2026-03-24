@@ -945,7 +945,7 @@ const CriteriaTabs = React.createClass({
                         you an email or an SMS.
                       </p>
                       <textarea style={{width: '100%', height: '150px'}} readOnly
-                                value={`http://www.kivalens.org/rss/${critRSSUrl}`}/>
+                                value={`https://www.kivalens.org/rss/${critRSSUrl}`}/>
                     </Panel>
                   </div>
                 </If>

@@ -18,7 +18,7 @@ app.get("/nuclearspike.swf", (req,res)=>{
 
 app.get('/*', (req, res) => {
     console.log('nuclearspike: ', req.baseUrl)
-    res.redirect("http://www.kivalens.org/#/search") //include outdated-link
+    res.redirect("https://www.kivalens.org/#/search") //include outdated-link
 })
 
 module.exports = app

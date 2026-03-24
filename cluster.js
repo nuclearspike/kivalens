@@ -802,8 +802,8 @@ else  //workers handle all communication with the clients.
             if (!crit.feed.link_to) crit.feed.link_to = 'kiva'
             var opts = {
                 title: 'KivaLens: ' + crit.feed.name,
-                feed_url: `http://www.kivalens.org/rss/${req.params.criteria}`,
-                site_url: 'http://www.kivalens.org/#/search'
+                feed_url: `https://www.kivalens.org/rss/${req.params.criteria}`,
+                site_url: 'https://www.kivalens.org/#/search'
             }
             var feed = new RSS(opts)
             result = JSON.parse(result)
@@ -812,7 +812,7 @@ else  //workers handle all communication with the clients.
                     title: loan.name,
                     description: loan.description.texts.en,
                     guid: loan.id,
-                    url: `http://www.kivalens.org/rss_click/${crit.feed.link_to}/${loan.id}`,
+                    url: `https://www.kivalens.org/rss_click/${crit.feed.link_to}/${loan.id}`,
                     date: loan.posted_date
                 })
             })
@@ -827,7 +827,7 @@ else  //workers handle all communication with the clients.
         if (go_to === 'kiva') { //rss output fills in 'kiva' when none specified
             res.redirect(`https://www.kiva.org/lend/${id}?app_id=org.kiva.kivalens`)
         } else {
-            res.redirect(`http://www.kivalens.org/#/search/loan/${id}`)
+            res.redirect(`https://www.kivalens.org/#/search/loan/${id}`)
         }
     })
 
