@@ -2,16 +2,16 @@
 
 import React from 'react'
 import Reflux from 'reflux'
-import {Grid, Col, Row, Input, Button, ButtonGroup, ListGroupItem, Panel, Label, Alert} from 'react-bootstrap'
-import {KivaImage, KivaLink} from '.'
+import {Col, Row, ListGroupItem, Label, Panel} from 'react-bootstrap'
+import {KivaImage} from '.'
 import PartnerDetail from './PartnerDetail.jsx'
+import {SelectRow, SliderRow, allOptions} from './CriteriaTabs.jsx'
+import {DelayStateTriggerMixin} from './Mixins'
+import {Cursor} from 'react-cursor'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 import cx from 'classnames'
-
-// Import allOptions for criteria UI
-var CriteriaTabs = require('./CriteriaTabs.jsx')
 
 const statusColors = {
     active: null,
@@ -55,80 +55,97 @@ const PartnerListItem = React.createClass({
 })
 
 const Partners = React.createClass({
-    mixins: [Reflux.ListenerMixin],
+    mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria', 'performSearch', 200)],
     getInitialState() {
         return {
-            criteria: {},
+            criteria: { partner: {} },
+            nameSearch: '',
             selectedPartner: null,
-            showCriteria: true,
             filteredPartners: [],
-            totalPartners: 0
+            totalPartners: 0,
+            displayAtheistOptions: false
         }
     },
     componentDidMount() {
         this.listenTo(a.loans.live.progress, this.onProgress)
         if (kivaloans.partners_from_kiva && kivaloans.partners_from_kiva.length > 0) {
-            this.performSearch({})
+            this.performSearch()
         }
+        this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
     },
     onProgress(progress) {
         if (progress.partners_loaded || progress.atheist_list_loaded) {
-            this.performSearch(this.state.criteria)
+            this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
+            this.performSearch()
         }
     },
-    performSearch(criteria) {
-        var results = kivaloans.filterAllPartners(criteria)
+    performSearch() {
+        var c = this.state.criteria.partner || {}
+        // Add name search
+        c.name = this.state.nameSearch
+        var results = kivaloans.filterAllPartners(c)
         results = results.orderBy(p => p.name)
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva.length,
-            criteria: criteria
+            totalPartners: kivaloans.partners_from_kiva.length
         })
     },
     selectPartner(partner) {
         this.setState({selectedPartner: partner})
     },
-    toggleCriteria() {
-        this.setState({showCriteria: !this.state.showCriteria})
-    },
     onNameChange(e) {
-        var criteria = this.state.criteria
-        criteria.name = e.target.value
-        this.performSearch(criteria)
-    },
-    onStatusChange(value) {
-        var criteria = this.state.criteria
-        criteria.status = value
-        this.performSearch(criteria)
+        this.setState({nameSearch: e.target.value}, this.performSearch)
     },
     render() {
-        var {filteredPartners, totalPartners, selectedPartner, showCriteria} = this.state
+        var {filteredPartners, totalPartners, selectedPartner, displayAtheistOptions} = this.state
+        var cursor = Cursor.build(this).refine('criteria')
+        var cPartner = cursor.refine('partner')
 
         return (
             <div>
                 <Col md={4}>
                     <div className="side-results">
-                        <ButtonGroup justified className="top-only">
-                            <Button href="#" key={1}
-                                onClick={this.toggleCriteria}>
-                                {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
-                            </Button>
-                        </ButtonGroup>
+                        <Panel style={{marginBottom: 0, borderRadius: 0, padding: '8px'}}>
+                            <input type="text" className="form-control" placeholder="Search by name..."
+                                style={{marginBottom: 8}}
+                                onChange={this.onNameChange} value={this.state.nameSearch}/>
 
-                        {showCriteria ?
-                            <Panel className="partner-criteria-panel" style={{marginBottom: 0, borderRadius: 0}}>
-                                <div style={{marginBottom: 8}}>
-                                    <input type="text" className="form-control" placeholder="Search by name..."
-                                        onChange={this.onNameChange} value={this.state.criteria.name || ''}/>
+                            <SelectRow name="status" cursor={cPartner.refine('status')}
+                                       aanCursor={cPartner.refine('status_all_any_none')}/>
+
+                            <SelectRow name="direct" cursor={cPartner.refine('direct')}
+                                       aanCursor={cPartner.refine('direct_all_any_none')}/>
+
+                            {['region', 'social_performance', 'charges_fees_and_interest'].map((name, i) =>
+                                <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
+                                           aanCursor={cPartner.refine(`${name}_all_any_none`)}/>
+                            )}
+
+                            <SelectRow name="religion" cursor={cPartner.refine('religion')}
+                                       aanCursor={cPartner.refine('religion_all_any_none')}/>
+
+                            {['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map((name, i) =>
+                                <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
+                                           cursorMax={cPartner.refine(`${name}_max`)} cycle={0}
+                                           options={allOptions[name]}/>
+                            )}
+
+                            {displayAtheistOptions ?
+                                <div>
+                                    {['secular_rating', 'social_rating'].map((name, i) =>
+                                        <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
+                                                   cursorMax={cPartner.refine(`${name}_max`)} cycle={0}
+                                                   options={allOptions[name]}/>
+                                    )}
                                 </div>
-                            </Panel>
-                        : null}
+                            : null}
+                        </Panel>
 
                         <div className="loan-count-bar">
                             Showing {numeral(filteredPartners.length).format('0,0')} of {numeral(totalPartners).format('0,0')} partners
                         </div>
 
-                        <div className="loan_list_container" style={{height: 800, overflowY: 'auto'}}>
+                        <div className="loan_list_container" style={{height: 600, overflowY: 'auto'}}>
                             {filteredPartners.map(p =>
                                 <PartnerListItem
                                     key={p.id}
@@ -145,7 +162,7 @@ const Partners = React.createClass({
                     :
                         <div style={{padding: '40px', textAlign: 'center', color: '#999'}}>
                             <h3>Select a partner from the list</h3>
-                            <p>Use the search box to find partners by name. Browse all {numeral(totalPartners).format('0,0')} partners including inactive and paused ones.</p>
+                            <p>Browse all {numeral(totalPartners).format('0,0')} partners including inactive and paused ones.</p>
                         </div>
                     }
                 </Col>

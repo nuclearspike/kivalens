@@ -68410,7 +68410,10 @@ var CriteriaTabs = _react2['default'].createClass({
 });
 
 exports['default'] = CriteriaTabs;
-module.exports = exports['default'];
+exports.SelectRow = SelectRow;
+exports.SliderRow = SliderRow;
+exports.allOptions = allOptions;
+exports.AllAnyNoneButton = AllAnyNoneButton;
 
 },{".":720,"../actions":667,"../api/kiva":668,"../stores/":723,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
 'use strict';
@@ -71981,6 +71984,12 @@ var _PartnerDetailJsx = require('./PartnerDetail.jsx');
 
 var _PartnerDetailJsx2 = _interopRequireDefault(_PartnerDetailJsx);
 
+var _CriteriaTabsJsx = require('./CriteriaTabs.jsx');
+
+var _Mixins = require('./Mixins');
+
+var _reactCursor = require('react-cursor');
+
 var _actions = require('../actions');
 
 var _actions2 = _interopRequireDefault(_actions);
@@ -71996,9 +72005,6 @@ var _numeral2 = _interopRequireDefault(_numeral);
 var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
-
-// Import allOptions for criteria UI
-var CriteriaTabs = require('./CriteriaTabs.jsx');
 
 var statusColors = {
     active: null,
@@ -72071,53 +72077,48 @@ var PartnerListItem = _react2['default'].createClass({
 var Partners = _react2['default'].createClass({
     displayName: 'Partners',
 
-    mixins: [_reflux2['default'].ListenerMixin],
+    mixins: [_reflux2['default'].ListenerMixin, (0, _Mixins.DelayStateTriggerMixin)('criteria', 'performSearch', 200)],
     getInitialState: function getInitialState() {
         return {
-            criteria: {},
+            criteria: { partner: {} },
+            nameSearch: '',
             selectedPartner: null,
-            showCriteria: true,
             filteredPartners: [],
-            totalPartners: 0
+            totalPartners: 0,
+            displayAtheistOptions: false
         };
     },
     componentDidMount: function componentDidMount() {
         this.listenTo(_actions2['default'].loans.live.progress, this.onProgress);
         if (kivaloans.partners_from_kiva && kivaloans.partners_from_kiva.length > 0) {
-            this.performSearch({});
+            this.performSearch();
         }
+        this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
     },
     onProgress: function onProgress(progress) {
         if (progress.partners_loaded || progress.atheist_list_loaded) {
-            this.performSearch(this.state.criteria);
+            this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
+            this.performSearch();
         }
     },
-    performSearch: function performSearch(criteria) {
-        var results = kivaloans.filterAllPartners(criteria);
+    performSearch: function performSearch() {
+        var c = this.state.criteria.partner || {};
+        // Add name search
+        c.name = this.state.nameSearch;
+        var results = kivaloans.filterAllPartners(c);
         results = results.orderBy(function (p) {
             return p.name;
         });
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva.length,
-            criteria: criteria
+            totalPartners: kivaloans.partners_from_kiva.length
         });
     },
     selectPartner: function selectPartner(partner) {
         this.setState({ selectedPartner: partner });
     },
-    toggleCriteria: function toggleCriteria() {
-        this.setState({ showCriteria: !this.state.showCriteria });
-    },
     onNameChange: function onNameChange(e) {
-        var criteria = this.state.criteria;
-        criteria.name = e.target.value;
-        this.performSearch(criteria);
-    },
-    onStatusChange: function onStatusChange(value) {
-        var criteria = this.state.criteria;
-        criteria.status = value;
-        this.performSearch(criteria);
+        this.setState({ nameSearch: e.target.value }, this.performSearch);
     },
     render: function render() {
         var _this = this;
@@ -72126,7 +72127,10 @@ var Partners = _react2['default'].createClass({
         var filteredPartners = _state.filteredPartners;
         var totalPartners = _state.totalPartners;
         var selectedPartner = _state.selectedPartner;
-        var showCriteria = _state.showCriteria;
+        var displayAtheistOptions = _state.displayAtheistOptions;
+
+        var cursor = _reactCursor.Cursor.build(this).refine('criteria');
+        var cPartner = cursor.refine('partner');
 
         return _react2['default'].createElement(
             'div',
@@ -72138,25 +72142,36 @@ var Partners = _react2['default'].createClass({
                     'div',
                     { className: 'side-results' },
                     _react2['default'].createElement(
-                        _reactBootstrap.ButtonGroup,
-                        { justified: true, className: 'top-only' },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { href: '#', key: 1,
-                                onClick: this.toggleCriteria },
-                            showCriteria ? 'Hide Criteria' : 'Show Criteria'
-                        )
-                    ),
-                    showCriteria ? _react2['default'].createElement(
                         _reactBootstrap.Panel,
-                        { className: 'partner-criteria-panel', style: { marginBottom: 0, borderRadius: 0 } },
-                        _react2['default'].createElement(
+                        { style: { marginBottom: 0, borderRadius: 0, padding: '8px' } },
+                        _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
+                            style: { marginBottom: 8 },
+                            onChange: this.onNameChange, value: this.state.nameSearch }),
+                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
+                            aanCursor: cPartner.refine('status_all_any_none') }),
+                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'direct', cursor: cPartner.refine('direct'),
+                            aanCursor: cPartner.refine('direct_all_any_none') }),
+                        ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
+                            return _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
+                                aanCursor: cPartner.refine(name + '_all_any_none') });
+                        }),
+                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
+                            aanCursor: cPartner.refine('religion_all_any_none') }),
+                        ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
+                            return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
+                                cursorMax: cPartner.refine(name + '_max'), cycle: 0,
+                                options: _CriteriaTabsJsx.allOptions[name] });
+                        }),
+                        displayAtheistOptions ? _react2['default'].createElement(
                             'div',
-                            { style: { marginBottom: 8 } },
-                            _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
-                                onChange: this.onNameChange, value: this.state.criteria.name || '' })
-                        )
-                    ) : null,
+                            null,
+                            ['secular_rating', 'social_rating'].map(function (name, i) {
+                                return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
+                                    cursorMax: cPartner.refine(name + '_max'), cycle: 0,
+                                    options: _CriteriaTabsJsx.allOptions[name] });
+                            })
+                        ) : null
+                    ),
                     _react2['default'].createElement(
                         'div',
                         { className: 'loan-count-bar' },
@@ -72168,7 +72183,7 @@ var Partners = _react2['default'].createClass({
                     ),
                     _react2['default'].createElement(
                         'div',
-                        { className: 'loan_list_container', style: { height: 800, overflowY: 'auto' } },
+                        { className: 'loan_list_container', style: { height: 600, overflowY: 'auto' } },
                         filteredPartners.map(function (p) {
                             return _react2['default'].createElement(PartnerListItem, {
                                 key: p.id,
@@ -72193,7 +72208,7 @@ var Partners = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'p',
                         null,
-                        'Use the search box to find partners by name. Browse all ',
+                        'Browse all ',
                         (0, _numeral2['default'])(totalPartners).format('0,0'),
                         ' partners including inactive and paused ones.'
                     )
@@ -72206,7 +72221,7 @@ var Partners = _react2['default'].createClass({
 exports['default'] = Partners;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"./CriteriaTabs.jsx":695,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],715:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores/":723,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
