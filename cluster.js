@@ -704,7 +704,7 @@ else  //workers handle all communication with the clients.
 
     //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
     const proxyHandler = {
-        filter: req => req.xhr, //only proxy xhr requests
+        filter: req => true, //proxy all requests
         forwardPath: req => require('url').parse(req.url).path,
         intercept: (rsp, data, req, res, callback) => {
             res.header('Access-Control-Allow-Origin', '*');
