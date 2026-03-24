@@ -62363,10 +62363,10 @@ var Loans = (function () {
           }, function (partner) {
             return !partner.atheistScore;
           });
-          ct.addAnyAllNoneTester('religion', null, 'any', function (partner) {
-            return partner.normalizedReligions || ['Unknown'];
-          }, true);
         }
+        ct.addAnyAllNoneTester('religion', null, 'any', function (partner) {
+          return partner.normalizedReligions || ['Unknown'];
+        }, true);
         ct.addBalancer(c.portfolio.pb_partner, function (partner) {
           return partner.id;
         });
@@ -68060,6 +68060,10 @@ var CriteriaTabs = _react2['default'].createClass({
                                     onFocus: _this3.focusSelect.bind(_this3, 'partner', name),
                                     onBlur: _this3.removeGraphs });
                             }),
+                            _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
+                                aanCursor: cPartner.refine('religion_all_any_none'),
+                                onFocus: this.focusSelect.bind(this, 'partner', 'religion'),
+                                onBlur: this.removeGraphs }),
                             ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
                                 return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
                                     cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
@@ -68072,11 +68076,7 @@ var CriteriaTabs = _react2['default'].createClass({
                                     return _react2['default'].createElement(SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
                                         cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
                                         options: allOptions[name] });
-                                }),
-                                _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
-                                    aanCursor: cPartner.refine('religion_all_any_none'),
-                                    onFocus: this.focusSelect.bind(this, 'partner', 'religion'),
-                                    onBlur: this.removeGraphs })
+                                })
                             ) : null,
                             _react2['default'].createElement(
                                 _reactBootstrap.Button,

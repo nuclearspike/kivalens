@@ -755,6 +755,10 @@ const CriteriaTabs = React.createClass({
                            aanCursor={cPartner.refine(`${name}_all_any_none`)}
                            onFocus={this.focusSelect.bind(this, 'partner', name)}
                            onBlur={this.removeGraphs}/>)}
+              <SelectRow name="religion" cursor={cPartner.refine('religion')}
+                         aanCursor={cPartner.refine('religion_all_any_none')}
+                         onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
+                         onBlur={this.removeGraphs}/>
               {['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map((name, i) => <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
                            cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
                            options={allOptions[name]}/>)}
@@ -762,10 +766,6 @@ const CriteriaTabs = React.createClass({
                   {['secular_rating', 'social_rating'].map((name, i) => <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
                                cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
                                options={allOptions[name]}/>)}
-                  <SelectRow name="religion" cursor={cPartner.refine('religion')}
-                             aanCursor={cPartner.refine('religion_all_any_none')}
-                             onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
-                             onBlur={this.removeGraphs}/>
                 </div> : null}
 
               <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>

@@ -533,8 +533,8 @@ class Loans {
       if (this.atheist_list_processed && this.getOptions().mergeAtheistList) {
         ct.addRangeTesters('secular_rating', partner => partner.atheistScore.secularRating, partner => !partner.atheistScore)
         ct.addRangeTesters('social_rating', partner => partner.atheistScore.socialRating, partner => !partner.atheistScore)
-        ct.addAnyAllNoneTester('religion', null, 'any', partner => partner.normalizedReligions || ['Unknown'], true)
       }
+      ct.addAnyAllNoneTester('religion', null, 'any', partner => partner.normalizedReligions || ['Unknown'], true)
       ct.addBalancer(c.portfolio.pb_partner, partner => partner.id)
 
       ct.addRangeTesters('partner_risk_rating', partner => partner.rating, partner => isNaN(parseFloat(partner.rating)), crit => crit.partner_risk_rating_min == null)
