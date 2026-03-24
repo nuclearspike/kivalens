@@ -491,7 +491,12 @@ function snowstack_search(searchkey, searchterm)
 global.snowstack_init = function (imagefun, options)
 {
 	var loading = true;
-	
+
+	// Reset state for fresh start
+	cells = [];
+	currentCellIndex = -1;
+	magnifyMode = false;
+
 	camera = vfx.byid("camera");
 	
 	reflectionstack = vfx.elem("div", { "class": "view" });
