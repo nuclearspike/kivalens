@@ -58,11 +58,9 @@ const Live = React.createClass({
         return <Grid>
                 <Row>
                     <h1>Kiva Lending</h1>
-                    <Alert bsStyle="info">
-                        Kiva has removed their live data stream, so real-time lending activity
-                        is no longer available. The stats below are based on data KivaLens has
-                        from its periodic syncs with Kiva's API.
-                    </Alert>
+                    <p>
+                        The stats below are based on data from KivaLens's periodic syncs with Kiva's API.
+                    </p>
                 </Row>
                 <Row>
                     <Col md={4}>
