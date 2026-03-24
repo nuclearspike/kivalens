@@ -72083,13 +72083,11 @@ var Partners = _react2['default'].createClass({
     },
     componentDidMount: function componentDidMount() {
         this.listenTo(_actions2['default'].loans.live.progress, this.onProgress);
-        if (kivaloans.partners_from_kiva && kivaloans.partners_from_kiva.length > 0) {
-            this.performSearch();
-        }
         this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
+        this.performSearch();
     },
     onProgress: function onProgress(progress) {
-        if (progress.partners_loaded || progress.atheist_list_loaded) {
+        if (progress.partners_loaded || progress.atheist_list_loaded || progress.loans_loaded) {
             this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
             this.performSearch();
         }
