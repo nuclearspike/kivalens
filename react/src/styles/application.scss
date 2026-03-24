@@ -15,21 +15,57 @@ body {
   color: $kiva-text !important;
 }
 
-// Tighter navbar
+// Navbar styled as connected tabs
 .navbar {
-  margin-bottom: 8px !important;
-  min-height: 40px !important;
+  margin-bottom: 0 !important;
+  min-height: 32px !important;
   background-color: $kiva-green-dark !important;
   border: none !important;
+  border-radius: 0 !important;
   .navbar-brand {
-    padding: 8px 15px !important;
+    padding: 5px 15px !important;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 15px;
+    height: 32px !important;
+    line-height: 22px;
+    color: #ffffff !important;
   }
   .navbar-nav > li > a {
-    padding: 10px 12px !important;
+    padding: 5px 14px !important;
     font-size: 13px;
     font-weight: 500;
+    line-height: 22px;
+    color: rgba(255,255,255,0.85) !important;
+    border-top: 3px solid transparent;
+    transition: all 150ms ease;
+    &:hover, &:focus {
+      background-color: rgba(255,255,255,0.15) !important;
+      color: #ffffff !important;
+    }
+  }
+  // Active/selected tab: white bg, black text, green top border
+  .navbar-nav > li.active > a,
+  .navbar-nav > li > a:active {
+    background-color: #ffffff !important;
+    color: $kiva-text !important;
+    border-top: 3px solid $kiva-green;
+  }
+  .navbar-nav > .active > a:hover {
+    background-color: #f0f0f0 !important;
+    color: $kiva-text !important;
+  }
+  // Badge in navbar
+  .badge {
+    background-color: $kiva-action !important;
+    color: #ffffff !important;
+    font-size: 10px;
+    padding: 2px 5px;
+    vertical-align: middle;
+  }
+  .navbar-toggle {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 4px 8px;
   }
 }
 
@@ -44,6 +80,15 @@ body {
   }
   .panel-body {
     padding: 10px 12px;
+  }
+}
+
+// Loan detail image - constrain to reasonable size
+.fullsizeImage .KivaImage {
+  max-width: 450px;
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -375,6 +420,8 @@ ul.spacedList li {padding-top: 10px}
 
 .in_basket {
   background-color: $kiva-action !important;
+  color: #ffffff !important;
+  a, a:hover { color: #ffffff !important; }
 }
 
 .funded {

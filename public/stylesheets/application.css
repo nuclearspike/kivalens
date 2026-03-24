@@ -5,20 +5,54 @@ body {
 }
 
 .navbar {
-  margin-bottom: 8px !important;
-  min-height: 40px !important;
+  margin-bottom: 0 !important;
+  min-height: 32px !important;
   background-color: #1a3d2e !important;
   border: none !important;
+  border-radius: 0 !important;
 }
 .navbar .navbar-brand {
-  padding: 8px 15px !important;
+  padding: 5px 15px !important;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
+  height: 32px !important;
+  line-height: 22px;
+  color: #ffffff !important;
 }
 .navbar .navbar-nav > li > a {
-  padding: 10px 12px !important;
+  padding: 5px 14px !important;
   font-size: 13px;
   font-weight: 500;
+  line-height: 22px;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-top: 3px solid transparent;
+  transition: all 150ms ease;
+}
+.navbar .navbar-nav > li > a:hover, .navbar .navbar-nav > li > a:focus {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+.navbar .navbar-nav > li.active > a,
+.navbar .navbar-nav > li > a:active {
+  background-color: #ffffff !important;
+  color: #2d2d2d !important;
+  border-top: 3px solid #2C8C5E;
+}
+.navbar .navbar-nav > .active > a:hover {
+  background-color: #f0f0f0 !important;
+  color: #2d2d2d !important;
+}
+.navbar .badge {
+  background-color: #28a745 !important;
+  color: #ffffff !important;
+  font-size: 10px;
+  padding: 2px 5px;
+  vertical-align: middle;
+}
+.navbar .navbar-toggle {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 4px 8px;
 }
 
 .panel {
@@ -32,6 +66,14 @@ body {
 }
 .panel .panel-body {
   padding: 10px 12px;
+}
+
+.fullsizeImage .KivaImage {
+  max-width: 450px;
+}
+.fullsizeImage .KivaImage img {
+  max-width: 100%;
+  height: auto;
 }
 
 .dl-horizontal dt {
@@ -338,6 +380,10 @@ ul.spacedList li {
 
 .in_basket {
   background-color: #28a745 !important;
+  color: #ffffff !important;
+}
+.in_basket a, .in_basket a:hover {
+  color: #ffffff !important;
 }
 
 .funded {
