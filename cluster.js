@@ -711,6 +711,23 @@ else  //workers handle all communication with the clients.
             return resolved
         },
         proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+            // delete browser headers that Kiva may reject, then set clean ones
+            delete proxyReqOpts.headers['referer']
+            delete proxyReqOpts.headers['origin']
+            delete proxyReqOpts.headers['cookie']
+            delete proxyReqOpts.headers['sec-fetch-site']
+            delete proxyReqOpts.headers['sec-fetch-mode']
+            delete proxyReqOpts.headers['sec-fetch-dest']
+            delete proxyReqOpts.headers['sec-ch-ua']
+            delete proxyReqOpts.headers['sec-ch-ua-mobile']
+            delete proxyReqOpts.headers['sec-ch-ua-platform']
+            delete proxyReqOpts.headers['x-forwarded-for']
+            delete proxyReqOpts.headers['x-forwarded-proto']
+            delete proxyReqOpts.headers['x-forwarded-port']
+            delete proxyReqOpts.headers['x-request-id']
+            delete proxyReqOpts.headers['x-request-start']
+            delete proxyReqOpts.headers['via']
+            delete proxyReqOpts.headers['server']
             proxyReqOpts.headers['X-Requested-With'] = 'XMLHttpRequest'
             proxyReqOpts.headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
             proxyReqOpts.headers['Referer'] = 'https://www.kiva.org/'
