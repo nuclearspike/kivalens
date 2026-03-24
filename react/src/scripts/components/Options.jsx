@@ -18,7 +18,7 @@ const Options = React.createClass({
     },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
-            'debugging', 'betaTester', 'noStream', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions']
+            'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -157,10 +157,6 @@ const Options = React.createClass({
                         type="checkbox"
                         label={`I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions ahead of time for searching but you'll still be able to read the loan description when you click on a loan. This speeds up the initial load but only if set to download from KivaLens (default). Will only take effect next app load.`}
                         checkedLink={this.linkState('doNotDownloadDescriptions')}/>
-                    <Input
-                        type="checkbox"
-                        label="Do not listen to live data stream from Kiva (takes effect next app reload). Intended for tablet and smartphone users, this will dramatically reduce background processing and make your experience faster, however, your data won't be as fresh."
-                        checkedLink={this.linkState('noStream')}/>
                 </Panel>
                 <Panel header='External Research'>
                     <Input
