@@ -218,7 +218,7 @@ const SavedSearches = React.createClass({
     },
     exportSelected() {
         var names = this.getCheckedNames()
-        if (names.length === 0) { alert('No searches selected.'); return }
+        if (names.length === 0) { alert('No searches checked.'); return }
         var data = {}
         names.forEach(name => data[name] = s.criteria.syncGetByName(name))
         var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'})
@@ -231,7 +231,7 @@ const SavedSearches = React.createClass({
     },
     shareSelected() {
         var names = this.getCheckedNames()
-        if (names.length === 0) { alert('No searches selected.'); return }
+        if (names.length === 0) { alert('No searches checked.'); return }
         var arr = names.map(name => {
             var crit = extend(true, {}, s.criteria.syncGetByName(name))
             crit.name = name
@@ -406,11 +406,11 @@ const SavedSearches = React.createClass({
                     <div style={{paddingTop: 8, borderTop: '1px solid #ddd'}}>
                         <ButtonGroup bsSize="small">
                             <Button onClick={this.exportAll}>Export All</Button>
-                            <Button onClick={this.exportSelected} disabled={checkedCount === 0}>Export Selected ({checkedCount})</Button>
+                            <Button onClick={this.exportSelected} disabled={checkedCount === 0}>Export Checked ({checkedCount})</Button>
                         </ButtonGroup>
                         <div style={{marginTop: 4}}>
                             <ButtonGroup bsSize="small">
-                                <Button onClick={this.shareSelected} disabled={checkedCount === 0}>Share Selected</Button>
+                                <Button onClick={this.shareSelected} disabled={checkedCount === 0}>Share Checked</Button>
                                 <Button className="btn-file" style={{position: 'relative', overflow: 'hidden'}}>
                                     Import File...
                                     <input type="file" accept=".json" onChange={this.importFile}

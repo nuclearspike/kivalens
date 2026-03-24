@@ -72562,7 +72562,7 @@ var SavedSearches = _react2['default'].createClass({
     exportSelected: function exportSelected() {
         var names = this.getCheckedNames();
         if (names.length === 0) {
-            alert('No searches selected.');return;
+            alert('No searches checked.');return;
         }
         var data = {};
         names.forEach(function (name) {
@@ -72579,7 +72579,7 @@ var SavedSearches = _react2['default'].createClass({
     shareSelected: function shareSelected() {
         var names = this.getCheckedNames();
         if (names.length === 0) {
-            alert('No searches selected.');return;
+            alert('No searches checked.');return;
         }
         var arr = names.map(function (name) {
             var crit = (0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncGetByName(name));
@@ -72840,7 +72840,7 @@ var SavedSearches = _react2['default'].createClass({
                         _react2['default'].createElement(
                             _reactBootstrap.Button,
                             { onClick: this.exportSelected, disabled: checkedCount === 0 },
-                            'Export Selected (',
+                            'Export Checked (',
                             checkedCount,
                             ')'
                         )
@@ -72854,7 +72854,7 @@ var SavedSearches = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 _reactBootstrap.Button,
                                 { onClick: this.shareSelected, disabled: checkedCount === 0 },
-                                'Share Selected'
+                                'Share Checked'
                             ),
                             _react2['default'].createElement(
                                 _reactBootstrap.Button,
