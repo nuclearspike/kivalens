@@ -708,6 +708,7 @@ else  //workers handle all communication with the clients.
         proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
             proxyReqOpts.headers['X-Requested-With'] = 'XMLHttpRequest'
             proxyReqOpts.headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
+            proxyReqOpts.headers['Referer'] = 'https://www.kiva.org/'
             return proxyReqOpts
         },
         userResHeaderDecorator: (headers, userReq, userRes, proxyReq, proxyRes) => {
