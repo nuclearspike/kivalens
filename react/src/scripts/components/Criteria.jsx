@@ -11,7 +11,7 @@ import cx from 'classnames'
 
 const Criteria = React.createClass({
     mixins: [Reflux.ListenerMixin, LocalStorageMixin],
-    getInitialState() { return {show_graphs: false, canNotify:false, lastSaved: 'initial', saved_searches: s.criteria.syncGetAllNames()} },
+    getInitialState() { return {show_graphs: false, canNotify:false, lastSaved: 'initial', saved_searches: s.criteria.syncGetAllNames(), searchCounts: {}} },
     getStateFilterKeys() { return ['show_graphs']},
     componentDidMount(){
         this.listenTo(a.criteria.savedSearchListChanged, this._savedSearchListChanged)
@@ -24,7 +24,23 @@ const Criteria = React.createClass({
         newState.saved_searches = s.criteria.syncGetAllNames()
         newState.lastSaved = s.criteria.syncGetLastSwitch()
         this.setState(newState)
-        //a.loans.filter() //todo: temp??? graphs disappearing.
+    },
+    computeSearchCounts(){
+        if (this._countsComputed) return
+        this._countsComputed = true
+        var counts = {}
+        var names = s.criteria.syncGetAllNames()
+        var allLoans = kivaloans.loans_from_kiva.where(l => l.status == 'fundraising')
+        names.forEach(name => {
+            try {
+                var crit = s.criteria.syncGetByName(name)
+                if (crit) {
+                    var filtered = kivaloans.filter(crit, false, allLoans)
+                    counts[name] = filtered.length
+                }
+            } catch(e) { counts[name] = '?' }
+        })
+        this.setState({searchCounts: counts})
     },
     criteriaReloaded(criteria){
         this.setState({criteria})
@@ -50,8 +66,13 @@ const Criteria = React.createClass({
         }
 
         //SAVED SEARCH MENU ITEMS
+        var {searchCounts} = this.state
         var menuItems = saved_searches.map((saved,i) => {
-            return <MenuItem eventKey={i} key={i} className={cx({'menu_selected': lastSaved == saved})} onClick={a.criteria.switchToSaved.bind(this, saved)}>{saved}</MenuItem>
+            var count = searchCounts[saved]
+            return <MenuItem eventKey={i} key={i} className={cx({'menu_selected': lastSaved == saved})} onClick={a.criteria.switchToSaved.bind(this, saved)}>
+                {count !== undefined ? <span className="saved-search-count">{count}</span> : null}
+                {saved}
+            </MenuItem>
         })
         if (menuItems.length) {
             menuItems.push(<MenuItem divider key="divider-saved" />)
@@ -71,7 +92,7 @@ const Criteria = React.createClass({
                     <ButtonGroup className="float_right">
                         <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button>
                         <Button onClick={this.clearCriteria}>Clear</Button>
-                        <DropdownButton title={`Saved Search ${lastSaved ? `'${lastSaved}'` : ''}`} id='saved_search' pullRight>
+                        <DropdownButton title={`Saved Search ${lastSaved ? `'${lastSaved}'` : ''}`} id='saved_search' pullRight onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
                             {menuItems}
                         </DropdownButton>
                     </ButtonGroup>
