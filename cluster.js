@@ -704,14 +704,27 @@ else  //workers handle all communication with the clients.
 
     //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
     const proxyHandler = {
-        proxyReqPathResolver: req => require('url').parse(req.url).path,
+        proxyReqPathResolver: req => {
+            const resolved = require('url').parse(req.url).path
+            console.log(`[PROXY] Incoming: ${req.method} ${req.originalUrl}`)
+            console.log(`[PROXY] Resolved path to Kiva: ${resolved}`)
+            return resolved
+        },
         proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
             proxyReqOpts.headers['X-Requested-With'] = 'XMLHttpRequest'
             proxyReqOpts.headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
             proxyReqOpts.headers['Referer'] = 'https://www.kiva.org/'
+            console.log(`[PROXY] Outgoing headers to Kiva:`, JSON.stringify(proxyReqOpts.headers, null, 2))
             return proxyReqOpts
         },
+        userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+            console.log(`[PROXY] Response from Kiva: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
+            console.log(`[PROXY] Response headers from Kiva:`, JSON.stringify(proxyRes.headers, null, 2))
+            console.log(`[PROXY] Response body preview:`, proxyResData.toString('utf8').substring(0, 500))
+            return proxyResData
+        },
         userResHeaderDecorator: (headers, userReq, userRes, proxyReq, proxyRes) => {
+            console.log(`[PROXY] Kiva responded with status: ${proxyRes.statusCode}`)
             headers['Access-Control-Allow-Origin'] = '*'
             headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE'
             headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID'
