@@ -49,6 +49,7 @@ allOptions.social_performance = {label: 'Social Performance', allAnyNone: true, 
 allOptions.region = {label: 'Region', allAnyNone: true, multi: true, select_options: [{"value":"na","label":"North America"},{"value":"ca","label":"Central America"},{"value":"sa","label":"South America"},{"value":"af","label":"Africa"},{"value":"as","label":"Asia"},{"value":"me","label":"Middle East"},{"value":"ee","label":"Eastern Europe"},{"value":"oc","label":"Oceania"},{"value":"we","label":"Western Europe"}]} //{"value":"an","label":"Antarctica"},
 allOptions.partners = {label: "Partners", allAnyNone: true, multi: true, intArray:true, select_options: []}
 allOptions.charges_fees_and_interest = {label: "Charges Interest",  multi: false, select_options:[{value: '', label:"Show All"}, {value:'true', label:"Only partners that charge fees & interest"},{value:'false', label:"Only partners that do NOT charge fees & interest"}]}
+allOptions.religion = {label: 'Religion', allAnyNone: true, multi: true, select_options: [{value:'Secular',label:'Secular'},{value:'Christian',label:'Christian'},{value:'Christian Influence',label:'Christian Influence'},{value:'Muslim',label:'Muslim'},{value:'Hindu',label:'Hindu'},{value:'Jewish',label:'Jewish'},{value:'Buddhist',label:'Buddhist'},{value:'Other',label:'Other'},{value:'Unknown',label:'Unknown'}]}
 
 //portfolio selects
 allOptions.exclude_portfolio_loans = {label: "Exclude My Loans", multi: false, select_options:[{value:'true', label:"Yes, Exclude Loans I've Made"},{value:'false', label:"No, Include Loans I've Made"}]} //,{value:"only", label:"Only Show My Fundraising Loans"}
@@ -795,6 +796,10 @@ const CriteriaTabs = React.createClass({
                              cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
                              options={allOptions[name]}/>
                 </For>
+                <SelectRow name="religion" cursor={cPartner.refine('religion')}
+                           aanCursor={cPartner.refine('religion_all_any_none')}
+                           onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
+                           onBlur={this.removeGraphs}/>
               </If>
 
               <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
