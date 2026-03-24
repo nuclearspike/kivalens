@@ -299,6 +299,9 @@ div.panel.radioPanel {
   width: 100%;
   padding-top: 3px !important;
   padding-bottom: 3px !important;
+  .details p {
+    margin-bottom: 3.5px;
+  }
   overflow-y: hidden;
   .KivaImage {
     float: left;

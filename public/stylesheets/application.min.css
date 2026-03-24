@@ -266,6 +266,11 @@ div.panel.radioPanel div.radio {
   width: 100%;
   padding-top: 3px !important;
   padding-bottom: 3px !important;
+}
+.loan_list_item .details p {
+  margin-bottom: 3.5px;
+}
+.loan_list_item {
   overflow-y: hidden;
 }
 .loan_list_item .KivaImage {
