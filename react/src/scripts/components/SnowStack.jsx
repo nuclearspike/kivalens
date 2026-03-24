@@ -1,70 +1,71 @@
 import React from 'react'
-import {Grid,Col,Row} from 'react-bootstrap'
 import Reflux from 'reflux'
 import a from '../actions'
-import {Link} from 'react-router'
 const LenderLoans = require("../api/kivajs/LenderLoans")
 
-var alreadyLoadedOnce = false
 const SnowStack = React.createClass({
     mixins:[Reflux.ListenerMixin],
-    getInitialState(){return {message:'Waiting for fundraising loans to load...'}},
+    getInitialState(){return {message:'Loading...'}},
     shouldComponentUpdate(np, {message}){return message != this.state.message},
     produceImages(callback){
-        alreadyLoadedOnce = true
         var that = this
         const selectImage = loan => {
             var image_id = loan.image.id
-            var thumb= `https://www.kiva.org/img/w800/${image_id}.jpg`
-            var zoom = thumb //`https://www.kiva.org/img/w800/${image_id}.jpg`
+            var thumb = `https://www.kiva.org/img/w800/${image_id}.jpg`
+            var zoom = thumb
             var link = `https://www.kiva.org/lend/${loan.id}`
-            //title:loan.name,
             return {thumb,zoom,link}
         }
         var lid = this.getKivaID()
         if (lid) {
             that.setMessage(`Loading loans for ${lid}...`)
             new LenderLoans(lid, {max_pages: 10}).start().done(loans => {
-                that.setMessage(`Loans for ${lid} (up to 200): arrow keys to move, space toggles magnify.`)
+                that.setMessage(`${lid}'s portfolio (up to 200): arrow keys to move, space toggles magnify.`)
                 callback(loans.select(selectImage))
             })
         } else {
-            that.setMessage('Fundraising loans (Enter your Lender ID in Options to see your portfolio): arrow keys to move, space toggles magnify.')
+            that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.')
             var interesting = kivaloans.filter({loan:{tags:['#InterestingPhoto']}},false)
-            var popular     = kivaloans.filter({loan:{sort:'popular',limit_results: 300}},false)
+            var popular = kivaloans.filter({loan:{sort:'popular',limit_results: 300}},false)
             callback(interesting.concat(popular).distinct((a,b)=>a.id==b.id).take(201).select(selectImage))
         }
     },
     setMessage(message){
         this.setState({message})
-        this.forceUpdate()
-    },
-    startIfReady(){
-        if (this.getKivaID() || kivaloans.isReady())
-            snowstack_init(this.produceImages)
     },
     getKivaID(){
-        return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id
+        return (this.props.location && this.props.location.query && this.props.location.query.kivaid) || lsj.get('Options').kiva_lender_id
+    },
+    startIfReady(){
+        if (this.getKivaID() || kivaloans.isReady()) {
+            // Reset snowstack globals
+            if (typeof snowstack_reset === 'function') snowstack_reset()
+            snowstack_init(this.produceImages)
+        }
     },
     componentWillUnmount(){
-        alreadyLoadedOnce = false
-        document.getElementsByTagName('body')[0].removeAttribute('style')
+        // Clean up: remove event listeners snowstack added
+        if (typeof snowstack_cleanup === 'function') snowstack_cleanup()
+        // Remove any inline body styles
+        document.body.style.removeProperty('background-color')
+        document.body.style.removeProperty('overflow')
     },
     componentDidMount() {
-        document.getElementsByTagName('body')[0].setAttribute('style','background-color: black;')
+        document.body.style.backgroundColor = 'black'
+        document.body.style.overflow = 'hidden'
         if (!this.getKivaID())
             this.listenTo(a.loans.load.completed, this.startIfReady)
         this.startIfReady()
     },
     render() {
-        return (<div className="snowstack">
+        return (<div style={{position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, backgroundColor: 'black', zIndex: 100}}>
             <div className="page view">
-                    <div className="origin view">
-                        <div id="camera" className="camera view"/>
-                    </div>
+                <div className="origin view">
+                    <div id="camera" className="camera view"/>
                 </div>
-            <div id="caption" className="caption">
-                <Link to="/search">Return to KivaLens</Link> Experimental Feature. {this.state.message}
+            </div>
+            <div id="caption" style={{position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ccc', fontSize: 13, zIndex: 101}}>
+                {this.state.message}
             </div>
         </div>)
     }

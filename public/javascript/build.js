@@ -72702,8 +72702,6 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactBootstrap = require('react-bootstrap');
-
 var _reflux = require('reflux');
 
 var _reflux2 = _interopRequireDefault(_reflux);
@@ -72712,42 +72710,37 @@ var _actions = require('../actions');
 
 var _actions2 = _interopRequireDefault(_actions);
 
-var _reactRouter = require('react-router');
-
 var LenderLoans = require("../api/kivajs/LenderLoans");
 
-var alreadyLoadedOnce = false;
 var SnowStack = _react2['default'].createClass({
     displayName: 'SnowStack',
 
     mixins: [_reflux2['default'].ListenerMixin],
     getInitialState: function getInitialState() {
-        return { message: 'Waiting for fundraising loans to load...' };
+        return { message: 'Loading...' };
     },
     shouldComponentUpdate: function shouldComponentUpdate(np, _ref) {
         var message = _ref.message;
         return message != this.state.message;
     },
     produceImages: function produceImages(callback) {
-        alreadyLoadedOnce = true;
         var that = this;
         var selectImage = function selectImage(loan) {
             var image_id = loan.image.id;
             var thumb = 'https://www.kiva.org/img/w800/' + image_id + '.jpg';
-            var zoom = thumb; //`https://www.kiva.org/img/w800/${image_id}.jpg`
+            var zoom = thumb;
             var link = 'https://www.kiva.org/lend/' + loan.id;
-            //title:loan.name,
             return { thumb: thumb, zoom: zoom, link: link };
         };
         var lid = this.getKivaID();
         if (lid) {
             that.setMessage('Loading loans for ' + lid + '...');
             new LenderLoans(lid, { max_pages: 10 }).start().done(function (loans) {
-                that.setMessage('Loans for ' + lid + ' (up to 200): arrow keys to move, space toggles magnify.');
+                that.setMessage(lid + '\'s portfolio (up to 200): arrow keys to move, space toggles magnify.');
                 callback(loans.select(selectImage));
             });
         } else {
-            that.setMessage('Fundraising loans (Enter your Lender ID in Options to see your portfolio): arrow keys to move, space toggles magnify.');
+            that.setMessage('Fundraising loans: arrow keys to move, space toggles magnify.');
             var interesting = kivaloans.filter({ loan: { tags: ['#InterestingPhoto'] } }, false);
             var popular = kivaloans.filter({ loan: { sort: 'popular', limit_results: 300 } }, false);
             callback(interesting.concat(popular).distinct(function (a, b) {
@@ -72757,27 +72750,34 @@ var SnowStack = _react2['default'].createClass({
     },
     setMessage: function setMessage(message) {
         this.setState({ message: message });
-        this.forceUpdate();
-    },
-    startIfReady: function startIfReady() {
-        if (this.getKivaID() || kivaloans.isReady()) snowstack_init(this.produceImages);
     },
     getKivaID: function getKivaID() {
-        return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id;
+        return this.props.location && this.props.location.query && this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id;
+    },
+    startIfReady: function startIfReady() {
+        if (this.getKivaID() || kivaloans.isReady()) {
+            // Reset snowstack globals
+            if (typeof snowstack_reset === 'function') snowstack_reset();
+            snowstack_init(this.produceImages);
+        }
     },
     componentWillUnmount: function componentWillUnmount() {
-        alreadyLoadedOnce = false;
-        document.getElementsByTagName('body')[0].removeAttribute('style');
+        // Clean up: remove event listeners snowstack added
+        if (typeof snowstack_cleanup === 'function') snowstack_cleanup();
+        // Remove any inline body styles
+        document.body.style.removeProperty('background-color');
+        document.body.style.removeProperty('overflow');
     },
     componentDidMount: function componentDidMount() {
-        document.getElementsByTagName('body')[0].setAttribute('style', 'background-color: black;');
+        document.body.style.backgroundColor = 'black';
+        document.body.style.overflow = 'hidden';
         if (!this.getKivaID()) this.listenTo(_actions2['default'].loans.load.completed, this.startIfReady);
         this.startIfReady();
     },
     render: function render() {
         return _react2['default'].createElement(
             'div',
-            { className: 'snowstack' },
+            { style: { position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, backgroundColor: 'black', zIndex: 100 } },
             _react2['default'].createElement(
                 'div',
                 { className: 'page view' },
@@ -72789,13 +72789,7 @@ var SnowStack = _react2['default'].createClass({
             ),
             _react2['default'].createElement(
                 'div',
-                { id: 'caption', className: 'caption' },
-                _react2['default'].createElement(
-                    _reactRouter.Link,
-                    { to: '/search' },
-                    'Return to KivaLens'
-                ),
-                ' Experimental Feature. ',
+                { id: 'caption', style: { position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ccc', fontSize: 13, zIndex: 101 } },
                 this.state.message
             )
         );
@@ -72805,7 +72799,7 @@ var SnowStack = _react2['default'].createClass({
 exports['default'] = SnowStack;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],719:[function(require,module,exports){
+},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634,"reflux":650}],719:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {

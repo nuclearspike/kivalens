@@ -63,6 +63,38 @@ var vfx = {
 
 var currentCellIndex = -1;
 var cells = [];
+var _snowstack_keydown = null;
+var _snowstack_keyup = null;
+var _snowstack_touchstart = null;
+var _snowstack_touchmove = null;
+var _snowstack_touchend = null;
+
+global.snowstack_cleanup = function() {
+	if (_snowstack_keydown) window.removeEventListener('keydown', _snowstack_keydown);
+	if (_snowstack_keyup) window.removeEventListener('keyup', _snowstack_keyup);
+	var target = document.getElementById("camera");
+	if (target) {
+		if (_snowstack_touchstart) target.removeEventListener('touchstart', _snowstack_touchstart);
+		if (_snowstack_touchmove) target.removeEventListener('touchmove', _snowstack_touchmove);
+		if (_snowstack_touchend) target.removeEventListener('touchend', _snowstack_touchend);
+	}
+	_snowstack_keydown = null;
+	_snowstack_keyup = null;
+	_snowstack_touchstart = null;
+	_snowstack_touchmove = null;
+	_snowstack_touchend = null;
+};
+
+global.snowstack_reset = function() {
+	global.snowstack_cleanup();
+	currentCellIndex = -1;
+	cells = [];
+	magnifyMode = false;
+	clearTimeout(zoomTimer);
+	clearTimeout(currentTimer);
+	zoomTimer = null;
+	currentTimer = null;
+};
 
 var dolly;
 var camera;
@@ -566,10 +598,11 @@ global.snowstack_init = function (imagefun, options)
 	}
 
 	/* Limited keyboard support for now */
-	window.addEventListener('keydown', function (e)
+	_snowstack_keydown = function (e)
 	{
 		if (e.keyCode == 32)
 		{
+			e.preventDefault();
 			/* Magnify toggle with spacebar */
 			snowstack_update(currentCellIndex, !magnifyMode);
 		}
@@ -578,34 +611,41 @@ global.snowstack_init = function (imagefun, options)
 			/* Toggle video playback */
 			snowstack_togglemedia(currentCellIndex);
 		}
-		else
+		else if (keymap[e.keyCode])
 		{
+			e.preventDefault();
 			keys[keymap[e.keyCode]] = true;
 		}
-		
-		keycheck();
-	});
 
-	window.addEventListener('keyup', function (e)
-	{
-		keys[keymap[e.keyCode]] = false;
 		keycheck();
-	});
+	};
+	window.addEventListener('keydown', _snowstack_keydown);
+
+	_snowstack_keyup = function (e)
+	{
+		if (keymap[e.keyCode]) {
+			e.preventDefault();
+			keys[keymap[e.keyCode]] = false;
+		}
+		keycheck();
+	};
+	window.addEventListener('keyup', _snowstack_keyup);
 	
 	var startX = 0;
 	var lastX = 0;
 
 	var target = document.getElementById("camera");
-	
-	target.addEventListener('touchstart', function (e)
+
+	_snowstack_touchstart = function (e)
 	{
 		startX = event.touches[0].pageX;
 		lastX = startX;
 		e.preventDefault();
 		return false;
-	}, false);
-	
-	target.addEventListener('touchmove', function (e)
+	};
+	target.addEventListener('touchstart', _snowstack_touchstart, false);
+
+	_snowstack_touchmove = function (e)
 	{
 		lastX = event.touches[0].pageX;
 		var dx = lastX - startX;
@@ -615,16 +655,18 @@ global.snowstack_init = function (imagefun, options)
 		startX = lastX;
 		e.preventDefault();
 		return false;
-	}, true);
-	
-	target.addEventListener('touchend', function (e)
+	};
+	target.addEventListener('touchmove', _snowstack_touchmove, true);
+
+	_snowstack_touchend = function (e)
 	{
 		keys.left = false;
 		keys.right = false;
 		e.preventDefault();
 		return false;
-	}, true);
-	
+	};
+	target.addEventListener('touchend', _snowstack_touchend, true);
+
 };
 
 //})(); // end module pattern
