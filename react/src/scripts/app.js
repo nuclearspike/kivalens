@@ -96,8 +96,8 @@ const GraphIQL = ()=>{
 function LoadReactApp(){
     if (window.isBootstrapLoaded && document.getElementById("react-app")){
         ReactDOM.render((<Router onUpdate={() => window.scrollTo(0, 0)} history={history}>
-            <Route path="/portfolio" component={SnowStack}/>
             <Route path="/" component={App} >
+                <Route path="portfolio" component={SnowStack}/>
                 <Route path="search" component={Search}>
                     <Route path="loan/:id" component={Loan}/>
                     <IndexRoute component={Criteria}/>

@@ -164,15 +164,6 @@ const About = React.createClass({
         </li>
 
         <li>
-          <b>Always Fresh!</b> KivaLens listens to the same live data-stream
-          that <KivaLink path='live?v=1'>Kiva /Live</KivaLink> uses. That means that the very second a new
-          loan posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your
-          browser are kept exactly up-to-date without needing to reload the page. You may see a loan turn
-          gray in the results indicating it either expired or funded or if you keep a popular loan open,
-          the page will automatically update as more lenders lend money.
-        </li>
-
-        <li>
           <b>Hide Loans you've already loaned to</b> so that you don't accidentally lend to them more
           than you want. To use this, go to "Options" to input your kiva lender-id. From the Criteria
           "Portfolio" tab and select the appropriate option.

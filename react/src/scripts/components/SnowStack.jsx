@@ -47,21 +47,11 @@ const SnowStack = React.createClass({
         return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id
     },
     componentWillUnmount(){
-        //todo: save what it was??
+        alreadyLoadedOnce = false
         document.getElementsByTagName('body')[0].removeAttribute('style')
     },
     componentDidMount() {
         document.getElementsByTagName('body')[0].setAttribute('style','background-color: black;')
-        rga.initialize('UA-10202885-1')
-        rga.pageview(this.props.location.search ? '/snowstackWithUser': '/snowstack')
-        if (navigator.userAgent.indexOf("WebKit") == -1){
-            this.setMessage('Sorry! This feature only works with Safari and Google Chrome browsers. The rest of KivaLens works for everyone!')
-            return
-        }
-        if (alreadyLoadedOnce) {
-            this.setMessage('This feature currently only works the first time you visit the page. Just click "Reload" to start over.')
-            return
-        }
         if (!this.getKivaID())
             this.listenTo(a.loans.load.completed, this.startIfReady)
         this.startIfReady()

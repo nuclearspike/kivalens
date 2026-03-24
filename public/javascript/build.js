@@ -65161,10 +65161,10 @@ function LoadReactApp() {
             { onUpdate: function () {
                     return window.scrollTo(0, 0);
                 }, history: history },
-            _react2['default'].createElement(_reactRouter.Route, { path: '/portfolio', component: _components.SnowStack }),
             _react2['default'].createElement(
                 _reactRouter.Route,
                 { path: '/', component: App },
+                _react2['default'].createElement(_reactRouter.Route, { path: 'portfolio', component: _components.SnowStack }),
                 _react2['default'].createElement(
                     _reactRouter.Route,
                     { path: 'search', component: _components.Search },
@@ -65471,22 +65471,6 @@ var About = _react2['default'].createClass({
             'Live Filtering = Speed!'
           ),
           ' Since it downloads all of the loans at the start and then filters them in your browser, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch your results change right then, it doesn\'t have to talk to the server.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Always Fresh!'
-          ),
-          ' KivaLens listens to the same live data-stream that ',
-          _react2['default'].createElement(
-            _.KivaLink,
-            { path: 'live?v=1' },
-            'Kiva /Live'
-          ),
-          ' uses. That means that the very second a new loan posts, a loan gets funded or any lending activity happens on Kiva, the loans loaded in your browser are kept exactly up-to-date without needing to reload the page. You may see a loan turn gray in the results indicating it either expired or funded or if you keep a popular loan open, the page will automatically update as more lenders lend money.'
         ),
         _react2['default'].createElement(
           'li',
@@ -69233,21 +69217,26 @@ var KLNav = _react2['default'].createClass({
 
     mixins: [_reflux2['default'].ListenerMixin],
     getInitialState: function getInitialState() {
-        return { basket_count: 0, activePath: location.hash.replace('#', '') || '/search' };
+        return { basket_count: 0, activePath: location.hash.replace('#', '') || '/search', hasLenderId: !!lsj.get('Options').kiva_lender_id };
     },
     componentDidMount: function componentDidMount() {
         this.listenTo(_actions2['default'].loans.basket.changed, this.basketChange);
         this.basketChange();
         window.addEventListener('hashchange', this.onHashChange);
+        window.addEventListener('storage', this.checkLenderId);
     },
     componentWillUnmount: function componentWillUnmount() {
         window.removeEventListener('hashchange', this.onHashChange);
+        window.removeEventListener('storage', this.checkLenderId);
+    },
+    checkLenderId: function checkLenderId() {
+        this.setState({ hasLenderId: !!lsj.get('Options').kiva_lender_id });
     },
     onHashChange: function onHashChange() {
         this.setState({ activePath: location.hash.replace('#', '') || '/search' });
     },
     shouldComponentUpdate: function shouldComponentUpdate(p, nextState) {
-        return nextState.basket_count != this.state.basket_count || nextState.activePath != this.state.activePath;
+        return nextState.basket_count != this.state.basket_count || nextState.activePath != this.state.activePath || nextState.hasLenderId != this.state.hasLenderId;
     },
     basketChange: function basketChange() {
         this.setState({ basket_count: _stores2['default'].loans.syncBasketCount() });
@@ -69301,6 +69290,11 @@ var KLNav = _react2['default'].createClass({
                         { key: 3, href: '#/live', className: isActive('/live') ? 'active' : '' },
                         'Stats'
                     ),
+                    this.state.hasLenderId ? _react2['default'].createElement(
+                        _reactBootstrap.NavItem,
+                        { key: 9, href: '#/portfolio', className: isActive('/portfolio') ? 'active' : '' },
+                        'Wall'
+                    ) : null,
                     _react2['default'].createElement(
                         _reactBootstrap.NavItem,
                         { key: 4, href: '#/teams', className: isActive('/teams') ? 'active' : '' },
@@ -72772,21 +72766,11 @@ var SnowStack = _react2['default'].createClass({
         return this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id;
     },
     componentWillUnmount: function componentWillUnmount() {
-        //todo: save what it was??
+        alreadyLoadedOnce = false;
         document.getElementsByTagName('body')[0].removeAttribute('style');
     },
     componentDidMount: function componentDidMount() {
         document.getElementsByTagName('body')[0].setAttribute('style', 'background-color: black;');
-        rga.initialize('UA-10202885-1');
-        rga.pageview(this.props.location.search ? '/snowstackWithUser' : '/snowstack');
-        if (navigator.userAgent.indexOf("WebKit") == -1) {
-            this.setMessage('Sorry! This feature only works with Safari and Google Chrome browsers. The rest of KivaLens works for everyone!');
-            return;
-        }
-        if (alreadyLoadedOnce) {
-            this.setMessage('This feature currently only works the first time you visit the page. Just click "Reload" to start over.');
-            return;
-        }
         if (!this.getKivaID()) this.listenTo(_actions2['default'].loans.load.completed, this.startIfReady);
         this.startIfReady();
     },
