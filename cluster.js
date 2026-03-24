@@ -704,39 +704,11 @@ else  //workers handle all communication with the clients.
 
     //TODO: RESTRICT TO SAME SERVER? Also let kiva calls happen from KLA
     const proxyHandler = {
-        proxyReqPathResolver: req => {
-            const resolved = require('url').parse(req.url).path
-            console.log(`[PROXY] Incoming: ${req.method} ${req.originalUrl}`)
-            console.log(`[PROXY] Resolved path to Kiva: ${resolved}`)
-            return resolved
-        },
-        proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
-            // build clean headers from scratch, only keeping what Kiva needs
-            proxyReqOpts.headers = {
-                'Host': 'www.kiva.org',
-                'User-Agent': 'Mozilla/5.0 (compatible; KivaLens/1.0)',
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Referer': 'https://www.kiva.org/',
-                'Connection': 'keep-alive'
-            }
-            console.log(`[PROXY] Outgoing headers to Kiva:`, JSON.stringify(proxyReqOpts.headers, null, 2))
-            return proxyReqOpts
-        },
-        userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-            console.log(`[PROXY] Response from Kiva: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
-            console.log(`[PROXY] Response headers from Kiva:`, JSON.stringify(proxyRes.headers, null, 2))
-            console.log(`[PROXY] Response body preview:`, proxyResData.toString('utf8').substring(0, 500))
-            return proxyResData
-        },
+        proxyReqPathResolver: req => require('url').parse(req.url).path,
         userResHeaderDecorator: (headers, userReq, userRes, proxyReq, proxyRes) => {
-            console.log(`[PROXY] Kiva responded with status: ${proxyRes.statusCode}`)
             headers['Access-Control-Allow-Origin'] = '*'
             headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE'
-            headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization, X-Mindflash-SessionID'
-            headers['Set-Cookie'] = 'ilove=kiva; Path=/; HttpOnly'
+            headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization'
             return headers
         }
     }
@@ -803,11 +775,7 @@ else  //workers handle all communication with the clients.
                 'Referer': 'https://www.kiva.org/'
             }
         }
-        console.log(`[PROXY] ${req.method} https://www.kiva.org${targetPath}`)
-        console.log(`[PROXY] Headers:`, JSON.stringify(options.headers, null, 2))
         https.get(options, proxyRes => {
-            console.log(`[PROXY] Response: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
-            // set CORS headers on response back to client
             res.set('Access-Control-Allow-Origin', '*')
             res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
             res.set('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization')
