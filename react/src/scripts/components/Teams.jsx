@@ -66,7 +66,14 @@ const Teams = React.createClass({
                 this.querying--
                 this.setState({querying: this.querying})
                 if (!this.teamData[teamId]) this.teamData[teamId] = {}
-                this.teamData[teamId][graphName] = result.graphData.select(d=>([parseInt(d[0]),d[1]])).orderBy(d=>d[0])
+                var sorted = result.graphData.select(d=>([parseInt(d[0]),d[1]])).orderBy(d=>d[0])
+                // filter out outlier dips: if a point drops more than 50% from neighbors, skip it
+                this.teamData[teamId][graphName] = sorted.where((d,i,arr) => {
+                    if (i === 0 || i === arr.length - 1) return true
+                    var prev = arr[i-1][1], curr = d[1], next = arr[i+1][1]
+                    var avg = (prev + next) / 2
+                    return avg === 0 || curr >= avg * 0.4
+                })
                 this.produceChart()
             }).fail(error => this.setState({error}))
     },
