@@ -791,15 +791,17 @@ const CriteriaTabs = React.createClass({
                            options={allOptions[name]}/>
               </For>
               <If condition={displayAtheistOptions}>
-                <For each='name' index='i' of={['secular_rating', 'social_rating']}>
-                  <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
-                             cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
-                             options={allOptions[name]}/>
-                </For>
-                <SelectRow name="religion" cursor={cPartner.refine('religion')}
-                           aanCursor={cPartner.refine('religion_all_any_none')}
-                           onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
-                           onBlur={this.removeGraphs}/>
+                <div>
+                  <For each='name' index='i' of={['secular_rating', 'social_rating']}>
+                    <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
+                               cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
+                               options={allOptions[name]}/>
+                  </For>
+                  <SelectRow name="religion" cursor={cPartner.refine('religion')}
+                             aanCursor={cPartner.refine('religion_all_any_none')}
+                             onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
+                             onBlur={this.removeGraphs}/>
+                </div>
               </If>
 
               <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>

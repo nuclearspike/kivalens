@@ -65147,29 +65147,25 @@ var About = _react2['default'].createClass({
         null,
         'KivaLens is an alternative way to search for Kiva loans offering a lot of options that Kiva does not. After you\'ve found your loans and put them in your KivaLens basket, you just click a button and the loans will be transferred to Kiva where you\'ll complete your purchase.'
       ),
-      _react2['default'].createElement(
-        If,
-        { condition: !hasLenderID },
+      !hasLenderID ? _react2['default'].createElement(
+        'span',
+        null,
         _react2['default'].createElement(
-          'span',
+          'h3',
           null,
+          'What is Kiva?'
+        ),
+        _react2['default'].createElement(
+          'p',
+          null,
+          'Kiva is a non-profit that helps microfinance institutions (MFIs) around the world get access to 0% interest capital so that they can keep their overhead lower as they lend the money to borrowers who have very few options for access to capital. MFIs typically lend at interest to cover their operating expenses, if they weren\'t able to access the 0% capital from Kiva lenders, the MFIs may borrow from banks at 15% interest which is passed on to the borrower. A lot of the loans are very simple, a borrower owns a shop but they can\'t afford to stock their store with more products. A loan allows them to carry more products, leading to more customers and sales and they repay their loan. You lend $25 to borrowers and they repay over time (over 97% of the money loaned through Kiva of the money is repaid).  ',
           _react2['default'].createElement(
-            'h3',
-            null,
-            'What is Kiva?'
-          ),
-          _react2['default'].createElement(
-            'p',
-            null,
-            'Kiva is a non-profit that helps microfinance institutions (MFIs) around the world get access to 0% interest capital so that they can keep their overhead lower as they lend the money to borrowers who have very few options for access to capital. MFIs typically lend at interest to cover their operating expenses, if they weren\'t able to access the 0% capital from Kiva lenders, the MFIs may borrow from banks at 15% interest which is passed on to the borrower. A lot of the loans are very simple, a borrower owns a shop but they can\'t afford to stock their store with more products. A loan allows them to carry more products, leading to more customers and sales and they repay their loan. You lend $25 to borrowers and they repay over time (over 97% of the money loaned through Kiva of the money is repaid).  ',
-            _react2['default'].createElement(
-              _.KivaLink,
-              { path: 'invitedby/nuclearspike' },
-              'Find out more!'
-            )
+            _.KivaLink,
+            { path: 'invitedby/nuclearspike' },
+            'Find out more!'
           )
         )
-      ),
+      ) : '',
       _react2['default'].createElement(
         'h3',
         null,
@@ -65672,17 +65668,13 @@ var About = _react2['default'].createClass({
           'checkout the source code on github (developers wanted!)'
         ),
         '.',
-        _react2['default'].createElement(
-          If,
-          { condition: KLAVersion },
-          _react2['default'].createElement(
-            'span',
-            null,
-            'You have KLA version ',
-            KLAVersion,
-            ' installed. Chrome does a good job of keeping your extensions up to date automatically, but to check for upgrades manually, go to Chrome\'s "Window" menu, select "Extensions" and switch on "Developer Mode" then click the button to update your extensions.'
-          )
-        )
+        KLAVersion ? _react2['default'].createElement(
+          'span',
+          null,
+          'You have KLA version ',
+          KLAVersion,
+          ' installed. Chrome does a good job of keeping your extensions up to date automatically, but to check for upgrades manually, go to Chrome\'s "Window" menu, select "Extensions" and switch on "Developer Mode" then click the button to update your extensions.'
+        ) : ''
       )
     );
   }
@@ -65778,15 +65770,11 @@ var AlertModal = _react2['default'].createClass({
             _react2['default'].createElement(
                 _reactBootstrap.Modal.Footer,
                 null,
-                _react2['default'].createElement(
-                    If,
-                    { condition: oKButton },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { bsStyle: 'primary', onClick: this.success },
-                        oKButton.label || "OK"
-                    )
-                ),
+                oKButton ? _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsStyle: 'primary', onClick: this.success },
+                    oKButton.label || "OK"
+                ) : '',
                 _react2['default'].createElement(
                     _reactBootstrap.Button,
                     { onClick: this.close },
@@ -65952,15 +65940,11 @@ var AutoLendSettings = _react2['default'].createClass({
                     'Auto-Lending'
                 ),
                 ' tucked away on it\'s site for years. Auto-Lending is a feature on Kiva where you can have Kiva automatically lend your money based on the rules you set up. If you always want to select your loans yourself, just ignore this tab. ',
-                _react2['default'].createElement(
-                    If,
-                    { condition: basket_count },
-                    _react2['default'].createElement(
-                        'span',
-                        null,
-                        'If you\'re looking for the loans you\'ve selected, click on the "Basket" link at the top of the page.'
-                    )
-                )
+                basket_count ? _react2['default'].createElement(
+                    'span',
+                    null,
+                    'If you\'re looking for the loans you\'ve selected, click on the "Basket" link at the top of the page.'
+                ) : ''
             ),
             _react2['default'].createElement(
                 'p',
@@ -66063,20 +66047,16 @@ var AutoLendSettings = _react2['default'].createClass({
                     'Save your new settings.'
                 )
             ),
-            _react2['default'].createElement(
-                If,
-                { condition: probs.length },
+            probs.length ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { bsStyle: 'danger' },
+                'There are problems preventing you from continuing:',
                 _react2['default'].createElement(
-                    _reactBootstrap.Alert,
-                    { bsStyle: 'danger' },
-                    'There are problems preventing you from continuing:',
-                    _react2['default'].createElement(
-                        'ul',
-                        null,
-                        probs
-                    )
+                    'ul',
+                    null,
+                    probs
                 )
-            ),
+            ) : '',
             _react2['default'].createElement(
                 _reactBootstrap.Button,
                 { bsStyle: 'primary', onClick: this.success, disabled: probs.length > 0 },
@@ -66265,34 +66245,30 @@ var Basket = _react2['default'].createClass({
                         'Remove Selected'
                     )
                 ),
-                _react2['default'].createElement(
-                    If,
-                    { condition: basket_count == 0 },
+                basket_count == 0 ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { className: 'not-rounded-top', style: { marginBottom: '0px' } },
+                    'There are no loans in your basket. To add loans to your basket:',
                     _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { className: 'not-rounded-top', style: { marginBottom: '0px' } },
-                        'There are no loans in your basket. To add loans to your basket:',
+                        'ul',
+                        null,
                         _react2['default'].createElement(
-                            'ul',
+                            'li',
                             null,
-                            _react2['default'].createElement(
-                                'li',
-                                null,
-                                'Click the "Add to Basket" button when viewing a loan.'
-                            ),
-                            _react2['default'].createElement(
-                                'li',
-                                null,
-                                'Double-click a loan in the results.'
-                            ),
-                            _react2['default'].createElement(
-                                'li',
-                                null,
-                                'Use the "Bulk Add" button to add many loans at once.'
-                            )
+                            'Click the "Add to Basket" button when viewing a loan.'
+                        ),
+                        _react2['default'].createElement(
+                            'li',
+                            null,
+                            'Double-click a loan in the results.'
+                        ),
+                        _react2['default'].createElement(
+                            'li',
+                            null,
+                            'Use the "Bulk Add" button to add many loans at once.'
                         )
                     )
-                ),
+                ) : '',
                 _react2['default'].createElement(_InfiniteListJsx2['default'], {
                     className: 'loan_list_container',
                     items: basket_items,
@@ -66334,29 +66310,17 @@ var Basket = _react2['default'].createClass({
                         'Checkout at Kiva'
                     )
                 ),
-                _react2['default'].createElement(
-                    If,
-                    { condition: !loans_ready },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { bsStyle: 'warning' },
-                        'Loans from Kiva are still loading. Please wait...'
-                    )
-                ),
-                _react2['default'].createElement(
-                    If,
-                    { condition: refreshing },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { bsStyle: 'info' },
-                        'Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.'
-                    )
-                ),
-                _react2['default'].createElement(
-                    If,
-                    { condition: selected_item_id },
-                    _react2['default'].createElement(_.Loan, { params: { id: selected_item_id } })
-                )
+                !loans_ready ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { bsStyle: 'warning' },
+                    'Loans from Kiva are still loading. Please wait...'
+                ) : '',
+                refreshing ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { bsStyle: 'info' },
+                    'Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.'
+                ) : '',
+                selected_item_id ? _react2['default'].createElement(_.Loan, { params: { id: selected_item_id } }) : ''
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Modal,
@@ -66974,11 +66938,7 @@ var Criteria = _react2['default'].createClass({
                     )
                 )
             ),
-            _react2['default'].createElement(
-                If,
-                { condition: show_graphs },
-                _react2['default'].createElement(_.ChartDistribution, null)
-            ),
+            show_graphs ? _react2['default'].createElement(_.ChartDistribution, null) : '',
             _react2['default'].createElement(_.CriteriaTabs, { criteria: 'pass a cursor' })
         );
     }
@@ -67164,15 +67124,13 @@ var DropSelectButton = _react2['default'].createClass({
     return _react2['default'].createElement(
       _reactBootstrap.DropdownButton,
       { bsStyle: 'primary', style: style, title: oSel.buttonDisplay || oSel.label, id: 'bg-nested-dropdown' },
-      _react2['default'].createElement(
-        For,
-        { each: 'option', index: 'i', of: options },
-        _react2['default'].createElement(
+      options.map(function (option, i) {
+        return _react2['default'].createElement(
           _reactBootstrap.MenuItem,
           { key: i, onClick: this.onSelect.bind(this, option.value), eventKey: i },
           option.label
-        )
-      )
+        );
+      }, this)
     );
   }
 });
@@ -67192,15 +67150,11 @@ var AllAnyNoneButton = _react2['default'].createClass({
     return _react2['default'].createElement(
       _reactBootstrap.DropdownButton,
       { style: { height: '34px', padding: '8px', width: '53px' }, title: selected, bsStyle: styles[selected], id: 'bg-nested-dropdown' },
-      _react2['default'].createElement(
-        If,
-        { condition: canAll },
-        _react2['default'].createElement(
-          _reactBootstrap.MenuItem,
-          { onClick: this.onSelect.bind(this, 'all'), eventKey: '1' },
-          'All of these'
-        )
-      ),
+      canAll ? _react2['default'].createElement(
+        _reactBootstrap.MenuItem,
+        { onClick: this.onSelect.bind(this, 'all'), eventKey: '1' },
+        'All of these'
+      ) : '',
       _react2['default'].createElement(
         _reactBootstrap.MenuItem,
         { onClick: this.onSelect.bind(this, 'any'), eventKey: '2' },
@@ -67476,63 +67430,49 @@ var BalancingRow = _react2['default'].createClass({
         _react2['default'].createElement(
           _reactBootstrap.Row,
           { className: 'ample-padding-top' },
-          _react2['default'].createElement(
-            If,
-            { condition: loading },
+          loading ? _react2['default'].createElement(
+            _reactBootstrap.Alert,
+            null,
+            'Loading data from Kiva...'
+          ) : '',
+          enabled && !loading ? _react2['default'].createElement(
+            'div',
+            null,
+            'Matching: ',
+            slices_count,
+            '. Loans from these ',
             _react2['default'].createElement(
-              _reactBootstrap.Alert,
+              'b',
               null,
-              'Loading data from Kiva...'
-            )
-          ),
-          _react2['default'].createElement(
-            If,
-            { condition: enabled && !loading },
+              options.label.toLowerCase()
+            ),
+            ' will be ',
             _react2['default'].createElement(
-              'div',
+              'b',
               null,
-              'Matching: ',
-              slices_count,
-              '. Loans from these ',
-              _react2['default'].createElement(
-                'b',
-                null,
-                options.label.toLowerCase()
-              ),
-              ' will be ',
-              _react2['default'].createElement(
-                'b',
-                null,
-                this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'
-              ),
-              '.',
-              _react2['default'].createElement(
-                'ul',
-                { style: { overflowY: 'auto', maxHeight: '200px' } },
-                _react2['default'].createElement(
-                  For,
-                  { index: 'i', each: 'slice', of: slices },
-                  _react2['default'].createElement(
-                    'li',
-                    { key: i },
-                    (0, _numeral2['default'])(slice.percent).format('0.000'),
-                    '%: ',
-                    slice.name
-                  )
-                )
-              ),
-              _react2['default'].createElement(
-                If,
-                { condition: lastUpdated },
-                _react2['default'].createElement(
-                  'p',
-                  null,
-                  'Last Updated: ',
-                  _react2['default'].createElement(_reactTimeago2['default'], { date: new Date(lastUpdated).toISOString() })
-                )
-              )
-            )
-          )
+              this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'
+            ),
+            '.',
+            _react2['default'].createElement(
+              'ul',
+              { style: { overflowY: 'auto', maxHeight: '200px' } },
+              slices.map(function (slice, i) {
+                return _react2['default'].createElement(
+                  'li',
+                  { key: i },
+                  (0, _numeral2['default'])(slice.percent).format('0.000'),
+                  '%: ',
+                  slice.name
+                );
+              }, this)
+            ),
+            lastUpdated ? _react2['default'].createElement(
+              'p',
+              null,
+              'Last Updated: ',
+              _react2['default'].createElement(_reactTimeago2['default'], { date: new Date(lastUpdated).toISOString() })
+            ) : ''
+          ) : ''
         )
       )
     );
@@ -68055,65 +67995,45 @@ var CriteriaTabs = _react2['default'].createClass({
           _react2['default'].createElement(
             _reactBootstrap.Row,
             null,
-            _react2['default'].createElement(
-              If,
-              { condition: location.hostname === '$$localhost' },
-              _react2['default'].createElement(
-                'pre',
-                null,
-                JSON.stringify(criteria, null, 2)
-              )
-            ),
-            _react2['default'].createElement(
-              If,
-              { condition: needLenderID },
-              _react2['default'].createElement(
-                _reactBootstrap.Alert,
-                { bsStyle: 'danger' },
-                'The options in your criteria require your Lender ID. Go to the Options page to set it.'
-              )
-            ),
+            location.hostname === '$$localhost' ? _react2['default'].createElement(
+              'pre',
+              null,
+              JSON.stringify(criteria, null, 2)
+            ) : '',
+            needLenderID ? _react2['default'].createElement(
+              _reactBootstrap.Alert,
+              { bsStyle: 'danger' },
+              'The options in your criteria require your Lender ID. Go to the Options page to set it.'
+            ) : '',
             _react2['default'].createElement(
               _reactBootstrap.Col,
               { lg: 8 },
               _react2['default'].createElement(InputRow, { label: 'Use or Description', cursor: cLoan.refine('use'),
                 disabled: !descriptionsLoaded }),
               _react2['default'].createElement(InputRow, { label: 'Name', cursor: cLoan.refine('name') }),
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i',
-                  of: ['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'] },
-                _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cLoan.refine(name),
+              ['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'].map(function (name, i) {
+                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cLoan.refine(name),
                   aanCursor: cLoan.refine(name + '_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'loan', name), onBlur: this.removeGraphs })
-              ),
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i', of: visionFaceKeys },
-                _react2['default'].createElement(SelectRow, { key: i, name: 'vision_face_' + name, cursor: cLoan.refine('vision_face_' + name),
+                  onFocus: this.focusSelect.bind(this, 'loan', name), onBlur: this.removeGraphs });
+              }, this),
+              visionFaceKeys.map(function (name, i) {
+                return _react2['default'].createElement(SelectRow, { key: i, name: 'vision_face_' + name, cursor: cLoan.refine('vision_face_' + name),
                   aanCursor: cLoan.refine('vision_face_' + name + '_all_any_none'),
                   onFocus: this.focusSelect.bind(this, 'loan', 'vision_face_' + name),
-                  onBlur: this.removeGraphs })
-              ),
+                  onBlur: this.removeGraphs });
+              }, this),
               _react2['default'].createElement(LimitResult, { cursor: cLoan.refine('limit_to') }),
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i',
-                  of: ['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'] },
-                _react2['default'].createElement(SliderRow, { key: i, cursorMin: cLoan.refine(name + '_min'),
+              ['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'].map(function (name, i) {
+                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cLoan.refine(name + '_min'),
                   cursorMax: cLoan.refine(name + '_max'), cycle: activeTab,
-                  options: allOptions[name] })
-              )
+                  options: allOptions[name] });
+              }, this)
             ),
             _react2['default'].createElement(
               _reactBootstrap.Col,
               { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
-              _react2['default'].createElement(
-                If,
-                { condition: helper_charts.loan },
-                _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
-                  config: helper_charts.loan })
-              )
+              helper_charts.loan ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
+                config: helper_charts.loan }) : ''
             )
           )
         ),
@@ -68130,38 +68050,30 @@ var CriteriaTabs = _react2['default'].createClass({
                 aanCursor: cPartner.refine('direct_all_any_none'),
                 onFocus: this.focusSelect.bind(this, 'partner', "direct"),
                 onBlur: this.removeGraphs }),
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i',
-                  of: ['region', 'partners', 'social_performance', 'charges_fees_and_interest'] },
-                _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
+              ['region', 'partners', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
+                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
                   aanCursor: cPartner.refine(name + '_all_any_none'),
                   onFocus: this.focusSelect.bind(this, 'partner', name),
-                  onBlur: this.removeGraphs })
-              ),
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i',
-                  of: ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'] },
-                _react2['default'].createElement(SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
+                  onBlur: this.removeGraphs });
+              }, this),
+              ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
+                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
                   cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
-                  options: allOptions[name] })
-              ),
-              _react2['default'].createElement(
-                If,
-                { condition: displayAtheistOptions },
-                _react2['default'].createElement(
-                  For,
-                  { each: 'name', index: 'i', of: ['secular_rating', 'social_rating'] },
-                  _react2['default'].createElement(SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
+                  options: allOptions[name] });
+              }, this),
+              displayAtheistOptions ? _react2['default'].createElement(
+                'div',
+                null,
+                ['secular_rating', 'social_rating'].map(function (name, i) {
+                  return _react2['default'].createElement(SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
                     cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
-                    options: allOptions[name] })
-                ),
+                    options: allOptions[name] });
+                }, this),
                 _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
                   aanCursor: cPartner.refine('religion_all_any_none'),
                   onFocus: this.focusSelect.bind(this, 'partner', 'religion'),
                   onBlur: this.removeGraphs })
-              ),
+              ) : '',
               _react2['default'].createElement(
                 _reactBootstrap.Button,
                 { onClick: _actions2['default'].utils.modal.partnerDisplay },
@@ -68172,12 +68084,8 @@ var CriteriaTabs = _react2['default'].createClass({
             _react2['default'].createElement(
               _reactBootstrap.Col,
               { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
-              _react2['default'].createElement(
-                If,
-                { condition: helper_charts.partner },
-                _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
-                  config: helper_charts.partner })
-              )
+              helper_charts.partner ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
+                config: helper_charts.partner }) : ''
             )
           )
         ),
@@ -68190,32 +68098,26 @@ var CriteriaTabs = _react2['default'].createClass({
             _react2['default'].createElement(
               _reactBootstrap.Col,
               { md: 10 },
-              _react2['default'].createElement(
-                If,
-                { condition: !kiva_lender_id && !needLenderID },
+              !kiva_lender_id && !needLenderID ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { bsStyle: 'danger' },
+                'You have not yet set your Kiva Lender ID on the ',
                 _react2['default'].createElement(
-                  _reactBootstrap.Alert,
-                  { bsStyle: 'danger' },
-                  'You have not yet set your Kiva Lender ID on the ',
-                  _react2['default'].createElement(
-                    _reactRouter.Link,
-                    {
-                      to: 'options' },
-                    'Options'
-                  ),
-                  ' page. These functions won\'t work until you do.'
-                )
-              ),
+                  _reactRouter.Link,
+                  {
+                    to: 'options' },
+                  'Options'
+                ),
+                ' page. These functions won\'t work until you do.'
+              ) : '',
               'To prevent you from accidentally lending to the same borrower twice if their loan is still fundraising, just exclude those loans. ',
               '(' + lender_loans_message + ')',
-              _react2['default'].createElement(
-                For,
-                { each: 'name', index: 'i', of: ['exclude_portfolio_loans'] },
-                _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
+              ['exclude_portfolio_loans'].map(function (name, i) {
+                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
                   aanCursor: cPortfolio.refine(name + '_all_any_none'),
                   onFocus: this.focusSelect.bind(this, 'portfolio', name),
-                  onBlur: this.removeGraphs })
-              )
+                  onBlur: this.removeGraphs });
+              }, this)
             )
           ),
           _react2['default'].createElement(
@@ -68252,154 +68154,135 @@ var CriteriaTabs = _react2['default'].createClass({
                     'Fetching the data from Kiva can sometimes take a few seconds. If you don\'t see anything happen right away, just wait. This also applies to loading saved searches that have balancing options set.'
                   )
                 ),
-                _react2['default'].createElement(
-                  If,
-                  { condition: activeTab === 3 },
-                  _react2['default'].createElement(
-                    'div',
-                    null,
-                    _react2['default'].createElement(
-                      For,
-                      { each: 'name', index: 'i',
-                        of: ['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'] },
-                      _react2['default'].createElement(BalancingRow, { key: i, cursor: cPortfolio.refine(name),
-                        options: allOptions[name] })
-                    )
-                  )
-                )
+                activeTab === 3 ? _react2['default'].createElement(
+                  'div',
+                  null,
+                  ['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'].map(function (name, i) {
+                    return _react2['default'].createElement(BalancingRow, { key: i, cursor: cPortfolio.refine(name),
+                      options: allOptions[name] });
+                  }, this)
+                ) : ''
               )
             )
           )
         ),
-        _react2['default'].createElement(
-          If,
-          { condition: !isMobile },
+        !isMobile ? _react2['default'].createElement(
+          _reactBootstrap.Tab,
+          { eventKey: 4, title: 'Auto-Lend', disabled: loansReady !== true },
           _react2['default'].createElement(
-            _reactBootstrap.Tab,
-            { eventKey: 4, title: 'Auto-Lend', disabled: loansReady !== true },
+            _reactBootstrap.Row,
+            { className: 'ample-padding-top' },
             _react2['default'].createElement(
-              _reactBootstrap.Row,
-              { className: 'ample-padding-top' },
+              _reactBootstrap.Col,
+              { lg: 12 },
               _react2['default'].createElement(
-                _reactBootstrap.Col,
-                { lg: 12 },
+                _reactBootstrap.Alert,
+                { bsStyle: 'warning' },
                 _react2['default'].createElement(
-                  _reactBootstrap.Alert,
-                  { bsStyle: 'warning' },
+                  'b',
+                  null,
+                  'Auto-Lending is temporarily unavailable.'
+                ),
+                ' Kiva has made changes to their auto-lending system that are not yet compatible with KivaLens. This feature will be restored in a future update.'
+              )
+            )
+          )
+        ) : '',
+        !isMobile ? _react2['default'].createElement(
+          _reactBootstrap.Tab,
+          { eventKey: 5, title: 'RSS' },
+          _react2['default'].createElement(
+            _reactBootstrap.Row,
+            { className: 'ample-padding-top' },
+            _react2['default'].createElement(
+              _reactBootstrap.Col,
+              { lg: 12 },
+              activeTab == 5 ? _react2['default'].createElement(
+                'div',
+                null,
+                _react2['default'].createElement(
+                  'p',
+                  null,
+                  'With an RSS feed, you can use any number of RSS Readers (including some browsers or browser extensions), or sites like ',
                   _react2['default'].createElement(
-                    'b',
-                    null,
-                    'Auto-Lending is temporarily unavailable.'
+                    _.NewTabLink,
+                    {
+                      href: 'http://www.ifttt.com' },
+                    'IFTTT (If This Then That)'
                   ),
-                  ' Kiva has made changes to their auto-lending system that are not yet compatible with KivaLens. This feature will be restored in a future update.'
-                )
-              )
-            )
-          )
-        ),
-        _react2['default'].createElement(
-          If,
-          { condition: !isMobile },
-          _react2['default'].createElement(
-            _reactBootstrap.Tab,
-            { eventKey: 5, title: 'RSS' },
-            _react2['default'].createElement(
-              _reactBootstrap.Row,
-              { className: 'ample-padding-top' },
-              _react2['default'].createElement(
-                _reactBootstrap.Col,
-                { lg: 12 },
-                _react2['default'].createElement(
-                  If,
-                  { condition: activeTab == 5 },
+                  ' to set up all sorts of actions in response to new items in the feed. You can set it to send you emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a lot of options! You can create as many RSS feeds as you want. ',
                   _react2['default'].createElement(
-                    'div',
-                    null,
+                    _.NewTabLink,
+                    {
+                      href: 'https://ifttt.com/recipes/147561-rss-feed-to-email' },
+                    'Create \'Recipe\' to send you an email when loans match your criteria'
+                  ),
+                  '.'
+                ),
+                _react2['default'].createElement(
+                  'p',
+                  null,
+                  'It will only show the first 100 matching loans and it currently doesn\'t support anything that requires any knowledge of your portfolio (excluding your fundraising loans or portfolio balancing).'
+                ),
+                _react2['default'].createElement(
+                  _reactBootstrap.Panel,
+                  { header: 'RSS Feed Details' },
+                  _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: 'Name (this will appear in your RSS feed reader)',
+                    style: { height: '38px', minWidth: '50px' },
+                    className: 'col-xs-2',
+                    valueLink: this.linkState('RSSName') }),
+                  _react2['default'].createElement(
+                    _reactBootstrap.Input,
+                    { type: 'select', label: 'Links in RSS go to',
+                      valueLink: this.linkState('RSSLinkTo'),
+                      placeholder: 'select' },
                     _react2['default'].createElement(
-                      'p',
-                      null,
-                      'With an RSS feed, you can use any number of RSS Readers (including some browsers or browser extensions), or sites like ',
-                      _react2['default'].createElement(
-                        _.NewTabLink,
-                        {
-                          href: 'http://www.ifttt.com' },
-                        'IFTTT (If This Then That)'
-                      ),
-                      ' to set up all sorts of actions in response to new items in the feed. You can set it to send you emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a lot of options! You can create as many RSS feeds as you want. ',
-                      _react2['default'].createElement(
-                        _.NewTabLink,
-                        {
-                          href: 'https://ifttt.com/recipes/147561-rss-feed-to-email' },
-                        'Create \'Recipe\' to send you an email when loans match your criteria'
-                      ),
-                      '.'
+                      'option',
+                      { value: 'kiva' },
+                      'Kiva'
                     ),
                     _react2['default'].createElement(
-                      'p',
-                      null,
-                      'It will only show the first 100 matching loans and it currently doesn\'t support anything that requires any knowledge of your portfolio (excluding your fundraising loans or portfolio balancing).'
-                    ),
-                    _react2['default'].createElement(
-                      _reactBootstrap.Panel,
-                      { header: 'RSS Feed Details' },
-                      _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: 'Name (this will appear in your RSS feed reader)',
-                        style: { height: '38px', minWidth: '50px' },
-                        className: 'col-xs-2',
-                        valueLink: this.linkState('RSSName') }),
-                      _react2['default'].createElement(
-                        _reactBootstrap.Input,
-                        { type: 'select', label: 'Links in RSS go to',
-                          valueLink: this.linkState('RSSLinkTo'),
-                          placeholder: 'select' },
-                        _react2['default'].createElement(
-                          'option',
-                          { value: 'kiva' },
-                          'Kiva'
-                        ),
-                        _react2['default'].createElement(
-                          'option',
-                          { value: 'kivalens' },
-                          'KivaLens'
-                        )
-                      )
-                    ),
-                    _react2['default'].createElement(
-                      _reactBootstrap.Panel,
-                      { header: 'Your Settings' },
-                      _react2['default'].createElement(
-                        'p',
-                        null,
-                        'These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.'
-                      ),
-                      _react2['default'].createElement(
-                        'pre',
-                        null,
-                        JSON.stringify(critRSS, null, 2)
-                      )
-                    ),
-                    _react2['default'].createElement(
-                      _reactBootstrap.Panel,
-                      { header: 'RSS Link' },
-                      _react2['default'].createElement(
-                        'p',
-                        null,
-                        'Copy and Paste this entire URL into your RSS reader or use ',
-                        _react2['default'].createElement(
-                          _.NewTabLink,
-                          { href: 'http://www.ifttt.com' },
-                          'If This Then That'
-                        ),
-                        ' to create a "recipe" to respond to new items in the news feed and either send you an email or an SMS.'
-                      ),
-                      _react2['default'].createElement('textarea', { style: { width: '100%', height: '150px' }, readOnly: true,
-                        value: 'https://www.kivalens.org/rss/' + critRSSUrl })
+                      'option',
+                      { value: 'kivalens' },
+                      'KivaLens'
                     )
                   )
+                ),
+                _react2['default'].createElement(
+                  _reactBootstrap.Panel,
+                  { header: 'Your Settings' },
+                  _react2['default'].createElement(
+                    'p',
+                    null,
+                    'These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.'
+                  ),
+                  _react2['default'].createElement(
+                    'pre',
+                    null,
+                    JSON.stringify(critRSS, null, 2)
+                  )
+                ),
+                _react2['default'].createElement(
+                  _reactBootstrap.Panel,
+                  { header: 'RSS Link' },
+                  _react2['default'].createElement(
+                    'p',
+                    null,
+                    'Copy and Paste this entire URL into your RSS reader or use ',
+                    _react2['default'].createElement(
+                      _.NewTabLink,
+                      { href: 'http://www.ifttt.com' },
+                      'If This Then That'
+                    ),
+                    ' to create a "recipe" to respond to new items in the news feed and either send you an email or an SMS.'
+                  ),
+                  _react2['default'].createElement('textarea', { style: { width: '100%', height: '150px' }, readOnly: true,
+                    value: 'https://www.kivalens.org/rss/' + critRSSUrl })
                 )
-              )
+              ) : ''
             )
           )
-        )
+        ) : ''
       )
     );
   }
@@ -69739,43 +69622,37 @@ var LoadingLoansPanel = _react2['default'].createClass({
             this.hasSentGAView = true;
             window.rga.modalview('/loading');
         }
-        return _react2['default'].createElement(
-            If,
-            { condition: show },
+        return show ? _react2['default'].createElement(
+            _reactBootstrap.Panel,
+            { className: 'not-rounded-top' },
             _react2['default'].createElement(
-                _reactBootstrap.Panel,
-                { className: 'not-rounded-top' },
+                _reactBootstrap.Modal.Header,
+                null,
                 _react2['default'].createElement(
-                    _reactBootstrap.Modal.Header,
+                    _reactBootstrap.Modal.Title,
                     null,
-                    _react2['default'].createElement(
-                        _reactBootstrap.Modal.Title,
-                        null,
-                        title
-                    )
-                ),
-                _react2['default'].createElement(
-                    _reactBootstrap.Modal.Body,
-                    null,
-                    _react2['default'].createElement(
-                        _reactBootstrap.ProgressBar,
-                        null,
-                        _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'info', active: ids_progress < 32, label: ids_progress > 10 ? 'basics' : '', now: ids_progress }),
-                        _react2['default'].createElement(_reactBootstrap.ProgressBar, { active: true, label: details_progress > 10 ? 'details' : '', now: details_progress })
-                    ),
-                    _react2['default'].createElement(_.DidYouKnow, null)
-                ),
-                _react2['default'].createElement(
-                    _reactBootstrap.Modal.Footer,
-                    null,
-                    progress_label,
-                    _react2['default'].createElement('br', null),
-                    error_message
+                    title
                 )
             ),
-            _react2['default'].createElement(Else, null),
-            _react2['default'].createElement('span', null)
-        );
+            _react2['default'].createElement(
+                _reactBootstrap.Modal.Body,
+                null,
+                _react2['default'].createElement(
+                    _reactBootstrap.ProgressBar,
+                    null,
+                    _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'info', active: ids_progress < 32, label: ids_progress > 10 ? 'basics' : '', now: ids_progress }),
+                    _react2['default'].createElement(_reactBootstrap.ProgressBar, { active: true, label: details_progress > 10 ? 'details' : '', now: details_progress })
+                ),
+                _react2['default'].createElement(_.DidYouKnow, null)
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Modal.Footer,
+                null,
+                progress_label,
+                _react2['default'].createElement('br', null),
+                error_message
+            )
+        ) : _react2['default'].createElement('span', null);
     }
 });
 
@@ -70193,20 +70070,14 @@ var Loan = _react2['default'].createClass({
                 'h1',
                 { style: { marginTop: '0px' } },
                 loan.name,
-                _react2['default'].createElement(
-                    If,
-                    { condition: inBasket },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { bsStyle: 'danger', className: 'float_right', onClick: _actions2['default'].loans.basket.remove.bind(this, loan.id) },
-                        'Remove from Basket'
-                    ),
-                    _react2['default'].createElement(Else, null),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { bsStyle: 'success', className: 'float_right', disabled: loan.status != 'fundraising', onClick: _actions2['default'].loans.basket.add.bind(this, loan.id, 25) },
-                        'Add to Basket'
-                    )
+                inBasket ? _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsStyle: 'danger', className: 'float_right', onClick: _actions2['default'].loans.basket.remove.bind(this, loan.id) },
+                    'Remove from Basket'
+                ) : _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsStyle: 'success', className: 'float_right', disabled: loan.status != 'fundraising', onClick: _actions2['default'].loans.basket.add.bind(this, loan.id, 25) },
+                    'Add to Basket'
                 )
             ),
             _react2['default'].createElement(
@@ -70219,15 +70090,11 @@ var Loan = _react2['default'].createClass({
                     _react2['default'].createElement(
                         _reactBootstrap.Panel,
                         null,
-                        _react2['default'].createElement(
-                            If,
-                            { condition: loan.borrowers.length > 1 },
-                            _react2['default'].createElement(
-                                'p',
-                                { style: { marginBottom: 4, color: '#999', fontSize: '12px' } },
-                                'In no particular order'
-                            )
-                        ),
+                        loan.borrowers.length > 1 ? _react2['default'].createElement(
+                            'p',
+                            { style: { marginBottom: 4, color: '#999', fontSize: '12px' } },
+                            'In no particular order'
+                        ) : '',
                         _react2['default'].createElement(
                             'p',
                             null,
@@ -70242,33 +70109,25 @@ var Loan = _react2['default'].createClass({
                             not_pictured.length ? not_pictured : '(none)',
                             ' '
                         ),
-                        _react2['default'].createElement(
-                            If,
-                            { condition: visionResults != null },
-                            _react2['default'].createElement(
-                                'p',
-                                null,
-                                'Google Cloud Vision describes the image (confidence level): ',
-                                visionResults
-                            )
-                        ),
-                        _react2['default'].createElement(
-                            If,
-                            { condition: visionFaces != null && visionFaces.length },
-                            _react2['default'].createElement(
-                                'p',
-                                null,
-                                'Google found faces with the following: ',
-                                visionFaces.map(function (found, key) {
-                                    return _react2['default'].createElement(
-                                        'span',
-                                        { key: key },
-                                        found,
-                                        key < visionFaces.length - 1 ? ', ' : ''
-                                    );
-                                })
-                            )
-                        )
+                        visionResults != null ? _react2['default'].createElement(
+                            'p',
+                            null,
+                            'Google Cloud Vision describes the image (confidence level): ',
+                            visionResults
+                        ) : '',
+                        visionFaces != null && visionFaces.length ? _react2['default'].createElement(
+                            'p',
+                            null,
+                            'Google found faces with the following: ',
+                            visionFaces.map(function (found, key) {
+                                return _react2['default'].createElement(
+                                    'span',
+                                    { key: key },
+                                    found,
+                                    key < visionFaces.length - 1 ? ', ' : ''
+                                );
+                            })
+                        ) : ''
                     )
                 ),
                 _react2['default'].createElement(
@@ -70377,451 +70236,399 @@ var Loan = _react2['default'].createClass({
                                     _react2['default'].createElement(_reactTimeago2['default'], { date: loan.posted_date }),
                                     ')'
                                 ),
-                                _react2['default'].createElement(
-                                    If,
-                                    { condition: loan.status != 'fundraising' },
-                                    _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) })
-                                ),
-                                _react2['default'].createElement(
-                                    If,
-                                    { condition: loan.funded_date },
-                                    _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') })
-                                ),
-                                _react2['default'].createElement(
-                                    If,
-                                    { condition: loan.status == 'fundraising' },
+                                loan.status != 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) }) : '',
+                                loan.funded_date ? _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') }) : '',
+                                loan.status == 'fundraising' ? _react2['default'].createElement(
+                                    'span',
+                                    null,
                                     _react2['default'].createElement(
+                                        'dt',
+                                        null,
+                                        'Expires'
+                                    ),
+                                    _react2['default'].createElement(
+                                        'dd',
+                                        null,
+                                        loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt'),
+                                        ' (',
+                                        _react2['default'].createElement(_reactTimeago2['default'], { date: loan.planned_expiration_date }),
+                                        ') '
+                                    )
+                                ) : '',
+                                loan.terms.disbursal_date ? _react2['default'].createElement(DTDD, { term: 'Disbursed', def: _react2['default'].createElement(
                                         'span',
                                         null,
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Expires'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt'),
-                                            ' (',
-                                            _react2['default'].createElement(_reactTimeago2['default'], { date: loan.planned_expiration_date }),
-                                            ') '
-                                        )
-                                    )
+                                        new Date(loan.terms.disbursal_date).toString('MMM d, yyyy'),
+                                        ' (',
+                                        _react2['default'].createElement(_reactTimeago2['default'], { date: loan.terms.disbursal_date }),
+                                        ') '
+                                    ) }) : '',
+                                loan.status == 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Final Repayment In', def: _react2['default'].createElement(
+                                        'span',
+                                        null,
+                                        (0, _numeral2['default'])(loan.kls_repaid_in).format('0.0'),
+                                        ' months'
+                                    ) }) : ''
+                            ),
+                            loan.status == 'fundraising' ? _react2['default'].createElement(
+                                'dl',
+                                { className: 'dl-horizontal' },
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    '$/Hour'
                                 ),
                                 _react2['default'].createElement(
-                                    If,
-                                    { condition: loan.terms.disbursal_date },
-                                    _react2['default'].createElement(DTDD, { term: 'Disbursed', def: _react2['default'].createElement(
-                                            'span',
-                                            null,
-                                            new Date(loan.terms.disbursal_date).toString('MMM d, yyyy'),
-                                            ' (',
-                                            _react2['default'].createElement(_reactTimeago2['default'], { date: loan.terms.disbursal_date }),
-                                            ') '
-                                        ) })
+                                    'dd',
+                                    null,
+                                    '$',
+                                    (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00')
                                 ),
                                 _react2['default'].createElement(
-                                    If,
-                                    { condition: loan.status == 'fundraising' },
-                                    _react2['default'].createElement(DTDD, { term: 'Final Repayment In', def: _react2['default'].createElement(
-                                            'span',
-                                            null,
-                                            (0, _numeral2['default'])(loan.kls_repaid_in).format('0.0'),
-                                            ' months'
-                                        ) })
-                                )
-                            ),
-                            _react2['default'].createElement(
-                                If,
-                                { condition: loan.status == 'fundraising' },
+                                    'dt',
+                                    null,
+                                    'Loan Amount'
+                                ),
                                 _react2['default'].createElement(
-                                    'dl',
-                                    { className: 'dl-horizontal' },
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        '$/Hour'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '$',
-                                        (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00')
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Loan Amount'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '$',
-                                        (0, _numeral2['default'])(loan.loan_amount).format('0,0')
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Funded Amount'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '$',
-                                        (0, _numeral2['default'])(loan.funded_amount).format('0,0')
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'In Baskets'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '$',
-                                        (0, _numeral2['default'])(loan.basket_amount).format('0,0')
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Still Needed'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '$',
-                                        (0, _numeral2['default'])(loan.kl_still_needed).format('0,0')
-                                    )
+                                    'dd',
+                                    null,
+                                    '$',
+                                    (0, _numeral2['default'])(loan.loan_amount).format('0,0')
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Funded Amount'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    '$',
+                                    (0, _numeral2['default'])(loan.funded_amount).format('0,0')
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'In Baskets'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    '$',
+                                    (0, _numeral2['default'])(loan.basket_amount).format('0,0')
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Still Needed'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    '$',
+                                    (0, _numeral2['default'])(loan.kl_still_needed).format('0,0')
                                 )
-                            ),
+                            ) : '',
                             _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } })
                         ),
                         activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : _react2['default'].createElement('span', null)
                     )
                 ),
-                _react2['default'].createElement(
-                    If,
-                    { condition: partner },
+                partner ? _react2['default'].createElement(
+                    _reactBootstrap.Tab,
+                    { eventKey: 3, title: 'Partner', className: 'ample-padding-top' },
                     _react2['default'].createElement(
-                        _reactBootstrap.Tab,
-                        { eventKey: 3, title: 'Partner', className: 'ample-padding-top' },
+                        'h2',
+                        null,
+                        partner.name
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Col,
+                        { lg: 6 },
                         _react2['default'].createElement(
-                            'h2',
+                            'dl',
+                            { className: 'dl-horizontal' },
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Rating'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                partner.rating
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Start Date'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                new Date(partner.start_date).toString("MMM d, yyyy")
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                partner.countries.length == 1 ? 'Country' : 'Countries'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                partner.countries.select(function (c) {
+                                    return c.name;
+                                }).join(', ')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Delinquency'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.delinquency_rate).format('0.000'),
+                                '% ',
+                                partner.delinquency_rate_note
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Loans at Risk Rate'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.loans_at_risk_rate).format('0.000'),
+                                '%'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Default'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.default_rate).format('0.000'),
+                                '% ',
+                                partner.default_rate_note
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Total Raised'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(partner.total_amount_raised).format('0,0')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Loans'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.loans_posted).format('0,0')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Portfolio Yield'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.portfolio_yield).format('0.0'),
+                                '% ',
+                                partner.portfolio_yield_note
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Profitablility'
+                            ),
+                            partner.profitability ? _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.profitability).format('0.0'),
+                                '%'
+                            ) : _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '(unknown)'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Charges Fees / Interest'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                partner.charges_fees_and_interest ? 'Yes' : 'No'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Avg Loan/Cap Income'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.average_loan_size_percent_per_capita_income).format('0.00'),
+                                '%'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Currency Ex Loss'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                (0, _numeral2['default'])(partner.currency_exchange_loss_rate).format('0.000'),
+                                '%'
+                            ),
+                            partner.url ? _react2['default'].createElement(
+                                'span',
+                                null,
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Website'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    _react2['default'].createElement(
+                                        _.NewTabLink,
+                                        { href: partner.url },
+                                        partner.url
+                                    )
+                                )
+                            ) : ''
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Col,
+                        { lg: 6 },
+                        partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : '',
+                        _react2['default'].createElement(
+                            _.KivaLink,
+                            { path: 'about/where-kiva-works/partners/' + partner.id },
+                            'View Partner on Kiva.org'
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Col,
+                        { lg: 12 },
+                        partner.kl_sp.length ? _react2['default'].createElement(
+                            'div',
                             null,
-                            partner.name
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Col,
-                            { lg: 6 },
+                            _react2['default'].createElement(
+                                'h3',
+                                null,
+                                'Social Performance Strengths'
+                            ),
+                            _react2['default'].createElement(
+                                'ul',
+                                null,
+                                partner.social_performance_strengths.map(function (sp, i) {
+                                    return _react2['default'].createElement(
+                                        'li',
+                                        { key: i },
+                                        _react2['default'].createElement(
+                                            'b',
+                                            null,
+                                            sp.name
+                                        ),
+                                        ': ',
+                                        sp.description
+                                    );
+                                }, this)
+                            )
+                        ) : '',
+                        showAtheistResearch && atheistScore ? _react2['default'].createElement(
+                            'div',
+                            null,
+                            _react2['default'].createElement(
+                                'h3',
+                                null,
+                                'Atheist Team Research'
+                            ),
                             _react2['default'].createElement(
                                 'dl',
                                 { className: 'dl-horizontal' },
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Rating'
+                                    'Secular Rating'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    partner.rating
+                                    atheistScore.secularRating
                                 ),
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Start Date'
+                                    'Religious Affiliation'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    new Date(partner.start_date).toString("MMM d, yyyy")
+                                    atheistScore.religiousAffiliation
                                 ),
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    partner.countries.length == 1 ? 'Country' : 'Countries'
+                                    'Comments on Rating'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    partner.countries.select(function (c) {
-                                        return c.name;
-                                    }).join(', ')
+                                    atheistScore.commentsOnSecularRating
                                 ),
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Delinquency'
+                                    'Social Rating'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    (0, _numeral2['default'])(partner.delinquency_rate).format('0.000'),
-                                    '% ',
-                                    partner.delinquency_rate_note
+                                    atheistScore.socialRating
                                 ),
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Loans at Risk Rate'
+                                    'Comments on Rating'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    (0, _numeral2['default'])(partner.loans_at_risk_rate).format('0.000'),
-                                    '%'
+                                    atheistScore.commentsOnSocialRating
                                 ),
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    'Default'
+                                    'Review Comments'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    (0, _numeral2['default'])(partner.default_rate).format('0.000'),
-                                    '% ',
-                                    partner.default_rate_note
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Total Raised'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    '$',
-                                    (0, _numeral2['default'])(partner.total_amount_raised).format('0,0')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Loans'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    (0, _numeral2['default'])(partner.loans_posted).format('0,0')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Portfolio Yield'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    (0, _numeral2['default'])(partner.portfolio_yield).format('0.0'),
-                                    '% ',
-                                    partner.portfolio_yield_note
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Profitablility'
-                                ),
-                                _react2['default'].createElement(
-                                    If,
-                                    { condition: partner.profitability },
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        (0, _numeral2['default'])(partner.profitability).format('0.0'),
-                                        '%'
-                                    ),
-                                    _react2['default'].createElement(Else, null),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        '(unknown)'
-                                    )
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Charges Fees / Interest'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    partner.charges_fees_and_interest ? 'Yes' : 'No'
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Avg Loan/Cap Income'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    (0, _numeral2['default'])(partner.average_loan_size_percent_per_capita_income).format('0.00'),
-                                    '%'
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Currency Ex Loss'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    (0, _numeral2['default'])(partner.currency_exchange_loss_rate).format('0.000'),
-                                    '%'
-                                ),
-                                _react2['default'].createElement(
-                                    If,
-                                    { condition: partner.url },
-                                    _react2['default'].createElement(
-                                        'span',
-                                        null,
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Website'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            _react2['default'].createElement(
-                                                _.NewTabLink,
-                                                { href: partner.url },
-                                                partner.url
-                                            )
-                                        )
-                                    )
+                                    atheistScore.reviewComments
                                 )
                             )
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Col,
-                            { lg: 6 },
-                            _react2['default'].createElement(
-                                If,
-                                { condition: partner.image },
-                                _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' })
-                            ),
-                            _react2['default'].createElement(
-                                _.KivaLink,
-                                { path: 'about/where-kiva-works/partners/' + partner.id },
-                                'View Partner on Kiva.org'
-                            )
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Col,
-                            { lg: 12 },
-                            _react2['default'].createElement(
-                                If,
-                                { condition: partner.kl_sp.length },
-                                _react2['default'].createElement(
-                                    'div',
-                                    null,
-                                    _react2['default'].createElement(
-                                        'h3',
-                                        null,
-                                        'Social Performance Strengths'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'ul',
-                                        null,
-                                        _react2['default'].createElement(
-                                            For,
-                                            { each: 'sp', index: 'i', of: partner.social_performance_strengths },
-                                            _react2['default'].createElement(
-                                                'li',
-                                                { key: i },
-                                                _react2['default'].createElement(
-                                                    'b',
-                                                    null,
-                                                    sp.name
-                                                ),
-                                                ': ',
-                                                sp.description
-                                            )
-                                        )
-                                    )
-                                )
-                            ),
-                            _react2['default'].createElement(
-                                If,
-                                { condition: showAtheistResearch && atheistScore },
-                                _react2['default'].createElement(
-                                    'div',
-                                    null,
-                                    _react2['default'].createElement(
-                                        'h3',
-                                        null,
-                                        'Atheist Team Research'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dl',
-                                        { className: 'dl-horizontal' },
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Secular Rating'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.secularRating
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Religious Affiliation'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.religiousAffiliation
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Comments on Rating'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.commentsOnSecularRating
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Social Rating'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.socialRating
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Comments on Rating'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.commentsOnSocialRating
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dt',
-                                            null,
-                                            'Review Comments'
-                                        ),
-                                        _react2['default'].createElement(
-                                            'dd',
-                                            null,
-                                            atheistScore.reviewComments
-                                        )
-                                    )
-                                )
-                            )
-                        )
+                        ) : ''
                     )
-                )
+                ) : ''
             )
         );
     }
@@ -71421,107 +71228,103 @@ var Options = _react2['default'].createClass({
                     ),
                     _react2['default'].createElement(_.SetLenderIDModal, { show: this.state.showLenderModal, onSet: this.setLenderID,
                         onHide: this.hideLenderIDModal }),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: lenderObj },
+                    lenderObj ? _react2['default'].createElement(
+                        _reactBootstrap.Grid,
+                        null,
                         _react2['default'].createElement(
-                            _reactBootstrap.Grid,
-                            null,
+                            _reactBootstrap.Col,
+                            { sm: 2 },
+                            _react2['default'].createElement(_.KivaImage, { type: 'square', image_id: lenderObj.image.id, image_width: 113, height: 113,
+                                width: 113 })
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { sm: 10 },
                             _react2['default'].createElement(
-                                _reactBootstrap.Col,
-                                { sm: 2 },
-                                _react2['default'].createElement(_.KivaImage, { type: 'square', image_id: lenderObj.image.id, image_width: 113, height: 113,
-                                    width: 113 })
-                            ),
-                            _react2['default'].createElement(
-                                _reactBootstrap.Col,
-                                { sm: 10 },
+                                'dl',
+                                { className: 'dl-horizontal' },
                                 _react2['default'].createElement(
-                                    'dl',
-                                    { className: 'dl-horizontal' },
+                                    'dt',
+                                    null,
+                                    'Name'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    lenderObj.name
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Loan Count'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    lenderObj.loan_count
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Invitees'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    lenderObj.invitee_count
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Your Invitation Link'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
                                     _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Name'
-                                    ),
+                                        _.KivaLink,
+                                        {
+                                            path: 'invitedby/' + lenderObj.lender_id },
+                                        'https://www.kiva.org/invitedby/' + lenderObj.lender_id
+                                    )
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Joined'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    _react2['default'].createElement(_reactTimeago2['default'], { date: lenderObj.member_since })
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Location'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
+                                    lenderObj.whereabouts
+                                ),
+                                _react2['default'].createElement(
+                                    'dt',
+                                    null,
+                                    'Lender Page'
+                                ),
+                                _react2['default'].createElement(
+                                    'dd',
+                                    null,
                                     _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        lenderObj.name
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Loan Count'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        lenderObj.loan_count
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Invitees'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        lenderObj.invitee_count
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Your Invitation Link'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        _react2['default'].createElement(
-                                            _.KivaLink,
-                                            {
-                                                path: 'invitedby/' + lenderObj.lender_id },
-                                            'https://www.kiva.org/invitedby/' + lenderObj.lender_id
-                                        )
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Joined'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        _react2['default'].createElement(_reactTimeago2['default'], { date: lenderObj.member_since })
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Location'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        lenderObj.whereabouts
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Lender Page'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        _react2['default'].createElement(
-                                            _.LenderLink,
-                                            { lender: kiva_lender_id },
-                                            'Your Lender Page'
-                                        )
+                                        _.LenderLink,
+                                        { lender: kiva_lender_id },
+                                        'Your Lender Page'
                                     )
                                 )
                             )
                         )
-                    ),
+                    ) : '',
                     _react2['default'].createElement(
                         'p',
                         { className: 'ample-padding-top' },
@@ -71646,68 +71449,50 @@ var Options = _react2['default'].createClass({
                         ),
                         ' and merges some of the data which allows you to search using their Secular (1-4) and Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score means that it is religion based. When activated, this will add 2 new sliders to the Partner Criteria tab and an additional section displaying and explaining the ratings on the Partner tab of the loan. If a partner is not present in the MFI Research Data, by default, it will show up in the results.'
                     ),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: this.state.atheist_list_processed },
+                    this.state.atheist_list_processed ? _react2['default'].createElement(
+                        'div',
+                        null,
                         _react2['default'].createElement(
-                            'div',
+                            'b',
                             null,
-                            _react2['default'].createElement(
-                                'b',
-                                null,
-                                'Partners not included in Atheist Team Research Data:'
-                            ),
-                            _react2['default'].createElement(
-                                If,
-                                { condition: this.state.missingPartners.length == 0 },
-                                _react2['default'].createElement(
-                                    'span',
-                                    null,
-                                    ' None'
-                                )
-                            ),
-                            _react2['default'].createElement(
-                                'ul',
-                                null,
-                                _react2['default'].createElement(
-                                    For,
-                                    { each: 'p', index: 'i', of: this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0, 5) },
+                            'Partners not included in Atheist Team Research Data:'
+                        ),
+                        this.state.missingPartners.length == 0 ? _react2['default'].createElement(
+                            'span',
+                            null,
+                            ' None'
+                        ) : '',
+                        _react2['default'].createElement(
+                            'ul',
+                            null,
+                            (this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0, 5)).map(function (p, i) {
+                                return _react2['default'].createElement(
+                                    'li',
+                                    { key: i },
+                                    p.id,
+                                    ': ',
                                     _react2['default'].createElement(
-                                        'li',
-                                        { key: i },
-                                        p.id,
-                                        ': ',
-                                        _react2['default'].createElement(
-                                            _.KivaLink,
-                                            {
-                                                path: 'about/where-kiva-works/partners/' + p.id },
-                                            p.name
-                                        ),
-                                        _react2['default'].createElement(
-                                            If,
-                                            { condition: p.kl_hasLoans },
-                                            _react2['default'].createElement(
-                                                'span',
-                                                null,
-                                                ' (Has loans fundraising)'
-                                            )
-                                        )
-                                    )
-                                )
-                            ),
-                            _react2['default'].createElement(
-                                If,
-                                { condition: this.state.missingPartners.length > 5 },
-                                _react2['default'].createElement(
-                                    _.ClickLink,
-                                    { onClick: function () {
-                                            return _this.setState({ showAllPartners: !_this.state.showAllPartners });
-                                        } },
-                                    this.state.showAllPartners ? 'Show Less' : 'See More (' + (this.state.missingPartners.length - 5) + ' more)'
-                                )
-                            )
-                        )
-                    )
+                                        _.KivaLink,
+                                        {
+                                            path: 'about/where-kiva-works/partners/' + p.id },
+                                        p.name
+                                    ),
+                                    p.kl_hasLoans ? _react2['default'].createElement(
+                                        'span',
+                                        null,
+                                        ' (Has loans fundraising)'
+                                    ) : ''
+                                );
+                            }, this)
+                        ),
+                        this.state.missingPartners.length > 5 ? _react2['default'].createElement(
+                            _.ClickLink,
+                            { onClick: function () {
+                                    return _this.setState({ showAllPartners: !_this.state.showAllPartners });
+                                } },
+                            this.state.showAllPartners ? 'Show Less' : 'See More (' + (this.state.missingPartners.length - 5) + ' more)'
+                        ) : ''
+                    ) : ''
                 ),
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
@@ -72022,19 +71807,15 @@ var PromptModal = _react2['default'].createClass({
         return _react2['default'].createElement(
             _reactBootstrap.Modal,
             { show: this.state.show, onHide: this.close },
-            _react2['default'].createElement(
-                If,
-                { condition: this.state.title },
+            this.state.title ? _react2['default'].createElement(
+                _reactBootstrap.Modal.Header,
+                { closeButton: true },
                 _react2['default'].createElement(
-                    _reactBootstrap.Modal.Header,
-                    { closeButton: true },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Modal.Title,
-                        null,
-                        this.state.title
-                    )
+                    _reactBootstrap.Modal.Title,
+                    null,
+                    this.state.title
                 )
-            ),
+            ) : '',
             _react2['default'].createElement(
                 _reactBootstrap.Modal.Body,
                 { style: { height: '80px' } },
@@ -72222,25 +72003,17 @@ var Search = _react2['default'].createClass({
             null,
             _react2['default'].createElement(_reactNotification.Notification, { dismissAfter: 5000, isActive: notification.active, message: notification.message,
                 action: '' }),
-            _react2['default'].createElement(
-                If,
-                { condition: showBulkAdd },
-                _react2['default'].createElement(_.BulkAddModal, { onHide: this.modalHidden })
-            ),
-            _react2['default'].createElement(
-                If,
-                { condition: outdatedUrl },
+            showBulkAdd ? _react2['default'].createElement(_.BulkAddModal, { onHide: this.modalHidden }) : '',
+            outdatedUrl ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { className: 'not-rounded', style: { marginTop: '-20px' }, bsStyle: 'warning',
+                    onDismiss: this.handleOutdatedUrlAlertDismiss, dismissAfter: 60000 },
                 _react2['default'].createElement(
-                    _reactBootstrap.Alert,
-                    { className: 'not-rounded', style: { marginTop: '-20px' }, bsStyle: 'warning',
-                        onDismiss: this.handleOutdatedUrlAlertDismiss, dismissAfter: 60000 },
-                    _react2['default'].createElement(
-                        'p',
-                        null,
-                        'The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.'
-                    )
+                    'p',
+                    null,
+                    'The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.'
                 )
-            ),
+            ) : '',
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { md: 4, ref: 'perspective' },
@@ -72262,49 +72035,33 @@ var Search = _react2['default'].createClass({
                             'Change Criteria'
                         )
                     ),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: show_secondary_load },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Alert,
-                            { className: 'not-rounded', style: { marginBottom: '0px' }, bsStyle: 'warning' },
-                            'More loans are still loading. Carry on. ',
-                            secondary_load_status
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: backgroundResyncState == 'started' },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Alert,
-                            { className: 'not-rounded', style: { marginBottom: '0px' } },
-                            'Continue using the site while the loans are refreshed...'
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: loan_count > 0 },
-                        _react2['default'].createElement(
-                            'div',
-                            { className: 'loan-count-bar' },
-                            'Showing ',
-                            (0, _numeral2['default'])(loan_count).format('0,0'),
-                            ' of ',
-                            (0, _numeral2['default'])(kivaloans.loans_from_kiva.count(function (l) {
-                                return l.status == 'fundraising';
-                            })).format('0,0'),
-                            ' fundraising loans'
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        If,
-                        { condition: hasHadLoans && loan_count == 0 },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Alert,
-                            { className: 'not-rounded-top', style: { marginBottom: '0px' } },
-                            'There are no matching loans for your current criteria. Loosen the criteria, select a different Saved Search or click the "Clear" button to start over.'
-                        )
-                    ),
+                    show_secondary_load ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { className: 'not-rounded', style: { marginBottom: '0px' }, bsStyle: 'warning' },
+                        'More loans are still loading. Carry on. ',
+                        secondary_load_status
+                    ) : '',
+                    backgroundResyncState == 'started' ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { className: 'not-rounded', style: { marginBottom: '0px' } },
+                        'Continue using the site while the loans are refreshed...'
+                    ) : '',
+                    loan_count > 0 ? _react2['default'].createElement(
+                        'div',
+                        { className: 'loan-count-bar' },
+                        'Showing ',
+                        (0, _numeral2['default'])(loan_count).format('0,0'),
+                        ' of ',
+                        (0, _numeral2['default'])(kivaloans.loans_from_kiva.count(function (l) {
+                            return l.status == 'fundraising';
+                        })).format('0,0'),
+                        ' fundraising loans'
+                    ) : '',
+                    hasHadLoans && loan_count == 0 ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { className: 'not-rounded-top', style: { marginBottom: '0px' } },
+                        'There are no matching loans for your current criteria. Loosen the criteria, select a different Saved Search or click the "Clear" button to start over.'
+                    ) : '',
                     _react2['default'].createElement(_.LoadingLoansPanel, null),
                     _react2['default'].createElement(_InfiniteListJsx2['default'], {
                         ref: 'results',
@@ -72441,25 +72198,17 @@ var SetLenderIDModal = _react2['default'].createClass({
                             { path: 'myLenderId' },
                             'Click here if you don\'t know yours.'
                         ),
-                        _react2['default'].createElement(
-                            If,
-                            { condition: checking },
-                            _react2['default'].createElement(
-                                _reactBootstrap.Alert,
-                                null,
-                                'Checking with Kiva...'
-                            )
-                        ),
-                        _react2['default'].createElement(
-                            If,
-                            { condition: failed || badRegEx },
-                            _react2['default'].createElement(
-                                _reactBootstrap.Alert,
-                                { bsStyle: 'danger' },
-                                'Invalid Lender ID ',
-                                badRegEx ? ': Only letters and numbers up to 24 characters allowed.' : ''
-                            )
-                        )
+                        checking ? _react2['default'].createElement(
+                            _reactBootstrap.Alert,
+                            null,
+                            'Checking with Kiva...'
+                        ) : '',
+                        failed || badRegEx ? _react2['default'].createElement(
+                            _reactBootstrap.Alert,
+                            { bsStyle: 'danger' },
+                            'Invalid Lender ID ',
+                            badRegEx ? ': Only letters and numbers up to 24 characters allowed.' : ''
+                        ) : ''
                     )
                 )
             ),
@@ -72822,15 +72571,13 @@ var Teams = _react2['default'].createClass({
                         _react2['default'].createElement(
                             'ul',
                             { style: { listStyleType: 'none' } },
-                            _react2['default'].createElement(
-                                For,
-                                { each: 'team', index: 'i', of: teams },
-                                _react2['default'].createElement(
+                            teams.map(function (team, i) {
+                                return _react2['default'].createElement(
                                     'li',
                                     { key: i },
                                     _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', name: 'teams[]', label: team.name, value: team.id, onChange: this.refigureChart })
-                                )
-                            )
+                                );
+                            }, this)
                         )
                     )
                 )
@@ -72838,11 +72585,7 @@ var Teams = _react2['default'].createClass({
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { sm: 8 },
-                _react2['default'].createElement(
-                    If,
-                    { condition: config.chart },
-                    _react2['default'].createElement(Highcharts, { style: { height: '600px' }, config: config })
-                )
+                config.chart ? _react2['default'].createElement(Highcharts, { style: { height: '600px' }, config: config }) : ''
             )
         );
     }
