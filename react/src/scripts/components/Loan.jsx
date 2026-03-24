@@ -304,10 +304,10 @@ var Loan = React.createClass({
                                 <If condition={loan.status == 'fundraising'}>
                                     <dl className="dl-horizontal">
                                         <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</dd>
-                                        <dt>Loan Amount</dt><dd>${loan.loan_amount}</dd>
-                                        <dt>Funded Amount</dt><dd>${loan.funded_amount}</dd>
-                                        <dt>In Baskets</dt><dd>${loan.basket_amount}</dd>
-                                        <dt>Still Needed</dt><dd>${loan.kl_still_needed}</dd>
+                                        <dt>Loan Amount</dt><dd>${numeral(loan.loan_amount).format('0,0')}</dd>
+                                        <dt>Funded Amount</dt><dd>${numeral(loan.funded_amount).format('0,0')}</dd>
+                                        <dt>In Baskets</dt><dd>${numeral(loan.basket_amount).format('0,0')}</dd>
+                                        <dt>Still Needed</dt><dd>${numeral(loan.kl_still_needed).format('0,0')}</dd>
                                     </dl>
                                 </If>
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
