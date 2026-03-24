@@ -86,6 +86,7 @@ global.snowstack_cleanup = function() {
 };
 
 global.snowstack_reset = function() {
+	console.log('snowstack_reset: cells.length =', cells.length);
 	global.snowstack_cleanup();
 	currentCellIndex = -1;
 	cells = [];
@@ -353,6 +354,7 @@ function snowstack_addimage(info)
 {
 	var cell = {};
 	var n = cells.length;
+	if (n < 3) console.log('snowstack_addimage: n =', n, 'cellstack =', !!cellstack, 'cellstack.childNodes.length =', cellstack ? cellstack.childNodes.length : 'N/A');
 	cells.push(cell);
 
 	var x = Math.floor(n / snowstack_options.rows);
@@ -493,11 +495,14 @@ global.snowstack_init = function (imagefun, options)
 	var loading = true;
 
 	// Reset state for fresh start
+	console.log('snowstack_init: cells.length BEFORE reset =', cells.length);
 	cells = [];
 	currentCellIndex = -1;
 	magnifyMode = false;
+	console.log('snowstack_init: cells.length AFTER reset =', cells.length);
 
 	camera = vfx.byid("camera");
+	console.log('snowstack_init: camera found =', !!camera);
 	
 	reflectionstack = vfx.elem("div", { "class": "view" });
 	var mirror = vfx.elem("div", { "class": "view" }, reflectionstack);
