@@ -62393,6 +62393,104 @@ var Loans = (function () {
       return result;
     }
   }, {
+    key: 'filterAllPartners',
+    value: function filterAllPartners(criteria) {
+      if (!this.partners_from_kiva || !this.partners_from_kiva.length) return [];
+
+      var c = extend(true, {}, criteria);
+      var ct = new CritTester(c);
+
+      // Status filter
+      ct.addAnyAllNoneTester('status', null, 'any', function (partner) {
+        return partner.status;
+      });
+
+      // Name search (same pattern as borrower name search)
+      ct.addArrayAllStartWithTester(c.name, function (partner) {
+        return partner.kl_name_arr || [];
+      });
+
+      // Region
+      ct.addAnyAllNoneTester('region', null, 'any', function (partner) {
+        return partner.kl_regions;
+      }, true);
+
+      // Social performance
+      var sp_arr = [];
+      try {
+        sp_arr = typeof c.social_performance === 'string' ? c.social_performance.split(',').where(function (sp) {
+          return sp && !isNaN(sp);
+        }).select(function (sp) {
+          return parseInt(sp);
+        }) : [];
+      } catch (e) {
+        sp_arr = [];
+      }
+      ct.addAnyAllNoneTester('social_performance', sp_arr, 'all', function (partner) {
+        return partner.kl_sp;
+      }, true);
+
+      // Numeric ranges
+      ct.addRangeTesters('partner_default', function (partner) {
+        return partner.default_rate;
+      });
+      ct.addRangeTesters('partner_arrears', function (partner) {
+        return partner.delinquency_rate;
+      });
+      ct.addRangeTesters('portfolio_yield', function (partner) {
+        return partner.portfolio_yield;
+      });
+      ct.addRangeTesters('profit', function (partner) {
+        return partner.profitability;
+      });
+      ct.addRangeTesters('loans_at_risk_rate', function (partner) {
+        return partner.loans_at_risk_rate;
+      });
+      ct.addRangeTesters('currency_exchange_loss_rate', function (partner) {
+        return partner.currency_exchange_loss_rate;
+      });
+      ct.addRangeTesters('average_loan_size_percent_per_capita_income', function (partner) {
+        return partner.average_loan_size_percent_per_capita_income;
+      });
+      ct.addRangeTesters('years_on_kiva', function (partner) {
+        return partner.kl_years_on_kiva;
+      });
+      ct.addRangeTesters('loans_posted', function (partner) {
+        return partner.loans_posted;
+      });
+      ct.addThreeStateTester(c.charges_fees_and_interest, function (partner) {
+        return partner.charges_fees_and_interest;
+      });
+      ct.addRangeTesters('partner_risk_rating', function (partner) {
+        return partner.rating;
+      }, function (partner) {
+        return isNaN(parseFloat(partner.rating));
+      }, function (crit) {
+        return crit.partner_risk_rating_min == null;
+      });
+
+      // A+ Team data
+      if (this.atheist_list_processed) {
+        ct.addRangeTesters('secular_rating', function (partner) {
+          return partner.atheistScore.secularRating;
+        }, function (partner) {
+          return !partner.atheistScore;
+        });
+        ct.addRangeTesters('social_rating', function (partner) {
+          return partner.atheistScore.socialRating;
+        }, function (partner) {
+          return !partner.atheistScore;
+        });
+      }
+      ct.addAnyAllNoneTester('religion', null, 'any', function (partner) {
+        return partner.normalizedReligions || ['Unknown'];
+      }, true);
+
+      return this.partners_from_kiva.where(function (p) {
+        return ct.allPass(p);
+      });
+    }
+  }, {
     key: 'filter',
     value: function filter(c, cacheResults, loans_to_filter) {
       if (cacheResults == undefined) cacheResults = true;
@@ -62802,6 +62900,9 @@ var Loans = (function () {
 
       this.active_partners = partners.where(function (p) {
         return p.status == "active";
+      });
+      this.partners_from_kiva.forEach(function (p) {
+        p.kl_name_arr = p.name ? p.name.toUpperCase().match(/(\w+)/g) : [];
       });
       processPartnerReligions(this.partners_from_kiva);
       //todo: temp. for debugging
@@ -65071,6 +65172,7 @@ function LoadReactApp() {
                     _react2['default'].createElement(_reactRouter.IndexRoute, { component: _components.Criteria })
                 ),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'basket', component: _components.Basket }),
+                _react2['default'].createElement(_reactRouter.Route, { path: 'partners', component: _components.Partners }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'options', component: _components.Options }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'about', component: _components.About }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'live', component: _components.Live }),
@@ -65096,7 +65198,7 @@ domready.done(LoadReactApp);
  **/
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./actions":667,"./api/syncStorage":683,"./components":718,"./linqextras":719,"./stores":721,"./stores/liveStore":722,"./utils":725,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
+},{"./actions":667,"./api/syncStorage":683,"./components":720,"./linqextras":721,"./stores":723,"./stores/liveStore":724,"./utils":727,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -65684,7 +65786,7 @@ var About = _react2['default'].createClass({
 exports['default'] = About;
 module.exports = exports['default'];
 
-},{".":718,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
+},{".":720,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66070,7 +66172,7 @@ var AutoLendSettings = _react2['default'].createClass({
 exports['default'] = AutoLendSettings;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../api/kiva":668,"../stores/":721,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
+},{".":720,"../actions":667,"../api/kiva":668,"../stores/":723,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66357,7 +66459,7 @@ var Basket = _react2['default'].createClass({
 exports['default'] = Basket;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores":721,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores":723,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66435,7 +66537,7 @@ var BasketListItem = _react2['default'].createClass({
 exports['default'] = BasketListItem;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
+},{".":720,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66560,7 +66662,7 @@ var BulkAddModal = _react2['default'].createClass({
 exports['default'] = BulkAddModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":721,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
+},{"../actions":667,"../stores/":723,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66698,7 +66800,7 @@ var ChartDistribution = _react2['default'].createClass({
 exports['default'] = ChartDistribution;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":721,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
+},{"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66744,7 +66846,7 @@ var ClearBasket = _react2['default'].createClass({
 exports['default'] = ClearBasket;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores":721,"react":634}],694:[function(require,module,exports){
+},{"../actions":667,"../stores":723,"react":634}],694:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66948,7 +67050,7 @@ var Criteria = _react2['default'].createClass({
 exports['default'] = Criteria;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores/":721,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores/":723,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -67053,6 +67155,7 @@ allOptions.social_performance = { label: 'Social Performance', allAnyNone: true,
 allOptions.region = { label: 'Region', allAnyNone: true, multi: true, select_options: [{ "value": "na", "label": "North America" }, { "value": "ca", "label": "Central America" }, { "value": "sa", "label": "South America" }, { "value": "af", "label": "Africa" }, { "value": "as", "label": "Asia" }, { "value": "me", "label": "Middle East" }, { "value": "ee", "label": "Eastern Europe" }, { "value": "oc", "label": "Oceania" }, { "value": "we", "label": "Western Europe" }] }; //{"value":"an","label":"Antarctica"},
 allOptions.partners = { label: "Partners", allAnyNone: true, multi: true, intArray: true, select_options: [] };
 allOptions.charges_fees_and_interest = { label: "Charges Interest", multi: false, select_options: [{ value: '', label: "Show All" }, { value: 'true', label: "Only partners that charge fees & interest" }, { value: 'false', label: "Only partners that do NOT charge fees & interest" }] };
+allOptions.status = { label: 'Status', allAnyNone: true, multi: true, helpText: "The current status of the partner on Kiva. A partner can only have one status at a time.", select_options: [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'paused', label: 'Paused' }, { value: 'closed', label: 'Closed' }] };
 allOptions.religion = { label: 'Religion', allAnyNone: true, multi: true, helpText: "Religious affiliation of the lending partner (MFI), sourced from the A+ Team's (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious) research. 'Christian Influence' means the partner has some Christian ties but is not explicitly religious. 'Unknown' means the partner has not yet been reviewed.", select_options: [{ value: 'Secular', label: 'Secular' }, { value: 'Christian', label: 'Christian' }, { value: 'Christian Influence', label: 'Christian Influence' }, { value: 'Muslim', label: 'Muslim' }, { value: 'Hindu', label: 'Hindu' }, { value: 'Jewish', label: 'Jewish' }, { value: 'Buddhist', label: 'Buddhist' }, { value: 'Other', label: 'Other' }, { value: 'Unknown', label: 'Unknown' }] };
 
 //portfolio selects
@@ -68309,7 +68412,7 @@ var CriteriaTabs = _react2['default'].createClass({
 exports['default'] = CriteriaTabs;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../api/kiva":668,"../stores/":721,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
+},{".":720,"../actions":667,"../api/kiva":668,"../stores/":723,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68467,7 +68570,7 @@ exports['default'] = DidYouKnow;
  **/
 module.exports = exports['default'];
 
-},{".":718,"react":634}],698:[function(require,module,exports){
+},{".":720,"react":634}],698:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -68620,7 +68723,7 @@ var Donate = (function (_Component) {
 exports['default'] = Donate;
 module.exports = exports['default'];
 
-},{".":718,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
+},{".":720,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -69187,6 +69290,11 @@ var KLNav = _react2['default'].createClass({
                     ),
                     _react2['default'].createElement(
                         _reactBootstrap.NavItem,
+                        { key: 8, href: '#/partners', className: isActive('/partners') ? 'active' : '' },
+                        'Partners'
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.NavItem,
                         { key: 3, href: '#/live', className: isActive('/live') ? 'active' : '' },
                         'Stats'
                     ),
@@ -69214,7 +69322,7 @@ var KLNav = _react2['default'].createClass({
 exports['default'] = KLNav;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":721,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
+},{"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69677,7 +69785,7 @@ var LoadingLoansPanel = _react2['default'].createClass({
 exports['default'] = LoadingLoansPanel;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
+},{".":720,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -69705,6 +69813,10 @@ var _reactTimeago = require('react-timeago');
 var _reactTimeago2 = _interopRequireDefault(_reactTimeago);
 
 var _ = require('.');
+
+var _PartnerDetailJsx = require('./PartnerDetail.jsx');
+
+var _PartnerDetailJsx2 = _interopRequireDefault(_PartnerDetailJsx);
 
 var _actions = require('../actions');
 
@@ -70355,297 +70467,7 @@ var Loan = _react2['default'].createClass({
                 partner ? _react2['default'].createElement(
                     _reactBootstrap.Tab,
                     { eventKey: 3, title: 'Partner', className: 'ample-padding-top' },
-                    _react2['default'].createElement(
-                        'h2',
-                        null,
-                        partner.name
-                    ),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Col,
-                        { lg: 6 },
-                        _react2['default'].createElement(
-                            'dl',
-                            { className: 'dl-horizontal' },
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Rating'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                partner.rating
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Start Date'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                new Date(partner.start_date).toString("MMM d, yyyy")
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                partner.countries.length == 1 ? 'Country' : 'Countries'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                partner.countries.select(function (c) {
-                                    return c.name;
-                                }).join(', ')
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Delinquency'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.delinquency_rate).format('0.000'),
-                                '% ',
-                                partner.delinquency_rate_note
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Loans at Risk Rate'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.loans_at_risk_rate).format('0.000'),
-                                '%'
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Default'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.default_rate).format('0.000'),
-                                '% ',
-                                partner.default_rate_note
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Total Raised'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                '$',
-                                (0, _numeral2['default'])(partner.total_amount_raised).format('0,0')
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Loans'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.loans_posted).format('0,0')
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Portfolio Yield'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.portfolio_yield).format('0.0'),
-                                '% ',
-                                partner.portfolio_yield_note
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Profitablility'
-                            ),
-                            partner.profitability ? _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.profitability).format('0.0'),
-                                '%'
-                            ) : _react2['default'].createElement(
-                                'dd',
-                                null,
-                                '(unknown)'
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Charges Fees / Interest'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                partner.charges_fees_and_interest ? 'Yes' : 'No'
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Avg Loan/Cap Income'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.average_loan_size_percent_per_capita_income).format('0.00'),
-                                '%'
-                            ),
-                            _react2['default'].createElement(
-                                'dt',
-                                null,
-                                'Currency Ex Loss'
-                            ),
-                            _react2['default'].createElement(
-                                'dd',
-                                null,
-                                (0, _numeral2['default'])(partner.currency_exchange_loss_rate).format('0.000'),
-                                '%'
-                            ),
-                            partner.url ? _react2['default'].createElement(
-                                'span',
-                                null,
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Website'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    _react2['default'].createElement(
-                                        _.NewTabLink,
-                                        { href: partner.url },
-                                        partner.url
-                                    )
-                                )
-                            ) : null
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Col,
-                        { lg: 6 },
-                        partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : null,
-                        _react2['default'].createElement(
-                            _.KivaLink,
-                            { path: 'about/where-kiva-works/partners/' + partner.id },
-                            'View Partner on Kiva.org'
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Col,
-                        { lg: 12 },
-                        partner.kl_sp.length ? _react2['default'].createElement(
-                            'div',
-                            null,
-                            _react2['default'].createElement(
-                                'h3',
-                                null,
-                                'Social Performance Strengths'
-                            ),
-                            _react2['default'].createElement(
-                                'ul',
-                                null,
-                                partner.social_performance_strengths.map(function (sp, i) {
-                                    return _react2['default'].createElement(
-                                        'li',
-                                        { key: i },
-                                        _react2['default'].createElement(
-                                            'b',
-                                            null,
-                                            sp.name
-                                        ),
-                                        ': ',
-                                        sp.description
-                                    );
-                                })
-                            )
-                        ) : null,
-                        showAtheistResearch && atheistScore ? _react2['default'].createElement(
-                            'div',
-                            null,
-                            _react2['default'].createElement(
-                                'h3',
-                                null,
-                                'A+ Team Research'
-                            ),
-                            _react2['default'].createElement(
-                                'dl',
-                                { className: 'dl-horizontal' },
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Secular Rating'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.secularRating
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Religious Affiliation'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.religiousAffiliation
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Comments on Rating'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.commentsOnSecularRating
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Social Rating'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.socialRating
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Comments on Rating'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.commentsOnSocialRating
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Review Comments'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    atheistScore.reviewComments
-                                )
-                            )
-                        ) : null
-                    )
+                    _react2['default'].createElement(_PartnerDetailJsx2['default'], { partner: partner, showStatus: false })
                 ) : null
             )
         );
@@ -70655,7 +70477,7 @@ var Loan = _react2['default'].createClass({
 exports['default'] = Loan;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores/":721,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores/":723,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70779,7 +70601,7 @@ var LoanListItem = _react2['default'].createClass({
 exports['default'] = LoanListItem;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores/":721,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores/":723,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71099,7 +70921,7 @@ var OnNow = _react2['default'].createClass({
 exports['default'] = OnNow;
 module.exports = exports['default'];
 
-},{".":718,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
+},{".":720,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71548,7 +71370,7 @@ var Options = _react2['default'].createClass({
 exports['default'] = Options;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores":721,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores":723,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71592,6 +71414,375 @@ exports['default'] = Outdated;
 module.exports = exports['default'];
 
 },{"../actions":667,"react":634,"react-bootstrap":346}],712:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactBootstrap = require('react-bootstrap');
+
+var _ = require('.');
+
+var _numeral = require('numeral');
+
+var _numeral2 = _interopRequireDefault(_numeral);
+
+var statusColors = {
+    active: null,
+    inactive: 'default',
+    paused: 'warning',
+    closed: 'danger'
+};
+
+var PartnerDetail = _react2['default'].createClass({
+    displayName: 'PartnerDetail',
+
+    propTypes: {
+        partner: _react2['default'].PropTypes.object.isRequired,
+        showStatus: _react2['default'].PropTypes.bool
+    },
+    getDefaultProps: function getDefaultProps() {
+        return { showStatus: true };
+    },
+    render: function render() {
+        var partner = this.props.partner;
+        if (!partner) return null;
+        var atheistScore = partner.atheistScore || {};
+        var showAtheistResearch = !!partner.atheistScore;
+
+        return _react2['default'].createElement(
+            'div',
+            null,
+            _react2['default'].createElement(
+                'h2',
+                null,
+                partner.name,
+                this.props.showStatus && partner.status !== 'active' ? _react2['default'].createElement(
+                    'span',
+                    null,
+                    ' ',
+                    _react2['default'].createElement(
+                        _reactBootstrap.Label,
+                        { bsStyle: statusColors[partner.status] || 'default' },
+                        partner.status
+                    )
+                ) : null
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { lg: 6 },
+                _react2['default'].createElement(
+                    'dl',
+                    { className: 'dl-horizontal' },
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Rating'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        partner.rating
+                    ),
+                    partner.status !== 'active' ? _react2['default'].createElement(
+                        'span',
+                        null,
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Status'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            { style: { textTransform: 'capitalize' } },
+                            partner.status
+                        )
+                    ) : null,
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Start Date'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        new Date(partner.start_date).toString("MMM d, yyyy")
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        partner.countries && partner.countries.length === 1 ? 'Country' : 'Countries'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        partner.countries ? partner.countries.select(function (c) {
+                            return c.name;
+                        }).join(', ') : '(unknown)'
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Delinquency'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.delinquency_rate).format('0.000'),
+                        '% ',
+                        partner.delinquency_rate_note
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Loans at Risk Rate'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.loans_at_risk_rate).format('0.000'),
+                        '%'
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Default'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.default_rate).format('0.000'),
+                        '% ',
+                        partner.default_rate_note
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Total Raised'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        '$',
+                        (0, _numeral2['default'])(partner.total_amount_raised).format('0,0')
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Loans'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.loans_posted).format('0,0')
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Portfolio Yield'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.portfolio_yield).format('0.0'),
+                        '% ',
+                        partner.portfolio_yield_note
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Profitability'
+                    ),
+                    partner.profitability ? _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.profitability).format('0.0'),
+                        '%'
+                    ) : _react2['default'].createElement(
+                        'dd',
+                        null,
+                        '(unknown)'
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Charges Fees / Interest'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        partner.charges_fees_and_interest ? 'Yes' : 'No'
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Avg Loan/Cap Income'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.average_loan_size_percent_per_capita_income).format('0.00'),
+                        '%'
+                    ),
+                    _react2['default'].createElement(
+                        'dt',
+                        null,
+                        'Currency Ex Loss'
+                    ),
+                    _react2['default'].createElement(
+                        'dd',
+                        null,
+                        (0, _numeral2['default'])(partner.currency_exchange_loss_rate).format('0.000'),
+                        '%'
+                    ),
+                    partner.url ? _react2['default'].createElement(
+                        'span',
+                        null,
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Website'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            _react2['default'].createElement(
+                                _.NewTabLink,
+                                { href: partner.url },
+                                partner.url
+                            )
+                        )
+                    ) : null
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { lg: 6 },
+                partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : null,
+                _react2['default'].createElement(
+                    _.KivaLink,
+                    { path: 'about/where-kiva-works/partners/' + partner.id },
+                    'View Partner on Kiva.org'
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { lg: 12 },
+                partner.kl_sp && partner.kl_sp.length ? _react2['default'].createElement(
+                    'div',
+                    null,
+                    _react2['default'].createElement(
+                        'h3',
+                        null,
+                        'Social Performance Strengths'
+                    ),
+                    _react2['default'].createElement(
+                        'ul',
+                        null,
+                        partner.social_performance_strengths.map(function (sp, i) {
+                            return _react2['default'].createElement(
+                                'li',
+                                { key: i },
+                                _react2['default'].createElement(
+                                    'b',
+                                    null,
+                                    sp.name
+                                ),
+                                ': ',
+                                sp.description
+                            );
+                        })
+                    )
+                ) : null,
+                showAtheistResearch && atheistScore ? _react2['default'].createElement(
+                    'div',
+                    null,
+                    _react2['default'].createElement(
+                        'h3',
+                        null,
+                        'A+ Team Research'
+                    ),
+                    _react2['default'].createElement(
+                        'dl',
+                        { className: 'dl-horizontal' },
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Secular Rating'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.secularRating
+                        ),
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Religious Affiliation'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.religiousAffiliation
+                        ),
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Comments on Rating'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.commentsOnSecularRating
+                        ),
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Social Rating'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.socialRating
+                        ),
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Comments on Rating'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.commentsOnSocialRating
+                        ),
+                        _react2['default'].createElement(
+                            'dt',
+                            null,
+                            'Review Comments'
+                        ),
+                        _react2['default'].createElement(
+                            'dd',
+                            null,
+                            atheistScore.reviewComments
+                        )
+                    )
+                ) : null
+            )
+        );
+    }
+});
+
+exports['default'] = PartnerDetail;
+module.exports = exports['default'];
+
+},{".":720,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71768,7 +71959,257 @@ var PartnerDisplayModal = _react2['default'].createClass({
 exports['default'] = PartnerDisplayModal;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores/":721,"react":634,"react-bootstrap":346,"reflux":650}],713:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reflux = require('reflux');
+
+var _reflux2 = _interopRequireDefault(_reflux);
+
+var _reactBootstrap = require('react-bootstrap');
+
+var _ = require('.');
+
+var _PartnerDetailJsx = require('./PartnerDetail.jsx');
+
+var _PartnerDetailJsx2 = _interopRequireDefault(_PartnerDetailJsx);
+
+var _actions = require('../actions');
+
+var _actions2 = _interopRequireDefault(_actions);
+
+var _stores = require('../stores/');
+
+var _stores2 = _interopRequireDefault(_stores);
+
+var _numeral = require('numeral');
+
+var _numeral2 = _interopRequireDefault(_numeral);
+
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
+
+// Import allOptions for criteria UI
+var CriteriaTabs = require('./CriteriaTabs.jsx');
+
+var statusColors = {
+    active: null,
+    inactive: '#e8e8e8',
+    paused: '#fff8e1',
+    closed: '#fce4ec'
+};
+
+var PartnerListItem = _react2['default'].createClass({
+    displayName: 'PartnerListItem',
+
+    render: function render() {
+        var p = this.props.partner;
+        var isSelected = this.props.selected;
+        var bgColor = !isSelected && statusColors[p.status] ? statusColors[p.status] : null;
+        return _react2['default'].createElement(
+            _reactBootstrap.ListGroupItem,
+            {
+                className: (0, _classnames2['default'])('loan_list_item', { selected: isSelected }),
+                style: bgColor ? { backgroundColor: bgColor } : null,
+                onClick: this.props.onClick,
+                href: 'javascript:void(0)' },
+            p.image ? _react2['default'].createElement(_.KivaImage, { key: p.id, type: 'square', loan: p, image_width: 113, height: 60, width: 60 }) : _react2['default'].createElement('div', { style: { width: 60, height: 60, display: 'inline-block', backgroundColor: '#ddd', verticalAlign: 'top', marginRight: 8 } }),
+            _react2['default'].createElement(
+                'div',
+                { className: 'details' },
+                _react2['default'].createElement(
+                    'div',
+                    { className: 'loan-name' },
+                    p.name,
+                    p.status !== 'active' ? _react2['default'].createElement(
+                        'span',
+                        null,
+                        ' ',
+                        _react2['default'].createElement(
+                            _reactBootstrap.Label,
+                            { bsSize: 'xsmall', bsStyle: p.status === 'paused' ? 'warning' : 'default' },
+                            p.status
+                        )
+                    ) : null
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { className: 'loan-meta' },
+                    p.countries && p.countries.length > 0 ? _react2['default'].createElement(
+                        'span',
+                        { className: 'loan-tag' },
+                        p.countries.length <= 3 ? p.countries.select(function (c) {
+                            return c.name;
+                        }).join(', ') : p.countries.length + ' countries'
+                    ) : null,
+                    p.rating ? _react2['default'].createElement(
+                        'span',
+                        { className: 'loan-tag' },
+                        p.rating,
+                        ' stars'
+                    ) : null,
+                    p.loans_posted ? _react2['default'].createElement(
+                        'span',
+                        { className: 'loan-tag' },
+                        (0, _numeral2['default'])(p.loans_posted).format('0,0'),
+                        ' loans'
+                    ) : null
+                )
+            )
+        );
+    }
+});
+
+var Partners = _react2['default'].createClass({
+    displayName: 'Partners',
+
+    mixins: [_reflux2['default'].ListenerMixin],
+    getInitialState: function getInitialState() {
+        return {
+            criteria: {},
+            selectedPartner: null,
+            showCriteria: true,
+            filteredPartners: [],
+            totalPartners: 0
+        };
+    },
+    componentDidMount: function componentDidMount() {
+        this.listenTo(_actions2['default'].loans.live.progress, this.onProgress);
+        if (kivaloans.partners_from_kiva && kivaloans.partners_from_kiva.length > 0) {
+            this.performSearch({});
+        }
+    },
+    onProgress: function onProgress(progress) {
+        if (progress.partners_loaded || progress.atheist_list_loaded) {
+            this.performSearch(this.state.criteria);
+        }
+    },
+    performSearch: function performSearch(criteria) {
+        var results = kivaloans.filterAllPartners(criteria);
+        results = results.orderBy(function (p) {
+            return p.name;
+        });
+        this.setState({
+            filteredPartners: results,
+            totalPartners: kivaloans.partners_from_kiva.length,
+            criteria: criteria
+        });
+    },
+    selectPartner: function selectPartner(partner) {
+        this.setState({ selectedPartner: partner });
+    },
+    toggleCriteria: function toggleCriteria() {
+        this.setState({ showCriteria: !this.state.showCriteria });
+    },
+    onNameChange: function onNameChange(e) {
+        var criteria = this.state.criteria;
+        criteria.name = e.target.value;
+        this.performSearch(criteria);
+    },
+    onStatusChange: function onStatusChange(value) {
+        var criteria = this.state.criteria;
+        criteria.status = value;
+        this.performSearch(criteria);
+    },
+    render: function render() {
+        var _this = this;
+
+        var _state = this.state;
+        var filteredPartners = _state.filteredPartners;
+        var totalPartners = _state.totalPartners;
+        var selectedPartner = _state.selectedPartner;
+        var showCriteria = _state.showCriteria;
+
+        return _react2['default'].createElement(
+            'div',
+            null,
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 4 },
+                _react2['default'].createElement(
+                    'div',
+                    { className: 'side-results' },
+                    _react2['default'].createElement(
+                        _reactBootstrap.ButtonGroup,
+                        { justified: true, className: 'top-only' },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { href: '#', key: 1,
+                                onClick: this.toggleCriteria },
+                            showCriteria ? 'Hide Criteria' : 'Show Criteria'
+                        )
+                    ),
+                    showCriteria ? _react2['default'].createElement(
+                        _reactBootstrap.Panel,
+                        { className: 'partner-criteria-panel', style: { marginBottom: 0, borderRadius: 0 } },
+                        _react2['default'].createElement(
+                            'div',
+                            { style: { marginBottom: 8 } },
+                            _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
+                                onChange: this.onNameChange, value: this.state.criteria.name || '' })
+                        )
+                    ) : null,
+                    _react2['default'].createElement(
+                        'div',
+                        { className: 'loan-count-bar' },
+                        'Showing ',
+                        (0, _numeral2['default'])(filteredPartners.length).format('0,0'),
+                        ' of ',
+                        (0, _numeral2['default'])(totalPartners).format('0,0'),
+                        ' partners'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { className: 'loan_list_container', style: { height: 800, overflowY: 'auto' } },
+                        filteredPartners.map(function (p) {
+                            return _react2['default'].createElement(PartnerListItem, {
+                                key: p.id,
+                                partner: p,
+                                selected: selectedPartner && selectedPartner.id === p.id,
+                                onClick: _this.selectPartner.bind(_this, p) });
+                        })
+                    )
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 8 },
+                selectedPartner ? _react2['default'].createElement(_PartnerDetailJsx2['default'], { partner: selectedPartner, showStatus: true }) : _react2['default'].createElement(
+                    'div',
+                    { style: { padding: '40px', textAlign: 'center', color: '#999' } },
+                    _react2['default'].createElement(
+                        'h3',
+                        null,
+                        'Select a partner from the list'
+                    ),
+                    _react2['default'].createElement(
+                        'p',
+                        null,
+                        'Use the search box to find partners by name. Browse all ',
+                        (0, _numeral2['default'])(totalPartners).format('0,0'),
+                        ' partners including inactive and paused ones.'
+                    )
+                )
+            )
+        );
+    }
+});
+
+exports['default'] = Partners;
+module.exports = exports['default'];
+
+},{".":720,"../actions":667,"../stores/":723,"./CriteriaTabs.jsx":695,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -71864,7 +72305,7 @@ var PromptModal = _react2['default'].createClass({
 exports['default'] = PromptModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
+},{"../actions":667,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],716:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72107,7 +72548,7 @@ var Search = _react2['default'].createClass({
 exports['default'] = Search;
 module.exports = exports['default'];
 
-},{".":718,"../actions":667,"../stores":721,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],715:[function(require,module,exports){
+},{".":720,"../actions":667,"../stores":723,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],717:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72254,7 +72695,7 @@ var SetLenderIDModal = _react2['default'].createClass({
 exports['default'] = SetLenderIDModal;
 module.exports = exports['default'];
 
-},{".":718,"../api/kiva":668,"../stores/":721,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],716:[function(require,module,exports){
+},{".":720,"../api/kiva":668,"../stores/":723,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],718:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72380,7 +72821,7 @@ var SnowStack = _react2['default'].createClass({
 exports['default'] = SnowStack;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],717:[function(require,module,exports){
+},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],719:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -72616,7 +73057,7 @@ var Teams = _react2['default'].createClass({
 exports['default'] = Teams;
 module.exports = exports['default'];
 
-},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],718:[function(require,module,exports){
+},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],720:[function(require,module,exports){
 'use strict';
 //every component you want easily accessible should be added as an import and export in this file.
 //this allow you to do: import {Loan, Live, KivaImage, KivaLink} from '.' (the '.' just means the index.js in the current directory.)
@@ -72683,6 +73124,14 @@ var _OutdatedJsx2 = _interopRequireDefault(_OutdatedJsx);
 var _DonateJsx = require('./Donate.jsx');
 
 var _DonateJsx2 = _interopRequireDefault(_DonateJsx);
+
+var _PartnersJsx = require('./Partners.jsx');
+
+var _PartnersJsx2 = _interopRequireDefault(_PartnersJsx);
+
+var _PartnerDetailJsx = require('./PartnerDetail.jsx');
+
+var _PartnerDetailJsx2 = _interopRequireDefault(_PartnerDetailJsx);
 
 //SIMPLE STATE-LESS COMPONENTS
 
@@ -72897,8 +73346,10 @@ exports.DidYouKnow = _DidYouKnowJsx2['default'];
 exports.Face = _FaceJsx2['default'];
 exports.OnNow = _OnNowJsx2['default'];
 exports.Donate = _DonateJsx2['default'];
+exports.Partners = _PartnersJsx2['default'];
+exports.PartnerDetail = _PartnerDetailJsx2['default'];
 
-},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDisplayModal.jsx":712,"./PromptModal.jsx":713,"./Search.jsx":714,"./SetLenderIDModal.jsx":715,"./SnowStack.jsx":716,"./Teams.jsx":717,"react":634}],719:[function(require,module,exports){
+},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./Search.jsx":716,"./SetLenderIDModal.jsx":717,"./SnowStack.jsx":718,"./Teams.jsx":719,"react":634}],721:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 //MORE LINQ GOODNESS
@@ -72954,7 +73405,7 @@ Array.prototype.chunk = function (chunkSize) {
 };
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],720:[function(require,module,exports){
+},{}],722:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -73404,7 +73855,7 @@ function set_cache(key, value) {
 exports['default'] = criteriaStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":725,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],721:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":727,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],723:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73436,7 +73887,7 @@ exports['default'] = s;
 window.kl_stores = s;
 module.exports = exports['default'];
 
-},{"./criteriaStore":720,"./liveStore":722,"./loanStore":723,"./utilsStore":724}],722:[function(require,module,exports){
+},{"./criteriaStore":722,"./liveStore":724,"./loanStore":725,"./utilsStore":726}],724:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73459,7 +73910,7 @@ var liveStore = _reflux2['default'].createStore({ init: function init() {} });
 exports['default'] = liveStore;
 module.exports = exports['default'];
 
-},{"reflux":650}],723:[function(require,module,exports){
+},{"reflux":650}],725:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73693,7 +74144,7 @@ var loanStore = _reflux2['default'].createStore({
 exports['default'] = loanStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":720,"reflux":650}],724:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":722,"reflux":650}],726:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -73771,7 +74222,7 @@ var utilsStore = _reflux2['default'].createStore({
 exports['default'] = utilsStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"reflux":650}],725:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"reflux":650}],727:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();

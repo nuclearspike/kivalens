@@ -550,6 +550,51 @@ class Loans {
     return result
   }
 
+  filterAllPartners(criteria) {
+    if (!this.partners_from_kiva || !this.partners_from_kiva.length) return []
+
+    var c = extend(true, {}, criteria)
+    var ct = new CritTester(c)
+
+    // Status filter
+    ct.addAnyAllNoneTester('status', null, 'any', partner => partner.status)
+
+    // Name search (same pattern as borrower name search)
+    ct.addArrayAllStartWithTester(c.name, partner => partner.kl_name_arr || [])
+
+    // Region
+    ct.addAnyAllNoneTester('region', null, 'any', partner => partner.kl_regions, true)
+
+    // Social performance
+    var sp_arr = []
+    try {
+      sp_arr = (typeof c.social_performance === 'string') ? c.social_performance.split(',').where(sp => sp && !isNaN(sp)).select(sp => parseInt(sp)) : []
+    } catch (e) { sp_arr = [] }
+    ct.addAnyAllNoneTester('social_performance', sp_arr, 'all', partner => partner.kl_sp, true)
+
+    // Numeric ranges
+    ct.addRangeTesters('partner_default', partner => partner.default_rate)
+    ct.addRangeTesters('partner_arrears', partner => partner.delinquency_rate)
+    ct.addRangeTesters('portfolio_yield', partner => partner.portfolio_yield)
+    ct.addRangeTesters('profit', partner => partner.profitability)
+    ct.addRangeTesters('loans_at_risk_rate', partner => partner.loans_at_risk_rate)
+    ct.addRangeTesters('currency_exchange_loss_rate', partner => partner.currency_exchange_loss_rate)
+    ct.addRangeTesters('average_loan_size_percent_per_capita_income', partner => partner.average_loan_size_percent_per_capita_income)
+    ct.addRangeTesters('years_on_kiva', partner => partner.kl_years_on_kiva)
+    ct.addRangeTesters('loans_posted', partner => partner.loans_posted)
+    ct.addThreeStateTester(c.charges_fees_and_interest, partner => partner.charges_fees_and_interest)
+    ct.addRangeTesters('partner_risk_rating', partner => partner.rating, partner => isNaN(parseFloat(partner.rating)), crit => crit.partner_risk_rating_min == null)
+
+    // A+ Team data
+    if (this.atheist_list_processed) {
+      ct.addRangeTesters('secular_rating', partner => partner.atheistScore.secularRating, partner => !partner.atheistScore)
+      ct.addRangeTesters('social_rating', partner => partner.atheistScore.socialRating, partner => !partner.atheistScore)
+    }
+    ct.addAnyAllNoneTester('religion', null, 'any', partner => partner.normalizedReligions || ['Unknown'], true)
+
+    return this.partners_from_kiva.where(p => ct.allPass(p))
+  }
+
   filter(c, cacheResults, loans_to_filter) {
     if (cacheResults == undefined) cacheResults = true
     if (!this.isReady()) return []
@@ -836,6 +881,9 @@ class Loans {
     })
 
     this.active_partners = partners.where(p => p.status == "active")
+    this.partners_from_kiva.forEach(p => {
+      p.kl_name_arr = p.name ? p.name.toUpperCase().match(/(\w+)/g) : []
+    })
     processPartnerReligions(this.partners_from_kiva)
     //todo: temp. for debugging
     global.partners = this.partners_from_kiva

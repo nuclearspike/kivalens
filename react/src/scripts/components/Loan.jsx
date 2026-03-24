@@ -8,6 +8,7 @@ import {History} from 'react-router'
 import {Tabs,Tab,Grid,Col,Row,ProgressBar,Panel,Button,Jumbotron,Alert} from 'react-bootstrap'
 import TimeAgo from 'react-timeago'
 import {KivaImage, NewTabLink, LoanLink, KivaLink, LoanListItem} from '.'
+import PartnerDetail from './PartnerDetail.jsx'
 import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
@@ -319,65 +320,7 @@ var Loan = React.createClass({
                     </Tab>
 {partner ?
                         <Tab eventKey={3} title="Partner" className="ample-padding-top">
-                            <h2>{partner.name}</h2>
-                            <Col lg={6}>
-                            <dl className="dl-horizontal">
-                                <dt>Rating</dt><dd>{partner.rating}</dd>
-                                <dt>Start Date</dt><dd>{new Date(partner.start_date).toString("MMM d, yyyy")}</dd>
-                                <dt>{partner.countries.length == 1 ? 'Country' : 'Countries'}</dt><dd>{partner.countries.select(c => c.name).join(', ')}</dd>
-                                <dt>Delinquency</dt><dd>{numeral(partner.delinquency_rate).format('0.000')}% {partner.delinquency_rate_note}</dd>
-                                <dt>Loans at Risk Rate</dt><dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
-                                <dt>Default</dt><dd>{numeral(partner.default_rate).format('0.000')}% {partner.default_rate_note}</dd>
-                                <dt>Total Raised</dt><dd>${numeral(partner.total_amount_raised).format('0,0')}</dd>
-                                <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
-                                <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
-                                <dt>Profitablility</dt>
-{partner.profitability ?
-                                    <dd>{numeral(partner.profitability).format('0.0')}%</dd>
-                                :
-                                    <dd>(unknown)</dd>
-                                }
-                                <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
-                                <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
-                                <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
-{partner.url ?
-                                    <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
-                                : null}
-                            </dl>
-
-                            </Col>
-                            <Col lg={6}>
-{partner.image ?
-                                    <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
-                                : null}
-                                <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
-                            </Col>
-                            <Col lg={12}>
-{partner.kl_sp.length ?
-                                    <div>
-                                        <h3>Social Performance Strengths</h3>
-                                        <ul>
-                                            {partner.social_performance_strengths.map((sp, i) =>
-                                                <li key={i}><b>{sp.name}</b>: {sp.description}</li>
-                                            )}
-                                        </ul>
-                                    </div>
-                                : null}
-
-{showAtheistResearch && atheistScore ?
-                                    <div>
-                                        <h3>A+ Team Research</h3>
-                                        <dl className="dl-horizontal">
-                                            <dt>Secular Rating</dt><dd>{atheistScore.secularRating}</dd>
-                                            <dt>Religious Affiliation</dt><dd>{atheistScore.religiousAffiliation}</dd>
-                                            <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSecularRating}</dd>
-                                            <dt>Social Rating</dt><dd>{atheistScore.socialRating}</dd>
-                                            <dt>Comments on Rating</dt><dd>{atheistScore.commentsOnSocialRating}</dd>
-                                            <dt>Review Comments</dt><dd>{atheistScore.reviewComments}</dd>
-                                        </dl>
-                                    </div>
-                                : null}
-                            </Col>
+                            <PartnerDetail partner={partner} showStatus={false}/>
                         </Tab>
                     : null}
                 </Tabs>

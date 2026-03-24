@@ -24,7 +24,7 @@ var history = createHistory({queryKey: false})
 
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
     Criteria, ClearBasket, Live, Teams, NotFound, PromptModal, AlertModal, SnowStack,
-    Outdated, OnNow, Donate} from "./components"
+    Outdated, OnNow, Donate, Partners} from "./components"
 import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
@@ -103,6 +103,7 @@ function LoadReactApp(){
                     <IndexRoute component={Criteria}/>
                 </Route>
                 <Route path="basket" component={Basket}/>
+                <Route path="partners" component={Partners}/>
                 <Route path="options" component={Options}/>
                 <Route path="about" component={About}/>
                 <Route path="live" component={Live}/>

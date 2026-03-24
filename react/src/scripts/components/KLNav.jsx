@@ -41,6 +41,7 @@ const KLNav = React.createClass({
                     <Nav navbar>
                         <NavItem key={1} href="#/search" className={isActive('/search') ? 'active' : ''}>Search</NavItem>
                         <NavItem key={2} href="#/basket" className={isActive('/basket') ? 'active' : ''}>Basket <Badge>{this.state.basket_count}</Badge></NavItem>
+                        <NavItem key={8} href="#/partners" className={isActive('/partners') ? 'active' : ''}>Partners</NavItem>
                         <NavItem key={3} href="#/live" className={isActive('/live') ? 'active' : ''}>Stats</NavItem>
                         <NavItem key={4} href="#/teams" className={isActive('/teams') ? 'active' : ''}>Teams</NavItem>
                         <NavItem key={5} href="#/options" className={isActive('/options') ? 'active' : ''}>Options</NavItem>

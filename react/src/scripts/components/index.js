@@ -17,6 +17,8 @@ import Teams from './Teams.jsx'
 import ClearBasket from './ClearBasket.jsx'
 import Outdated from './Outdated.jsx'
 import Donate from './Donate.jsx'
+import Partners from './Partners.jsx'
+import PartnerDetail from './PartnerDetail.jsx'
 
 const NotFound = () => <h1>Not Found</h1>
 
@@ -66,4 +68,4 @@ export {NewTabLink, KLALink, KivaLink, LenderLink, LoanLink, EmailLink, ClickLin
     KLNav, KLFooter, LoadingLoansPanel, BulkAddModal, LoanListItem, BasketListItem,
     ChartDistribution, CriteriaTabs, ClearBasket, CycleChild, PromptModal,
     SetLenderIDModal, SnowStack, PartnerDisplayModal, AlertModal,
-    AutoLendSettings, Outdated, DidYouKnow, Face, OnNow, Donate}
+    AutoLendSettings, Outdated, DidYouKnow, Face, OnNow, Donate, Partners, PartnerDetail}
