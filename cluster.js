@@ -789,7 +789,43 @@ else  //workers handle all communication with the clients.
     main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
-    app.use('/proxy/kiva', proxy('https://www.kiva.org', proxyHandler))
+    // manual proxy for Kiva - bypasses express-http-proxy to have full control over headers
+    app.use('/proxy/kiva', (req, res) => {
+        const https = require('https')
+        const targetPath = req.url // express already strips /proxy/kiva
+        const options = {
+            hostname: 'www.kiva.org',
+            path: targetPath,
+            method: req.method,
+            headers: {
+                'Host': 'www.kiva.org',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'identity',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Referer': 'https://www.kiva.org/',
+                'Origin': 'https://www.kiva.org'
+            }
+        }
+        console.log(`[PROXY] ${req.method} https://www.kiva.org${targetPath}`)
+        console.log(`[PROXY] Headers:`, JSON.stringify(options.headers, null, 2))
+        const proxyReq = https.request(options, proxyRes => {
+            console.log(`[PROXY] Response: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
+            console.log(`[PROXY] Response headers:`, JSON.stringify(proxyRes.headers, null, 2))
+            // set CORS and clean headers on response back to client
+            res.set('Access-Control-Allow-Origin', '*')
+            res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+            res.set('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization')
+            res.status(proxyRes.statusCode)
+            proxyRes.pipe(res)
+        })
+        proxyReq.on('error', err => {
+            console.error('[PROXY] Error:', err)
+            res.status(502).send('Proxy error')
+        })
+        req.pipe(proxyReq)
+    })
     app.use('/proxy/gdocs', proxy('https://docs.google.com', proxyHandler))
 
     //app.use(express.static(__dirname + '/public'))
