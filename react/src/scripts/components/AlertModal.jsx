@@ -42,9 +42,7 @@ const AlertModal = React.createClass({
                 </Modal.Body>
 
                 <Modal.Footer>
-                    <If condition={oKButton}>
-                        <Button bsStyle="primary" onClick={this.success}>{oKButton.label || "OK"}</Button>
-                    </If>
+                    {oKButton ? <Button bsStyle="primary" onClick={this.success}>{oKButton.label || "OK"}</Button> : null}
                     <Button onClick={this.close}>{cancelText}</Button>
                 </Modal.Footer>
             </Modal>

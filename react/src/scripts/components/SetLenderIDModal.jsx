@@ -59,12 +59,8 @@ const SetLenderIDModal = React.createClass({
                                     valueLink={this.linkState('kiva_lender_id')} />
                                     Your Kiva Lender ID is not your email address.&nbsp;
                                 <KivaLink path="myLenderId">Click here if you don't know yours.</KivaLink>
-                                <If condition={checking}>
-                                    <Alert>Checking with Kiva...</Alert>
-                                </If>
-                                <If condition={failed || badRegEx}>
-                                    <Alert bsStyle="danger">Invalid Lender ID {badRegEx? ': Only letters and numbers up to 24 characters allowed.': ''}</Alert>
-                                </If>
+                                {checking ? <Alert>Checking with Kiva...</Alert> : null}
+                                {failed || badRegEx ? <Alert bsStyle="danger">Invalid Lender ID {badRegEx? ': Only letters and numbers up to 24 characters allowed.': ''}</Alert> : null}
                             </Col>
                         </Row>
                     </Modal.Body>

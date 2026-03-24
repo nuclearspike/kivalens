@@ -107,16 +107,14 @@ const Basket = React.createClass({
                         <Button href="#" key={1} disabled={basket_count == 0} onClick={this.clear}>Empty Basket</Button>
                         <Button href="#" key={3} disabled={!selected_item_id} onClick={this.remove}>Remove Selected</Button>
                     </ButtonGroup>
-                    <If condition={basket_count == 0}>
-                        <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
+                    {basket_count == 0 ? <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
                             There are no loans in your basket. To add loans to your basket:
                             <ul>
                                 <li>Click the "Add to Basket" button when viewing a loan.</li>
                                 <li>Double-click a loan in the results.</li>
                                 <li>Use the "Bulk Add" button to add many loans at once.</li>
                             </ul>
-                        </Alert>
-                    </If>
+                        </Alert> : null}
                     <InfiniteList
                         className="loan_list_container"
                         items={basket_items}
@@ -137,19 +135,13 @@ const Basket = React.createClass({
                         </form>
                         <Button bsStyle='primary' disabled={basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
                     </Panel>
-                    <If condition={!loans_ready}>
-                        <Alert bsStyle="warning">
+                    {!loans_ready ? <Alert bsStyle="warning">
                             Loans from Kiva are still loading. Please wait...
-                        </Alert>
-                    </If>
-                    <If condition={refreshing}>
-                        <Alert bsStyle="info">
+                        </Alert> : null}
+                    {refreshing ? <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
-                        </Alert>
-                    </If>
-                    <If condition={selected_item_id}>
-                        <Loan params={{id: selected_item_id}}/>
-                    </If>
+                        </Alert> : null}
+                    {selected_item_id ? <Loan params={{id: selected_item_id}}/> : null}
                 </Col>
 
                 <Modal show={showGoodbye} onHide={()=>{}}>

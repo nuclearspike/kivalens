@@ -240,29 +240,29 @@ var Loan = React.createClass({
         return (
             <div className="Loan">
                 <h1 style={{marginTop:'0px'}}>{loan.name}
-                    <If condition={inBasket}>
+    {inBasket ?
                         <Button bsStyle="danger" className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
-                    <Else/>
+                    :
                         <Button bsStyle="success" className="float_right" disabled={loan.status!='fundraising'} onClick={a.loans.basket.add.bind(this, loan.id, 25)}>Add to Basket</Button>
-                    </If>
+                    }
                 </h1>
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top fullsizeImage">
                         <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%"/>
                         <Panel>
-                            <If condition={loan.borrowers.length > 1}>
+{loan.borrowers.length > 1 ?
                                 <p style={{marginBottom: 4, color: '#999', fontSize: '12px'}}>In no particular order</p>
-                            </If>
+                            : null}
                             <p>Pictured: {pictured.length ? pictured : '(none)'} </p>
                             <p>Not Pictured: {not_pictured.length ? not_pictured : '(none)'} </p>
-                            <If condition={visionResults != null}>
+{visionResults != null ?
                                 <p>Google Cloud Vision describes the image (confidence level): {visionResults}</p>
-                            </If>
-                            <If condition={visionFaces != null && visionFaces.length}>
+                            : null}
+{visionFaces != null && visionFaces.length ?
                                 <p>
                                     Google found faces with the following: {visionFaces.map((found,key)=> <span key={key}>{found}{key < visionFaces.length-1? ', ':''}</span>)}
                                 </p>
-                            </If>
+                            : null}
                         </Panel>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
@@ -286,23 +286,23 @@ var Loan = React.createClass({
                                     <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
                                     <dt>Borrowers</dt><dd>{loan.borrowers.length} ({Math.round(loan.kl_percent_women)}% Female) </dd>
                                     <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>
-                                    <If condition={loan.status != 'fundraising'}>
+{loan.status != 'fundraising' ?
                                         <DTDD term='Status' def={humanize(loan.status)} />
-                                    </If>
-                                    <If condition={loan.funded_date}>
+                                    : null}
+{loan.funded_date ?
                                         <DTDD term='Funded' def={new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt')} />
-                                    </If>
-                                    <If condition={loan.status == 'fundraising'}>
+                                    : null}
+{loan.status == 'fundraising' ?
                                         <span><dt>Expires</dt><dd>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
-                                    </If>
-                                    <If condition={loan.terms.disbursal_date}>
+                                    : null}
+{loan.terms.disbursal_date ?
                                         <DTDD term='Disbursed' def={<span>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </span>} />
-                                    </If>
-                                    <If condition={loan.status == 'fundraising'}>
+                                    : null}
+{loan.status == 'fundraising' ?
                                         <DTDD term='Final Repayment In' def={<span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>}/>
-                                    </If>
+                                    : null}
                                 </dl>
-                                <If condition={loan.status == 'fundraising'}>
+{loan.status == 'fundraising' ?
                                     <dl className="dl-horizontal">
                                         <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</dd>
                                         <dt>Loan Amount</dt><dd>${numeral(loan.loan_amount).format('0,0')}</dd>
@@ -310,14 +310,14 @@ var Loan = React.createClass({
                                         <dt>In Baskets</dt><dd>${numeral(loan.basket_amount).format('0,0')}</dd>
                                         <dt>Still Needed</dt><dd>${numeral(loan.kl_still_needed).format('0,0')}</dd>
                                     </dl>
-                                </If>
+                                : null}
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                             </Col>
                             {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : <span/>}
                         </Grid>
                     </Tab>
-                    <If condition={partner}>
+{partner ?
                         <Tab eventKey={3} title="Partner" className="ample-padding-top">
                             <h2>{partner.name}</h2>
                             <Col lg={6}>
@@ -332,39 +332,39 @@ var Loan = React.createClass({
                                 <dt>Loans</dt><dd>{numeral(partner.loans_posted).format('0,0')}</dd>
                                 <dt>Portfolio Yield</dt><dd>{numeral(partner.portfolio_yield).format('0.0')}% {partner.portfolio_yield_note}</dd>
                                 <dt>Profitablility</dt>
-                                <If condition={partner.profitability}>
+{partner.profitability ?
                                     <dd>{numeral(partner.profitability).format('0.0')}%</dd>
-                                <Else/>
+                                :
                                     <dd>(unknown)</dd>
-                                </If>
+                                }
                                 <dt>Charges Fees / Interest</dt><dd>{partner.charges_fees_and_interest ? 'Yes': 'No'}</dd>
                                 <dt>Avg Loan/Cap Income</dt><dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
                                 <dt>Currency Ex Loss</dt><dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
-                                <If condition={partner.url}>
+{partner.url ?
                                     <span><dt>Website</dt><dd><NewTabLink href={partner.url}>{partner.url}</NewTabLink></dd></span>
-                                </If>
+                                : null}
                             </dl>
 
                             </Col>
                             <Col lg={6}>
-                                <If condition={partner.image}>
+{partner.image ?
                                     <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
-                                </If>
+                                : null}
                                 <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
                             </Col>
                             <Col lg={12}>
-                                <If condition={partner.kl_sp.length}>
+{partner.kl_sp.length ?
                                     <div>
                                         <h3>Social Performance Strengths</h3>
                                         <ul>
-                                            <For each="sp" index="i" of={partner.social_performance_strengths}>
+                                            {partner.social_performance_strengths.map((sp, i) =>
                                                 <li key={i}><b>{sp.name}</b>: {sp.description}</li>
-                                            </For>
+                                            )}
                                         </ul>
                                     </div>
-                                </If>
+                                : null}
 
-                                <If condition={showAtheistResearch && atheistScore}>
+{showAtheistResearch && atheistScore ?
                                     <div>
                                         <h3>Atheist Team Research</h3>
                                         <dl className="dl-horizontal">
@@ -376,10 +376,10 @@ var Loan = React.createClass({
                                             <dt>Review Comments</dt><dd>{atheistScore.reviewComments}</dd>
                                         </dl>
                                     </div>
-                                </If>
+                                : null}
                             </Col>
                         </Tab>
-                    </If>
+                    : null}
                 </Tabs>
             </div>
         )

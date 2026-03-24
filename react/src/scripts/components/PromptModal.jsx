@@ -26,11 +26,9 @@ const PromptModal = React.createClass({
     },
     render() {
         return (<Modal show={this.state.show} onHide={this.close}>
-                    <If condition={this.state.title}>
-                        <Modal.Header closeButton>
+                    {this.state.title ? <Modal.Header closeButton>
                             <Modal.Title>{this.state.title}</Modal.Title>
-                        </Modal.Header>
-                    </If>
+                        </Modal.Header> : null}
 
                     <Modal.Body style={{height: '80px'}}>
                         <Input type='text' autoFocus label={this.state.label}

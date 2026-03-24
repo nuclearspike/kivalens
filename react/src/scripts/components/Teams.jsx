@@ -140,17 +140,13 @@ const Teams = React.createClass({
                         </Panel>
                         <Panel header={`Your Teams ${yt_message}`}>
                             <ul style={{listStyleType: 'none'}}>
-                                <For each="team" index="i" of={teams}>
-                                    <li key={i}><Input type="checkbox" name="teams[]" label={team.name} value={team.id} onChange={this.refigureChart} /></li>
-                                </For>
+                                {teams.map((team, i) => <li key={i}><Input type="checkbox" name="teams[]" label={team.name} value={team.id} onChange={this.refigureChart} /></li>)}
                             </ul>
                         </Panel>
                     </form>
                 </Col>
                 <Col sm={8}>
-                    <If condition={config.chart}>
-                        <Highcharts style={{height:'600px'}} config={config}/>
-                    </If>
+                    {config.chart ? <Highcharts style={{height:'600px'}} config={config}/> : null}
                 </Col>
             </Grid>
     }

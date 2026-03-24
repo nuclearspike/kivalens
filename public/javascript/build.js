@@ -65165,7 +65165,7 @@ var About = _react2['default'].createClass({
             'Find out more!'
           )
         )
-      ) : '',
+      ) : null,
       _react2['default'].createElement(
         'h3',
         null,
@@ -65674,7 +65674,7 @@ var About = _react2['default'].createClass({
           'You have KLA version ',
           KLAVersion,
           ' installed. Chrome does a good job of keeping your extensions up to date automatically, but to check for upgrades manually, go to Chrome\'s "Window" menu, select "Extensions" and switch on "Developer Mode" then click the button to update your extensions.'
-        ) : ''
+        ) : null
       )
     );
   }
@@ -65774,7 +65774,7 @@ var AlertModal = _react2['default'].createClass({
                     _reactBootstrap.Button,
                     { bsStyle: 'primary', onClick: this.success },
                     oKButton.label || "OK"
-                ) : '',
+                ) : null,
                 _react2['default'].createElement(
                     _reactBootstrap.Button,
                     { onClick: this.close },
@@ -65944,7 +65944,7 @@ var AutoLendSettings = _react2['default'].createClass({
                     'span',
                     null,
                     'If you\'re looking for the loans you\'ve selected, click on the "Basket" link at the top of the page.'
-                ) : ''
+                ) : null
             ),
             _react2['default'].createElement(
                 'p',
@@ -66056,7 +66056,7 @@ var AutoLendSettings = _react2['default'].createClass({
                     null,
                     probs
                 )
-            ) : '',
+            ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Button,
                 { bsStyle: 'primary', onClick: this.success, disabled: probs.length > 0 },
@@ -66268,7 +66268,7 @@ var Basket = _react2['default'].createClass({
                             'Use the "Bulk Add" button to add many loans at once.'
                         )
                     )
-                ) : '',
+                ) : null,
                 _react2['default'].createElement(_InfiniteListJsx2['default'], {
                     className: 'loan_list_container',
                     items: basket_items,
@@ -66314,13 +66314,13 @@ var Basket = _react2['default'].createClass({
                     _reactBootstrap.Alert,
                     { bsStyle: 'warning' },
                     'Loans from Kiva are still loading. Please wait...'
-                ) : '',
+                ) : null,
                 refreshing ? _react2['default'].createElement(
                     _reactBootstrap.Alert,
                     { bsStyle: 'info' },
                     'Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.'
-                ) : '',
-                selected_item_id ? _react2['default'].createElement(_.Loan, { params: { id: selected_item_id } }) : ''
+                ) : null,
+                selected_item_id ? _react2['default'].createElement(_.Loan, { params: { id: selected_item_id } }) : null
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Modal,
@@ -66938,7 +66938,7 @@ var Criteria = _react2['default'].createClass({
                     )
                 )
             ),
-            show_graphs ? _react2['default'].createElement(_.ChartDistribution, null) : '',
+            show_graphs ? _react2['default'].createElement(_.ChartDistribution, null) : null,
             _react2['default'].createElement(_.CriteriaTabs, { criteria: 'pass a cursor' })
         );
     }
@@ -66951,7 +66951,7 @@ module.exports = exports['default'];
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
-  value: true
+    value: true
 });
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -67020,18 +67020,18 @@ var allOptions = {};
 
 //borrower selects
 allOptions.country_code = { label: 'Countries', allAnyNone: true, multi: true, select_options: _apiKiva.defaultKivaData.countries.select(function (n) {
-    return { "label": n.name, "value": n.code };
-  }) };
+        return { "label": n.name, "value": n.code };
+    }) };
 allOptions.sector = { label: 'Sectors', allAnyNone: true, multi: true, select_options: _apiKiva.defaultKivaData.sectors.select(function (n) {
-    return { "label": n, "value": n };
-  }) };
+        return { "label": n, "value": n };
+    }) };
 allOptions.activity = { label: 'Activities', allAnyNone: true, multi: true, select_options: ["Agriculture", "Air Conditioning", "Animal Sales", "Arts", "Auto Repair", "Bakery", "Balut-Making", "Barber Shop", "Beauty Salon", "Beverages", "Bicycle Repair", "Bicycle Sales", "Blacksmith", "Bookbinding", "Bookstore", "Bricks", "Butcher Shop", "Cafe", "Call Center", "Carpentry", "Catering", "Cattle", "Cement", "Cereals", "Charcoal Sales", "Cheese Making", "Child Care", "Cleaning Services", "Cloth & Dressmaking Supplies", "Clothing", "Clothing Sales", "Cobbler", "Communications", "Computers", "Construction", "Construction Supplies", "Consumer Goods", "Cosmetics Sales", "Crafts", "Dairy", "Day Care/Adult Care", "Decorations Sales", "Dental", "Education provider", "Electrical Goods", "Electrician", "Electronics Repair", "Electronics Sales", "Embroidery", "Energy", "Entertainment", "Farm Supplies", "Farming", "Film", "Fish Selling", "Fishing", "Florist", "Flowers", "Food", "Food Market", "Food Production/Sales", "Food Stall", "Fruits & Vegetables", "Fuel/Firewood", "Funeral Expenses", "Furniture Making", "Games", "General Store", "Goods Distribution", "Grocery Store", "Hardware", "Health", "Higher education costs", "Home Appliances", "Home Energy", "Home Products Sales", "Hotel", "Internet Cafe", "Jewelry", "Knitting", "Land Rental", "Landscaping/Gardening", "Laundry", "Liquor Store / Off-License", "Livestock", "Machine Shop", "Machinery Rental", "Manufacturing", "Medical Clinic", "Metal Shop", "Milk Sales", "Mobile Phones", "Motorcycle Repair", "Motorcycle Transport", "Movie Tapes & DVDs", "Music Discs & Tapes", "Musical Instruments", "Musical Performance", "Natural Medicines", "Office Supplies", "Other", "Paper Sales", "Party Supplies", "Patchwork", "Perfumes", "Personal Housing Expenses", "Personal Medical Expenses", "Personal Products Sales", "Personal Purchases", "Pharmacy", "Phone Accessories", "Phone Repair", "Phone Use Sales", "Photography", "Pigs", "Plastics Sales", "Poultry", "Primary/secondary school costs", "Printing", "Property", "Pub", "Quarrying", "Recycled Materials", "Recycling", "Religious Articles", "Renewable Energy Products", "Renewable Energy Products", "Repair/Mechanic", "Restaurant", "Restaurant/Caterer", "Retail", "Rickshaw", "Secretarial Services", "Services", "Sewing", "Shoe Sales", "Social Enterprise", "Soft Drinks", "Souvenir Sales", "Spare Parts", "Sporting Good Sales", "Tailoring", "Taxi", "Textiles", "Timber Sales", "Tourism", "Transportation", "Traveling Sales", "Upholstery", "Used Clothing", "Used Shoes", "Utilities", "Vehicle", "Vehicle Repairs", "Veterinary Sales", "Waste Management", "Water Distribution", "Weaving", "Wedding Expenses", "Well digging", "Wholesale"].select(function (n) {
-    return { "label": n, "value": n };
-  }) };
+        return { "label": n, "value": n };
+    }) };
 allOptions.tags = { label: 'Tags', canAll: true, allAnyNone: true, multi: true, select_options: [{ "value": "user_favorite", "label": "User Favorite" }, { "value": "volunteer_like", "label": "Volunteer Like" }, { "value": "volunteer_pick", "label": "Volunteer Pick" }, { "value": "#Animals", "label": "#Animals" }, { value: "#BizDurableAsset", label: "#BizDurableAsset" }, { "value": "#Eco-friendly", "label": "#Eco-friendly" }, { "value": "#Elderly", "label": "#Elderly" }, { "value": "#Fabrics", "label": "#Fabrics" }, { "value": "#FemaleEducation", "label": "#FemaleEducation" }, { "value": "#FirstLoan", "label": "#FirstLoan" }, { "value": "#HealthandSanitation", "label": "#HealthAndSanitation" }, { "value": "#IncomeProducingDurableAsset", "label": "#IncomeProducingDurableAsset (no longer used)" }, { "value": "#InspiringStory", "label": "#InspiringStory (no longer used)" }, { "value": "#InterestingPhoto", "label": "#InterestingPhoto (no longer used)" }, { "value": "#JobCreator", "label": "#JobCreator" }, { "value": "#Low-profitFP", "label": "#Low-profitFP (no longer used)" }, { "value": "#Orphan", "label": "#Orphan" }, { "value": "#Parent", "label": "#Parent" }, { "value": "#Refugee", "label": "#Refugee" }, { value: "#RepairRenewReplace", label: "#RepairRenewReplace" }, { "value": "#RepeatBorrower", "label": "#RepeatBorrower" }, { "value": "#Schooling", "label": "#Schooling" }, { "value": "#Single", "label": "#Single" }, { "value": "#SingleParent", "label": "#SingleParent" }, { "value": "#SupportingFamily", "label": "#SupportingFamily" }, { "value": "#SustainableAg", "label": "#SustainableAg" }, { "value": "#Technology", "label": "#Technology" }, { "value": "#Trees", "label": "#Trees" }, { "value": "#Unique", "label": "#Unique (no longer used)" }, { "value": "#Vegan", "label": "#Vegan" }, { "value": "#Widowed", "label": "#Widowed" }, { "value": "#WomanOwnedBiz", "label": "#WomanOwnedBiz" }] };
 allOptions.themes = { label: 'Themes', canAll: true, allAnyNone: true, multi: true, select_options: ["Arab Youth", "Conflict Zones", "Disaster recovery", "Fair Trade", "Flexible Credit Study", "Green", "Growing Businesses", "Health", "Higher Education", "Innovative Loans", "Islamic Finance", "Job Creation", "Kiva City Detroit", "Kiva City LA", "Mobile Technology", "Rural Exclusion", "SME", "Start-Up", "Underfunded Areas", "Vulnerable Groups", "Water and Sanitation", "Youth"].select(function (n) {
-    return { "label": n, "value": n };
-  }) };
+        return { "label": n, "value": n };
+    }) };
 allOptions.currency_exchange_loss_liability = { label: "Currency Loss", multi: true, select_options: [{ value: 'shared', label: "Shared Loss" }, { value: 'none', label: "No Currency Exchange Loss" }, { value: 'partner', label: 'Partner covers' }] };
 allOptions.bonus_credit_eligibility = { label: "Bonus Credit", multi: false, select_options: [{ value: '', label: "Show All" }, { value: 'true', label: "Only loans eligible" }, { value: 'false', label: "Only loans NOT eligible" }] };
 allOptions.repayment_interval = { label: "Repayment Interval", multi: true, select_options: [{ value: 'Monthly', label: "Monthly" }, { value: "Irregularly", label: "Irregularly" }, { value: "At end of term", label: "At end of term" }] };
@@ -67092,1200 +67092,1204 @@ allOptions.social_rating = { min: 1, max: 4, label: 'Social Score (Atheist List)
 
 //<DropSelectButton value={value} options={[{value:'',label:''}]} defaultValue={value} onChange={this.blah}/>
 var DropSelectButton = _react2['default'].createClass({
-  displayName: 'DropSelectButton',
+    displayName: 'DropSelectButton',
 
-  getInitialState: function getInitialState() {
-    return { value: this.props.value };
-  },
-  onSelect: function onSelect(selected) {
-    this.setState({ value: selected });
-    this.props.onChange(selected);
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(_ref) {
-    var value = _ref.value;
+    getInitialState: function getInitialState() {
+        return { value: this.props.value };
+    },
+    onSelect: function onSelect(selected) {
+        this.setState({ value: selected });
+        this.props.onChange(selected);
+    },
+    componentWillReceiveProps: function componentWillReceiveProps(_ref) {
+        var value = _ref.value;
 
-    this.setState({ value: value });
-  },
-  render: function render() {
-    var _props = this.props;
-    var options = _props.options;
-    var defaultValue = _props.defaultValue;
-    var _props$style = _props.style;
-    var style = _props$style === undefined ? {} : _props$style;
+        this.setState({ value: value });
+    },
+    render: function render() {
+        var _this = this;
 
-    var value = this.state.value;
-    var oSel = options.first(function (o) {
-      return o.value == value;
-    });
-    oSel = oSel || options.first(function (o) {
-      return o.value == defaultValue;
-    }) || {};
-    (0, _extend2['default'])(true, style, { padding: '4px', marginRight: '2px', marginLeft: '2px' });
-    return _react2['default'].createElement(
-      _reactBootstrap.DropdownButton,
-      { bsStyle: 'primary', style: style, title: oSel.buttonDisplay || oSel.label, id: 'bg-nested-dropdown' },
-      options.map(function (option, i) {
+        var _props = this.props;
+        var options = _props.options;
+        var defaultValue = _props.defaultValue;
+        var _props$style = _props.style;
+        var style = _props$style === undefined ? {} : _props$style;
+
+        var value = this.state.value;
+        var oSel = options.first(function (o) {
+            return o.value == value;
+        });
+        oSel = oSel || options.first(function (o) {
+            return o.value == defaultValue;
+        }) || {};
+        (0, _extend2['default'])(true, style, { padding: '4px', marginRight: '2px', marginLeft: '2px' });
         return _react2['default'].createElement(
-          _reactBootstrap.MenuItem,
-          { key: i, onClick: this.onSelect.bind(this, option.value), eventKey: i },
-          option.label
+            _reactBootstrap.DropdownButton,
+            { bsStyle: 'primary', style: style, title: oSel.buttonDisplay || oSel.label, id: 'bg-nested-dropdown' },
+            options.map(function (option, i) {
+                return _react2['default'].createElement(
+                    _reactBootstrap.MenuItem,
+                    { key: i, onClick: _this.onSelect.bind(_this, option.value), eventKey: i },
+                    option.label
+                );
+            })
         );
-      }, this)
-    );
-  }
+    }
 });
 
 var AllAnyNoneButton = _react2['default'].createClass({
-  displayName: 'AllAnyNoneButton',
+    displayName: 'AllAnyNoneButton',
 
-  mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor'])],
-  onSelect: function onSelect(selected) {
-    this.props.cursor.set(selected);
-  },
-  render: function render() {
-    var canAll = this.props.canAll;
+    mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor'])],
+    onSelect: function onSelect(selected) {
+        this.props.cursor.set(selected);
+    },
+    render: function render() {
+        var canAll = this.props.canAll;
 
-    var selected = this.props.cursor.value || (canAll ? 'all' : 'any');
-    var styles = canAll ? { 'all': 'success', 'any': 'primary', 'none': 'danger' } : { 'any': 'success', 'none': 'danger' };
-    return _react2['default'].createElement(
-      _reactBootstrap.DropdownButton,
-      { style: { height: '34px', padding: '8px', width: '53px' }, title: selected, bsStyle: styles[selected], id: 'bg-nested-dropdown' },
-      canAll ? _react2['default'].createElement(
-        _reactBootstrap.MenuItem,
-        { onClick: this.onSelect.bind(this, 'all'), eventKey: '1' },
-        'All of these'
-      ) : '',
-      _react2['default'].createElement(
-        _reactBootstrap.MenuItem,
-        { onClick: this.onSelect.bind(this, 'any'), eventKey: '2' },
-        'Any of these'
-      ),
-      _react2['default'].createElement(
-        _reactBootstrap.MenuItem,
-        { onClick: this.onSelect.bind(this, 'none'), eventKey: '3' },
-        'None of these'
-      )
-    );
-  }
+        var selected = this.props.cursor.value || (canAll ? 'all' : 'any');
+        var styles = canAll ? { 'all': 'success', 'any': 'primary', 'none': 'danger' } : { 'any': 'success', 'none': 'danger' };
+        return _react2['default'].createElement(
+            _reactBootstrap.DropdownButton,
+            { style: { height: '34px', padding: '8px', width: '53px' }, title: selected, bsStyle: styles[selected], id: 'bg-nested-dropdown' },
+            canAll ? _react2['default'].createElement(
+                _reactBootstrap.MenuItem,
+                { onClick: this.onSelect.bind(this, 'all'), eventKey: '1' },
+                'All of these'
+            ) : null,
+            _react2['default'].createElement(
+                _reactBootstrap.MenuItem,
+                { onClick: this.onSelect.bind(this, 'any'), eventKey: '2' },
+                'Any of these'
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.MenuItem,
+                { onClick: this.onSelect.bind(this, 'none'), eventKey: '3' },
+                'None of these'
+            )
+        );
+    }
 });
 
 var InputRow = _react2['default'].createClass({
-  displayName: 'InputRow',
+    displayName: 'InputRow',
 
-  mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor'])],
-  propTypes: {
-    label: _react2['default'].PropTypes.string.isRequired,
-    cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
-  },
-  getInitialState: function getInitialState() {
-    return { cycle: 0 };
-  },
-  componentDidMount: function componentDidMount() {
-    //this.cycle=0 //hack...
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(_ref2) {
-    var cursor = _ref2.cursor;
+    mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor'])],
+    propTypes: {
+        label: _react2['default'].PropTypes.string.isRequired,
+        cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
+    },
+    getInitialState: function getInitialState() {
+        return { cycle: 0 };
+    },
+    componentDidMount: function componentDidMount() {
+        //this.cycle=0 //hack...
+    },
+    componentWillReceiveProps: function componentWillReceiveProps(_ref2) {
+        var cursor = _ref2.cursor;
 
-    //should only happen when switching to a saved search or clearing.
-    //don't force a cycle if we're focused and receive new props.
-    if (!this.focused && cursor.value != this.props.cursor.value) this.setState({ cycle: this.state.cycle + 1 }); //cycle++
-  },
-  nowNotFocused: function nowNotFocused() {
-    this.focused = false;
-  },
-  nowFocused: function nowFocused() {
-    this.focused = true;
-  },
-  inputChange: function inputChange() {
-    clearTimeout(this.changeTimeout);
-    this.changeTimeout = setTimeout((function () {
-      var value = this.refs.input.getValue();
-      if (this.props.cursor.value != value) this.props.cursor.set(value);
-    }).bind(this), 200);
-  },
-  render: function render() {
-    return _react2['default'].createElement(
-      _reactBootstrap.Row,
-      { key: this.state.cycle },
-      _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: this.props.label, labelClassName: 'col-md-3', wrapperClassName: 'col-md-9', ref: 'input',
-        defaultValue: this.props.cursor.value, onChange: this.inputChange, disabled: this.props.disabled,
-        onFocus: this.nowFocused, onBlur: this.nowNotFocused })
-    );
-  }
+        //should only happen when switching to a saved search or clearing.
+        //don't force a cycle if we're focused and receive new props.
+        if (!this.focused && cursor.value != this.props.cursor.value) this.setState({ cycle: this.state.cycle + 1 }); //cycle++
+    },
+    nowNotFocused: function nowNotFocused() {
+        this.focused = false;
+    },
+    nowFocused: function nowFocused() {
+        this.focused = true;
+    },
+    inputChange: function inputChange() {
+        clearTimeout(this.changeTimeout);
+        this.changeTimeout = setTimeout((function () {
+            var value = this.refs.input.getValue();
+            if (this.props.cursor.value != value) this.props.cursor.set(value);
+        }).bind(this), 200);
+    },
+    render: function render() {
+        return _react2['default'].createElement(
+            _reactBootstrap.Row,
+            { key: this.state.cycle },
+            _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: this.props.label, labelClassName: 'col-md-3', wrapperClassName: 'col-md-9', ref: 'input',
+                defaultValue: this.props.cursor.value, onChange: this.inputChange, disabled: this.props.disabled,
+                onFocus: this.nowFocused, onBlur: this.nowNotFocused })
+        );
+    }
 });
 
 var SelectRow = _react2['default'].createClass({
-  displayName: 'SelectRow',
+    displayName: 'SelectRow',
 
-  mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor', 'aanCursor'])],
-  propTypes: {
-    //options: React.PropTypes.instanceOf(Object).isRequired,
-    cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
-    aanCursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
-    onFocus: _react2['default'].PropTypes.func,
-    onBlur: _react2['default'].PropTypes.func
-  },
-  selectChange: function selectChange(value) {
-    var values = value && allOptions[this.props.name].intArray ? value.split(',').select(function (s) {
-      return parseInt(s);
-    }).join(',') : value;
-    this.props.cursor.set(values);
-  },
-  selectValues: function selectValues() {
-    var values = this.props.cursor.value;
-    if (!values) return null;
-    return allOptions[this.props.name].intArray ? values.split(',').select(function (i) {
-      return i.toString();
-    }).join(',') : values;
-  },
-  getOptions: function getOptions(input, callback) {
-    var options = allOptions[this.props.name].select_options;
-    callback(null, { options: options, complete: options.length > 0 });
-    //loadOptions={this.getOptions} autoload={false}
-  },
-  render: function render() {
-    //causing issues. is If wrapping in a <span>?
-    var options = allOptions[this.props.name];
-    return _react2['default'].createElement(
-      _reactBootstrap.Row,
-      null,
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 3 },
-        _react2['default'].createElement(
-          'label',
-          { className: 'control-label' },
-          options.label
-        )
-      ),
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 9 },
-        _react2['default'].createElement(
-          'table',
-          { style: { width: '100%', borderCollapse: 'separate' } },
-          _react2['default'].createElement(
-            'tbody',
+    mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursor', 'aanCursor'])],
+    propTypes: {
+        //options: React.PropTypes.instanceOf(Object).isRequired,
+        cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
+        aanCursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
+        onFocus: _react2['default'].PropTypes.func,
+        onBlur: _react2['default'].PropTypes.func
+    },
+    selectChange: function selectChange(value) {
+        var values = value && allOptions[this.props.name].intArray ? value.split(',').select(function (s) {
+            return parseInt(s);
+        }).join(',') : value;
+        this.props.cursor.set(values);
+    },
+    selectValues: function selectValues() {
+        var values = this.props.cursor.value;
+        if (!values) return null;
+        return allOptions[this.props.name].intArray ? values.split(',').select(function (i) {
+            return i.toString();
+        }).join(',') : values;
+    },
+    getOptions: function getOptions(input, callback) {
+        var options = allOptions[this.props.name].select_options;
+        callback(null, { options: options, complete: options.length > 0 });
+        //loadOptions={this.getOptions} autoload={false}
+    },
+    render: function render() {
+        //causing issues. is If wrapping in a <span>?
+        var options = allOptions[this.props.name];
+        return _react2['default'].createElement(
+            _reactBootstrap.Row,
             null,
             _react2['default'].createElement(
-              'tr',
-              null,
-              options.allAnyNone ? _react2['default'].createElement(
-                'td',
-                { style: { width: 'auto' } },
-                _react2['default'].createElement(AllAnyNoneButton, { cursor: this.props.aanCursor, canAll: options.canAll })
-              ) : null,
-              _react2['default'].createElement(
-                'td',
-                { style: { width: '100%' } },
-                _react2['default'].createElement(_reactSelect2['default'], { simpleValue: true, multi: options.multi, ref: 'select',
-                  options: options.select_options,
-                  value: this.selectValues(), placeholder: '', clearable: options.multi,
-                  onChange: this.selectChange, onFocus: this.props.onFocus, onBlur: this.props.onBlur })
-              )
+                _reactBootstrap.Col,
+                { md: 3 },
+                _react2['default'].createElement(
+                    'label',
+                    { className: 'control-label' },
+                    options.label
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 9 },
+                _react2['default'].createElement(
+                    'table',
+                    { style: { width: '100%', borderCollapse: 'separate' } },
+                    _react2['default'].createElement(
+                        'tbody',
+                        null,
+                        _react2['default'].createElement(
+                            'tr',
+                            null,
+                            options.allAnyNone ? _react2['default'].createElement(
+                                'td',
+                                { style: { width: 'auto' } },
+                                _react2['default'].createElement(AllAnyNoneButton, { cursor: this.props.aanCursor, canAll: options.canAll })
+                            ) : null,
+                            _react2['default'].createElement(
+                                'td',
+                                { style: { width: '100%' } },
+                                _react2['default'].createElement(_reactSelect2['default'], { simpleValue: true, multi: options.multi, ref: 'select',
+                                    options: options.select_options,
+                                    value: this.selectValues(), placeholder: '', clearable: options.multi,
+                                    onChange: this.selectChange, onFocus: this.props.onFocus, onBlur: this.props.onBlur })
+                            )
+                        )
+                    )
+                )
             )
-          )
-        )
-      )
-    );
-  }
+        );
+    }
 });
 
 var BalancingRow = _react2['default'].createClass({
-  displayName: 'BalancingRow',
+    displayName: 'BalancingRow',
 
-  mixins: [(0, _Mixins.LinkedComplexCursorMixin)(), _reflux2['default'].ListenerMixin, (0, _reactCursor.ImmutableOptimizations)(['cursor'])],
-  propTypes: {
-    options: _react2['default'].PropTypes.instanceOf(Object).isRequired,
-    cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
-  },
-  getInitialState: function getInitialState() {
-    return { slices: [], slices_count: 0 };
-  },
-  getDefaultCursor: function getDefaultCursor() {
-    return { enabled: false, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active' };
-  },
-  componentDidMount: function componentDidMount() {
-    this.lastResult = {};
-    this.cycle = 0;
-    this.listenTo(_actions2['default'].criteria.balancing.get.completed, this.receivedKivaSlices);
-    this.performBalanceQuery(this.props.cursor);
-  },
-  performBalanceQuery: function performBalanceQuery(cursor) {
-    if (cursor.value && cursor.refine('enabled').value) {
-      var newReq = JSON.stringify(cursor.value) + this.props.options.slice_by;
-      if (newReq == this.lastRequest) return; //we've done it already!
-      this.lastRequest = newReq;
-      _stores2['default'].criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, (function () {
-        this.setState({ loading: true });
-        this.forceUpdate(); //wouldn't happen otherwise due to optimizations
-      }).bind(this));
-    }
-  },
-  compareButIgnore: function compareButIgnore(obj1, obj2, property) {
-    var obj1c = (0, _extend2['default'])(true, {}, obj1);
-    var obj2c = (0, _extend2['default'])(true, {}, obj2);
-    delete obj1c[property];
-    delete obj2c[property];
-    return JSON.stringify(obj1c) == JSON.stringify(obj2c);
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(_ref3) {
-    var cursor = _ref3.cursor;
-    //a criteria is loaded (or flows back down??)
-    if (cursor != this.props.cursor) {
-      if (!this.compareButIgnore(cursor.value, this.props.cursor.value, 'values')) {
-        if (!this.percentFocused) //if focused, then the the props change is probably because user is typing.
-          this.cycle++;
-        this.performBalanceQuery(cursor);
-      }
-    }
-  },
-  percentChange: function percentChange(text) {
-    clearTimeout(this.percentChangeTimeout);
-    this.percentChangeTimeout = setTimeout((function () {
-      var value = parseFloat(this.refs.percent.value);
-      if (!isNaN(value)) {
-        this.props.cursor.refine('percent').set(value);
-      }
-    }).bind(this), 50);
-  },
-  percentFocus: function percentFocus() {
-    this.percentFocused = true;
-  },
-  percentBlur: function percentBlur() {
-    this.percentFocused = false;
-  },
-  receivedKivaSlices: function receivedKivaSlices(lastRequest, sliceBy, crit, result) {
-    //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
-    if (this.lastRequest == lastRequest) {
-      this.setState({ loading: false });
-      this.forceUpdate();
-      this.lastResult = result;
+    mixins: [(0, _Mixins.LinkedComplexCursorMixin)(), _reflux2['default'].ListenerMixin, (0, _reactCursor.ImmutableOptimizations)(['cursor'])],
+    propTypes: {
+        options: _react2['default'].PropTypes.instanceOf(Object).isRequired,
+        cursor: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
+    },
+    getInitialState: function getInitialState() {
+        return { slices: [], slices_count: 0 };
+    },
+    getDefaultCursor: function getDefaultCursor() {
+        return { enabled: false, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active' };
+    },
+    componentDidMount: function componentDidMount() {
+        this.lastResult = {};
+        this.cycle = 0;
+        this.listenTo(_actions2['default'].criteria.balancing.get.completed, this.receivedKivaSlices);
+        this.performBalanceQuery(this.props.cursor);
+    },
+    performBalanceQuery: function performBalanceQuery(cursor) {
+        if (cursor.value && cursor.refine('enabled').value) {
+            var newReq = JSON.stringify(cursor.value) + this.props.options.slice_by;
+            if (newReq == this.lastRequest) return; //we've done it already!
+            this.lastRequest = newReq;
+            _stores2['default'].criteria.onBalancingGet(newReq, this.props.options.slice_by, cursor.value, (function () {
+                this.setState({ loading: true });
+                this.forceUpdate(); //wouldn't happen otherwise due to optimizations
+            }).bind(this));
+        }
+    },
+    compareButIgnore: function compareButIgnore(obj1, obj2, property) {
+        var obj1c = (0, _extend2['default'])(true, {}, obj1);
+        var obj2c = (0, _extend2['default'])(true, {}, obj2);
+        delete obj1c[property];
+        delete obj2c[property];
+        return JSON.stringify(obj1c) == JSON.stringify(obj2c);
+    },
+    componentWillReceiveProps: function componentWillReceiveProps(_ref3) {
+        var cursor = _ref3.cursor;
+        //a criteria is loaded (or flows back down??)
+        if (cursor != this.props.cursor) {
+            if (!this.compareButIgnore(cursor.value, this.props.cursor.value, 'values')) {
+                if (!this.percentFocused) //if focused, then the the props change is probably because user is typing.
+                    this.cycle++;
+                this.performBalanceQuery(cursor);
+            }
+        }
+    },
+    percentChange: function percentChange(text) {
+        clearTimeout(this.percentChangeTimeout);
+        this.percentChangeTimeout = setTimeout((function () {
+            var value = parseFloat(this.refs.percent.value);
+            if (!isNaN(value)) {
+                this.props.cursor.refine('percent').set(value);
+            }
+        }).bind(this), 50);
+    },
+    percentFocus: function percentFocus() {
+        this.percentFocused = true;
+    },
+    percentBlur: function percentBlur() {
+        this.percentFocused = false;
+    },
+    receivedKivaSlices: function receivedKivaSlices(lastRequest, sliceBy, crit, result) {
+        //must only look at the request that it made. I'd rather have this be a promise than reflux. :(
+        if (this.lastRequest == lastRequest) {
+            this.setState({ loading: false });
+            this.forceUpdate();
+            this.lastResult = result;
 
-      if (!Array.isArray(result.slices)) return;
-      var slices = result.slices;
-      //'values' are what is passed through to the filtering. slices is for display.
-      var values = this.props.options.key == 'id' ? slices.select(function (s) {
-        return parseInt(s.id);
-      }) : slices.select(function (s) {
-        return s.name;
-      });
-      this.cursor().refine('values').set(values);
-      this.setState({ slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000 });
-      this.forceUpdate(); //necessary
-    }
-  },
-  render: function render() {
-    var options = this.props.options;
-    var _state = this.state;
-    var loading = _state.loading;
-    var slices = _state.slices;
-    var slices_count = _state.slices_count;
-    var lastUpdated = _state.lastUpdated;
+            if (!Array.isArray(result.slices)) return;
+            var slices = result.slices;
+            //'values' are what is passed through to the filtering. slices is for display.
+            var values = this.props.options.key == 'id' ? slices.select(function (s) {
+                return parseInt(s.id);
+            }) : slices.select(function (s) {
+                return s.name;
+            });
+            this.cursor().refine('values').set(values);
+            this.setState({ slices: slices, slices_count: slices.length, lastUpdated: this.lastResult.last_updated * 1000 });
+            this.forceUpdate(); //necessary
+        }
+    },
+    render: function render() {
+        var options = this.props.options;
+        var _state = this.state;
+        var loading = _state.loading;
+        var slices = _state.slices;
+        var slices_count = _state.slices_count;
+        var lastUpdated = _state.lastUpdated;
 
-    var _ref4 = this.cursor().value || {};
+        var _ref4 = this.cursor().value || {};
 
-    var enabled = _ref4.enabled;
-    var _ref4$percent = _ref4.percent;
-    var percent = _ref4$percent === undefined ? 5 : _ref4$percent;
+        var enabled = _ref4.enabled;
+        var _ref4$percent = _ref4.percent;
+        var percent = _ref4$percent === undefined ? 5 : _ref4$percent;
 
-    //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
-    var lcHS = this.linkCursor('hideshow');
-    var lcLG = this.linkCursor('ltgt');
-    var lcAA = this.linkCursor('allactive');
-    var lcE = this.linkCursor('enabled');
-    return _react2['default'].createElement(
-      _reactBootstrap.Row,
-      null,
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 2 },
-        _react2['default'].createElement(
-          'label',
-          { className: 'control-label' },
-          options.label
-        )
-      ),
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 10 },
-        _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', label: 'Enable filter', checkedLink: lcE }),
-        _react2['default'].createElement(
-          _reactBootstrap.Row,
-          { className: (0, _classnames2['default'])('spacedChildren', { notEnabled: !lcE.value }) },
-          _react2['default'].createElement(DropSelectButton, { style: { width: '53px' }, onChange: lcHS.requestChange, value: lcHS.value, options: [{ label: 'Only Show', buttonDisplay: 'Show', value: 'show' }, { label: "Hide all", buttonDisplay: 'Hide', value: 'hide' }], defaultValue: 'hide' }),
-          _react2['default'].createElement(
-            'div',
-            { style: { minWidth: '125px', margin: '5px' } },
-            options.label.toLowerCase(),
-            ' that have'
-          ),
-          _react2['default'].createElement(DropSelectButton, { onChange: lcLG.requestChange, value: lcLG.value, options: [{ label: '< Less than', buttonDisplay: '<', value: 'lt' }, { label: "> More than", buttonDisplay: '>', value: 'gt' }], defaultValue: 'lt' }),
-          _react2['default'].createElement('input', { style: { width: '50px' }, key: this.cycle, type: 'number', ref: 'percent',
-            defaultValue: percent, onChange: this.percentChange,
-            onFocus: this.percentFocus, onBlur: this.percentBlur }),
-          '  % of my  ',
-          _react2['default'].createElement(DropSelectButton, { onChange: lcAA.requestChange, value: lcAA.value, options: [{ label: 'Active Portfolio', value: 'active' }, { label: "Total Portfolio", value: 'all' }], defaultValue: 'active' })
-        ),
-        _react2['default'].createElement(
-          _reactBootstrap.Row,
-          { className: 'ample-padding-top' },
-          loading ? _react2['default'].createElement(
-            _reactBootstrap.Alert,
+        //[x] [Hide/Show] Partners that have [</>] [12]% of my [total/active] portfolio
+        var lcHS = this.linkCursor('hideshow');
+        var lcLG = this.linkCursor('ltgt');
+        var lcAA = this.linkCursor('allactive');
+        var lcE = this.linkCursor('enabled');
+        return _react2['default'].createElement(
+            _reactBootstrap.Row,
             null,
-            'Loading data from Kiva...'
-          ) : '',
-          enabled && !loading ? _react2['default'].createElement(
-            'div',
-            null,
-            'Matching: ',
-            slices_count,
-            '. Loans from these ',
             _react2['default'].createElement(
-              'b',
-              null,
-              options.label.toLowerCase()
+                _reactBootstrap.Col,
+                { md: 2 },
+                _react2['default'].createElement(
+                    'label',
+                    { className: 'control-label' },
+                    options.label
+                )
             ),
-            ' will be ',
             _react2['default'].createElement(
-              'b',
-              null,
-              this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'
-            ),
-            '.',
-            _react2['default'].createElement(
-              'ul',
-              { style: { overflowY: 'auto', maxHeight: '200px' } },
-              slices.map(function (slice, i) {
-                return _react2['default'].createElement(
-                  'li',
-                  { key: i },
-                  (0, _numeral2['default'])(slice.percent).format('0.000'),
-                  '%: ',
-                  slice.name
-                );
-              }, this)
-            ),
-            lastUpdated ? _react2['default'].createElement(
-              'p',
-              null,
-              'Last Updated: ',
-              _react2['default'].createElement(_reactTimeago2['default'], { date: new Date(lastUpdated).toISOString() })
-            ) : ''
-          ) : ''
-        )
-      )
-    );
-  }
+                _reactBootstrap.Col,
+                { md: 10 },
+                _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', label: 'Enable filter', checkedLink: lcE }),
+                _react2['default'].createElement(
+                    _reactBootstrap.Row,
+                    { className: (0, _classnames2['default'])('spacedChildren', { notEnabled: !lcE.value }) },
+                    _react2['default'].createElement(DropSelectButton, { style: { width: '53px' }, onChange: lcHS.requestChange, value: lcHS.value, options: [{ label: 'Only Show', buttonDisplay: 'Show', value: 'show' }, { label: "Hide all", buttonDisplay: 'Hide', value: 'hide' }], defaultValue: 'hide' }),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { minWidth: '125px', margin: '5px' } },
+                        options.label.toLowerCase(),
+                        ' that have'
+                    ),
+                    _react2['default'].createElement(DropSelectButton, { onChange: lcLG.requestChange, value: lcLG.value, options: [{ label: '< Less than', buttonDisplay: '<', value: 'lt' }, { label: "> More than", buttonDisplay: '>', value: 'gt' }], defaultValue: 'lt' }),
+                    _react2['default'].createElement('input', { style: { width: '50px' }, key: this.cycle, type: 'number', ref: 'percent',
+                        defaultValue: percent, onChange: this.percentChange,
+                        onFocus: this.percentFocus, onBlur: this.percentBlur }),
+                    '  % of my  ',
+                    _react2['default'].createElement(DropSelectButton, { onChange: lcAA.requestChange, value: lcAA.value, options: [{ label: 'Active Portfolio', value: 'active' }, { label: "Total Portfolio", value: 'all' }], defaultValue: 'active' })
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Row,
+                    { className: 'ample-padding-top' },
+                    loading ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        null,
+                        'Loading data from Kiva...'
+                    ) : null,
+                    enabled && !loading ? _react2['default'].createElement(
+                        'div',
+                        null,
+                        'Matching: ',
+                        slices_count,
+                        '. Loans from these ',
+                        _react2['default'].createElement(
+                            'b',
+                            null,
+                            options.label.toLowerCase()
+                        ),
+                        ' will be ',
+                        _react2['default'].createElement(
+                            'b',
+                            null,
+                            this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'
+                        ),
+                        '.',
+                        _react2['default'].createElement(
+                            'ul',
+                            { style: { overflowY: 'auto', maxHeight: '200px' } },
+                            slices.map(function (slice, i) {
+                                return _react2['default'].createElement(
+                                    'li',
+                                    { key: i },
+                                    (0, _numeral2['default'])(slice.percent).format('0.000'),
+                                    '%: ',
+                                    slice.name
+                                );
+                            })
+                        ),
+                        lastUpdated ? _react2['default'].createElement(
+                            'p',
+                            null,
+                            'Last Updated: ',
+                            _react2['default'].createElement(_reactTimeago2['default'], { date: new Date(lastUpdated).toISOString() })
+                        ) : null
+                    ) : null
+                )
+            )
+        );
+    }
 });
 
 var LimitResult = _react2['default'].createClass({
-  displayName: 'LimitResult',
+    displayName: 'LimitResult',
 
-  mixins: [(0, _Mixins.LinkedComplexCursorMixin)(), (0, _reactCursor.ImmutableOptimizations)(['cursor'])],
-  getDefaultCursor: function getDefaultCursor() {
-    return { enabled: false, count: 1, limit_by: 'Partner' };
-  },
-  render: function render() {
-    var lcLB = this.linkCursor('limit_by');
-    return _react2['default'].createElement(
-      _reactBootstrap.Row,
-      null,
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 3 },
-        _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', label: _react2['default'].createElement(
-            'b',
-            null,
-            'Limit to top'
-          ), checkedLink: this.linkCursor('enabled') })
-      ),
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 9 },
-        _react2['default'].createElement(
-          'table',
-          { style: { width: '100%', borderCollapse: 'separate' } },
-          _react2['default'].createElement(
-            'tbody',
+    mixins: [(0, _Mixins.LinkedComplexCursorMixin)(), (0, _reactCursor.ImmutableOptimizations)(['cursor'])],
+    getDefaultCursor: function getDefaultCursor() {
+        return { enabled: false, count: 1, limit_by: 'Partner' };
+    },
+    render: function render() {
+        var lcLB = this.linkCursor('limit_by');
+        return _react2['default'].createElement(
+            _reactBootstrap.Row,
             null,
             _react2['default'].createElement(
-              'tr',
-              null,
-              _react2['default'].createElement(
-                'td',
-                { style: { width: 'auto' } },
-                _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: '', style: { height: '38px', minWidth: '50px' },
-                  className: 'col-xs-2',
-                  disabled: !this.linkCursor('enabled').value,
-                  valueLink: this.linkCursor('count', { type: 'integer' }) })
-              ),
-              _react2['default'].createElement(
-                'td',
-                { style: { padding: '5px', fontSize: 'x-small' } },
-                'loans per'
-              ),
-              _react2['default'].createElement(
-                'td',
-                { style: { width: '80%' } },
-                _react2['default'].createElement(_reactSelect2['default'], { simpleValue: true, value: lcLB.value, onChange: lcLB.requestChange,
-                  options: [{ value: "Partner", label: "Partner" }, { value: 'Country', label: 'Country' }, { value: 'Sector', label: 'Sector' }, { value: 'Activity', label: 'Activity' }],
-                  placeholder: '', disabled: !this.linkCursor('enabled').value, clearable: false })
-              )
+                _reactBootstrap.Col,
+                { md: 3 },
+                _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', label: _react2['default'].createElement(
+                        'b',
+                        null,
+                        'Limit to top'
+                    ), checkedLink: this.linkCursor('enabled') })
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 9 },
+                _react2['default'].createElement(
+                    'table',
+                    { style: { width: '100%', borderCollapse: 'separate' } },
+                    _react2['default'].createElement(
+                        'tbody',
+                        null,
+                        _react2['default'].createElement(
+                            'tr',
+                            null,
+                            _react2['default'].createElement(
+                                'td',
+                                { style: { width: 'auto' } },
+                                _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: '', style: { height: '38px', minWidth: '50px' },
+                                    className: 'col-xs-2',
+                                    disabled: !this.linkCursor('enabled').value,
+                                    valueLink: this.linkCursor('count', { type: 'integer' }) })
+                            ),
+                            _react2['default'].createElement(
+                                'td',
+                                { style: { padding: '5px', fontSize: 'x-small' } },
+                                'loans per'
+                            ),
+                            _react2['default'].createElement(
+                                'td',
+                                { style: { width: '80%' } },
+                                _react2['default'].createElement(_reactSelect2['default'], { simpleValue: true, value: lcLB.value, onChange: lcLB.requestChange,
+                                    options: [{ value: "Partner", label: "Partner" }, { value: 'Country', label: 'Country' }, { value: 'Sector', label: 'Sector' }, { value: 'Activity', label: 'Activity' }],
+                                    placeholder: '', disabled: !this.linkCursor('enabled').value, clearable: false })
+                            )
+                        )
+                    )
+                )
             )
-          )
-        )
-      )
-    );
-  }
+        );
+    }
 });
 
 var SliderRow = _react2['default'].createClass({
-  displayName: 'SliderRow',
+    displayName: 'SliderRow',
 
-  mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursorMin', 'cursorMax', 'cycle'])], //'cycle' is to force a redraw on tab flips.
-  propTypes: {
-    options: _react2['default'].PropTypes.instanceOf(Object).isRequired,
-    cursorMin: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
-    cursorMax: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
-  },
-  getInitialState: function getInitialState() {
-    var s = this.fillMissing({ c_min: this.props.cursorMin.value, c_max: this.props.cursorMax.value });
-    return s;
-  },
-  pickValue: function pickValue(crit_facet, defaultValue) {
-    return crit_facet === null || crit_facet === undefined ? defaultValue : crit_facet;
-  },
-  shouldComponentUpdateOld: function shouldComponentUpdateOld(_ref5, _ref6) {
-    var cursorMin = _ref5.cursorMin;
-    var cursorMax = _ref5.cursorMax;
-    var d_min = _ref6.d_min;
-    var d_max = _ref6.d_max;
+    mixins: [(0, _reactCursor.ImmutableOptimizations)(['cursorMin', 'cursorMax', 'cycle'])], //'cycle' is to force a redraw on tab flips.
+    propTypes: {
+        options: _react2['default'].PropTypes.instanceOf(Object).isRequired,
+        cursorMin: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired,
+        cursorMax: _react2['default'].PropTypes.instanceOf(_reactCursor.Cursor).isRequired
+    },
+    getInitialState: function getInitialState() {
+        var s = this.fillMissing({ c_min: this.props.cursorMin.value, c_max: this.props.cursorMax.value });
+        return s;
+    },
+    pickValue: function pickValue(crit_facet, defaultValue) {
+        return crit_facet === null || crit_facet === undefined ? defaultValue : crit_facet;
+    },
+    shouldComponentUpdateOld: function shouldComponentUpdateOld(_ref5, _ref6) {
+        var cursorMin = _ref5.cursorMin;
+        var cursorMax = _ref5.cursorMax;
+        var d_min = _ref6.d_min;
+        var d_max = _ref6.d_max;
 
-    return d_min != this.state.d_min || d_max != this.state.d_max || cursorMin != this.props.cursorMin || cursorMax != this.props.cursorMax;
-  },
-  componentWillReceiveProps: function componentWillReceiveProps(_ref7) {
-    var cursorMin = _ref7.cursorMin;
-    var cursorMax = _ref7.cursorMax;
+        return d_min != this.state.d_min || d_max != this.state.d_max || cursorMin != this.props.cursorMin || cursorMax != this.props.cursorMax;
+    },
+    componentWillReceiveProps: function componentWillReceiveProps(_ref7) {
+        var cursorMin = _ref7.cursorMin;
+        var cursorMax = _ref7.cursorMax;
 
-    if (this.props.cursorMin.value !== cursorMin.value || this.props.cursorMax.value !== cursorMax.value) {
-      this.setState(this.fillMissing({ c_min: cursorMin.value, c_max: cursorMax.value })); //not forceUpdate needed because it will re-render
+        if (this.props.cursorMin.value !== cursorMin.value || this.props.cursorMax.value !== cursorMax.value) {
+            this.setState(this.fillMissing({ c_min: cursorMin.value, c_max: cursorMax.value })); //not forceUpdate needed because it will re-render
+        }
+        return true;
+    },
+    fillMissing: function fillMissing(s) {
+        //a_ absolute/slider values; no nulls, o_ options , c_ cursor/criteria with nulls, d_ display
+        s.o_min = this.props.options.min;
+        s.o_max = this.props.options.max;
+
+        //if the slider values are set, set the criteria to match
+        if (s.a_min !== null && s.a_min !== undefined) s.c_min = s.a_min;
+        if (s.a_max !== null && s.a_max !== undefined) s.c_max = s.a_max;
+
+        //if the criteria is set, set the values for the sliders.
+        if (s.c_min !== null && s.c_min !== undefined) s.a_min = s.c_min;
+        if (s.c_max !== null && s.c_max !== undefined) s.a_max = s.c_max;
+
+        //if the criteria is at upper/lower bound (missing), take the upper lower from options.
+        if (s.c_min === null || s.c_min === undefined || isNaN(s.c_min)) s.a_min = s.o_min;
+        if (s.c_max === null || s.c_max === undefined || isNaN(s.c_max)) s.a_max = s.o_max;
+
+        //if the criteria is at upper/lower bound set it to null
+        if (s.c_min == s.o_min) s.c_min = null;
+        if (s.c_max == s.o_max) s.c_max = null;
+
+        //set the display to the control settings, unless it's at the upper/lower boundary
+        s.d_min = s.a_min;
+        s.d_max = s.a_max;
+        if (s.c_min === null || s.c_min === undefined || s.c_min == s.o_min) s.d_min = 'min';
+        if (s.c_max === null || s.c_max === undefined || s.c_max == s.o_max) s.d_max = 'max';
+
+        return s;
+    },
+    sliderChange: function sliderChange(arr) {
+        if (arr.length == 2) {
+            var ns = this.fillMissing({ a_min: arr[0], a_max: arr[1] });
+            this.setState(ns);
+            this.forceUpdate();
+
+            //after a quick breath, set the cursor
+            clearTimeout(this.changeTimeout);
+            this.changeTimeout = setTimeout((function () {
+                this.props.cursorMin.set(ns.c_min);
+                this.props.cursorMax.set(ns.c_max);
+            }).bind(this), 250);
+        }
+    },
+    render: function render() {
+        var options = this.props.options;
+        var _state2 = this.state;
+        var a_min = _state2.a_min;
+        var a_max = _state2.a_max;
+        var d_min = _state2.d_min;
+        var d_max = _state2.d_max;
+        var o_min = _state2.o_min;
+        var o_max = _state2.o_max;
+
+        var step = options.step || 1;
+        return _react2['default'].createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 3 },
+                _react2['default'].createElement(
+                    _reactBootstrap.OverlayTrigger,
+                    { rootClose: true, trigger: options.helpText ? ["hover", "focus", "click"] : "none",
+                        placement: 'top', overlay: _react2['default'].createElement(
+                            _reactBootstrap.Popover,
+                            { id: options.label, title: options.label },
+                            options.helpText
+                        ) },
+                    _react2['default'].createElement(
+                        'label',
+                        { style: { 'borderBottom': '#333 1px dotted' }, className: 'control-label' },
+                        options.label
+                    )
+                ),
+                _react2['default'].createElement(
+                    'p',
+                    null,
+                    d_min,
+                    '-',
+                    d_max
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 9 },
+                _react2['default'].createElement(_reactSlider2['default'], { className: 'horizontal-slider', min: o_min, max: o_max,
+                    value: [a_min, a_max], step: step, withBars: true, onChange: this.sliderChange })
+            )
+        );
     }
-    return true;
-  },
-  fillMissing: function fillMissing(s) {
-    //a_ absolute/slider values; no nulls, o_ options , c_ cursor/criteria with nulls, d_ display
-    s.o_min = this.props.options.min;
-    s.o_max = this.props.options.max;
-
-    //if the slider values are set, set the criteria to match
-    if (s.a_min !== null && s.a_min !== undefined) s.c_min = s.a_min;
-    if (s.a_max !== null && s.a_max !== undefined) s.c_max = s.a_max;
-
-    //if the criteria is set, set the values for the sliders.
-    if (s.c_min !== null && s.c_min !== undefined) s.a_min = s.c_min;
-    if (s.c_max !== null && s.c_max !== undefined) s.a_max = s.c_max;
-
-    //if the criteria is at upper/lower bound (missing), take the upper lower from options.
-    if (s.c_min === null || s.c_min === undefined || isNaN(s.c_min)) s.a_min = s.o_min;
-    if (s.c_max === null || s.c_max === undefined || isNaN(s.c_max)) s.a_max = s.o_max;
-
-    //if the criteria is at upper/lower bound set it to null
-    if (s.c_min == s.o_min) s.c_min = null;
-    if (s.c_max == s.o_max) s.c_max = null;
-
-    //set the display to the control settings, unless it's at the upper/lower boundary
-    s.d_min = s.a_min;
-    s.d_max = s.a_max;
-    if (s.c_min === null || s.c_min === undefined || s.c_min == s.o_min) s.d_min = 'min';
-    if (s.c_max === null || s.c_max === undefined || s.c_max == s.o_max) s.d_max = 'max';
-
-    return s;
-  },
-  sliderChange: function sliderChange(arr) {
-    if (arr.length == 2) {
-      var ns = this.fillMissing({ a_min: arr[0], a_max: arr[1] });
-      this.setState(ns);
-      this.forceUpdate();
-
-      //after a quick breath, set the cursor
-      clearTimeout(this.changeTimeout);
-      this.changeTimeout = setTimeout((function () {
-        this.props.cursorMin.set(ns.c_min);
-        this.props.cursorMax.set(ns.c_max);
-      }).bind(this), 250);
-    }
-  },
-  render: function render() {
-    var options = this.props.options;
-    var _state2 = this.state;
-    var a_min = _state2.a_min;
-    var a_max = _state2.a_max;
-    var d_min = _state2.d_min;
-    var d_max = _state2.d_max;
-    var o_min = _state2.o_min;
-    var o_max = _state2.o_max;
-
-    var step = options.step || 1;
-    return _react2['default'].createElement(
-      _reactBootstrap.Row,
-      null,
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 3 },
-        _react2['default'].createElement(
-          _reactBootstrap.OverlayTrigger,
-          { rootClose: true, trigger: options.helpText ? ["hover", "focus", "click"] : "none",
-            placement: 'top', overlay: _react2['default'].createElement(
-              _reactBootstrap.Popover,
-              { id: options.label, title: options.label },
-              options.helpText
-            ) },
-          _react2['default'].createElement(
-            'label',
-            { style: { 'borderBottom': '#333 1px dotted' }, className: 'control-label' },
-            options.label
-          )
-        ),
-        _react2['default'].createElement(
-          'p',
-          null,
-          d_min,
-          '-',
-          d_max
-        )
-      ),
-      _react2['default'].createElement(
-        _reactBootstrap.Col,
-        { md: 9 },
-        _react2['default'].createElement(_reactSlider2['default'], { className: 'horizontal-slider', min: o_min, max: o_max,
-          value: [a_min, a_max], step: step, withBars: true, onChange: this.sliderChange })
-      )
-    );
-  }
 });
 
 var CriteriaTabs = _react2['default'].createClass({
-  displayName: 'CriteriaTabs',
+    displayName: 'CriteriaTabs',
 
-  mixins: [_reflux2['default'].ListenerMixin, _reactAddonsLinkedStateMixin2['default'], (0, _Mixins.DelayStateTriggerMixin)('criteria', 'performSearch', 50)],
-  getInitialState: function getInitialState() {
-    return {
-      activeTab: 1,
-      portfolioTab: '',
-      helper_charts: {},
-      visionFaceKeys: [],
-      helper_chart_height: 400,
-      needLenderID: false,
-      criteria: _stores2['default'].criteria.syncGetLast(),
-      KLA: {},
-      RSSLinkTo: 'kiva',
-      loansReady: false,
-      descriptionsLoaded: false
-    };
-  },
-  componentDidMount: function componentDidMount() {
-    var _this = this;
+    mixins: [_reflux2['default'].ListenerMixin, _reactAddonsLinkedStateMixin2['default'], (0, _Mixins.DelayStateTriggerMixin)('criteria', 'performSearch', 50)],
+    getInitialState: function getInitialState() {
+        return {
+            activeTab: 1,
+            portfolioTab: '',
+            helper_charts: {},
+            visionFaceKeys: [],
+            helper_chart_height: 400,
+            needLenderID: false,
+            criteria: _stores2['default'].criteria.syncGetLast(),
+            KLA: {},
+            RSSLinkTo: 'kiva',
+            loansReady: false,
+            descriptionsLoaded: false
+        };
+    },
+    componentDidMount: function componentDidMount() {
+        var _this2 = this;
 
-    var opts = lsj.get("Options");
-    var visionFaceKeys = []; //opts.betaTester || true ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
-    this.setState({ kiva_lender_id: opts.kiva_lender_id, visionFaceKeys: visionFaceKeys, isMobile: mobileAndTabletCheck() });
-    this.listenTo(_actions2['default'].loans.load.completed, this.loansReady);
-    this.listenTo(_actions2['default'].criteria.lenderLoansEvent, this.lenderLoansEvent);
-    this.listenTo(_actions2['default'].criteria.reload, this.reloadCriteria);
-    this.listenTo(_actions2['default'].loans.filter.completed, this.filteredDone);
-    this.listenTo(_actions2['default'].criteria.atheistListLoaded, this.figureAtheistList);
-    this.listenTo(_actions2['default'].loans.load.descriptions, this.checkDescriptionsLoaded);
-    this.listenTo(_actions2['default'].loans.refresh, this.performSearch);
-    this.listenTo(_actions2['default'].loans.load.secondaryLoad, function (status) {
-      if (status == 'complete') _this.performSearch();
-    });
-    if (kivaloans.isReady()) this.loansReady();
-    this.checkDescriptionsLoaded();
-    KLAFeatureCheck(['setAutoLendPartners']).done(function (state) {
-      return _this.setState({ KLA: state });
-    });
-  },
-  checkDescriptionsLoaded: function checkDescriptionsLoaded() {
-    var criteria = _stores2['default'].criteria.syncGetLast();
-    if (criteria.loan && criteria.loan.use) this.setState({ criteria: criteria }); //only refresh the loans if the criteria has a use/descr search.
-    this.setState({ descriptionsLoaded: kivaloans.allDescriptionsLoaded });
-  },
-  figureAtheistList: function figureAtheistList() {
-    this.setState({ displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed });
-  },
-  filteredDone: function filteredDone(loans, sameAsLastTime) {
-    if (!(this.last_select && this.last_select.key)) return;
-    // if (sameAsLastTime) return
-    //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
-    var _last_select = this.last_select;
-    var key = _last_select.key;
-    var group = _last_select.group;
+        var opts = lsj.get("Options");
+        var visionFaceKeys = []; //opts.betaTester || true ? ['joy','sorrow','anger','headwear'] : [] //'surprise'
+        this.setState({ kiva_lender_id: opts.kiva_lender_id, visionFaceKeys: visionFaceKeys, isMobile: mobileAndTabletCheck() });
+        this.listenTo(_actions2['default'].loans.load.completed, this.loansReady);
+        this.listenTo(_actions2['default'].criteria.lenderLoansEvent, this.lenderLoansEvent);
+        this.listenTo(_actions2['default'].criteria.reload, this.reloadCriteria);
+        this.listenTo(_actions2['default'].loans.filter.completed, this.filteredDone);
+        this.listenTo(_actions2['default'].criteria.atheistListLoaded, this.figureAtheistList);
+        this.listenTo(_actions2['default'].loans.load.descriptions, this.checkDescriptionsLoaded);
+        this.listenTo(_actions2['default'].loans.refresh, this.performSearch);
+        this.listenTo(_actions2['default'].loans.load.secondaryLoad, function (status) {
+            if (status == 'complete') _this2.performSearch();
+        });
+        if (kivaloans.isReady()) this.loansReady();
+        this.checkDescriptionsLoaded();
+        KLAFeatureCheck(['setAutoLendPartners']).done(function (state) {
+            return _this2.setState({ KLA: state });
+        });
+    },
+    checkDescriptionsLoaded: function checkDescriptionsLoaded() {
+        var criteria = _stores2['default'].criteria.syncGetLast();
+        if (criteria.loan && criteria.loan.use) this.setState({ criteria: criteria }); //only refresh the loans if the criteria has a use/descr search.
+        this.setState({ descriptionsLoaded: kivaloans.allDescriptionsLoaded });
+    },
+    figureAtheistList: function figureAtheistList() {
+        this.setState({ displayAtheistOptions: lsj.get("Options").mergeAtheistList && kivaloans.atheist_list_processed });
+    },
+    filteredDone: function filteredDone(loans, sameAsLastTime) {
+        if (!(this.last_select && this.last_select.key)) return;
+        // if (sameAsLastTime) return
+        //if we are in a selection box and that box is matching all (themes, tags, social perf), then rebuild the graphs
+        var _last_select = this.last_select;
+        var key = _last_select.key;
+        var group = _last_select.group;
 
-    var cg = this.state.criteria[group];
-    if (cg[key + '_all_any_none'] == 'all' || allOptions[key].canAll && !cg[key + '_all_any_none']) this.genHelperGraphs(group, key, loans);
-  },
-  reloadCriteria: function reloadCriteria() {
-    var criteria = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var cg = this.state.criteria[group];
+        if (cg[key + '_all_any_none'] == 'all' || allOptions[key].canAll && !cg[key + '_all_any_none']) this.genHelperGraphs(group, key, loans);
+    },
+    reloadCriteria: function reloadCriteria() {
+        var criteria = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    this.setState({ criteria: (0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncBlankCriteria(), criteria) });
-  },
-  lenderLoansEvent: function lenderLoansEvent(event) {
-    //can be either started or done.
-    var newState = {};
-    newState.portfolioTab = event == 'started' ? " (loading...)" : "";
-    this.setState(newState);
-    this.performSearch();
-  },
-  loansReady: function loansReady() {
-    //this runs twice during load and every time you switch to the tab
-    //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
-    //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
-    if (allOptions.partners.select_options.length == 0) allOptions.partners.select_options = kivaloans.active_partners.orderBy(function (p) {
-      return p.name;
-    }).select(function (p) {
-      return {
-        label: p.name,
-        value: p.id.toString()
-      };
-    });
-    this.setState({ loansReady: true });
-    this.figureAtheistList();
-  },
-  figureNeedLender: function figureNeedLender(crit) {
-    var por = crit.portfolio;
-    //if any of the balancers are present and enabled, show message that they need to have their lender id
-    var needLenderID = ['pb_country', 'pb_partner', 'pb_activity', 'pb_sector'].any(function (n) {
-      return por && por[n] && por[n].enabled;
-    });
-    needLenderID = needLenderID && kivaloans.isReady() && !kivaloans.lender_id;
-    if (this.state.needLenderID != needLenderID) this.setState({ needLenderID: needLenderID });
-  },
-  performSearch: function performSearch() {
-    var criteria = this.buildCriteria();
-    this.figureNeedLender(criteria);
-    _actions2['default'].criteria.change(criteria);
-  },
-  buildCriteria: function buildCriteria() {
-    var criteria = _stores2['default'].criteria.stripNullValues((0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncBlankCriteria(), this.state.criteria));
-    cl("######### buildCriteria: criteria", criteria);
-    return criteria;
-  },
-  buildCriteriaWithout: function buildCriteriaWithout(group, key) {
-    var crit = this.buildCriteria();
-    delete crit[group][key];
-    return crit;
-  },
-  performSearchWithout: function performSearchWithout(group, key) {
-    return _stores2['default'].loans.syncFilterLoans(this.buildCriteriaWithout(group, key), false);
-  },
-  tabSelect: function tabSelect(selectedKey) {
-    if (this.state.activeTab != selectedKey) {
-      this.setState({ activeTab: selectedKey });
-    }
-  },
-  genHelperGraphs: function genHelperGraphs(group, key, loans) {
-    //helper graphs are the bars that show down the right side of the page.
-    var data;
-    switch (key) {
-      case 'country_code':
-        data = loans.groupByWithCount(function (l) {
-          return l.location.country;
+        this.setState({ criteria: (0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncBlankCriteria(), criteria) });
+    },
+    lenderLoansEvent: function lenderLoansEvent(event) {
+        //can be either started or done.
+        var newState = {};
+        newState.portfolioTab = event == 'started' ? " (loading...)" : "";
+        this.setState(newState);
+        this.performSearch();
+    },
+    loansReady: function loansReady() {
+        //this runs twice during load and every time you switch to the tab
+        //allOptions.activity.select_options = kivaloans.activities.select(a => {return {value: a, label: a}})
+        //allOptions.country_code.select_options = kivaloans.countries.select(c => {return {label: c.name, value: c.iso_code}})
+        if (allOptions.partners.select_options.length == 0) allOptions.partners.select_options = kivaloans.active_partners.orderBy(function (p) {
+            return p.name;
+        }).select(function (p) {
+            return {
+                label: p.name,
+                value: p.id.toString()
+            };
         });
-        break;
-      case 'sector':
-        data = loans.groupByWithCount(function (l) {
-          return l.sector;
+        this.setState({ loansReady: true });
+        this.figureAtheistList();
+    },
+    figureNeedLender: function figureNeedLender(crit) {
+        var por = crit.portfolio;
+        //if any of the balancers are present and enabled, show message that they need to have their lender id
+        var needLenderID = ['pb_country', 'pb_partner', 'pb_activity', 'pb_sector'].any(function (n) {
+            return por && por[n] && por[n].enabled;
         });
-        break;
-      case 'activity':
-        data = loans.groupByWithCount(function (l) {
-          return l.activity;
-        });
-        break;
-      case 'tags':
-        data = loans.select(function (l) {
-          return l.kls_tags;
-        }).flatten().groupByWithCount(function (t) {
-          return humanize(t);
-        });
-        break;
-      case 'themes':
-        data = loans.select(function (l) {
-          return l.themes;
-        }).flatten().where(function (t) {
-          return t != undefined;
-        }).groupByWithCount();
-        break;
-      case 'currency_exchange_loss_liability':
-        data = loans.groupByWithCount(function (l) {
-          return l.terms.loss_liability.currency_exchange;
-        });
-        break;
-      case 'bonus_credit_eligibility':
-        data = loans.groupByWithCount(function (l) {
-          return l.bonus_credit_eligibility === true;
-        });
-        break;
-      case 'direct':
-        data = loans.groupByWithCount(function (l) {
-          return l.partner_id == null ? 'Direct' : "MFI";
-        });
-        break;
-      case 'repayment_interval':
-        data = loans.groupByWithCount(function (l) {
-          return l.terms.repayment_interval ? l.terms.repayment_interval : "unknown";
-        });
-        break;
-      case 'social_performance':
-        data = loans.select(function (l) {
-          return l.getPartner().social_performance_strengths;
-        }).flatten().where(function (sp) {
-          return sp != undefined;
-        }).groupByWithCount(function (sp) {
-          return sp.name;
-        });
-        break;
-      case 'partners':
-        data = loans.groupByWithCount(function (l) {
-          return l.getPartner().name;
-        });
-        break;
-      case 'region':
-        //this won't come out with the right number of loans....
-        data = loans.select(function (l) {
-          return l.getPartner().countries;
-        }).flatten().select(function (c) {
-          return c.region;
-        }).groupByWithCount();
-        break;
-      case 'charges_fees_and_interest':
-        data = loans.select(function (l) {
-          return l.getPartner().charges_fees_and_interest;
-        }).groupByWithCount();
-        break;
-      //VISION STUFF
-      // case 'vision_face_joy':
-      //     data = loans.select(l => l.kl_faces && l.kl_faces.joy ? l.kl_faces.joy : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-      //     break
-      // case 'vision_face_sorrow':
-      //     data = loans.select(l => l.kl_faces && l.kl_faces.sorrow ? l.kl_faces.sorrow : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-      //     break
-      // case 'vision_face_anger':
-      //     data = loans.select(l => l.kl_faces && l.kl_faces.anger ? l.kl_faces.anger : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-      //     break
-      // case 'vision_face_surprise':
-      //     data = loans.select(l => l.kl_faces && l.kl_faces.surprise ? l.kl_faces.surprise : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-      //     break
-      // case 'vision_face_headwear':
-      //     data = loans.select(l => l.kl_faces && l.kl_faces.headwear ? l.kl_faces.headwear : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
-      //     break
-      default:
-        return;
-    }
-
-    data = data.orderBy(function (d) {
-      return d.count;
-    }, basicReverseOrder);
-
-    var config = {
-      chart: {
-        type: 'bar',
-        animation: false,
-        renderTo: 'loan_options_graph'
-      },
-      title: { text: allOptions[key].label },
-      xAxis: {
-        categories: data.select(function (d) {
-          return d.name;
-        }),
-        title: { text: null }
-      },
-      yAxis: {
-        min: 0,
-        dataLabels: { enabled: false },
-        labels: { overflow: 'justify' },
-        title: { text: 'Matching Loans' }
-      },
-      plotOptions: {
-        bar: {
-          dataLabels: {
-            enabled: true,
-            format: '{y:.0f}'
-          }
+        needLenderID = needLenderID && kivaloans.isReady() && !kivaloans.lender_id;
+        if (this.state.needLenderID != needLenderID) this.setState({ needLenderID: needLenderID });
+    },
+    performSearch: function performSearch() {
+        var criteria = this.buildCriteria();
+        this.figureNeedLender(criteria);
+        _actions2['default'].criteria.change(criteria);
+    },
+    buildCriteria: function buildCriteria() {
+        var criteria = _stores2['default'].criteria.stripNullValues((0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncBlankCriteria(), this.state.criteria));
+        cl("######### buildCriteria: criteria", criteria);
+        return criteria;
+    },
+    buildCriteriaWithout: function buildCriteriaWithout(group, key) {
+        var crit = this.buildCriteria();
+        delete crit[group][key];
+        return crit;
+    },
+    performSearchWithout: function performSearchWithout(group, key) {
+        return _stores2['default'].loans.syncFilterLoans(this.buildCriteriaWithout(group, key), false);
+    },
+    tabSelect: function tabSelect(selectedKey) {
+        if (this.state.activeTab != selectedKey) {
+            this.setState({ activeTab: selectedKey });
         }
-      },
-      legend: { enabled: false },
-      credits: { enabled: false },
-      series: [{
-        animation: false,
-        name: 'Loans',
-        data: data.select(function (d) {
-          return d.count;
-        })
-      }]
-    };
-    var helper_chart_height = Math.max(300, Math.min(data.length * 30, 1300));
-    var newState = { helper_charts: {}, helper_chart_height: helper_chart_height };
-    newState.helper_charts[group] = config;
-    this.setState(newState);
-  },
-  focusSelect: function focusSelect(group, key) {
-    if ('lg' != findBootstrapEnv()) return; //if we're not on a desktop
-
-    this.last_select = { group: group, key: key };
-
-    //do we ignore what is in the select
-    var ignore_values = false;
-
-    var cg = this.state.criteria[group];
-
-    if (cg[key + '_all_any_none'] == 'all' || allOptions[key].canAll && !cg[key + '_all_any_none']) ignore_values = true;
-
-    var loans = ignore_values ? _stores2['default'].loans.syncFilterLoansLast() : this.performSearchWithout(group, key);
-
-    this.genHelperGraphs(group, key, loans);
-  },
-  removeGraphs: function removeGraphs() {
-    this.last_select = {};
-    this.setState({ helper_charts: {} });
-  },
-  render: function render() {
-    var _state3 = this.state;
-    var isMobile = _state3.isMobile;
-    var visionFaceKeys = _state3.visionFaceKeys;
-    var needLenderID = _state3.needLenderID;
-    var RSSName = _state3.RSSName;
-    var RSSLinkTo = _state3.RSSLinkTo;
-    var activeTab = _state3.activeTab;
-    var loansReady = _state3.loansReady;
-    var descriptionsLoaded = _state3.descriptionsLoaded;
-    var kiva_lender_id = _state3.kiva_lender_id;
-    var criteria = _state3.criteria;
-    var helper_charts = _state3.helper_charts;
-    var helper_chart_height = _state3.helper_chart_height;
-    var portfolioTab = _state3.portfolioTab;
-    var displayAtheistOptions = _state3.displayAtheistOptions;
-
-    var cursor = _reactCursor.Cursor.build(this).refine('criteria');
-    var cLoan = cursor.refine('loan');
-    var cPartner = cursor.refine('partner');
-    var cPortfolio = cursor.refine('portfolio');
-    var lender_loans_message = kivaloans.lender_loans_message; //todo: find a better way
-
-    if (activeTab == 5) {
-      var critRSS = _stores2['default'].criteria.prepForRSS((0, _extend2['default'])({
-        feed: {
-          name: RSSName,
-          link_to: RSSLinkTo
+    },
+    genHelperGraphs: function genHelperGraphs(group, key, loans) {
+        //helper graphs are the bars that show down the right side of the page.
+        var data;
+        switch (key) {
+            case 'country_code':
+                data = loans.groupByWithCount(function (l) {
+                    return l.location.country;
+                });
+                break;
+            case 'sector':
+                data = loans.groupByWithCount(function (l) {
+                    return l.sector;
+                });
+                break;
+            case 'activity':
+                data = loans.groupByWithCount(function (l) {
+                    return l.activity;
+                });
+                break;
+            case 'tags':
+                data = loans.select(function (l) {
+                    return l.kls_tags;
+                }).flatten().groupByWithCount(function (t) {
+                    return humanize(t);
+                });
+                break;
+            case 'themes':
+                data = loans.select(function (l) {
+                    return l.themes;
+                }).flatten().where(function (t) {
+                    return t != undefined;
+                }).groupByWithCount();
+                break;
+            case 'currency_exchange_loss_liability':
+                data = loans.groupByWithCount(function (l) {
+                    return l.terms.loss_liability.currency_exchange;
+                });
+                break;
+            case 'bonus_credit_eligibility':
+                data = loans.groupByWithCount(function (l) {
+                    return l.bonus_credit_eligibility === true;
+                });
+                break;
+            case 'direct':
+                data = loans.groupByWithCount(function (l) {
+                    return l.partner_id == null ? 'Direct' : "MFI";
+                });
+                break;
+            case 'repayment_interval':
+                data = loans.groupByWithCount(function (l) {
+                    return l.terms.repayment_interval ? l.terms.repayment_interval : "unknown";
+                });
+                break;
+            case 'social_performance':
+                data = loans.select(function (l) {
+                    return l.getPartner().social_performance_strengths;
+                }).flatten().where(function (sp) {
+                    return sp != undefined;
+                }).groupByWithCount(function (sp) {
+                    return sp.name;
+                });
+                break;
+            case 'partners':
+                data = loans.groupByWithCount(function (l) {
+                    return l.getPartner().name;
+                });
+                break;
+            case 'region':
+                //this won't come out with the right number of loans....
+                data = loans.select(function (l) {
+                    return l.getPartner().countries;
+                }).flatten().select(function (c) {
+                    return c.region;
+                }).groupByWithCount();
+                break;
+            case 'charges_fees_and_interest':
+                data = loans.select(function (l) {
+                    return l.getPartner().charges_fees_and_interest;
+                }).groupByWithCount();
+                break;
+            //VISION STUFF
+            // case 'vision_face_joy':
+            //     data = loans.select(l => l.kl_faces && l.kl_faces.joy ? l.kl_faces.joy : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+            //     break
+            // case 'vision_face_sorrow':
+            //     data = loans.select(l => l.kl_faces && l.kl_faces.sorrow ? l.kl_faces.sorrow : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+            //     break
+            // case 'vision_face_anger':
+            //     data = loans.select(l => l.kl_faces && l.kl_faces.anger ? l.kl_faces.anger : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+            //     break
+            // case 'vision_face_surprise':
+            //     data = loans.select(l => l.kl_faces && l.kl_faces.surprise ? l.kl_faces.surprise : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+            //     break
+            // case 'vision_face_headwear':
+            //     data = loans.select(l => l.kl_faces && l.kl_faces.headwear ? l.kl_faces.headwear : []).flatten().groupByWithCount(t => humanize(t).toLowerCase())
+            //     break
+            default:
+                return;
         }
-      }, this.state.criteria));
-      var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS));
-    }
 
-    return _react2['default'].createElement(
-      'div',
-      null,
-      _react2['default'].createElement(
-        _reactBootstrap.Tabs,
-        { animation: false, activeKey: activeTab, onSelect: this.tabSelect },
-        _react2['default'].createElement(
-          _reactBootstrap.Tab,
-          { eventKey: 1, title: 'Borrower', className: 'ample-padding-top' },
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
-            null,
-            location.hostname === '$$localhost' ? _react2['default'].createElement(
-              'pre',
-              null,
-              JSON.stringify(criteria, null, 2)
-            ) : '',
-            needLenderID ? _react2['default'].createElement(
-              _reactBootstrap.Alert,
-              { bsStyle: 'danger' },
-              'The options in your criteria require your Lender ID. Go to the Options page to set it.'
-            ) : '',
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 8 },
-              _react2['default'].createElement(InputRow, { label: 'Use or Description', cursor: cLoan.refine('use'),
-                disabled: !descriptionsLoaded }),
-              _react2['default'].createElement(InputRow, { label: 'Name', cursor: cLoan.refine('name') }),
-              ['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'].map(function (name, i) {
-                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cLoan.refine(name),
-                  aanCursor: cLoan.refine(name + '_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'loan', name), onBlur: this.removeGraphs });
-              }, this),
-              visionFaceKeys.map(function (name, i) {
-                return _react2['default'].createElement(SelectRow, { key: i, name: 'vision_face_' + name, cursor: cLoan.refine('vision_face_' + name),
-                  aanCursor: cLoan.refine('vision_face_' + name + '_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'loan', 'vision_face_' + name),
-                  onBlur: this.removeGraphs });
-              }, this),
-              _react2['default'].createElement(LimitResult, { cursor: cLoan.refine('limit_to') }),
-              ['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'].map(function (name, i) {
-                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cLoan.refine(name + '_min'),
-                  cursorMax: cLoan.refine(name + '_max'), cycle: activeTab,
-                  options: allOptions[name] });
-              }, this)
-            ),
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
-              helper_charts.loan ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
-                config: helper_charts.loan }) : ''
-            )
-          )
-        ),
-        _react2['default'].createElement(
-          _reactBootstrap.Tab,
-          { eventKey: 2, title: 'Partner', className: 'ample-padding-top' },
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
-            null,
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 8 },
-              _react2['default'].createElement(SelectRow, { name: 'direct', cursor: cPartner.refine('direct'),
-                aanCursor: cPartner.refine('direct_all_any_none'),
-                onFocus: this.focusSelect.bind(this, 'partner', "direct"),
-                onBlur: this.removeGraphs }),
-              ['region', 'partners', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
-                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
-                  aanCursor: cPartner.refine(name + '_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'partner', name),
-                  onBlur: this.removeGraphs });
-              }, this),
-              ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
-                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
-                  cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
-                  options: allOptions[name] });
-              }, this),
-              displayAtheistOptions ? _react2['default'].createElement(
-                'div',
-                null,
-                ['secular_rating', 'social_rating'].map(function (name, i) {
-                  return _react2['default'].createElement(SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
-                    cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
-                    options: allOptions[name] });
-                }, this),
-                _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
-                  aanCursor: cPartner.refine('religion_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'partner', 'religion'),
-                  onBlur: this.removeGraphs })
-              ) : '',
-              _react2['default'].createElement(
-                _reactBootstrap.Button,
-                { onClick: _actions2['default'].utils.modal.partnerDisplay },
-                'Export Matching Partners'
-              ),
-              _react2['default'].createElement(_.PartnerDisplayModal, null)
-            ),
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
-              helper_charts.partner ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
-                config: helper_charts.partner }) : ''
-            )
-          )
-        ),
-        _react2['default'].createElement(
-          _reactBootstrap.Tab,
-          { eventKey: 3, title: 'Your Portfolio' + portfolioTab, className: 'ample-padding-top' },
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
+        data = data.orderBy(function (d) {
+            return d.count;
+        }, basicReverseOrder);
+
+        var config = {
+            chart: {
+                type: 'bar',
+                animation: false,
+                renderTo: 'loan_options_graph'
+            },
+            title: { text: allOptions[key].label },
+            xAxis: {
+                categories: data.select(function (d) {
+                    return d.name;
+                }),
+                title: { text: null }
+            },
+            yAxis: {
+                min: 0,
+                dataLabels: { enabled: false },
+                labels: { overflow: 'justify' },
+                title: { text: 'Matching Loans' }
+            },
+            plotOptions: {
+                bar: {
+                    dataLabels: {
+                        enabled: true,
+                        format: '{y:.0f}'
+                    }
+                }
+            },
+            legend: { enabled: false },
+            credits: { enabled: false },
+            series: [{
+                animation: false,
+                name: 'Loans',
+                data: data.select(function (d) {
+                    return d.count;
+                })
+            }]
+        };
+        var helper_chart_height = Math.max(300, Math.min(data.length * 30, 1300));
+        var newState = { helper_charts: {}, helper_chart_height: helper_chart_height };
+        newState.helper_charts[group] = config;
+        this.setState(newState);
+    },
+    focusSelect: function focusSelect(group, key) {
+        if ('lg' != findBootstrapEnv()) return; //if we're not on a desktop
+
+        this.last_select = { group: group, key: key };
+
+        //do we ignore what is in the select
+        var ignore_values = false;
+
+        var cg = this.state.criteria[group];
+
+        if (cg[key + '_all_any_none'] == 'all' || allOptions[key].canAll && !cg[key + '_all_any_none']) ignore_values = true;
+
+        var loans = ignore_values ? _stores2['default'].loans.syncFilterLoansLast() : this.performSearchWithout(group, key);
+
+        this.genHelperGraphs(group, key, loans);
+    },
+    removeGraphs: function removeGraphs() {
+        this.last_select = {};
+        this.setState({ helper_charts: {} });
+    },
+    render: function render() {
+        var _this3 = this;
+
+        var _state3 = this.state;
+        var isMobile = _state3.isMobile;
+        var visionFaceKeys = _state3.visionFaceKeys;
+        var needLenderID = _state3.needLenderID;
+        var RSSName = _state3.RSSName;
+        var RSSLinkTo = _state3.RSSLinkTo;
+        var activeTab = _state3.activeTab;
+        var loansReady = _state3.loansReady;
+        var descriptionsLoaded = _state3.descriptionsLoaded;
+        var kiva_lender_id = _state3.kiva_lender_id;
+        var criteria = _state3.criteria;
+        var helper_charts = _state3.helper_charts;
+        var helper_chart_height = _state3.helper_chart_height;
+        var portfolioTab = _state3.portfolioTab;
+        var displayAtheistOptions = _state3.displayAtheistOptions;
+
+        var cursor = _reactCursor.Cursor.build(this).refine('criteria');
+        var cLoan = cursor.refine('loan');
+        var cPartner = cursor.refine('partner');
+        var cPortfolio = cursor.refine('portfolio');
+        var lender_loans_message = kivaloans.lender_loans_message; //todo: find a better way
+
+        if (activeTab == 5) {
+            var critRSS = _stores2['default'].criteria.prepForRSS((0, _extend2['default'])({
+                feed: {
+                    name: RSSName,
+                    link_to: RSSLinkTo
+                }
+            }, this.state.criteria));
+            var critRSSUrl = encodeURIComponent(JSON.stringify(critRSS));
+        }
+
+        return _react2['default'].createElement(
+            'div',
             null,
             _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { md: 10 },
-              !kiva_lender_id && !needLenderID ? _react2['default'].createElement(
-                _reactBootstrap.Alert,
-                { bsStyle: 'danger' },
-                'You have not yet set your Kiva Lender ID on the ',
+                _reactBootstrap.Tabs,
+                { animation: false, activeKey: activeTab, onSelect: this.tabSelect },
                 _react2['default'].createElement(
-                  _reactRouter.Link,
-                  {
-                    to: 'options' },
-                  'Options'
-                ),
-                ' page. These functions won\'t work until you do.'
-              ) : '',
-              'To prevent you from accidentally lending to the same borrower twice if their loan is still fundraising, just exclude those loans. ',
-              '(' + lender_loans_message + ')',
-              ['exclude_portfolio_loans'].map(function (name, i) {
-                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
-                  aanCursor: cPortfolio.refine(name + '_all_any_none'),
-                  onFocus: this.focusSelect.bind(this, 'portfolio', name),
-                  onBlur: this.removeGraphs });
-              }, this)
-            )
-          ),
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
-            { className: 'ample-padding-top' },
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { md: 12 },
-              _react2['default'].createElement(
-                _reactBootstrap.Panel,
-                { header: 'Portfolio Balancing' },
-                _react2['default'].createElement(
-                  'p',
-                  null,
-                  'Portfolio Balancing allows you to find loans that are either similar to or unlike the loans you have in your portfolio (either just the active/paying-back loans or all of them). So, if you wanted to get loans from every sector or country, it\'s easy! Or if you wanted to help make sure you aren\'t getting too many loans from a handful of partners to protect yourself from losses due to institutional failure, that\'s easy, too!'
-                ),
-                'Notes:',
-                _react2['default'].createElement(
-                  'ul',
-                  { className: 'spacedList' },
-                  _react2['default'].createElement(
-                    'li',
-                    null,
-                    'The summary data that KivaLens pulls for your account is not "live" data. It should rarely be over a day old, however. This means if you complete a bunch of loans and come back for more right away, the completed loans will not be accounted for in the balancing. Look for "Last Updated" to know how fresh the data is.'
-                  ),
-                  _react2['default'].createElement(
-                    'li',
-                    null,
-                    'If you plan to use Bulk Add in conjunction with the balancing tools then you may also want to look at the "Limit to top" option on the Borrower criteria tab. This will prevent too many from a given Partner/Country/Sector/Activity from getting into your basket to keep your portfolio from getting lopsided.'
-                  ),
-                  _react2['default'].createElement(
-                    'li',
-                    null,
-                    'Fetching the data from Kiva can sometimes take a few seconds. If you don\'t see anything happen right away, just wait. This also applies to loading saved searches that have balancing options set.'
-                  )
-                ),
-                activeTab === 3 ? _react2['default'].createElement(
-                  'div',
-                  null,
-                  ['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'].map(function (name, i) {
-                    return _react2['default'].createElement(BalancingRow, { key: i, cursor: cPortfolio.refine(name),
-                      options: allOptions[name] });
-                  }, this)
-                ) : ''
-              )
-            )
-          )
-        ),
-        !isMobile ? _react2['default'].createElement(
-          _reactBootstrap.Tab,
-          { eventKey: 4, title: 'Auto-Lend', disabled: loansReady !== true },
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
-            { className: 'ample-padding-top' },
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 12 },
-              _react2['default'].createElement(
-                _reactBootstrap.Alert,
-                { bsStyle: 'warning' },
-                _react2['default'].createElement(
-                  'b',
-                  null,
-                  'Auto-Lending is temporarily unavailable.'
-                ),
-                ' Kiva has made changes to their auto-lending system that are not yet compatible with KivaLens. This feature will be restored in a future update.'
-              )
-            )
-          )
-        ) : '',
-        !isMobile ? _react2['default'].createElement(
-          _reactBootstrap.Tab,
-          { eventKey: 5, title: 'RSS' },
-          _react2['default'].createElement(
-            _reactBootstrap.Row,
-            { className: 'ample-padding-top' },
-            _react2['default'].createElement(
-              _reactBootstrap.Col,
-              { lg: 12 },
-              activeTab == 5 ? _react2['default'].createElement(
-                'div',
-                null,
-                _react2['default'].createElement(
-                  'p',
-                  null,
-                  'With an RSS feed, you can use any number of RSS Readers (including some browsers or browser extensions), or sites like ',
-                  _react2['default'].createElement(
-                    _.NewTabLink,
-                    {
-                      href: 'http://www.ifttt.com' },
-                    'IFTTT (If This Then That)'
-                  ),
-                  ' to set up all sorts of actions in response to new items in the feed. You can set it to send you emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a lot of options! You can create as many RSS feeds as you want. ',
-                  _react2['default'].createElement(
-                    _.NewTabLink,
-                    {
-                      href: 'https://ifttt.com/recipes/147561-rss-feed-to-email' },
-                    'Create \'Recipe\' to send you an email when loans match your criteria'
-                  ),
-                  '.'
-                ),
-                _react2['default'].createElement(
-                  'p',
-                  null,
-                  'It will only show the first 100 matching loans and it currently doesn\'t support anything that requires any knowledge of your portfolio (excluding your fundraising loans or portfolio balancing).'
-                ),
-                _react2['default'].createElement(
-                  _reactBootstrap.Panel,
-                  { header: 'RSS Feed Details' },
-                  _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: 'Name (this will appear in your RSS feed reader)',
-                    style: { height: '38px', minWidth: '50px' },
-                    className: 'col-xs-2',
-                    valueLink: this.linkState('RSSName') }),
-                  _react2['default'].createElement(
-                    _reactBootstrap.Input,
-                    { type: 'select', label: 'Links in RSS go to',
-                      valueLink: this.linkState('RSSLinkTo'),
-                      placeholder: 'select' },
+                    _reactBootstrap.Tab,
+                    { eventKey: 1, title: 'Borrower', className: 'ample-padding-top' },
                     _react2['default'].createElement(
-                      'option',
-                      { value: 'kiva' },
-                      'Kiva'
-                    ),
-                    _react2['default'].createElement(
-                      'option',
-                      { value: 'kivalens' },
-                      'KivaLens'
+                        _reactBootstrap.Row,
+                        null,
+                        location.hostname === '$$localhost' ? _react2['default'].createElement(
+                            'pre',
+                            null,
+                            JSON.stringify(criteria, null, 2)
+                        ) : null,
+                        needLenderID ? _react2['default'].createElement(
+                            _reactBootstrap.Alert,
+                            { bsStyle: 'danger' },
+                            'The options in your criteria require your Lender ID. Go to the Options page to set it.'
+                        ) : null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 8 },
+                            _react2['default'].createElement(InputRow, { label: 'Use or Description', cursor: cLoan.refine('use'),
+                                disabled: !descriptionsLoaded }),
+                            _react2['default'].createElement(InputRow, { label: 'Name', cursor: cLoan.refine('name') }),
+                            ['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'].map(function (name, i) {
+                                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cLoan.refine(name),
+                                    aanCursor: cLoan.refine(name + '_all_any_none'),
+                                    onFocus: _this3.focusSelect.bind(_this3, 'loan', name), onBlur: _this3.removeGraphs });
+                            }),
+                            visionFaceKeys.map(function (name, i) {
+                                return _react2['default'].createElement(SelectRow, { key: i, name: 'vision_face_' + name, cursor: cLoan.refine('vision_face_' + name),
+                                    aanCursor: cLoan.refine('vision_face_' + name + '_all_any_none'),
+                                    onFocus: _this3.focusSelect.bind(_this3, 'loan', 'vision_face_' + name),
+                                    onBlur: _this3.removeGraphs });
+                            }),
+                            _react2['default'].createElement(LimitResult, { cursor: cLoan.refine('limit_to') }),
+                            ['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'].map(function (name, i) {
+                                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cLoan.refine(name + '_min'),
+                                    cursorMax: cLoan.refine(name + '_max'), cycle: activeTab,
+                                    options: allOptions[name] });
+                            })
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
+                            helper_charts.loan ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
+                                config: helper_charts.loan }) : null
+                        )
                     )
-                  )
                 ),
                 _react2['default'].createElement(
-                  _reactBootstrap.Panel,
-                  { header: 'Your Settings' },
-                  _react2['default'].createElement(
-                    'p',
-                    null,
-                    'These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.'
-                  ),
-                  _react2['default'].createElement(
-                    'pre',
-                    null,
-                    JSON.stringify(critRSS, null, 2)
-                  )
-                ),
-                _react2['default'].createElement(
-                  _reactBootstrap.Panel,
-                  { header: 'RSS Link' },
-                  _react2['default'].createElement(
-                    'p',
-                    null,
-                    'Copy and Paste this entire URL into your RSS reader or use ',
+                    _reactBootstrap.Tab,
+                    { eventKey: 2, title: 'Partner', className: 'ample-padding-top' },
                     _react2['default'].createElement(
-                      _.NewTabLink,
-                      { href: 'http://www.ifttt.com' },
-                      'If This Then That'
+                        _reactBootstrap.Row,
+                        null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 8 },
+                            _react2['default'].createElement(SelectRow, { name: 'direct', cursor: cPartner.refine('direct'),
+                                aanCursor: cPartner.refine('direct_all_any_none'),
+                                onFocus: this.focusSelect.bind(this, 'partner', "direct"),
+                                onBlur: this.removeGraphs }),
+                            ['region', 'partners', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
+                                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
+                                    aanCursor: cPartner.refine(name + '_all_any_none'),
+                                    onFocus: _this3.focusSelect.bind(_this3, 'partner', name),
+                                    onBlur: _this3.removeGraphs });
+                            }),
+                            ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
+                                return _react2['default'].createElement(SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
+                                    cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
+                                    options: allOptions[name] });
+                            }),
+                            displayAtheistOptions ? _react2['default'].createElement(
+                                'div',
+                                null,
+                                ['secular_rating', 'social_rating'].map(function (name, i) {
+                                    return _react2['default'].createElement(SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
+                                        cursorMax: cPartner.refine(name + '_max'), cycle: activeTab,
+                                        options: allOptions[name] });
+                                }),
+                                _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
+                                    aanCursor: cPartner.refine('religion_all_any_none'),
+                                    onFocus: this.focusSelect.bind(this, 'partner', 'religion'),
+                                    onBlur: this.removeGraphs })
+                            ) : null,
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { onClick: _actions2['default'].utils.modal.partnerDisplay },
+                                'Export Matching Partners'
+                            ),
+                            _react2['default'].createElement(_.PartnerDisplayModal, null)
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 4, className: 'visible-lg-block', id: 'loan_options_graph' },
+                            helper_charts.partner ? _react2['default'].createElement(Highcharts, { key: helper_chart_height, style: { height: helper_chart_height + 'px' },
+                                config: helper_charts.partner }) : null
+                        )
+                    )
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Tab,
+                    { eventKey: 3, title: 'Your Portfolio' + portfolioTab, className: 'ample-padding-top' },
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { md: 10 },
+                            !kiva_lender_id && !needLenderID ? _react2['default'].createElement(
+                                _reactBootstrap.Alert,
+                                { bsStyle: 'danger' },
+                                'You have not yet set your Kiva Lender ID on the ',
+                                _react2['default'].createElement(
+                                    _reactRouter.Link,
+                                    {
+                                        to: 'options' },
+                                    'Options'
+                                ),
+                                ' page. These functions won\'t work until you do.'
+                            ) : null,
+                            'To prevent you from accidentally lending to the same borrower twice if their loan is still fundraising, just exclude those loans. ',
+                            '(' + lender_loans_message + ')',
+                            ['exclude_portfolio_loans'].map(function (name, i) {
+                                return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
+                                    aanCursor: cPortfolio.refine(name + '_all_any_none'),
+                                    onFocus: _this3.focusSelect.bind(_this3, 'portfolio', name),
+                                    onBlur: _this3.removeGraphs });
+                            })
+                        )
                     ),
-                    ' to create a "recipe" to respond to new items in the news feed and either send you an email or an SMS.'
-                  ),
-                  _react2['default'].createElement('textarea', { style: { width: '100%', height: '150px' }, readOnly: true,
-                    value: 'https://www.kivalens.org/rss/' + critRSSUrl })
-                )
-              ) : ''
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        { className: 'ample-padding-top' },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { md: 12 },
+                            _react2['default'].createElement(
+                                _reactBootstrap.Panel,
+                                { header: 'Portfolio Balancing' },
+                                _react2['default'].createElement(
+                                    'p',
+                                    null,
+                                    'Portfolio Balancing allows you to find loans that are either similar to or unlike the loans you have in your portfolio (either just the active/paying-back loans or all of them). So, if you wanted to get loans from every sector or country, it\'s easy! Or if you wanted to help make sure you aren\'t getting too many loans from a handful of partners to protect yourself from losses due to institutional failure, that\'s easy, too!'
+                                ),
+                                'Notes:',
+                                _react2['default'].createElement(
+                                    'ul',
+                                    { className: 'spacedList' },
+                                    _react2['default'].createElement(
+                                        'li',
+                                        null,
+                                        'The summary data that KivaLens pulls for your account is not "live" data. It should rarely be over a day old, however. This means if you complete a bunch of loans and come back for more right away, the completed loans will not be accounted for in the balancing. Look for "Last Updated" to know how fresh the data is.'
+                                    ),
+                                    _react2['default'].createElement(
+                                        'li',
+                                        null,
+                                        'If you plan to use Bulk Add in conjunction with the balancing tools then you may also want to look at the "Limit to top" option on the Borrower criteria tab. This will prevent too many from a given Partner/Country/Sector/Activity from getting into your basket to keep your portfolio from getting lopsided.'
+                                    ),
+                                    _react2['default'].createElement(
+                                        'li',
+                                        null,
+                                        'Fetching the data from Kiva can sometimes take a few seconds. If you don\'t see anything happen right away, just wait. This also applies to loading saved searches that have balancing options set.'
+                                    )
+                                ),
+                                activeTab === 3 ? _react2['default'].createElement(
+                                    'div',
+                                    null,
+                                    ['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'].map(function (name, i) {
+                                        return _react2['default'].createElement(BalancingRow, { key: i, cursor: cPortfolio.refine(name),
+                                            options: allOptions[name] });
+                                    })
+                                ) : null
+                            )
+                        )
+                    )
+                ),
+                !isMobile ? _react2['default'].createElement(
+                    _reactBootstrap.Tab,
+                    { eventKey: 4, title: 'Auto-Lend', disabled: loansReady !== true },
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        { className: 'ample-padding-top' },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 12 },
+                            _react2['default'].createElement(
+                                _reactBootstrap.Alert,
+                                { bsStyle: 'warning' },
+                                _react2['default'].createElement(
+                                    'b',
+                                    null,
+                                    'Auto-Lending is temporarily unavailable.'
+                                ),
+                                ' Kiva has made changes to their auto-lending system that are not yet compatible with KivaLens. This feature will be restored in a future update.'
+                            )
+                        )
+                    )
+                ) : null,
+                !isMobile ? _react2['default'].createElement(
+                    _reactBootstrap.Tab,
+                    { eventKey: 5, title: 'RSS' },
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        { className: 'ample-padding-top' },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { lg: 12 },
+                            activeTab == 5 ? _react2['default'].createElement(
+                                'div',
+                                null,
+                                _react2['default'].createElement(
+                                    'p',
+                                    null,
+                                    'With an RSS feed, you can use any number of RSS Readers (including some browsers or browser extensions), or sites like ',
+                                    _react2['default'].createElement(
+                                        _.NewTabLink,
+                                        {
+                                            href: 'http://www.ifttt.com' },
+                                        'IFTTT (If This Then That)'
+                                    ),
+                                    ' to set up all sorts of actions in response to new items in the feed. You can set it to send you emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a lot of options! You can create as many RSS feeds as you want. ',
+                                    _react2['default'].createElement(
+                                        _.NewTabLink,
+                                        {
+                                            href: 'https://ifttt.com/recipes/147561-rss-feed-to-email' },
+                                        'Create \'Recipe\' to send you an email when loans match your criteria'
+                                    ),
+                                    '.'
+                                ),
+                                _react2['default'].createElement(
+                                    'p',
+                                    null,
+                                    'It will only show the first 100 matching loans and it currently doesn\'t support anything that requires any knowledge of your portfolio (excluding your fundraising loans or portfolio balancing).'
+                                ),
+                                _react2['default'].createElement(
+                                    _reactBootstrap.Panel,
+                                    { header: 'RSS Feed Details' },
+                                    _react2['default'].createElement(_reactBootstrap.Input, { type: 'text', label: 'Name (this will appear in your RSS feed reader)',
+                                        style: { height: '38px', minWidth: '50px' },
+                                        className: 'col-xs-2',
+                                        valueLink: this.linkState('RSSName') }),
+                                    _react2['default'].createElement(
+                                        _reactBootstrap.Input,
+                                        { type: 'select', label: 'Links in RSS go to',
+                                            valueLink: this.linkState('RSSLinkTo'),
+                                            placeholder: 'select' },
+                                        _react2['default'].createElement(
+                                            'option',
+                                            { value: 'kiva' },
+                                            'Kiva'
+                                        ),
+                                        _react2['default'].createElement(
+                                            'option',
+                                            { value: 'kivalens' },
+                                            'KivaLens'
+                                        )
+                                    )
+                                ),
+                                _react2['default'].createElement(
+                                    _reactBootstrap.Panel,
+                                    { header: 'Your Settings' },
+                                    _react2['default'].createElement(
+                                        'p',
+                                        null,
+                                        'These are the criteria options that will be used to generate your feed. Anything related to your portfolio has been removed.'
+                                    ),
+                                    _react2['default'].createElement(
+                                        'pre',
+                                        null,
+                                        JSON.stringify(critRSS, null, 2)
+                                    )
+                                ),
+                                _react2['default'].createElement(
+                                    _reactBootstrap.Panel,
+                                    { header: 'RSS Link' },
+                                    _react2['default'].createElement(
+                                        'p',
+                                        null,
+                                        'Copy and Paste this entire URL into your RSS reader or use ',
+                                        _react2['default'].createElement(
+                                            _.NewTabLink,
+                                            { href: 'http://www.ifttt.com' },
+                                            'If This Then That'
+                                        ),
+                                        ' to create a "recipe" to respond to new items in the news feed and either send you an email or an SMS.'
+                                    ),
+                                    _react2['default'].createElement('textarea', { style: { width: '100%', height: '150px' }, readOnly: true,
+                                        value: 'https://www.kivalens.org/rss/' + critRSSUrl })
+                                )
+                            ) : null
+                        )
+                    )
+                ) : null
             )
-          )
-        ) : ''
-      )
-    );
-  }
+        );
+    }
 });
 
 exports['default'] = CriteriaTabs;
@@ -70094,7 +70098,7 @@ var Loan = _react2['default'].createClass({
                             'p',
                             { style: { marginBottom: 4, color: '#999', fontSize: '12px' } },
                             'In no particular order'
-                        ) : '',
+                        ) : null,
                         _react2['default'].createElement(
                             'p',
                             null,
@@ -70114,7 +70118,7 @@ var Loan = _react2['default'].createClass({
                             null,
                             'Google Cloud Vision describes the image (confidence level): ',
                             visionResults
-                        ) : '',
+                        ) : null,
                         visionFaces != null && visionFaces.length ? _react2['default'].createElement(
                             'p',
                             null,
@@ -70127,7 +70131,7 @@ var Loan = _react2['default'].createClass({
                                     key < visionFaces.length - 1 ? ', ' : ''
                                 );
                             })
-                        ) : ''
+                        ) : null
                     )
                 ),
                 _react2['default'].createElement(
@@ -70236,8 +70240,8 @@ var Loan = _react2['default'].createClass({
                                     _react2['default'].createElement(_reactTimeago2['default'], { date: loan.posted_date }),
                                     ')'
                                 ),
-                                loan.status != 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) }) : '',
-                                loan.funded_date ? _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') }) : '',
+                                loan.status != 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) }) : null,
+                                loan.funded_date ? _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') }) : null,
                                 loan.status == 'fundraising' ? _react2['default'].createElement(
                                     'span',
                                     null,
@@ -70254,7 +70258,7 @@ var Loan = _react2['default'].createClass({
                                         _react2['default'].createElement(_reactTimeago2['default'], { date: loan.planned_expiration_date }),
                                         ') '
                                     )
-                                ) : '',
+                                ) : null,
                                 loan.terms.disbursal_date ? _react2['default'].createElement(DTDD, { term: 'Disbursed', def: _react2['default'].createElement(
                                         'span',
                                         null,
@@ -70262,13 +70266,13 @@ var Loan = _react2['default'].createClass({
                                         ' (',
                                         _react2['default'].createElement(_reactTimeago2['default'], { date: loan.terms.disbursal_date }),
                                         ') '
-                                    ) }) : '',
+                                    ) }) : null,
                                 loan.status == 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Final Repayment In', def: _react2['default'].createElement(
                                         'span',
                                         null,
                                         (0, _numeral2['default'])(loan.kls_repaid_in).format('0.0'),
                                         ' months'
-                                    ) }) : ''
+                                    ) }) : null
                             ),
                             loan.status == 'fundraising' ? _react2['default'].createElement(
                                 'dl',
@@ -70328,7 +70332,7 @@ var Loan = _react2['default'].createClass({
                                     '$',
                                     (0, _numeral2['default'])(loan.kl_still_needed).format('0,0')
                                 )
-                            ) : '',
+                            ) : null,
                             _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } })
                         ),
                         activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : _react2['default'].createElement('span', null)
@@ -70512,13 +70516,13 @@ var Loan = _react2['default'].createClass({
                                         partner.url
                                     )
                                 )
-                            ) : ''
+                            ) : null
                         )
                     ),
                     _react2['default'].createElement(
                         _reactBootstrap.Col,
                         { lg: 6 },
-                        partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : '',
+                        partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : null,
                         _react2['default'].createElement(
                             _.KivaLink,
                             { path: 'about/where-kiva-works/partners/' + partner.id },
@@ -70551,9 +70555,9 @@ var Loan = _react2['default'].createClass({
                                         ': ',
                                         sp.description
                                     );
-                                }, this)
+                                })
                             )
-                        ) : '',
+                        ) : null,
                         showAtheistResearch && atheistScore ? _react2['default'].createElement(
                             'div',
                             null,
@@ -70626,9 +70630,9 @@ var Loan = _react2['default'].createClass({
                                     atheistScore.reviewComments
                                 )
                             )
-                        ) : ''
+                        ) : null
                     )
-                ) : ''
+                ) : null
             )
         );
     }
@@ -71324,7 +71328,7 @@ var Options = _react2['default'].createClass({
                                 )
                             )
                         )
-                    ) : '',
+                    ) : null,
                     _react2['default'].createElement(
                         'p',
                         { className: 'ample-padding-top' },
@@ -71461,7 +71465,7 @@ var Options = _react2['default'].createClass({
                             'span',
                             null,
                             ' None'
-                        ) : '',
+                        ) : null,
                         _react2['default'].createElement(
                             'ul',
                             null,
@@ -71481,9 +71485,9 @@ var Options = _react2['default'].createClass({
                                         'span',
                                         null,
                                         ' (Has loans fundraising)'
-                                    ) : ''
+                                    ) : null
                                 );
-                            }, this)
+                            })
                         ),
                         this.state.missingPartners.length > 5 ? _react2['default'].createElement(
                             _.ClickLink,
@@ -71491,8 +71495,8 @@ var Options = _react2['default'].createClass({
                                     return _this.setState({ showAllPartners: !_this.state.showAllPartners });
                                 } },
                             this.state.showAllPartners ? 'Show Less' : 'See More (' + (this.state.missingPartners.length - 5) + ' more)'
-                        ) : ''
-                    ) : ''
+                        ) : null
+                    ) : null
                 ),
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
@@ -71815,7 +71819,7 @@ var PromptModal = _react2['default'].createClass({
                     null,
                     this.state.title
                 )
-            ) : '',
+            ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Modal.Body,
                 { style: { height: '80px' } },
@@ -72003,7 +72007,7 @@ var Search = _react2['default'].createClass({
             null,
             _react2['default'].createElement(_reactNotification.Notification, { dismissAfter: 5000, isActive: notification.active, message: notification.message,
                 action: '' }),
-            showBulkAdd ? _react2['default'].createElement(_.BulkAddModal, { onHide: this.modalHidden }) : '',
+            showBulkAdd ? _react2['default'].createElement(_.BulkAddModal, { onHide: this.modalHidden }) : null,
             outdatedUrl ? _react2['default'].createElement(
                 _reactBootstrap.Alert,
                 { className: 'not-rounded', style: { marginTop: '-20px' }, bsStyle: 'warning',
@@ -72013,7 +72017,7 @@ var Search = _react2['default'].createClass({
                     null,
                     'The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.'
                 )
-            ) : '',
+            ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { md: 4, ref: 'perspective' },
@@ -72040,12 +72044,12 @@ var Search = _react2['default'].createClass({
                         { className: 'not-rounded', style: { marginBottom: '0px' }, bsStyle: 'warning' },
                         'More loans are still loading. Carry on. ',
                         secondary_load_status
-                    ) : '',
+                    ) : null,
                     backgroundResyncState == 'started' ? _react2['default'].createElement(
                         _reactBootstrap.Alert,
                         { className: 'not-rounded', style: { marginBottom: '0px' } },
                         'Continue using the site while the loans are refreshed...'
-                    ) : '',
+                    ) : null,
                     loan_count > 0 ? _react2['default'].createElement(
                         'div',
                         { className: 'loan-count-bar' },
@@ -72056,12 +72060,12 @@ var Search = _react2['default'].createClass({
                             return l.status == 'fundraising';
                         })).format('0,0'),
                         ' fundraising loans'
-                    ) : '',
+                    ) : null,
                     hasHadLoans && loan_count == 0 ? _react2['default'].createElement(
                         _reactBootstrap.Alert,
                         { className: 'not-rounded-top', style: { marginBottom: '0px' } },
                         'There are no matching loans for your current criteria. Loosen the criteria, select a different Saved Search or click the "Clear" button to start over.'
-                    ) : '',
+                    ) : null,
                     _react2['default'].createElement(_.LoadingLoansPanel, null),
                     _react2['default'].createElement(_InfiniteListJsx2['default'], {
                         ref: 'results',
@@ -72202,13 +72206,13 @@ var SetLenderIDModal = _react2['default'].createClass({
                             _reactBootstrap.Alert,
                             null,
                             'Checking with Kiva...'
-                        ) : '',
+                        ) : null,
                         failed || badRegEx ? _react2['default'].createElement(
                             _reactBootstrap.Alert,
                             { bsStyle: 'danger' },
                             'Invalid Lender ID ',
                             badRegEx ? ': Only letters and numbers up to 24 characters allowed.' : ''
-                        ) : ''
+                        ) : null
                     )
                 )
             ),
@@ -72520,6 +72524,8 @@ var Teams = _react2['default'].createClass({
         this.setState({ config: config });
     },
     render: function render() {
+        var _this5 = this;
+
         var _state = this.state;
         var error = _state.error;
         var teams = _state.teams;
@@ -72575,9 +72581,9 @@ var Teams = _react2['default'].createClass({
                                 return _react2['default'].createElement(
                                     'li',
                                     { key: i },
-                                    _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', name: 'teams[]', label: team.name, value: team.id, onChange: this.refigureChart })
+                                    _react2['default'].createElement(_reactBootstrap.Input, { type: 'checkbox', name: 'teams[]', label: team.name, value: team.id, onChange: _this5.refigureChart })
                                 );
-                            }, this)
+                            })
                         )
                     )
                 )
@@ -72585,7 +72591,7 @@ var Teams = _react2['default'].createClass({
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { sm: 8 },
-                config.chart ? _react2['default'].createElement(Highcharts, { style: { height: '600px' }, config: config }) : ''
+                config.chart ? _react2['default'].createElement(Highcharts, { style: { height: '600px' }, config: config }) : null
             )
         );
     }

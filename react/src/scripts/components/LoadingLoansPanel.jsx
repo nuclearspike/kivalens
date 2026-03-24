@@ -41,8 +41,7 @@ const LoadingLoansPanel = React.createClass({
             this.hasSentGAView = true
             window.rga.modalview('/loading')
         }
-        return (<If condition={show}>
-            <Panel className="not-rounded-top">
+        return (show ? <Panel className="not-rounded-top">
                     <Modal.Header>
                         <Modal.Title>{title}</Modal.Title>
                     </Modal.Header>
@@ -60,9 +59,7 @@ const LoadingLoansPanel = React.createClass({
                         {error_message}
                     </Modal.Footer>
                 </Panel>
-            <Else/>
-                <span/>
-            </If>)
+            : <span/>)
     }
 })
 

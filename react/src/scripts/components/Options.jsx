@@ -71,8 +71,7 @@ const Options = React.createClass({
                         : <Button onClick={this.showLenderIDModal}>Set Kiva Lender ID</Button> }
                     <SetLenderIDModal show={this.state.showLenderModal} onSet={this.setLenderID}
                                       onHide={this.hideLenderIDModal}/>
-                    <If condition={lenderObj}>
-                        <Grid>
+                    {lenderObj ? <Grid>
                             <Col sm={2}>
                                 <KivaImage type="square" image_id={lenderObj.image.id} image_width={113} height={113}
                                            width={113}/>
@@ -97,8 +96,7 @@ const Options = React.createClass({
                                     <dd><LenderLink lender={kiva_lender_id}>Your Lender Page</LenderLink></dd>
                                 </dl>
                             </Col>
-                        </Grid>
-                    </If>
+                        </Grid> : null}
                     <p className="ample-padding-top">
                         This is used for:
                     </p>
@@ -175,29 +173,19 @@ const Options = React.createClass({
                         of the loan. If a partner is not present in the MFI Research Data, by default, it will show up
                         in the results.
                     </p>
-                    <If condition={this.state.atheist_list_processed}>
-                        <div><b>Partners not included in Atheist Team Research Data:</b>
-                            <If condition={this.state.missingPartners.length == 0}>
-                                <span> None</span>
-                            </If>
+                    {this.state.atheist_list_processed ? <div><b>Partners not included in Atheist Team Research Data:</b>
+                            {this.state.missingPartners.length == 0 ? <span> None</span> : null}
                             <ul>
-                                <For each='p' index='i' of={this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0,5)}>
-                                    <li key={i}>
+                                {(this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0,5)).map((p, i) => <li key={i}>
                                         {p.id}: <KivaLink
                                         path={`about/where-kiva-works/partners/${p.id}`}>{p.name}</KivaLink>
-                                        <If condition={p.kl_hasLoans}>
-                                            <span> (Has loans fundraising)</span>
-                                        </If>
-                                    </li>
-                                </For>
+                                        {p.kl_hasLoans ? <span> (Has loans fundraising)</span> : null}
+                                    </li>)}
                             </ul>
-                            <If condition={this.state.missingPartners.length > 5}>
-                                <ClickLink onClick={()=>this.setState({showAllPartners: !this.state.showAllPartners})}>
+                            {this.state.missingPartners.length > 5 ? <ClickLink onClick={()=>this.setState({showAllPartners: !this.state.showAllPartners})}>
                                     {this.state.showAllPartners ? 'Show Less' : `See More (${this.state.missingPartners.length - 5} more)`}
-                                </ClickLink>
-                            </If>
-                        </div>
-                    </If>
+                                </ClickLink> : null}
+                        </div> : null}
                 </Panel>
                 <Panel header='Debug/Beta Testing'>
                     <Input

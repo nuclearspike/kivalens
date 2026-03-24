@@ -21,8 +21,7 @@ const About = React.createClass({
         loans will be transferred to Kiva where you'll complete your purchase.
       </p>
 
-      <If condition={!hasLenderID}>
-        <span>
+      {!hasLenderID ? <span>
             <h3>What is Kiva?</h3>
             <p>
                 Kiva is a non-profit that helps microfinance institutions (MFIs) around the world get access to 0%
@@ -36,8 +35,7 @@ const About = React.createClass({
                 (over 97% of the money loaned through Kiva of the money is repaid).
               &nbsp;<KivaLink path="invitedby/nuclearspike">Find out more!</KivaLink>
             </p>
-        </span>
-      </If>
+        </span> : null}
 
       <h3>Rebuilt and Rethought</h3>
       <p>
@@ -390,14 +388,12 @@ const About = React.createClass({
         install Kiva Lender Assistant here</KLALink> or&nbsp;
         <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
           the source code on github (developers wanted!)</NewTabLink>.
-        <If condition={KLAVersion}>
-                    <span>
+        {KLAVersion ? <span>
                         You have KLA version {KLAVersion} installed. Chrome does a good job
                         of keeping your extensions up to date automatically, but to check for upgrades manually,
                         go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
                         then click the button to update your extensions.
-                    </span>
-        </If>
+                    </span> : null}
       </p>
 
     </Grid>

@@ -97,9 +97,7 @@ const Criteria = React.createClass({
                         </DropdownButton>
                     </ButtonGroup>
                 </h1>
-                <If condition={show_graphs}>
-                    <ChartDistribution/>
-                </If>
+                {show_graphs ? <ChartDistribution/> : null}
                 <CriteriaTabs criteria='pass a cursor'/>
             </div>
         );

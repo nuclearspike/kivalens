@@ -110,19 +110,15 @@ var Search = React.createClass({
             <div>
                 <Notification dismissAfter={5000} isActive={notification.active} message={notification.message}
                               action={''}/>
-                <If condition={showBulkAdd}>
-                    <BulkAddModal onHide={this.modalHidden}/>
-                </If>
-                <If condition={outdatedUrl}>
-                    <Alert className="not-rounded" style={{marginTop: '-20px'}} bsStyle="warning"
+                {showBulkAdd ? <BulkAddModal onHide={this.modalHidden}/> : null}
+                {outdatedUrl ? <Alert className="not-rounded" style={{marginTop: '-20px'}} bsStyle="warning"
                            onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
                         <p>
                             The link or bookmark you used is outdated. To ensure faster page loading
                             and that you can always get back to the right place, please bookmark this
                             page.
                         </p>
-                    </Alert>
-                </If>
+                    </Alert> : null}
                 <Col md={4} ref="perspective">
                     <div className={cx('side-results', {"side-tilted": floatResults})}>
                         <ButtonGroup justified className="top-only">
@@ -130,27 +126,19 @@ var Search = React.createClass({
                             <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'}
                                     onClick={this.changeCriteria}>Change Criteria</Button>
                         </ButtonGroup>
-                        <If condition={show_secondary_load}>
-                            <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
+                        {show_secondary_load ? <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
                                 More loans are still loading. Carry on. {secondary_load_status}
-                            </Alert>
-                        </If>
-                        <If condition={backgroundResyncState == 'started'}>
-                            <Alert className="not-rounded" style={{marginBottom: '0px'}}>
+                            </Alert> : null}
+                        {backgroundResyncState == 'started' ? <Alert className="not-rounded" style={{marginBottom: '0px'}}>
                                 Continue using the site while the loans are refreshed...
-                            </Alert>
-                        </If>
-                        <If condition={loan_count > 0}>
-                            <div className="loan-count-bar">
+                            </Alert> : null}
+                        {loan_count > 0 ? <div className="loan-count-bar">
                                 Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.count(l => l.status == 'fundraising')).format('0,0')} fundraising loans
-                            </div>
-                        </If>
-                        <If condition={hasHadLoans && loan_count == 0}>
-                            <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
+                            </div> : null}
+                        {hasHadLoans && loan_count == 0 ? <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
                                 There are no matching loans for your current criteria. Loosen the criteria, select a
                                 different Saved Search or click the "Clear" button to start over.
-                            </Alert>
-                        </If>
+                            </Alert> : null}
                         <LoadingLoansPanel/>
                         <InfiniteList
                             ref="results"

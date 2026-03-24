@@ -104,9 +104,7 @@ const DropSelectButton = React.createClass({
         oSel = oSel || options.first(o=>o.value == defaultValue) || {}
         extend(true, style, {padding:'4px',marginRight:'2px',marginLeft:'2px'})
         return <DropdownButton bsStyle="primary" style={style} title={oSel.buttonDisplay || oSel.label} id="bg-nested-dropdown">
-            <For each="option" index="i" of={options}>
-                <MenuItem key={i} onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>
-            </For>
+            {options.map((option, i) => <MenuItem key={i} onClick={this.onSelect.bind(this,option.value)} eventKey={i}>{option.label}</MenuItem>)}
         </DropdownButton>
     }
 })
@@ -121,9 +119,7 @@ const AllAnyNoneButton = React.createClass({
         var selected = this.props.cursor.value || (canAll ? 'all' : 'any')
         var styles = (canAll)? {'all':'success','any':'primary','none':'danger'} :{'any':'success','none':'danger'}
         return <DropdownButton style={{height:'34px',padding:'8px',width:'53px'}} title={selected} bsStyle={styles[selected]} id="bg-nested-dropdown">
-            <If condition={canAll}>
-                <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All of these</MenuItem>
-            </If>
+            {canAll ? <MenuItem onClick={this.onSelect.bind(this,'all')} eventKey="1">All of these</MenuItem> : null}
             <MenuItem onClick={this.onSelect.bind(this,'any')} eventKey="2">Any of these</MenuItem>
             <MenuItem onClick={this.onSelect.bind(this,'none')} eventKey="3">None of these</MenuItem>
         </DropdownButton>
@@ -324,24 +320,16 @@ const BalancingRow = React.createClass({
                 </Row>
 
                 <Row className="ample-padding-top">
-                    <If condition={loading}>
-                        <Alert>Loading data from Kiva...</Alert>
-                    </If>
-                    <If condition={enabled && !loading}>
-                        <div>
+                    {loading ? <Alert>Loading data from Kiva...</Alert> : null}
+                    {enabled && !loading ? <div>
                             Matching: {slices_count}. Loans from these <b>{options.label.toLowerCase()}</b> will be <b>{this.linkCursor('hideshow').value == 'show' ? 'shown' : 'hidden'}</b>.
                             <ul style={{overflowY:'auto',maxHeight:'200px'}}>
-                                <For index='i' each='slice' of={slices}>
-                                    <li key={i}>
+                                {slices.map((slice, i) => <li key={i}>
                                         {numeral(slice.percent).format('0.000')}%: {slice.name}
-                                    </li>
-                                </For>
+                                    </li>)}
                             </ul>
-                            <If condition={lastUpdated}>
-                                <p>Last Updated: <TimeAgo date={new Date(lastUpdated).toISOString()}/></p>
-                            </If>
-                        </div>
-                    </If>
+                            {lastUpdated ? <p>Last Updated: <TimeAgo date={new Date(lastUpdated).toISOString()}/></p> : null}
+                        </div> : null}
                 </Row>
             </Col>
             </Row>
@@ -721,51 +709,37 @@ const CriteriaTabs = React.createClass({
       <Tabs animation={false} activeKey={activeTab} onSelect={this.tabSelect}>
         <Tab eventKey={1} title="Borrower" className="ample-padding-top">
           <Row>
-            <If condition={location.hostname === '$$localhost'}>
-              <pre>{JSON.stringify(criteria, null, 2)}</pre>
-            </If>
+            {location.hostname === '$$localhost' ? <pre>{JSON.stringify(criteria, null, 2)}</pre> : null}
 
-            <If condition={needLenderID}>
-              <Alert bsStyle="danger">
+            {needLenderID ? <Alert bsStyle="danger">
                 The options in your criteria require your Lender ID. Go to the Options page
                 to set it.
-              </Alert>
-            </If>
+              </Alert> : null}
 
             <Col lg={8}>
               <InputRow label='Use or Description' cursor={cLoan.refine('use')}
                         disabled={!descriptionsLoaded}/>
               <InputRow label='Name' cursor={cLoan.refine('name')}/>
 
-              <For each='name' index='i'
-                   of={['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort']}>
-                <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
+              {['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'].map((name, i) => <SelectRow key={i} name={name} cursor={cLoan.refine(name)}
                            aanCursor={cLoan.refine(`${name}_all_any_none`)}
-                           onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>
-              </For>
+                           onFocus={this.focusSelect.bind(this, 'loan', name)} onBlur={this.removeGraphs}/>)}
 
-              <For each='name' index='i' of={visionFaceKeys}>
-                <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
+              {visionFaceKeys.map((name, i) => <SelectRow key={i} name={`vision_face_${name}`} cursor={cLoan.refine(`vision_face_${name}`)}
                            aanCursor={cLoan.refine(`vision_face_${name}_all_any_none`)}
                            onFocus={this.focusSelect.bind(this, 'loan', `vision_face_${name}`)}
-                           onBlur={this.removeGraphs}/>
-              </For>
+                           onBlur={this.removeGraphs}/>)}
 
               <LimitResult cursor={cLoan.refine('limit_to')}/>
 
-              <For each='name' index='i'
-                   of={['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']}>
-                <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
+              {['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'].map((name, i) => <SliderRow key={i} cursorMin={cLoan.refine(`${name}_min`)}
                            cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
-                           options={allOptions[name]}/>
-              </For>
+                           options={allOptions[name]}/>)}
             </Col>
 
             <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-              <If condition={helper_charts.loan}>
-                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                            config={helper_charts.loan}/>
-              </If>
+              {helper_charts.loan ? <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
+                            config={helper_charts.loan}/> : null}
             </Col>
           </Row>
         </Tab>
@@ -777,42 +751,30 @@ const CriteriaTabs = React.createClass({
                          aanCursor={cPartner.refine(`direct_all_any_none`)}
                          onFocus={this.focusSelect.bind(this, 'partner', "direct")}
                          onBlur={this.removeGraphs}/>
-              <For each='name' index='i'
-                   of={['region', 'partners', 'social_performance', 'charges_fees_and_interest']}>
-                <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
+              {['region', 'partners', 'social_performance', 'charges_fees_and_interest'].map((name, i) => <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
                            aanCursor={cPartner.refine(`${name}_all_any_none`)}
                            onFocus={this.focusSelect.bind(this, 'partner', name)}
-                           onBlur={this.removeGraphs}/>
-              </For>
-              <For each='name' index='i'
-                   of={['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted']}>
-                <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
+                           onBlur={this.removeGraphs}/>)}
+              {['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map((name, i) => <SliderRow key={i} cursorMin={cPartner.refine(`${name}_min`)}
                            cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
-                           options={allOptions[name]}/>
-              </For>
-              <If condition={displayAtheistOptions}>
-                <div>
-                  <For each='name' index='i' of={['secular_rating', 'social_rating']}>
-                    <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
+                           options={allOptions[name]}/>)}
+              {displayAtheistOptions ? <div>
+                  {['secular_rating', 'social_rating'].map((name, i) => <SliderRow key={`${i}_atheist`} cursorMin={cPartner.refine(`${name}_min`)}
                                cursorMax={cPartner.refine(`${name}_max`)} cycle={activeTab}
-                               options={allOptions[name]}/>
-                  </For>
+                               options={allOptions[name]}/>)}
                   <SelectRow name="religion" cursor={cPartner.refine('religion')}
                              aanCursor={cPartner.refine('religion_all_any_none')}
                              onFocus={this.focusSelect.bind(this, 'partner', 'religion')}
                              onBlur={this.removeGraphs}/>
-                </div>
-              </If>
+                </div> : null}
 
               <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
               <PartnerDisplayModal/>
             </Col>
 
             <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-              <If condition={helper_charts.partner}>
-                <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                            config={helper_charts.partner}/>
-              </If>
+              {helper_charts.partner ? <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
+                            config={helper_charts.partner}/> : null}
             </Col>
           </Row>
         </Tab>
@@ -820,20 +782,16 @@ const CriteriaTabs = React.createClass({
         <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
           <Row>
             <Col md={10}>
-              <If condition={!kiva_lender_id && !needLenderID}>
-                <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
-                  to="options">Options</Link> page. These functions won't work until you do.</Alert>
-              </If>
+              {!kiva_lender_id && !needLenderID ? <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
+                  to="options">Options</Link> page. These functions won't work until you do.</Alert> : null}
 
               To prevent you from accidentally lending to the same borrower twice if their loan is
               still fundraising, just exclude those loans. {`(${lender_loans_message})`}
 
-              <For each='name' index='i' of={['exclude_portfolio_loans']}>
-                <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}
+              {['exclude_portfolio_loans'].map((name, i) => <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}
                            aanCursor={cPortfolio.refine(`${name}_all_any_none`)}
                            onFocus={this.focusSelect.bind(this, 'portfolio', name)}
-                           onBlur={this.removeGraphs}/>
-              </For>
+                           onBlur={this.removeGraphs}/>)}
             </Col>
           </Row>
           <Row className="ample-padding-top">
@@ -870,21 +828,15 @@ const CriteriaTabs = React.createClass({
                   </li>
                 </ul>
 
-                <If condition={activeTab === 3}>
-                  <div>
-                    <For each='name' index='i'
-                         of={['pb_partner', 'pb_country', 'pb_sector', 'pb_activity']}>
-                      <BalancingRow key={i} cursor={cPortfolio.refine(name)}
-                                    options={allOptions[name]}/>
-                    </For>
-                  </div>
-                </If>
+                {activeTab === 3 ? <div>
+                    {['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'].map((name, i) => <BalancingRow key={i} cursor={cPortfolio.refine(name)}
+                                    options={allOptions[name]}/>)}
+                  </div> : null}
               </Panel>
             </Col>
           </Row>
         </Tab>
-        <If condition={!isMobile}>
-          <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
+        {!isMobile ? <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
             <Row className="ample-padding-top">
               <Col lg={12}>
                 <Alert bsStyle="warning">
@@ -894,14 +846,11 @@ const CriteriaTabs = React.createClass({
                 </Alert>
               </Col>
             </Row>
-          </Tab>
-        </If>
-        <If condition={!isMobile}>
-          <Tab eventKey={5} title="RSS">
+          </Tab> : null}
+        {!isMobile ? <Tab eventKey={5} title="RSS">
             <Row className="ample-padding-top">
               <Col lg={12}>
-                <If condition={activeTab == 5}>
-                  <div>
+                {activeTab == 5 ? <div>
                     <p>
                       With an RSS feed, you can use any number of RSS Readers (including some
                       browsers
@@ -955,11 +904,10 @@ const CriteriaTabs = React.createClass({
                                 value={`https://www.kivalens.org/rss/${critRSSUrl}`}/>
                     </Panel>
                   </div>
-                </If>
+                 : null}
               </Col>
             </Row>
-          </Tab>
-        </If>
+          </Tab> : null}
       </Tabs>
     </div>
   }
