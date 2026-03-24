@@ -69281,11 +69281,11 @@ var KLNav = _react2['default'].createClass({
                             this.state.basket_count
                         )
                     ),
-                    _react2['default'].createElement(
+                    location.hostname === 'localhost' ? _react2['default'].createElement(
                         _reactBootstrap.NavItem,
                         { key: 8, href: '#/partners', className: isActive('/partners') ? 'active' : '' },
                         'Partners'
-                    ),
+                    ) : null,
                     _react2['default'].createElement(
                         _reactBootstrap.NavItem,
                         { key: 3, href: '#/live', className: isActive('/live') ? 'active' : '' },
