@@ -142,7 +142,7 @@ var Search = React.createClass({
                         </If>
                         <If condition={loan_count > 0}>
                             <div className="loan-count-bar">
-                                Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.length).format('0,0')} loans
+                                Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.count(l => l.status == 'fundraising')).format('0,0')} fundraising loans
                             </div>
                         </If>
                         <If condition={hasHadLoans && loan_count == 0}>
