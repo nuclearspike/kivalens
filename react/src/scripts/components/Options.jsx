@@ -14,7 +14,7 @@ import extend from 'extend'
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){
-        return {maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false}
+        return {maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false, showAllPartners: false}
     },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
@@ -181,7 +181,7 @@ const Options = React.createClass({
                                 <span> None</span>
                             </If>
                             <ul>
-                                <For each='p' index='i' of={this.state.missingPartners}>
+                                <For each='p' index='i' of={this.state.showAllPartners ? this.state.missingPartners : this.state.missingPartners.slice(0,5)}>
                                     <li key={i}>
                                         {p.id}: <KivaLink
                                         path={`about/where-kiva-works/partners/${p.id}`}>{p.name}</KivaLink>
@@ -191,6 +191,11 @@ const Options = React.createClass({
                                     </li>
                                 </For>
                             </ul>
+                            <If condition={this.state.missingPartners.length > 5}>
+                                <ClickLink onClick={()=>this.setState({showAllPartners: !this.state.showAllPartners})}>
+                                    {this.state.showAllPartners ? 'Show Less' : `See More (${this.state.missingPartners.length - 5} more)`}
+                                </ClickLink>
+                            </If>
                         </div>
                     </If>
                 </Panel>
