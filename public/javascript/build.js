@@ -72346,9 +72346,21 @@ var _extend2 = _interopRequireDefault(_extend);
 
 function validateCriteria(obj) {
     if (!obj || typeof obj !== 'object') return 'Invalid JSON: not an object';
-    // Single search: must have at least loan or partner or portfolio
+    // Single named search: {name: "...", loan: {}, ...}
+    if (obj.name && typeof obj.name === 'string' && (obj.loan || obj.partner || obj.portfolio)) return null;
+    // Single search without name: must have at least loan or partner or portfolio
     if (obj.loan || obj.partner || obj.portfolio) return null;
-    // Could be a named collection {name: {loan:{}, ...}}
+    // Array of named searches
+    if (Array.isArray(obj)) {
+        if (obj.length === 0) return 'Empty array';
+        for (var i = 0; i < obj.length; i++) {
+            var v = obj[i];
+            if (!v || typeof v !== 'object') return 'Item ' + i + ': not an object';
+            if (!v.loan && !v.partner && !v.portfolio) return 'Item ' + i + ': missing loan/partner/portfolio';
+        }
+        return null;
+    }
+    // Named collection {name: {loan:{}, ...}}
     var keys = Object.keys(obj);
     if (keys.length === 0) return 'No saved searches found in JSON';
     for (var i = 0; i < keys.length; i++) {
@@ -72356,11 +72368,22 @@ function validateCriteria(obj) {
         if (!v || typeof v !== 'object') return 'Invalid search "' + keys[i] + '": not an object';
         if (!v.loan && !v.partner && !v.portfolio) return 'Invalid search "' + keys[i] + '": missing loan/partner/portfolio';
     }
-    return null; // valid collection
+    return null;
 }
 
 function isSingleSearch(obj) {
-    return !!(obj && (obj.loan || obj.partner || obj.portfolio));
+    return !!(obj && !Array.isArray(obj) && (obj.loan || obj.partner || obj.portfolio));
+}
+
+function getImportName(obj) {
+    if (obj && obj.name && typeof obj.name === 'string') return obj.name;
+    return '';
+}
+
+function stripName(obj) {
+    var copy = (0, _extend2['default'])(true, {}, obj);
+    delete copy.name;
+    return copy;
 }
 
 function summarizeCriteria(crit) {
@@ -72409,23 +72432,68 @@ var SavedSearches = _react2['default'].createClass({
             counting: false,
             renaming: false,
             renameTo: '',
+            checked: {},
             showImportModal: false,
             importJSON: '',
             importName: '',
             importError: null,
             importValid: false,
+            showImportFromURL: false,
+            importFromURLData: null,
             searches: _stores2['default'].criteria.syncGetAllNames()
         };
     },
     componentDidMount: function componentDidMount() {
         this.listenTo(_actions2['default'].criteria.savedSearchListChanged, this.refreshList);
+        this.checkForURLImport();
+    },
+    checkForURLImport: function checkForURLImport() {
+        // Check for ?importSS= in the hash URL
+        var hash = window.location.hash;
+        var match = hash.match(/[?&]importSS=([^&]+)/);
+        if (match) {
+            try {
+                var decoded = decodeURIComponent(match[1]);
+                var data = JSON.parse(decoded);
+                var err = validateCriteria(data);
+                if (!err) {
+                    this.setState({ showImportFromURL: true, importFromURLData: data });
+                }
+            } catch (e) {
+                console.log('Failed to parse importSS param:', e);
+            }
+            // Clean the URL
+            window.location.hash = '#/saved';
+        }
+    },
+    doImportFromURL: function doImportFromURL() {
+        var data = this.state.importFromURLData;
+        if (!data) return;
+        if (Array.isArray(data)) {
+            data.forEach(function (item) {
+                var name = item.name || 'Imported Search';
+                var crit = stripName(item);
+                _stores2['default'].criteria.all[name] = crit;
+            });
+        } else if (isSingleSearch(data)) {
+            var name = data.name || 'Imported Search';
+            _stores2['default'].criteria.all[name] = stripName(data);
+        } else {
+            Object.keys(data).forEach(function (name) {
+                _stores2['default'].criteria.all[name] = data[name];
+            });
+        }
+        _stores2['default'].criteria.syncSavedAll();
+        this.setState({ showImportFromURL: false, importFromURLData: null });
+    },
+    skipImportFromURL: function skipImportFromURL() {
+        this.setState({ showImportFromURL: false, importFromURLData: null });
     },
     refreshList: function refreshList() {
         this.setState({ searches: _stores2['default'].criteria.syncGetAllNames() });
     },
     selectSearch: function selectSearch(name) {
         this.setState({ selected: name, loanCount: null, counting: true, renaming: false });
-        // Count matching loans
         try {
             var crit = _stores2['default'].criteria.syncGetByName(name);
             var count = kivaloans.isReady() ? kivaloans.filter(crit, false).length : null;
@@ -72457,15 +72525,79 @@ var SavedSearches = _react2['default'].createClass({
             return;
         }
         var crit = _stores2['default'].criteria.syncGetByName(oldName);
-        // Save with new name, delete old
         _stores2['default'].criteria.all[newName] = crit;
         delete _stores2['default'].criteria.all[oldName];
         _stores2['default'].criteria.syncSavedAll();
-        this.setState({ selected: newName, renaming: false });
+        // Update checked state
+        var checked = this.state.checked;
+        if (checked[oldName]) {
+            checked[newName] = true;
+            delete checked[oldName];
+        }
+        this.setState({ selected: newName, renaming: false, checked: checked });
+    },
+    toggleCheck: function toggleCheck(name, e) {
+        e.stopPropagation();
+        var checked = (0, _extend2['default'])({}, this.state.checked);
+        checked[name] = !checked[name];
+        this.setState({ checked: checked });
+    },
+    selectAll: function selectAll() {
+        var checked = {};
+        this.state.searches.forEach(function (name) {
+            return checked[name] = true;
+        });
+        this.setState({ checked: checked });
+    },
+    selectNone: function selectNone() {
+        this.setState({ checked: {} });
+    },
+    getCheckedNames: function getCheckedNames() {
+        var _this = this;
+
+        return this.state.searches.filter(function (name) {
+            return _this.state.checked[name];
+        });
+    },
+    exportSelected: function exportSelected() {
+        var names = this.getCheckedNames();
+        if (names.length === 0) {
+            alert('No searches selected.');return;
+        }
+        var data = {};
+        names.forEach(function (name) {
+            return data[name] = _stores2['default'].criteria.syncGetByName(name);
+        });
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'kivalens-saved-searches.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    },
+    shareSelected: function shareSelected() {
+        var names = this.getCheckedNames();
+        if (names.length === 0) {
+            alert('No searches selected.');return;
+        }
+        var arr = names.map(function (name) {
+            var crit = (0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncGetByName(name));
+            crit.name = name;
+            return crit;
+        });
+        var encoded = encodeURIComponent(JSON.stringify(arr));
+        var shareUrl = 'https://www.kivalens.org/#/saved?importSS=' + encoded;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl);
+            alert('Share link copied to clipboard! Send this link to other KivaLens users.');
+        } else {
+            prompt('Copy this share link:', shareUrl);
+        }
     },
     exportAll: function exportAll() {
-        var data = JSON.stringify(lsj.get('all_criteria'), null, 2);
-        var blob = new Blob([data], { type: 'application/json' });
+        var data = lsj.get('all_criteria');
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
@@ -72474,7 +72606,8 @@ var SavedSearches = _react2['default'].createClass({
         URL.revokeObjectURL(url);
     },
     copyJSON: function copyJSON() {
-        var crit = _stores2['default'].criteria.syncGetByName(this.state.selected);
+        var crit = (0, _extend2['default'])(true, {}, _stores2['default'].criteria.syncGetByName(this.state.selected));
+        crit.name = this.state.selected;
         var data = JSON.stringify(crit, null, 2);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(data);
@@ -72494,9 +72627,14 @@ var SavedSearches = _react2['default'].createClass({
                 if (err) {
                     alert(err);return;
                 }
-                if (isSingleSearch(obj)) {
-                    var name = file.name.replace('.json', '');
-                    _stores2['default'].criteria.all[name] = obj;
+                if (Array.isArray(obj)) {
+                    obj.forEach(function (item) {
+                        var name = item.name || 'Imported';
+                        _stores2['default'].criteria.all[name] = stripName(item);
+                    });
+                } else if (isSingleSearch(obj)) {
+                    var name = obj.name || file.name.replace('.json', '');
+                    _stores2['default'].criteria.all[name] = stripName(obj);
                 } else {
                     Object.keys(obj).forEach(function (name) {
                         _stores2['default'].criteria.all[name] = obj[name];
@@ -72509,7 +72647,6 @@ var SavedSearches = _react2['default'].createClass({
             }
         };
         reader.readAsText(file);
-        // Reset the input so the same file can be re-imported
         e.target.value = '';
     },
     showImportJSON: function showImportJSON() {
@@ -72521,25 +72658,37 @@ var SavedSearches = _react2['default'].createClass({
     onImportJSONChange: function onImportJSONChange(e) {
         var text = e.target.value;
         var valid = false,
-            error = null;
+            error = null,
+            importName = this.state.importName;
         try {
             var obj = JSON.parse(text);
             var err = validateCriteria(obj);
-            if (err) error = err;else valid = true;
+            if (err) error = err;else {
+                valid = true;
+                // Pre-populate name from JSON if it has one
+                if (isSingleSearch(obj) && obj.name && !this.state.importName) {
+                    importName = obj.name;
+                }
+            }
         } catch (ex) {
             if (text.trim().length > 0) error = 'Invalid JSON: ' + ex.message;
         }
-        this.setState({ importJSON: text, importValid: valid, importError: error });
+        this.setState({ importJSON: text, importValid: valid, importError: error, importName: importName });
     },
     doImportJSON: function doImportJSON() {
         try {
             var obj = JSON.parse(this.state.importJSON);
-            if (isSingleSearch(obj)) {
+            if (Array.isArray(obj)) {
+                obj.forEach(function (item) {
+                    var name = item.name || 'Imported';
+                    _stores2['default'].criteria.all[name] = stripName(item);
+                });
+            } else if (isSingleSearch(obj)) {
                 var name = this.state.importName.trim();
                 if (!name) {
                     alert('Please enter a name for this search.');return;
                 }
-                _stores2['default'].criteria.all[name] = obj;
+                _stores2['default'].criteria.all[name] = stripName(obj);
             } else {
                 Object.keys(obj).forEach(function (name) {
                     _stores2['default'].criteria.all[name] = obj[name];
@@ -72552,7 +72701,7 @@ var SavedSearches = _react2['default'].createClass({
         }
     },
     render: function render() {
-        var _this = this;
+        var _this2 = this;
 
         var _state = this.state;
         var selected = _state.selected;
@@ -72561,23 +72710,64 @@ var SavedSearches = _react2['default'].createClass({
         var renaming = _state.renaming;
         var renameTo = _state.renameTo;
         var searches = _state.searches;
+        var checked = _state.checked;
         var showImportModal = _state.showImportModal;
         var importJSON = _state.importJSON;
         var importName = _state.importName;
         var importError = _state.importError;
         var importValid = _state.importValid;
+        var showImportFromURL = _state.showImportFromURL;
+        var importFromURLData = _state.importFromURLData;
 
         var selectedCrit = selected ? _stores2['default'].criteria.syncGetByName(selected) : null;
         var summary = selectedCrit ? summarizeCriteria(selectedCrit) : [];
+        var checkedCount = this.getCheckedNames().length;
         var parsedImport = null;
         try {
             parsedImport = importJSON ? JSON.parse(importJSON) : null;
         } catch (e) {}
         var isSingle = parsedImport && isSingleSearch(parsedImport);
+        var importSummary = isSingle ? summarizeCriteria(stripName(parsedImport)) : [];
+
+        // Count items in URL import
+        var urlImportCount = 0;
+        if (importFromURLData) {
+            if (Array.isArray(importFromURLData)) urlImportCount = importFromURLData.length;else if (isSingleSearch(importFromURLData)) urlImportCount = 1;else urlImportCount = Object.keys(importFromURLData).length;
+        }
 
         return _react2['default'].createElement(
             'div',
             null,
+            showImportFromURL ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { bsStyle: 'info', style: { margin: '0 15px 15px' } },
+                _react2['default'].createElement(
+                    'h4',
+                    null,
+                    'Import Saved Searches'
+                ),
+                _react2['default'].createElement(
+                    'p',
+                    null,
+                    'Someone shared ',
+                    urlImportCount,
+                    ' saved search',
+                    urlImportCount !== 1 ? 'es' : '',
+                    ' with you. Would you like to import ',
+                    urlImportCount === 1 ? 'it' : 'them',
+                    '?'
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsStyle: 'primary', onClick: this.doImportFromURL, style: { marginRight: 8 } },
+                    'Import'
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { onClick: this.skipImportFromURL },
+                    'Skip'
+                )
+            ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { md: 4 },
@@ -72590,22 +72780,50 @@ var SavedSearches = _react2['default'].createClass({
                 ),
                 _react2['default'].createElement(
                     'div',
-                    { style: { height: 'calc(100vh - 160px)', overflowY: 'auto' } },
+                    { style: { marginBottom: 6 } },
+                    _react2['default'].createElement(
+                        _reactBootstrap.ButtonGroup,
+                        { bsSize: 'xsmall' },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { onClick: this.selectAll },
+                            'Select All'
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { onClick: this.selectNone },
+                            'Select None'
+                        )
+                    )
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { style: { height: 'calc(100vh - 230px)', overflowY: 'auto' } },
                     searches.map(function (name) {
                         return _react2['default'].createElement(
                             _reactBootstrap.ListGroupItem,
                             {
                                 key: name,
                                 className: (0, _classnames2['default'])({ active: selected === name }),
-                                style: { padding: '6px 12px', cursor: 'pointer', fontSize: 13 },
-                                onClick: _this.selectSearch.bind(_this, name) },
-                            name
+                                style: { padding: '4px 8px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center' },
+                                onClick: _this2.selectSearch.bind(_this2, name) },
+                            _react2['default'].createElement('input', { type: 'checkbox', checked: !!checked[name],
+                                onChange: _this2.toggleCheck.bind(_this2, name),
+                                onClick: function (e) {
+                                    return e.stopPropagation();
+                                },
+                                style: { marginRight: 8, flexShrink: 0 } }),
+                            _react2['default'].createElement(
+                                'span',
+                                { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+                                name
+                            )
                         );
                     }),
                     searches.length === 0 ? _react2['default'].createElement(
                         'p',
                         { style: { color: '#999', padding: 12 } },
-                        'No saved searches yet. Save one from the Search tab.'
+                        'No saved searches yet.'
                     ) : null
                 ),
                 _react2['default'].createElement(
@@ -72613,23 +72831,43 @@ var SavedSearches = _react2['default'].createClass({
                     { style: { paddingTop: 8, borderTop: '1px solid #ddd' } },
                     _react2['default'].createElement(
                         _reactBootstrap.ButtonGroup,
-                        null,
+                        { bsSize: 'small' },
                         _react2['default'].createElement(
                             _reactBootstrap.Button,
-                            { bsSize: 'small', onClick: this.exportAll, disabled: searches.length === 0 },
+                            { onClick: this.exportAll },
                             'Export All'
                         ),
                         _react2['default'].createElement(
                             _reactBootstrap.Button,
-                            { bsSize: 'small', className: 'btn-file', style: { position: 'relative', overflow: 'hidden' } },
-                            'Import File...',
-                            _react2['default'].createElement('input', { type: 'file', accept: '.json', onChange: this.importFile,
-                                style: { position: 'absolute', top: 0, right: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' } })
-                        ),
+                            { onClick: this.exportSelected, disabled: checkedCount === 0 },
+                            'Export Selected (',
+                            checkedCount,
+                            ')'
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { marginTop: 4 } },
                         _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { bsSize: 'small', onClick: this.showImportJSON },
-                            'Import JSON...'
+                            _reactBootstrap.ButtonGroup,
+                            { bsSize: 'small' },
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { onClick: this.shareSelected, disabled: checkedCount === 0 },
+                                'Share Selected'
+                            ),
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { className: 'btn-file', style: { position: 'relative', overflow: 'hidden' } },
+                                'Import File...',
+                                _react2['default'].createElement('input', { type: 'file', accept: '.json', onChange: this.importFile,
+                                    style: { position: 'absolute', top: 0, right: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' } })
+                            ),
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { onClick: this.showImportJSON },
+                                'Import JSON...'
+                            )
                         )
                     )
                 )
@@ -72648,10 +72886,10 @@ var SavedSearches = _react2['default'].createClass({
                             null,
                             _react2['default'].createElement('input', { type: 'text', className: 'form-control', style: { display: 'inline', width: '60%' },
                                 value: renameTo, onChange: function (e) {
-                                    return _this.setState({ renameTo: e.target.value });
+                                    return _this2.setState({ renameTo: e.target.value });
                                 },
                                 onKeyDown: function (e) {
-                                    if (e.keyCode === 13) _this.doRename();
+                                    if (e.keyCode === 13) _this2.doRename();
                                 },
                                 autoFocus: true }),
                             _react2['default'].createElement(
@@ -72662,7 +72900,7 @@ var SavedSearches = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 _reactBootstrap.Button,
                                 { bsSize: 'small', onClick: function () {
-                                        return _this.setState({ renaming: false });
+                                        return _this2.setState({ renaming: false });
                                     }, style: { marginLeft: 4 } },
                                 'Cancel'
                             )
@@ -72744,7 +72982,7 @@ var SavedSearches = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'p',
                         null,
-                        'Browse, rename, export, and import your saved searches.'
+                        'Browse, rename, share, export, and import your saved searches.'
                     )
                 )
             ),
@@ -72766,7 +73004,7 @@ var SavedSearches = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'p',
                         null,
-                        'Paste a saved search JSON below. You can get this from the "Copy JSON" button on any saved search to share with teammates.'
+                        'Paste a saved search JSON below. Get this from "Copy JSON" on any saved search to share with teammates.'
                     ),
                     isSingle ? _react2['default'].createElement(
                         'div',
@@ -72778,7 +73016,7 @@ var SavedSearches = _react2['default'].createClass({
                         ),
                         _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Enter a name...',
                             value: importName, onChange: function (e) {
-                                return _this.setState({ importName: e.target.value });
+                                return _this2.setState({ importName: e.target.value });
                             } })
                     ) : null,
                     _react2['default'].createElement('textarea', { className: 'form-control', rows: 10,
@@ -72795,12 +73033,36 @@ var SavedSearches = _react2['default'].createClass({
                             '✓'
                         ),
                         'Valid ',
-                        isSingle ? 'single search' : 'collection (' + Object.keys(parsedImport).length + ' searches)'
+                        isSingle ? 'single search' : Array.isArray(parsedImport) ? parsedImport.length + ' searches' : 'collection (' + Object.keys(parsedImport).length + ' searches)'
                     ) : null,
                     importError ? _react2['default'].createElement(
                         _reactBootstrap.Alert,
                         { bsStyle: 'danger', style: { marginTop: 8, marginBottom: 0 } },
                         importError
+                    ) : null,
+                    importValid && isSingle && importSummary.length > 0 ? _react2['default'].createElement(
+                        _reactBootstrap.Panel,
+                        { header: 'Criteria Summary', style: { marginTop: 8 } },
+                        _react2['default'].createElement(
+                            'dl',
+                            { className: 'dl-horizontal', style: { marginBottom: 0 } },
+                            importSummary.map(function (item, i) {
+                                return _react2['default'].createElement(
+                                    'span',
+                                    { key: i },
+                                    _react2['default'].createElement(
+                                        'dt',
+                                        null,
+                                        item.label
+                                    ),
+                                    _react2['default'].createElement(
+                                        'dd',
+                                        null,
+                                        item.value
+                                    )
+                                );
+                            })
+                        )
                     ) : null
                 ),
                 _react2['default'].createElement(

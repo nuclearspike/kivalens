@@ -1038,13 +1038,46 @@ else  //workers handle all communication with the clients.
     var vhost = require('vhost')
     var nspike = require('./nuclearspike_com')
 
-    // redirect http -> https and kivalens.org -> www.kivalens.org
+    // Serve transfer page for non-https or non-www requests
     main.use((req, res, next) => {
         const host = req.hostname
         const proto = req.headers['x-forwarded-proto'] || req.protocol
         if (host === 'localhost' || host === '127.0.0.1') return next()
         if (proto !== 'https' || host === 'kivalens.org') {
-            return res.redirect(301, `https://www.kivalens.org${req.originalUrl}`)
+            var newUrl = `https://www.kivalens.org${req.originalUrl}`
+            return res.send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>KivaLens has moved</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; color: #333; }
+  h1 { color: #2c6e49; } a { color: #2c6e49; } .btn { display: inline-block; padding: 10px 20px; background: #2c6e49; color: white; text-decoration: none; border-radius: 4px; margin: 8px 4px 8px 0; }
+  .btn-outline { background: white; color: #2c6e49; border: 1px solid #2c6e49; }
+  #transfer { display: none; margin-top: 16px; padding: 16px; background: #f0f9f4; border-radius: 6px; border: 1px solid #c3e6cb; }
+</style></head><body>
+<h1>KivaLens has moved!</h1>
+<p>KivaLens is now at <a href="${newUrl}">${newUrl}</a></p>
+<p>Please update your bookmarks to use <b>https://www.kivalens.org</b></p>
+<a class="btn" href="${newUrl}">Go to KivaLens</a>
+<div id="transfer">
+  <h3>Transfer Saved Searches</h3>
+  <p>We found <b id="ssCount"></b> saved searches in your browser. Since the URL has changed, they won't carry over automatically.</p>
+  <a id="transferLink" class="btn" href="#">Transfer &amp; Go to KivaLens</a>
+  <a class="btn btn-outline" href="${newUrl}">Skip, just go</a>
+</div>
+<script>
+try {
+  var raw = localStorage.getItem('all_criteria');
+  if (raw) {
+    var parsed = JSON.parse(raw);
+    var keys = Object.keys(parsed);
+    if (keys.length > 0) {
+      document.getElementById('transfer').style.display = 'block';
+      document.getElementById('ssCount').textContent = keys.length;
+      var encoded = encodeURIComponent(JSON.stringify(parsed));
+      document.getElementById('transferLink').href = '${newUrl.split('#')[0]}#/saved?importSS=' + encoded;
+    }
+  }
+} catch(e) {}
+</script></body></html>`)
         }
         next()
     })
