@@ -15,16 +15,17 @@ var kivaBase, gdocs
 if (!isServer()) {
     //this has KivaLens-specific refs that won't work in other uses.
     //some of these can be switched to direct kiva/gdocs calls if needed on the server.
-    req.kl = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},0)
+    req.kl = new SemRequest(`${location.protocol}//${location.host}/api/`, true, false, {}, 0)
     //req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
-    req.klraw = new SemRequest(`${location.protocol}//${location.host}/`,false,false,{},0)
+    req.klraw = new SemRequest(`${location.protocol}//${location.host}/`, false, false, {}, 0)
 
-    kivaBase = `http://kivalens-www.herokuapp.com/proxy/kiva/`
+    //kivaBase = `http://kivalens-www.herokuapp.com/proxy/kiva/`
+    kivaBase = `https://www.kivalens.org/proxy/kiva/`
 
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
     req.kl.graph = query => {
         return postUrl(`${location.protocol}//${location.host}/graphql`,
-            {}, query ).then(response => response.data)
+            {}, query).then(response => response.data)
     }
 } else {
     kivaBase = 'https://www.kiva.org/'
@@ -32,9 +33,9 @@ if (!isServer()) {
 }
 
 req.kiva = {
-    api: new SemRequest('https://api.kivaws.org/v1/',true,false,{app_id: 'org.kiva.kivalens'},2),
-    page: new SemRequest(`${kivaBase}`,false,!isServer(),{},5*60),
-    ajax: new SemRequest(`${kivaBase}ajax/`,true,!isServer(),{},5*60)
+    api: new SemRequest('https://api.kivaws.org/v1/', true, false, { app_id: 'org.kiva.kivalens' }, 2),
+    page: new SemRequest(`${kivaBase}`, false, !isServer(), {}, 5 * 60),
+    ajax: new SemRequest(`${kivaBase}ajax/`, true, !isServer(), {}, 5 * 60)
 }
 
 //max of 100, not enforced or checked in this call.
@@ -66,7 +67,7 @@ req.kiva.api.lenders = lenders => {
 }
 
 req.gdocs = {
-    atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`,false,!isServer(),{gid:1,format:'csv'},5)
+    atheist: new SemRequest(`${gdocs}spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export`, false, !isServer(), { gid: 1, format: 'csv' }, 5)
 }
 
 module.exports = global.req = req

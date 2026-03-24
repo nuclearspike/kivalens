@@ -18,9 +18,9 @@ There are two separate npm packages. One that compiles the client code and sets 
 watch (using gulp and browserify) and the other that runs the server (just by running cluster.js with node)
 
 To run the project:
-* In the /react directory, run "npm run kl" and leave that console running.
+* In the /react directory, run "npm run kl" and leave that console running if you're going to make updates and test.
 * In a separate console, in the root project directory, run "npm start".
-* Once the server console has finished downloading Kiva loans, go to http://localhost:5000 in a browser
+* Once the server console has finished downloading Kiva loans, go to http://localhost:5000 in a browser (not by IP)
 
 There is no hot module reloading set up, so changes made to the client require that you
 refresh the browser window.
