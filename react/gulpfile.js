@@ -8,7 +8,6 @@ var cleanCSS = require('gulp-clean-css')
 var sass = require('gulp-sass')(require('sass'))
 var browserify = require('browserify')
 var watchify = require('watchify')
-var notifier = require('node-notifier')
 var babelify = require('babelify')
 var source = require('vinyl-source-stream')
 var buffer = require('vinyl-buffer')
@@ -18,7 +17,7 @@ var gulpif = require('gulp-if'),
 var production = false; //todo: find what node production environment settings do.
 
 gulp.task('styles', function(){
-  notifier.notify({title: 'Gulp', message: 'Styles changed'})
+  console.log('[Gulp] Styles changed')
   return gulp.src(['src/styles/**/*.scss'])
     .pipe(plumber({
       errorHandler: function (error) {
@@ -42,11 +41,7 @@ function compile(watch) {
     function rebundle() {
       return bundler.bundle()
         .on('error', function (err) {
-          notifier.notify({
-            title: 'Gulp',
-            message: 'An error occurred during building. Check the console for details. ' + err
-          })
-          console.error(err)
+          console.error('[Gulp] Build error:', err)
           this.emit('end')
         })
         .pipe(source('build.js'))
@@ -58,10 +53,8 @@ function compile(watch) {
     if (watch) {
         console.log('watching for changes...')
         bundler.on('update', function() {
-            notifier.notify({title: 'Gulp', message: "Change Detected"})
             console.log('-> change:bundling...')
             rebundle()
-            notifier.notify({title: 'Gulp', message: "Done"})
             console.log('-> done.')
             console.log('waiting...')
         })
@@ -93,7 +86,7 @@ gulp.task('watch', function(done) { compile(true); done() })
 gulp.task('prod', gulp.series('production', gulp.parallel('styles', 'scripts')))
 
 gulp.task('default', gulp.series(gulp.parallel('styles', 'scripts'), function watching(done){
-  notifier.notify({title: 'Gulp', message: 'Watching for changes'})
+  console.log('[Gulp] Watching for changes')
   gulp.watch("src/styles/**/*.scss", gulp.series('styles'))
   gulp.watch("src/scripts/**/*.jsx", gulp.series('scripts'))
   gulp.watch("src/scripts/**/*.js", gulp.series('scripts'))
