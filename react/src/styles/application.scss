@@ -433,6 +433,17 @@ div.panel.radioPanel {
   color: #1565c0;
 }
 
+// Loan count bar
+.loan-count-bar {
+  background: $kiva-bg-subtle;
+  border: 1px solid $kiva-border;
+  border-top: none;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: $kiva-text-muted;
+  text-align: center;
+}
+
 ul.spacedList li {padding-top: 10px}
 
 
@@ -458,6 +469,51 @@ ul.spacedList li {padding-top: 10px}
 
 @media (max-width: 768px) {
   .loan_list_container {height: 300px !important;}
+
+  // Stack loan list and detail vertically on mobile
+  .navbar .navbar-nav > li > a {
+    padding: 8px 15px !important;
+    border-top: none !important;
+    border-left: 3px solid transparent;
+    &:hover { border-left-color: $kiva-green; }
+  }
+  .navbar .navbar-nav > li.active > a {
+    border-top: none !important;
+    border-left: 3px solid $kiva-green;
+  }
+
+  // Full width loan items on mobile
+  .loan_list_item .KivaImage {
+    margin-left: -10px;
+  }
+
+  // Stack columns
+  .flat-3d {
+    margin-top: 10px;
+  }
+
+  // Tighter panels on mobile
+  .panel .panel-body {
+    padding: 8px;
+  }
+
+  // Loan detail heading
+  h1 {
+    font-size: 24px;
+  }
+
+  // Criteria tabs scroll horizontally
+  .nav-tabs {
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    display: flex;
+    > li {
+      float: none;
+      flex-shrink: 0;
+    }
+  }
 }
 
 .loan_list_container {

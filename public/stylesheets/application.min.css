@@ -400,6 +400,16 @@ div.panel.radioPanel div.radio {
   color: #1565c0;
 }
 
+.loan-count-bar {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #6c757d;
+  text-align: center;
+}
+
 ul.spacedList li {
   padding-top: 10px;
 }
@@ -426,6 +436,41 @@ ul.spacedList li {
 @media (max-width: 768px) {
   .loan_list_container {
     height: 300px !important;
+  }
+  .navbar .navbar-nav > li > a {
+    padding: 8px 15px !important;
+    border-top: none !important;
+    border-left: 3px solid transparent;
+  }
+  .navbar .navbar-nav > li > a:hover {
+    border-left-color: #2C8C5E;
+  }
+  .navbar .navbar-nav > li.active > a {
+    border-top: none !important;
+    border-left: 3px solid #2C8C5E;
+  }
+  .loan_list_item .KivaImage {
+    margin-left: -10px;
+  }
+  .flat-3d {
+    margin-top: 10px;
+  }
+  .panel .panel-body {
+    padding: 8px;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .nav-tabs {
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    display: flex;
+  }
+  .nav-tabs > li {
+    float: none;
+    flex-shrink: 0;
   }
 }
 .loan_list_container {

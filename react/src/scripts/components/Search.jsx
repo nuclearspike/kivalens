@@ -9,6 +9,7 @@ import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
 import a from '../actions'
 import cx from 'classnames'
 import s from '../stores'
+import numeral from 'numeral'
 import InfiniteList from './InfiniteList.jsx'
 
 
@@ -139,6 +140,11 @@ var Search = React.createClass({
                                 Continue using the site while the loans are refreshed...
                             </Alert>
                         </If>
+                        <If condition={loan_count > 0}>
+                            <div className="loan-count-bar">
+                                Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.length).format('0,0')} loans
+                            </div>
+                        </If>
                         <If condition={hasHadLoans && loan_count == 0}>
                             <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
                                 There are no matching loans for your current criteria. Loosen the criteria, select a
@@ -152,7 +158,7 @@ var Search = React.createClass({
                             items={this.state.filtered_loans}
                             itemsCount={this.state.filtered_loans.length}
                             height={900}
-                            itemHeight={100}
+                            itemHeight={82}
                             listItemClass={LoanListItem}/>
                     </div>
                 </Col>
