@@ -72027,10 +72027,9 @@ var PartnerListItem = _react2['default'].createClass({
                 style: bgColor ? { backgroundColor: bgColor } : null,
                 onClick: this.props.onClick,
                 href: 'javascript:void(0)' },
-            p.image ? _react2['default'].createElement(_.KivaImage, { key: p.id, type: 'square', loan: p, image_width: 113, height: 60, width: 60 }) : _react2['default'].createElement('div', { style: { width: 60, height: 60, display: 'inline-block', backgroundColor: '#ddd', verticalAlign: 'top', marginRight: 8 } }),
             _react2['default'].createElement(
                 'div',
-                { className: 'details' },
+                { className: 'details', style: { marginLeft: 0 } },
                 _react2['default'].createElement(
                     'div',
                     { className: 'loan-name' },
@@ -72061,12 +72060,6 @@ var PartnerListItem = _react2['default'].createClass({
                         { className: 'loan-tag' },
                         p.rating,
                         ' stars'
-                    ) : null,
-                    p.loans_posted ? _react2['default'].createElement(
-                        'span',
-                        { className: 'loan-tag' },
-                        (0, _numeral2['default'])(p.loans_posted).format('0,0'),
-                        ' loans'
                     ) : null
                 )
             )
@@ -72103,7 +72096,6 @@ var Partners = _react2['default'].createClass({
     },
     performSearch: function performSearch() {
         var c = this.state.criteria.partner || {};
-        // Add name search
         c.name = this.state.nameSearch;
         var results = kivaloans.filterAllPartners(c);
         results = results.orderBy(function (p) {
@@ -72137,66 +72129,64 @@ var Partners = _react2['default'].createClass({
             null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 4 },
+                { md: 3 },
                 _react2['default'].createElement(
                     'div',
-                    { className: 'side-results' },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Panel,
-                        { style: { marginBottom: 0, borderRadius: 0, padding: '8px' } },
-                        _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
-                            style: { marginBottom: 8 },
-                            onChange: this.onNameChange, value: this.state.nameSearch }),
-                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
-                            aanCursor: cPartner.refine('status_all_any_none') }),
-                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'direct', cursor: cPartner.refine('direct'),
-                            aanCursor: cPartner.refine('direct_all_any_none') }),
-                        ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
-                            return _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
-                                aanCursor: cPartner.refine(name + '_all_any_none') });
-                        }),
-                        _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
-                            aanCursor: cPartner.refine('religion_all_any_none') }),
-                        ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
-                            return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
+                    { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 5 } },
+                    _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
+                        style: { marginBottom: 8 },
+                        onChange: this.onNameChange, value: this.state.nameSearch }),
+                    _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
+                        aanCursor: cPartner.refine('status_all_any_none') }),
+                    ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
+                        return _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
+                            aanCursor: cPartner.refine(name + '_all_any_none') });
+                    }),
+                    _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
+                        aanCursor: cPartner.refine('religion_all_any_none') }),
+                    ['partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva', 'loans_posted'].map(function (name, i) {
+                        return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i, cursorMin: cPartner.refine(name + '_min'),
+                            cursorMax: cPartner.refine(name + '_max'), cycle: 0,
+                            options: _CriteriaTabsJsx.allOptions[name] });
+                    }),
+                    displayAtheistOptions ? _react2['default'].createElement(
+                        'div',
+                        null,
+                        ['secular_rating', 'social_rating'].map(function (name, i) {
+                            return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
                                 cursorMax: cPartner.refine(name + '_max'), cycle: 0,
                                 options: _CriteriaTabsJsx.allOptions[name] });
-                        }),
-                        displayAtheistOptions ? _react2['default'].createElement(
-                            'div',
-                            null,
-                            ['secular_rating', 'social_rating'].map(function (name, i) {
-                                return _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { key: i + '_atheist', cursorMin: cPartner.refine(name + '_min'),
-                                    cursorMax: cPartner.refine(name + '_max'), cycle: 0,
-                                    options: _CriteriaTabsJsx.allOptions[name] });
-                            })
-                        ) : null
-                    ),
-                    _react2['default'].createElement(
-                        'div',
-                        { className: 'loan-count-bar' },
-                        'Showing ',
-                        (0, _numeral2['default'])(filteredPartners.length).format('0,0'),
-                        ' of ',
-                        (0, _numeral2['default'])(totalPartners).format('0,0'),
-                        ' partners'
-                    ),
-                    _react2['default'].createElement(
-                        'div',
-                        { className: 'loan_list_container', style: { height: 600, overflowY: 'auto' } },
-                        filteredPartners.map(function (p) {
-                            return _react2['default'].createElement(PartnerListItem, {
-                                key: p.id,
-                                partner: p,
-                                selected: selectedPartner && selectedPartner.id === p.id,
-                                onClick: _this.selectPartner.bind(_this, p) });
                         })
-                    )
+                    ) : null
                 )
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 8 },
+                { md: 3 },
+                _react2['default'].createElement(
+                    'div',
+                    { className: 'loan-count-bar' },
+                    'Showing ',
+                    (0, _numeral2['default'])(filteredPartners.length).format('0,0'),
+                    ' of ',
+                    (0, _numeral2['default'])(totalPartners).format('0,0'),
+                    ' partners'
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { className: 'loan_list_container', style: { height: 'calc(100vh - 90px)', overflowY: 'auto' } },
+                    filteredPartners.map(function (p) {
+                        return _react2['default'].createElement(PartnerListItem, {
+                            key: p.id,
+                            partner: p,
+                            selected: selectedPartner && selectedPartner.id === p.id,
+                            onClick: _this.selectPartner.bind(_this, p) });
+                    })
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 6 },
                 selectedPartner ? _react2['default'].createElement(_PartnerDetailJsx2['default'], { partner: selectedPartner, showStatus: true }) : _react2['default'].createElement(
                     'div',
                     { style: { padding: '40px', textAlign: 'center', color: '#999' } },
