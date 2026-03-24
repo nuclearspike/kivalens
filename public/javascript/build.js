@@ -72712,12 +72712,15 @@ var _actions2 = _interopRequireDefault(_actions);
 
 var LenderLoans = require("../api/kivajs/LenderLoans");
 
+var _snowstackInstance = 0;
+
 var SnowStack = _react2['default'].createClass({
     displayName: 'SnowStack',
 
     mixins: [_reflux2['default'].ListenerMixin],
     getInitialState: function getInitialState() {
-        return { message: 'Loading...' };
+        _snowstackInstance++;
+        return { message: 'Loading...', instanceId: _snowstackInstance };
     },
     shouldComponentUpdate: function shouldComponentUpdate(np, _ref) {
         var message = _ref.message;
@@ -72760,18 +72763,21 @@ var SnowStack = _react2['default'].createClass({
         if (this._started) return;
         if (this.getKivaID() || kivaloans.isReady()) {
             this._started = true;
-            // Reset snowstack globals
-            if (typeof snowstack_reset === 'function') snowstack_reset();
-            // Small delay to ensure DOM is ready
+            // Completely reinitialize snowstack with fresh DOM
             setTimeout(function () {
-                return snowstack_init(_this.produceImages);
-            }, 50);
+                // Swap the camera ID to match what snowstack expects
+                var el = document.getElementById('camera-' + _this.state.instanceId);
+                if (el) el.id = 'camera';
+                snowstack_init(_this.produceImages);
+            }, 100);
         }
     },
     componentWillUnmount: function componentWillUnmount() {
-        // Clean up: remove event listeners snowstack added
+        if (typeof snowstack_reset === 'function') snowstack_reset();
         if (typeof snowstack_cleanup === 'function') snowstack_cleanup();
-        // Remove any inline body styles
+        // Restore camera ID so cleanup doesn't affect next instance
+        var el = document.getElementById('camera');
+        if (el) el.id = 'camera-dead';
         document.body.style.removeProperty('background-color');
         document.body.style.removeProperty('overflow');
     },
@@ -72791,12 +72797,12 @@ var SnowStack = _react2['default'].createClass({
                 _react2['default'].createElement(
                     'div',
                     { className: 'origin view' },
-                    _react2['default'].createElement('div', { id: 'camera', className: 'camera view' })
+                    _react2['default'].createElement('div', { id: 'camera-' + this.state.instanceId, className: 'camera view' })
                 )
             ),
             _react2['default'].createElement(
                 'div',
-                { id: 'caption', style: { position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ccc', fontSize: 13, zIndex: 101 } },
+                { style: { position: 'fixed', bottom: 0, left: 0, right: 0, padding: '8px 16px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#ccc', fontSize: 13, zIndex: 101 } },
                 this.state.message
             )
         );
