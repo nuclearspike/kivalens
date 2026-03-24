@@ -662,7 +662,8 @@ else  //workers handle all communication with the clients.
             directives: {
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
-                styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+                styleSrcElem: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
                 imgSrc: ["'self'", "https://www.kiva.org", "https://*.kivaws.org", "data:", "https://www.google-analytics.com"],
                 connectSrc: ["'self'", "https://api.kivaws.org", "https://www.kiva.org", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
