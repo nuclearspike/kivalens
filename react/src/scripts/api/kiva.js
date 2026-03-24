@@ -554,7 +554,8 @@ class Loans {
     //needs a copy of it and to guarantee the groups are there.
     extend(true, c, {loan: {}, partner: {}, portfolio: {}}) //modifies the criteria object. must be after get last
 
-    if (!loans_to_filter) console.time("filter")
+    var _filterTimerLabel = loans_to_filter ? null : 'filter-' + Date.now()
+    if (_filterTimerLabel) console.time(_filterTimerLabel)
 
     //break this into another unit --store? LoansAPI.filter(loans, criteria)
 
@@ -670,7 +671,7 @@ class Loans {
     if (cacheResults)
       this.last_filtered = loans_to_filter
 
-    if (!loans_to_filter) console.timeEnd("filter")
+    if (_filterTimerLabel) console.timeEnd(_filterTimerLabel)
     return loans_to_filter
   }
 
