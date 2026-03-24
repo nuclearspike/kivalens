@@ -2,9 +2,10 @@
 import React from 'react'
 import Reflux from 'reflux'
 
-import {Grid,Col,Row,Panel,Alert} from 'react-bootstrap'
+import {Grid,Col,Row,Panel} from 'react-bootstrap'
 import numeral from 'numeral'
 import {Motion, spring} from 'react-motion'
+import TimeAgo from 'react-timeago'
 
 //move this out and import once used elsewhere.
 const AnimInt = React.createClass({
@@ -59,7 +60,8 @@ const Live = React.createClass({
                 <Row>
                     <h1>Kiva Lending</h1>
                     <p>
-                        The stats below are based on data from KivaLens's periodic syncs with Kiva's API.
+                        Session started <TimeAgo date={kivaloans.startupTime.toISOString()}/>.
+                        Stats are updated from periodic syncs with Kiva's API.
                     </p>
                 </Row>
                 <Row>

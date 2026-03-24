@@ -1,3 +1,79 @@
+body {
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-size: 13px !important;
+  color: #2d2d2d !important;
+}
+
+.navbar {
+  margin-bottom: 8px !important;
+  min-height: 40px !important;
+  background-color: #1a3d2e !important;
+  border: none !important;
+}
+.navbar .navbar-brand {
+  padding: 8px 15px !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+.navbar .navbar-nav > li > a {
+  padding: 10px 12px !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.panel {
+  margin-bottom: 10px;
+  border-color: #dee2e6;
+}
+.panel .panel-heading {
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.panel .panel-body {
+  padding: 10px 12px;
+}
+
+.dl-horizontal dt {
+  font-weight: 500;
+}
+
+.dl-horizontal dd {
+  margin-bottom: 3px;
+}
+
+.nav-tabs > li > a {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btn {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.btn-group .btn {
+  padding: 4px 8px;
+}
+
+.alert {
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.badge {
+  background-color: #28a745 !important;
+  font-size: 11px;
+  padding: 2px 6px;
+  margin-left: 3px;
+}
+
+.container-fluid {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .loan_list_item {
   transition: all 300ms ease;
   z-index: 10;
@@ -60,7 +136,7 @@
 .loan_list_item.selected {
   z-index: 12;
   transform: rotateY(0deg);
-  background-color: aliceblue;
+  background-color: #e8f5ee;
 }
 
 .loan_list_item.gone {
@@ -98,7 +174,7 @@ div.panel.radioPanel div.radio {
 }
 
 .menu_selected {
-  background-color: #242422;
+  background-color: #1a3d2e;
 }
 
 .loan_list_item:first-child {
@@ -140,10 +216,10 @@ div.panel.radioPanel div.radio {
 }
 
 .loan_list_item {
-  height: 100px;
+  height: 85px;
   width: 100%;
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
   overflow-y: hidden;
 }
 .loan_list_item .KivaImage {
@@ -249,7 +325,7 @@ ul.spacedList li {
 }
 
 .ample-padding-top {
-  padding-top: 15px;
+  padding-top: 8px;
 }
 
 .spacedChildren > * {
@@ -261,7 +337,7 @@ ul.spacedList li {
 }
 
 .in_basket {
-  background-color: #93C54B !important;
+  background-color: #28a745 !important;
 }
 
 .funded {
@@ -705,7 +781,7 @@ div.notification-bar {
 }
 
 .bar.bar-1 {
-  background: #93C54B;
+  background: #2C8C5E;
 }
 
 .bar.bar-2 {

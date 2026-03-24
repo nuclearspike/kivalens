@@ -1,3 +1,96 @@
+// Kiva-inspired color palette
+$kiva-green: #2C8C5E;
+$kiva-green-light: #e8f5ee;
+$kiva-green-dark: #1a3d2e;
+$kiva-action: #28a745;
+$kiva-text: #2d2d2d;
+$kiva-text-muted: #6c757d;
+$kiva-border: #dee2e6;
+$kiva-bg-subtle: #f8f9fa;
+
+// Global overrides
+body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-size: 13px !important;
+  color: $kiva-text !important;
+}
+
+// Tighter navbar
+.navbar {
+  margin-bottom: 8px !important;
+  min-height: 40px !important;
+  background-color: $kiva-green-dark !important;
+  border: none !important;
+  .navbar-brand {
+    padding: 8px 15px !important;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .navbar-nav > li > a {
+    padding: 10px 12px !important;
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+// Tighter panels
+.panel {
+  margin-bottom: 10px;
+  border-color: $kiva-border;
+  .panel-heading {
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .panel-body {
+    padding: 10px 12px;
+  }
+}
+
+// Tighter definition lists
+.dl-horizontal dt {
+  font-weight: 500;
+}
+.dl-horizontal dd {
+  margin-bottom: 3px;
+}
+
+// Tighter tabs
+.nav-tabs > li > a {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+// Compact buttons
+.btn {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+.btn-group .btn {
+  padding: 4px 8px;
+}
+
+// Compact alerts
+.alert {
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+// Badge styling
+.badge {
+  background-color: $kiva-action !important;
+  font-size: 11px;
+  padding: 2px 6px;
+  margin-left: 3px;
+}
+
+// Grid tightening
+.container-fluid {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 //@import "./graphiql";
 
 #graph_container div {
@@ -68,8 +161,8 @@
 
 .loan_list_item.selected {
   z-index: 12;
-  transform: rotateY(0deg); // translateX(30px) translateZ(100px);
-  background-color: aliceblue;
+  transform: rotateY(0deg);
+  background-color: $kiva-green-light;
 }
 
 .loan_list_item.gone {
@@ -113,7 +206,7 @@ div.panel.radioPanel {
 }
 
 .menu_selected {
-  background-color: #242422;
+  background-color: $kiva-green-dark;
 }
 
 .loan_list_item:first-child {
@@ -155,10 +248,10 @@ div.panel.radioPanel {
 }
 
 .loan_list_item {
-  height: 100px;
+  height: 85px;
   width: 100%;
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
   overflow-y: hidden;
   .KivaImage {
     float: left;
@@ -266,7 +359,7 @@ ul.spacedList li {padding-top: 10px}
 }
 
 .ample-padding-top {
-  padding-top: 15px;
+  padding-top: 8px;
 }
 
 .spacedChildren > * {
@@ -281,7 +374,7 @@ ul.spacedList li {padding-top: 10px}
 }
 
 .in_basket {
-  background-color: #93C54B !important;
+  background-color: $kiva-action !important;
 }
 
 .funded {
@@ -683,7 +776,7 @@ div.notification-bar {
 }
 
 .bar.bar-1 {
-  background: #93C54B;
+  background: $kiva-green;
 }
 
 .bar.bar-2 {
