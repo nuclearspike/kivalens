@@ -41,8 +41,10 @@ const Basket = React.createClass({
     },
     clear(e){
         e.preventDefault()
-        a.loans.basket.clear()
-        this.setState({selected_item_id: null})
+        if (confirm('Are you sure you want to empty your basket?')) {
+            a.loans.basket.clear()
+            this.setState({selected_item_id: null})
+        }
     },
     transferToKiva(){
         if (this.state.basket_count > 0) {
