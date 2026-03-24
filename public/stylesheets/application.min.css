@@ -68,10 +68,14 @@ body {
   padding: 10px 12px;
 }
 
-.fullsizeImage .KivaImage {
+.fullsizeImage .KivaImage,
+.tab-content .KivaImage[style*="width: 100%"],
+.tab-pane .KivaImage {
   max-width: 450px;
 }
-.fullsizeImage .KivaImage img {
+.fullsizeImage .KivaImage img,
+.tab-content .KivaImage[style*="width: 100%"] img,
+.tab-pane .KivaImage img {
   max-width: 100%;
   height: auto;
 }

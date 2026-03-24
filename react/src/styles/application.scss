@@ -83,8 +83,10 @@ body {
   }
 }
 
-// Loan detail image - constrain to reasonable size
-.fullsizeImage .KivaImage {
+// Loan & partner detail images - constrain to reasonable size
+.fullsizeImage .KivaImage,
+.tab-content .KivaImage[style*="width: 100%"],
+.tab-pane .KivaImage {
   max-width: 450px;
   img {
     max-width: 100%;
