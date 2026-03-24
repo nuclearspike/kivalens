@@ -65173,6 +65173,7 @@ function LoadReactApp() {
                 ),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'basket', component: _components.Basket }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'partners', component: _components.Partners }),
+                _react2['default'].createElement(_reactRouter.Route, { path: 'saved', component: _components.SavedSearches }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'options', component: _components.Options }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'about', component: _components.About }),
                 _react2['default'].createElement(_reactRouter.Route, { path: 'live', component: _components.Live }),
@@ -65198,7 +65199,7 @@ domready.done(LoadReactApp);
  **/
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./actions":667,"./api/syncStorage":683,"./components":720,"./linqextras":721,"./stores":723,"./stores/liveStore":724,"./utils":727,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
+},{"./actions":667,"./api/syncStorage":683,"./components":721,"./linqextras":722,"./stores":724,"./stores/liveStore":725,"./utils":728,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -65770,7 +65771,7 @@ var About = _react2['default'].createClass({
 exports['default'] = About;
 module.exports = exports['default'];
 
-},{".":720,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
+},{".":721,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66156,7 +66157,7 @@ var AutoLendSettings = _react2['default'].createClass({
 exports['default'] = AutoLendSettings;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../api/kiva":668,"../stores/":723,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
+},{".":721,"../actions":667,"../api/kiva":668,"../stores/":724,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66443,7 +66444,7 @@ var Basket = _react2['default'].createClass({
 exports['default'] = Basket;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores":723,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores":724,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66521,7 +66522,7 @@ var BasketListItem = _react2['default'].createClass({
 exports['default'] = BasketListItem;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
+},{".":721,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66646,7 +66647,7 @@ var BulkAddModal = _react2['default'].createClass({
 exports['default'] = BulkAddModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":723,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
+},{"../actions":667,"../stores/":724,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66784,7 +66785,7 @@ var ChartDistribution = _react2['default'].createClass({
 exports['default'] = ChartDistribution;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
+},{"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66830,7 +66831,7 @@ var ClearBasket = _react2['default'].createClass({
 exports['default'] = ClearBasket;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores":723,"react":634}],694:[function(require,module,exports){
+},{"../actions":667,"../stores":724,"react":634}],694:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -67034,7 +67035,7 @@ var Criteria = _react2['default'].createClass({
 exports['default'] = Criteria;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68399,7 +68400,7 @@ exports.SliderRow = SliderRow;
 exports.allOptions = allOptions;
 exports.AllAnyNoneButton = AllAnyNoneButton;
 
-},{".":720,"../actions":667,"../api/kiva":668,"../stores/":723,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
+},{".":721,"../actions":667,"../api/kiva":668,"../stores/":724,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68557,7 +68558,7 @@ exports['default'] = DidYouKnow;
  **/
 module.exports = exports['default'];
 
-},{".":720,"react":634}],698:[function(require,module,exports){
+},{".":721,"react":634}],698:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -68710,7 +68711,7 @@ var Donate = (function (_Component) {
 exports['default'] = Donate;
 module.exports = exports['default'];
 
-},{".":720,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
+},{".":721,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -69302,6 +69303,11 @@ var KLNav = _react2['default'].createClass({
                     ),
                     _react2['default'].createElement(
                         _reactBootstrap.NavItem,
+                        { key: 10, href: '#/saved', className: isActive('/saved') ? 'active' : '' },
+                        'Saved'
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.NavItem,
                         { key: 5, href: '#/options', className: isActive('/options') ? 'active' : '' },
                         'Options'
                     ),
@@ -69319,7 +69325,7 @@ var KLNav = _react2['default'].createClass({
 exports['default'] = KLNav;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
+},{"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69782,7 +69788,7 @@ var LoadingLoansPanel = _react2['default'].createClass({
 exports['default'] = LoadingLoansPanel;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
+},{".":721,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70471,7 +70477,7 @@ var Loan = _react2['default'].createClass({
 exports['default'] = Loan;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70595,7 +70601,7 @@ var LoanListItem = _react2['default'].createClass({
 exports['default'] = LoanListItem;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70915,7 +70921,7 @@ var OnNow = _react2['default'].createClass({
 exports['default'] = OnNow;
 module.exports = exports['default'];
 
-},{".":720,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
+},{".":721,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71364,7 +71370,7 @@ var Options = _react2['default'].createClass({
 exports['default'] = Options;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores":723,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores":724,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71776,7 +71782,7 @@ var PartnerDetail = _react2['default'].createClass({
 exports['default'] = PartnerDetail;
 module.exports = exports['default'];
 
-},{".":720,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
+},{".":721,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71953,7 +71959,7 @@ var PartnerDisplayModal = _react2['default'].createClass({
 exports['default'] = PartnerDisplayModal;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72203,7 +72209,7 @@ var Partners = _react2['default'].createClass({
 exports['default'] = Partners;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores/":723,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -72300,6 +72306,527 @@ exports['default'] = PromptModal;
 module.exports = exports['default'];
 
 },{"../actions":667,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],716:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reflux = require('reflux');
+
+var _reflux2 = _interopRequireDefault(_reflux);
+
+var _reactBootstrap = require('react-bootstrap');
+
+var _actions = require('../actions');
+
+var _actions2 = _interopRequireDefault(_actions);
+
+var _stores = require('../stores/');
+
+var _stores2 = _interopRequireDefault(_stores);
+
+var _numeral = require('numeral');
+
+var _numeral2 = _interopRequireDefault(_numeral);
+
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
+
+var _extend = require('extend');
+
+var _extend2 = _interopRequireDefault(_extend);
+
+function validateCriteria(obj) {
+    if (!obj || typeof obj !== 'object') return 'Invalid JSON: not an object';
+    // Single search: must have at least loan or partner or portfolio
+    if (obj.loan || obj.partner || obj.portfolio) return null;
+    // Could be a named collection {name: {loan:{}, ...}}
+    var keys = Object.keys(obj);
+    if (keys.length === 0) return 'No saved searches found in JSON';
+    for (var i = 0; i < keys.length; i++) {
+        var v = obj[keys[i]];
+        if (!v || typeof v !== 'object') return 'Invalid search "' + keys[i] + '": not an object';
+        if (!v.loan && !v.partner && !v.portfolio) return 'Invalid search "' + keys[i] + '": missing loan/partner/portfolio';
+    }
+    return null; // valid collection
+}
+
+function isSingleSearch(obj) {
+    return !!(obj && (obj.loan || obj.partner || obj.portfolio));
+}
+
+function summarizeCriteria(crit) {
+    if (!crit) return [];
+    var items = [];
+    if (crit.loan) {
+        var l = crit.loan;
+        if (l.sector) items.push({ label: 'Sectors', value: l.sector });
+        if (l.country_code) items.push({ label: 'Countries', value: l.country_code });
+        if (l.activity) items.push({ label: 'Activities', value: l.activity });
+        if (l.tags) items.push({ label: 'Tags', value: l.tags });
+        if (l.themes) items.push({ label: 'Themes', value: l.themes });
+        if (l.repaid_in_min || l.repaid_in_max) items.push({ label: 'Repaid In', value: (l.repaid_in_min || 'min') + ' - ' + (l.repaid_in_max || 'max') + ' months' });
+        if (l.still_needed_min || l.still_needed_max) items.push({ label: 'Still Needed', value: '$' + (l.still_needed_min || 0) + ' - $' + (l.still_needed_max || 'max') });
+        if (l.borrower_count_min || l.borrower_count_max) items.push({ label: 'Borrowers', value: (l.borrower_count_min || 'min') + ' - ' + (l.borrower_count_max || 'max') });
+        if (l.percent_female_min || l.percent_female_max) items.push({ label: '% Female', value: (l.percent_female_min || 0) + '% - ' + (l.percent_female_max || 100) + '%' });
+        if (l.sort) items.push({ label: 'Sort', value: l.sort });
+        if (l.name) items.push({ label: 'Name search', value: l.name });
+        if (l.use) items.push({ label: 'Use/Description', value: l.use });
+    }
+    if (crit.partner) {
+        var p = crit.partner;
+        if (p.region) items.push({ label: 'Regions', value: p.region });
+        if (p.religion) items.push({ label: 'Religion', value: p.religion });
+        if (p.partner_risk_rating_min || p.partner_risk_rating_max) items.push({ label: 'Risk Rating', value: (p.partner_risk_rating_min || 'min') + ' - ' + (p.partner_risk_rating_max || 'max') });
+    }
+    if (crit.portfolio) {
+        var pf = crit.portfolio;
+        if (pf.exclude_portfolio_loans === 'true') items.push({ label: 'Portfolio', value: 'Excluding my loans' });
+        var balancers = ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner'];
+        balancers.forEach(function (b) {
+            if (pf[b] && pf[b].enabled) items.push({ label: 'Balancing', value: b.replace('pb_', '') });
+        });
+    }
+    return items;
+}
+
+var SavedSearches = _react2['default'].createClass({
+    displayName: 'SavedSearches',
+
+    mixins: [_reflux2['default'].ListenerMixin],
+    getInitialState: function getInitialState() {
+        return {
+            selected: null,
+            loanCount: null,
+            counting: false,
+            renaming: false,
+            renameTo: '',
+            showImportModal: false,
+            importJSON: '',
+            importName: '',
+            importError: null,
+            importValid: false,
+            searches: _stores2['default'].criteria.syncGetAllNames()
+        };
+    },
+    componentDidMount: function componentDidMount() {
+        this.listenTo(_actions2['default'].criteria.savedSearchListChanged, this.refreshList);
+    },
+    refreshList: function refreshList() {
+        this.setState({ searches: _stores2['default'].criteria.syncGetAllNames() });
+    },
+    selectSearch: function selectSearch(name) {
+        this.setState({ selected: name, loanCount: null, counting: true, renaming: false });
+        // Count matching loans
+        try {
+            var crit = _stores2['default'].criteria.syncGetByName(name);
+            var count = kivaloans.isReady() ? kivaloans.filter(crit, false).length : null;
+            this.setState({ loanCount: count, counting: false });
+        } catch (e) {
+            this.setState({ loanCount: 0, counting: false });
+        }
+    },
+    showLoans: function showLoans(name) {
+        _actions2['default'].criteria.switchToSaved(name);
+        window.location.hash = '#/search';
+    },
+    deleteSearch: function deleteSearch(name) {
+        if (confirm('Delete saved search "' + name + '"?')) {
+            _stores2['default'].criteria.syncDelete(name);
+            if (this.state.selected === name) {
+                this.setState({ selected: null, loanCount: null });
+            }
+        }
+    },
+    startRename: function startRename() {
+        this.setState({ renaming: true, renameTo: this.state.selected });
+    },
+    doRename: function doRename() {
+        var oldName = this.state.selected;
+        var newName = this.state.renameTo.trim();
+        if (!newName || newName === oldName) {
+            this.setState({ renaming: false });
+            return;
+        }
+        var crit = _stores2['default'].criteria.syncGetByName(oldName);
+        // Save with new name, delete old
+        _stores2['default'].criteria.all[newName] = crit;
+        delete _stores2['default'].criteria.all[oldName];
+        _stores2['default'].criteria.syncSavedAll();
+        this.setState({ selected: newName, renaming: false });
+    },
+    exportAll: function exportAll() {
+        var data = JSON.stringify(lsj.get('all_criteria'), null, 2);
+        var blob = new Blob([data], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'kivalens-saved-searches.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    },
+    copyJSON: function copyJSON() {
+        var crit = _stores2['default'].criteria.syncGetByName(this.state.selected);
+        var data = JSON.stringify(crit, null, 2);
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(data);
+            alert('Copied to clipboard!');
+        } else {
+            prompt('Copy this JSON:', data);
+        }
+    },
+    importFile: function importFile(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            try {
+                var obj = JSON.parse(ev.target.result);
+                var err = validateCriteria(obj);
+                if (err) {
+                    alert(err);return;
+                }
+                if (isSingleSearch(obj)) {
+                    var name = file.name.replace('.json', '');
+                    _stores2['default'].criteria.all[name] = obj;
+                } else {
+                    Object.keys(obj).forEach(function (name) {
+                        _stores2['default'].criteria.all[name] = obj[name];
+                    });
+                }
+                _stores2['default'].criteria.syncSavedAll();
+                alert('Import successful!');
+            } catch (ex) {
+                alert('Invalid JSON file: ' + ex.message);
+            }
+        };
+        reader.readAsText(file);
+        // Reset the input so the same file can be re-imported
+        e.target.value = '';
+    },
+    showImportJSON: function showImportJSON() {
+        this.setState({ showImportModal: true, importJSON: '', importName: '', importError: null, importValid: false });
+    },
+    hideImportJSON: function hideImportJSON() {
+        this.setState({ showImportModal: false });
+    },
+    onImportJSONChange: function onImportJSONChange(e) {
+        var text = e.target.value;
+        var valid = false,
+            error = null;
+        try {
+            var obj = JSON.parse(text);
+            var err = validateCriteria(obj);
+            if (err) error = err;else valid = true;
+        } catch (ex) {
+            if (text.trim().length > 0) error = 'Invalid JSON: ' + ex.message;
+        }
+        this.setState({ importJSON: text, importValid: valid, importError: error });
+    },
+    doImportJSON: function doImportJSON() {
+        try {
+            var obj = JSON.parse(this.state.importJSON);
+            if (isSingleSearch(obj)) {
+                var name = this.state.importName.trim();
+                if (!name) {
+                    alert('Please enter a name for this search.');return;
+                }
+                _stores2['default'].criteria.all[name] = obj;
+            } else {
+                Object.keys(obj).forEach(function (name) {
+                    _stores2['default'].criteria.all[name] = obj[name];
+                });
+            }
+            _stores2['default'].criteria.syncSavedAll();
+            this.hideImportJSON();
+        } catch (ex) {
+            alert('Error: ' + ex.message);
+        }
+    },
+    render: function render() {
+        var _this = this;
+
+        var _state = this.state;
+        var selected = _state.selected;
+        var loanCount = _state.loanCount;
+        var counting = _state.counting;
+        var renaming = _state.renaming;
+        var renameTo = _state.renameTo;
+        var searches = _state.searches;
+        var showImportModal = _state.showImportModal;
+        var importJSON = _state.importJSON;
+        var importName = _state.importName;
+        var importError = _state.importError;
+        var importValid = _state.importValid;
+
+        var selectedCrit = selected ? _stores2['default'].criteria.syncGetByName(selected) : null;
+        var summary = selectedCrit ? summarizeCriteria(selectedCrit) : [];
+        var parsedImport = null;
+        try {
+            parsedImport = importJSON ? JSON.parse(importJSON) : null;
+        } catch (e) {}
+        var isSingle = parsedImport && isSingleSearch(parsedImport);
+
+        return _react2['default'].createElement(
+            'div',
+            null,
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 4 },
+                _react2['default'].createElement(
+                    'h4',
+                    { style: { marginTop: 5, marginBottom: 8 } },
+                    'Saved Searches (',
+                    searches.length,
+                    ')'
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { style: { height: 'calc(100vh - 160px)', overflowY: 'auto' } },
+                    searches.map(function (name) {
+                        return _react2['default'].createElement(
+                            _reactBootstrap.ListGroupItem,
+                            {
+                                key: name,
+                                className: (0, _classnames2['default'])({ active: selected === name }),
+                                style: { padding: '6px 12px', cursor: 'pointer', fontSize: 13 },
+                                onClick: _this.selectSearch.bind(_this, name) },
+                            name
+                        );
+                    }),
+                    searches.length === 0 ? _react2['default'].createElement(
+                        'p',
+                        { style: { color: '#999', padding: 12 } },
+                        'No saved searches yet. Save one from the Search tab.'
+                    ) : null
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { style: { paddingTop: 8, borderTop: '1px solid #ddd' } },
+                    _react2['default'].createElement(
+                        _reactBootstrap.ButtonGroup,
+                        null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', onClick: this.exportAll, disabled: searches.length === 0 },
+                            'Export All'
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', className: 'btn-file', style: { position: 'relative', overflow: 'hidden' } },
+                            'Import File...',
+                            _react2['default'].createElement('input', { type: 'file', accept: '.json', onChange: this.importFile,
+                                style: { position: 'absolute', top: 0, right: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' } })
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', onClick: this.showImportJSON },
+                            'Import JSON...'
+                        )
+                    )
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 8 },
+                selected && selectedCrit ? _react2['default'].createElement(
+                    'div',
+                    null,
+                    _react2['default'].createElement(
+                        'h3',
+                        { style: { marginTop: 5 } },
+                        renaming ? _react2['default'].createElement(
+                            'span',
+                            null,
+                            _react2['default'].createElement('input', { type: 'text', className: 'form-control', style: { display: 'inline', width: '60%' },
+                                value: renameTo, onChange: function (e) {
+                                    return _this.setState({ renameTo: e.target.value });
+                                },
+                                onKeyDown: function (e) {
+                                    if (e.keyCode === 13) _this.doRename();
+                                },
+                                autoFocus: true }),
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { bsSize: 'small', bsStyle: 'primary', onClick: this.doRename, style: { marginLeft: 8 } },
+                                'Save'
+                            ),
+                            _react2['default'].createElement(
+                                _reactBootstrap.Button,
+                                { bsSize: 'small', onClick: function () {
+                                        return _this.setState({ renaming: false });
+                                    }, style: { marginLeft: 4 } },
+                                'Cancel'
+                            )
+                        ) : selected
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { marginBottom: 16 } },
+                        _react2['default'].createElement(
+                            'span',
+                            { style: { fontSize: 18, fontWeight: 600, color: '#2c6e49' } },
+                            counting ? 'Counting...' : loanCount !== null ? (0, _numeral2['default'])(loanCount).format('0,0') + ' matching loans' : ''
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.ButtonGroup,
+                        { style: { marginBottom: 16 } },
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsStyle: 'primary', onClick: this.showLoans.bind(this, selected) },
+                            'Show Loans'
+                        ),
+                        !renaming ? _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { onClick: this.startRename },
+                            'Rename'
+                        ) : null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { onClick: this.copyJSON },
+                            'Copy JSON'
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsStyle: 'danger', onClick: this.deleteSearch.bind(this, selected) },
+                            'Delete'
+                        )
+                    ),
+                    summary.length > 0 ? _react2['default'].createElement(
+                        _reactBootstrap.Panel,
+                        { header: 'Criteria Summary' },
+                        _react2['default'].createElement(
+                            'dl',
+                            { className: 'dl-horizontal', style: { marginBottom: 0 } },
+                            summary.map(function (item, i) {
+                                return _react2['default'].createElement(
+                                    'span',
+                                    { key: i },
+                                    _react2['default'].createElement(
+                                        'dt',
+                                        null,
+                                        item.label
+                                    ),
+                                    _react2['default'].createElement(
+                                        'dd',
+                                        null,
+                                        item.value
+                                    )
+                                );
+                            })
+                        )
+                    ) : _react2['default'].createElement(
+                        _reactBootstrap.Panel,
+                        null,
+                        _react2['default'].createElement(
+                            'p',
+                            { style: { color: '#999', marginBottom: 0 } },
+                            'No specific criteria set (matches all loans)'
+                        )
+                    )
+                ) : _react2['default'].createElement(
+                    'div',
+                    { style: { padding: '40px', textAlign: 'center', color: '#999' } },
+                    _react2['default'].createElement(
+                        'h3',
+                        null,
+                        'Select a saved search'
+                    ),
+                    _react2['default'].createElement(
+                        'p',
+                        null,
+                        'Browse, rename, export, and import your saved searches.'
+                    )
+                )
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Modal,
+                { show: showImportModal, onHide: this.hideImportJSON },
+                _react2['default'].createElement(
+                    _reactBootstrap.Modal.Header,
+                    { closeButton: true },
+                    _react2['default'].createElement(
+                        _reactBootstrap.Modal.Title,
+                        null,
+                        'Import Saved Search from JSON'
+                    )
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Modal.Body,
+                    null,
+                    _react2['default'].createElement(
+                        'p',
+                        null,
+                        'Paste a saved search JSON below. You can get this from the "Copy JSON" button on any saved search to share with teammates.'
+                    ),
+                    isSingle ? _react2['default'].createElement(
+                        'div',
+                        { style: { marginBottom: 8 } },
+                        _react2['default'].createElement(
+                            'label',
+                            null,
+                            'Name for this search:'
+                        ),
+                        _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Enter a name...',
+                            value: importName, onChange: function (e) {
+                                return _this.setState({ importName: e.target.value });
+                            } })
+                    ) : null,
+                    _react2['default'].createElement('textarea', { className: 'form-control', rows: 10,
+                        placeholder: 'Paste JSON here...',
+                        value: importJSON,
+                        onChange: this.onImportJSONChange,
+                        style: { fontFamily: 'monospace', fontSize: 12 } }),
+                    importValid ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { bsStyle: 'success', style: { marginTop: 8, marginBottom: 0 } },
+                        _react2['default'].createElement(
+                            'span',
+                            { style: { marginRight: 6 } },
+                            '✓'
+                        ),
+                        'Valid ',
+                        isSingle ? 'single search' : 'collection (' + Object.keys(parsedImport).length + ' searches)'
+                    ) : null,
+                    importError ? _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { bsStyle: 'danger', style: { marginTop: 8, marginBottom: 0 } },
+                        importError
+                    ) : null
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Modal.Footer,
+                    null,
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { bsStyle: 'primary', onClick: this.doImportJSON,
+                            disabled: !importValid || isSingle && !importName.trim() },
+                        'Import'
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { onClick: this.hideImportJSON },
+                        'Cancel'
+                    )
+                )
+            )
+        );
+    }
+});
+
+exports['default'] = SavedSearches;
+module.exports = exports['default'];
+
+},{"../actions":667,"../stores/":724,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],717:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72542,7 +73069,7 @@ var Search = _react2['default'].createClass({
 exports['default'] = Search;
 module.exports = exports['default'];
 
-},{".":720,"../actions":667,"../stores":723,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],717:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores":724,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],718:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72613,6 +73140,8 @@ var SetLenderIDModal = _react2['default'].createClass({
         if (this.props.onHide) this.props.onHide();
     },
     render: function render() {
+        var _this2 = this;
+
         var _state = this.state;
         var show = _state.show;
         var checking = _state.checking;
@@ -72646,7 +73175,10 @@ var SetLenderIDModal = _react2['default'].createClass({
                             label: 'Kiva Lender ID',
                             labelClassName: 'col-lg-4',
                             wrapperClassName: 'col-lg-8',
-                            valueLink: this.linkState('kiva_lender_id') }),
+                            valueLink: this.linkState('kiva_lender_id'),
+                            onKeyDown: function (e) {
+                                if (e.keyCode === 13) _this2.setLenderID();
+                            } }),
                         'Your Kiva Lender ID is not your email address. ',
                         _react2['default'].createElement(
                             _.KivaLink,
@@ -72689,7 +73221,7 @@ var SetLenderIDModal = _react2['default'].createClass({
 exports['default'] = SetLenderIDModal;
 module.exports = exports['default'];
 
-},{".":720,"../api/kiva":668,"../stores/":723,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],718:[function(require,module,exports){
+},{".":721,"../api/kiva":668,"../stores/":724,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],719:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72805,7 +73337,7 @@ var SnowStack = _react2['default'].createClass({
 exports['default'] = SnowStack;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634}],719:[function(require,module,exports){
+},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634}],720:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -73041,7 +73573,7 @@ var Teams = _react2['default'].createClass({
 exports['default'] = Teams;
 module.exports = exports['default'];
 
-},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],720:[function(require,module,exports){
+},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],721:[function(require,module,exports){
 'use strict';
 //every component you want easily accessible should be added as an import and export in this file.
 //this allow you to do: import {Loan, Live, KivaImage, KivaLink} from '.' (the '.' just means the index.js in the current directory.)
@@ -73116,6 +73648,10 @@ var _PartnersJsx2 = _interopRequireDefault(_PartnersJsx);
 var _PartnerDetailJsx = require('./PartnerDetail.jsx');
 
 var _PartnerDetailJsx2 = _interopRequireDefault(_PartnerDetailJsx);
+
+var _SavedSearchesJsx = require('./SavedSearches.jsx');
+
+var _SavedSearchesJsx2 = _interopRequireDefault(_SavedSearchesJsx);
 
 //SIMPLE STATE-LESS COMPONENTS
 
@@ -73332,8 +73868,9 @@ exports.OnNow = _OnNowJsx2['default'];
 exports.Donate = _DonateJsx2['default'];
 exports.Partners = _PartnersJsx2['default'];
 exports.PartnerDetail = _PartnerDetailJsx2['default'];
+exports.SavedSearches = _SavedSearchesJsx2['default'];
 
-},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./Search.jsx":716,"./SetLenderIDModal.jsx":717,"./SnowStack.jsx":718,"./Teams.jsx":719,"react":634}],721:[function(require,module,exports){
+},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./SavedSearches.jsx":716,"./Search.jsx":717,"./SetLenderIDModal.jsx":718,"./SnowStack.jsx":719,"./Teams.jsx":720,"react":634}],722:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 //MORE LINQ GOODNESS
@@ -73389,7 +73926,7 @@ Array.prototype.chunk = function (chunkSize) {
 };
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],722:[function(require,module,exports){
+},{}],723:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -73839,7 +74376,7 @@ function set_cache(key, value) {
 exports['default'] = criteriaStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":727,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],723:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":728,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],724:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73871,7 +74408,7 @@ exports['default'] = s;
 window.kl_stores = s;
 module.exports = exports['default'];
 
-},{"./criteriaStore":722,"./liveStore":724,"./loanStore":725,"./utilsStore":726}],724:[function(require,module,exports){
+},{"./criteriaStore":723,"./liveStore":725,"./loanStore":726,"./utilsStore":727}],725:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73894,7 +74431,7 @@ var liveStore = _reflux2['default'].createStore({ init: function init() {} });
 exports['default'] = liveStore;
 module.exports = exports['default'];
 
-},{"reflux":650}],725:[function(require,module,exports){
+},{"reflux":650}],726:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -74128,7 +74665,7 @@ var loanStore = _reflux2['default'].createStore({
 exports['default'] = loanStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":722,"reflux":650}],726:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":723,"reflux":650}],727:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -74206,7 +74743,7 @@ var utilsStore = _reflux2['default'].createStore({
 exports['default'] = utilsStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"reflux":650}],727:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"reflux":650}],728:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
