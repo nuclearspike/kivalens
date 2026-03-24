@@ -66,7 +66,7 @@ const Teams = React.createClass({
                 this.querying--
                 this.setState({querying: this.querying})
                 if (!this.teamData[teamId]) this.teamData[teamId] = {}
-                this.teamData[teamId][graphName] = result.graphData.select(d=>([parseInt(d[0]),d[1]]))
+                this.teamData[teamId][graphName] = result.graphData.select(d=>([parseInt(d[0]),d[1]])).orderBy(d=>d[0])
                 this.produceChart()
             }).fail(error => this.setState({error}))
     },
@@ -130,7 +130,6 @@ const Teams = React.createClass({
                         <Panel header="Compare" className="radioPanel">
                             <Input type="radio" label="Membership"  name="graph_type" onChange={this.refigureChart} value="team_new_users" defaultChecked={true} />
                             <Input type="radio" label="Loan Count"  name="graph_type" onChange={this.refigureChart} value="team_loan_count" />
-                            <Input type="radio" label="Loan Amount" name="graph_type" onChange={this.refigureChart} value="team_loan_total" />
                         </Panel>
                         <Panel header={`Your Teams ${yt_message}`}>
                             <ul style={{listStyleType: 'none'}}>
