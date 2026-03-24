@@ -72755,10 +72755,17 @@ var SnowStack = _react2['default'].createClass({
         return this.props.location && this.props.location.query && this.props.location.query.kivaid || lsj.get('Options').kiva_lender_id;
     },
     startIfReady: function startIfReady() {
+        var _this = this;
+
+        if (this._started) return;
         if (this.getKivaID() || kivaloans.isReady()) {
+            this._started = true;
             // Reset snowstack globals
             if (typeof snowstack_reset === 'function') snowstack_reset();
-            snowstack_init(this.produceImages);
+            // Small delay to ensure DOM is ready
+            setTimeout(function () {
+                return snowstack_init(_this.produceImages);
+            }, 50);
         }
     },
     componentWillUnmount: function componentWillUnmount() {

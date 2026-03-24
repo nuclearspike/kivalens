@@ -107,7 +107,13 @@ global.snowstack_reset = function() {
 		while (cam.hasChildNodes()) cam.removeChild(cam.firstChild);
 		cam.style.webkitTransform = '';
 		cam.style.transform = '';
+		cam.style.webkitTransitionDuration = '';
 	}
+	// Reset dimensions so they're recalculated
+	CWIDTH = 0;
+	CHEIGHT = 0;
+	CXSPACING = 0;
+	CYSPACING = 0;
 };
 
 var dolly;
