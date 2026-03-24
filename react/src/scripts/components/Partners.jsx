@@ -96,7 +96,7 @@ const Partners = React.createClass({
 
         return (
             <div>
-                <Col md={3}>
+                <Col md={4}>
                     <div style={{overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 5}}>
                         <input type="text" className="form-control" placeholder="Search by name..."
                             style={{marginBottom: 8}}
@@ -144,7 +144,7 @@ const Partners = React.createClass({
                         )}
                     </div>
                 </Col>
-                <Col md={6}>
+                <Col md={5}>
                     {selectedPartner ?
                         <PartnerDetail partner={selectedPartner} showStatus={true}/>
                     :

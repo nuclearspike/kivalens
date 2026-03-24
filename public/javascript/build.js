@@ -72127,7 +72127,7 @@ var Partners = _react2['default'].createClass({
             null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 3 },
+                { md: 4 },
                 _react2['default'].createElement(
                     'div',
                     { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 5 } },
@@ -72184,7 +72184,7 @@ var Partners = _react2['default'].createClass({
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 6 },
+                { md: 5 },
                 selectedPartner ? _react2['default'].createElement(_PartnerDetailJsx2['default'], { partner: selectedPartner, showStatus: true }) : _react2['default'].createElement(
                     'div',
                     { style: { padding: '40px', textAlign: 'center', color: '#999' } },
