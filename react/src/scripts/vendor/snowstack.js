@@ -89,11 +89,25 @@ global.snowstack_reset = function() {
 	global.snowstack_cleanup();
 	currentCellIndex = -1;
 	cells = [];
+	dolly = null;
+	camera = null;
+	caption = null;
+	cellstack = null;
+	reflectionstack = null;
 	magnifyMode = false;
+	newbieUser = true;
+	currentVideo = null;
 	clearTimeout(zoomTimer);
 	clearTimeout(currentTimer);
 	zoomTimer = null;
 	currentTimer = null;
+	// Clear the camera div if it exists
+	var cam = document.getElementById("camera");
+	if (cam) {
+		while (cam.hasChildNodes()) cam.removeChild(cam.firstChild);
+		cam.style.webkitTransform = '';
+		cam.style.transform = '';
+	}
 };
 
 var dolly;
