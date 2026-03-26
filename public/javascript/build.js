@@ -71998,6 +71998,10 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _extend = require('extend');
+
+var _extend2 = _interopRequireDefault(_extend);
+
 var statusColors = {
     active: null,
     inactive: '#e8e8e8',
@@ -72065,7 +72069,7 @@ var Partners = _react2['default'].createClass({
     mixins: [_reflux2['default'].ListenerMixin, (0, _Mixins.DelayStateTriggerMixin)('criteria', 'performSearch', 200)],
     getInitialState: function getInitialState() {
         return {
-            criteria: { partner: {} },
+            criteria: { partner: { status: 'active' } },
             nameSearch: '',
             selectedPartner: null,
             filteredPartners: [],
@@ -72085,7 +72089,7 @@ var Partners = _react2['default'].createClass({
         }
     },
     performSearch: function performSearch() {
-        var c = this.state.criteria.partner || {};
+        var c = (0, _extend2['default'])(true, {}, this.state.criteria.partner || {});
         c.name = this.state.nameSearch;
         var results = kivaloans.filterAllPartners(c);
         results = results.orderBy(function (p) {
@@ -72093,7 +72097,7 @@ var Partners = _react2['default'].createClass({
         });
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva.length
+            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0
         });
     },
     selectPartner: function selectPartner(partner) {
@@ -72101,6 +72105,12 @@ var Partners = _react2['default'].createClass({
     },
     onNameChange: function onNameChange(e) {
         this.setState({ nameSearch: e.target.value }, this.performSearch);
+    },
+    clearCriteria: function clearCriteria() {
+        this.setState({
+            criteria: { partner: { status: 'active' } },
+            nameSearch: ''
+        }, this.performSearch);
     },
     render: function render() {
         var _this = this;
@@ -72123,9 +72133,18 @@ var Partners = _react2['default'].createClass({
                 _react2['default'].createElement(
                     'div',
                     { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden' } },
-                    _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
-                        style: { marginBottom: 8 },
-                        onChange: this.onNameChange, value: this.state.nameSearch }),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { display: 'flex', gap: 4, marginBottom: 8 } },
+                        _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
+                            style: { flex: 1 },
+                            onChange: this.onNameChange, value: this.state.nameSearch }),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', onClick: this.clearCriteria },
+                            'Clear'
+                        )
+                    ),
                     _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
                         aanCursor: cPartner.refine('status_all_any_none') }),
                     ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
@@ -72201,7 +72220,7 @@ var Partners = _react2['default'].createClass({
 exports['default'] = Partners;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores/":724,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores/":724,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true

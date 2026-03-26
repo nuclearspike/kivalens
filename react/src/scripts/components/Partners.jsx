@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Reflux from 'reflux'
-import {Col, Row, ListGroupItem, Label, Panel} from 'react-bootstrap'
+import {Col, Row, ListGroupItem, Label, Panel, Button} from 'react-bootstrap'
 import {KivaImage} from '.'
 import PartnerDetail from './PartnerDetail.jsx'
 import {SelectRow, SliderRow, allOptions} from './CriteriaTabs.jsx'
@@ -12,6 +12,7 @@ import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 import cx from 'classnames'
+import extend from 'extend'
 
 const statusColors = {
     active: null,
@@ -54,7 +55,7 @@ const Partners = React.createClass({
     mixins: [Reflux.ListenerMixin, DelayStateTriggerMixin('criteria', 'performSearch', 200)],
     getInitialState() {
         return {
-            criteria: { partner: {} },
+            criteria: { partner: { status: 'active' } },
             nameSearch: '',
             selectedPartner: null,
             filteredPartners: [],
@@ -74,13 +75,13 @@ const Partners = React.createClass({
         }
     },
     performSearch() {
-        var c = this.state.criteria.partner || {}
+        var c = extend(true, {}, this.state.criteria.partner || {})
         c.name = this.state.nameSearch
         var results = kivaloans.filterAllPartners(c)
         results = results.orderBy(p => p.name)
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva.length
+            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0
         })
     },
     selectPartner(partner) {
@@ -88,6 +89,12 @@ const Partners = React.createClass({
     },
     onNameChange(e) {
         this.setState({nameSearch: e.target.value}, this.performSearch)
+    },
+    clearCriteria() {
+        this.setState({
+            criteria: { partner: { status: 'active' } },
+            nameSearch: ''
+        }, this.performSearch)
     },
     render() {
         var {filteredPartners, totalPartners, selectedPartner, displayAtheistOptions} = this.state
@@ -98,9 +105,12 @@ const Partners = React.createClass({
             <div>
                 <Col md={4}>
                     <div style={{overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden'}}>
-                        <input type="text" className="form-control" placeholder="Search by name..."
-                            style={{marginBottom: 8}}
-                            onChange={this.onNameChange} value={this.state.nameSearch}/>
+                        <div style={{display: 'flex', gap: 4, marginBottom: 8}}>
+                            <input type="text" className="form-control" placeholder="Search by name..."
+                                style={{flex: 1}}
+                                onChange={this.onNameChange} value={this.state.nameSearch}/>
+                            <Button bsSize="small" onClick={this.clearCriteria}>Clear</Button>
+                        </div>
 
                         <SelectRow name="status" cursor={cPartner.refine('status')}
                                    aanCursor={cPartner.refine('status_all_any_none')}/>
