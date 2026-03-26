@@ -70974,7 +70974,7 @@ var Options = _react2['default'].createClass({
         return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false, showAllPartners: false };
     },
     getStateFilterKeys: function getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva', 'doNotDownloadDescriptions'];
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva'];
     },
     reload: function reload() {
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -71254,14 +71254,6 @@ var Options = _react2['default'].createClass({
                             'This does not log you into KivaLens. Since it doesn\'t get any password and is just using your publicly known ID, this doesn\'t save any of your options or Saved Searches with KivaLens\' server because anyone can put anyone else\'s Lender ID in. KivaLens does not store any of your options on the server, they are stored with your browser so be careful about clearing all of your browser data or KivaLens will forget who you are and you\'ll need to rebuild all of your Saved Searches.'
                         )
                     )
-                ),
-                _react2['default'].createElement(
-                    _reactBootstrap.Panel,
-                    { header: 'Speed!' },
-                    _react2['default'].createElement(_reactBootstrap.Input, {
-                        type: 'checkbox',
-                        label: 'I never search by Use or Description. Checking this option will prevent KivaLens from downloading the descriptions ahead of time for searching but you\'ll still be able to read the loan description when you click on a loan. This speeds up the initial load but only if set to download from KivaLens (default). Will only take effect next app load.',
-                        checkedLink: this.linkState('doNotDownloadDescriptions') })
                 ),
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
