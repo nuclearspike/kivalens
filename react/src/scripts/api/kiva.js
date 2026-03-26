@@ -508,14 +508,29 @@ class Loans {
       }
 
       var partners_given = []
-      if (c.partner.partners) //explicitly given by user.
-        partners_given = c.partner.partners.split(',').select(id => parseInt(id)) //cannot be reduced to select(parseInt) :(
+      if (c.partner.partners) { //explicitly given by user.
+        var p = c.partner.partners
+        partners_given = (Array.isArray(p) ? p : p.toString().split(',')).select(id => parseInt(id))
+      }
 
       var ct = new CritTester(c.partner)
 
       // Status filter (only when searching all partners, not just active)
       if (partnerPool)
         ct.addAnyAllNoneTester('status', null, 'any', partner => partner.status)
+
+      // Country filter for partners (partner.countries is an array of {iso_code, name})
+      if (c.partner.country_code) {
+        var countryCodes = c.partner.country_code.split(',')
+        var countryMode = c.partner.country_code_all_any_none || 'any'
+        if (countryMode === 'none') {
+          ct.testers.push(partner => !(partner.countries || []).any(c => countryCodes.includes(c.iso_code)))
+        } else if (countryMode === 'all') {
+          ct.testers.push(partner => countryCodes.all(code => (partner.countries || []).any(c => c.iso_code === code)))
+        } else { // any
+          ct.testers.push(partner => (partner.countries || []).any(c => countryCodes.includes(c.iso_code)))
+        }
+      }
 
       ct.addAnyAllNoneTester('region', null, 'any', partner => partner.kl_regions, true)
       ct.addAnyAllNoneTester('social_performance', sp_arr, 'all', partner => partner.kl_sp, true)

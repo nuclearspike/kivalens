@@ -184,7 +184,11 @@ const SelectRow = React.createClass({
     selectValues(){
         var values = this.props.cursor.value
         if (!values) return null
-        return allOptions[this.props.name].intArray ? values.split(',').select(i=>i.toString()).join(',') : values
+        if (allOptions[this.props.name].intArray) {
+            var v = Array.isArray(values) ? values : values.toString().split(',')
+            return v.select(i=>i.toString()).join(',')
+        }
+        return values
     },
     getOptions(input, callback){
         var options = allOptions[this.props.name].select_options
@@ -791,8 +795,7 @@ const CriteriaTabs = React.createClass({
               {!kiva_lender_id && !needLenderID ? <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
                   to="options">Options</Link> page. These functions won't work until you do.</Alert> : null}
 
-              To prevent you from accidentally lending to the same borrower twice if their loan is
-              still fundraising, just exclude those loans. {`(${lender_loans_message})`}
+              Excludes loans you've already funded that are still fundraising. ({lender_loans_message})
 
               {['exclude_portfolio_loans'].map((name, i) => <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}
                            aanCursor={cPortfolio.refine(`${name}_all_any_none`)}

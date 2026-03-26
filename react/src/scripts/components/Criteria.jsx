@@ -91,7 +91,6 @@ const Criteria = React.createClass({
                 <h1 style={{marginTop:'0px'}}>Criteria
                     <ButtonGroup className="float_right">
                         <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button>
-                        <Button onClick={this.clearCriteria}>Clear</Button>
                         <DropdownButton title={`Saved Search ${lastSaved ? `'${lastSaved}'` : ''}`} id='saved_search' pullRight onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
                             {menuItems}
                         </DropdownButton>

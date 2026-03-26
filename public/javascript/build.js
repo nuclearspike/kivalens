@@ -62302,10 +62302,13 @@ var Loans = (function () {
         }
 
         var partners_given = [];
-        if (c.partner.partners) //explicitly given by user.
-          partners_given = c.partner.partners.split(',').select(function (id) {
+        if (c.partner.partners) {
+          //explicitly given by user.
+          var p = c.partner.partners;
+          partners_given = (Array.isArray(p) ? p : p.toString().split(',')).select(function (id) {
             return parseInt(id);
-          }); //cannot be reduced to select(parseInt) :(
+          });
+        }
 
         var ct = new CritTester(c.partner);
 
@@ -62313,6 +62316,34 @@ var Loans = (function () {
         if (partnerPool) ct.addAnyAllNoneTester('status', null, 'any', function (partner) {
           return partner.status;
         });
+
+        // Country filter for partners (partner.countries is an array of {iso_code, name})
+        if (c.partner.country_code) {
+          var countryCodes = c.partner.country_code.split(',');
+          var countryMode = c.partner.country_code_all_any_none || 'any';
+          if (countryMode === 'none') {
+            ct.testers.push(function (partner) {
+              return !(partner.countries || []).any(function (c) {
+                return countryCodes.includes(c.iso_code);
+              });
+            });
+          } else if (countryMode === 'all') {
+            ct.testers.push(function (partner) {
+              return countryCodes.all(function (code) {
+                return (partner.countries || []).any(function (c) {
+                  return c.iso_code === code;
+                });
+              });
+            });
+          } else {
+            // any
+            ct.testers.push(function (partner) {
+              return (partner.countries || []).any(function (c) {
+                return countryCodes.includes(c.iso_code);
+              });
+            });
+          }
+        }
 
         ct.addAnyAllNoneTester('region', null, 'any', function (partner) {
           return partner.kl_regions;
@@ -64716,8 +64747,7 @@ if (!isServer()) {
     //req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
     req.klraw = new SemRequest(location.protocol + "//" + location.host + "/", false, false, {}, 0);
 
-    //kivaBase = `http://kivalens-www.herokuapp.com/proxy/kiva/`
-    kivaBase = "https://www.kivalens.org/proxy/kiva/";
+    kivaBase = location.protocol + "//" + location.host + "/proxy/kiva/";
 
     gdocs = location.protocol + "//" + location.host + "/proxy/gdocs/";
     req.kl.graph = function (query) {
@@ -66943,11 +66973,6 @@ var Criteria = _react2['default'].createClass({
                         'Graphs'
                     ),
                     _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { onClick: this.clearCriteria },
-                        'Clear'
-                    ),
-                    _react2['default'].createElement(
                         _reactBootstrap.DropdownButton,
                         { title: 'Saved Search ' + (lastSaved ? '\'' + lastSaved + '\'' : ''), id: 'saved_search', pullRight: true, onToggle: function (isOpen) {
                                 if (isOpen) {
@@ -67257,9 +67282,13 @@ var SelectRow = _react2['default'].createClass({
     selectValues: function selectValues() {
         var values = this.props.cursor.value;
         if (!values) return null;
-        return allOptions[this.props.name].intArray ? values.split(',').select(function (i) {
-            return i.toString();
-        }).join(',') : values;
+        if (allOptions[this.props.name].intArray) {
+            var v = Array.isArray(values) ? values : values.toString().split(',');
+            return v.select(function (i) {
+                return i.toString();
+            }).join(',');
+        }
+        return values;
     },
     getOptions: function getOptions(input, callback) {
         var options = allOptions[this.props.name].select_options;
@@ -68148,8 +68177,9 @@ var CriteriaTabs = _react2['default'].createClass({
                                 ),
                                 ' page. These functions won\'t work until you do.'
                             ) : null,
-                            'To prevent you from accidentally lending to the same borrower twice if their loan is still fundraising, just exclude those loans. ',
-                            '(' + lender_loans_message + ')',
+                            'Excludes loans you\'ve already funded that are still fundraising. (',
+                            lender_loans_message,
+                            ')',
                             ['exclude_portfolio_loans'].map(function (name, i) {
                                 return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
                                     aanCursor: cPortfolio.refine(name + '_all_any_none'),
@@ -71362,6 +71392,10 @@ var _actions = require('../actions');
 
 var _actions2 = _interopRequireDefault(_actions);
 
+var _stores = require('../stores');
+
+var _stores2 = _interopRequireDefault(_stores);
+
 var statusColors = {
     active: null,
     inactive: 'default',
@@ -71381,7 +71415,10 @@ var PartnerDetail = _react2['default'].createClass({
     },
     searchLoans: function searchLoans() {
         var partner = this.props.partner;
-        _actions2['default'].criteria.reload({ partner: { partners: [partner.id] } });
+        var crit = _stores2['default'].criteria.syncBlankCriteria();
+        crit.partner.partners = partner.id.toString();
+        _stores2['default'].criteria.onChange(crit);
+        _actions2['default'].criteria.reload(crit);
         window.location.hash = '#/search';
     },
     render: function render() {
@@ -71417,7 +71454,7 @@ var PartnerDetail = _react2['default'].createClass({
                 _react2['default'].createElement(
                     _reactBootstrap.Button,
                     { bsSize: 'small', bsStyle: 'success', onClick: this.searchLoans },
-                    'Search Loans'
+                    'Show Loans'
                 )
             ) : null,
             _react2['default'].createElement(
@@ -71742,7 +71779,7 @@ var PartnerDetail = _react2['default'].createClass({
 exports['default'] = PartnerDetail;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
+},{".":721,"../actions":667,"../stores":724,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72015,9 +72052,9 @@ var PartnerListItem = _react2['default'].createClass({
                     p.countries && p.countries.length > 0 ? _react2['default'].createElement(
                         'span',
                         { className: 'loan-tag' },
-                        p.countries.length <= 3 ? p.countries.select(function (c) {
+                        p.countries.select(function (c) {
                             return c.name;
-                        }).join(', ') : p.countries.length + ' countries'
+                        }).join(', ')
                     ) : null,
                     p.rating ? _react2['default'].createElement(
                         'span',
@@ -72105,6 +72142,8 @@ var Partners = _react2['default'].createClass({
                         onChange: this.onNameChange, value: this.state.nameSearch }),
                     _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
                         aanCursor: cPartner.refine('status_all_any_none') }),
+                    _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'country_code', cursor: cPartner.refine('country_code'),
+                        aanCursor: cPartner.refine('country_code_all_any_none') }),
                     ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
                         return _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
                             aanCursor: cPartner.refine(name + '_all_any_none') });
@@ -72145,7 +72184,7 @@ var Partners = _react2['default'].createClass({
                     _react2['default'].createElement(
                         _reactBootstrap.Button,
                         { bsSize: 'xsmall', onClick: this.clearCriteria },
-                        'Clear All'
+                        'Reset'
                     )
                 ),
                 _react2['default'].createElement(
@@ -73196,6 +73235,10 @@ var Search = _react2['default'].createClass({
         //e.preventDefault()
         //todo: scroll to criteria after it switches
     },
+    resetCriteria: function resetCriteria(e) {
+        e.preventDefault();
+        _actions2['default'].criteria.startFresh();
+    },
     bulkAdd: function bulkAdd(e) {
         e.preventDefault();
         this.setState({ showBulkAdd: true });
@@ -73247,14 +73290,19 @@ var Search = _react2['default'].createClass({
                         { justified: true, className: 'top-only' },
                         _react2['default'].createElement(
                             _reactBootstrap.Button,
-                            { href: '#', key: 1, onClick: this.bulkAdd },
-                            'Bulk Add'
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
                             { href: '#/search', key: 2, disabled: this.props.location.pathname == '/search',
                                 onClick: this.changeCriteria },
                             'Change Criteria'
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { href: '#', key: 3, onClick: this.resetCriteria },
+                            'Reset'
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { href: '#', key: 1, onClick: this.bulkAdd },
+                            'Bulk Add'
                         )
                     ),
                     show_secondary_load ? _react2['default'].createElement(
@@ -73484,38 +73532,47 @@ var SnowStack = _react2['default'].createClass({
     displayName: 'SnowStack',
 
     getInitialState: function getInitialState() {
-        return { message: 'Loading...' };
+        return { message: 'Loading...', loading: true };
     },
     shouldComponentUpdate: function shouldComponentUpdate(np, _ref) {
         var message = _ref.message;
         return message != this.state.message;
     },
-    produceImages: function produceImages(callback) {
+    selectImage: function selectImage(loan) {
+        var image_id = loan.image.id;
+        var thumb = 'https://www.kiva.org/img/w800/' + image_id + '.jpg';
+        return { thumb: thumb, zoom: thumb, link: 'https://www.kiva.org/lend/' + loan.id };
+    },
+    fetchAndInit: function fetchAndInit() {
         var that = this;
-        var selectImage = function selectImage(loan) {
-            var image_id = loan.image.id;
-            var thumb = 'https://www.kiva.org/img/w800/' + image_id + '.jpg';
-            var zoom = thumb;
-            var link = 'https://www.kiva.org/lend/' + loan.id;
-            return { thumb: thumb, zoom: zoom, link: link };
-        };
         var lid = this.getKivaID();
         if (lid) {
             that.safeSetState({ message: 'Loading loans for ' + lid + '...' });
             new LenderLoans(lid, { max_pages: 10 }).start().done(function (loans) {
-                if (!that._unmounted) {
-                    that.safeSetState({ message: lid + '\'s portfolio (up to 200): arrow keys to move, space toggles magnify.' });
-                    callback(loans.select(selectImage));
-                }
+                if (that._unmounted) return;
+                var images = loans.select(that.selectImage);
+                that.removeSpinner();
+                that.safeSetState({ message: lid + '\'s portfolio (up to 200): arrow keys to move, space toggles magnify.', loading: false });
+                that.initSnowstack(images);
             });
         } else {
-            that.safeSetState({ message: 'Fundraising loans: arrow keys to move, space toggles magnify.' });
             var interesting = kivaloans.filter({ loan: { tags: ['#InterestingPhoto'] } }, false);
             var popular = kivaloans.filter({ loan: { sort: 'popular', limit_results: 300 } }, false);
-            callback(interesting.concat(popular).distinct(function (a, b) {
+            var images = interesting.concat(popular).distinct(function (a, b) {
                 return a.id == b.id;
-            }).take(201).select(selectImage));
+            }).take(201).select(that.selectImage);
+            that.removeSpinner();
+            that.safeSetState({ message: 'Fundraising loans: arrow keys to move, space toggles magnify.', loading: false });
+            that.initSnowstack(images);
         }
+    },
+    initSnowstack: function initSnowstack(images) {
+        var el = document.getElementById('camera');
+        if (!el || this._unmounted) return;
+        if (typeof snowstack_reset === 'function') snowstack_reset();
+        snowstack_init(function (callback) {
+            callback(images);
+        });
     },
     safeSetState: function safeSetState(state) {
         if (!this._unmounted) this.setState(state);
@@ -73531,26 +73588,54 @@ var SnowStack = _react2['default'].createClass({
             this._started = true;
             setTimeout(function () {
                 if (_this._unmounted) return;
-                var el = document.getElementById('camera');
-                if (el) {
-                    if (typeof snowstack_reset === 'function') snowstack_reset();
-                    snowstack_init(_this.produceImages);
-                }
+                _this.fetchAndInit();
             }, 100);
         }
     },
     componentWillUnmount: function componentWillUnmount() {
         this._unmounted = true;
+        this.removeSpinner();
         if (typeof snowstack_cleanup === 'function') snowstack_cleanup();
         if (typeof snowstack_reset === 'function') snowstack_reset();
         document.body.style.removeProperty('background-color');
         document.body.style.removeProperty('overflow');
     },
     componentDidMount: function componentDidMount() {
+        var _this2 = this;
+
         this._unmounted = false;
         document.body.style.backgroundColor = 'black';
         document.body.style.overflow = 'hidden';
+        setTimeout(function () {
+            return _this2.addSpinner();
+        }, 50);
         this.startIfReady();
+    },
+    addSpinner: function addSpinner() {
+        var camera = document.getElementById('camera');
+        if (!camera) return;
+        var style = document.createElement('style');
+        style.textContent = '@keyframes spin3d { to { transform: rotateY(360deg) } } @keyframes pulse3d { 0%,100% { opacity: 0.3 } 50% { opacity: 1 } }';
+        document.head.appendChild(style);
+        this._spinnerStyle = style;
+
+        var spinner = document.createElement('div');
+        spinner.id = 'kl-wall-spinner';
+        spinner.style.cssText = 'position:absolute;left:-60px;top:-60px;width:120px;height:120px;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;animation:spin3d 3s linear infinite;';
+        for (var i = 0; i < 4; i++) {
+            var panel = document.createElement('div');
+            panel.style.cssText = 'position:absolute;width:120px;height:120px;border:2px solid rgba(255,255,255,0.4);border-radius:8px;background:rgba(75,175,80,0.15);display:flex;align-items:center;justify-content:center;animation:pulse3d 2s ease-in-out ' + i * 0.25 + 's infinite;-webkit-transform:rotateY(' + i * 45 + 'deg) translateZ(60px);transform:rotateY(' + i * 45 + 'deg) translateZ(60px);';
+            panel.innerHTML = '<div style="color:rgba(255,255,255,0.6);font-size:11px;text-align:center">Loading...</div>';
+            spinner.appendChild(panel);
+        }
+        camera.appendChild(spinner);
+    },
+    removeSpinner: function removeSpinner() {
+        var spinner = document.getElementById('kl-wall-spinner');
+        if (spinner) spinner.remove();
+        if (this._spinnerStyle) {
+            this._spinnerStyle.remove();this._spinnerStyle = null;
+        }
     },
     render: function render() {
         return _react2['default'].createElement(

@@ -92,6 +92,10 @@ var Search = React.createClass({
         //e.preventDefault()
         //todo: scroll to criteria after it switches
     },
+    resetCriteria(e){
+        e.preventDefault()
+        a.criteria.startFresh()
+    },
     bulkAdd(e){
         e.preventDefault()
         this.setState({showBulkAdd: true})
@@ -122,9 +126,10 @@ var Search = React.createClass({
                 <Col md={4} ref="perspective">
                     <div className={cx('side-results', {"side-tilted": floatResults})}>
                         <ButtonGroup justified className="top-only">
-                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                             <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'}
                                     onClick={this.changeCriteria}>Change Criteria</Button>
+                            <Button href="#" key={3} onClick={this.resetCriteria}>Reset</Button>
+                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                         </ButtonGroup>
                         {show_secondary_load ? <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
                                 More loans are still loading. Carry on. {secondary_load_status}

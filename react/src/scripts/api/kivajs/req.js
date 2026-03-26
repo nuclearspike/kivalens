@@ -19,8 +19,7 @@ if (!isServer()) {
     //req.klcached = new SemRequest(`${location.protocol}//${location.host}/api/`,true,false,{},5*60000)
     req.klraw = new SemRequest(`${location.protocol}//${location.host}/`, false, false, {}, 0)
 
-    //kivaBase = `http://kivalens-www.herokuapp.com/proxy/kiva/`
-    kivaBase = `https://www.kivalens.org/proxy/kiva/`
+    kivaBase = `${location.protocol}//${location.host}/proxy/kiva/`
 
     gdocs = `${location.protocol}//${location.host}/proxy/gdocs/`
     req.kl.graph = query => {

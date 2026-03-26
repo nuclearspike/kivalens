@@ -41,7 +41,7 @@ const PartnerListItem = React.createClass({
                     </div>
                     <div className="loan-meta">
                         {p.countries && p.countries.length > 0 ?
-                            <span className="loan-tag">{p.countries.length <= 3 ? p.countries.select(c => c.name).join(', ') : p.countries.length + ' countries'}</span>
+                            <span className="loan-tag">{p.countries.select(c => c.name).join(', ')}</span>
                         : null}
                         {p.rating ? <span className="loan-tag">{p.rating} stars</span> : null}
                     </div>
@@ -111,6 +111,9 @@ const Partners = React.createClass({
                         <SelectRow name="status" cursor={cPartner.refine('status')}
                                    aanCursor={cPartner.refine('status_all_any_none')}/>
 
+                        <SelectRow name="country_code" cursor={cPartner.refine('country_code')}
+                                   aanCursor={cPartner.refine('country_code_all_any_none')}/>
+
                         {['region', 'social_performance', 'charges_fees_and_interest'].map((name, i) =>
                             <SelectRow key={i} name={name} cursor={cPartner.refine(name)}
                                        aanCursor={cPartner.refine(`${name}_all_any_none`)}/>
@@ -139,7 +142,7 @@ const Partners = React.createClass({
                 <Col md={3}>
                     <div className="loan-count-bar" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <span>Showing {numeral(filteredPartners.length).format('0,0')} of {numeral(totalPartners).format('0,0')} partners</span>
-                        <Button bsSize="xsmall" onClick={this.clearCriteria}>Clear All</Button>
+                        <Button bsSize="xsmall" onClick={this.clearCriteria}>Reset</Button>
                     </div>
                     <div className="loan_list_container" style={{height: 'calc(100vh - 90px)', overflowY: 'auto'}}>
                         {filteredPartners.map(p =>

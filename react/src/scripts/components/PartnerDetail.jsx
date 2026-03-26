@@ -5,6 +5,7 @@ import {Col, Label, Button} from 'react-bootstrap'
 import {KivaImage, NewTabLink, KivaLink} from '.'
 import numeral from 'numeral'
 import a from '../actions'
+import s from '../stores'
 
 const statusColors = {
     active: null,
@@ -23,7 +24,10 @@ const PartnerDetail = React.createClass({
     },
     searchLoans() {
         var partner = this.props.partner
-        a.criteria.reload({partner: {partners: [partner.id]}})
+        var crit = s.criteria.syncBlankCriteria()
+        crit.partner.partners = partner.id.toString()
+        s.criteria.onChange(crit)
+        a.criteria.reload(crit)
         window.location.hash = '#/search'
     },
     render() {
@@ -42,7 +46,7 @@ const PartnerDetail = React.createClass({
                 {loanCount > 0 ?
                     <div style={{marginBottom: 10, padding: '8px 12px', background: '#e8f5e9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                         <span><b>{numeral(loanCount).format('0,0')}</b> fundraising loan{loanCount !== 1 ? 's' : ''}</span>
-                        <Button bsSize="small" bsStyle="success" onClick={this.searchLoans}>Search Loans</Button>
+                        <Button bsSize="small" bsStyle="success" onClick={this.searchLoans}>Show Loans</Button>
                     </div>
                 : null}
                 <h2>
