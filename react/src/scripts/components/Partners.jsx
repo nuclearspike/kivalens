@@ -64,15 +64,14 @@ const Partners = React.createClass({
         }
     },
     componentDidMount() {
-        this.listenTo(a.loans.live.progress, this.onProgress)
+        this.listenTo(a.loans.load.completed, this.onDataLoaded)
+        this.listenTo(a.loans.load.secondaryLoad, this.onDataLoaded)
         this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
         this.performSearch()
     },
-    onProgress(progress) {
-        if (progress.partners_loaded || progress.atheist_list_loaded || progress.loans_loaded) {
-            this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
-            this.performSearch()
-        }
+    onDataLoaded() {
+        this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
+        this.performSearch()
     },
     performSearch() {
         var c = extend(true, {}, this.state.criteria.partner || {})
@@ -105,12 +104,9 @@ const Partners = React.createClass({
             <div>
                 <Col md={4}>
                     <div style={{overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden'}}>
-                        <div style={{display: 'flex', gap: 4, marginBottom: 8}}>
-                            <input type="text" className="form-control" placeholder="Search by name..."
-                                style={{flex: 1}}
-                                onChange={this.onNameChange} value={this.state.nameSearch}/>
-                            <Button bsSize="small" onClick={this.clearCriteria}>Clear</Button>
-                        </div>
+                        <input type="text" className="form-control" placeholder="Search by name..."
+                            style={{marginBottom: 8}}
+                            onChange={this.onNameChange} value={this.state.nameSearch}/>
 
                         <SelectRow name="status" cursor={cPartner.refine('status')}
                                    aanCursor={cPartner.refine('status_all_any_none')}/>
@@ -141,8 +137,9 @@ const Partners = React.createClass({
                     </div>
                 </Col>
                 <Col md={3}>
-                    <div className="loan-count-bar">
-                        Showing {numeral(filteredPartners.length).format('0,0')} of {numeral(totalPartners).format('0,0')} partners
+                    <div className="loan-count-bar" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <span>Showing {numeral(filteredPartners.length).format('0,0')} of {numeral(totalPartners).format('0,0')} partners</span>
+                        <Button bsSize="xsmall" onClick={this.clearCriteria}>Clear All</Button>
                     </div>
                     <div className="loan_list_container" style={{height: 'calc(100vh - 90px)', overflowY: 'auto'}}>
                         {filteredPartners.map(p =>

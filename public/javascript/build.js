@@ -62274,7 +62274,7 @@ var Loans = (function () {
     }
   }, {
     key: 'filterPartners',
-    value: function filterPartners(c, useCache, idsOnly) {
+    value: function filterPartners(c, useCache, idsOnly, partnerPool) {
       if (useCache === undefined) useCache = false;
       if (idsOnly === undefined) idsOnly = true;
       if (this.last_partner_search_count > 10) {
@@ -62309,8 +62309,10 @@ var Loans = (function () {
 
         var ct = new CritTester(c.partner);
 
-        //no UI for this one
-        //ct.addAnyAllNoneTester('status',null,'any',       partner=>partner.status, false)
+        // Status filter (only when searching all partners, not just active)
+        if (partnerPool) ct.addAnyAllNoneTester('status', null, 'any', function (partner) {
+          return partner.status;
+        });
 
         ct.addAnyAllNoneTester('region', null, 'any', function (partner) {
           return partner.kl_regions;
@@ -62381,7 +62383,7 @@ var Loans = (function () {
         cl('crit:partner:testers', ct.testers);
 
         //filter the partners
-        result = this.active_partners.where(function (p) {
+        result = (partnerPool || this.active_partners).where(function (p) {
           return ct.allPass(p);
         });
         if (idsOnly) result = result.select(function (p) {
@@ -62397,98 +62399,28 @@ var Loans = (function () {
     value: function filterAllPartners(criteria) {
       if (!this.partners_from_kiva || !this.partners_from_kiva.length) return [];
 
-      var c = extend(true, {}, criteria);
-      var ct = new CritTester(c);
+      // Reuse filterPartners by wrapping criteria in the expected {partner:{}, portfolio:{}} shape
+      var c = { partner: extend(true, {}, criteria), portfolio: {} };
+      var name = c.partner.name;
+      delete c.partner.name; // filterPartners doesn't know about name
 
-      // Status filter
-      ct.addAnyAllNoneTester('status', null, 'any', function (partner) {
-        return partner.status;
-      });
+      var results = this.filterPartners(c, false, false, this.partners_from_kiva);
 
-      // Name search (same pattern as borrower name search)
-      ct.addArrayAllStartWithTester(c.name, function (partner) {
-        return partner.kl_name_arr || [];
-      });
-
-      // Region
-      ct.addAnyAllNoneTester('region', null, 'any', function (partner) {
-        return partner.kl_regions;
-      }, true);
-
-      // Social performance
-      var sp_arr = [];
-      try {
-        sp_arr = typeof c.social_performance === 'string' ? c.social_performance.split(',').where(function (sp) {
-          return sp && !isNaN(sp);
-        }).select(function (sp) {
-          return parseInt(sp);
-        }) : [];
-      } catch (e) {
-        sp_arr = [];
+      // Apply name search (not part of filterPartners)
+      if (name && name.trim().length > 0) {
+        var terms = name.toUpperCase().match(/(\w+)/g);
+        if (terms) {
+          results = results.where(function (p) {
+            return terms.all(function (term) {
+              return (p.kl_name_arr || []).any(function (w) {
+                return w.startsWith(term);
+              });
+            });
+          });
+        }
       }
-      ct.addAnyAllNoneTester('social_performance', sp_arr, 'all', function (partner) {
-        return partner.kl_sp;
-      }, true);
 
-      // Numeric ranges
-      ct.addRangeTesters('partner_default', function (partner) {
-        return partner.default_rate;
-      });
-      ct.addRangeTesters('partner_arrears', function (partner) {
-        return partner.delinquency_rate;
-      });
-      ct.addRangeTesters('portfolio_yield', function (partner) {
-        return partner.portfolio_yield;
-      });
-      ct.addRangeTesters('profit', function (partner) {
-        return partner.profitability;
-      });
-      ct.addRangeTesters('loans_at_risk_rate', function (partner) {
-        return partner.loans_at_risk_rate;
-      });
-      ct.addRangeTesters('currency_exchange_loss_rate', function (partner) {
-        return partner.currency_exchange_loss_rate;
-      });
-      ct.addRangeTesters('average_loan_size_percent_per_capita_income', function (partner) {
-        return partner.average_loan_size_percent_per_capita_income;
-      });
-      ct.addRangeTesters('years_on_kiva', function (partner) {
-        return partner.kl_years_on_kiva;
-      });
-      ct.addRangeTesters('loans_posted', function (partner) {
-        return partner.loans_posted;
-      });
-      ct.addThreeStateTester(c.charges_fees_and_interest, function (partner) {
-        return partner.charges_fees_and_interest;
-      });
-      ct.addRangeTesters('partner_risk_rating', function (partner) {
-        return partner.rating;
-      }, function (partner) {
-        return isNaN(parseFloat(partner.rating));
-      }, function (crit) {
-        return crit.partner_risk_rating_min == null;
-      });
-
-      // A+ Team data
-      if (this.atheist_list_processed) {
-        ct.addRangeTesters('secular_rating', function (partner) {
-          return partner.atheistScore.secularRating;
-        }, function (partner) {
-          return !partner.atheistScore;
-        });
-        ct.addRangeTesters('social_rating', function (partner) {
-          return partner.atheistScore.socialRating;
-        }, function (partner) {
-          return !partner.atheistScore;
-        });
-      }
-      ct.addAnyAllNoneTester('religion', null, 'any', function (partner) {
-        return partner.normalizedReligions || ['Unknown'];
-      }, true);
-
-      return this.partners_from_kiva.where(function (p) {
-        return ct.allPass(p);
-      });
+      return results;
     }
   }, {
     key: 'filter',
@@ -63240,7 +63172,7 @@ var CritTester = (function () {
             var _this = this;
 
             var min = this.crit_group[crit_name + '_min'];
-            if (min !== undefined) {
+            if (min != null) {
                 var low_test = function low_test(entity) {
                     if (overrideIf && overrideIf(entity)) return overrideFunc ? overrideFunc(_this.crit_group, entity) : true;
                     return min <= selector(entity);
@@ -63248,7 +63180,7 @@ var CritTester = (function () {
                 this.testers.push(low_test);
             }
             var max = this.crit_group[crit_name + '_max'];
-            if (max !== undefined) {
+            if (max != null) {
                 var high_test = function high_test(entity) {
                     if (overrideIf && overrideIf(entity)) return overrideFunc ? overrideFunc(_this.crit_group, entity) : true;
                     return selector(entity) <= max;
@@ -67167,7 +67099,7 @@ allOptions.disbursal_in_days = { min: -90, max: 90, label: 'Disbursal (days)', h
 
 //partner sliders
 allOptions.partner_risk_rating = { min: 0, max: 5, step: 0.5, label: 'Risk Rating (stars)', helpText: "5 star means that Kiva has estimated that the institution servicing the loan has very low probability of collapse. 1 star means they may be new and untested. To include unrated partners, have the left-most slider all the way at left." };
-allOptions.partner_arrears = { min: 0, max: 50, step: 0.1, label: 'Delinq Rate (%)', helpText: "Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding" };
+allOptions.partner_arrears = { min: 0, max: 100, step: 0.1, label: 'Delinq Rate (%)', helpText: "Kiva defines the Delinquency (Arrears) Rate as the amount of late payments divided by the total outstanding principal balance Kiva has with the Field Partner. Arrears can result from late repayments from Kiva borrowers as well as delayed payments from the Field Partner.  How this is calculated: Delinquency (Arrears) Rate = Amount of Paying Back Loans Delinquent / Amount Outstanding" };
 allOptions.partner_default = { min: 0, max: 30, step: 0.1, label: 'Default Rate (%)', helpText: "The default rate is the percentage of ended loans (no longer paying back) which have failed to repay (measured in dollar volume, not units). How this is calculated: Default Rate = Amount of Ended Loans Defaulted / Amount of Ended Loans. For more information, please refer to Kiva's Help Center. " };
 allOptions.portfolio_yield = { min: 0, max: 100, step: 0.1, label: 'Portfolio Yield (%)', helpText: "Although Kiva and its lenders don't charge interest or fees to borrowers, many of Kiva's Field Partners do charge borrowers in some form in order to make possible the long-term sustainability of their operations, reach and impact. See Kiva for more information on Portfolio Yield. Also, see the About page, Reducing Risk section to understand why high Portfolio Yields are often to the poorest borrowers." };
 allOptions.profit = { min: -100, max: 100, step: 0.1, label: 'Profit (%)', helpText: "'Return on Assets' is an indication of a Field Partner's profitability. It can also be an indicator of the long-term sustainability of an organization, as organizations consistently operating at a loss (those that have a negative return on assets) may not be able to sustain their operations over time." };
@@ -72078,15 +72010,14 @@ var Partners = _react2['default'].createClass({
         };
     },
     componentDidMount: function componentDidMount() {
-        this.listenTo(_actions2['default'].loans.live.progress, this.onProgress);
+        this.listenTo(_actions2['default'].loans.load.completed, this.onDataLoaded);
+        this.listenTo(_actions2['default'].loans.load.secondaryLoad, this.onDataLoaded);
         this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
         this.performSearch();
     },
-    onProgress: function onProgress(progress) {
-        if (progress.partners_loaded || progress.atheist_list_loaded || progress.loans_loaded) {
-            this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
-            this.performSearch();
-        }
+    onDataLoaded: function onDataLoaded() {
+        this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
+        this.performSearch();
     },
     performSearch: function performSearch() {
         var c = (0, _extend2['default'])(true, {}, this.state.criteria.partner || {});
@@ -72133,18 +72064,9 @@ var Partners = _react2['default'].createClass({
                 _react2['default'].createElement(
                     'div',
                     { style: { overflowY: 'auto', height: 'calc(100vh - 60px)', paddingRight: 15, overflowX: 'hidden' } },
-                    _react2['default'].createElement(
-                        'div',
-                        { style: { display: 'flex', gap: 4, marginBottom: 8 } },
-                        _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
-                            style: { flex: 1 },
-                            onChange: this.onNameChange, value: this.state.nameSearch }),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { bsSize: 'small', onClick: this.clearCriteria },
-                            'Clear'
-                        )
-                    ),
+                    _react2['default'].createElement('input', { type: 'text', className: 'form-control', placeholder: 'Search by name...',
+                        style: { marginBottom: 8 },
+                        onChange: this.onNameChange, value: this.state.nameSearch }),
                     _react2['default'].createElement(_CriteriaTabsJsx.SelectRow, { name: 'status', cursor: cPartner.refine('status'),
                         aanCursor: cPartner.refine('status_all_any_none') }),
                     ['region', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
@@ -72174,12 +72096,21 @@ var Partners = _react2['default'].createClass({
                 { md: 3 },
                 _react2['default'].createElement(
                     'div',
-                    { className: 'loan-count-bar' },
-                    'Showing ',
-                    (0, _numeral2['default'])(filteredPartners.length).format('0,0'),
-                    ' of ',
-                    (0, _numeral2['default'])(totalPartners).format('0,0'),
-                    ' partners'
+                    { className: 'loan-count-bar', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                    _react2['default'].createElement(
+                        'span',
+                        null,
+                        'Showing ',
+                        (0, _numeral2['default'])(filteredPartners.length).format('0,0'),
+                        ' of ',
+                        (0, _numeral2['default'])(totalPartners).format('0,0'),
+                        ' partners'
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { bsSize: 'xsmall', onClick: this.clearCriteria },
+                        'Clear All'
+                    )
                 ),
                 _react2['default'].createElement(
                     'div',

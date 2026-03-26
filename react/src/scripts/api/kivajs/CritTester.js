@@ -17,7 +17,7 @@ class CritTester {
     }
     addRangeTesters(crit_name, selector, overrideIf, overrideFunc){
         var min = this.crit_group[`${crit_name}_min`]
-        if (min !== undefined) {
+        if (min != null) {
             var low_test = entity => {
                 if (overrideIf && overrideIf(entity))
                     return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
@@ -26,7 +26,7 @@ class CritTester {
             this.testers.push(low_test)
         }
         var max = this.crit_group[`${crit_name}_max`]
-        if (max !== undefined) {
+        if (max != null) {
             var high_test = entity => {
                 if (overrideIf && overrideIf(entity))
                     return (overrideFunc) ? overrideFunc(this.crit_group, entity) : true
