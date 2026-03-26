@@ -25,11 +25,12 @@ const PartnerListItem = React.createClass({
     render() {
         var p = this.props.partner
         var isSelected = this.props.selected
+        var loanCount = this.props.loanCount
         var bgColor = !isSelected && statusColors[p.status] ? statusColors[p.status] : null
         return (
             <ListGroupItem
                 className={cx('loan_list_item', {selected: isSelected})}
-                style={bgColor ? {backgroundColor: bgColor} : null}
+                style={bgColor ? {backgroundColor: bgColor, position: 'relative'} : {position: 'relative'}}
                 onClick={this.props.onClick}
                 href="javascript:void(0)">
                 <div className="details" style={{marginLeft: 0}}>
@@ -46,6 +47,9 @@ const PartnerListItem = React.createClass({
                         {p.rating ? <span className="loan-tag">{p.rating} stars</span> : null}
                     </div>
                 </div>
+                {loanCount !== null && loanCount > 0 ?
+                    <span className="badge" style={{position: 'absolute', bottom: 6, right: 8, backgroundColor: '#4a8b5c', fontSize: '10px'}}>{loanCount}</span>
+                : null}
             </ListGroupItem>
         )
     }
@@ -73,14 +77,38 @@ const Partners = React.createClass({
         this.setState({displayAtheistOptions: kivaloans.atheist_list_processed})
         this.performSearch()
     },
+    buildLoanCountMap() {
+        var map = {}
+        if (kivaloans.loans_from_kiva) {
+            kivaloans.loans_from_kiva.forEach(l => {
+                if (l.status === 'fundraising') {
+                    map[l.partner_id] = (map[l.partner_id] || 0) + 1
+                }
+            })
+        }
+        return map
+    },
     performSearch() {
         var c = extend(true, {}, this.state.criteria.partner || {})
         c.name = this.state.nameSearch
+        var loanCountMap = this.buildLoanCountMap()
         var results = kivaloans.filterAllPartners(c)
+
+        // Filter by fundraising loan count if set
+        var flcMin = c.fundraising_loan_count_min
+        var flcMax = c.fundraising_loan_count_max
+        if (flcMin !== null && flcMin !== undefined) {
+            results = results.filter(p => (loanCountMap[p.id] || 0) >= flcMin)
+        }
+        if (flcMax !== null && flcMax !== undefined) {
+            results = results.filter(p => (loanCountMap[p.id] || 0) <= flcMax)
+        }
+
         results = results.orderBy(p => p.name)
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0
+            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0,
+            loanCountMap: loanCountMap
         })
     },
     selectPartner(partner) {
@@ -128,6 +156,10 @@ const Partners = React.createClass({
                                        options={allOptions[name]}/>
                         )}
 
+                        <SliderRow cursorMin={cPartner.refine('fundraising_loan_count_min')}
+                                   cursorMax={cPartner.refine('fundraising_loan_count_max')} cycle={0}
+                                   options={allOptions['fundraising_loan_count']}/>
+
                         {displayAtheistOptions ?
                             <div>
                                 {['secular_rating', 'social_rating'].map((name, i) =>
@@ -149,6 +181,7 @@ const Partners = React.createClass({
                             <PartnerListItem
                                 key={p.id}
                                 partner={p}
+                                loanCount={p.status === 'active' ? (this.state.loanCountMap || {})[p.id] || 0 : null}
                                 selected={selectedPartner && selectedPartner.id === p.id}
                                 onClick={this.selectPartner.bind(this, p)}/>
                         )}

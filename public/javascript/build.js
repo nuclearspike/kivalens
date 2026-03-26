@@ -67133,6 +67133,7 @@ allOptions.currency_exchange_loss_rate = { min: 0, max: 10, step: 0.1, label: 'C
 allOptions.average_loan_size_percent_per_capita_income = { min: 0, max: 300, label: 'Average Loan/Capita Income', helpText: "The Field Partner's average loan size is expressed as a percentage of the country's gross national annual income per capita. Loans that are smaller (that is, as a lower percentage of gross national income per capita) are generally made to more economically disadvantaged populations. However, these same loans are generally more costly for the Field Partner to originate, disburse and collect." };
 allOptions.years_on_kiva = { min: 0, max: 12, step: 0.25, label: 'Years on Kiva', helpText: "How long the partner has been posting loans on Kiva." };
 allOptions.loans_posted = { min: 0, max: 20000, step: 50, label: 'Loans Posted', helpText: "How many loans the partner has posted to Kiva." };
+allOptions.fundraising_loan_count = { min: 0, max: 200, step: 1, label: 'Fundraising Loans', helpText: "How many loans from this partner are currently fundraising on Kiva." };
 allOptions.secular_rating = { min: 1, max: 4, label: 'Secular Score (A+ Team)', helpText: "4 Completely secular, 3 Secular but with some religious influence (e.g. a secular MFI that partners with someone like World Vision), or it appears secular but with some uncertainty, 2 Nonsecular but loans without regard to borrower’s beliefs, 1 Nonsecular with a religious agenda." };
 allOptions.social_rating = { min: 1, max: 4, label: 'Social Score (A+ Team)', helpText: "4 Excellent social initiatives - proactive social programs and efforts outside of lending. Truly outstanding social activities. 3 Good social initiatives in most areas. MFI has some formal and structured social programs. 2 Social goals but no/few initiatives (may have savings, business counseling). 1 No attention to social goals or initiatives. Typically the MFI only focuses on their own business issues (profitability etc.). They might mention social goals but it seems to be there just because it’s the right thing to say (politically correct)." };
 
@@ -72020,12 +72021,13 @@ var PartnerListItem = _react2['default'].createClass({
     render: function render() {
         var p = this.props.partner;
         var isSelected = this.props.selected;
+        var loanCount = this.props.loanCount;
         var bgColor = !isSelected && statusColors[p.status] ? statusColors[p.status] : null;
         return _react2['default'].createElement(
             _reactBootstrap.ListGroupItem,
             {
                 className: (0, _classnames2['default'])('loan_list_item', { selected: isSelected }),
-                style: bgColor ? { backgroundColor: bgColor } : null,
+                style: bgColor ? { backgroundColor: bgColor, position: 'relative' } : { position: 'relative' },
                 onClick: this.props.onClick,
                 href: 'javascript:void(0)' },
             _react2['default'].createElement(
@@ -72063,7 +72065,12 @@ var PartnerListItem = _react2['default'].createClass({
                         ' stars'
                     ) : null
                 )
-            )
+            ),
+            loanCount !== null && loanCount > 0 ? _react2['default'].createElement(
+                'span',
+                { className: 'badge', style: { position: 'absolute', bottom: 6, right: 8, backgroundColor: '#4a8b5c', fontSize: '10px' } },
+                loanCount
+            ) : null
         );
     }
 });
@@ -72092,16 +72099,44 @@ var Partners = _react2['default'].createClass({
         this.setState({ displayAtheistOptions: kivaloans.atheist_list_processed });
         this.performSearch();
     },
+    buildLoanCountMap: function buildLoanCountMap() {
+        var map = {};
+        if (kivaloans.loans_from_kiva) {
+            kivaloans.loans_from_kiva.forEach(function (l) {
+                if (l.status === 'fundraising') {
+                    map[l.partner_id] = (map[l.partner_id] || 0) + 1;
+                }
+            });
+        }
+        return map;
+    },
     performSearch: function performSearch() {
         var c = (0, _extend2['default'])(true, {}, this.state.criteria.partner || {});
         c.name = this.state.nameSearch;
+        var loanCountMap = this.buildLoanCountMap();
         var results = kivaloans.filterAllPartners(c);
+
+        // Filter by fundraising loan count if set
+        var flcMin = c.fundraising_loan_count_min;
+        var flcMax = c.fundraising_loan_count_max;
+        if (flcMin !== null && flcMin !== undefined) {
+            results = results.filter(function (p) {
+                return (loanCountMap[p.id] || 0) >= flcMin;
+            });
+        }
+        if (flcMax !== null && flcMax !== undefined) {
+            results = results.filter(function (p) {
+                return (loanCountMap[p.id] || 0) <= flcMax;
+            });
+        }
+
         results = results.orderBy(function (p) {
             return p.name;
         });
         this.setState({
             filteredPartners: results,
-            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0
+            totalPartners: kivaloans.partners_from_kiva ? kivaloans.partners_from_kiva.length : 0,
+            loanCountMap: loanCountMap
         });
     },
     selectPartner: function selectPartner(partner) {
@@ -72155,6 +72190,9 @@ var Partners = _react2['default'].createClass({
                             cursorMax: cPartner.refine(name + '_max'), cycle: 0,
                             options: _CriteriaTabsJsx.allOptions[name] });
                     }),
+                    _react2['default'].createElement(_CriteriaTabsJsx.SliderRow, { cursorMin: cPartner.refine('fundraising_loan_count_min'),
+                        cursorMax: cPartner.refine('fundraising_loan_count_max'), cycle: 0,
+                        options: _CriteriaTabsJsx.allOptions['fundraising_loan_count'] }),
                     displayAtheistOptions ? _react2['default'].createElement(
                         'div',
                         null,
@@ -72194,6 +72232,7 @@ var Partners = _react2['default'].createClass({
                         return _react2['default'].createElement(PartnerListItem, {
                             key: p.id,
                             partner: p,
+                            loanCount: p.status === 'active' ? (_this.state.loanCountMap || {})[p.id] || 0 : null,
                             selected: selectedPartner && selectedPartner.id === p.id,
                             onClick: _this.selectPartner.bind(_this, p) });
                     })
