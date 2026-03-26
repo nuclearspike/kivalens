@@ -414,8 +414,8 @@ const SavedSearches = React.createClass({
                                 <span className="badge" style={{
                                     minWidth: 36, textAlign: 'center', marginRight: 6, flexShrink: 0,
                                     fontSize: 11, padding: '2px 5px',
-                                    backgroundColor: selected === name ? '#fff' : '#4a8a6c',
-                                    color: selected === name ? '#4a8a6c' : '#fff'
+                                    backgroundColor: '#4a8a6c',
+                                    color: '#fff'
                                 }}>{allCounts[name] !== undefined ? allCounts[name] : '...'}</span>
                                 <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{name}</span>
                             </ListGroupItem>
