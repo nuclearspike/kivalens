@@ -96,13 +96,12 @@
 </script>
 
 <script>
-    window.kl_api_start = {"batch":2531,"pages":4,"loanLengths":[978899,977356,972301,971993],"descrLengths":[681802,682360,651756,671026]};
+    window.kl_api_start = {};
     window.kl_progress = {};
 </script>
 
-<script src="javascript/ac660896586197aae39b9ae8b889d0da60417334/initialdownload.js" defer></script>
-<script src="javascript/fc87100c3faa76158f8c601eaca8941e48bb2fd6/vendor.js" defer></script>
-<script src="javascript/7a1699a0de7fab90e88219c48eeea6563e03dba6/build.js" defer></script>
+<script src="javascript//vendor.js" defer></script>
+<script src="javascript//build.js" defer></script>
 <script>
     window.isBootstrapLoaded = false
     window.bootstrapLoaded = function(){
@@ -114,8 +113,7 @@
     var cb = function() {
         var cssfiles = ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/flatly/bootstrap.css'];
         
-        cssfiles.push('stylesheets/35c1459d0197c3d199da1f5895bf98ef4ab131d4/application.min.css');
-        cssfiles.push('stylesheets/7b5b25ee81057767129e31b88b7332eed3bfc065/snowstack.min.css');
+        cssfiles.push('stylesheets//application.min.css');
         var h = document.getElementsByTagName('head')[0];
         for (var i = 0; i < cssfiles.length; i++) {
             var l = document.createElement('link');
@@ -134,5 +132,10 @@
         if (raf) raf(cb);
         else window.addEventListener('load', cb);
     },1);
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function() {});
+    }
 </script>
 </html>

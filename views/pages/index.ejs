@@ -131,5 +131,10 @@
         if (raf) raf(cb);
         else window.addEventListener('load', cb);
     },1);
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function() {});
+    }
 </script>
 </html>

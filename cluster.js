@@ -767,6 +767,7 @@ else  //workers handle all communication with the clients.
 
     var setCustomCacheControl = (res, path) => {
         var maxAge = 86400
+        if (path.endsWith('sw.js')) maxAge = 0
         switch (mime.lookup(path)){
             case 'text/html': maxAge = 0
                 break

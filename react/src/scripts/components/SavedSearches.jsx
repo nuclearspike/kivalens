@@ -103,12 +103,27 @@ const SavedSearches = React.createClass({
             importValid: false,
             showImportFromURL: false,
             importFromURLData: null,
-            searches: s.criteria.syncGetAllNames()
+            searches: s.criteria.syncGetAllNames(),
+            allCounts: {}
         }
     },
     componentDidMount() {
         this.listenTo(a.criteria.savedSearchListChanged, this.refreshList)
         this.checkForURLImport()
+        this.computeAllCounts()
+    },
+    computeAllCounts() {
+        if (!kivaloans.isReady()) return
+        var counts = {}
+        this.state.searches.forEach(name => {
+            try {
+                var crit = s.criteria.syncGetByName(name)
+                counts[name] = kivaloans.filter(crit, false).length
+            } catch(e) {
+                counts[name] = 0
+            }
+        })
+        this.setState({allCounts: counts})
     },
     checkForURLImport() {
         // Check for ?importSS= in the hash URL
@@ -153,7 +168,7 @@ const SavedSearches = React.createClass({
         this.setState({showImportFromURL: false, importFromURLData: null})
     },
     refreshList() {
-        this.setState({searches: s.criteria.syncGetAllNames()})
+        this.setState({searches: s.criteria.syncGetAllNames()}, () => this.computeAllCounts())
     },
     selectSearch(name) {
         this.setState({selected: name, loanCount: null, counting: true, renaming: false})
@@ -347,7 +362,7 @@ const SavedSearches = React.createClass({
         }
     },
     render() {
-        var {selected, loanCount, counting, renaming, renameTo, searches, checked,
+        var {selected, loanCount, counting, renaming, renameTo, searches, checked, allCounts,
              showImportModal, importJSON, importName, importError, importValid,
              showImportFromURL, importFromURLData} = this.state
         var selectedCrit = selected ? s.criteria.syncGetByName(selected) : null
@@ -395,7 +410,13 @@ const SavedSearches = React.createClass({
                                 <input type="checkbox" checked={!!checked[name]}
                                     onChange={this.toggleCheck.bind(this, name)}
                                     onClick={e => e.stopPropagation()}
-                                    style={{marginRight: 8, flexShrink: 0}}/>
+                                    style={{marginRight: 6, flexShrink: 0}}/>
+                                <span className="badge" style={{
+                                    minWidth: 36, textAlign: 'center', marginRight: 6, flexShrink: 0,
+                                    fontSize: 11, padding: '2px 5px',
+                                    backgroundColor: selected === name ? '#fff' : '#4a8a6c',
+                                    color: selected === name ? '#4a8a6c' : '#fff'
+                                }}>{allCounts[name] !== undefined ? allCounts[name] : '...'}</span>
                                 <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{name}</span>
                             </ListGroupItem>
                         )}
