@@ -667,6 +667,7 @@ else  //workers handle all communication with the clients.
                 fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
                 imgSrc: ["'self'", "https://www.kiva.org", "https://*.kivaws.org", "data:", "https://www.google-analytics.com"],
                 connectSrc: ["'self'", "https://api.kivaws.org", "https://www.kiva.org", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
+                workerSrc: ["'self'"],
                 frameSrc: ["'none'"],
                 objectSrc: ["'none'"]
             }
