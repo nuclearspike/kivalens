@@ -1,9 +1,10 @@
 'use strict'
 
 import React from 'react'
-import {Col, Label} from 'react-bootstrap'
+import {Col, Label, Button} from 'react-bootstrap'
 import {KivaImage, NewTabLink, KivaLink} from '.'
 import numeral from 'numeral'
+import a from '../actions'
 
 const statusColors = {
     active: null,
@@ -20,14 +21,30 @@ const PartnerDetail = React.createClass({
     getDefaultProps() {
         return { showStatus: true }
     },
+    searchLoans() {
+        var partner = this.props.partner
+        a.criteria.reload({partner: {partners: [partner.id]}})
+        window.location.hash = '#/search'
+    },
     render() {
         var partner = this.props.partner
         if (!partner) return null
         var atheistScore = partner.atheistScore || {}
         var showAtheistResearch = !!partner.atheistScore
 
+        var loanCount = 0
+        if (partner.status === 'active' && typeof kivaloans !== 'undefined' && kivaloans.loans_from_kiva) {
+            loanCount = kivaloans.loans_from_kiva.filter(l => l.partner_id === partner.id).length
+        }
+
         return (
             <div>
+                {loanCount > 0 ?
+                    <div style={{marginBottom: 10, padding: '8px 12px', background: '#e8f5e9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                        <span><b>{numeral(loanCount).format('0,0')}</b> fundraising loan{loanCount !== 1 ? 's' : ''}</span>
+                        <Button bsSize="small" bsStyle="success" onClick={this.searchLoans}>Search Loans</Button>
+                    </div>
+                : null}
                 <h2>
                     {partner.name}
                     {this.props.showStatus && partner.status !== 'active' ?

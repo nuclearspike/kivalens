@@ -69213,11 +69213,11 @@ var KLNav = _react2['default'].createClass({
                             this.state.basket_count
                         )
                     ),
-                    location.hostname === 'localhost' ? _react2['default'].createElement(
+                    _react2['default'].createElement(
                         _reactBootstrap.NavItem,
                         { key: 8, href: '#/partners', className: isActive('/partners') ? 'active' : '' },
                         'Partners'
-                    ) : null,
+                    ),
                     _react2['default'].createElement(
                         _reactBootstrap.NavItem,
                         { key: 3, href: '#/live', className: isActive('/live') ? 'active' : '' },
@@ -71358,6 +71358,10 @@ var _numeral = require('numeral');
 
 var _numeral2 = _interopRequireDefault(_numeral);
 
+var _actions = require('../actions');
+
+var _actions2 = _interopRequireDefault(_actions);
+
 var statusColors = {
     active: null,
     inactive: 'default',
@@ -71375,15 +71379,47 @@ var PartnerDetail = _react2['default'].createClass({
     getDefaultProps: function getDefaultProps() {
         return { showStatus: true };
     },
+    searchLoans: function searchLoans() {
+        var partner = this.props.partner;
+        _actions2['default'].criteria.reload({ partner: { partners: [partner.id] } });
+        window.location.hash = '#/search';
+    },
     render: function render() {
         var partner = this.props.partner;
         if (!partner) return null;
         var atheistScore = partner.atheistScore || {};
         var showAtheistResearch = !!partner.atheistScore;
 
+        var loanCount = 0;
+        if (partner.status === 'active' && typeof kivaloans !== 'undefined' && kivaloans.loans_from_kiva) {
+            loanCount = kivaloans.loans_from_kiva.filter(function (l) {
+                return l.partner_id === partner.id;
+            }).length;
+        }
+
         return _react2['default'].createElement(
             'div',
             null,
+            loanCount > 0 ? _react2['default'].createElement(
+                'div',
+                { style: { marginBottom: 10, padding: '8px 12px', background: '#e8f5e9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' } },
+                _react2['default'].createElement(
+                    'span',
+                    null,
+                    _react2['default'].createElement(
+                        'b',
+                        null,
+                        (0, _numeral2['default'])(loanCount).format('0,0')
+                    ),
+                    ' fundraising loan',
+                    loanCount !== 1 ? 's' : ''
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsSize: 'small', bsStyle: 'success', onClick: this.searchLoans },
+                    'Search Loans'
+                )
+            ) : null,
             _react2['default'].createElement(
                 'h2',
                 null,
@@ -71706,7 +71742,7 @@ var PartnerDetail = _react2['default'].createClass({
 exports['default'] = PartnerDetail;
 module.exports = exports['default'];
 
-},{".":721,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
+},{".":721,"../actions":667,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
