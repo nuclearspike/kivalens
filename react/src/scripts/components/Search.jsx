@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom'
 import Reflux from 'reflux'
 import {Notification} from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
-import {LoanListItem, LoadingLoansPanel, BulkAddModal} from '.'
+import {LoanListItem, LoadingLoansPanel, BulkAddModal, CriteriaTabs} from '.'
 import a from '../actions'
 import cx from 'classnames'
 import s from '../stores'
@@ -24,31 +24,17 @@ var Search = React.createClass({
             filtered_loans,
             show_secondary_load,
             loan_count: filtered_loans.length,
-            notification: {active: false, message: ''}
+            notification: {active: false, message: ''},
+            showCriteria: true
         }
     },
-    //onScroll(){
-    //    var d = ReactDOM.findDOMNode(this.refs.perspective)
-    //    d.setAttribute('style', "-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
-    //},
-    //componentWillUnmount(){
-    //    if (/webkit/i.test(navigator.userAgent))
-    //        document.removeEventListener('scroll', this.onScroll)
-    //},
     componentWillReceiveProps({location}){
-        if (location && location.pathname != this.props.location.pathname)
-            this.setState({floatResults: location.pathname != '/search'})
+        // no longer used for float toggling
     },
     componentDidMount() {
-        //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
-        //it should only fetch loans that are filtered.
-        //if (/webkit/i.test(navigator.userAgent))
-        //    document.addEventListener('scroll', this.onScroll)
         this.listenTo(a.loans.filter.completed, (loans, sameAsLastTime) => {
             cl('a.loans.filter.completed', loans.length, sameAsLastTime)
-            //if (loans.length)
             this.setState({notification: {active: true, message: `${loans.length} loans`}})
-            //if (sameAsLastTime) return
             var newState = {filtered_loans: loans, loan_count: loans.length}
             if (loans.length)
                 newState.hasHadLoans = true
@@ -63,7 +49,6 @@ var Search = React.createClass({
                     this.fetchingExtra = false
             }
         })
-        //if we enter the page and loading loans is not done yet.
         this.listenTo(a.loans.load.completed, loans => a.loans.filter())
         this.listenTo(a.loans.load.secondaryLoad, this.secondaryLoad)
         this.listenTo(a.loans.load.secondaryStatus, this.secondaryStatus)
@@ -72,7 +57,7 @@ var Search = React.createClass({
             if (outdatedUrl) {
                 this.setState({outdatedUrl})
                 window.rga.event({category: 'outdatedLink', action: 'redirect', label: outdatedUrl})
-                a.utils.var.set('outdatedUrl', null) //todo: better with url state.
+                a.utils.var.set('outdatedUrl', null)
             }
         })
     },
@@ -88,9 +73,9 @@ var Search = React.createClass({
         if (status == 'complete')
             this.setState({show_secondary_load: false})
     },
-    changeCriteria(e){
-        //e.preventDefault()
-        //todo: scroll to criteria after it switches
+    toggleCriteria(e){
+        e.preventDefault()
+        this.setState({showCriteria: !this.state.showCriteria})
     },
     resetCriteria(e){
         e.preventDefault()
@@ -101,15 +86,21 @@ var Search = React.createClass({
         this.setState({showBulkAdd: true})
     },
     modalHidden(){
-        //I hate this. this cannot be the right way to do this. it works. but there has to be a better way.
         this.setState({showBulkAdd: false})
     },
     handleOutdatedUrlAlertDismiss(){
         this.setState({outdatedUrl: null})
     },
     render()  {
-        //var style = {height:'100%', width: '100%'}
-        let {outdatedUrl, showBulkAdd, notification, floatResults, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count} = this.state
+        let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count, showCriteria} = this.state
+        // Determine if we're viewing a loan (Loan component, not Criteria)
+        var hasLoanDetail = this.props.location.pathname !== '/search'
+
+        // Column widths depend on what's visible
+        var critCol = showCriteria ? 3 : 0
+        var listCol = showCriteria ? (hasLoanDetail ? 3 : 4) : (hasLoanDetail ? 4 : 12)
+        var detailCol = hasLoanDetail ? (showCriteria ? 6 : 8) : (showCriteria ? 9 : 0)
+
         return (
             <div>
                 <Notification dismissAfter={5000} isActive={notification.active} message={notification.message}
@@ -118,51 +109,55 @@ var Search = React.createClass({
                 {outdatedUrl ? <Alert className="not-rounded" style={{marginTop: '-20px'}} bsStyle="warning"
                            onDismiss={this.handleOutdatedUrlAlertDismiss} dismissAfter={60000}>
                         <p>
-                            The link or bookmark you used is outdated. To ensure faster page loading
-                            and that you can always get back to the right place, please bookmark this
-                            page.
+                            The link or bookmark you used is outdated. Please bookmark this page.
                         </p>
                     </Alert> : null}
-                <Col md={4} ref="perspective">
-                    <div className={cx('side-results', {"side-tilted": floatResults})}>
-                        <ButtonGroup justified className="top-only">
-                            <Button href="#/search" key={2} disabled={this.props.location.pathname == '/search'}
-                                    onClick={this.changeCriteria}>Change Criteria</Button>
-                            <Button href="#" key={3} onClick={this.resetCriteria}>Reset</Button>
-                            <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
-                        </ButtonGroup>
-                        {show_secondary_load ? <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
-                                More loans are still loading. Carry on. {secondary_load_status}
-                            </Alert> : null}
-                        {backgroundResyncState == 'started' ? <Alert className="not-rounded" style={{marginBottom: '0px'}}>
-                                Continue using the site while the loans are refreshed...
-                            </Alert> : null}
-                        {loan_count > 0 ? <div className="loan-count-bar">
-                                Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.count(l => l.status == 'fundraising')).format('0,0')} fundraising loans
-                            </div> : null}
-                        {hasHadLoans && loan_count == 0 ? <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
-                                There are no matching loans for your current criteria. Loosen the criteria, select a
-                                different Saved Search or click the "Clear" button to start over.
-                            </Alert> : null}
-                        <LoadingLoansPanel/>
-                        <InfiniteList
-                            ref="results"
-                            className="loan_list_container"
-                            items={this.state.filtered_loans}
-                            itemsCount={this.state.filtered_loans.length}
-                            height={900}
-                            itemHeight={82}
-                            listItemClass={LoanListItem}/>
-                    </div>
+
+                {showCriteria ? <Col md={critCol} style={{paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
+                    <CriteriaTabs />
+                </Col> : null}
+
+                <Col md={listCol}>
+                    <ButtonGroup justified className="top-only" style={{marginBottom: 0}}>
+                        <Button href="#" key={4} onClick={this.toggleCriteria}>
+                            {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
+                        </Button>
+                        <Button href="#" key={3} onClick={this.resetCriteria}>Reset</Button>
+                        <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
+                    </ButtonGroup>
+                    {show_secondary_load ? <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
+                            More loans are still loading. Carry on. {secondary_load_status}
+                        </Alert> : null}
+                    {backgroundResyncState == 'started' ? <Alert className="not-rounded" style={{marginBottom: '0px'}}>
+                            Continue using the site while the loans are refreshed...
+                        </Alert> : null}
+                    {loan_count > 0 ? <div className="loan-count-bar">
+                            Showing {numeral(loan_count).format('0,0')} of {numeral(kivaloans.loans_from_kiva.count(l => l.status == 'fundraising')).format('0,0')} fundraising loans
+                        </div> : null}
+                    {hasHadLoans && loan_count == 0 ? <Alert className="not-rounded-top" style={{marginBottom: '0px'}}>
+                            There are no matching loans for your current criteria. Loosen the criteria or click "Reset" to start over.
+                        </Alert> : null}
+                    <LoadingLoansPanel/>
+                    <InfiniteList
+                        ref="results"
+                        className="loan_list_container"
+                        items={this.state.filtered_loans}
+                        itemsCount={this.state.filtered_loans.length}
+                        height={900}
+                        itemHeight={82}
+                        listItemClass={LoanListItem}/>
                 </Col>
-                <Col md={8} className="flat-3d">
+
+                {hasLoanDetail ? <Col md={detailCol} style={{overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
                     {this.props.children}
-                </Col>
+                </Col> : null}
+
+                {!hasLoanDetail && !showCriteria ? <Col md={detailCol}>
+                    <p style={{padding: 20, color: '#999'}}>Select a loan from the list to view details.</p>
+                </Col> : null}
             </div>
         )
     }
 })
-
-//
 
 export default Search;

@@ -234,7 +234,15 @@ div.panel.radioPanel div.radio {
 .Loan .fullsizeImage .KivaImage {
   min-height: 200px;
   min-width: 200px;
+  max-height: 400px;
   background-size: 200px 200px;
+}
+
+.Loan .fullsizeImage img,
+.Loan .partner-image img {
+  max-height: 400px;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .loading_notice {

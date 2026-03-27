@@ -66949,11 +66949,6 @@ var Criteria = _react2['default'].createClass({
                     _reactBootstrap.ButtonGroup,
                     { className: 'float_right' },
                     _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { className: 'hidden-xs hidden-sm', onClick: this.toggleGraph },
-                        'Graphs'
-                    ),
-                    _react2['default'].createElement(
                         _reactBootstrap.DropdownButton,
                         { title: 'Saved Search ' + (lastSaved ? '\'' + lastSaved + '\'' : ''), id: 'saved_search', pullRight: true, onToggle: function (isOpen) {
                                 if (isOpen) {
@@ -66972,6 +66967,7 @@ var Criteria = _react2['default'].createClass({
 
 exports['default'] = Criteria;
 module.exports = exports['default'];
+/* <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button> */
 
 },{".":721,"../actions":667,"../stores/":724,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
 'use strict';
@@ -70035,7 +70031,7 @@ var Loan = _react2['default'].createClass({
         if (params.id != this.props.params.id) _actions2['default'].loans.detail(params.id);
     },
     savedActiveTab: function savedActiveTab() {
-        return { activeTab: localStorage.loan_active_tab ? parseInt(localStorage.loan_active_tab) : 1 };
+        return { activeTab: localStorage.loan_active_tab ? parseInt(localStorage.loan_active_tab) : 2 };
     },
     figureAtheistDisplay: function figureAtheistDisplay() {
         this.setState({ showAtheistResearch: kivaloans.atheist_list_processed });
@@ -70159,7 +70155,7 @@ var Loan = _react2['default'].createClass({
                 _react2['default'].createElement(
                     _reactBootstrap.Tab,
                     { eventKey: 1, title: 'Image', className: 'ample-padding-top fullsizeImage' },
-                    _react2['default'].createElement(_.KivaImage, { key: loan.id, loan: loan, useThumbAsBackground: true, type: 'width', image_width: 800, width: '100%' }),
+                    _react2['default'].createElement(_.KivaImage, { key: loan.id, loan: loan, useThumbAsBackground: true, type: 'width', image_width: 800, width: '100%', style: { maxHeight: 400, objectFit: 'contain' } }),
                     _react2['default'].createElement(
                         _reactBootstrap.Panel,
                         null,
@@ -73204,34 +73200,21 @@ var Search = _react2['default'].createClass({
             filtered_loans: filtered_loans,
             show_secondary_load: show_secondary_load,
             loan_count: filtered_loans.length,
-            notification: { active: false, message: '' }
+            notification: { active: false, message: '' },
+            showCriteria: true
         };
     },
-    //onScroll(){
-    //    var d = ReactDOM.findDOMNode(this.refs.perspective)
-    //    d.setAttribute('style', "-webkit-perspective-origin: 50% " + (document.body.scrollTop + 100) + "px");
-    //},
-    //componentWillUnmount(){
-    //    if (/webkit/i.test(navigator.userAgent))
-    //        document.removeEventListener('scroll', this.onScroll)
-    //},
     componentWillReceiveProps: function componentWillReceiveProps(_ref) {
         var location = _ref.location;
-
-        if (location && location.pathname != this.props.location.pathname) this.setState({ floatResults: location.pathname != '/search' });
     },
+
+    // no longer used for float toggling
     componentDidMount: function componentDidMount() {
         var _this = this;
 
-        //initial state works when flipping to Search after stuff is loaded. listenTo works when it's waiting
-        //it should only fetch loans that are filtered.
-        //if (/webkit/i.test(navigator.userAgent))
-        //    document.addEventListener('scroll', this.onScroll)
         this.listenTo(_actions2['default'].loans.filter.completed, function (loans, sameAsLastTime) {
             cl('a.loans.filter.completed', loans.length, sameAsLastTime);
-            //if (loans.length)
             _this.setState({ notification: { active: true, message: loans.length + ' loans' } });
-            //if (sameAsLastTime) return
             var newState = { filtered_loans: loans, loan_count: loans.length };
             if (loans.length) newState.hasHadLoans = true;
             _this.setState(newState);
@@ -73246,7 +73229,6 @@ var Search = _react2['default'].createClass({
                 });else _this.fetchingExtra = false;
             }
         });
-        //if we enter the page and loading loans is not done yet.
         this.listenTo(_actions2['default'].loans.load.completed, function (loans) {
             return _actions2['default'].loans.filter();
         });
@@ -73257,7 +73239,7 @@ var Search = _react2['default'].createClass({
             if (outdatedUrl) {
                 _this.setState({ outdatedUrl: outdatedUrl });
                 window.rga.event({ category: 'outdatedLink', action: 'redirect', label: outdatedUrl });
-                _actions2['default'].utils['var'].set('outdatedUrl', null); //todo: better with url state.
+                _actions2['default'].utils['var'].set('outdatedUrl', null);
             }
         });
     },
@@ -73271,9 +73253,9 @@ var Search = _react2['default'].createClass({
         if (status == 'started') this.setState({ show_secondary_load: true });
         if (status == 'complete') this.setState({ show_secondary_load: false });
     },
-    changeCriteria: function changeCriteria(e) {
-        //e.preventDefault()
-        //todo: scroll to criteria after it switches
+    toggleCriteria: function toggleCriteria(e) {
+        e.preventDefault();
+        this.setState({ showCriteria: !this.state.showCriteria });
     },
     resetCriteria: function resetCriteria(e) {
         e.preventDefault();
@@ -73284,24 +73266,30 @@ var Search = _react2['default'].createClass({
         this.setState({ showBulkAdd: true });
     },
     modalHidden: function modalHidden() {
-        //I hate this. this cannot be the right way to do this. it works. but there has to be a better way.
         this.setState({ showBulkAdd: false });
     },
     handleOutdatedUrlAlertDismiss: function handleOutdatedUrlAlertDismiss() {
         this.setState({ outdatedUrl: null });
     },
     render: function render() {
-        //var style = {height:'100%', width: '100%'}
         var _state = this.state;
         var outdatedUrl = _state.outdatedUrl;
         var showBulkAdd = _state.showBulkAdd;
         var notification = _state.notification;
-        var floatResults = _state.floatResults;
         var show_secondary_load = _state.show_secondary_load;
         var backgroundResyncState = _state.backgroundResyncState;
         var secondary_load_status = _state.secondary_load_status;
         var hasHadLoans = _state.hasHadLoans;
         var loan_count = _state.loan_count;
+        var showCriteria = _state.showCriteria;
+
+        // Determine if we're viewing a loan (Loan component, not Criteria)
+        var hasLoanDetail = this.props.location.pathname !== '/search';
+
+        // Column widths depend on what's visible
+        var critCol = showCriteria ? 3 : 0;
+        var listCol = showCriteria ? hasLoanDetail ? 3 : 4 : hasLoanDetail ? 4 : 12;
+        var detailCol = hasLoanDetail ? showCriteria ? 6 : 8 : showCriteria ? 9 : 0;
 
         return _react2['default'].createElement(
             'div',
@@ -73316,83 +73304,90 @@ var Search = _react2['default'].createClass({
                 _react2['default'].createElement(
                     'p',
                     null,
-                    'The link or bookmark you used is outdated. To ensure faster page loading and that you can always get back to the right place, please bookmark this page.'
+                    'The link or bookmark you used is outdated. Please bookmark this page.'
                 )
+            ) : null,
+            showCriteria ? _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: critCol, style: { paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
+                _react2['default'].createElement(_.CriteriaTabs, null)
             ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 4, ref: 'perspective' },
+                { md: listCol },
                 _react2['default'].createElement(
-                    'div',
-                    { className: (0, _classnames2['default'])('side-results', { "side-tilted": floatResults }) },
+                    _reactBootstrap.ButtonGroup,
+                    { justified: true, className: 'top-only', style: { marginBottom: 0 } },
                     _react2['default'].createElement(
-                        _reactBootstrap.ButtonGroup,
-                        { justified: true, className: 'top-only' },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { href: '#/search', key: 2, disabled: this.props.location.pathname == '/search',
-                                onClick: this.changeCriteria },
-                            'Change Criteria'
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { href: '#', key: 3, onClick: this.resetCriteria },
-                            'Reset'
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Button,
-                            { href: '#', key: 1, onClick: this.bulkAdd },
-                            'Bulk Add'
-                        )
+                        _reactBootstrap.Button,
+                        { href: '#', key: 4, onClick: this.toggleCriteria },
+                        showCriteria ? 'Hide Criteria' : 'Show Criteria'
                     ),
-                    show_secondary_load ? _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { className: 'not-rounded', style: { marginBottom: '0px' }, bsStyle: 'warning' },
-                        'More loans are still loading. Carry on. ',
-                        secondary_load_status
-                    ) : null,
-                    backgroundResyncState == 'started' ? _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { className: 'not-rounded', style: { marginBottom: '0px' } },
-                        'Continue using the site while the loans are refreshed...'
-                    ) : null,
-                    loan_count > 0 ? _react2['default'].createElement(
-                        'div',
-                        { className: 'loan-count-bar' },
-                        'Showing ',
-                        (0, _numeral2['default'])(loan_count).format('0,0'),
-                        ' of ',
-                        (0, _numeral2['default'])(kivaloans.loans_from_kiva.count(function (l) {
-                            return l.status == 'fundraising';
-                        })).format('0,0'),
-                        ' fundraising loans'
-                    ) : null,
-                    hasHadLoans && loan_count == 0 ? _react2['default'].createElement(
-                        _reactBootstrap.Alert,
-                        { className: 'not-rounded-top', style: { marginBottom: '0px' } },
-                        'There are no matching loans for your current criteria. Loosen the criteria, select a different Saved Search or click the "Clear" button to start over.'
-                    ) : null,
-                    _react2['default'].createElement(_.LoadingLoansPanel, null),
-                    _react2['default'].createElement(_InfiniteListJsx2['default'], {
-                        ref: 'results',
-                        className: 'loan_list_container',
-                        items: this.state.filtered_loans,
-                        itemsCount: this.state.filtered_loans.length,
-                        height: 900,
-                        itemHeight: 82,
-                        listItemClass: _.LoanListItem })
-                )
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { href: '#', key: 3, onClick: this.resetCriteria },
+                        'Reset'
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { href: '#', key: 1, onClick: this.bulkAdd },
+                        'Bulk Add'
+                    )
+                ),
+                show_secondary_load ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { className: 'not-rounded', style: { marginBottom: '0px' }, bsStyle: 'warning' },
+                    'More loans are still loading. Carry on. ',
+                    secondary_load_status
+                ) : null,
+                backgroundResyncState == 'started' ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { className: 'not-rounded', style: { marginBottom: '0px' } },
+                    'Continue using the site while the loans are refreshed...'
+                ) : null,
+                loan_count > 0 ? _react2['default'].createElement(
+                    'div',
+                    { className: 'loan-count-bar' },
+                    'Showing ',
+                    (0, _numeral2['default'])(loan_count).format('0,0'),
+                    ' of ',
+                    (0, _numeral2['default'])(kivaloans.loans_from_kiva.count(function (l) {
+                        return l.status == 'fundraising';
+                    })).format('0,0'),
+                    ' fundraising loans'
+                ) : null,
+                hasHadLoans && loan_count == 0 ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { className: 'not-rounded-top', style: { marginBottom: '0px' } },
+                    'There are no matching loans for your current criteria. Loosen the criteria or click "Reset" to start over.'
+                ) : null,
+                _react2['default'].createElement(_.LoadingLoansPanel, null),
+                _react2['default'].createElement(_InfiniteListJsx2['default'], {
+                    ref: 'results',
+                    className: 'loan_list_container',
+                    items: this.state.filtered_loans,
+                    itemsCount: this.state.filtered_loans.length,
+                    height: 900,
+                    itemHeight: 82,
+                    listItemClass: _.LoanListItem })
             ),
-            _react2['default'].createElement(
+            hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 8, className: 'flat-3d' },
+                { md: detailCol, style: { overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
                 this.props.children
-            )
+            ) : null,
+            !hasLoanDetail && !showCriteria ? _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: detailCol },
+                _react2['default'].createElement(
+                    'p',
+                    { style: { padding: 20, color: '#999' } },
+                    'Select a loan from the list to view details.'
+                )
+            ) : null
         );
     }
 });
-
-//
 
 exports['default'] = Search;
 module.exports = exports['default'];

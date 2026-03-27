@@ -167,7 +167,7 @@ var Loan = React.createClass({
             a.loans.detail(params.id)
     },
     savedActiveTab(){
-        return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 1}
+        return {activeTab: (localStorage.loan_active_tab) ? parseInt(localStorage.loan_active_tab) : 2}
     },
     figureAtheistDisplay(){
         this.setState({showAtheistResearch: kivaloans.atheist_list_processed})
@@ -249,7 +249,7 @@ var Loan = React.createClass({
                 </h1>
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top fullsizeImage">
-                        <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%"/>
+                        <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%" style={{maxHeight: 400, objectFit: 'contain'}}/>
                         <Panel>
 {loan.borrowers.length > 1 ?
                                 <p style={{marginBottom: 4, color: '#999', fontSize: '12px'}}>In no particular order</p>
