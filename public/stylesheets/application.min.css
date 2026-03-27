@@ -239,8 +239,9 @@ div.panel.radioPanel div.radio {
 }
 
 .Loan .fullsizeImage img,
-.Loan .partner-image img {
-  max-height: 400px;
+.Loan .partner-image img,
+.PartnerDetail img {
+  max-height: 300px;
   max-width: 100%;
   object-fit: contain;
 }

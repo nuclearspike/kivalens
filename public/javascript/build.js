@@ -71401,7 +71401,7 @@ var PartnerDetail = _react2['default'].createClass({
 
         return _react2['default'].createElement(
             'div',
-            null,
+            { className: 'PartnerDetail' },
             loanCount > 0 ? _react2['default'].createElement(
                 'div',
                 { style: { marginBottom: 10, padding: '8px 12px', background: '#e8f5e9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' } },
@@ -71425,6 +71425,15 @@ var PartnerDetail = _react2['default'].createClass({
             _react2['default'].createElement(
                 'h2',
                 null,
+                _react2['default'].createElement(
+                    _.KivaLink,
+                    { path: 'about/where-kiva-works/partners/' + partner.id },
+                    _react2['default'].createElement(
+                        'span',
+                        { style: { display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2 } },
+                        'K'
+                    )
+                ),
                 partner.name,
                 this.props.showStatus && partner.status !== 'active' ? _react2['default'].createElement(
                     'span',
@@ -71627,12 +71636,7 @@ var PartnerDetail = _react2['default'].createClass({
             _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { lg: 6 },
-                partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%' }) : null,
-                _react2['default'].createElement(
-                    _.KivaLink,
-                    { path: 'about/where-kiva-works/partners/' + partner.id },
-                    'View Partner on Kiva.org'
-                )
+                partner.image ? _react2['default'].createElement(_.KivaImage, { key: partner.id, className: 'float_left', type: 'width', loan: partner, image_width: 800, width: '100%', style: { maxHeight: 300, objectFit: 'contain' } }) : null
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Col,

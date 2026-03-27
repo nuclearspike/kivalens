@@ -42,7 +42,7 @@ const PartnerDetail = React.createClass({
         }
 
         return (
-            <div>
+            <div className="PartnerDetail">
                 {loanCount > 0 ?
                     <div style={{marginBottom: 10, padding: '8px 12px', background: '#e8f5e9', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                         <span><b>{numeral(loanCount).format('0,0')}</b> fundraising loan{loanCount !== 1 ? 's' : ''}</span>
@@ -50,6 +50,7 @@ const PartnerDetail = React.createClass({
                     </div>
                 : null}
                 <h2>
+                    <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></KivaLink>
                     {partner.name}
                     {this.props.showStatus && partner.status !== 'active' ?
                         <span> <Label bsStyle={statusColors[partner.status] || 'default'}>{partner.status}</Label></span>
@@ -86,9 +87,8 @@ const PartnerDetail = React.createClass({
                 </Col>
                 <Col lg={6}>
                     {partner.image ?
-                        <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%"/>
+                        <KivaImage key={partner.id} className="float_left" type="width" loan={partner} image_width={800} width="100%" style={{maxHeight: 300, objectFit: 'contain'}}/>
                     : null}
-                    <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}>View Partner on Kiva.org</KivaLink>
                 </Col>
                 <Col lg={12}>
                     {partner.kl_sp && partner.kl_sp.length ?
