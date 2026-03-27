@@ -141,7 +141,7 @@ var Search = React.createClass({
                         </p>
                     </Alert> : null}
 
-                {showCriteria ? <Col md={critCol} style={{paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
+                {showCriteria ? <Col md={critCol} style={{paddingRight: 5, overflowY: 'auto', overflowX: 'hidden', maxHeight: 'calc(100vh - 60px)'}}>
                     <Criteria />
                 </Col> : null}
 

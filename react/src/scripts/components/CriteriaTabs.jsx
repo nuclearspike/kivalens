@@ -747,9 +747,8 @@ const CriteriaTabs = React.createClass({
           <Row>
             {location.hostname === '$$localhost' ? <pre>{JSON.stringify(criteria, null, 2)}</pre> : null}
 
-            {needLenderID ? <Alert bsStyle="danger">
-                The options in your criteria require your Lender ID. Go to the Options page
-                to set it.
+            {needLenderID ? <Alert bsStyle="warning">
+                Portfolio balancing requires your Lender ID. <a href="#" onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set it now</a> to enable this feature.
               </Alert> : null}
 
             <Col lg={12}>
@@ -806,11 +805,15 @@ const CriteriaTabs = React.createClass({
         </Tab>
 
         <Tab eventKey={3} title={`Your Portfolio${portfolioTab}`} className="ample-padding-top">
+          {!kiva_lender_id ? <Row>
+            <Col md={12}>
+              <Alert bsStyle="info">
+                  <a href="#" style={{fontWeight:'bold',textDecoration:'underline'}} onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set your Lender ID</a> to exclude funded loans and enable portfolio balancing.
+              </Alert>
+            </Col>
+          </Row> : null}
           <Row>
-            <Col md={10}>
-              {!kiva_lender_id && !needLenderID ? <Alert bsStyle="danger">You have not yet set your Kiva Lender ID on the <Link
-                  to="options">Options</Link> page. These functions won't work until you do.</Alert> : null}
-
+            <Col md={12}>
               Excludes loans you've already funded that are still fundraising. ({lender_loans_message})
 
               {['exclude_portfolio_loans'].map((name, i) => <SelectRow key={i} name={name} cursor={cPortfolio.refine(name)}

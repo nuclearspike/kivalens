@@ -122,6 +122,7 @@ body {
   padding: 8px 12px;
   margin-bottom: 10px;
   font-size: 13px;
+  a { color: black !important; }
 }
 
 // Badge styling
@@ -948,7 +949,7 @@ div.notification-bar {
 
 ///  react-slider ///
 .horizontal-slider {
-  width: 100%;
+  width: calc(100% - 10px);
   max-width: 500px;
   height: 20px;
   border: 0px none;

@@ -42,6 +42,7 @@ const GlobalLenderIDModal = React.createClass({
     onSet(lenderId) {
         lsj.setMerge('Options', {kiva_lender_id: lenderId})
         window.dispatchEvent(new Event('storage')) // notify KLNav
+        window.location.reload()
     },
     render() {
         return <SetLenderIDModal show={this.state.show} onSet={this.onSet} onHide={this.hideModal} />

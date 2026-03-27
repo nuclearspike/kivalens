@@ -273,7 +273,7 @@ var Loan = React.createClass({
                         </p>
                         <div style={{display: 'flex', gap: 12}}>
                             <div style={{flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0}}>
-                                <div><span style={{color: '#999', fontSize: 11}}>Saved Searches</span><br/>{matching}</div>
+                                <div><span style={{color: '#999', fontSize: 11}}>Matches Saved Searches</span><br/>{matching}</div>
                                 <div><span style={{color: '#999', fontSize: 11}}>Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
                                 {(loan.themes && loan.themes.length) ? <div><span style={{color: '#999', fontSize: 11}}>Themes</span><br/>{loan.themes.join(', ')}</div> : null}
                                 <div><span style={{color: '#999', fontSize: 11}}>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>

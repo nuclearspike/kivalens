@@ -107,6 +107,9 @@ body {
   margin-bottom: 10px;
   font-size: 13px;
 }
+.alert a {
+  color: black !important;
+}
 
 .badge {
   background-color: #28a745 !important;
@@ -945,7 +948,7 @@ div.notification-bar {
   }
 }
 .horizontal-slider {
-  width: 100%;
+  width: calc(100% - 10px);
   max-width: 500px;
   height: 20px;
   border: 0px none;

@@ -65078,6 +65078,7 @@ var GlobalLenderIDModal = _react2['default'].createClass({
     onSet: function onSet(lenderId) {
         lsj.setMerge('Options', { kiva_lender_id: lenderId });
         window.dispatchEvent(new Event('storage')); // notify KLNav
+        window.location.reload();
     },
     render: function render() {
         return _react2['default'].createElement(_componentsSetLenderIDModalJsx2['default'], { show: this.state.show, onSet: this.onSet, onHide: this.hideModal });
@@ -67960,8 +67961,16 @@ var CriteriaTabs = _react2['default'].createClass({
                         ) : null,
                         needLenderID ? _react2['default'].createElement(
                             _reactBootstrap.Alert,
-                            { bsStyle: 'danger' },
-                            'The options in your criteria require your Lender ID. Go to the Options page to set it.'
+                            { bsStyle: 'warning' },
+                            'Portfolio balancing requires your Lender ID. ',
+                            _react2['default'].createElement(
+                                'a',
+                                { href: '#', onClick: function (e) {
+                                        e.preventDefault();showLenderIDModal();
+                                    } },
+                                'Set it now'
+                            ),
+                            ' to enable this feature.'
                         ) : null,
                         _react2['default'].createElement(
                             _reactBootstrap.Col,
@@ -68038,24 +68047,32 @@ var CriteriaTabs = _react2['default'].createClass({
                 _react2['default'].createElement(
                     _reactBootstrap.Tab,
                     { eventKey: 3, title: 'Your Portfolio' + portfolioTab, className: 'ample-padding-top' },
+                    !kiva_lender_id ? _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Col,
+                            { md: 12 },
+                            _react2['default'].createElement(
+                                _reactBootstrap.Alert,
+                                { bsStyle: 'info' },
+                                _react2['default'].createElement(
+                                    'a',
+                                    { href: '#', style: { fontWeight: 'bold', textDecoration: 'underline' }, onClick: function (e) {
+                                            e.preventDefault();showLenderIDModal();
+                                        } },
+                                    'Set your Lender ID'
+                                ),
+                                ' to exclude funded loans and enable portfolio balancing.'
+                            )
+                        )
+                    ) : null,
                     _react2['default'].createElement(
                         _reactBootstrap.Row,
                         null,
                         _react2['default'].createElement(
                             _reactBootstrap.Col,
-                            { md: 10 },
-                            !kiva_lender_id && !needLenderID ? _react2['default'].createElement(
-                                _reactBootstrap.Alert,
-                                { bsStyle: 'danger' },
-                                'You have not yet set your Kiva Lender ID on the ',
-                                _react2['default'].createElement(
-                                    _reactRouter.Link,
-                                    {
-                                        to: 'options' },
-                                    'Options'
-                                ),
-                                ' page. These functions won\'t work until you do.'
-                            ) : null,
+                            { md: 12 },
                             'Excludes loans you\'ve already funded that are still fundraising. (',
                             lender_loans_message,
                             ')',
@@ -70162,7 +70179,7 @@ var Loan = _react2['default'].createClass({
                                 _react2['default'].createElement(
                                     'span',
                                     { style: { color: '#999', fontSize: 11 } },
-                                    'Saved Searches'
+                                    'Matches Saved Searches'
                                 ),
                                 _react2['default'].createElement('br', null),
                                 matching
@@ -73346,7 +73363,7 @@ var Search = _react2['default'].createClass({
             ) : null,
             showCriteria ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: critCol, style: { paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
+                { md: critCol, style: { paddingRight: 5, overflowY: 'auto', overflowX: 'hidden', maxHeight: 'calc(100vh - 60px)' } },
                 _react2['default'].createElement(_.Criteria, null)
             ) : null,
             _react2['default'].createElement(
