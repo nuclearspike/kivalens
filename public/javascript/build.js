@@ -67916,6 +67916,18 @@ var CriteriaTabs = _react2['default'].createClass({
         this.last_select = {};
         this.setState({ helper_charts: {} });
     },
+    hideGraphsPermanently: function hideGraphsPermanently(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        lsj.setMerge('Options', { hide_criteria_graphs: true });
+        this.setState({ hideGraphs: true, helper_charts: {} });
+        alert('Distribution graphs disabled. You can re-enable them in Options > Display.');
+    },
+    closeGraphPopover: function closeGraphPopover(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.setState({ helper_charts: {} });
+    },
     render: function render() {
         var _this3 = this;
 
@@ -68211,17 +68223,13 @@ var CriteriaTabs = _react2['default'].createClass({
                     'div',
                     { style: { display: 'flex', justifyContent: 'flex-end', marginBottom: 4 } },
                     _react2['default'].createElement(
-                        'a',
-                        { href: '#', style: { fontSize: 11, color: '#999' }, onClick: (function (e) {
-                                e.preventDefault();lsj.setMerge('Options', { hide_criteria_graphs: true });this.setState({ hideGraphs: true, helper_charts: {} });alert('Distribution graphs disabled. You can re-enable them in Options > Display.');
-                            }).bind(this) },
+                        'span',
+                        { style: { fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline' }, onClick: this.hideGraphsPermanently },
                         'Do not show again'
                     ),
                     _react2['default'].createElement(
-                        'a',
-                        { href: '#', style: { fontSize: 11, color: '#999', marginLeft: 8 }, onClick: (function (e) {
-                                e.preventDefault();this.setState({ helper_charts: {} });
-                            }).bind(this) },
+                        'span',
+                        { style: { fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline', marginLeft: 8 }, onClick: this.closeGraphPopover },
                         'Close'
                     )
                 ),
