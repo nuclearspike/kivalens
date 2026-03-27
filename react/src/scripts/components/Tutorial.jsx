@@ -12,37 +12,38 @@ const STEPS = [
     {
         title: 'Search Criteria',
         text: 'This is where you filter loans. Try changing a country, sector, or adjusting the repayment slider. Results update instantly.',
-        target: '.nav-tabs', // criteria tabs
+        target: '.col-lg-4:first-child', // whole criteria column
         position: 'right',
         hash: '#/search'
     },
     {
         title: 'Saved Searches',
-        text: 'Click "Saved Search" to load preset searches like "Expiring Soon" or save your own custom filters.',
+        text: 'Click "Saved Searches" to load preset searches like "Expiring Soon" or save your own custom filters.',
         target: '#saved_search',
         position: 'below'
     },
     {
         title: 'Loan List',
-        text: "These are your matching loans. Click any loan to see its details — repayment schedule, partner info, and more.",
+        text: "These are your matching loans. Click any loan to see its details, repayment schedule, and partner info.",
         target: '.loan_list_container',
         position: 'left'
     },
     {
         title: 'Add to Basket',
-        text: 'When you find a loan you like, click "Add to Basket". Use "Bulk Add" to add many loans at once based on your criteria.',
-        target: '.top-only',
-        position: 'below'
+        text: 'Click a loan from the list, then click the green "Add to Basket" button. You can review everything in the Basket tab before checking out on Kiva.',
+        target: '.btn-success.float_right',
+        position: 'below',
+        fallbackText: 'Try clicking a loan from the list first — you\'ll see an "Add to Basket" button appear in the loan details.'
     },
     {
         title: 'Your Basket',
-        text: 'The Basket tab shows your selected loans. When ready, click "Transfer to Kiva" to check out on Kiva\'s site.',
+        text: 'The Basket tab shows your selected loans. When ready, click "Transfer to Kiva" to complete your loans on Kiva\'s site.',
         target: 'a[href="#/basket"]',
         position: 'below',
     },
     {
         title: 'Set Your Lender ID',
-        text: 'Go to Options and enter your Kiva lender ID. This lets KivaLens hide loans you\'ve already funded and enables portfolio balancing.',
+        text: 'Enter your Kiva lender ID so KivaLens can hide loans you\'ve already funded and enable portfolio balancing.',
         target: 'a[href="#/options"]',
         position: 'below',
     },
@@ -114,6 +115,7 @@ const Tutorial = React.createClass({
         var step = STEPS[this.state.step]
         var rect = this.getTargetRect()
         var isCenter = step.position === 'center' || !rect
+        var displayText = (!rect && step.fallbackText) ? step.fallbackText : step.text
         var stepNum = this.state.step
         var totalSteps = STEPS.length
 
@@ -180,7 +182,7 @@ const Tutorial = React.createClass({
                         Step {stepNum + 1} of {totalSteps}
                     </div>
                     <h4 style={{marginTop: 0, marginBottom: 8, color: '#2c6e49'}}>{step.title}</h4>
-                    <p style={{marginBottom: 12, fontSize: 13, lineHeight: 1.5}}>{step.text}</p>
+                    <p style={{marginBottom: 12, fontSize: 13, lineHeight: 1.5}}>{displayText}</p>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Button bsSize="small" onClick={this.finish} style={{color: '#fff'}}>Skip Tutorial</Button>
                         <div>
