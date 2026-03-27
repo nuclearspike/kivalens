@@ -125,8 +125,9 @@ var Search = React.createClass({
         var hasLoanDetail = this.props.location.pathname !== '/search'
 
         var critCol = showCriteria ? 4 : 0
-        var listCol = showCriteria ? 3 : (hasLoanDetail ? 4 : 8)
-        var detailCol = hasLoanDetail ? 5 : 0
+        var listCol = 3
+        var detailCol = hasLoanDetail ? (showCriteria ? 5 : 9) : 0
+        var welcomeCol = showCriteria ? 5 : 9
 
         return (
             <div>
@@ -178,7 +179,7 @@ var Search = React.createClass({
                     {this.props.children}
                 </Col> : null}
 
-                {!hasLoanDetail ? <Col md={showCriteria ? 4 : 4}>
+                {!hasLoanDetail ? <Col md={welcomeCol}>
                     <WelcomePanel />
                 </Col> : null}
             </div>

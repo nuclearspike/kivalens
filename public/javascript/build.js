@@ -73355,8 +73355,9 @@ var Search = _react2['default'].createClass({
         var hasLoanDetail = this.props.location.pathname !== '/search';
 
         var critCol = showCriteria ? 4 : 0;
-        var listCol = showCriteria ? 3 : hasLoanDetail ? 4 : 8;
-        var detailCol = hasLoanDetail ? 5 : 0;
+        var listCol = 3;
+        var detailCol = hasLoanDetail ? showCriteria ? 5 : 9 : 0;
+        var welcomeCol = showCriteria ? 5 : 9;
 
         return _react2['default'].createElement(
             'div',
@@ -73440,7 +73441,7 @@ var Search = _react2['default'].createClass({
             ) : null,
             !hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: showCriteria ? 4 : 4 },
+                { md: welcomeCol },
                 _react2['default'].createElement(WelcomePanel, null)
             ) : null
         );
