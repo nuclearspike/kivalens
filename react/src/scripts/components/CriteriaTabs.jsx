@@ -846,6 +846,7 @@ const CriteriaTabs = React.createClass({
             </Col>
           </Row>
         </Tab>
+        {/* Auto-Lend tab hidden until KLA v3 is ready
         {!isMobile ? <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
             <Row className="ample-padding-top">
               <Col lg={12}>
@@ -857,6 +858,7 @@ const CriteriaTabs = React.createClass({
               </Col>
             </Row>
           </Tab> : null}
+        */}
         {!isMobile ? <Tab eventKey={5} title="RSS">
             <Row className="ample-padding-top">
               <Col lg={12}>

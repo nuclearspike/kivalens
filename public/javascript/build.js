@@ -65021,6 +65021,10 @@ var _historyLibCreateHashHistory2 = _interopRequireDefault(_historyLibCreateHash
 
 var _components = require("./components");
 
+var _componentsTutorialJsx = require("./components/Tutorial.jsx");
+
+var _componentsTutorialJsx2 = _interopRequireDefault(_componentsTutorialJsx);
+
 var _reactGa = require('react-ga');
 
 var _reactGa2 = _interopRequireDefault(_reactGa);
@@ -65093,6 +65097,7 @@ var App = _react2['default'].createClass({
             _react2['default'].createElement(_components.KLNav, null),
             _react2['default'].createElement(_components.PromptModal, null),
             _react2['default'].createElement(_components.AlertModal, null),
+            _react2['default'].createElement(_componentsTutorialJsx2['default'], null),
             this.props.children,
             _react2['default'].createElement(_components.KLFooter, null)
         );
@@ -65161,7 +65166,7 @@ domready.done(LoadReactApp);
  **/
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./actions":667,"./api/syncStorage":683,"./components":721,"./linqextras":722,"./stores":724,"./stores/liveStore":725,"./utils":728,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
+},{"./actions":667,"./api/syncStorage":683,"./components":722,"./components/Tutorial.jsx":721,"./linqextras":723,"./stores":725,"./stores/liveStore":726,"./utils":729,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -65181,19 +65186,19 @@ var About = _react2['default'].createClass({
   displayName: 'About',
 
   getInitialState: function getInitialState() {
-    return { KLAVersion: '', hasLenderID: lsj.get("Options").kiva_lender_id != null };
+    return { hasLenderID: lsj.get("Options").kiva_lender_id != null };
   },
-  componentDidMount: function componentDidMount() {
-    var _this = this;
-
-    callKLAFeature('getVersion').done(function (result) {
-      return _this.setState({ KLAVersion: result.version });
-    });
+  startTutorial: function startTutorial() {
+    localStorage.setItem('kl_tutorial_step', '0');
+    localStorage.removeItem('kl_tutorial_done');
+    window.location.hash = '#/search';
+    // The tutorial overlay will pick this up
+    setTimeout(function () {
+      return window.dispatchEvent(new Event('kl_tutorial_start'));
+    }, 300);
   },
   render: function render() {
-    var _state = this.state;
-    var KLAVersion = _state.KLAVersion;
-    var hasLenderID = _state.hasLenderID;
+    var hasLenderID = this.state.hasLenderID;
 
     return _react2['default'].createElement(
       _reactBootstrap.Grid,
@@ -65201,471 +65206,377 @@ var About = _react2['default'].createClass({
       _react2['default'].createElement(
         'h1',
         null,
-        'About'
+        'About KivaLens'
       ),
       _react2['default'].createElement(
-        'h3',
-        null,
-        'What is KivaLens?'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'KivaLens is an alternative way to search for Kiva loans offering a lot of options that Kiva does not. After you\'ve found your loans and put them in your KivaLens basket, you just click a button and the loans will be transferred to Kiva where you\'ll complete your purchase.'
-      ),
-      !hasLenderID ? _react2['default'].createElement(
-        'span',
-        null,
+        _reactBootstrap.Tabs,
+        { defaultActiveKey: 1, animation: false, id: 'about-tabs' },
         _react2['default'].createElement(
-          'h3',
-          null,
-          'What is Kiva?'
-        ),
-        _react2['default'].createElement(
-          'p',
-          null,
-          'Kiva is a non-profit that helps microfinance institutions (MFIs) around the world get access to 0% interest capital so that they can keep their overhead lower as they lend the money to borrowers who have very few options for access to capital. MFIs typically lend at interest to cover their operating expenses, if they weren\'t able to access the 0% capital from Kiva lenders, the MFIs may borrow from banks at 15% interest which is passed on to the borrower. A lot of the loans are very simple, a borrower owns a shop but they can\'t afford to stock their store with more products. A loan allows them to carry more products, leading to more customers and sales and they repay their loan. You lend $25 to borrowers and they repay over time (over 97% of the money loaned through Kiva of the money is repaid).  ',
+          _reactBootstrap.Tab,
+          { eventKey: 1, title: 'Getting Started', className: 'ample-padding-top' },
           _react2['default'].createElement(
-            _.KivaLink,
-            { path: 'invitedby/nuclearspike' },
-            'Find out more!'
+            'h3',
+            null,
+            'What is KivaLens?'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'KivaLens is a free tool that gives you powerful ways to search for loans on ',
+            _react2['default'].createElement(
+              _.KivaLink,
+              { path: '/' },
+              'Kiva.org'
+            ),
+            '. Find loans by country, sector, repayment speed, partner quality, and much more — then add them to your basket and check out on Kiva.'
+          ),
+          !hasLenderID ? _react2['default'].createElement(
+            'span',
+            null,
+            _react2['default'].createElement(
+              'h3',
+              null,
+              'What is Kiva?'
+            ),
+            _react2['default'].createElement(
+              'p',
+              null,
+              _react2['default'].createElement(
+                _.KivaLink,
+                { path: 'invitedby/nuclearspike' },
+                'Kiva'
+              ),
+              ' is a non-profit where you lend as little as $25 to borrowers around the world. Borrowers repay over time (over 97% repayment rate) and you can re-lend that money to someone else. It\'s not a donation — it\'s a loan that makes a real difference.'
+            )
+          ) : null,
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Quick Start'
+          ),
+          _react2['default'].createElement(
+            'ol',
+            { className: 'spacedList' },
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Search for loans'
+              ),
+              ' — Use the Search tab. The criteria panel on the left lets you filter by country, sector, repayment terms, partner risk, and dozens of other options. Results update instantly as you change filters.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Review a loan'
+              ),
+              ' — Click any loan in the list to see details, repayment schedule, and partner information on the right.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Add to basket'
+              ),
+              ' — Click "Add to Basket" on loans you like. Use "Bulk Add" to add many at once.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Check out on Kiva'
+              ),
+              ' — Go to the Basket tab and click "Transfer to Kiva" to complete your loans on Kiva\'s site.'
+            )
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Set Up Your Lender ID'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'Go to the ',
+            _react2['default'].createElement(
+              'a',
+              { href: '#/options' },
+              'Options'
+            ),
+            ' tab and enter your Kiva lender ID. This lets KivaLens hide loans you\'ve already funded and enables portfolio balancing and the 3D Wall.'
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Save Your Searches'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'Found a great set of filters? Use the "Saved Search" dropdown in the criteria panel to save it. KivaLens comes with some preset searches like "Expiring Soon" and "Balance Partner Risk" to get you started. Manage all your saved searches on the ',
+            _react2['default'].createElement(
+              'a',
+              { href: '#/saved' },
+              'Saved'
+            ),
+            ' tab.'
+          ),
+          _react2['default'].createElement(
+            'div',
+            { style: { marginTop: 20 } },
+            _react2['default'].createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'primary', onClick: this.startTutorial },
+              'Start Interactive Tutorial'
+            )
           )
-        )
-      ) : null,
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Rebuilt and Rethought'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'KivaLens has been rebuilt. I decided to re-invent it using different tools that weren\'t available when KivaLens was first written with Silverlight. Please ',
-        _react2['default'].createElement(
-          _.EmailLink,
-          { subject: 'KivaLens Features', title: 'Send a feature request' },
-          'let me know'
-        ),
-        ' what else you\'d like to be able to do. You can also join the ',
-        _react2['default'].createElement(
-          _.KivaLink,
-          { path: 'team/kivalens?default_team=kivalens' },
-          'KivaLens Lending Team'
-        ),
-        ' to discuss and get announcements.'
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Questions/Problems?'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'All of the data that KivaLens displays is either a direct presentation of or computation from data that is pulled from ',
-        _react2['default'].createElement(
-          _.NewTabLink,
-          { href: 'http://build.kiva.org/api' },
-          'Kiva.org\'s Public API'
-        ),
-        ' with the exception of data from the A+ Team\'s research. If you have any questions about why a loan is showing certain data (where you have confirmed that it\'s the same on Kiva\'s own site) or if you have questions about what that data means, please check out ',
-        _react2['default'].createElement(
-          _.KivaLink,
-          { path: 'help', title: 'Go to Kiva Help Center' },
-          'Kiva\'s Help Center or contact Kiva Customer Service'
-        ),
-        '.'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'If you find a discrepancy between Kiva\'s site and what KivaLens displays for loans or partners or if you feel that a computation or filter is incorrect, or you find something unusual about how KivaLens is working then ',
-        _react2['default'].createElement(
-          _.EmailLink,
-          { subject: 'KivaLens Bug',
-            body: 'I found a bug!\nThe problem is...\nThe steps to reproduce it are...',
-            title: 'Report a bug' },
-          'let me know'
-        ),
-        ' and include as many details about what happened so I can reproduce the problem.'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'Any questions about the ',
-        _react2['default'].createElement(
-          _.KivaLink,
-          {
-            path: 'team/aplus' },
-          'A+ Team'
-        ),
-        '\'s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious) MFI research should be directed to that team. I only auto-pull, display and filter using the data, I do not produce or verify it.'
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Features'
-      ),
-      _react2['default'].createElement(
-        'ul',
-        { className: 'spacedList' },
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Sorting/Filtering by Final Repayment Date vs Repayment Terms'
-          ),
-          ' While Kiva allows you to sort by repayment terms, there are a few issues with this method from the perspective of the lender. Since different loans have different dates on which they posted to Kiva and the disbursal dates can have wide-ranges as well, an "8 month" repayment term on a pre-disbursed loan that posted almost a month ago could already have repayments underway. While the same repayment terms on a ',
-          _react2['default'].createElement(
-            'i',
-            null,
-            'post'
-          ),
-          '-disbursed loan that just posted today could end up with a final repayment date ',
-          _react2['default'].createElement(
-            'i',
-            null,
-            'months'
-          ),
-          ' different from the first loan mentioned. Yet Kiva will sort them side-by-side because they have the same "8 month" repayment terms. Since Kiva only allows you to sort by repayment terms but not filter by them, it still shows you all loans. KivaLens lets you remove loans that don\'t match your selection for final repayment. Also, KivaLens doesn\'t sort by the term for the borrower, but the final repayment date relative to today, erasing the issues created by pre/post disbursed loans and different post dates. In Kiva\'s system (and the API, so also KivaLens), all repayment dates are shown at the first of the month, while many/most partners will actually settle the payments on the 17th of the ',
-          _react2['default'].createElement(
-            'i',
-            null,
-            'prior'
-          ),
-          ' month. So, many times you\'ll actually get your repayments about 2 weeks ',
-          _react2['default'].createElement(
-            'i',
-            null,
-            'sooner'
-          ),
-          ' than what KivaLens displays, assuming the partners settle early (as is common) and the borrower and partner are not delinquent.'
         ),
         _react2['default'].createElement(
-          'li',
-          null,
+          _reactBootstrap.Tab,
+          { eventKey: 2, title: 'Advanced', className: 'ample-padding-top' },
           _react2['default'].createElement(
-            'b',
+            'h3',
             null,
-            'Better Sorts for Repayments!'
+            'Sorting & Filtering by Repayment'
           ),
-          ' You have the ability to sort by final repayment date (which is better than "repayment terms" sort on Kiva since it\'s from the lender perspective), but there\'s a new sort by when the loan is scheduled to repay -- by percentages. Let me explain. Let\'s say you have 3 loans, all with a final repayment date 3 months away. The new sort will prioritize which pays more sooner. So, let\'s say loan #1 has a equal amount you get back each month. #2 has a larger amount on the first repayment then by the final it\'s very little and #3 only has one single repayment at the very end. The new sorts will prioritize by how quickly you get 50%, then 75% then 100% back. So for the loans above, #2 would be the first, then #1, then #3. With pre-disbursed loans that start paying back right away, the first repayment to the lender can actually be a combination of multiple repayments made by the borrower. Using this sort will help find the loans that will allow the quickest turnaround for your money, if that\'s your goal.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
           _react2['default'].createElement(
-            'b',
+            'p',
             null,
-            'Any/All/None Filtering'
+            'Kiva sorts by repayment ',
+            _react2['default'].createElement(
+              'i',
+              null,
+              'terms'
+            ),
+            ' (e.g. "8 months"), but that doesn\'t account for when the loan was posted or disbursed. KivaLens sorts by ',
+            _react2['default'].createElement(
+              'b',
+              null,
+              'final repayment date relative to today'
+            ),
+            ', giving you a true picture of when you\'ll get your money back. You can also sort by when you\'ll have 50% or 75% repaid — useful for finding loans that pay back sooner even if the final date is the same.'
           ),
-          ' What is the difference between "Any" and "All"? "All" is only available for properties of a loan where it can have multiple. So, a loan can only have one country, but it can have multiple tags so there won\'t be an "All" option for Country since a loan couldn\'t be in multiple countries and you\'d get no results. If you select "All" for tags, then the loan must have  ',
           _react2['default'].createElement(
-            'i',
+            'h3',
             null,
-            'all'
+            'Any / All / None Filtering'
           ),
-          ' listed tags. If you select "Any" for Tags, then the loan has to match ',
           _react2['default'].createElement(
-            'i',
+            'p',
             null,
-            'at least one'
+            'For fields where a loan can have multiple values (like Tags), you can choose: ',
+            _react2['default'].createElement(
+              'b',
+              null,
+              'Any'
+            ),
+            ' (match at least one), ',
+            _react2['default'].createElement(
+              'b',
+              null,
+              'All'
+            ),
+            ' (must have every selection), or ',
+            _react2['default'].createElement(
+              'b',
+              null,
+              'None'
+            ),
+            ' (exclude all selected).'
           ),
-          '  of your selection. "None" allows you to exclude results, so if you are opposed to "Liquor Store / Off-License," "Balut-Making" and other controversial activities, you can exclude them.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
           _react2['default'].createElement(
-            'b',
-            null,
-            'Auto-complete drop-downs'
-          ),
-          ' for Sector, Activity, Country, Region, Social Performance Badges, Themes, Tags, Partners, etc. KivaLens will also show you graphs along the side (when on a large enough device) indicating what options you have for that criteria so you don\'t have to guess at what will narrow your options for you.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'A Ton of Filters Kiva doesn\'t have'
-          ),
-          ' including "Loans at Risk %" and "Currency Loss %" for partners to further reduce your risk. Repayment interval filtering so you can find only loans paying back monthly, granular currency loss coverage options, mentioned ages, specific percentage of genders in a group, $/hour, expiring in days, disbursal days, average loan per capita income, years the partner has been on kiva and how many loans they\'ve posted.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Bulk Add!'
-          ),
-          ' This is a favorite feature for previous KivaLens users and what I heard about the most from mega-lenders that they missed after the previous version of KivaLens bit the dust in July of 2015. Add tons of loans that match your criteria to your basket all at once!'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Mobile!'
-          ),
-          ' Since the new site is just HTML and Javascript rather than Silverlight, it will run on everything and it\'s designed to automatically adapt to the size of the device you\'re using, so if you\'re on a phone, it will hide the graphs, and stack everything into one column; on a tablet, it displays differently depending on its orientation and laptop/desktop users have the easiest experience taking advantage of the width to show you more.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'See graphs!'
-          ),
-          ' View graphs that show the distribution of the current filter. Ex: Select "Retail" as your Sector filter, and by clicking into the Country box, you can see how Retail loans are spread across Countries and what Activities are available by clicking into those drop-downs to make the graphs down the side appear (only on large displays).'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Live Filtering = Speed!'
-          ),
-          ' Since it downloads all of the loans at the start and then filters them in your browser, you get "as-you-type" filtering. Drag a slider around, pause for a second and watch your results change right then, it doesn\'t have to talk to the server.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Hide Loans you\'ve already loaned to'
-          ),
-          ' so that you don\'t accidentally lend to them more than you want. To use this, go to "Options" to input your kiva lender-id. From the Criteria "Portfolio" tab and select the appropriate option.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Saved Searches'
-          ),
-          ' Save your favorite searches to quickly jump back to them. The site will start you out with some default saved searches to give you an idea of how to use them. As you view loan details, the "Saved Searches" line will show you which Saved Searches have that loan in their results. Saved Searches are stored with your browser, so if you clear you browser settings, you\'ll lose your Saved Searches. Also, Save Searches are not shared across devices (you set up a Saved Search on your laptop, it won\'t show on your phone).'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Filter on the A+ Team\'s MFI research'
-          ),
-          ' with sliders for Secular and Social scoring and Religion filter. When you click on a loan, the Partner tab will show a new section displaying data pulled from that team\'s spreadsheet. This feature is on by default, simply turn it off in the Options tab.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
+            'h3',
             null,
             'Portfolio Balancing'
           ),
-          ' Whether you\'re a "Country Collector," or maybe that you don\'t want to have too many active loans from only a few partners, or if you want to find more sectors like your favorites, use the Portfolio Balancing tools to help you accomplish your lending goals.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
           _react2['default'].createElement(
-            'b',
+            'p',
             null,
-            '3D Loan Wall'
+            'On the Portfolio tab in criteria, you can balance your lending across countries, sectors, activities, and partners. This helps you diversify and reduce risk. Try the "Balance Partner Risk" saved search to automatically hide loans from partners you already have exposure to.'
           ),
-          ' When you have your lender id entered you can view a 3D "wall" of images of the borrowers in your portfolio.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
           _react2['default'].createElement(
-            'b',
+            'h3',
             null,
-            'Compare Teams'
+            'Partners Tab'
           ),
-          ' On the "Teams" page, you can compare the membership count, loan count, and total amount loaned for your teams.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
           _react2['default'].createElement(
-            'b',
+            'p',
+            null,
+            'Browse all Kiva field partners — active, closed, and paused. Filter by country, risk rating, delinquency rate, religion, and more. Click "Show Loans" to jump to the Search tab filtered to that partner\'s fundraising loans.'
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'A+ Team Research'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'KivaLens integrates data from the ',
+            _react2['default'].createElement(
+              _.KivaLink,
+              { path: 'team/aplus' },
+              'A+ Team'
+            ),
+            ' (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious). Their research includes secular and social ratings for field partners, plus religious affiliation data. Filter by religion in the Partner criteria tab, or view the research on any loan\'s Partner detail tab.'
+          ),
+          _react2['default'].createElement(
+            'h3',
             null,
             'RSS Feeds'
           ),
-          ' Once your criteria is set, you can go to the "RSS" tab and it will give you a URL that you can paste into your favorite RSS reader or use a site like ',
           _react2['default'].createElement(
-            _.NewTabLink,
-            { href: 'http://www.ifttt.com' },
-            'IFTTT (If This Then That)'
+            'p',
+            null,
+            'Set your criteria, go to the RSS tab, and get a URL you can use with any RSS reader or ',
+            _react2['default'].createElement(
+              _.NewTabLink,
+              { href: 'https://www.ifttt.com' },
+              'IFTTT'
+            ),
+            ' to get notified when new matching loans are posted.'
           ),
-          ' that will watch for new items in the feed and you can create a "Recipe" where you can set it to email, text/SMS, instant message, or many more things like change the colors or lights in your room (if you\'re using Philips Hue lights).'
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Reducing Risk'
+          ),
+          _react2['default'].createElement(
+            'ul',
+            { className: 'spacedList' },
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Risk Rating:'
+              ),
+              ' Kiva\'s assessment of how likely a partner is to fail. Higher stars = lower institutional risk. This doesn\'t predict individual borrower default.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Currency Exchange Risk:'
+              ),
+              ' If a loan isn\'t in USD, exchange rate changes can reduce your repayment. Use the Currency Loss filter and partner currency loss % to manage this.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Default Rates:'
+              ),
+              ' All partners have some defaults. A 0% default rate usually means the partner covers losses — good for risk-averse lenders.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Portfolio Yield:'
+              ),
+              ' High PY% doesn\'t necessarily mean predatory lending. Rural partners with small loans and high servicing costs naturally have higher PY. Don\'t judge too harshly or you may exclude partners serving the neediest borrowers.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Diversify!'
+              ),
+              ' Spread your lending across partners and countries. Use Portfolio Balancing to limit exposure to any single partner. If a partner has institutional default, you only lose what you had with them.'
+            ),
+            _react2['default'].createElement(
+              'li',
+              null,
+              _react2['default'].createElement(
+                'b',
+                null,
+                'Repeat Borrowers:'
+              ),
+              ' A borrower coming back usually means their previous loan was successful. #RepeatBorrower loans historically have a 99.16% repayment rate vs 98.55% for #FirstLoan.'
+            )
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Questions or Problems?'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'Data comes from ',
+            _react2['default'].createElement(
+              _.NewTabLink,
+              { href: 'https://build.kiva.org/api' },
+              'Kiva\'s Public API'
+            ),
+            '. For questions about loan data, contact ',
+            _react2['default'].createElement(
+              _.KivaLink,
+              { path: 'help' },
+              'Kiva\'s Help Center'
+            ),
+            '. For KivaLens bugs, ',
+            _react2['default'].createElement(
+              _.EmailLink,
+              { subject: 'KivaLens Bug',
+                body: 'I found a bug!\\nThe problem is...\\nSteps to reproduce...' },
+              'email me'
+            ),
+            '. Join the ',
+            _react2['default'].createElement(
+              _.KivaLink,
+              {
+                path: 'team/kivalens' },
+              'KivaLens Lending Team'
+            ),
+            ' for discussion and announcements.'
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'History'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'KivaLens was created in 2009 because I wanted search options Kiva didn\'t offer. I ended up working at Kiva for a few years, helping build features like Super Graphs, /Live, Zip, and Estimated Repayments. KivaLens continues to offer capabilities beyond what Kiva provides.'
+          ),
+          _react2['default'].createElement(
+            'h3',
+            null,
+            'Open Source'
+          ),
+          _react2['default'].createElement(
+            'p',
+            null,
+            'KivaLens is open source. Want to contribute? ',
+            _react2['default'].createElement(
+              _.EmailLink,
+              { subject: 'KivaLens Developer' },
+              'Get in touch'
+            ),
+            '.'
+          )
         )
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Reducing Risk'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'None of this guarantees you anything. Use your own discretion, research, thoughts, team message boards, exchanges with Kiva\'s Customer Service, etc to help inform your lending habits.'
-      ),
-      _react2['default'].createElement(
-        'ul',
-        { className: 'spacedList' },
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Institutional Risk:'
-          ),
-          ' The "Risk Rating" for a partner is based on Kiva\'s assessment on how likely it is that a partner will fail (institutional default) based on a huge formula as well as some good old-fashioned gut feelings. Example: Some MFIs are running their business from a spreadsheet while others have a comprehensive software package (MIS). There are many things that together give an indication of how sustainable they are over time. The higher the star rating, the less likely it is for the partner to fail. This is not any indication on whether or not the borrower is risky and is no guarantee.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Currency Exchange Risk:'
-          ),
-          ' Even if a borrower pays back in full, if they are paying back in a currency other than USD, there is a risk that you can lose some money due to the exchange rate. Using the Currency Exchange Loss % Partner slider, you can use history as an indicator of the future for how much you may lose (but there\'s no guarantee). Some partners cover more of the currency loss than others. There\'s also a drop-down for "Currency Loss" that allows you to exclude loans where loss is possible.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Default Rates:'
-          ),
-          ' All partners will have defaults, some partners choose to cover the losses of defaulted borrowers in order to pay back Kiva lenders as a part of doing business. Choosing partners with 0% default means you are most likely choosing a partner that is covering losses, which if you have large amounts of money in, may be exactly what you\'re looking for.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Portfolio Yield:'
-          ),
-          ' Reducing organizations down to a number and then making assumptions based off that number can actually unintentionally exclude the very partners you would actually most like if you knew more about them. One of the most significant learnings I had when I worked at Kiva was regarding Portfolio Yield. PY values are based on costs charged to the borrower over the amount of the loan. So, consider this... a partner that specializes in rural loans to agricultural borrowers where the expense to the partner to service the loan (travelling hours to collect weekly/monthly from one or only a few borrowers) is actually quite high and the loan amount is low, it will have a higher PY% relative to a more urban partner that only does high value loans where their cost to service the loan is very low since the borrowers come in to their office. So, don\'t judge high PY values too harshly or you may just be excluding partners that are servicing the most needy borrowers.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Profitability:'
-          ),
-          ' When I initially wrote KivaLens (prior to working at Kiva), I incorrectly assumed that a partner with a negative profitability naturally meant they were at greater risk for institutional collapse and thus cause all outstanding loans to fail. While this is not only a logical conclusion, it is also stated as a risk for negative profitability on Kiva\'s site. However, this is not always the case. There are a number of partners that receive money from outside sources where this money is not factored in when calculating their profitability. So, just because your borrower is getting a loan from a partner that has a large negative profit, they\'re not necessarily more likely to collapse; it\'s not that simple. However, if the partner is not receiving money from outside sources and are operating a loss for extended periods, they may be at higher risk of institutional default. Since there is no way to tell which MFIs are or are not receiving money from outside sources, the "safest" bet is to choose partners with positive profitability. But hopefully this answers any questions where you watch a partner operate at large losses for years but remain afloat.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Group Loans:'
-          ),
-          ' Due to the high variability with how group loans are organized by partner, you cannot necessarily make assumptions about group loans versus individual. Some partners group riskier borrowers together so they can prove themselves and graduate to individual loans and the grouping is arbitrary just to make repayment collections simpler to lower the cost of servicing the loan. Some groups are "solidarity" groups where group members have committed to pay for individuals who default. While you can search for "solidarity" in the name field to find some "safer" loans, most solidarity loans do not have that in their name and there is no way to tell from the loan data to help you find more.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Repeat Borrowers:'
-          ),
-          ' A borrower coming back for a second or third loan does NOT mean they are more risky. In fact, it usually means the opposite. If a borrower has completed a loan successfully and the partner has chosen to give them another loan, then many times that means they are more likely to repay. Repeat borrowing does not necessarily mean they are in a cycle of debt, but instead that they\'ve shown that their previous loan was successful in improving their business that another (usually larger) loan can help them to continue to grow their business. Use the #RepeatBorrower tag search to help find them. KivaLens user (',
-          _react2['default'].createElement(
-            _.LenderLink,
-            { lender: 'thomas85717133' },
-            'Thomas'
-          ),
-          ') has used Kiva\'s ',
-          _react2['default'].createElement(
-            _.NewTabLink,
-            { href: 'http://build.kiva.org/docs/data/snapshots' },
-            'data snapshots'
-          ),
-          ' and compared repayment rates for ended loans tagged #FirstLoan vs #RepeatBorrower and found loans tagged with #RepeatBorrower had a repayment rate of 99.16% vs loans tagged with #FirstLoan of 98.55% (using data current as of Dec 8, 2015). To get more information and see the code used to calculate, check out ',
-          _react2['default'].createElement(
-            _.KivaLink,
-            { path: 'team/kivalens/messages?msgID=443715#msg_443715',
-              title: 'View KivaLens team message board' },
-            'this message'
-          ),
-          '.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Diversify!'
-          ),
-          ' When searching for loans, your criteria may keep bringing up loans from the same partners over and over again. Having too much money with only a handful of partners means that if those partners have institutional default, you could lose all of your outstanding balance. Diversity among countries can also be beneficial because it protects you from your portfolio being as impacted by natural disasters, wars, etc. Use KivaLens\' Portfolio Balancing Criteria options (on Portfolio tab) to do this for you. After you set your Lender ID on the Options page, go back to Search and there\'s a pre-set Saved Search of "Balance Partner Risk" which sets the Portfolio Balancing options to hide loans from any partner where they have > 0% of your active portfolio. If you have a lot of active loans, you may need to increase the percentage to allow for more per partner. Also use the "Limit to top" option to only show 1 loan (or a couple if you\'re doing large volume) per Partner.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Something to consider:'
-          ),
-          ' Ultimately, you shouldn\'t be considering Kiva as a "bank" (which is why I changed the name from kivabank to kivalens years ago). Over time, even the most cautious lenders are very likely to lose money to default or currency exchange unless you are extremely lucky. You should lend with the expectation of some loss and be happy when everything goes perfectly. You are lending to help people, not for any return on your money (obviously) or even with any assumptions of total repayment. Happy lending!'
-        )
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Open-source'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'Kiva Lens is now open-source, so feel free to ',
-        _react2['default'].createElement(
-          _.EmailLink,
-          { subject: 'KivaLens Developer' },
-          'email me'
-        ),
-        ' about working on it. It uses React, Reflux, react-bootstrap, gulp, browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API, linqjs, Highcharts, express node js server and more. You can check out the source code (in progress) at my ',
-        _react2['default'].createElement(
-          _.NewTabLink,
-          { href: 'https://github.com/nuclearspike/kivalensjs/tree/master/react' },
-          'github repository'
-        ),
-        '.'
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'History'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'KivaLens was initially created in 2009 (as a Silverlight app) because I wanted to find loans in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years and helped incorporate a lot of the search features directly into Kiva\'s site which also then made their way into the API as well. There are still some great things KivaLens does that Kiva does not do that are handy and fun! Some projects I worked on at Kiva: Super Graphs for lenders and teams, /Live, Zip, Leader boards, Message board search with time-line, the Home page (at the time), and Estimated Repayments are some of the ones I enjoyed the most, many of which were "Innovation Iteration" projects where engineers implement their own ideas.'
       )
     );
   }
@@ -65673,48 +65584,8 @@ var About = _react2['default'].createClass({
 
 exports['default'] = About;
 module.exports = exports['default'];
-/* KLA-dependent features - hidden until v3 is ready
-<li>
- <b>Auto-Lending Preferences</b> Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> for
- years but the options are a bit anemic. Since browser extensions have far more permissions than
- a web page does, KivaLens is able to tell the extension to alter your auto-lending settings on Kiva.
- KivaLens offers extensive partner criteria as well as portfolio balancing for Sector, Country and
- Activity. When you use KivaLens in conjunction with <KLALink/> you can easily set your auto-lending
- preferences and take full advantage of Kiva's feature.
-</li>
-<li>
- <b>Notifications</b> When you have the <KLALink/> installed, you can set your Saved Searches to play
- a sound if a new loan is added. There are some types of loans (especially the ultra-short term
- loans) that can fully fund within less than a 1-2 hours. Install the extension, set your criteria,
- select that you want to be notified on the menu option on the Saved Search menu, leave KivaLens
- open and you won't even have to have the browser showing and KivaLens will tell the extension
- to display a notification visible outside of the browser and play a sound. The loan must be posted
- with all criteria matching or the notification won't fire. So, a notification set up with
- restrictions for funding amounts that don't include 0 would never fire. Tags on loans are added
- by other users after the loan has already posted, so any criteria with Tags won't fire. Filters
- with expiration, $/hour or details that change after the loan posts will also not ever get a
- notification.
-</li>
-*/ /* KLA Chrome Extension section - hidden until v3 is ready
-   <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
-   <p>
-    There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
-    on the Lend tab along with other repayment info, talks to you about things it notices about the loan,
-    details about lenders and teams you hover over, etc. There are also a number of features that KivaLens
-    has that require KLA to work. <KLALink>Check out screenshots, a detailed description and
-    install Kiva Lender Assistant here</KLALink> or&nbsp;
-    <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
-      the source code on github (developers wanted!)</NewTabLink>.
-    {KLAVersion ? <span>
-                    You have KLA version {KLAVersion} installed. Chrome does a good job
-                    of keeping your extensions up to date automatically, but to check for upgrades manually,
-                    go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
-                    then click the button to update your extensions.
-                </span> : null}
-   </p>
-   */
 
-},{".":721,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
+},{".":722,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66100,7 +65971,7 @@ var AutoLendSettings = _react2['default'].createClass({
 exports['default'] = AutoLendSettings;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../api/kiva":668,"../stores/":724,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
+},{".":722,"../actions":667,"../api/kiva":668,"../stores/":725,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66387,7 +66258,7 @@ var Basket = _react2['default'].createClass({
 exports['default'] = Basket;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores":724,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores":725,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66465,7 +66336,7 @@ var BasketListItem = _react2['default'].createClass({
 exports['default'] = BasketListItem;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
+},{".":722,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66590,7 +66461,7 @@ var BulkAddModal = _react2['default'].createClass({
 exports['default'] = BulkAddModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":724,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
+},{"../actions":667,"../stores/":725,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66728,7 +66599,7 @@ var ChartDistribution = _react2['default'].createClass({
 exports['default'] = ChartDistribution;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
+},{"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66774,7 +66645,7 @@ var ClearBasket = _react2['default'].createClass({
 exports['default'] = ClearBasket;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores":724,"react":634}],694:[function(require,module,exports){
+},{"../actions":667,"../stores":725,"react":634}],694:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66969,7 +66840,7 @@ exports['default'] = Criteria;
 module.exports = exports['default'];
 /* <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button> */
 
-},{".":721,"../actions":667,"../stores/":724,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores/":725,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68214,28 +68085,6 @@ var CriteriaTabs = _react2['default'].createClass({
                 ),
                 !isMobile ? _react2['default'].createElement(
                     _reactBootstrap.Tab,
-                    { eventKey: 4, title: 'Auto-Lend', disabled: loansReady !== true },
-                    _react2['default'].createElement(
-                        _reactBootstrap.Row,
-                        { className: 'ample-padding-top' },
-                        _react2['default'].createElement(
-                            _reactBootstrap.Col,
-                            { lg: 12 },
-                            _react2['default'].createElement(
-                                _reactBootstrap.Alert,
-                                { bsStyle: 'warning' },
-                                _react2['default'].createElement(
-                                    'b',
-                                    null,
-                                    'Auto-Lending is temporarily unavailable.'
-                                ),
-                                ' Kiva has made changes to their auto-lending system that are not yet compatible with KivaLens. This feature will be restored in a future update.'
-                            )
-                        )
-                    )
-                ) : null,
-                !isMobile ? _react2['default'].createElement(
-                    _reactBootstrap.Tab,
                     { eventKey: 5, title: 'RSS' },
                     _react2['default'].createElement(
                         _reactBootstrap.Row,
@@ -68339,8 +68188,21 @@ exports.SelectRow = SelectRow;
 exports.SliderRow = SliderRow;
 exports.allOptions = allOptions;
 exports.AllAnyNoneButton = AllAnyNoneButton;
+/* Auto-Lend tab hidden until KLA v3 is ready
+{!isMobile ? <Tab eventKey={4} title="Auto-Lend" disabled={loansReady !== true}>
+   <Row className="ample-padding-top">
+     <Col lg={12}>
+       <Alert bsStyle="warning">
+         <b>Auto-Lending is temporarily unavailable.</b> Kiva has made changes to their
+         auto-lending system that are not yet compatible with KivaLens. This feature
+         will be restored in a future update.
+       </Alert>
+     </Col>
+   </Row>
+ </Tab> : null}
+*/
 
-},{".":721,"../actions":667,"../api/kiva":668,"../stores/":724,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
+},{".":722,"../actions":667,"../api/kiva":668,"../stores/":725,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68494,7 +68356,7 @@ exports['default'] = DidYouKnow;
 module.exports = exports['default'];
 /* <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p> */
 
-},{".":721,"react":634}],698:[function(require,module,exports){
+},{".":722,"react":634}],698:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -68647,7 +68509,7 @@ var Donate = (function (_Component) {
 exports['default'] = Donate;
 module.exports = exports['default'];
 
-},{".":721,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
+},{".":722,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -69261,7 +69123,7 @@ var KLNav = _react2['default'].createClass({
 exports['default'] = KLNav;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
+},{"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69724,7 +69586,7 @@ var LoadingLoansPanel = _react2['default'].createClass({
 exports['default'] = LoadingLoansPanel;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
+},{".":722,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70425,7 +70287,7 @@ var Loan = _react2['default'].createClass({
 exports['default'] = Loan;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores/":724,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores/":725,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70549,7 +70411,7 @@ var LoanListItem = _react2['default'].createClass({
 exports['default'] = LoanListItem;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores/":724,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores/":725,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70869,7 +70731,7 @@ var OnNow = _react2['default'].createClass({
 exports['default'] = OnNow;
 module.exports = exports['default'];
 
-},{".":721,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
+},{".":722,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71310,7 +71172,7 @@ var Options = _react2['default'].createClass({
 exports['default'] = Options;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores":724,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores":725,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71765,7 +71627,7 @@ var PartnerDetail = _react2['default'].createClass({
 exports['default'] = PartnerDetail;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores":724,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores":725,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71936,7 +71798,7 @@ var PartnerDisplayModal = _react2['default'].createClass({
 exports['default'] = PartnerDisplayModal;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores/":724,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72244,7 +72106,7 @@ var Partners = _react2['default'].createClass({
 exports['default'] = Partners;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores/":724,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores/":725,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -73153,7 +73015,7 @@ var SavedSearches = _react2['default'].createClass({
 exports['default'] = SavedSearches;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":724,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],717:[function(require,module,exports){
+},{"../actions":667,"../stores/":725,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],717:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73404,7 +73266,7 @@ var Search = _react2['default'].createClass({
 exports['default'] = Search;
 module.exports = exports['default'];
 
-},{".":721,"../actions":667,"../stores":724,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],718:[function(require,module,exports){
+},{".":722,"../actions":667,"../stores":725,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],718:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73556,7 +73418,7 @@ var SetLenderIDModal = _react2['default'].createClass({
 exports['default'] = SetLenderIDModal;
 module.exports = exports['default'];
 
-},{".":721,"../api/kiva":668,"../stores/":724,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],719:[function(require,module,exports){
+},{".":722,"../api/kiva":668,"../stores/":725,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],719:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73947,6 +73809,235 @@ module.exports = exports['default'];
 
 },{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],721:[function(require,module,exports){
 'use strict';
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactBootstrap = require('react-bootstrap');
+
+var STEPS = [{
+    title: 'Welcome to KivaLens!',
+    text: "Let's take a quick tour of the main features. You can exit this tutorial at any time.",
+    target: null, // centered overlay
+    position: 'center'
+}, {
+    title: 'Search Criteria',
+    text: 'This is where you filter loans. Try changing a country, sector, or adjusting the repayment slider. Results update instantly.',
+    target: '.nav-tabs', // criteria tabs
+    position: 'right',
+    hash: '#/search'
+}, {
+    title: 'Saved Searches',
+    text: 'Click "Saved Search" to load preset searches like "Expiring Soon" or save your own custom filters.',
+    target: '#saved_search',
+    position: 'below'
+}, {
+    title: 'Loan List',
+    text: "These are your matching loans. Click any loan to see its details — repayment schedule, partner info, and more.",
+    target: '.loan_list_container',
+    position: 'left'
+}, {
+    title: 'Add to Basket',
+    text: 'When you find a loan you like, click "Add to Basket". Use "Bulk Add" to add many loans at once based on your criteria.',
+    target: '.top-only',
+    position: 'below'
+}, {
+    title: 'Your Basket',
+    text: 'The Basket tab shows your selected loans. When ready, click "Transfer to Kiva" to check out on Kiva\'s site.',
+    target: 'a[href="#/basket"]',
+    position: 'below'
+}, {
+    title: 'Set Your Lender ID',
+    text: 'Go to Options and enter your Kiva lender ID. This lets KivaLens hide loans you\'ve already funded and enables portfolio balancing.',
+    target: 'a[href="#/options"]',
+    position: 'below'
+}, {
+    title: "You're all set!",
+    text: "That's the basics! Explore the Partners tab to research field partners, or check out the Saved tab to manage your searches. Happy lending!",
+    target: null,
+    position: 'center'
+}];
+
+var Tutorial = _react2['default'].createClass({
+    displayName: 'Tutorial',
+
+    getInitialState: function getInitialState() {
+        var step = parseInt(localStorage.getItem('kl_tutorial_step'));
+        var done = localStorage.getItem('kl_tutorial_done');
+        return {
+            active: !isNaN(step) && !done,
+            step: isNaN(step) ? 0 : step
+        };
+    },
+    componentDidMount: function componentDidMount() {
+        window.addEventListener('kl_tutorial_start', this.startTutorial);
+    },
+    componentWillUnmount: function componentWillUnmount() {
+        window.removeEventListener('kl_tutorial_start', this.startTutorial);
+    },
+    startTutorial: function startTutorial() {
+        localStorage.setItem('kl_tutorial_step', '0');
+        localStorage.removeItem('kl_tutorial_done');
+        this.setState({ active: true, step: 0 });
+    },
+    next: function next() {
+        var nextStep = this.state.step + 1;
+        if (nextStep >= STEPS.length) {
+            this.finish();
+            return;
+        }
+        var stepData = STEPS[nextStep];
+        if (stepData.hash) {
+            window.location.hash = stepData.hash;
+        }
+        localStorage.setItem('kl_tutorial_step', nextStep.toString());
+        this.setState({ step: nextStep });
+    },
+    prev: function prev() {
+        var prevStep = Math.max(0, this.state.step - 1);
+        var stepData = STEPS[prevStep];
+        if (stepData.hash) {
+            window.location.hash = stepData.hash;
+        }
+        localStorage.setItem('kl_tutorial_step', prevStep.toString());
+        this.setState({ step: prevStep });
+    },
+    finish: function finish() {
+        localStorage.setItem('kl_tutorial_done', 'true');
+        localStorage.removeItem('kl_tutorial_step');
+        this.setState({ active: false });
+    },
+    getTargetRect: function getTargetRect() {
+        var stepData = STEPS[this.state.step];
+        if (!stepData.target) return null;
+        var el = document.querySelector(stepData.target);
+        if (!el) return null;
+        return el.getBoundingClientRect();
+    },
+    render: function render() {
+        if (!this.state.active) return null;
+
+        var step = STEPS[this.state.step];
+        var rect = this.getTargetRect();
+        var isCenter = step.position === 'center' || !rect;
+        var stepNum = this.state.step;
+        var totalSteps = STEPS.length;
+
+        // Calculate tooltip position
+        var tooltipStyle = {
+            position: 'fixed',
+            zIndex: 10002,
+            background: '#fff',
+            border: '2px solid #2c6e49',
+            borderRadius: 8,
+            padding: '16px 20px',
+            maxWidth: 360,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+        };
+
+        if (isCenter) {
+            tooltipStyle.top = '50%';
+            tooltipStyle.left = '50%';
+            tooltipStyle.transform = 'translate(-50%, -50%)';
+        } else {
+            if (step.position === 'below') {
+                tooltipStyle.top = rect.bottom + 12;
+                tooltipStyle.left = Math.max(10, rect.left + rect.width / 2 - 180);
+            } else if (step.position === 'right') {
+                tooltipStyle.top = Math.max(10, rect.top);
+                tooltipStyle.left = rect.right + 12;
+            } else if (step.position === 'left') {
+                tooltipStyle.top = Math.max(10, rect.top);
+                tooltipStyle.right = window.innerWidth - rect.left + 12;
+            }
+        }
+
+        // Highlight ring around target
+        var highlightStyle = null;
+        if (rect) {
+            highlightStyle = {
+                position: 'fixed',
+                zIndex: 10001,
+                top: rect.top - 4,
+                left: rect.left - 4,
+                width: rect.width + 8,
+                height: rect.height + 8,
+                border: '3px solid #2c6e49',
+                borderRadius: 6,
+                pointerEvents: 'none',
+                boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)'
+            };
+        }
+
+        return _react2['default'].createElement(
+            'div',
+            null,
+            isCenter ? _react2['default'].createElement('div', { style: {
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', zIndex: 10000
+                } }) : null,
+            highlightStyle ? _react2['default'].createElement('div', { style: highlightStyle }) : null,
+            _react2['default'].createElement(
+                'div',
+                { style: tooltipStyle },
+                _react2['default'].createElement(
+                    'div',
+                    { style: { fontSize: 11, color: '#999', marginBottom: 4 } },
+                    'Step ',
+                    stepNum + 1,
+                    ' of ',
+                    totalSteps
+                ),
+                _react2['default'].createElement(
+                    'h4',
+                    { style: { marginTop: 0, marginBottom: 8, color: '#2c6e49' } },
+                    step.title
+                ),
+                _react2['default'].createElement(
+                    'p',
+                    { style: { marginBottom: 12, fontSize: 13, lineHeight: 1.5 } },
+                    step.text
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                    _react2['default'].createElement(
+                        _reactBootstrap.Button,
+                        { bsSize: 'small', onClick: this.finish, style: { color: '#999' } },
+                        'Skip Tutorial'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        null,
+                        stepNum > 0 ? _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', onClick: this.prev, style: { marginRight: 6 } },
+                            'Back'
+                        ) : null,
+                        _react2['default'].createElement(
+                            _reactBootstrap.Button,
+                            { bsSize: 'small', bsStyle: 'success', onClick: this.next },
+                            stepNum === totalSteps - 1 ? 'Finish' : 'Next'
+                        )
+                    )
+                )
+            )
+        );
+    }
+});
+
+exports['default'] = Tutorial;
+module.exports = exports['default'];
+/* Dark overlay */ /* Highlight target */ /* Tooltip */
+
+},{"react":634,"react-bootstrap":346}],722:[function(require,module,exports){
+'use strict';
 //every component you want easily accessible should be added as an import and export in this file.
 //this allow you to do: import {Loan, Live, KivaImage, KivaLink} from '.' (the '.' just means the index.js in the current directory.)
 
@@ -74242,7 +74333,7 @@ exports.Partners = _PartnersJsx2['default'];
 exports.PartnerDetail = _PartnerDetailJsx2['default'];
 exports.SavedSearches = _SavedSearchesJsx2['default'];
 
-},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./SavedSearches.jsx":716,"./Search.jsx":717,"./SetLenderIDModal.jsx":718,"./SnowStack.jsx":719,"./Teams.jsx":720,"react":634}],722:[function(require,module,exports){
+},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./SavedSearches.jsx":716,"./Search.jsx":717,"./SetLenderIDModal.jsx":718,"./SnowStack.jsx":719,"./Teams.jsx":720,"react":634}],723:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 //MORE LINQ GOODNESS
@@ -74298,7 +74389,7 @@ Array.prototype.chunk = function (chunkSize) {
 };
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],723:[function(require,module,exports){
+},{}],724:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -74748,7 +74839,7 @@ function set_cache(key, value) {
 exports['default'] = criteriaStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":728,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],724:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":729,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],725:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -74780,7 +74871,7 @@ exports['default'] = s;
 window.kl_stores = s;
 module.exports = exports['default'];
 
-},{"./criteriaStore":723,"./liveStore":725,"./loanStore":726,"./utilsStore":727}],725:[function(require,module,exports){
+},{"./criteriaStore":724,"./liveStore":726,"./loanStore":727,"./utilsStore":728}],726:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -74803,7 +74894,7 @@ var liveStore = _reflux2['default'].createStore({ init: function init() {} });
 exports['default'] = liveStore;
 module.exports = exports['default'];
 
-},{"reflux":650}],726:[function(require,module,exports){
+},{"reflux":650}],727:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -75037,7 +75128,7 @@ var loanStore = _reflux2['default'].createStore({
 exports['default'] = loanStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":723,"reflux":650}],727:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":724,"reflux":650}],728:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -75115,7 +75206,7 @@ var utilsStore = _reflux2['default'].createStore({
 exports['default'] = utilsStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"reflux":650}],728:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"reflux":650}],729:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();

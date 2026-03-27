@@ -25,6 +25,7 @@ var history = createHistory({queryKey: false})
 import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule,
     Criteria, ClearBasket, Live, Teams, NotFound, PromptModal, AlertModal, SnowStack,
     Outdated, OnNow, Donate, Partners, SavedSearches} from "./components"
+import Tutorial from "./components/Tutorial.jsx"
 import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
@@ -70,6 +71,7 @@ const App = React.createClass({
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
+                    <Tutorial/>
                     {this.props.children}
                 <KLFooter/>
             </div>
