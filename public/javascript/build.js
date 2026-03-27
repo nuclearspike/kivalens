@@ -70065,6 +70065,16 @@ var Loan = _react2['default'].createClass({
                 'h1',
                 { style: { marginTop: '0px' } },
                 loan.name,
+                ' ',
+                _react2['default'].createElement(
+                    _.LoanLink,
+                    { loan: loan },
+                    _react2['default'].createElement(
+                        'small',
+                        { style: { fontSize: '14px', color: '#2c6e49' } },
+                        'on Kiva'
+                    )
+                ),
                 inBasket ? _react2['default'].createElement(
                     _reactBootstrap.Button,
                     { bsStyle: 'danger', className: 'float_right', onClick: _actions2['default'].loans.basket.remove.bind(this, loan.id) },
@@ -70141,8 +70151,8 @@ var Loan = _react2['default'].createClass({
                         )
                     ),
                     _react2['default'].createElement(
-                        _reactBootstrap.Row,
-                        null,
+                        'p',
+                        { style: { marginBottom: 8 } },
                         _react2['default'].createElement(
                             'b',
                             null,
@@ -70153,15 +70163,6 @@ var Loan = _react2['default'].createClass({
                             loan.activity,
                             ' | ',
                             loan.use
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Row,
-                        { style: { marginBottom: 8 } },
-                        _react2['default'].createElement(
-                            _.LoanLink,
-                            { loan: loan },
-                            'View on Kiva.org'
                         )
                     ),
                     _react2['default'].createElement(
