@@ -192,13 +192,6 @@ const About = React.createClass({
             discussion and announcements.
           </p>
 
-          <h3>Open Source</h3>
-          <p>
-            KivaLens is open source. Want to
-            contribute? <EmailLink subject="KivaLens Developer">Get
-            in touch</EmailLink>.
-          </p>
-
         </Tab>
       </Tabs>
     </Grid>

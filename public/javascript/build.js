@@ -65588,22 +65588,6 @@ var About = _react2['default'].createClass({
               'KivaLens Lending Team'
             ),
             ' for discussion and announcements.'
-          ),
-          _react2['default'].createElement(
-            'h3',
-            null,
-            'Open Source'
-          ),
-          _react2['default'].createElement(
-            'p',
-            null,
-            'KivaLens is open source. Want to contribute? ',
-            _react2['default'].createElement(
-              _.EmailLink,
-              { subject: 'KivaLens Developer' },
-              'Get in touch'
-            ),
-            '.'
           )
         )
       )
