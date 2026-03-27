@@ -70078,17 +70078,16 @@ var Loan = _react2['default'].createClass({
             _react2['default'].createElement(
                 'h1',
                 { style: { marginTop: '0px' } },
-                loan.name,
-                ' ',
                 _react2['default'].createElement(
                     _.LoanLink,
                     { loan: loan },
                     _react2['default'].createElement(
-                        'small',
-                        { style: { fontSize: '14px', color: '#2c6e49' } },
-                        'on Kiva'
+                        'span',
+                        { style: { display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2 } },
+                        'K'
                     )
                 ),
+                loan.name,
                 inBasket ? _react2['default'].createElement(
                     _reactBootstrap.Button,
                     { bsStyle: 'danger', className: 'float_right', onClick: _actions2['default'].loans.basket.remove.bind(this, loan.id) },

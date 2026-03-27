@@ -235,7 +235,7 @@ var Loan = React.createClass({
         if (partner && !partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div className="Loan">
-                <h1 style={{marginTop:'0px'}}>{loan.name} <LoanLink loan={loan}><small style={{fontSize: '14px', color: '#2c6e49'}}>on Kiva</small></LoanLink>
+                <h1 style={{marginTop:'0px'}}><LoanLink loan={loan}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></LoanLink>{loan.name}
     {inBasket ?
                         <Button bsStyle="danger" className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
                     :
