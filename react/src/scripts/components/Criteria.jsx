@@ -84,6 +84,8 @@ const Criteria = React.createClass({
             menuItems.push(<MenuItem eventKey={1002} key='delete_saved' onClick={s.criteria.syncDelete.bind(this, lastSaved)}>Delete '{lastSaved}'</MenuItem>)
             menuItems.push(<MenuItem divider key="divider-actions" />)
         }
+        menuItems.push(<MenuItem eventKey={1004} key='manage_saved' href="#/saved">Manage Saved Searches</MenuItem>)
+        menuItems.push(<MenuItem divider key="divider-manage" />)
         menuItems.push(<MenuItem eventKey={1003} key='save_current_as' onClick={this.promptForName}>Save Current Criteria As...</MenuItem>)
 
         return (
@@ -93,9 +95,6 @@ const Criteria = React.createClass({
                     <DropdownButton title={`${lastSaved ? `'${lastSaved}'` : 'Saved Searches'}`} id='saved_search' bsSize="small" style={{flex: 1}} onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
                         {menuItems}
                     </DropdownButton>
-                </div>
-                <div style={{marginBottom: 8, fontSize: 11}}>
-                    <a href="#/saved">Manage Saved Searches</a>
                 </div>
                 <CriteriaTabs criteria='pass a cursor'/>
             </div>

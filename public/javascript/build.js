@@ -66844,6 +66844,12 @@ var Criteria = _react2['default'].createClass({
         }
         menuItems.push(_react2['default'].createElement(
             _reactBootstrap.MenuItem,
+            { eventKey: 1004, key: 'manage_saved', href: '#/saved' },
+            'Manage Saved Searches'
+        ));
+        menuItems.push(_react2['default'].createElement(_reactBootstrap.MenuItem, { divider: true, key: 'divider-manage' }));
+        menuItems.push(_react2['default'].createElement(
+            _reactBootstrap.MenuItem,
             { eventKey: 1003, key: 'save_current_as', onClick: this.promptForName },
             'Save Current Criteria As...'
         ));
@@ -66867,15 +66873,6 @@ var Criteria = _react2['default'].createClass({
                             }
                         } },
                     menuItems
-                )
-            ),
-            _react2['default'].createElement(
-                'div',
-                { style: { marginBottom: 8, fontSize: 11 } },
-                _react2['default'].createElement(
-                    'a',
-                    { href: '#/saved' },
-                    'Manage Saved Searches'
                 )
             ),
             _react2['default'].createElement(_.CriteriaTabs, { criteria: 'pass a cursor' })
@@ -73264,7 +73261,7 @@ var Search = _react2['default'].createClass({
         var hasLoanDetail = this.props.location.pathname !== '/search';
 
         var critCol = showCriteria ? 5 : 0;
-        var listCol = showCriteria ? 3 : hasLoanDetail ? 4 : 12;
+        var listCol = showCriteria ? 3 : hasLoanDetail ? 4 : 8;
         var detailCol = hasLoanDetail ? 4 : 0;
 
         return _react2['default'].createElement(
@@ -73298,11 +73295,6 @@ var Search = _react2['default'].createClass({
                         _reactBootstrap.Button,
                         { href: '#', key: 4, onClick: this.toggleCriteria },
                         showCriteria ? 'Hide Criteria' : 'Show Criteria'
-                    ),
-                    _react2['default'].createElement(
-                        _reactBootstrap.Button,
-                        { href: '#', key: 3, onClick: this.resetCriteria },
-                        'Reset'
                     ),
                     _react2['default'].createElement(
                         _reactBootstrap.Button,
@@ -73354,7 +73346,7 @@ var Search = _react2['default'].createClass({
             ) : null,
             !hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 4 },
+                { md: showCriteria ? 4 : 4 },
                 _react2['default'].createElement(WelcomePanel, null)
             ) : null
         );

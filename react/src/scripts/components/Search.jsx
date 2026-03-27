@@ -125,7 +125,7 @@ var Search = React.createClass({
         var hasLoanDetail = this.props.location.pathname !== '/search'
 
         var critCol = showCriteria ? 5 : 0
-        var listCol = showCriteria ? 3 : (hasLoanDetail ? 4 : 12)
+        var listCol = showCriteria ? 3 : (hasLoanDetail ? 4 : 8)
         var detailCol = hasLoanDetail ? 4 : 0
 
         return (
@@ -149,7 +149,6 @@ var Search = React.createClass({
                         <Button href="#" key={4} onClick={this.toggleCriteria}>
                             {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
                         </Button>
-                        <Button href="#" key={3} onClick={this.resetCriteria}>Reset</Button>
                         <Button href="#" key={1} onClick={this.bulkAdd}>Bulk Add</Button>
                     </ButtonGroup>
                     {show_secondary_load ? <Alert className="not-rounded" style={{marginBottom: '0px'}} bsStyle="warning">
@@ -179,7 +178,7 @@ var Search = React.createClass({
                     {this.props.children}
                 </Col> : null}
 
-                {!hasLoanDetail ? <Col md={4}>
+                {!hasLoanDetail ? <Col md={showCriteria ? 4 : 4}>
                     <WelcomePanel />
                 </Col> : null}
             </div>
