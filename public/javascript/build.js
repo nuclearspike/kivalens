@@ -68212,18 +68212,16 @@ var CriteriaTabs = _react2['default'].createClass({
                     { style: { display: 'flex', justifyContent: 'flex-end', marginBottom: 4 } },
                     _react2['default'].createElement(
                         'a',
-                        { href: '#', style: { fontSize: 11, color: '#999' }, onClick: function (e) {
-                                e.preventDefault();if (confirm('Hide distribution graphs? You can re-enable them in Options.')) {
-                                    _this3.setState({ hideGraphs: true });lsj.setMerge('Options', { hide_criteria_graphs: true });
-                                }
-                            } },
+                        { href: '#', style: { fontSize: 11, color: '#999' }, onClick: (function (e) {
+                                e.preventDefault();lsj.setMerge('Options', { hide_criteria_graphs: true });this.setState({ hideGraphs: true, helper_charts: {} });alert('Distribution graphs disabled. You can re-enable them in Options > Display.');
+                            }).bind(this) },
                         'Do not show again'
                     ),
                     _react2['default'].createElement(
                         'a',
-                        { href: '#', style: { fontSize: 11, color: '#999', marginLeft: 8 }, onClick: function (e) {
-                                e.preventDefault();_this3.setState({ helper_charts: {} });
-                            } },
+                        { href: '#', style: { fontSize: 11, color: '#999', marginLeft: 8 }, onClick: (function (e) {
+                                e.preventDefault();this.setState({ helper_charts: {} });
+                            }).bind(this) },
                         'Close'
                     )
                 ),
@@ -70131,47 +70129,47 @@ var Loan = _react2['default'].createClass({
                     _reactBootstrap.Tab,
                     { eventKey: 2, title: 'Details', className: 'ample-padding-top' },
                     _react2['default'].createElement(
-                        'div',
+                        DeadZone,
+                        { until: function (x) {
+                                return funded_perc * (basket_perc + 1);
+                            } },
+                        _react2['default'].createElement(
+                            _reactBootstrap.ProgressBar,
+                            null,
+                            _react2['default'].createElement(_reactBootstrap.ProgressBar, { striped: true, bsStyle: 'success', now: funded_perc, key: 1 }),
+                            _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'warning', now: basket_perc, key: 2 })
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
                         null,
                         _react2['default'].createElement(
-                            DeadZone,
-                            { until: function (x) {
-                                    return funded_perc * (basket_perc + 1);
-                                } },
-                            _react2['default'].createElement(
-                                _reactBootstrap.ProgressBar,
-                                null,
-                                _react2['default'].createElement(_reactBootstrap.ProgressBar, { striped: true, bsStyle: 'success', now: funded_perc, key: 1 }),
-                                _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'warning', now: basket_perc, key: 2 })
-                            )
-                        ),
-                        _react2['default'].createElement(
-                            _reactBootstrap.Row,
+                            'b',
                             null,
-                            _react2['default'].createElement(
-                                'b',
-                                null,
-                                loan.location.country,
-                                ' | ',
-                                loan.sector,
-                                ' | ',
-                                loan.activity,
-                                ' | ',
-                                loan.use
-                            )
-                        ),
+                            loan.location.country,
+                            ' | ',
+                            loan.sector,
+                            ' | ',
+                            loan.activity,
+                            ' | ',
+                            loan.use
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        _reactBootstrap.Row,
+                        { style: { marginBottom: 8 } },
                         _react2['default'].createElement(
-                            _reactBootstrap.Row,
-                            null,
-                            _react2['default'].createElement(
-                                _.LoanLink,
-                                { loan: loan },
-                                'View on Kiva.org'
-                            )
-                        ),
+                            _.LoanLink,
+                            { loan: loan },
+                            'View on Kiva.org'
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { display: 'flex', gap: 12 } },
                         _react2['default'].createElement(
                             'div',
-                            { className: 'loan-detail-fields', style: { fontSize: 13, lineHeight: 1.6 } },
+                            { style: { flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0 } },
                             _react2['default'].createElement(
                                 'div',
                                 null,
@@ -70296,7 +70294,7 @@ var Loan = _react2['default'].createClass({
                             ) : null,
                             loan.status == 'fundraising' ? _react2['default'].createElement(
                                 'div',
-                                { style: { marginTop: 8 } },
+                                { style: { marginTop: 4 } },
                                 _react2['default'].createElement(
                                     'div',
                                     null,
@@ -70306,14 +70304,11 @@ var Loan = _react2['default'].createClass({
                                         '$/Hour'
                                     ),
                                     ' $',
-                                    (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00'),
-                                    ' ',
-                                    _react2['default'].createElement(
-                                        'span',
-                                        { style: { color: '#ccc' } },
-                                        '|'
-                                    ),
-                                    ' ',
+                                    (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00')
+                                ),
+                                _react2['default'].createElement(
+                                    'div',
+                                    null,
                                     _react2['default'].createElement(
                                         'span',
                                         { style: { color: '#999', fontSize: 11 } },
@@ -70334,14 +70329,11 @@ var Loan = _react2['default'].createClass({
                                         'Funded'
                                     ),
                                     ' $',
-                                    (0, _numeral2['default'])(loan.funded_amount).format('0,0'),
-                                    ' ',
-                                    _react2['default'].createElement(
-                                        'span',
-                                        { style: { color: '#ccc' } },
-                                        '|'
-                                    ),
-                                    ' ',
+                                    (0, _numeral2['default'])(loan.funded_amount).format('0,0')
+                                ),
+                                _react2['default'].createElement(
+                                    'div',
+                                    null,
                                     _react2['default'].createElement(
                                         'span',
                                         { style: { color: '#999', fontSize: 11 } },
@@ -70366,9 +70358,13 @@ var Loan = _react2['default'].createClass({
                                 )
                             ) : null
                         ),
-                        _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } }),
-                        activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : null
-                    )
+                        _react2['default'].createElement(
+                            'div',
+                            { style: { flex: '1 1 50%', minWidth: 0 } },
+                            activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : null
+                        )
+                    ),
+                    _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en }, style: { marginTop: 12 } })
                 ),
                 partner ? _react2['default'].createElement(
                     _reactBootstrap.Tab,

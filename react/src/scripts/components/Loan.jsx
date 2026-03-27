@@ -262,48 +262,53 @@ var Loan = React.createClass({
                         </Panel>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
-                        <div>
-                                <DeadZone until={x=>funded_perc*(basket_perc+1)}>
-                                    <ProgressBar>
-                                        <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
-                                        <ProgressBar bsStyle="warning" now={basket_perc} key={2}/>
-                                    </ProgressBar>
-                                </DeadZone>
-                                <Row>
-                                    <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
-                                </Row>
-                                <Row>
-                                    <LoanLink loan={loan}>View on Kiva.org</LoanLink>
-                                </Row>
-                                <div className="loan-detail-fields" style={{fontSize: 13, lineHeight: 1.6}}>
-                                    <div><span style={{color: '#999', fontSize: 11}}>Saved Searches</span><br/>{matching}</div>
-                                    <div><span style={{color: '#999', fontSize: 11}}>Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
-                                    {(loan.themes && loan.themes.length) ? <div><span style={{color: '#999', fontSize: 11}}>Themes</span><br/>{loan.themes.join(', ')}</div> : null}
-                                    <div><span style={{color: '#999', fontSize: 11}}>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>
-                                    <div><span style={{color: '#999', fontSize: 11}}>Posted</span><br/>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.posted_date} />)</div>
+                        <DeadZone until={x=>funded_perc*(basket_perc+1)}>
+                            <ProgressBar>
+                                <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
+                                <ProgressBar bsStyle="warning" now={basket_perc} key={2}/>
+                            </ProgressBar>
+                        </DeadZone>
+                        <Row>
+                            <b>{loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}</b>
+                        </Row>
+                        <Row style={{marginBottom: 8}}>
+                            <LoanLink loan={loan}>View on Kiva.org</LoanLink>
+                        </Row>
+                        <div style={{display: 'flex', gap: 12}}>
+                            <div style={{flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0}}>
+                                <div><span style={{color: '#999', fontSize: 11}}>Saved Searches</span><br/>{matching}</div>
+                                <div><span style={{color: '#999', fontSize: 11}}>Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
+                                {(loan.themes && loan.themes.length) ? <div><span style={{color: '#999', fontSize: 11}}>Themes</span><br/>{loan.themes.join(', ')}</div> : null}
+                                <div><span style={{color: '#999', fontSize: 11}}>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>
+                                <div><span style={{color: '#999', fontSize: 11}}>Posted</span><br/>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.posted_date} />)</div>
 {loan.status != 'fundraising' ?
-                                        <div><span style={{color: '#999', fontSize: 11}}>Status</span><br/>{humanize(loan.status)}</div>
-                                    : null}
+                                    <div><span style={{color: '#999', fontSize: 11}}>Status</span><br/>{humanize(loan.status)}</div>
+                                : null}
 {loan.funded_date ?
-                                        <div><span style={{color: '#999', fontSize: 11}}>Funded</span><br/>{new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm tt')}</div>
-                                    : null}
+                                    <div><span style={{color: '#999', fontSize: 11}}>Funded</span><br/>{new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm tt')}</div>
+                                : null}
 {loan.status == 'fundraising' ?
-                                        <div><span style={{color: '#999', fontSize: 11}}>Expires</span><br/>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.planned_expiration_date} />)</div>
-                                    : null}
+                                    <div><span style={{color: '#999', fontSize: 11}}>Expires</span><br/>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.planned_expiration_date} />)</div>
+                                : null}
 {loan.terms.disbursal_date ?
-                                        <div><span style={{color: '#999', fontSize: 11}}>Disbursed</span><br/>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />)</div>
-                                    : null}
+                                    <div><span style={{color: '#999', fontSize: 11}}>Disbursed</span><br/>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />)</div>
+                                : null}
 {loan.status == 'fundraising' ?
-                                        <div><span style={{color: '#999', fontSize: 11}}>Final Repayment In</span><br/>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
-                                    : null}
-{loan.status == 'fundraising' ? <div style={{marginTop: 8}}>
-                                        <div><span style={{color: '#999', fontSize: 11}}>$/Hour</span> ${numeral(loan.kl_dollars_per_hour()).format('0.00')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Amount</span> ${numeral(loan.loan_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Funded</span> ${numeral(loan.funded_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>In Baskets</span> ${numeral(loan.basket_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Still Needed</span> ${numeral(loan.kl_still_needed).format('0,0')}</div>
+                                    <div><span style={{color: '#999', fontSize: 11}}>Final Repayment In</span><br/>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
+                                : null}
+{loan.status == 'fundraising' ?
+                                    <div style={{marginTop: 4}}>
+                                        <div><span style={{color: '#999', fontSize: 11}}>$/Hour</span> ${numeral(loan.kl_dollars_per_hour()).format('0.00')}</div>
+                                        <div><span style={{color: '#999', fontSize: 11}}>Amount</span> ${numeral(loan.loan_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Funded</span> ${numeral(loan.funded_amount).format('0,0')}</div>
+                                        <div><span style={{color: '#999', fontSize: 11}}>In Baskets</span> ${numeral(loan.basket_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Still Needed</span> ${numeral(loan.kl_still_needed).format('0,0')}</div>
                                     </div>
                                 : null}
-                                </div>
-                                <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
-                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : null}
+                            </div>
+                            <div style={{flex: '1 1 50%', minWidth: 0}}>
+                                {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : null}
+                            </div>
                         </div>
+                        <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} style={{marginTop: 12}}></p>
                     </Tab>
 {partner ?
                         <Tab eventKey={3} title="Partner" className="ample-padding-top">

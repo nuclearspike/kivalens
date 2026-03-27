@@ -901,10 +901,10 @@ const CriteriaTabs = React.createClass({
           width: 320, maxHeight: '70vh', overflowY: 'auto'
         }}>
           <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: 4}}>
-            <a href="#" style={{fontSize: 11, color: '#999'}} onClick={e => { e.preventDefault(); if(confirm('Hide distribution graphs? You can re-enable them in Options.')) { this.setState({hideGraphs: true}); lsj.setMerge('Options', {hide_criteria_graphs: true}) } }}>
+            <a href="#" style={{fontSize: 11, color: '#999'}} onClick={function(e) { e.preventDefault(); lsj.setMerge('Options', {hide_criteria_graphs: true}); this.setState({hideGraphs: true, helper_charts: {}}); alert('Distribution graphs disabled. You can re-enable them in Options > Display.') }.bind(this)}>
               Do not show again
             </a>
-            <a href="#" style={{fontSize: 11, color: '#999', marginLeft: 8}} onClick={e => { e.preventDefault(); this.setState({helper_charts: {}}) }}>
+            <a href="#" style={{fontSize: 11, color: '#999', marginLeft: 8}} onClick={function(e) { e.preventDefault(); this.setState({helper_charts: {}}) }.bind(this)}>
               Close
             </a>
           </div>
