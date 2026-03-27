@@ -31,12 +31,15 @@ const WelcomePanel = React.createClass({
             </ol>
 
             {!hasLenderID ? <div style={{marginTop: 16, padding: '12px 16px', background: '#f0f8f4', borderRadius: 6, border: '1px solid #d4edda'}}>
-                <b>Tip:</b> <a href="#" onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set your
+                <a href="#" onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set your
                 Lender ID</a> to hide loans you've already funded and enable portfolio balancing.
             </div> : null}
 
-            <div style={{marginTop: 16}}>
-                <a href="#/about">Learn more</a> about all of KivaLens's features.
+            <div style={{marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                <Button bsSize="small" bsStyle="primary" onClick={function(){ localStorage.setItem('kl_tutorial_step','0'); localStorage.removeItem('kl_tutorial_done'); window.dispatchEvent(new Event('kl_tutorial_start')) }}>
+                    Start Tutorial
+                </Button>
+                <a href="#/about" style={{lineHeight: '30px'}}>Learn more</a>
             </div>
         </div>
     }
@@ -121,9 +124,9 @@ var Search = React.createClass({
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count, showCriteria} = this.state
         var hasLoanDetail = this.props.location.pathname !== '/search'
 
-        var critCol = showCriteria ? 4 : 0
-        var listCol = showCriteria ? (hasLoanDetail ? 4 : 8) : (hasLoanDetail ? 4 : 12)
-        var detailCol = hasLoanDetail ? (showCriteria ? 4 : 8) : 0
+        var critCol = showCriteria ? 5 : 0
+        var listCol = showCriteria ? 3 : (hasLoanDetail ? 4 : 12)
+        var detailCol = hasLoanDetail ? 4 : 0
 
         return (
             <div>
@@ -176,7 +179,7 @@ var Search = React.createClass({
                     {this.props.children}
                 </Col> : null}
 
-                {!hasLoanDetail ? <Col md={showCriteria ? 8 : 12}>
+                {!hasLoanDetail ? <Col md={4}>
                     <WelcomePanel />
                 </Col> : null}
             </div>

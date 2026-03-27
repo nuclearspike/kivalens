@@ -88,10 +88,14 @@ const Criteria = React.createClass({
 
         return (
             <div>
-                <div style={{marginBottom: 8}}>
-                    <DropdownButton title={`${lastSaved ? `'${lastSaved}'` : 'Saved Searches'}`} id='saved_search' block bsSize="small" onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
+                <div style={{display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center'}}>
+                    <Button bsSize="small" onClick={this.clearCriteria} style={{whiteSpace: 'nowrap'}}>Reset</Button>
+                    <DropdownButton title={`${lastSaved ? `'${lastSaved}'` : 'Saved Searches'}`} id='saved_search' bsSize="small" style={{flex: 1}} onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
                         {menuItems}
                     </DropdownButton>
+                </div>
+                <div style={{marginBottom: 8, fontSize: 11}}>
+                    <a href="#/saved">Manage Saved Searches</a>
                 </div>
                 <CriteriaTabs criteria='pass a cursor'/>
             </div>

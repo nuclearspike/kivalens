@@ -55,7 +55,7 @@ const RepaymentGraphs= React.createClass({
         var result = {
             chart: {
                 alignTicks: false,
-                type: 'column',
+                type: 'bar',
                 animation: false,
                 renderTo: 'graph_container'
             },
@@ -63,13 +63,13 @@ const RepaymentGraphs= React.createClass({
             xAxis: {
                 categories: loan.kl_repay_categories,
                 title: {text: null},
-                labels: {rotation: -45, style: {fontSize: '10px'}}
+                labels: {style: {fontSize: '9px'}}
             },
             yAxis: [{
                     min: 0,
                     dataLabels: {enabled: false},
                     title: {text: null},
-                    labels: {format: '${value}'}
+                    labels: {enabled: false}
                 },
                 {
                     min: 0,
@@ -77,14 +77,15 @@ const RepaymentGraphs= React.createClass({
                     dataLabels: {enabled: false},
                     title: {text: null},
                     opposite: true,
-                    labels: {format: '{value}%'}
+                    labels: {enabled: false}
                 }],
             tooltip: {
                 valueDecimals: 2
             },
             plotOptions: {
-                column: {
-                    dataLabels: {enabled: false}
+                bar: {
+                    dataLabels: {enabled: false},
+                    pointWidth: 8
                 },
                 area: {
                     marker: {enabled: false},
@@ -114,20 +115,15 @@ const RepaymentGraphs= React.createClass({
     render(){
         let {loan, config} = this.state
         if (!loan.kl_repay_categories) return <div> </div>
-        var height = Math.min(300, Math.max(200, loan.kl_repay_categories.length * 20))
-        return <div key="graph_container" id='graph_container'>
-            <div style={{fontSize: '12px', marginBottom: '8px'}}>
-                <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
-                    <span style={{color: '#999'}}>Interval:</span> <b>{loan.terms.repayment_interval}</b>
-                    <span style={{color: '#ccc'}}>|</span>
-                    <span style={{color: '#999'}}>{Math.round(loan.kls_half_back_actual)}% back:</span> <b>{loan.kls_half_back.toString("MMM yyyy")}</b>
-                    <span style={{color: '#ccc'}}>|</span>
-                    <span style={{color: '#999'}}>{Math.round(loan.kls_75_back_actual)}% back:</span> <b>{loan.kls_75_back.toString("MMM yyyy")}</b>
-                    <span style={{color: '#ccc'}}>|</span>
-                    <span style={{color: '#999'}}>Final:</span> <b>{loan.kls_final_repayment.toString("MMM yyyy")}</b>
-                </div>
+        var height = Math.max(300, Math.min(loan.kl_repay_categories.length * 25, 600))
+        return <div key="graph_container" id='graph_container' style={{float: 'right', width: '45%', paddingLeft: 8}}>
+            <div style={{fontSize: '11px', marginBottom: '4px'}}>
+                <div><span style={{color: '#999'}}>Interval:</span> <b>{loan.terms.repayment_interval}</b></div>
+                <div><span style={{color: '#999'}}>{Math.round(loan.kls_half_back_actual)}% back:</span> <b>{loan.kls_half_back.toString("MMM yyyy")}</b></div>
+                <div><span style={{color: '#999'}}>{Math.round(loan.kls_75_back_actual)}% back:</span> <b>{loan.kls_75_back.toString("MMM yyyy")}</b></div>
+                <div><span style={{color: '#999'}}>Final:</span> <b>{loan.kls_final_repayment.toString("MMM yyyy")}</b></div>
             </div>
-            <Highcharts style={{height: `${height}px`, width: '100%'}} config={config} />
+            <Highcharts style={{height: `${height}px`}} config={config} />
         </div>
     }
 })
@@ -267,6 +263,7 @@ var Loan = React.createClass({
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
                         <div>
+                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : null}
                                 <DeadZone until={x=>funded_perc*(basket_perc+1)}>
                                     <ProgressBar>
                                         <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
@@ -312,7 +309,7 @@ var Loan = React.createClass({
                                 : null}
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
-                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : <span/>}
+                            <div style={{clear: 'both'}}></div>
                         </div>
                     </Tab>
 {partner ?

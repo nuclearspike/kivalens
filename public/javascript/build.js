@@ -66853,15 +66853,29 @@ var Criteria = _react2['default'].createClass({
             null,
             _react2['default'].createElement(
                 'div',
-                { style: { marginBottom: 8 } },
+                { style: { display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center' } },
+                _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsSize: 'small', onClick: this.clearCriteria, style: { whiteSpace: 'nowrap' } },
+                    'Reset'
+                ),
                 _react2['default'].createElement(
                     _reactBootstrap.DropdownButton,
-                    { title: '' + (lastSaved ? '\'' + lastSaved + '\'' : 'Saved Searches'), id: 'saved_search', block: true, bsSize: 'small', onToggle: function (isOpen) {
+                    { title: '' + (lastSaved ? '\'' + lastSaved + '\'' : 'Saved Searches'), id: 'saved_search', bsSize: 'small', style: { flex: 1 }, onToggle: function (isOpen) {
                             if (isOpen) {
                                 _this2._countsComputed = false;_this2.computeSearchCounts();
                             }
                         } },
                     menuItems
+                )
+            ),
+            _react2['default'].createElement(
+                'div',
+                { style: { marginBottom: 8, fontSize: 11 } },
+                _react2['default'].createElement(
+                    'a',
+                    { href: '#/saved' },
+                    'Manage Saved Searches'
                 )
             ),
             _react2['default'].createElement(_.CriteriaTabs, { criteria: 'pass a cursor' })
@@ -69738,7 +69752,7 @@ var RepaymentGraphs = _react2['default'].createClass({
         var result = {
             chart: {
                 alignTicks: false,
-                type: 'column',
+                type: 'bar',
                 animation: false,
                 renderTo: 'graph_container'
             },
@@ -69746,27 +69760,28 @@ var RepaymentGraphs = _react2['default'].createClass({
             xAxis: {
                 categories: loan.kl_repay_categories,
                 title: { text: null },
-                labels: { rotation: -45, style: { fontSize: '10px' } }
+                labels: { style: { fontSize: '9px' } }
             },
             yAxis: [{
                 min: 0,
                 dataLabels: { enabled: false },
                 title: { text: null },
-                labels: { format: '${value}' }
+                labels: { enabled: false }
             }, {
                 min: 0,
                 max: 100,
                 dataLabels: { enabled: false },
                 title: { text: null },
                 opposite: true,
-                labels: { format: '{value}%' }
+                labels: { enabled: false }
             }],
             tooltip: {
                 valueDecimals: 2
             },
             plotOptions: {
-                column: {
-                    dataLabels: { enabled: false }
+                bar: {
+                    dataLabels: { enabled: false },
+                    pointWidth: 8
                 },
                 area: {
                     marker: { enabled: false },
@@ -69803,16 +69818,16 @@ var RepaymentGraphs = _react2['default'].createClass({
             null,
             ' '
         );
-        var height = Math.min(300, Math.max(200, loan.kl_repay_categories.length * 20));
+        var height = Math.max(300, Math.min(loan.kl_repay_categories.length * 25, 600));
         return _react2['default'].createElement(
             'div',
-            { key: 'graph_container', id: 'graph_container' },
+            { key: 'graph_container', id: 'graph_container', style: { float: 'right', width: '45%', paddingLeft: 8 } },
             _react2['default'].createElement(
                 'div',
-                { style: { fontSize: '12px', marginBottom: '8px' } },
+                { style: { fontSize: '11px', marginBottom: '4px' } },
                 _react2['default'].createElement(
                     'div',
-                    { style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
+                    null,
                     _react2['default'].createElement(
                         'span',
                         { style: { color: '#999' } },
@@ -69823,12 +69838,11 @@ var RepaymentGraphs = _react2['default'].createClass({
                         'b',
                         null,
                         loan.terms.repayment_interval
-                    ),
-                    _react2['default'].createElement(
-                        'span',
-                        { style: { color: '#ccc' } },
-                        '|'
-                    ),
+                    )
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    null,
                     _react2['default'].createElement(
                         'span',
                         { style: { color: '#999' } },
@@ -69840,12 +69854,11 @@ var RepaymentGraphs = _react2['default'].createClass({
                         'b',
                         null,
                         loan.kls_half_back.toString("MMM yyyy")
-                    ),
-                    _react2['default'].createElement(
-                        'span',
-                        { style: { color: '#ccc' } },
-                        '|'
-                    ),
+                    )
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    null,
                     _react2['default'].createElement(
                         'span',
                         { style: { color: '#999' } },
@@ -69857,12 +69870,11 @@ var RepaymentGraphs = _react2['default'].createClass({
                         'b',
                         null,
                         loan.kls_75_back.toString("MMM yyyy")
-                    ),
-                    _react2['default'].createElement(
-                        'span',
-                        { style: { color: '#ccc' } },
-                        '|'
-                    ),
+                    )
+                ),
+                _react2['default'].createElement(
+                    'div',
+                    null,
                     _react2['default'].createElement(
                         'span',
                         { style: { color: '#999' } },
@@ -69876,7 +69888,7 @@ var RepaymentGraphs = _react2['default'].createClass({
                     )
                 )
             ),
-            _react2['default'].createElement(Highcharts, { style: { height: height + 'px', width: '100%' }, config: config })
+            _react2['default'].createElement(Highcharts, { style: { height: height + 'px' }, config: config })
         );
     }
 });
@@ -70096,6 +70108,7 @@ var Loan = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'div',
                         null,
+                        activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : null,
                         _react2['default'].createElement(
                             DeadZone,
                             { until: function (x) {
@@ -70284,7 +70297,7 @@ var Loan = _react2['default'].createClass({
                             )
                         ) : null,
                         _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } }),
-                        activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : _react2['default'].createElement('span', null)
+                        _react2['default'].createElement('div', { style: { clear: 'both' } })
                     )
                 ),
                 partner ? _react2['default'].createElement(
@@ -73130,12 +73143,6 @@ var WelcomePanel = _react2['default'].createClass({
                 'div',
                 { style: { marginTop: 16, padding: '12px 16px', background: '#f0f8f4', borderRadius: 6, border: '1px solid #d4edda' } },
                 _react2['default'].createElement(
-                    'b',
-                    null,
-                    'Tip:'
-                ),
-                ' ',
-                _react2['default'].createElement(
                     'a',
                     { href: '#', onClick: function (e) {
                             e.preventDefault();showLenderIDModal();
@@ -73146,13 +73153,19 @@ var WelcomePanel = _react2['default'].createClass({
             ) : null,
             _react2['default'].createElement(
                 'div',
-                { style: { marginTop: 16 } },
+                { style: { marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' } },
+                _react2['default'].createElement(
+                    _reactBootstrap.Button,
+                    { bsSize: 'small', bsStyle: 'primary', onClick: function () {
+                            localStorage.setItem('kl_tutorial_step', '0');localStorage.removeItem('kl_tutorial_done');window.dispatchEvent(new Event('kl_tutorial_start'));
+                        } },
+                    'Start Tutorial'
+                ),
                 _react2['default'].createElement(
                     'a',
-                    { href: '#/about' },
+                    { href: '#/about', style: { lineHeight: '30px' } },
                     'Learn more'
-                ),
-                ' about all of KivaLens\'s features.'
+                )
             )
         );
     }
@@ -73250,9 +73263,9 @@ var Search = _react2['default'].createClass({
 
         var hasLoanDetail = this.props.location.pathname !== '/search';
 
-        var critCol = showCriteria ? 4 : 0;
-        var listCol = showCriteria ? hasLoanDetail ? 4 : 8 : hasLoanDetail ? 4 : 12;
-        var detailCol = hasLoanDetail ? showCriteria ? 4 : 8 : 0;
+        var critCol = showCriteria ? 5 : 0;
+        var listCol = showCriteria ? 3 : hasLoanDetail ? 4 : 12;
+        var detailCol = hasLoanDetail ? 4 : 0;
 
         return _react2['default'].createElement(
             'div',
@@ -73341,7 +73354,7 @@ var Search = _react2['default'].createClass({
             ) : null,
             !hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: showCriteria ? 8 : 12 },
+                { md: 4 },
                 _react2['default'].createElement(WelcomePanel, null)
             ) : null
         );
