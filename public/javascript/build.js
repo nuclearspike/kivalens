@@ -65491,36 +65491,6 @@ var About = _react2['default'].createClass({
           _react2['default'].createElement(
             'b',
             null,
-            'Auto-Lending Preferences'
-          ),
-          ' Kiva has had ',
-          _react2['default'].createElement(
-            _.KivaLink,
-            { path: 'settings/credit' },
-            'Auto-Lending'
-          ),
-          ' for years but the options are a bit anemic. Since browser extensions have far more permissions than a web page does, KivaLens is able to tell the extension to alter your auto-lending settings on Kiva. KivaLens offers extensive partner criteria as well as portfolio balancing for Sector, Country and Activity. When you use KivaLens in conjunction with ',
-          _react2['default'].createElement(_.KLALink, null),
-          ' you can easily set your auto-lending preferences and take full advantage of Kiva\'s feature.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
-            'Notifications'
-          ),
-          ' When you have the ',
-          _react2['default'].createElement(_.KLALink, null),
-          ' installed, you can set your Saved Searches to play a sound if a new loan is added. There are some types of loans (especially the ultra-short term loans) that can fully fund within less than a 1-2 hours. Install the extension, set your criteria, select that you want to be notified on the menu option on the Saved Search menu, leave KivaLens open and you won\'t even have to have the browser showing and KivaLens will tell the extension to display a notification visible outside of the browser and play a sound. The loan must be posted with all criteria matching or the notification won\'t fire. So, a notification set up with restrictions for funding amounts that don\'t include 0 would never fire. Tags on loans are added by other users after the loan has already posted, so any criteria with Tags won\'t fire. Filters with expiration, $/hour or details that change after the loan posts will also not ever get a notification.'
-        ),
-        _react2['default'].createElement(
-          'li',
-          null,
-          _react2['default'].createElement(
-            'b',
-            null,
             'Compare Teams'
           ),
           ' On the "Teams" page, you can compare the membership count, loan count, and total amount loaned for your teams.'
@@ -65696,35 +65666,6 @@ var About = _react2['default'].createClass({
         'p',
         null,
         'KivaLens was initially created in 2009 (as a Silverlight app) because I wanted to find loans in ways and Kiva did not offer the filter/sorts I wanted. I ended up working at Kiva for a few years and helped incorporate a lot of the search features directly into Kiva\'s site which also then made their way into the API as well. There are still some great things KivaLens does that Kiva does not do that are handy and fun! Some projects I worked on at Kiva: Super Graphs for lenders and teams, /Live, Zip, Leader boards, Message board search with time-line, the Home page (at the time), and Estimated Repayments are some of the ones I enjoyed the most, many of which were "Innovation Iteration" projects where engineers implement their own ideas.'
-      ),
-      _react2['default'].createElement(
-        'h3',
-        null,
-        'Kiva Lender Assistant (KLA) Chrome Extension'
-      ),
-      _react2['default'].createElement(
-        'p',
-        null,
-        'There\'s also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines) on the Lend tab along with other repayment info, talks to you about things it notices about the loan, details about lenders and teams you hover over, etc. There are also a number of features that KivaLens has that require KLA to work. ',
-        _react2['default'].createElement(
-          _.KLALink,
-          null,
-          'Check out screenshots, a detailed description and install Kiva Lender Assistant here'
-        ),
-        ' or ',
-        _react2['default'].createElement(
-          _.NewTabLink,
-          { href: 'https://github.com/nuclearspike/lenderassist' },
-          'checkout the source code on github (developers wanted!)'
-        ),
-        '.',
-        KLAVersion ? _react2['default'].createElement(
-          'span',
-          null,
-          'You have KLA version ',
-          KLAVersion,
-          ' installed. Chrome does a good job of keeping your extensions up to date automatically, but to check for upgrades manually, go to Chrome\'s "Window" menu, select "Extensions" and switch on "Developer Mode" then click the button to update your extensions.'
-        ) : null
       )
     );
   }
@@ -65732,6 +65673,46 @@ var About = _react2['default'].createClass({
 
 exports['default'] = About;
 module.exports = exports['default'];
+/* KLA-dependent features - hidden until v3 is ready
+<li>
+ <b>Auto-Lending Preferences</b> Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> for
+ years but the options are a bit anemic. Since browser extensions have far more permissions than
+ a web page does, KivaLens is able to tell the extension to alter your auto-lending settings on Kiva.
+ KivaLens offers extensive partner criteria as well as portfolio balancing for Sector, Country and
+ Activity. When you use KivaLens in conjunction with <KLALink/> you can easily set your auto-lending
+ preferences and take full advantage of Kiva's feature.
+</li>
+<li>
+ <b>Notifications</b> When you have the <KLALink/> installed, you can set your Saved Searches to play
+ a sound if a new loan is added. There are some types of loans (especially the ultra-short term
+ loans) that can fully fund within less than a 1-2 hours. Install the extension, set your criteria,
+ select that you want to be notified on the menu option on the Saved Search menu, leave KivaLens
+ open and you won't even have to have the browser showing and KivaLens will tell the extension
+ to display a notification visible outside of the browser and play a sound. The loan must be posted
+ with all criteria matching or the notification won't fire. So, a notification set up with
+ restrictions for funding amounts that don't include 0 would never fire. Tags on loans are added
+ by other users after the loan has already posted, so any criteria with Tags won't fire. Filters
+ with expiration, $/hour or details that change after the loan posts will also not ever get a
+ notification.
+</li>
+*/ /* KLA Chrome Extension section - hidden until v3 is ready
+   <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
+   <p>
+    There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
+    on the Lend tab along with other repayment info, talks to you about things it notices about the loan,
+    details about lenders and teams you hover over, etc. There are also a number of features that KivaLens
+    has that require KLA to work. <KLALink>Check out screenshots, a detailed description and
+    install Kiva Lender Assistant here</KLALink> or&nbsp;
+    <NewTabLink href="https://github.com/nuclearspike/lenderassist">checkout
+      the source code on github (developers wanted!)</NewTabLink>.
+    {KLAVersion ? <span>
+                    You have KLA version {KLAVersion} installed. Chrome does a good job
+                    of keeping your extensions up to date automatically, but to check for upgrades manually,
+                    go to Chrome's "Window" menu, select "Extensions" and switch on "Developer Mode"
+                    then click the button to update your extensions.
+                </span> : null}
+   </p>
+   */
 
 },{".":721,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
@@ -68482,11 +68463,6 @@ var DidYouKnow = _react2['default'].createClass({
             _react2['default'].createElement(
                 'p',
                 null,
-                'There\'s also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.'
-            ),
-            _react2['default'].createElement(
-                'p',
-                null,
                 'You can click anywhere in one of the drop-down boxes to bring up the selection (you don\'t need to click the little arrow).'
             ),
             _react2['default'].createElement(
@@ -68520,6 +68496,7 @@ exports['default'] = DidYouKnow;
  * <p>When sorting by the default method or "Final Repayment Date", the secondary sort is by when you get back 50% then 75% so even if there are a number of loans that all pay back by the same final date, the ones that repay more quickly will get sort preference.</p>
  **/
 module.exports = exports['default'];
+/* <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p> */
 
 },{".":721,"react":634}],698:[function(require,module,exports){
 'use strict';
@@ -71876,13 +71853,7 @@ var PartnerDisplayModal = _react2['default'].createClass({
                         _react2['default'].createElement(
                             'p',
                             null,
-                            'If you are using Chrome and the ',
-                            _react2['default'].createElement(
-                                _.KLALink,
-                                null,
-                                'Kiva Lender Assistant Chrome Browser Extension'
-                            ),
-                            ', then you can skip this manual process and use the "Auto-Lend" tab which fully automates the process of synchronizing your Auto-Lending Partners, Countries and Sectors with what matches your current criteria. To synchronize your partners manually, follow the steps below...'
+                            'To synchronize your auto-lending partners manually, follow the steps below...'
                         ),
                         _react2['default'].createElement(
                             'ul',

@@ -39,10 +39,7 @@ const PartnerDisplayModal = React.createClass({
                     <Tabs defaultActiveKey={1}>
                         <Tab eventKey={1} title="For Auto-lending">
                             <p>
-                                If you are using Chrome and the <KLALink>Kiva Lender Assistant Chrome Browser Extension</KLALink>,
-                                then you can skip this manual process and use the "Auto-Lend" tab which fully automates
-                                the process of synchronizing your Auto-Lending Partners, Countries and Sectors with
-                                what matches your current criteria. To synchronize your partners manually,
+                                To synchronize your auto-lending partners manually,
                                 follow the steps below...
                             </p>
                             <ul>

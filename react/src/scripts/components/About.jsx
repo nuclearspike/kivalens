@@ -196,6 +196,7 @@ const About = React.createClass({
           of the borrowers in your portfolio.
         </li>
 
+        {/* KLA-dependent features - hidden until v3 is ready
         <li>
           <b>Auto-Lending Preferences</b> Kiva has had <KivaLink path="settings/credit">Auto-Lending</KivaLink> for
           years but the options are a bit anemic. Since browser extensions have far more permissions than
@@ -218,6 +219,7 @@ const About = React.createClass({
           with expiration, $/hour or details that change after the loan posts will also not ever get a
           notification.
         </li>
+        */}
 
         <li>
           <b>Compare Teams</b> On the "Teams" page, you can compare the membership count, loan count, and total
@@ -370,6 +372,7 @@ const About = React.createClass({
         "Innovation Iteration" projects where engineers implement their own ideas.
       </p>
 
+      {/* KLA Chrome Extension section - hidden until v3 is ready
       <h3>Kiva Lender Assistant (KLA) Chrome Extension</h3>
       <p>
         There's also a Google Chrome browser extension I wrote that inserts repayment graph (sparklines)
@@ -386,6 +389,7 @@ const About = React.createClass({
                         then click the button to update your extensions.
                     </span> : null}
       </p>
+      */}
 
     </Grid>
   }

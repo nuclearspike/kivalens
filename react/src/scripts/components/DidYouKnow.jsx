@@ -17,7 +17,7 @@ const DidYouKnow = React.createClass({
                 <p>Use the "Saved Search" button when you have your search exactly like you want it, give it a name and be able to return to it whenever you want.</p>
                 <p>Have you told your Kiva Lending Teams about your favorite KivaLens features yet?</p>
                 <p>What else do you wish KivaLens could do? Check out the About page to contact me!</p>
-                <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p>
+                {/* <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p> */}
                 <p>You can click anywhere in one of the drop-down boxes to bring up the selection (you don't need to click the little arrow).</p>
                 <p>Kiva's site does not allow you to search for multiple "Tags" (where the loan must be tagged with both) but that's a great way to narrow your search!</p>
                 <p>To fill up your basket quickly with matching loans, use the "Bulk Add" button above the list of loans.</p>
