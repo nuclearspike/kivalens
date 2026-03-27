@@ -65592,16 +65592,6 @@ var About = _react2['default'].createClass({
           _react2['default'].createElement(
             'h3',
             null,
-            'History'
-          ),
-          _react2['default'].createElement(
-            'p',
-            null,
-            'KivaLens was created in 2009 because I wanted search options Kiva didn\'t offer. I ended up working at Kiva for a few years, helping build features like Super Graphs, /Live, Zip, and Estimated Repayments. KivaLens continues to offer capabilities beyond what Kiva provides.'
-          ),
-          _react2['default'].createElement(
-            'h3',
-            null,
             'Open Source'
           ),
           _react2['default'].createElement(

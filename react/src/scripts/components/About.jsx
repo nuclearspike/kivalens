@@ -192,15 +192,6 @@ const About = React.createClass({
             discussion and announcements.
           </p>
 
-          <h3>History</h3>
-          <p>
-            KivaLens was created in 2009 because I wanted search options
-            Kiva didn't offer. I ended up working at Kiva for a few years,
-            helping build features like Super Graphs, /Live, Zip,
-            and Estimated Repayments. KivaLens continues to offer
-            capabilities beyond what Kiva provides.
-          </p>
-
           <h3>Open Source</h3>
           <p>
             KivaLens is open source. Want to
