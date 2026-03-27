@@ -69726,45 +69726,39 @@ var RepaymentGraphs = _react2['default'].createClass({
         var result = {
             chart: {
                 alignTicks: false,
-                type: 'bar',
+                type: 'column',
                 animation: false,
                 renderTo: 'graph_container'
             },
-            title: { text: 'Repayments' },
+            title: { text: null },
             xAxis: {
                 categories: loan.kl_repay_categories,
-                title: { text: null }
+                title: { text: null },
+                labels: { rotation: -45, style: { fontSize: '10px' } }
             },
             yAxis: [{
                 min: 0,
                 dataLabels: { enabled: false },
-                labels: { overflow: 'justify' },
-                title: { text: 'USD' }
+                title: { text: null },
+                labels: { format: '${value}' }
             }, {
                 min: 0,
                 max: 100,
                 dataLabels: { enabled: false },
-                labels: { overflow: 'justify' },
-                title: { text: 'Percent' }
+                title: { text: null },
+                opposite: true,
+                labels: { format: '{value}%' }
             }],
             tooltip: {
                 valueDecimals: 2
             },
             plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: true,
-                        valueDecimals: 2,
-                        format: '${y:.2f} USD'
-                    }
+                column: {
+                    dataLabels: { enabled: false }
                 },
                 area: {
                     marker: { enabled: false },
-                    dataLabels: {
-                        enabled: false,
-                        valueDecimals: 0,
-                        format: '{y:.0f}%'
-                    }
+                    dataLabels: { enabled: false }
                 }
             },
             legend: { enabled: false },
@@ -69797,73 +69791,80 @@ var RepaymentGraphs = _react2['default'].createClass({
             null,
             ' '
         );
-        var height = Math.max(400, Math.min(loan.kl_repay_categories.length * 50, 1000));
+        var height = Math.min(300, Math.max(200, loan.kl_repay_categories.length * 20));
         return _react2['default'].createElement(
             'div',
             { key: 'graph_container', id: 'graph_container' },
-            _react2['default'].createElement(Highcharts, { style: { height: height + 'px' }, config: config }),
             _react2['default'].createElement(
                 'div',
-                { style: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px', fontSize: '12px' } },
+                { style: { fontSize: '12px', marginBottom: '8px' } },
                 _react2['default'].createElement(
                     'div',
-                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    { style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
                     _react2['default'].createElement(
-                        'div',
-                        { style: { color: '#999', fontSize: '11px' } },
-                        'Interval'
+                        'span',
+                        { style: { color: '#999' } },
+                        'Interval:'
                     ),
+                    ' ',
                     _react2['default'].createElement(
-                        'div',
-                        { style: { fontWeight: 600 } },
+                        'b',
+                        null,
                         loan.terms.repayment_interval
-                    )
-                ),
-                _react2['default'].createElement(
-                    'div',
-                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    ),
                     _react2['default'].createElement(
-                        'div',
-                        { style: { color: '#999', fontSize: '11px' } },
+                        'span',
+                        { style: { color: '#ccc' } },
+                        '|'
+                    ),
+                    _react2['default'].createElement(
+                        'span',
+                        { style: { color: '#999' } },
                         Math.round(loan.kls_half_back_actual),
-                        '% back by'
+                        '% back:'
+                    ),
+                    ' ',
+                    _react2['default'].createElement(
+                        'b',
+                        null,
+                        loan.kls_half_back.toString("MMM yyyy")
                     ),
                     _react2['default'].createElement(
-                        'div',
-                        { style: { fontWeight: 600 } },
-                        loan.kls_half_back.toString("MMM d, yyyy")
-                    )
-                ),
-                _react2['default'].createElement(
-                    'div',
-                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                        'span',
+                        { style: { color: '#ccc' } },
+                        '|'
+                    ),
                     _react2['default'].createElement(
-                        'div',
-                        { style: { color: '#999', fontSize: '11px' } },
+                        'span',
+                        { style: { color: '#999' } },
                         Math.round(loan.kls_75_back_actual),
-                        '% back by'
+                        '% back:'
+                    ),
+                    ' ',
+                    _react2['default'].createElement(
+                        'b',
+                        null,
+                        loan.kls_75_back.toString("MMM yyyy")
                     ),
                     _react2['default'].createElement(
-                        'div',
-                        { style: { fontWeight: 600 } },
-                        loan.kls_75_back.toString("MMM d, yyyy")
-                    )
-                ),
-                _react2['default'].createElement(
-                    'div',
-                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
-                    _react2['default'].createElement(
-                        'div',
-                        { style: { color: '#999', fontSize: '11px' } },
-                        'Final repayment'
+                        'span',
+                        { style: { color: '#ccc' } },
+                        '|'
                     ),
                     _react2['default'].createElement(
-                        'div',
-                        { style: { fontWeight: 600 } },
-                        loan.kls_final_repayment.toString("MMM d, yyyy")
+                        'span',
+                        { style: { color: '#999' } },
+                        'Final:'
+                    ),
+                    ' ',
+                    _react2['default'].createElement(
+                        'b',
+                        null,
+                        loan.kls_final_repayment.toString("MMM yyyy")
                     )
                 )
-            )
+            ),
+            _react2['default'].createElement(Highcharts, { style: { height: height + 'px', width: '100%' }, config: config })
         );
     }
 });
