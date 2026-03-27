@@ -14,7 +14,7 @@ import extend from 'extend'
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
     getInitialState(){
-        return {maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false, showAllPartners: false}
+        return {maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false, showAllPartners: false, hide_criteria_graphs: !!(lsj.get('Options').hide_criteria_graphs)}
     },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
@@ -183,6 +183,13 @@ const Options = React.createClass({
                                     {this.state.showAllPartners ? 'Show Less' : `See More (${this.state.missingPartners.length - 5} more)`}
                                 </ClickLink> : null}
                         </div> : null}
+                </Panel>
+                <Panel header='Display'>
+                    <Input
+                        type="checkbox"
+                        label="Show distribution graphs when selecting criteria options"
+                        checked={!this.state.hide_criteria_graphs}
+                        onChange={e => { this.setState({hide_criteria_graphs: !e.target.checked}); lsj.setMerge('Options', {hide_criteria_graphs: !e.target.checked}) }}/>
                 </Panel>
                 <Panel header='Debug/Beta Testing'>
                     <Input

@@ -276,37 +276,32 @@ var Loan = React.createClass({
                                 <Row>
                                     <LoanLink loan={loan}>View on Kiva.org</LoanLink>
                                 </Row>
-                                <dl className="dl-horizontal">
-                                    <dt>Saved Searches</dt><dd>{matching}</dd>
-                                    <dt>Tags</dt><dd>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</dd>
-                                    <dt>Themes</dt><dd>{(loan.themes && loan.themes.length)? loan.themes.join(', '): '(none)'}</dd>
-                                    <dt>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</dt><dd>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</dd>
-                                    <dt>Posted</dt><dd>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.posted_date} />)</dd>
+                                <div className="loan-detail-fields" style={{fontSize: 13, lineHeight: 1.6}}>
+                                    <div><span style={{color: '#999', fontSize: 11}}>Saved Searches</span><br/>{matching}</div>
+                                    <div><span style={{color: '#999', fontSize: 11}}>Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
+                                    {(loan.themes && loan.themes.length) ? <div><span style={{color: '#999', fontSize: 11}}>Themes</span><br/>{loan.themes.join(', ')}</div> : null}
+                                    <div><span style={{color: '#999', fontSize: 11}}>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>
+                                    <div><span style={{color: '#999', fontSize: 11}}>Posted</span><br/>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.posted_date} />)</div>
 {loan.status != 'fundraising' ?
-                                        <DTDD term='Status' def={humanize(loan.status)} />
+                                        <div><span style={{color: '#999', fontSize: 11}}>Status</span><br/>{humanize(loan.status)}</div>
                                     : null}
 {loan.funded_date ?
-                                        <DTDD term='Funded' def={new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt')} />
+                                        <div><span style={{color: '#999', fontSize: 11}}>Funded</span><br/>{new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm tt')}</div>
                                     : null}
 {loan.status == 'fundraising' ?
-                                        <span><dt>Expires</dt><dd>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt')} (<TimeAgo date={loan.planned_expiration_date} />) </dd></span>
+                                        <div><span style={{color: '#999', fontSize: 11}}>Expires</span><br/>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.planned_expiration_date} />)</div>
                                     : null}
 {loan.terms.disbursal_date ?
-                                        <DTDD term='Disbursed' def={<span>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />) </span>} />
+                                        <div><span style={{color: '#999', fontSize: 11}}>Disbursed</span><br/>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />)</div>
                                     : null}
 {loan.status == 'fundraising' ?
-                                        <DTDD term='Final Repayment In' def={<span>{numeral(loan.kls_repaid_in).format('0.0')} months</span>}/>
+                                        <div><span style={{color: '#999', fontSize: 11}}>Final Repayment In</span><br/>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
                                     : null}
-                                </dl>
-{loan.status == 'fundraising' ?
-                                    <dl className="dl-horizontal">
-                                        <dt>$/Hour</dt><dd>${numeral(loan.kl_dollars_per_hour()).format('0.00')}</dd>
-                                        <dt>Loan Amount</dt><dd>${numeral(loan.loan_amount).format('0,0')}</dd>
-                                        <dt>Funded Amount</dt><dd>${numeral(loan.funded_amount).format('0,0')}</dd>
-                                        <dt>In Baskets</dt><dd>${numeral(loan.basket_amount).format('0,0')}</dd>
-                                        <dt>Still Needed</dt><dd>${numeral(loan.kl_still_needed).format('0,0')}</dd>
-                                    </dl>
+{loan.status == 'fundraising' ? <div style={{marginTop: 8}}>
+                                        <div><span style={{color: '#999', fontSize: 11}}>$/Hour</span> ${numeral(loan.kl_dollars_per_hour()).format('0.00')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Amount</span> ${numeral(loan.loan_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Funded</span> ${numeral(loan.funded_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>In Baskets</span> ${numeral(loan.basket_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Still Needed</span> ${numeral(loan.kl_still_needed).format('0,0')}</div>
+                                    </div>
                                 : null}
+                                </div>
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
                             <div style={{clear: 'both'}}></div>

@@ -124,9 +124,9 @@ var Search = React.createClass({
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count, showCriteria} = this.state
         var hasLoanDetail = this.props.location.pathname !== '/search'
 
-        var critCol = showCriteria ? 5 : 0
+        var critCol = showCriteria ? 4 : 0
         var listCol = showCriteria ? 3 : (hasLoanDetail ? 4 : 8)
-        var detailCol = hasLoanDetail ? 4 : 0
+        var detailCol = hasLoanDetail ? 5 : 0
 
         return (
             <div>

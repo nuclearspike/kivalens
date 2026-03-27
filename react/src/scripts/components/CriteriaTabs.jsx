@@ -477,6 +477,7 @@ const CriteriaTabs = React.createClass({
       helper_charts: {},
       visionFaceKeys: [],
       helper_chart_height: 400,
+      hideGraphs: !!(lsj.get('Options').hide_criteria_graphs),
       needLenderID: false,
       criteria: s.criteria.syncGetLast(),
       KLA: {},
@@ -727,7 +728,7 @@ const CriteriaTabs = React.createClass({
                 to set it.
               </Alert> : null}
 
-            <Col lg={8}>
+            <Col lg={12}>
               <InputRow label='Use or Description' cursor={cLoan.refine('use')}
                         disabled={!descriptionsLoaded}/>
               <InputRow label='Name' cursor={cLoan.refine('name')}/>
@@ -747,17 +748,12 @@ const CriteriaTabs = React.createClass({
                            cursorMax={cLoan.refine(`${name}_max`)} cycle={activeTab}
                            options={allOptions[name]}/>)}
             </Col>
-
-            <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-              {helper_charts.loan ? <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                            config={helper_charts.loan}/> : null}
-            </Col>
           </Row>
         </Tab>
 
         <Tab eventKey={2} title="Partner" className="ample-padding-top">
           <Row>
-            <Col lg={8}>
+            <Col lg={12}>
               <SelectRow name="direct" cursor={cPartner.refine('direct')}
                          aanCursor={cPartner.refine(`direct_all_any_none`)}
                          onFocus={this.focusSelect.bind(this, 'partner', "direct")}
@@ -781,11 +777,6 @@ const CriteriaTabs = React.createClass({
 
               <Button onClick={a.utils.modal.partnerDisplay}>Export Matching Partners</Button>
               <PartnerDisplayModal/>
-            </Col>
-
-            <Col lg={4} className='visible-lg-block' id='loan_options_graph'>
-              {helper_charts.partner ? <Highcharts key={helper_chart_height} style={{height: `${helper_chart_height}px`}}
-                            config={helper_charts.partner}/> : null}
             </Col>
           </Row>
         </Tab>
@@ -895,6 +886,23 @@ const CriteriaTabs = React.createClass({
             </Row>
           </Tab> : null}
       </Tabs>
+      {(helper_charts.loan || helper_charts.partner) && !this.state.hideGraphs ? <div style={{
+          position: 'fixed', top: 70, right: 20, zIndex: 1050,
+          background: '#fff', border: '1px solid #ccc', borderRadius: 8,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '8px 12px',
+          maxWidth: 350, maxHeight: '80vh', overflowY: 'auto'
+        }}>
+          <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: 4}}>
+            <a href="#" style={{fontSize: 11, color: '#999'}} onClick={e => { e.preventDefault(); if(confirm('Hide distribution graphs? You can re-enable them in Options.')) { this.setState({hideGraphs: true}); lsj.setMerge('Options', {hide_criteria_graphs: true}) } }}>
+              Do not show again
+            </a>
+            <a href="#" style={{fontSize: 11, color: '#999', marginLeft: 8}} onClick={e => { e.preventDefault(); this.setState({helper_charts: {}}) }}>
+              Close
+            </a>
+          </div>
+          <Highcharts key={helper_chart_height} style={{height: `${Math.min(helper_chart_height, 500)}px`}}
+                      config={helper_charts.loan || helper_charts.partner}/>
+        </div> : null}
     </div>
   }
 })
