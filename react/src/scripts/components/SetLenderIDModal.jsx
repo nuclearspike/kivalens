@@ -48,22 +48,18 @@ const SetLenderIDModal = React.createClass({
                     </Modal.Header>
             
                     <Modal.Body>
-                        <Row>
-                            <Col md={12}>
+                                <label style={{marginBottom: 6}}>Kiva Lender ID</label>
                                 <Input
                                     autoFocus
                                     type='text'
-                                    label='Kiva Lender ID'
-                                    labelClassName='col-lg-4'
-                                    wrapperClassName='col-lg-8'
                                     valueLink={this.linkState('kiva_lender_id')}
                                     onKeyDown={e => { if (e.keyCode === 13) this.setLenderID() }} />
+                                <p style={{marginTop: 10}}>
                                     Your Kiva Lender ID is not your email address.&nbsp;
-                                <KivaLink path="myLenderId">Click here if you don't know yours.</KivaLink>
+                                    <KivaLink path="myLenderId">Click here if you don't know yours.</KivaLink>
+                                </p>
                                 {checking ? <Alert>Checking with Kiva...</Alert> : null}
                                 {failed || badRegEx ? <Alert bsStyle="danger">Invalid Lender ID {badRegEx? ': Only letters and numbers up to 24 characters allowed.': ''}</Alert> : null}
-                            </Col>
-                        </Row>
                     </Modal.Body>
 
                     <Modal.Footer>

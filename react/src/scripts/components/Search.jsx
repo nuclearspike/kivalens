@@ -20,8 +20,6 @@ const WelcomePanel = React.createClass({
         var {hasLenderID} = this.state
         return <div style={{padding: '20px 24px'}}>
             <h2 style={{marginTop: 0, color: '#2c6e49'}}>Welcome to KivaLens</h2>
-            <p>Click any loan in the list to see its details here.</p>
-
             <h4>Quick Start</h4>
             <ol style={{paddingLeft: 18, lineHeight: 1.8}}>
                 <li>Use the criteria on the left to filter loans</li>

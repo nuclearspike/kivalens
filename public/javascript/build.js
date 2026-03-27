@@ -73190,11 +73190,6 @@ var WelcomePanel = _react2['default'].createClass({
                 'Welcome to KivaLens'
             ),
             _react2['default'].createElement(
-                'p',
-                null,
-                'Click any loan in the list to see its details here.'
-            ),
-            _react2['default'].createElement(
                 'h4',
                 null,
                 'Quick Start'
@@ -73535,40 +73530,38 @@ var SetLenderIDModal = _react2['default'].createClass({
                 _reactBootstrap.Modal.Body,
                 null,
                 _react2['default'].createElement(
-                    _reactBootstrap.Row,
-                    null,
+                    'label',
+                    { style: { marginBottom: 6 } },
+                    'Kiva Lender ID'
+                ),
+                _react2['default'].createElement(_reactBootstrap.Input, {
+                    autoFocus: true,
+                    type: 'text',
+                    valueLink: this.linkState('kiva_lender_id'),
+                    onKeyDown: function (e) {
+                        if (e.keyCode === 13) _this2.setLenderID();
+                    } }),
+                _react2['default'].createElement(
+                    'p',
+                    { style: { marginTop: 10 } },
+                    'Your Kiva Lender ID is not your email address. ',
                     _react2['default'].createElement(
-                        _reactBootstrap.Col,
-                        { md: 12 },
-                        _react2['default'].createElement(_reactBootstrap.Input, {
-                            autoFocus: true,
-                            type: 'text',
-                            label: 'Kiva Lender ID',
-                            labelClassName: 'col-lg-4',
-                            wrapperClassName: 'col-lg-8',
-                            valueLink: this.linkState('kiva_lender_id'),
-                            onKeyDown: function (e) {
-                                if (e.keyCode === 13) _this2.setLenderID();
-                            } }),
-                        'Your Kiva Lender ID is not your email address. ',
-                        _react2['default'].createElement(
-                            _.KivaLink,
-                            { path: 'myLenderId' },
-                            'Click here if you don\'t know yours.'
-                        ),
-                        checking ? _react2['default'].createElement(
-                            _reactBootstrap.Alert,
-                            null,
-                            'Checking with Kiva...'
-                        ) : null,
-                        failed || badRegEx ? _react2['default'].createElement(
-                            _reactBootstrap.Alert,
-                            { bsStyle: 'danger' },
-                            'Invalid Lender ID ',
-                            badRegEx ? ': Only letters and numbers up to 24 characters allowed.' : ''
-                        ) : null
+                        _.KivaLink,
+                        { path: 'myLenderId' },
+                        'Click here if you don\'t know yours.'
                     )
-                )
+                ),
+                checking ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    null,
+                    'Checking with Kiva...'
+                ) : null,
+                failed || badRegEx ? _react2['default'].createElement(
+                    _reactBootstrap.Alert,
+                    { bsStyle: 'danger' },
+                    'Invalid Lender ID ',
+                    badRegEx ? ': Only letters and numbers up to 24 characters allowed.' : ''
+                ) : null
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Modal.Footer,
