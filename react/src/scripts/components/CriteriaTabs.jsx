@@ -678,10 +678,18 @@ const CriteriaTabs = React.createClass({
     newState.helper_charts[group] = config
     this.setState(newState)
   },
-  focusSelect(group, key) {
+  focusSelect(group, key, e) {
     if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
 
     this.last_select = {group, key}
+
+    // Capture position of focused element for graph popup
+    var graphTop = 100
+    if (e && e.target) {
+        var rect = e.target.getBoundingClientRect()
+        graphTop = Math.max(60, rect.top)
+    }
+    this._graphTop = graphTop
 
     //do we ignore what is in the select
     var ignore_values = false
@@ -887,10 +895,10 @@ const CriteriaTabs = React.createClass({
           </Tab> : null}
       </Tabs>
       {(helper_charts.loan || helper_charts.partner) && !this.state.hideGraphs ? <div style={{
-          position: 'fixed', top: 70, right: 20, zIndex: 1050,
+          position: 'fixed', top: this._graphTop || 100, left: 'calc(33.33% + 15px)', zIndex: 1050,
           background: '#fff', border: '1px solid #ccc', borderRadius: 8,
           boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '8px 12px',
-          maxWidth: 350, maxHeight: '80vh', overflowY: 'auto'
+          width: 320, maxHeight: '70vh', overflowY: 'auto'
         }}>
           <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: 4}}>
             <a href="#" style={{fontSize: 11, color: '#999'}} onClick={e => { e.preventDefault(); if(confirm('Hide distribution graphs? You can re-enable them in Options.')) { this.setState({hideGraphs: true}); lsj.setMerge('Options', {hide_criteria_graphs: true}) } }}>

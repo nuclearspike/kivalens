@@ -116,7 +116,7 @@ const RepaymentGraphs= React.createClass({
         let {loan, config} = this.state
         if (!loan.kl_repay_categories) return <div> </div>
         var height = Math.max(300, Math.min(loan.kl_repay_categories.length * 25, 600))
-        return <div key="graph_container" id='graph_container' style={{float: 'right', width: '45%', paddingLeft: 8}}>
+        return <div key="graph_container" id='graph_container' style={{marginTop: 8}}>
             <div style={{fontSize: '11px', marginBottom: '4px'}}>
                 <div><span style={{color: '#999'}}>Interval:</span> <b>{loan.terms.repayment_interval}</b></div>
                 <div><span style={{color: '#999'}}>{Math.round(loan.kls_half_back_actual)}% back:</span> <b>{loan.kls_half_back.toString("MMM yyyy")}</b></div>
@@ -263,7 +263,6 @@ var Loan = React.createClass({
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
                         <div>
-                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : null}
                                 <DeadZone until={x=>funded_perc*(basket_perc+1)}>
                                     <ProgressBar>
                                         <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
@@ -303,8 +302,7 @@ var Loan = React.createClass({
                                 : null}
                                 </div>
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
-
-                            <div style={{clear: 'both'}}></div>
+                            {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : null}
                         </div>
                     </Tab>
 {partner ?
