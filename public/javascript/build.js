@@ -69937,53 +69937,69 @@ var RepaymentGraphs = _react2['default'].createClass({
         );
         var height = Math.max(400, Math.min(loan.kl_repay_categories.length * 50, 1000));
         return _react2['default'].createElement(
-            _reactBootstrap.Col,
-            { key: 'graph_container', lg: 4, id: 'graph_container' },
+            'div',
+            { key: 'graph_container', id: 'graph_container' },
             _react2['default'].createElement(Highcharts, { style: { height: height + 'px' }, config: config }),
             _react2['default'].createElement(
-                'dl',
-                { className: 'dl-horizontal' },
+                'div',
+                { style: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px', fontSize: '12px' } },
                 _react2['default'].createElement(
-                    'dt',
-                    null,
-                    'Interval'
+                    'div',
+                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { color: '#999', fontSize: '11px' } },
+                        'Interval'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { fontWeight: 600 } },
+                        loan.terms.repayment_interval
+                    )
                 ),
                 _react2['default'].createElement(
-                    'dd',
-                    null,
-                    loan.terms.repayment_interval
+                    'div',
+                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { color: '#999', fontSize: '11px' } },
+                        Math.round(loan.kls_half_back_actual),
+                        '% back by'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { fontWeight: 600 } },
+                        loan.kls_half_back.toString("MMM d, yyyy")
+                    )
                 ),
                 _react2['default'].createElement(
-                    'dt',
-                    null,
-                    Math.round(loan.kls_half_back_actual),
-                    '% back by'
+                    'div',
+                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { color: '#999', fontSize: '11px' } },
+                        Math.round(loan.kls_75_back_actual),
+                        '% back by'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { fontWeight: 600 } },
+                        loan.kls_75_back.toString("MMM d, yyyy")
+                    )
                 ),
                 _react2['default'].createElement(
-                    'dd',
-                    null,
-                    loan.kls_half_back.toString("MMM d, yyyy")
-                ),
-                _react2['default'].createElement(
-                    'dt',
-                    null,
-                    Math.round(loan.kls_75_back_actual),
-                    '% back by'
-                ),
-                _react2['default'].createElement(
-                    'dd',
-                    null,
-                    loan.kls_75_back.toString("MMM d, yyyy")
-                ),
-                _react2['default'].createElement(
-                    'dt',
-                    null,
-                    'Final repayment'
-                ),
-                _react2['default'].createElement(
-                    'dd',
-                    null,
-                    loan.kls_final_repayment.toString("MMM d, yyyy")
+                    'div',
+                    { style: { textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px' } },
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { color: '#999', fontSize: '11px' } },
+                        'Final repayment'
+                    ),
+                    _react2['default'].createElement(
+                        'div',
+                        { style: { fontWeight: 600 } },
+                        loan.kls_final_repayment.toString("MMM d, yyyy")
+                    )
                 )
             )
         );
@@ -70203,200 +70219,196 @@ var Loan = _react2['default'].createClass({
                     _reactBootstrap.Tab,
                     { eventKey: 2, title: 'Details', className: 'ample-padding-top' },
                     _react2['default'].createElement(
-                        _reactBootstrap.Grid,
-                        { fluid: true },
+                        'div',
+                        null,
                         _react2['default'].createElement(
-                            _reactBootstrap.Col,
-                            { lg: 8 },
+                            DeadZone,
+                            { until: function (x) {
+                                    return funded_perc * (basket_perc + 1);
+                                } },
                             _react2['default'].createElement(
-                                DeadZone,
-                                { until: function (x) {
-                                        return funded_perc * (basket_perc + 1);
-                                    } },
-                                _react2['default'].createElement(
-                                    _reactBootstrap.ProgressBar,
-                                    null,
-                                    _react2['default'].createElement(_reactBootstrap.ProgressBar, { striped: true, bsStyle: 'success', now: funded_perc, key: 1 }),
-                                    _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'warning', now: basket_perc, key: 2 })
-                                )
-                            ),
-                            _react2['default'].createElement(
-                                _reactBootstrap.Row,
+                                _reactBootstrap.ProgressBar,
                                 null,
-                                _react2['default'].createElement(
-                                    'b',
-                                    null,
-                                    loan.location.country,
-                                    ' | ',
-                                    loan.sector,
-                                    ' | ',
-                                    loan.activity,
-                                    ' | ',
-                                    loan.use
-                                )
-                            ),
+                                _react2['default'].createElement(_reactBootstrap.ProgressBar, { striped: true, bsStyle: 'success', now: funded_perc, key: 1 }),
+                                _react2['default'].createElement(_reactBootstrap.ProgressBar, { bsStyle: 'warning', now: basket_perc, key: 2 })
+                            )
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Row,
+                            null,
                             _react2['default'].createElement(
-                                _reactBootstrap.Row,
+                                'b',
                                 null,
-                                _react2['default'].createElement(
-                                    _.LoanLink,
-                                    { loan: loan },
-                                    'View on Kiva.org'
-                                )
+                                loan.location.country,
+                                ' | ',
+                                loan.sector,
+                                ' | ',
+                                loan.activity,
+                                ' | ',
+                                loan.use
+                            )
+                        ),
+                        _react2['default'].createElement(
+                            _reactBootstrap.Row,
+                            null,
+                            _react2['default'].createElement(
+                                _.LoanLink,
+                                { loan: loan },
+                                'View on Kiva.org'
+                            )
+                        ),
+                        _react2['default'].createElement(
+                            'dl',
+                            { className: 'dl-horizontal' },
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Saved Searches'
                             ),
                             _react2['default'].createElement(
-                                'dl',
-                                { className: 'dl-horizontal' },
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Saved Searches'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    matching
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Tags'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    loan.kls_tags.length ? loan.kls_tags.select(function (t) {
-                                        return humanize(t);
-                                    }).join(', ') : '(none)'
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Themes'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    loan.themes && loan.themes.length ? loan.themes.join(', ') : '(none)'
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    loan.borrowers.length === 1 ? loan.kl_percent_women === 100 ? 'Female' : 'Male' : loan.borrowers.length + ' (' + Math.round(loan.kl_percent_women) + '% Female)'
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Posted'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt'),
-                                    ' (',
-                                    _react2['default'].createElement(_reactTimeago2['default'], { date: loan.posted_date }),
-                                    ')'
-                                ),
-                                loan.status != 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) }) : null,
-                                loan.funded_date ? _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') }) : null,
-                                loan.status == 'fundraising' ? _react2['default'].createElement(
-                                    'span',
-                                    null,
-                                    _react2['default'].createElement(
-                                        'dt',
-                                        null,
-                                        'Expires'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'dd',
-                                        null,
-                                        loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt'),
-                                        ' (',
-                                        _react2['default'].createElement(_reactTimeago2['default'], { date: loan.planned_expiration_date }),
-                                        ') '
-                                    )
-                                ) : null,
-                                loan.terms.disbursal_date ? _react2['default'].createElement(DTDD, { term: 'Disbursed', def: _react2['default'].createElement(
-                                        'span',
-                                        null,
-                                        new Date(loan.terms.disbursal_date).toString('MMM d, yyyy'),
-                                        ' (',
-                                        _react2['default'].createElement(_reactTimeago2['default'], { date: loan.terms.disbursal_date }),
-                                        ') '
-                                    ) }) : null,
-                                loan.status == 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Final Repayment In', def: _react2['default'].createElement(
-                                        'span',
-                                        null,
-                                        (0, _numeral2['default'])(loan.kls_repaid_in).format('0.0'),
-                                        ' months'
-                                    ) }) : null
+                                'dd',
+                                null,
+                                matching
                             ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Tags'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                loan.kls_tags.length ? loan.kls_tags.select(function (t) {
+                                    return humanize(t);
+                                }).join(', ') : '(none)'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Themes'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                loan.themes && loan.themes.length ? loan.themes.join(', ') : '(none)'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                loan.borrowers.length === 1 ? loan.kl_percent_women === 100 ? 'Female' : 'Male' : loan.borrowers.length + ' (' + Math.round(loan.kl_percent_women) + '% Female)'
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Posted'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                loan.kl_posted_date.toString('MMM d, yyyy @ h:mm:ss tt'),
+                                ' (',
+                                _react2['default'].createElement(_reactTimeago2['default'], { date: loan.posted_date }),
+                                ')'
+                            ),
+                            loan.status != 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Status', def: humanize(loan.status) }) : null,
+                            loan.funded_date ? _react2['default'].createElement(DTDD, { term: 'Funded', def: new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm:ss tt') }) : null,
                             loan.status == 'fundraising' ? _react2['default'].createElement(
-                                'dl',
-                                { className: 'dl-horizontal' },
+                                'span',
+                                null,
                                 _react2['default'].createElement(
                                     'dt',
                                     null,
-                                    '$/Hour'
+                                    'Expires'
                                 ),
                                 _react2['default'].createElement(
                                     'dd',
                                     null,
-                                    '$',
-                                    (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Loan Amount'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    '$',
-                                    (0, _numeral2['default'])(loan.loan_amount).format('0,0')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Funded Amount'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    '$',
-                                    (0, _numeral2['default'])(loan.funded_amount).format('0,0')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'In Baskets'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    '$',
-                                    (0, _numeral2['default'])(loan.basket_amount).format('0,0')
-                                ),
-                                _react2['default'].createElement(
-                                    'dt',
-                                    null,
-                                    'Still Needed'
-                                ),
-                                _react2['default'].createElement(
-                                    'dd',
-                                    null,
-                                    '$',
-                                    (0, _numeral2['default'])(loan.kl_still_needed).format('0,0')
+                                    loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm:ss tt'),
+                                    ' (',
+                                    _react2['default'].createElement(_reactTimeago2['default'], { date: loan.planned_expiration_date }),
+                                    ') '
                                 )
                             ) : null,
-                            _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } })
+                            loan.terms.disbursal_date ? _react2['default'].createElement(DTDD, { term: 'Disbursed', def: _react2['default'].createElement(
+                                    'span',
+                                    null,
+                                    new Date(loan.terms.disbursal_date).toString('MMM d, yyyy'),
+                                    ' (',
+                                    _react2['default'].createElement(_reactTimeago2['default'], { date: loan.terms.disbursal_date }),
+                                    ') '
+                                ) }) : null,
+                            loan.status == 'fundraising' ? _react2['default'].createElement(DTDD, { term: 'Final Repayment In', def: _react2['default'].createElement(
+                                    'span',
+                                    null,
+                                    (0, _numeral2['default'])(loan.kls_repaid_in).format('0.0'),
+                                    ' months'
+                                ) }) : null
                         ),
+                        loan.status == 'fundraising' ? _react2['default'].createElement(
+                            'dl',
+                            { className: 'dl-horizontal' },
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                '$/Hour'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(loan.kl_dollars_per_hour()).format('0.00')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Loan Amount'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(loan.loan_amount).format('0,0')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Funded Amount'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(loan.funded_amount).format('0,0')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'In Baskets'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(loan.basket_amount).format('0,0')
+                            ),
+                            _react2['default'].createElement(
+                                'dt',
+                                null,
+                                'Still Needed'
+                            ),
+                            _react2['default'].createElement(
+                                'dd',
+                                null,
+                                '$',
+                                (0, _numeral2['default'])(loan.kl_still_needed).format('0,0')
+                            )
+                        ) : null,
+                        _react2['default'].createElement('p', { dangerouslySetInnerHTML: { __html: loan.description.texts.en } }),
                         activeTab == 2 && loan.kl_repayments ? _react2['default'].createElement(RepaymentGraphs, { loan: loan }) : _react2['default'].createElement('span', null)
                     )
                 ),

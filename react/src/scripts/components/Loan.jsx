@@ -121,15 +121,27 @@ const RepaymentGraphs= React.createClass({
         let {loan, config} = this.state
         if (!loan.kl_repay_categories) return <div> </div>
         var height = Math.max(400, Math.min(loan.kl_repay_categories.length * 50, 1000))
-        return <Col key="graph_container" lg={4} id='graph_container'>
+        return <div key="graph_container" id='graph_container'>
             <Highcharts style={{height: `${height}px`}} config={config} />
-            <dl className="dl-horizontal">
-                <dt>Interval</dt><dd>{loan.terms.repayment_interval}</dd>
-                <dt>{Math.round(loan.kls_half_back_actual)}% back by</dt><dd>{loan.kls_half_back.toString("MMM d, yyyy")}</dd>
-                <dt>{Math.round(loan.kls_75_back_actual)}% back by</dt><dd>{loan.kls_75_back.toString("MMM d, yyyy")}</dd>
-                <dt>Final repayment</dt><dd>{loan.kls_final_repayment.toString("MMM d, yyyy")}</dd>
-            </dl>
-        </Col>
+            <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px', fontSize: '12px'}}>
+                <div style={{textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px'}}>
+                    <div style={{color: '#999', fontSize: '11px'}}>Interval</div>
+                    <div style={{fontWeight: 600}}>{loan.terms.repayment_interval}</div>
+                </div>
+                <div style={{textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px'}}>
+                    <div style={{color: '#999', fontSize: '11px'}}>{Math.round(loan.kls_half_back_actual)}% back by</div>
+                    <div style={{fontWeight: 600}}>{loan.kls_half_back.toString("MMM d, yyyy")}</div>
+                </div>
+                <div style={{textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px'}}>
+                    <div style={{color: '#999', fontSize: '11px'}}>{Math.round(loan.kls_75_back_actual)}% back by</div>
+                    <div style={{fontWeight: 600}}>{loan.kls_75_back.toString("MMM d, yyyy")}</div>
+                </div>
+                <div style={{textAlign: 'center', padding: '4px 8px', background: '#f5f5f5', borderRadius: '4px', flex: '1 1 auto', minWidth: '80px'}}>
+                    <div style={{color: '#999', fontSize: '11px'}}>Final repayment</div>
+                    <div style={{fontWeight: 600}}>{loan.kls_final_repayment.toString("MMM d, yyyy")}</div>
+                </div>
+            </div>
+        </div>
     }
 })
 
@@ -267,8 +279,7 @@ var Loan = React.createClass({
                         </Panel>
                     </Tab>
                     <Tab eventKey={2} title="Details" className="ample-padding-top">
-                        <Grid fluid>
-                            <Col lg={8}>
+                        <div>
                                 <DeadZone until={x=>funded_perc*(basket_perc+1)}>
                                     <ProgressBar>
                                         <ProgressBar striped bsStyle="success" now={funded_perc} key={1}/>
@@ -314,9 +325,8 @@ var Loan = React.createClass({
                                 : null}
                                 <p dangerouslySetInnerHTML={{__html: loan.description.texts.en}} ></p>
 
-                            </Col>
                             {(activeTab == 2 && loan.kl_repayments)? <RepaymentGraphs loan={loan}/> : <span/>}
-                        </Grid>
+                        </div>
                     </Tab>
 {partner ?
                         <Tab eventKey={3} title="Partner" className="ample-padding-top">
