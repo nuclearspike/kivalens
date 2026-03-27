@@ -74193,7 +74193,7 @@ var Tutorial = _react2['default'].createClass({
                     { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
                     _react2['default'].createElement(
                         _reactBootstrap.Button,
-                        { bsSize: 'small', onClick: this.finish, style: { color: '#999' } },
+                        { bsSize: 'small', onClick: this.finish, style: { color: '#fff' } },
                         'Skip Tutorial'
                     ),
                     _react2['default'].createElement(

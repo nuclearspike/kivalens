@@ -182,7 +182,7 @@ const Tutorial = React.createClass({
                     <h4 style={{marginTop: 0, marginBottom: 8, color: '#2c6e49'}}>{step.title}</h4>
                     <p style={{marginBottom: 12, fontSize: 13, lineHeight: 1.5}}>{step.text}</p>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                        <Button bsSize="small" onClick={this.finish} style={{color: '#999'}}>Skip Tutorial</Button>
+                        <Button bsSize="small" onClick={this.finish} style={{color: '#fff'}}>Skip Tutorial</Button>
                         <div>
                             {stepNum > 0 ?
                                 <Button bsSize="small" onClick={this.prev} style={{marginRight: 6}}>Back</Button>
