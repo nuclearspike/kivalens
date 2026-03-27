@@ -808,35 +808,9 @@ const CriteriaTabs = React.createClass({
             <Col md={12}>
               <Panel header='Portfolio Balancing'>
                 <p>
-                  Portfolio Balancing allows you to find loans that are either similar to or unlike
-                  the loans you have in your portfolio (either just the active/paying-back loans
-                  or all of them). So, if you wanted to get loans from every sector
-                  or country, it's easy! Or if you wanted to help make sure you aren't getting too
-                  many loans from a handful of partners to protect yourself from losses due to
-                  institutional failure, that's easy, too!
+                  Balance your lending across partners, countries, sectors, and activities.
+                  Diversify to reduce risk or find new areas to lend in.
                 </p>
-                Notes:
-                <ul className="spacedList">
-                  <li>
-                    The summary data that KivaLens pulls for your account is not "live" data.
-                    It should rarely be over a day old, however. This means if you complete a
-                    bunch of loans and come back for more right away, the completed loans will
-                    not be accounted for in the balancing. Look for "Last Updated" to know how
-                    fresh the data is.
-                  </li>
-                  <li>
-                    If you plan to use Bulk Add in conjunction with the balancing tools then
-                    you may also want to look at the "Limit to top" option on the Borrower criteria
-                    tab.
-                    This will prevent too many from a given Partner/Country/Sector/Activity from
-                    getting into your basket to keep your portfolio from getting lopsided.
-                  </li>
-                  <li>
-                    Fetching the data from Kiva can sometimes take a few seconds. If you don't see
-                    anything happen right away, just wait. This also applies to loading saved
-                    searches that have balancing options set.
-                  </li>
-                </ul>
 
                 {activeTab === 3 ? <div>
                     {['pb_partner', 'pb_country', 'pb_sector', 'pb_activity'].map((name, i) => <BalancingRow key={i} cursor={cPortfolio.refine(name)}

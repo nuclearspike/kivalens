@@ -68081,27 +68081,7 @@ var CriteriaTabs = _react2['default'].createClass({
                                 _react2['default'].createElement(
                                     'p',
                                     null,
-                                    'Portfolio Balancing allows you to find loans that are either similar to or unlike the loans you have in your portfolio (either just the active/paying-back loans or all of them). So, if you wanted to get loans from every sector or country, it\'s easy! Or if you wanted to help make sure you aren\'t getting too many loans from a handful of partners to protect yourself from losses due to institutional failure, that\'s easy, too!'
-                                ),
-                                'Notes:',
-                                _react2['default'].createElement(
-                                    'ul',
-                                    { className: 'spacedList' },
-                                    _react2['default'].createElement(
-                                        'li',
-                                        null,
-                                        'The summary data that KivaLens pulls for your account is not "live" data. It should rarely be over a day old, however. This means if you complete a bunch of loans and come back for more right away, the completed loans will not be accounted for in the balancing. Look for "Last Updated" to know how fresh the data is.'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'li',
-                                        null,
-                                        'If you plan to use Bulk Add in conjunction with the balancing tools then you may also want to look at the "Limit to top" option on the Borrower criteria tab. This will prevent too many from a given Partner/Country/Sector/Activity from getting into your basket to keep your portfolio from getting lopsided.'
-                                    ),
-                                    _react2['default'].createElement(
-                                        'li',
-                                        null,
-                                        'Fetching the data from Kiva can sometimes take a few seconds. If you don\'t see anything happen right away, just wait. This also applies to loading saved searches that have balancing options set.'
-                                    )
+                                    'Balance your lending across partners, countries, sectors, and activities. Diversify to reduce risk or find new areas to lend in.'
                                 ),
                                 activeTab === 3 ? _react2['default'].createElement(
                                     'div',
@@ -73270,9 +73250,9 @@ var Search = _react2['default'].createClass({
 
         var hasLoanDetail = this.props.location.pathname !== '/search';
 
-        var critCol = showCriteria ? 3 : 0;
-        var listCol = showCriteria ? hasLoanDetail ? 3 : 4 : hasLoanDetail ? 4 : 12;
-        var detailCol = hasLoanDetail ? showCriteria ? 6 : 8 : showCriteria ? 9 : 0;
+        var critCol = showCriteria ? 4 : 0;
+        var listCol = showCriteria ? hasLoanDetail ? 4 : 8 : hasLoanDetail ? 4 : 12;
+        var detailCol = hasLoanDetail ? showCriteria ? 4 : 8 : 0;
 
         return _react2['default'].createElement(
             'div',
@@ -73361,7 +73341,7 @@ var Search = _react2['default'].createClass({
             ) : null,
             !hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: showCriteria ? 9 : 12 },
+                { md: showCriteria ? 8 : 12 },
                 _react2['default'].createElement(WelcomePanel, null)
             ) : null
         );
