@@ -26,6 +26,32 @@ import {KLNav, KLFooter, Search, Loan, Basket, Options, About, Details, Schedule
     Criteria, ClearBasket, Live, Teams, NotFound, PromptModal, AlertModal, SnowStack,
     Outdated, OnNow, Donate, Partners, SavedSearches} from "./components"
 import Tutorial from "./components/Tutorial.jsx"
+import SetLenderIDModal from "./components/SetLenderIDModal.jsx"
+
+// Global lender ID modal
+const GlobalLenderIDModal = React.createClass({
+    getInitialState() { return {show: false} },
+    componentDidMount() {
+        window.addEventListener('kl_show_lender_modal', this.showModal)
+    },
+    componentWillUnmount() {
+        window.removeEventListener('kl_show_lender_modal', this.showModal)
+    },
+    showModal() { this.setState({show: true}) },
+    hideModal() { this.setState({show: false}) },
+    onSet(lenderId) {
+        lsj.setMerge('Options', {kiva_lender_id: lenderId})
+        window.dispatchEvent(new Event('storage')) // notify KLNav
+    },
+    render() {
+        return <SetLenderIDModal show={this.state.show} onSet={this.onSet} onHide={this.hideModal} />
+    }
+})
+
+// Helper function any component can call
+window.showLenderIDModal = function() {
+    window.dispatchEvent(new Event('kl_show_lender_modal'))
+}
 import ga from 'react-ga';
 import a from './actions'
 import s from './stores'
@@ -72,6 +98,7 @@ const App = React.createClass({
                     <PromptModal/>
                     <AlertModal/>
                     <Tutorial/>
+                    <GlobalLenderIDModal/>
                     {this.props.children}
                 <KLFooter/>
             </div>

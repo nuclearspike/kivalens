@@ -65025,6 +65025,12 @@ var _componentsTutorialJsx = require("./components/Tutorial.jsx");
 
 var _componentsTutorialJsx2 = _interopRequireDefault(_componentsTutorialJsx);
 
+var _componentsSetLenderIDModalJsx = require("./components/SetLenderIDModal.jsx");
+
+var _componentsSetLenderIDModalJsx2 = _interopRequireDefault(_componentsSetLenderIDModalJsx);
+
+// Global lender ID modal
+
 var _reactGa = require('react-ga');
 
 var _reactGa2 = _interopRequireDefault(_reactGa);
@@ -65051,6 +65057,37 @@ require('./api/syncStorage');
 
 var history = (0, _historyLibCreateHashHistory2['default'])({ queryKey: false });
 
+var GlobalLenderIDModal = _react2['default'].createClass({
+    displayName: 'GlobalLenderIDModal',
+
+    getInitialState: function getInitialState() {
+        return { show: false };
+    },
+    componentDidMount: function componentDidMount() {
+        window.addEventListener('kl_show_lender_modal', this.showModal);
+    },
+    componentWillUnmount: function componentWillUnmount() {
+        window.removeEventListener('kl_show_lender_modal', this.showModal);
+    },
+    showModal: function showModal() {
+        this.setState({ show: true });
+    },
+    hideModal: function hideModal() {
+        this.setState({ show: false });
+    },
+    onSet: function onSet(lenderId) {
+        lsj.setMerge('Options', { kiva_lender_id: lenderId });
+        window.dispatchEvent(new Event('storage')); // notify KLNav
+    },
+    render: function render() {
+        return _react2['default'].createElement(_componentsSetLenderIDModalJsx2['default'], { show: this.state.show, onSet: this.onSet, onHide: this.hideModal });
+    }
+});
+
+// Helper function any component can call
+window.showLenderIDModal = function () {
+    window.dispatchEvent(new Event('kl_show_lender_modal'));
+};
 window.rga = _reactGa2['default']; //react google analytics, ga is already defined
 //if you want to change the page title, you will also need to change the GA rule or you'll lose all data after the change.
 
@@ -65098,6 +65135,7 @@ var App = _react2['default'].createClass({
             _react2['default'].createElement(_components.PromptModal, null),
             _react2['default'].createElement(_components.AlertModal, null),
             _react2['default'].createElement(_componentsTutorialJsx2['default'], null),
+            _react2['default'].createElement(GlobalLenderIDModal, null),
             this.props.children,
             _react2['default'].createElement(_components.KLFooter, null)
         );
@@ -65166,7 +65204,7 @@ domready.done(LoadReactApp);
  **/
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./actions":667,"./api/syncStorage":683,"./components":722,"./components/Tutorial.jsx":721,"./linqextras":723,"./stores":725,"./stores/liveStore":726,"./utils":729,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
+},{"./actions":667,"./api/syncStorage":683,"./components":722,"./components/SetLenderIDModal.jsx":718,"./components/Tutorial.jsx":721,"./linqextras":723,"./stores":725,"./stores/liveStore":726,"./utils":729,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -65306,13 +65344,14 @@ var About = _react2['default'].createClass({
           _react2['default'].createElement(
             'p',
             null,
-            'Go to the ',
             _react2['default'].createElement(
               'a',
-              { href: '#/options' },
-              'Options'
+              { href: '#', onClick: function (e) {
+                  e.preventDefault();showLenderIDModal();
+                } },
+              'Set your Kiva lender ID'
             ),
-            ' tab and enter your Kiva lender ID. This lets KivaLens hide loans you\'ve already funded and enables portfolio balancing and the 3D Wall.'
+            ' so KivaLens can hide loans you\'ve already funded and enable portfolio balancing and the 3D Wall.'
           ),
           _react2['default'].createElement(
             'h3',
@@ -66813,24 +66852,18 @@ var Criteria = _react2['default'].createClass({
             'div',
             null,
             _react2['default'].createElement(
-                'h1',
-                { style: { marginTop: '0px' } },
-                'Criteria',
+                'div',
+                { style: { marginBottom: 8 } },
                 _react2['default'].createElement(
-                    _reactBootstrap.ButtonGroup,
-                    { className: 'float_right' },
-                    _react2['default'].createElement(
-                        _reactBootstrap.DropdownButton,
-                        { title: 'Saved Search ' + (lastSaved ? '\'' + lastSaved + '\'' : ''), id: 'saved_search', pullRight: true, onToggle: function (isOpen) {
-                                if (isOpen) {
-                                    _this2._countsComputed = false;_this2.computeSearchCounts();
-                                }
-                            } },
-                        menuItems
-                    )
+                    _reactBootstrap.DropdownButton,
+                    { title: '' + (lastSaved ? '\'' + lastSaved + '\'' : 'Saved Searches'), id: 'saved_search', block: true, bsSize: 'small', onToggle: function (isOpen) {
+                            if (isOpen) {
+                                _this2._countsComputed = false;_this2.computeSearchCounts();
+                            }
+                        } },
+                    menuItems
                 )
             ),
-            show_graphs ? _react2['default'].createElement(_.ChartDistribution, null) : null,
             _react2['default'].createElement(_.CriteriaTabs, { criteria: 'pass a cursor' })
         );
     }
@@ -66838,7 +66871,6 @@ var Criteria = _react2['default'].createClass({
 
 exports['default'] = Criteria;
 module.exports = exports['default'];
-/* <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button> */
 
 },{".":722,"../actions":667,"../stores/":725,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
 'use strict';
@@ -73063,6 +73095,89 @@ var _InfiniteListJsx = require('./InfiniteList.jsx');
 
 var _InfiniteListJsx2 = _interopRequireDefault(_InfiniteListJsx);
 
+var WelcomePanel = _react2['default'].createClass({
+    displayName: 'WelcomePanel',
+
+    getInitialState: function getInitialState() {
+        return { hasLenderID: !!lsj.get('Options').kiva_lender_id };
+    },
+    render: function render() {
+        var hasLenderID = this.state.hasLenderID;
+
+        return _react2['default'].createElement(
+            'div',
+            { style: { padding: '20px 24px' } },
+            _react2['default'].createElement(
+                'h2',
+                { style: { marginTop: 0, color: '#2c6e49' } },
+                'Welcome to KivaLens'
+            ),
+            _react2['default'].createElement(
+                'p',
+                null,
+                'Click any loan in the list to see its details here.'
+            ),
+            _react2['default'].createElement(
+                'h4',
+                null,
+                'Quick Start'
+            ),
+            _react2['default'].createElement(
+                'ol',
+                { style: { paddingLeft: 18, lineHeight: 1.8 } },
+                _react2['default'].createElement(
+                    'li',
+                    null,
+                    'Use the criteria on the left to filter loans'
+                ),
+                _react2['default'].createElement(
+                    'li',
+                    null,
+                    'Click a loan to review details and repayment info'
+                ),
+                _react2['default'].createElement(
+                    'li',
+                    null,
+                    'Click "Add to Basket" on loans you like'
+                ),
+                _react2['default'].createElement(
+                    'li',
+                    null,
+                    'Go to Basket tab to transfer loans to Kiva'
+                )
+            ),
+            !hasLenderID ? _react2['default'].createElement(
+                'div',
+                { style: { marginTop: 16, padding: '12px 16px', background: '#f0f8f4', borderRadius: 6, border: '1px solid #d4edda' } },
+                _react2['default'].createElement(
+                    'b',
+                    null,
+                    'Tip:'
+                ),
+                ' ',
+                _react2['default'].createElement(
+                    'a',
+                    { href: '#', onClick: function (e) {
+                            e.preventDefault();showLenderIDModal();
+                        } },
+                    'Set your Lender ID'
+                ),
+                ' to hide loans you\'ve already funded and enable portfolio balancing.'
+            ) : null,
+            _react2['default'].createElement(
+                'div',
+                { style: { marginTop: 16 } },
+                _react2['default'].createElement(
+                    'a',
+                    { href: '#/about' },
+                    'Learn more'
+                ),
+                ' about all of KivaLens\'s features.'
+            )
+        );
+    }
+});
+
 var Search = _react2['default'].createClass({
     displayName: 'Search',
 
@@ -73079,11 +73194,6 @@ var Search = _react2['default'].createClass({
             showCriteria: true
         };
     },
-    componentWillReceiveProps: function componentWillReceiveProps(_ref) {
-        var location = _ref.location;
-    },
-
-    // no longer used for float toggling
     componentDidMount: function componentDidMount() {
         var _this = this;
 
@@ -73158,10 +73268,8 @@ var Search = _react2['default'].createClass({
         var loan_count = _state.loan_count;
         var showCriteria = _state.showCriteria;
 
-        // Determine if we're viewing a loan (Loan component, not Criteria)
         var hasLoanDetail = this.props.location.pathname !== '/search';
 
-        // Column widths depend on what's visible
         var critCol = showCriteria ? 3 : 0;
         var listCol = showCriteria ? hasLoanDetail ? 3 : 4 : hasLoanDetail ? 4 : 12;
         var detailCol = hasLoanDetail ? showCriteria ? 6 : 8 : showCriteria ? 9 : 0;
@@ -73185,7 +73293,7 @@ var Search = _react2['default'].createClass({
             showCriteria ? _react2['default'].createElement(
                 _reactBootstrap.Col,
                 { md: critCol, style: { paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
-                _react2['default'].createElement(_.CriteriaTabs, null)
+                _react2['default'].createElement(_.Criteria, null)
             ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Col,
@@ -73251,14 +73359,10 @@ var Search = _react2['default'].createClass({
                 { md: detailCol, style: { overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
                 this.props.children
             ) : null,
-            !hasLoanDetail && !showCriteria ? _react2['default'].createElement(
+            !hasLoanDetail ? _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: detailCol },
-                _react2['default'].createElement(
-                    'p',
-                    { style: { padding: 20, color: '#999' } },
-                    'Select a loan from the list to view details.'
-                )
+                { md: showCriteria ? 9 : 12 },
+                _react2['default'].createElement(WelcomePanel, null)
             ) : null
         );
     }

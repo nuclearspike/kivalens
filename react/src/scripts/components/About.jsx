@@ -65,9 +65,9 @@ const About = React.createClass({
 
           <h3>Set Up Your Lender ID</h3>
           <p>
-            Go to the <a href="#/options">Options</a> tab and enter your
-            Kiva lender ID. This lets KivaLens hide loans you've already
-            funded and enables portfolio balancing and the 3D Wall.
+            <a href="#" onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set your
+            Kiva lender ID</a> so KivaLens can hide loans you've already
+            funded and enable portfolio balancing and the 3D Wall.
           </p>
 
           <h3>Save Your Searches</h3>

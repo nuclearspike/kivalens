@@ -5,13 +5,42 @@ import ReactDOM from 'react-dom'
 import Reflux from 'reflux'
 import {Notification} from 'react-notification'
 import {Grid,Row,Col,Input,ButtonGroup,Button,Alert} from 'react-bootstrap'
-import {LoanListItem, LoadingLoansPanel, BulkAddModal, CriteriaTabs} from '.'
+import {LoanListItem, LoadingLoansPanel, BulkAddModal, Criteria} from '.'
 import a from '../actions'
 import cx from 'classnames'
 import s from '../stores'
 import numeral from 'numeral'
 import InfiniteList from './InfiniteList.jsx'
 
+const WelcomePanel = React.createClass({
+    getInitialState() {
+        return {hasLenderID: !!lsj.get('Options').kiva_lender_id}
+    },
+    render() {
+        var {hasLenderID} = this.state
+        return <div style={{padding: '20px 24px'}}>
+            <h2 style={{marginTop: 0, color: '#2c6e49'}}>Welcome to KivaLens</h2>
+            <p>Click any loan in the list to see its details here.</p>
+
+            <h4>Quick Start</h4>
+            <ol style={{paddingLeft: 18, lineHeight: 1.8}}>
+                <li>Use the criteria on the left to filter loans</li>
+                <li>Click a loan to review details and repayment info</li>
+                <li>Click "Add to Basket" on loans you like</li>
+                <li>Go to Basket tab to transfer loans to Kiva</li>
+            </ol>
+
+            {!hasLenderID ? <div style={{marginTop: 16, padding: '12px 16px', background: '#f0f8f4', borderRadius: 6, border: '1px solid #d4edda'}}>
+                <b>Tip:</b> <a href="#" onClick={function(e){ e.preventDefault(); showLenderIDModal() }}>Set your
+                Lender ID</a> to hide loans you've already funded and enable portfolio balancing.
+            </div> : null}
+
+            <div style={{marginTop: 16}}>
+                <a href="#/about">Learn more</a> about all of KivaLens's features.
+            </div>
+        </div>
+    }
+})
 
 var Search = React.createClass({
     mixins: [Reflux.ListenerMixin],
@@ -27,9 +56,6 @@ var Search = React.createClass({
             notification: {active: false, message: ''},
             showCriteria: true
         }
-    },
-    componentWillReceiveProps({location}){
-        // no longer used for float toggling
     },
     componentDidMount() {
         this.listenTo(a.loans.filter.completed, (loans, sameAsLastTime) => {
@@ -93,10 +119,8 @@ var Search = React.createClass({
     },
     render()  {
         let {outdatedUrl, showBulkAdd, notification, show_secondary_load, backgroundResyncState, secondary_load_status, hasHadLoans, loan_count, showCriteria} = this.state
-        // Determine if we're viewing a loan (Loan component, not Criteria)
         var hasLoanDetail = this.props.location.pathname !== '/search'
 
-        // Column widths depend on what's visible
         var critCol = showCriteria ? 3 : 0
         var listCol = showCriteria ? (hasLoanDetail ? 3 : 4) : (hasLoanDetail ? 4 : 12)
         var detailCol = hasLoanDetail ? (showCriteria ? 6 : 8) : (showCriteria ? 9 : 0)
@@ -114,7 +138,7 @@ var Search = React.createClass({
                     </Alert> : null}
 
                 {showCriteria ? <Col md={critCol} style={{paddingRight: 5, overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
-                    <CriteriaTabs />
+                    <Criteria />
                 </Col> : null}
 
                 <Col md={listCol}>
@@ -152,8 +176,8 @@ var Search = React.createClass({
                     {this.props.children}
                 </Col> : null}
 
-                {!hasLoanDetail && !showCriteria ? <Col md={detailCol}>
-                    <p style={{padding: 20, color: '#999'}}>Select a loan from the list to view details.</p>
+                {!hasLoanDetail ? <Col md={showCriteria ? 9 : 12}>
+                    <WelcomePanel />
                 </Col> : null}
             </div>
         )

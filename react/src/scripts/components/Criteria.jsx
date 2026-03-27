@@ -88,15 +88,11 @@ const Criteria = React.createClass({
 
         return (
             <div>
-                <h1 style={{marginTop:'0px'}}>Criteria
-                    <ButtonGroup className="float_right">
-                        {/* <Button className="hidden-xs hidden-sm" onClick={this.toggleGraph}>Graphs</Button> */}
-                        <DropdownButton title={`Saved Search ${lastSaved ? `'${lastSaved}'` : ''}`} id='saved_search' pullRight onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
-                            {menuItems}
-                        </DropdownButton>
-                    </ButtonGroup>
-                </h1>
-                {show_graphs ? <ChartDistribution/> : null}
+                <div style={{marginBottom: 8}}>
+                    <DropdownButton title={`${lastSaved ? `'${lastSaved}'` : 'Saved Searches'}`} id='saved_search' block bsSize="small" onToggle={(isOpen) => { if (isOpen) { this._countsComputed = false; this.computeSearchCounts() } }}>
+                        {menuItems}
+                    </DropdownButton>
+                </div>
                 <CriteriaTabs criteria='pass a cursor'/>
             </div>
         );
