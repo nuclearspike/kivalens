@@ -67890,6 +67890,7 @@ var CriteriaTabs = _react2['default'].createClass({
     },
     focusSelect: function focusSelect(group, key, e) {
         if ('lg' != findBootstrapEnv()) return; //if we're not on a desktop
+        if (this._removeGraphsTimer) clearTimeout(this._removeGraphsTimer);
 
         this.last_select = { group: group, key: key };
 
@@ -67913,8 +67914,13 @@ var CriteriaTabs = _react2['default'].createClass({
         this.genHelperGraphs(group, key, loans);
     },
     removeGraphs: function removeGraphs() {
+        var _this3 = this;
+
         this.last_select = {};
-        this.setState({ helper_charts: {} });
+        // Delay removal so popover button clicks can fire before the popover disappears
+        this._removeGraphsTimer = setTimeout(function () {
+            _this3.setState({ helper_charts: {} });
+        }, 200);
     },
     hideGraphsPermanently: function hideGraphsPermanently(e) {
         e.preventDefault();
@@ -67929,7 +67935,7 @@ var CriteriaTabs = _react2['default'].createClass({
         this.setState({ helper_charts: {} });
     },
     render: function render() {
-        var _this3 = this;
+        var _this4 = this;
 
         var _state3 = this.state;
         var isMobile = _state3.isMobile;
@@ -67994,13 +68000,13 @@ var CriteriaTabs = _react2['default'].createClass({
                             ['country_code', 'sector', 'activity', 'themes', 'tags', 'repayment_interval', 'currency_exchange_loss_liability', 'bonus_credit_eligibility', 'sort'].map(function (name, i) {
                                 return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cLoan.refine(name),
                                     aanCursor: cLoan.refine(name + '_all_any_none'),
-                                    onFocus: _this3.focusSelect.bind(_this3, 'loan', name), onBlur: _this3.removeGraphs });
+                                    onFocus: _this4.focusSelect.bind(_this4, 'loan', name), onBlur: _this4.removeGraphs });
                             }),
                             visionFaceKeys.map(function (name, i) {
                                 return _react2['default'].createElement(SelectRow, { key: i, name: 'vision_face_' + name, cursor: cLoan.refine('vision_face_' + name),
                                     aanCursor: cLoan.refine('vision_face_' + name + '_all_any_none'),
-                                    onFocus: _this3.focusSelect.bind(_this3, 'loan', 'vision_face_' + name),
-                                    onBlur: _this3.removeGraphs });
+                                    onFocus: _this4.focusSelect.bind(_this4, 'loan', 'vision_face_' + name),
+                                    onBlur: _this4.removeGraphs });
                             }),
                             _react2['default'].createElement(LimitResult, { cursor: cLoan.refine('limit_to') }),
                             ['repaid_in', 'borrower_count', 'percent_female', 'age', 'loan_amount', 'still_needed', 'percent_funded', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'].map(function (name, i) {
@@ -68027,8 +68033,8 @@ var CriteriaTabs = _react2['default'].createClass({
                             ['region', 'partners', 'social_performance', 'charges_fees_and_interest'].map(function (name, i) {
                                 return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPartner.refine(name),
                                     aanCursor: cPartner.refine(name + '_all_any_none'),
-                                    onFocus: _this3.focusSelect.bind(_this3, 'partner', name),
-                                    onBlur: _this3.removeGraphs });
+                                    onFocus: _this4.focusSelect.bind(_this4, 'partner', name),
+                                    onBlur: _this4.removeGraphs });
                             }),
                             _react2['default'].createElement(SelectRow, { name: 'religion', cursor: cPartner.refine('religion'),
                                 aanCursor: cPartner.refine('religion_all_any_none'),
@@ -68084,8 +68090,8 @@ var CriteriaTabs = _react2['default'].createClass({
                             ['exclude_portfolio_loans'].map(function (name, i) {
                                 return _react2['default'].createElement(SelectRow, { key: i, name: name, cursor: cPortfolio.refine(name),
                                     aanCursor: cPortfolio.refine(name + '_all_any_none'),
-                                    onFocus: _this3.focusSelect.bind(_this3, 'portfolio', name),
-                                    onBlur: _this3.removeGraphs });
+                                    onFocus: _this4.focusSelect.bind(_this4, 'portfolio', name),
+                                    onBlur: _this4.removeGraphs });
                             })
                         )
                     ),

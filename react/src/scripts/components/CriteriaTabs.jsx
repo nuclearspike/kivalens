@@ -680,6 +680,7 @@ const CriteriaTabs = React.createClass({
   },
   focusSelect(group, key, e) {
     if ('lg' != findBootstrapEnv()) return //if we're not on a desktop
+    if (this._removeGraphsTimer) clearTimeout(this._removeGraphsTimer)
 
     this.last_select = {group, key}
 
@@ -705,7 +706,10 @@ const CriteriaTabs = React.createClass({
   },
   removeGraphs() {
     this.last_select = {}
-    this.setState({helper_charts: {}})
+    // Delay removal so popover button clicks can fire before the popover disappears
+    this._removeGraphsTimer = setTimeout(() => {
+      this.setState({helper_charts: {}})
+    }, 200)
   },
   hideGraphsPermanently(e) {
     e.preventDefault()
