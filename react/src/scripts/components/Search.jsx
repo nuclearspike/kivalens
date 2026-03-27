@@ -35,11 +35,11 @@ const WelcomePanel = React.createClass({
                 Lender ID</a> to hide loans you've already funded and enable portfolio balancing.
             </div> : null}
 
-            <div style={{marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-                <Button bsSize="small" bsStyle="primary" onClick={function(){ localStorage.setItem('kl_tutorial_step','0'); localStorage.removeItem('kl_tutorial_done'); window.dispatchEvent(new Event('kl_tutorial_start')) }}>
+            <div style={{marginTop: 16}}>
+                {/* <Button bsSize="small" bsStyle="primary" onClick={function(){ localStorage.setItem('kl_tutorial_step','0'); localStorage.removeItem('kl_tutorial_done'); window.dispatchEvent(new Event('kl_tutorial_start')) }}>
                     Start Tutorial
-                </Button>
-                <a href="#/about" style={{lineHeight: '30px'}}>Learn more</a>
+                </Button> */}
+                <a href="#/about">Learn more</a>
             </div>
         </div>
     }

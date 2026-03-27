@@ -65134,7 +65134,6 @@ var App = _react2['default'].createClass({
             _react2['default'].createElement(_components.KLNav, null),
             _react2['default'].createElement(_components.PromptModal, null),
             _react2['default'].createElement(_components.AlertModal, null),
-            _react2['default'].createElement(_componentsTutorialJsx2['default'], null),
             _react2['default'].createElement(GlobalLenderIDModal, null),
             this.props.children,
             _react2['default'].createElement(_components.KLFooter, null)
@@ -65202,6 +65201,7 @@ domready.done(LoadReactApp);
 /**
  {(this.props.children)? this.props.children: <Grid><Jumbotron><h1>Preparing to dazzle you...</h1></Jumbotron></Grid>}
  **/
+/* <Tutorial/> */
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./actions":667,"./api/syncStorage":683,"./components":722,"./components/SetLenderIDModal.jsx":718,"./components/Tutorial.jsx":721,"./linqextras":723,"./stores":725,"./stores/liveStore":726,"./utils":729,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
@@ -65368,15 +65368,6 @@ var About = _react2['default'].createClass({
               'Saved'
             ),
             ' tab.'
-          ),
-          _react2['default'].createElement(
-            'div',
-            { style: { marginTop: 20 } },
-            _react2['default'].createElement(
-              _reactBootstrap.Button,
-              { bsStyle: 'primary', onClick: this.startTutorial },
-              'Start Interactive Tutorial'
-            )
           )
         ),
         _react2['default'].createElement(
@@ -65597,6 +65588,13 @@ var About = _react2['default'].createClass({
 
 exports['default'] = About;
 module.exports = exports['default'];
+/* Tutorial button - disabled until polished
+<div style={{marginTop: 20}}>
+ <Button bsStyle="primary" onClick={this.startTutorial}>
+   Start Interactive Tutorial
+ </Button>
+</div>
+*/
 
 },{".":722,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
@@ -73222,17 +73220,10 @@ var WelcomePanel = _react2['default'].createClass({
             ) : null,
             _react2['default'].createElement(
                 'div',
-                { style: { marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' } },
-                _react2['default'].createElement(
-                    _reactBootstrap.Button,
-                    { bsSize: 'small', bsStyle: 'primary', onClick: function () {
-                            localStorage.setItem('kl_tutorial_step', '0');localStorage.removeItem('kl_tutorial_done');window.dispatchEvent(new Event('kl_tutorial_start'));
-                        } },
-                    'Start Tutorial'
-                ),
+                { style: { marginTop: 16 } },
                 _react2['default'].createElement(
                     'a',
-                    { href: '#/about', style: { lineHeight: '30px' } },
+                    { href: '#/about' },
                     'Learn more'
                 )
             )
@@ -73428,6 +73419,9 @@ var Search = _react2['default'].createClass({
 
 exports['default'] = Search;
 module.exports = exports['default'];
+/* <Button bsSize="small" bsStyle="primary" onClick={function(){ localStorage.setItem('kl_tutorial_step','0'); localStorage.removeItem('kl_tutorial_done'); window.dispatchEvent(new Event('kl_tutorial_start')) }}>
+   Start Tutorial
+</Button> */
 
 },{".":722,"../actions":667,"../stores":725,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],718:[function(require,module,exports){
 'use strict';

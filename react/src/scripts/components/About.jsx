@@ -79,11 +79,13 @@ const About = React.createClass({
             the <a href="#/saved">Saved</a> tab.
           </p>
 
+          {/* Tutorial button - disabled until polished
           <div style={{marginTop: 20}}>
             <Button bsStyle="primary" onClick={this.startTutorial}>
               Start Interactive Tutorial
             </Button>
           </div>
+          */}
 
         </Tab>
 

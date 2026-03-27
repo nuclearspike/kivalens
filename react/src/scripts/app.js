@@ -97,7 +97,7 @@ const App = React.createClass({
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>
-                    <Tutorial/>
+                    {/* <Tutorial/> */}
                     <GlobalLenderIDModal/>
                     {this.props.children}
                 <KLFooter/>
