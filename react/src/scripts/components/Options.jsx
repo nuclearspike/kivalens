@@ -10,6 +10,7 @@ import {KivaLink, NewTabLink, ClickLink, SetLenderIDModal, KivaImage, LenderLink
 import a from '../actions'
 import s from '../stores'
 import extend from 'extend'
+import lendAmountOptions from '../lendAmountOptions'
 
 const Options = React.createClass({
     mixins: [Reflux.ListenerMixin, LinkedStateMixin, LocalStorageMixin],
@@ -18,7 +19,7 @@ const Options = React.createClass({
     },
     getStateFilterKeys() {
         return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList',
-            'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva']
+            'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva', 'default_lend_amount']
     },
     reload(){
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -97,58 +98,32 @@ const Options = React.createClass({
                                 </dl>
                             </Col>
                         </Grid> : null}
-                    <p className="ample-padding-top">
-                        This is used for:
-                    </p>
+                    <p className="ample-padding-top">Your Lender ID enables:</p>
                     <ul className='spacedList'>
-                        <li><b>Excluding Fundraising Loans:</b> Fetches your loans from Kiva so it can remove
-                            fundraising loans that are already in your portfolio to prevent accidentally
-                            lending to the same borrower more than once.
-                        </li>
-                        <li><b>Portfolio Balancing:</b> On the "Your Portfolio" Criteria tab, KivaLens will pull
-                            public summary data of your portfolio for Partners, Countries, Sectors and Activities
-                            so that you can exclude or include loans that match your criteria (ex: only find
-                            Sectors that aren't like any in your total portfolio to collect them all
-                            OR hide Partners that have more than 5% of your active portfolio
-                            to balance your risk... and much more).
-                        </li>
-                        <li><b>Basket Pruning:</b> By default, your basket will not clear when returning to the site.
-                            If your Lender ID is set, when you come back to KivaLens, your completed loans
-                            will be removed from your basket. If not set, you'll either need
-                            to click the "Return to 3rd party app" at the end of your Kiva
-                            checkout (which will clear your basket) or manually clear the basket when you come back.
-                        </li>
-                        <li><b>Team Comparison:</b> On the "Teams" page, KivaLens will allow you to compare membership,
-                            loan count and total
-                            lending on all of the teams you're on.
-                        </li>
-                        <li><b>3D Loan Wall:</b> Once your lender-id is set, you can see your own&nbsp;
-                            <a href="#/portfolio">3D Loan Wall</a> visualization using your portfolio.
-                        </li>
+                        <li><b>Exclude Loans I've Made:</b> Hides loans you've already funded so you don't accidentally lend twice to the same borrower.</li>
+                        <li><b>Portfolio Balancing:</b> Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.</li>
+                        <li><b>Basket Pruning:</b> Automatically removes completed loans from your basket when you return to KivaLens.</li>
+                        <li><b>Team Comparison:</b> Compare membership and lending across all your teams.</li>
+                        <li><b>3D Loan Wall:</b> Visualize your portfolio at <a href="#/portfolio">portfolio</a>.</li>
                     </ul>
-                    <p>What this isn't:</p>
-                    <ul className='spacedList'>
-                        <li>
-                            This does not log you in to Kiva. When you transfer your loans to Kiva,
-                            you'll still have to log in to your account. As long as your profile is public, your
-                            lender id is public information and can be seen by anyone on Kiva. It's not a secret.
-                        </li>
-                        <li>
-                            This does not allow KivaLens to view any private information on your account.
-                            KivaLens only pulls information publicly available, what's viewable from your lender page.
-                            While it can know that you made a loan to a borrower, it does not know how much you
-                            loaned or what team you attributed the loan to.
-                        </li>
-                        <li>
-                            This does not log you into KivaLens. Since it doesn't get any password and is just
-                            using your publicly known ID, this doesn't save any of your options or Saved Searches
-                            with KivaLens' server because anyone can put anyone else's Lender ID in. KivaLens does not
-                            store
-                            any of your options on the server, they are stored with your browser so be careful about
-                            clearing all of your browser data or KivaLens will forget who you are and you'll need to
-                            rebuild all of your Saved Searches.
-                        </li>
-                    </ul>
+                </Panel>
+                <Panel header='Display'>
+                    <div className="form-group">
+                        <label>Default Lending Amount</label>
+                        <div>
+                            <select
+                                value={this.state.default_lend_amount || 25}
+                                onChange={e => this.setState({default_lend_amount: parseInt(e.target.value)})}
+                                style={{padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid #ccc'}}>
+                                {lendAmountOptions(1000).map(o => <option key={o} value={o}>${o}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <Input
+                        type="checkbox"
+                        label="Show distribution graphs when selecting criteria options"
+                        checked={!this.state.hide_criteria_graphs}
+                        onChange={e => { this.setState({hide_criteria_graphs: !e.target.checked}); lsj.setMerge('Options', {hide_criteria_graphs: !e.target.checked}) }}/>
                 </Panel>
                 <Panel header='External Research'>
                     <Input
@@ -183,13 +158,6 @@ const Options = React.createClass({
                                     {this.state.showAllPartners ? 'Show Less' : `See More (${this.state.missingPartners.length - 5} more)`}
                                 </ClickLink> : null}
                         </div> : null}
-                </Panel>
-                <Panel header='Display'>
-                    <Input
-                        type="checkbox"
-                        label="Show distribution graphs when selecting criteria options"
-                        checked={!this.state.hide_criteria_graphs}
-                        onChange={e => { this.setState({hide_criteria_graphs: !e.target.checked}); lsj.setMerge('Options', {hide_criteria_graphs: !e.target.checked}) }}/>
                 </Panel>
                 <Panel header='Debug/Beta Testing'>
                     <Input

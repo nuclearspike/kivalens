@@ -13,6 +13,7 @@ import a from '../actions'
 import s from '../stores/'
 import numeral from 'numeral'
 import extend from 'extend'
+import lendAmountOptions from '../lendAmountOptions'
 
 //import {ImmutableOptimizations} from 'react-cursor'
 
@@ -130,11 +131,23 @@ const RepaymentGraphs= React.createClass({
 
 var Loan = React.createClass({
     mixins:[Reflux.ListenerMixin, History], //, ImmutableOptimizations(['params'])
+    defaultLendAmountForLoan(loan){
+        var options = lendAmountOptions(loan ? loan.kl_still_needed : 0)
+        if (!options.length) return 25
+        var defaultAmount = lsj.get('Options').default_lend_amount || 25
+        return options.filter(o => o <= defaultAmount).pop() || options[0]
+    },
     getInitialState(){
         var loan = kivaloans.getById(this.props.params.id)
         var ls = (loan)? this.loanToState(loan): {}
         var at = this.savedActiveTab()
-        return extend({},at,ls)
+        return extend({lendAmount: 25},at,ls)
+    },
+    onLendAmountChange(e){
+        this.setState({lendAmount: parseInt(e.target.value)})
+    },
+    lend(){
+        a.loans.basket.add(this.state.loan.id, this.state.lendAmount)
     },
     componentWillUnmount(){
         clearInterval(this.refreshInterval)
@@ -178,7 +191,7 @@ var Loan = React.createClass({
         var pictured = loan.borrowers.where(b=>b.pictured).map(borrowerPill)
         var not_pictured = loan.borrowers.where(b=>!b.pictured).map(borrowerPill)
         var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
-        return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id)}
+        return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id), lendAmount: this.defaultLendAmountForLoan(loan)}
     },
     displayLoan(loan){
         a.loans.selection(loan.id)
@@ -229,7 +242,7 @@ var Loan = React.createClass({
         localStorage.loan_active_tab = activeTab
     },
     render() {
-        let {loan, matching, partner, activeTab, visionFaces, inBasket, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar} = this.state
+        let {loan, matching, partner, activeTab, visionFaces, inBasket, visionResults, funded_perc, basket_perc, pictured, not_pictured, showAtheistResearch, similar, lendAmount} = this.state
         if (!loan) return <Jumbotron style={{padding:'15px'}}><h1>Loading...</h1></Jumbotron> //only if looking at loan during initial load or one that isn't fundraising.
         var atheistScore = partner ? partner.atheistScore : {}
         if (partner && !partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
@@ -239,9 +252,26 @@ var Loan = React.createClass({
     {inBasket ?
                         <Button bsStyle="danger" className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
                     :
-                        <Button bsStyle="success" className="float_right" disabled={loan.status!='fundraising'} onClick={a.loans.basket.add.bind(this, loan.id, 25)}>Add to Basket</Button>
+                        <span className="float_right" style={{display: 'inline-flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #2C8C5E', opacity: loan.status != 'fundraising' ? 0.5 : 1}}>
+                            <select
+                                disabled={loan.status != 'fundraising'}
+                                value={lendAmount}
+                                onChange={this.onLendAmountChange}
+                                style={{padding: '4px 8px', fontSize: 14, border: 'none', borderRight: '1px solid #2C8C5E', background: '#fff', color: '#2C8C5E', fontWeight: 600, cursor: 'pointer', outline: 'none'}}>
+                                {lendAmountOptions(loan.kl_still_needed).map(o => <option key={o} value={o}>${o}</option>)}
+                            </select>
+                            <button
+                                disabled={loan.status != 'fundraising'}
+                                onClick={this.lend}
+                                style={{padding: '4px 14px', fontSize: 14, border: 'none', background: '#2C8C5E', color: '#fff', fontWeight: 600, cursor: 'pointer'}}>
+                                Lend
+                            </button>
+                        </span>
                     }
                 </h1>
+                {inBasket && loan.kl_still_needed === 0 ?
+                    <Alert bsStyle="warning" style={{marginBottom: 8}}>This loan has been fully funded by other lenders on Kiva and will be skipped on checkout.</Alert>
+                : null}
                 <Tabs activeKey={activeTab} animation={false} onSelect={this.tabSelect}>
                     <Tab eventKey={1} title="Image" className="ample-padding-top fullsizeImage">
                         <KivaImage key={loan.id} loan={loan} useThumbAsBackground={true} type="width" image_width={800} width="100%" style={{maxHeight: 400, objectFit: 'contain'}}/>

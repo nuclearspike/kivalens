@@ -8,6 +8,7 @@ import cx from 'classnames'
 import a from '../actions'
 import s from '../stores/'
 import extend from 'extend'
+import lendAmountOptions from '../lendAmountOptions'
 
 const LoanListItem = React.createClass({
     mixins: [Reflux.ListenerMixin],
@@ -41,11 +42,18 @@ const LoanListItem = React.createClass({
         if (loan.status != 'fundraising')
             this.setState({loanNotFundraising: true})
     },
+    addToBasket(){
+        var loan = this.props
+        var options = lendAmountOptions(loan.kl_still_needed)
+        var defaultAmount = lsj.get('Options').default_lend_amount || 25
+        var amount = (options.filter(o => o <= defaultAmount).pop()) || options[0] || 25
+        a.loans.basket.add(loan.id, amount)
+    },
     render() {
         var loan = this.props
         let {selected} = this.state
         return <ListGroupItem
-                onDoubleClick={a.loans.basket.add.bind(this, loan.id, 25)}
+                onDoubleClick={this.addToBasket}
                 className={cx('loan_list_item', {selected, gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising})}
                 key={loan.id}
                 href={`#/search/loan/${loan.id}`}>

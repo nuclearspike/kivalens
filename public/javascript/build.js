@@ -61689,7 +61689,7 @@ a.loans = _reflux2['default'].createActions({
     "filter": { children: ["completed"] },
     "detail": { children: ["completed"] },
     'selection': { children: ["completed"] },
-    "basket": { children: ["add", "remove", "select", "changed", "batchAdd", "clear"] },
+    "basket": { children: ["add", "remove", "select", "changed", "batchAdd", "clear", "setAmount"] },
     "backgroundResync": { children: ["removed", "added", "updated"] }, //?
     "refresh": { children: ["completed"] }
 });
@@ -61719,6 +61719,8 @@ a.utils.modal = _reflux2['default'].createActions({
     "partnerDisplay": { children: ["completed"] },
     "alert": { children: ["completed"] }
 });
+
+a.utils.dataLoaded = _reflux2['default'].createAction();
 
 window.kl_actions = a;
 exports['default'] = a;
@@ -65055,6 +65057,9 @@ require('./linqextras');
 require('./stores/liveStore');
 require('./api/syncStorage');
 
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts');
+Highcharts.Highcharts.setOptions({ lang: { thousandsSep: ',' } });
+
 var history = (0, _historyLibCreateHashHistory2['default'])({ queryKey: false });
 
 var GlobalLenderIDModal = _react2['default'].createClass({
@@ -65078,7 +65083,7 @@ var GlobalLenderIDModal = _react2['default'].createClass({
     onSet: function onSet(lenderId) {
         lsj.setMerge('Options', { kiva_lender_id: lenderId });
         window.dispatchEvent(new Event('storage')); // notify KLNav
-        window.location.reload();
+        _actions2['default'].utils.dataLoaded();
     },
     render: function render() {
         return _react2['default'].createElement(_componentsSetLenderIDModalJsx2['default'], { show: this.state.show, onSet: this.onSet, onHide: this.hideModal });
@@ -65099,11 +65104,20 @@ var App = _react2['default'].createClass({
 
     mixins: [_reflux2['default'].ListenerMixin],
     getInitialState: function getInitialState() {
-        return {};
+        return { renderKey: 0 };
+    },
+    bumpKey: function bumpKey() {
+        this.setState(function (s) {
+            return { renderKey: s.renderKey + 1 };
+        });
     },
     componentDidMount: function componentDidMount() {
         _reactGa2['default'].initialize('UA-10202885-1');
         this.listenTo(_actions2['default'].loans.live['new'], this.newLoansTest);
+        this.listenTo(_actions2['default'].loans.load.completed, this.bumpKey);
+        this.listenTo(_actions2['default'].loans.load.descriptions, this.bumpKey);
+        this.listenTo(_actions2['default'].partners.load.completed, this.bumpKey);
+        this.listenTo(_actions2['default'].utils.dataLoaded, this.bumpKey);
         if (!this.props.children) history.push('/search');
     },
     newLoansTest: function newLoansTest(loans) {
@@ -65131,7 +65145,7 @@ var App = _react2['default'].createClass({
         this.logPageChange();
         return _react2['default'].createElement(
             'div',
-            null,
+            { key: this.state.renderKey },
             _react2['default'].createElement(_components.KLNav, null),
             _react2['default'].createElement(_components.PromptModal, null),
             _react2['default'].createElement(_components.AlertModal, null),
@@ -65205,7 +65219,7 @@ domready.done(LoadReactApp);
 /* <Tutorial/> */
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./actions":667,"./api/syncStorage":683,"./components":722,"./components/SetLenderIDModal.jsx":718,"./components/Tutorial.jsx":721,"./linqextras":723,"./stores":725,"./stores/liveStore":726,"./utils":729,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-router":467,"reflux":650}],686:[function(require,module,exports){
+},{"./actions":667,"./api/syncStorage":683,"./components":723,"./components/SetLenderIDModal.jsx":719,"./components/Tutorial.jsx":722,"./linqextras":725,"./stores":727,"./stores/liveStore":728,"./utils":731,"_process":254,"datejs":50,"history/lib/createHashHistory":145,"linqjs":164,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-ga":366,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"reflux":650}],686:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -65597,7 +65611,7 @@ module.exports = exports['default'];
 </div>
 */
 
-},{".":722,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
+},{".":723,"react":634,"react-bootstrap":346}],687:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -65983,7 +65997,7 @@ var AutoLendSettings = _react2['default'].createClass({
 exports['default'] = AutoLendSettings;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../api/kiva":668,"../stores/":725,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
+},{".":723,"../actions":667,"../api/kiva":668,"../stores/":727,"react":634,"react-bootstrap":346,"reflux":650}],689:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66020,6 +66034,10 @@ var _extend = require('extend');
 
 var _extend2 = _interopRequireDefault(_extend);
 
+var _BasketRepaymentChartJsx = require('./BasketRepaymentChart.jsx');
+
+var _BasketRepaymentChartJsx2 = _interopRequireDefault(_BasketRepaymentChartJsx);
+
 var Basket = _react2['default'].createClass({
     displayName: 'Basket',
 
@@ -66043,6 +66061,10 @@ var Basket = _react2['default'].createClass({
     },
     generateState: function generateState() {
         var basket_items = _stores2['default'].loans.syncGetBasket();
+        var selected_item_id = this.state && this.state.selected_item_id;
+        if (selected_item_id && !basket_items.any(function (bi) {
+            return bi.loan.id == selected_item_id;
+        })) selected_item_id = null;
         return {
             loans_ready: kivaloans.isReady(),
             basket_count: basket_items.length,
@@ -66050,14 +66072,19 @@ var Basket = _react2['default'].createClass({
             loans: basket_items.select(function (bi) {
                 return bi.loan;
             }),
-            amount_sum: basket_items.sum(function (bi) {
+            amount_sum: basket_items.where(function (bi) {
+                return bi.loan.kl_still_needed > 0;
+            }).sum(function (bi) {
                 return bi.amount;
             }),
-            raw_basket_count: _stores2['default'].loans.syncBasketCount()
+            raw_basket_count: _stores2['default'].loans.syncBasketCount(),
+            selected_item_id: selected_item_id
         };
     },
     makeBasket: function makeBasket() {
-        return JSON.stringify(this.state.basket_items.select(function (bi) {
+        return JSON.stringify(this.state.basket_items.where(function (bi) {
+            return bi.loan.kl_still_needed > 0;
+        }).select(function (bi) {
             return { "id": bi.loan.id, "amount": bi.amount };
         }));
     },
@@ -66144,7 +66171,7 @@ var Basket = _react2['default'].createClass({
             { style: { height: '100%', width: '100%' } },
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 4 },
+                { md: 3 },
                 _react2['default'].createElement(
                     _reactBootstrap.ButtonGroup,
                     { justified: true, className: 'top-only' },
@@ -66186,20 +66213,20 @@ var Basket = _react2['default'].createClass({
                 _react2['default'].createElement(_InfiniteListJsx2['default'], {
                     className: 'loan_list_container',
                     items: basket_items,
-                    height: 600,
+                    height: 900,
                     itemHeight: 100,
                     itemsCount: basket_count,
                     listItemClass: _.BasketListItem })
             ),
             _react2['default'].createElement(
                 _reactBootstrap.Col,
-                { md: 8 },
+                { md: 3 },
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
                     null,
                     _react2['default'].createElement(
-                        'h1',
-                        null,
+                        'h3',
+                        { style: { margin: '0 0 8px' } },
                         'Basket: ',
                         basket_count,
                         ' loans $',
@@ -66208,11 +66235,6 @@ var Basket = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'form',
                         { method: 'POST', ref: 'basket_form', action: 'https://www.kiva.org/basket/set' },
-                        _react2['default'].createElement(
-                            'p',
-                            null,
-                            'Note: Checking out will replace your current basket on Kiva.'
-                        ),
                         _react2['default'].createElement('input', { name: 'callback_url', value: location.protocol + '//' + location.host + location.pathname + '#clear-basket', type: 'hidden' }),
                         _react2['default'].createElement('input', { name: 'loans', value: this.makeBasket(), type: 'hidden' }),
                         _react2['default'].createElement('input', { name: 'donation', value: '0.00', type: 'hidden' }),
@@ -66234,6 +66256,11 @@ var Basket = _react2['default'].createClass({
                     { bsStyle: 'info' },
                     'Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.'
                 ) : null,
+                basket_count > 0 && loans_ready ? _react2['default'].createElement(_BasketRepaymentChartJsx2['default'], { basket_items: basket_items, amount_sum: amount_sum }) : null
+            ),
+            _react2['default'].createElement(
+                _reactBootstrap.Col,
+                { md: 6, style: { overflowY: 'auto', maxHeight: 'calc(100vh - 60px)' } },
                 selected_item_id ? _react2['default'].createElement(_.Loan, { params: { id: selected_item_id } }) : null
             ),
             _react2['default'].createElement(
@@ -66270,7 +66297,7 @@ var Basket = _react2['default'].createClass({
 exports['default'] = Basket;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores":725,"./InfiniteList.jsx":700,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores":727,"./BasketRepaymentChart.jsx":691,"./InfiniteList.jsx":701,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],690:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66291,22 +66318,37 @@ var _actions = require('../actions');
 
 var _actions2 = _interopRequireDefault(_actions);
 
+var _lendAmountOptions = require('../lendAmountOptions');
+
+var _lendAmountOptions2 = _interopRequireDefault(_lendAmountOptions);
+
 var BasketListItem = _react2['default'].createClass({
     displayName: 'BasketListItem',
 
     getInitialState: function getInitialState() {
         return {};
     },
+    onAmountChange: function onAmountChange(e) {
+        e.stopPropagation();
+        _actions2['default'].loans.basket.setAmount(this.props.loan.id, parseInt(e.target.value));
+    },
     render: function render() {
-        var loan = this.props.loan;
+        var _props = this.props;
+        var loan = _props.loan;
+        var amount = _props.amount;
 
+        var options = (0, _lendAmountOptions2['default'])(loan.kl_still_needed);
+        // If current amount isn't in options (e.g. max changed), insert it so the select shows the real value
+        if (options.length && !options.contains(amount)) options = [amount].concat(options).orderBy(function (x) {
+            return x;
+        });
         return _react2['default'].createElement(
             _reactBootstrap.ListGroupItem,
             {
                 className: 'loan_list_item',
                 key: loan.id,
-                onClick: _actions2['default'].loans.basket.select.bind(null, loan.id),
-                href: '#/basket' },
+                href: '#/basket',
+                onClick: _actions2['default'].loans.basket.select.bind(null, loan.id) },
             _react2['default'].createElement(_.KivaImage, { className: 'float_left', type: 'square', loan: loan, image_width: 113, height: 90, width: 90 }),
             _react2['default'].createElement(
                 'div',
@@ -66335,10 +66377,25 @@ var BasketListItem = _react2['default'].createClass({
                         loan.activity
                     )
                 ),
-                _react2['default'].createElement(
-                    'div',
-                    { className: 'loan-use hidden-md' },
-                    loan.use
+                options.length > 0 ? _react2['default'].createElement(
+                    'select',
+                    {
+                        value: amount,
+                        onChange: this.onAmountChange,
+                        className: 'basket-amount-select',
+                        style: { padding: '2px 4px', fontSize: 13, borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' } },
+                    options.map(function (o) {
+                        return _react2['default'].createElement(
+                            'option',
+                            { key: o, value: o },
+                            '$',
+                            o
+                        );
+                    })
+                ) : _react2['default'].createElement(
+                    'span',
+                    { style: { fontSize: 11, color: '#c0392b', fontWeight: 600 } },
+                    'Fully funded — will be removed on checkout'
                 )
             )
         );
@@ -66348,7 +66405,197 @@ var BasketListItem = _react2['default'].createClass({
 exports['default'] = BasketListItem;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
+},{".":723,"../actions":667,"../lendAmountOptions":724,"react":634,"react-bootstrap":346}],691:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactBootstrap = require('react-bootstrap');
+
+var _numeral = require('numeral');
+
+var _numeral2 = _interopRequireDefault(_numeral);
+
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts');
+
+function computeBasketRepaymentForecast(basket_items) {
+    var monthMap = {};
+    var skippedCount = 0;
+
+    basket_items.forEach(function (bi) {
+        if (!bi.loan || !bi.loan.kl_still_needed || !bi.loan.kl_repayments || !bi.loan.kl_repayments.length || !bi.loan.loan_amount) {
+            skippedCount++;
+            return;
+        }
+
+        var lenderShare = bi.amount / bi.loan.loan_amount;
+
+        bi.loan.kl_repayments.forEach(function (repayment) {
+            var key = repayment.display;
+            if (!monthMap[key]) {
+                monthMap[key] = { date: repayment.date, total: 0 };
+            }
+            monthMap[key].total += repayment.amount * lenderShare;
+        });
+    });
+
+    var months = Object.keys(monthMap).select(function (key) {
+        return { key: key, date: monthMap[key].date, amount: monthMap[key].total };
+    }).orderBy(function (m) {
+        return m.date;
+    });
+
+    var cumulative = 0;
+    var categories = [];
+    var amounts = [];
+    var cumulativeAmounts = [];
+
+    months.forEach(function (m) {
+        categories.push(m.key);
+        amounts.push(parseFloat(m.amount.toFixed(2)));
+        cumulative += m.amount;
+        cumulativeAmounts.push(parseFloat(cumulative.toFixed(2)));
+    });
+
+    return { categories: categories, amounts: amounts, cumulativeAmounts: cumulativeAmounts, skippedCount: skippedCount };
+}
+
+var BasketRepaymentChart = _react2['default'].createClass({
+    displayName: 'BasketRepaymentChart',
+
+    produceConfig: function produceConfig(categories, amounts, cumulativeAmounts) {
+        return {
+            chart: {
+                alignTicks: false,
+                type: 'bar',
+                animation: false
+            },
+            title: { text: null },
+            xAxis: {
+                categories: categories,
+                title: { text: null },
+                labels: { style: { fontSize: '10px' } }
+            },
+            yAxis: [{
+                min: 0,
+                title: { text: 'Monthly' },
+                labels: {
+                    formatter: function formatter() {
+                        return '$' + (0, _numeral2['default'])(this.value).format('0,0[.]00');
+                    }
+                }
+            }, {
+                min: 0,
+                title: { text: 'Cumulative' },
+                opposite: true,
+                labels: {
+                    formatter: function formatter() {
+                        return '$' + (0, _numeral2['default'])(this.value).format('0,0[.]00');
+                    }
+                }
+            }],
+            tooltip: {
+                shared: true,
+                valuePrefix: '$',
+                valueDecimals: 2
+            },
+            plotOptions: {
+                column: {
+                    dataLabels: { enabled: false }
+                },
+                area: {
+                    marker: { enabled: false },
+                    dataLabels: { enabled: false }
+                }
+            },
+            legend: { enabled: true },
+            credits: { enabled: false },
+            series: [{
+                type: 'bar',
+                animation: false,
+                zIndex: 6,
+                name: 'Monthly Repayment',
+                color: '#e8871a',
+                data: amounts
+            }, {
+                type: 'area',
+                animation: false,
+                yAxis: 1,
+                zIndex: 5,
+                name: 'Cumulative',
+                color: '#2c6e49',
+                fillColor: 'rgba(44, 110, 73, 0.15)',
+                data: cumulativeAmounts
+            }]
+        };
+    },
+    render: function render() {
+        var _props = this.props;
+        var basket_items = _props.basket_items;
+        var amount_sum = _props.amount_sum;
+
+        var _computeBasketRepaymentForecast = computeBasketRepaymentForecast(basket_items);
+
+        var categories = _computeBasketRepaymentForecast.categories;
+        var amounts = _computeBasketRepaymentForecast.amounts;
+        var cumulativeAmounts = _computeBasketRepaymentForecast.cumulativeAmounts;
+        var skippedCount = _computeBasketRepaymentForecast.skippedCount;
+
+        if (!categories.length) {
+            if (skippedCount > 0) {
+                return _react2['default'].createElement(
+                    _reactBootstrap.Panel,
+                    null,
+                    _react2['default'].createElement(
+                        _reactBootstrap.Alert,
+                        { bsStyle: 'info' },
+                        'Repayment schedule data is not yet available for the loans in your basket.'
+                    )
+                );
+            }
+            return null;
+        }
+
+        var totalBack = cumulativeAmounts.length ? cumulativeAmounts[cumulativeAmounts.length - 1] : 0;
+        var config = this.produceConfig(categories, amounts, cumulativeAmounts);
+        var chartHeight = Math.max(300, Math.min(categories.length * 22, 900));
+
+        return _react2['default'].createElement(
+            _reactBootstrap.Panel,
+            null,
+            _react2['default'].createElement(
+                'h4',
+                null,
+                'Repayments for Basket: ',
+                categories.length,
+                ' months'
+            ),
+            skippedCount > 0 ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { bsStyle: 'warning' },
+                'Repayment data unavailable for ',
+                skippedCount,
+                ' of ',
+                basket_items.length,
+                ' loans.'
+            ) : null,
+            _react2['default'].createElement(Highcharts, { style: { height: chartHeight + 'px' }, config: config })
+        );
+    }
+});
+
+exports['default'] = BasketRepaymentChart;
+module.exports = exports['default'];
+
+},{"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374}],692:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66473,7 +66720,7 @@ var BulkAddModal = _react2['default'].createClass({
 exports['default'] = BulkAddModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":725,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],692:[function(require,module,exports){
+},{"../actions":667,"../stores/":727,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],693:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66611,7 +66858,7 @@ var ChartDistribution = _react2['default'].createClass({
 exports['default'] = ChartDistribution;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],693:[function(require,module,exports){
+},{"../actions":667,"../stores/":727,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],694:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66657,7 +66904,7 @@ var ClearBasket = _react2['default'].createClass({
 exports['default'] = ClearBasket;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores":725,"react":634}],694:[function(require,module,exports){
+},{"../actions":667,"../stores":727,"react":634}],695:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -66856,7 +67103,7 @@ var Criteria = _react2['default'].createClass({
 exports['default'] = Criteria;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores/":725,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],695:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores/":727,"classnames":24,"react":634,"react-bootstrap":346,"react-localstorage":379,"reflux":650}],696:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68254,7 +68501,7 @@ exports.AllAnyNoneButton = AllAnyNoneButton;
  </Tab> : null}
 */
 
-},{".":722,"../actions":667,"../api/kiva":668,"../stores/":725,"./Mixins":708,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],696:[function(require,module,exports){
+},{".":723,"../actions":667,"../api/kiva":668,"../stores/":727,"./Mixins":709,"classnames":24,"extend":95,"numeral":242,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-cursor":362,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-select":478,"react-slider":487,"react-timeago":488,"reflux":650}],697:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68303,7 +68550,7 @@ var CycleChild = _react2['default'].createClass({
 exports['default'] = CycleChild;
 module.exports = exports['default'];
 
-},{"react":634}],697:[function(require,module,exports){
+},{"react":634}],698:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -68408,7 +68655,7 @@ exports['default'] = DidYouKnow;
 module.exports = exports['default'];
 /* <p>There's also a "Kiva Lender Assistant" Chrome Browser plugin that will talk to you and show graphs and final repayment information on the Lend Tab. See the About page for more information.</p> */
 
-},{".":722,"react":634}],698:[function(require,module,exports){
+},{".":723,"react":634}],699:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -68561,7 +68808,7 @@ var Donate = (function (_Component) {
 exports['default'] = Donate;
 module.exports = exports['default'];
 
-},{".":722,"react":634,"react-bootstrap":346}],699:[function(require,module,exports){
+},{".":723,"react":634,"react-bootstrap":346}],700:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -68686,7 +68933,7 @@ var Face = _react2['default'].createClass({
 exports['default'] = Face;
 module.exports = exports['default'];
 
-},{"../api/kivajs/LenderLoans":671,"react":634,"react-bootstrap":346,"react-dom":364,"reflux":650}],700:[function(require,module,exports){
+},{"../api/kivajs/LenderLoans":671,"react":634,"react-bootstrap":346,"react-dom":364,"reflux":650}],701:[function(require,module,exports){
 //react-infinite-list v 0.4.5
 
 'use strict';
@@ -68993,7 +69240,7 @@ InfiniteList.defaultProps = {
 };
 module.exports = exports['default'];
 
-},{"classnames":24,"react":634,"react-addons-css-transition-group":264,"react-dom":364}],701:[function(require,module,exports){
+},{"classnames":24,"react":634,"react-addons-css-transition-group":264,"react-dom":364}],702:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69034,7 +69281,7 @@ var KLFooter = function KLFooter() {
 exports['default'] = KLFooter;
 module.exports = exports['default'];
 
-},{"react":634,"react-bootstrap":346}],702:[function(require,module,exports){
+},{"react":634,"react-bootstrap":346}],703:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -69175,7 +69422,7 @@ var KLNav = _react2['default'].createClass({
 exports['default'] = KLNav;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],703:[function(require,module,exports){
+},{"../actions":667,"../stores/":727,"react":634,"react-bootstrap":346,"react-router":467,"reflux":650}],704:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69262,7 +69509,7 @@ var KivaThumbnail = _react2['default'].createClass({
 exports['default'] = KivaImage;
 module.exports = exports['default'];
 
-},{"classnames":24,"react":634}],704:[function(require,module,exports){
+},{"classnames":24,"react":634}],705:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69529,7 +69776,7 @@ var Live = _react2['default'].createClass({
 exports['default'] = Live;
 module.exports = exports['default'];
 
-},{"numeral":242,"react":634,"react-bootstrap":346,"react-motion":386,"react-timeago":488,"reflux":650}],705:[function(require,module,exports){
+},{"numeral":242,"react":634,"react-bootstrap":346,"react-motion":386,"react-timeago":488,"reflux":650}],706:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -69638,7 +69885,7 @@ var LoadingLoansPanel = _react2['default'].createClass({
 exports['default'] = LoadingLoansPanel;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],706:[function(require,module,exports){
+},{".":723,"../actions":667,"react":634,"react-bootstrap":346,"reflux":650}],707:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -69686,6 +69933,10 @@ var _numeral2 = _interopRequireDefault(_numeral);
 var _extend = require('extend');
 
 var _extend2 = _interopRequireDefault(_extend);
+
+var _lendAmountOptions = require('../lendAmountOptions');
+
+var _lendAmountOptions2 = _interopRequireDefault(_lendAmountOptions);
 
 //import {ImmutableOptimizations} from 'react-cursor'
 
@@ -69923,11 +70174,25 @@ var Loan = _react2['default'].createClass({
     displayName: 'Loan',
 
     mixins: [_reflux2['default'].ListenerMixin, _reactRouter.History], //, ImmutableOptimizations(['params'])
+    defaultLendAmountForLoan: function defaultLendAmountForLoan(loan) {
+        var options = (0, _lendAmountOptions2['default'])(loan ? loan.kl_still_needed : 0);
+        if (!options.length) return 25;
+        var defaultAmount = lsj.get('Options').default_lend_amount || 25;
+        return options.filter(function (o) {
+            return o <= defaultAmount;
+        }).pop() || options[0];
+    },
     getInitialState: function getInitialState() {
         var loan = kivaloans.getById(this.props.params.id);
         var ls = loan ? this.loanToState(loan) : {};
         var at = this.savedActiveTab();
-        return (0, _extend2['default'])({}, at, ls);
+        return (0, _extend2['default'])({ lendAmount: 25 }, at, ls);
+    },
+    onLendAmountChange: function onLendAmountChange(e) {
+        this.setState({ lendAmount: parseInt(e.target.value) });
+    },
+    lend: function lend() {
+        _actions2['default'].loans.basket.add(this.state.loan.id, this.state.lendAmount);
     },
     componentWillUnmount: function componentWillUnmount() {
         clearInterval(this.refreshInterval);
@@ -69986,7 +70251,7 @@ var Loan = _react2['default'].createClass({
             return !b.pictured;
         }).map(borrowerPill);
         var matching = _stores2['default'].criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)';
-        return { loan: loan, matching: matching, pictured: pictured, not_pictured: not_pictured, partner: partner, basket_perc: basket_perc, funded_perc: funded_perc, similar: loan.kl_similar || [], inBasket: _stores2['default'].loans.syncInBasket(loan.id) };
+        return { loan: loan, matching: matching, pictured: pictured, not_pictured: not_pictured, partner: partner, basket_perc: basket_perc, funded_perc: funded_perc, similar: loan.kl_similar || [], inBasket: _stores2['default'].loans.syncInBasket(loan.id), lendAmount: this.defaultLendAmountForLoan(loan) };
     },
     displayLoan: function displayLoan(loan) {
         _actions2['default'].loans.selection(loan.id);
@@ -70049,6 +70314,7 @@ var Loan = _react2['default'].createClass({
         var not_pictured = _state2.not_pictured;
         var showAtheistResearch = _state2.showAtheistResearch;
         var similar = _state2.similar;
+        var lendAmount = _state2.lendAmount;
 
         if (!loan) return _react2['default'].createElement(
             _reactBootstrap.Jumbotron,
@@ -70082,11 +70348,39 @@ var Loan = _react2['default'].createClass({
                     { bsStyle: 'danger', className: 'float_right', onClick: _actions2['default'].loans.basket.remove.bind(this, loan.id) },
                     'Remove from Basket'
                 ) : _react2['default'].createElement(
-                    _reactBootstrap.Button,
-                    { bsStyle: 'success', className: 'float_right', disabled: loan.status != 'fundraising', onClick: _actions2['default'].loans.basket.add.bind(this, loan.id, 25) },
-                    'Add to Basket'
+                    'span',
+                    { className: 'float_right', style: { display: 'inline-flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #2C8C5E', opacity: loan.status != 'fundraising' ? 0.5 : 1 } },
+                    _react2['default'].createElement(
+                        'select',
+                        {
+                            disabled: loan.status != 'fundraising',
+                            value: lendAmount,
+                            onChange: this.onLendAmountChange,
+                            style: { padding: '4px 8px', fontSize: 14, border: 'none', borderRight: '1px solid #2C8C5E', background: '#fff', color: '#2C8C5E', fontWeight: 600, cursor: 'pointer', outline: 'none' } },
+                        (0, _lendAmountOptions2['default'])(loan.kl_still_needed).map(function (o) {
+                            return _react2['default'].createElement(
+                                'option',
+                                { key: o, value: o },
+                                '$',
+                                o
+                            );
+                        })
+                    ),
+                    _react2['default'].createElement(
+                        'button',
+                        {
+                            disabled: loan.status != 'fundraising',
+                            onClick: this.lend,
+                            style: { padding: '4px 14px', fontSize: 14, border: 'none', background: '#2C8C5E', color: '#fff', fontWeight: 600, cursor: 'pointer' } },
+                        'Lend'
+                    )
                 )
             ),
+            inBasket && loan.kl_still_needed === 0 ? _react2['default'].createElement(
+                _reactBootstrap.Alert,
+                { bsStyle: 'warning', style: { marginBottom: 8 } },
+                'This loan has been fully funded by other lenders on Kiva and will be skipped on checkout.'
+            ) : null,
             _react2['default'].createElement(
                 _reactBootstrap.Tabs,
                 { activeKey: activeTab, animation: false, onSelect: this.tabSelect },
@@ -70382,7 +70676,7 @@ var Loan = _react2['default'].createClass({
 exports['default'] = Loan;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores/":725,"./PartnerDetail.jsx":712,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],707:[function(require,module,exports){
+},{".":723,"../actions":667,"../lendAmountOptions":724,"../stores/":727,"./PartnerDetail.jsx":713,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"react-router":467,"react-timeago":488,"reflux":650}],708:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70419,6 +70713,10 @@ var _extend = require('extend');
 
 var _extend2 = _interopRequireDefault(_extend);
 
+var _lendAmountOptions = require('../lendAmountOptions');
+
+var _lendAmountOptions2 = _interopRequireDefault(_lendAmountOptions);
+
 var LoanListItem = _react2['default'].createClass({
     displayName: 'LoanListItem',
 
@@ -70454,6 +70752,15 @@ var LoanListItem = _react2['default'].createClass({
     loanUpdated: function loanUpdated(loan) {
         if (loan.status != 'fundraising') this.setState({ loanNotFundraising: true });
     },
+    addToBasket: function addToBasket() {
+        var loan = this.props;
+        var options = (0, _lendAmountOptions2['default'])(loan.kl_still_needed);
+        var defaultAmount = lsj.get('Options').default_lend_amount || 25;
+        var amount = options.filter(function (o) {
+            return o <= defaultAmount;
+        }).pop() || options[0] || 25;
+        _actions2['default'].loans.basket.add(loan.id, amount);
+    },
     render: function render() {
         var loan = this.props;
         var selected = this.state.selected;
@@ -70461,7 +70768,7 @@ var LoanListItem = _react2['default'].createClass({
         return _react2['default'].createElement(
             _reactBootstrap.ListGroupItem,
             {
-                onDoubleClick: _actions2['default'].loans.basket.add.bind(this, loan.id, 25),
+                onDoubleClick: this.addToBasket,
                 className: (0, _classnames2['default'])('loan_list_item', { selected: selected, gone: this.state.justLoaded, in_basket: this.state.inBasket, funded: this.state.loanNotFundraising }),
                 key: loan.id,
                 href: '#/search/loan/' + loan.id },
@@ -70506,7 +70813,7 @@ var LoanListItem = _react2['default'].createClass({
 exports['default'] = LoanListItem;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores/":725,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],708:[function(require,module,exports){
+},{".":723,"../actions":667,"../lendAmountOptions":724,"../stores/":727,"classnames":24,"extend":95,"react":634,"react-bootstrap":346,"reflux":650}],709:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70639,7 +70946,7 @@ var ForceRebuildMixin = {
 exports.LinkedComplexCursorMixin = LinkedComplexCursorMixin;
 exports.DelayStateTriggerMixin = DelayStateTriggerMixin;
 
-},{"extend":95,"react/lib/ReactLink":558}],709:[function(require,module,exports){
+},{"extend":95,"react/lib/ReactLink":558}],710:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -70826,7 +71133,7 @@ var OnNow = _react2['default'].createClass({
 exports['default'] = OnNow;
 module.exports = exports['default'];
 
-},{".":722,"react":634,"react-bootstrap":346}],710:[function(require,module,exports){
+},{".":723,"react":634,"react-bootstrap":346}],711:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -70871,6 +71178,10 @@ var _extend = require('extend');
 
 var _extend2 = _interopRequireDefault(_extend);
 
+var _lendAmountOptions = require('../lendAmountOptions');
+
+var _lendAmountOptions2 = _interopRequireDefault(_lendAmountOptions);
+
 var Options = _react2['default'].createClass({
     displayName: 'Options',
 
@@ -70879,7 +71190,7 @@ var Options = _react2['default'].createClass({
         return { maxRepaymentTerms: 8, maxRepaymentTerms_on: false, missingPartners: [], showLenderModal: false, showAllPartners: false, hide_criteria_graphs: !!lsj.get('Options').hide_criteria_graphs };
     },
     getStateFilterKeys: function getStateFilterKeys() {
-        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva'];
+        return ['maxRepaymentTerms', 'maxRepaymentTerms_on', 'kiva_lender_id', 'mergeAtheistList', 'debugging', 'betaTester', 'loansFromKiva', 'lenderLoansFromKiva', 'default_lend_amount'];
     },
     reload: function reload() {
         //this.setState(lsj.get("Options")) //this is messed up for lender_id, doesn't
@@ -71073,7 +71384,7 @@ var Options = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'p',
                         { className: 'ample-padding-top' },
-                        'This is used for:'
+                        'Your Lender ID enables:'
                     ),
                     _react2['default'].createElement(
                         'ul',
@@ -71084,9 +71395,9 @@ var Options = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 'b',
                                 null,
-                                'Excluding Fundraising Loans:'
+                                'Exclude Loans I\'ve Made:'
                             ),
-                            ' Fetches your loans from Kiva so it can remove fundraising loans that are already in your portfolio to prevent accidentally lending to the same borrower more than once.'
+                            ' Hides loans you\'ve already funded so you don\'t accidentally lend twice to the same borrower.'
                         ),
                         _react2['default'].createElement(
                             'li',
@@ -71096,7 +71407,7 @@ var Options = _react2['default'].createClass({
                                 null,
                                 'Portfolio Balancing:'
                             ),
-                            ' On the "Your Portfolio" Criteria tab, KivaLens will pull public summary data of your portfolio for Partners, Countries, Sectors and Activities so that you can exclude or include loans that match your criteria (ex: only find Sectors that aren\'t like any in your total portfolio to collect them all OR hide Partners that have more than 5% of your active portfolio to balance your risk... and much more).'
+                            ' Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.'
                         ),
                         _react2['default'].createElement(
                             'li',
@@ -71106,7 +71417,7 @@ var Options = _react2['default'].createClass({
                                 null,
                                 'Basket Pruning:'
                             ),
-                            ' By default, your basket will not clear when returning to the site. If your Lender ID is set, when you come back to KivaLens, your completed loans will be removed from your basket. If not set, you\'ll either need to click the "Return to 3rd party app" at the end of your Kiva checkout (which will clear your basket) or manually clear the basket when you come back.'
+                            ' Automatically removes completed loans from your basket when you return to KivaLens.'
                         ),
                         _react2['default'].createElement(
                             'li',
@@ -71116,7 +71427,7 @@ var Options = _react2['default'].createClass({
                                 null,
                                 'Team Comparison:'
                             ),
-                            ' On the "Teams" page, KivaLens will allow you to compare membership, loan count and total lending on all of the teams you\'re on.'
+                            ' Compare membership and lending across all your teams.'
                         ),
                         _react2['default'].createElement(
                             'li',
@@ -71126,39 +71437,56 @@ var Options = _react2['default'].createClass({
                                 null,
                                 '3D Loan Wall:'
                             ),
-                            ' Once your lender-id is set, you can see your own ',
+                            ' Visualize your portfolio at ',
                             _react2['default'].createElement(
                                 'a',
                                 { href: '#/portfolio' },
-                                '3D Loan Wall'
+                                'portfolio'
                             ),
-                            ' visualization using your portfolio.'
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        'p',
-                        null,
-                        'What this isn\'t:'
-                    ),
-                    _react2['default'].createElement(
-                        'ul',
-                        { className: 'spacedList' },
-                        _react2['default'].createElement(
-                            'li',
-                            null,
-                            'This does not log you in to Kiva. When you transfer your loans to Kiva, you\'ll still have to log in to your account. As long as your profile is public, your lender id is public information and can be seen by anyone on Kiva. It\'s not a secret.'
-                        ),
-                        _react2['default'].createElement(
-                            'li',
-                            null,
-                            'This does not allow KivaLens to view any private information on your account. KivaLens only pulls information publicly available, what\'s viewable from your lender page. While it can know that you made a loan to a borrower, it does not know how much you loaned or what team you attributed the loan to.'
-                        ),
-                        _react2['default'].createElement(
-                            'li',
-                            null,
-                            'This does not log you into KivaLens. Since it doesn\'t get any password and is just using your publicly known ID, this doesn\'t save any of your options or Saved Searches with KivaLens\' server because anyone can put anyone else\'s Lender ID in. KivaLens does not store any of your options on the server, they are stored with your browser so be careful about clearing all of your browser data or KivaLens will forget who you are and you\'ll need to rebuild all of your Saved Searches.'
+                            '.'
                         )
                     )
+                ),
+                _react2['default'].createElement(
+                    _reactBootstrap.Panel,
+                    { header: 'Display' },
+                    _react2['default'].createElement(
+                        'div',
+                        { className: 'form-group' },
+                        _react2['default'].createElement(
+                            'label',
+                            null,
+                            'Default Lending Amount'
+                        ),
+                        _react2['default'].createElement(
+                            'div',
+                            null,
+                            _react2['default'].createElement(
+                                'select',
+                                {
+                                    value: this.state.default_lend_amount || 25,
+                                    onChange: function (e) {
+                                        return _this.setState({ default_lend_amount: parseInt(e.target.value) });
+                                    },
+                                    style: { padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid #ccc' } },
+                                (0, _lendAmountOptions2['default'])(1000).map(function (o) {
+                                    return _react2['default'].createElement(
+                                        'option',
+                                        { key: o, value: o },
+                                        '$',
+                                        o
+                                    );
+                                })
+                            )
+                        )
+                    ),
+                    _react2['default'].createElement(_reactBootstrap.Input, {
+                        type: 'checkbox',
+                        label: 'Show distribution graphs when selecting criteria options',
+                        checked: !this.state.hide_criteria_graphs,
+                        onChange: function (e) {
+                            _this.setState({ hide_criteria_graphs: !e.target.checked });lsj.setMerge('Options', { hide_criteria_graphs: !e.target.checked });
+                        } })
                 ),
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
@@ -71235,17 +71563,6 @@ var Options = _react2['default'].createClass({
                 ),
                 _react2['default'].createElement(
                     _reactBootstrap.Panel,
-                    { header: 'Display' },
-                    _react2['default'].createElement(_reactBootstrap.Input, {
-                        type: 'checkbox',
-                        label: 'Show distribution graphs when selecting criteria options',
-                        checked: !this.state.hide_criteria_graphs,
-                        onChange: function (e) {
-                            _this.setState({ hide_criteria_graphs: !e.target.checked });lsj.setMerge('Options', { hide_criteria_graphs: !e.target.checked });
-                        } })
-                ),
-                _react2['default'].createElement(
-                    _reactBootstrap.Panel,
                     { header: 'Debug/Beta Testing' },
                     _react2['default'].createElement(_reactBootstrap.Input, {
                         type: 'checkbox',
@@ -71278,7 +71595,7 @@ var Options = _react2['default'].createClass({
 exports['default'] = Options;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores":725,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],711:[function(require,module,exports){
+},{".":723,"../actions":667,"../lendAmountOptions":724,"../stores":727,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"react-localstorage":379,"react-timeago":488,"reflux":650}],712:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71321,7 +71638,7 @@ var Outdated = _react2['default'].createClass({
 exports['default'] = Outdated;
 module.exports = exports['default'];
 
-},{"../actions":667,"react":634,"react-bootstrap":346}],712:[function(require,module,exports){
+},{"../actions":667,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71737,7 +72054,7 @@ var PartnerDetail = _react2['default'].createClass({
 exports['default'] = PartnerDetail;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores":725,"numeral":242,"react":634,"react-bootstrap":346}],713:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores":727,"numeral":242,"react":634,"react-bootstrap":346}],714:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71908,7 +72225,7 @@ var PartnerDisplayModal = _react2['default'].createClass({
 exports['default'] = PartnerDisplayModal;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores/":725,"react":634,"react-bootstrap":346,"reflux":650}],714:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores/":727,"react":634,"react-bootstrap":346,"reflux":650}],715:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -72216,7 +72533,7 @@ var Partners = _react2['default'].createClass({
 exports['default'] = Partners;
 module.exports = exports['default'];
 
-},{".":722,"../actions":667,"../stores/":725,"./CriteriaTabs.jsx":695,"./Mixins":708,"./PartnerDetail.jsx":712,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],715:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores/":727,"./CriteriaTabs.jsx":696,"./Mixins":709,"./PartnerDetail.jsx":713,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"react-cursor":362,"reflux":650}],716:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -72312,7 +72629,7 @@ var PromptModal = _react2['default'].createClass({
 exports['default'] = PromptModal;
 module.exports = exports['default'];
 
-},{"../actions":667,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],716:[function(require,module,exports){
+},{"../actions":667,"extend":95,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346,"reflux":650}],717:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73125,7 +73442,7 @@ var SavedSearches = _react2['default'].createClass({
 exports['default'] = SavedSearches;
 module.exports = exports['default'];
 
-},{"../actions":667,"../stores/":725,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],717:[function(require,module,exports){
+},{"../actions":667,"../stores/":727,"classnames":24,"extend":95,"numeral":242,"react":634,"react-bootstrap":346,"reflux":650}],718:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73435,7 +73752,7 @@ module.exports = exports['default'];
    Start Tutorial
 </Button> */
 
-},{".":722,"../actions":667,"../stores":725,"./InfiniteList.jsx":700,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],718:[function(require,module,exports){
+},{".":723,"../actions":667,"../stores":727,"./InfiniteList.jsx":701,"classnames":24,"numeral":242,"react":634,"react-bootstrap":346,"react-dom":364,"react-notification":393,"reflux":650}],719:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73585,7 +73902,7 @@ var SetLenderIDModal = _react2['default'].createClass({
 exports['default'] = SetLenderIDModal;
 module.exports = exports['default'];
 
-},{".":722,"../api/kiva":668,"../stores/":725,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],719:[function(require,module,exports){
+},{".":723,"../api/kiva":668,"../stores/":727,"react":634,"react-addons-linked-state-mixin":265,"react-bootstrap":346}],720:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -73738,7 +74055,7 @@ var SnowStack = _react2['default'].createClass({
 exports['default'] = SnowStack;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634}],720:[function(require,module,exports){
+},{"../actions":667,"../api/kivajs/LenderLoans":671,"react":634}],721:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -73974,7 +74291,7 @@ var Teams = _react2['default'].createClass({
 exports['default'] = Teams;
 module.exports = exports['default'];
 
-},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],721:[function(require,module,exports){
+},{"../api/kiva":668,"../api/kivajs/LenderTeams":672,"numeral":242,"react":634,"react-bootstrap":346,"react-highcharts/bundle/ReactHighcharts":374,"reflux":650}],722:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -74205,7 +74522,7 @@ exports['default'] = Tutorial;
 module.exports = exports['default'];
 /* Dark overlay */ /* Highlight target */ /* Tooltip */
 
-},{"react":634,"react-bootstrap":346}],722:[function(require,module,exports){
+},{"react":634,"react-bootstrap":346}],723:[function(require,module,exports){
 'use strict';
 //every component you want easily accessible should be added as an import and export in this file.
 //this allow you to do: import {Loan, Live, KivaImage, KivaLink} from '.' (the '.' just means the index.js in the current directory.)
@@ -74502,7 +74819,34 @@ exports.Partners = _PartnersJsx2['default'];
 exports.PartnerDetail = _PartnerDetailJsx2['default'];
 exports.SavedSearches = _SavedSearchesJsx2['default'];
 
-},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":691,"./ChartDistribution.jsx":692,"./ClearBasket.jsx":693,"./Criteria.jsx":694,"./CriteriaTabs.jsx":695,"./CycleChild.jsx":696,"./DidYouKnow.jsx":697,"./Donate.jsx":698,"./Face.jsx":699,"./KLFooter.jsx":701,"./KLNav.jsx":702,"./KivaImage.jsx":703,"./Live.jsx":704,"./LoadingLoansPanel.jsx":705,"./Loan.jsx":706,"./LoanListItem.jsx":707,"./OnNow.jsx":709,"./Options.jsx":710,"./Outdated.jsx":711,"./PartnerDetail.jsx":712,"./PartnerDisplayModal.jsx":713,"./Partners.jsx":714,"./PromptModal.jsx":715,"./SavedSearches.jsx":716,"./Search.jsx":717,"./SetLenderIDModal.jsx":718,"./SnowStack.jsx":719,"./Teams.jsx":720,"react":634}],723:[function(require,module,exports){
+},{"./About.jsx":686,"./AlertModal.jsx":687,"./AutoLendSettings.jsx":688,"./Basket.jsx":689,"./BasketListItem.jsx":690,"./BulkAddModal.jsx":692,"./ChartDistribution.jsx":693,"./ClearBasket.jsx":694,"./Criteria.jsx":695,"./CriteriaTabs.jsx":696,"./CycleChild.jsx":697,"./DidYouKnow.jsx":698,"./Donate.jsx":699,"./Face.jsx":700,"./KLFooter.jsx":702,"./KLNav.jsx":703,"./KivaImage.jsx":704,"./Live.jsx":705,"./LoadingLoansPanel.jsx":706,"./Loan.jsx":707,"./LoanListItem.jsx":708,"./OnNow.jsx":710,"./Options.jsx":711,"./Outdated.jsx":712,"./PartnerDetail.jsx":713,"./PartnerDisplayModal.jsx":714,"./Partners.jsx":715,"./PromptModal.jsx":716,"./SavedSearches.jsx":717,"./Search.jsx":718,"./SetLenderIDModal.jsx":719,"./SnowStack.jsx":720,"./Teams.jsx":721,"react":634}],724:[function(require,module,exports){
+'use strict';
+
+/**
+ * Builds the list of lending amount options for a loan.
+ * - $25 increments up to $500
+ * - $100 increments from $500 up to max
+ * - Always includes the exact max as the final entry (if not already present)
+ */
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+function lendAmountOptions(maxAmount) {
+    if (!maxAmount || maxAmount <= 0) return [];
+    var options = [];
+    var amount = 25;
+    while (amount < maxAmount) {
+        options.push(amount);
+        amount += amount < 500 ? 25 : 100;
+    }
+    options.push(maxAmount);
+    return options;
+}
+
+exports['default'] = lendAmountOptions;
+module.exports = exports['default'];
+
+},{}],725:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 //MORE LINQ GOODNESS
@@ -74558,7 +74902,7 @@ Array.prototype.chunk = function (chunkSize) {
 };
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],724:[function(require,module,exports){
+},{}],726:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -75008,7 +75352,7 @@ function set_cache(key, value) {
 exports['default'] = criteriaStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":729,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],725:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"../utils":731,"extend":95,"jquery-deferred":159,"linqjs":164,"reflux":650}],727:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -75040,7 +75384,7 @@ exports['default'] = s;
 window.kl_stores = s;
 module.exports = exports['default'];
 
-},{"./criteriaStore":724,"./liveStore":726,"./loanStore":727,"./utilsStore":728}],726:[function(require,module,exports){
+},{"./criteriaStore":726,"./liveStore":728,"./loanStore":729,"./utilsStore":730}],728:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -75063,7 +75407,7 @@ var liveStore = _reflux2['default'].createStore({ init: function init() {} });
 exports['default'] = liveStore;
 module.exports = exports['default'];
 
-},{"reflux":650}],727:[function(require,module,exports){
+},{"reflux":650}],729:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -75183,6 +75527,15 @@ var loanStore = _reflux2['default'].createStore({
             this._basketSave();
         }
     },
+    onBasketSetAmount: function onBasketSetAmount(loan_id, amount) {
+        var item = basket_loans.first(function (bi) {
+            return bi.loan_id == loan_id;
+        });
+        if (item) {
+            item.amount = amount;
+            this._basketSave();
+        }
+    },
     onBasketRemove: function onBasketRemove(loan_id) {
         basket_loans.removeAll(function (bi) {
             return bi.loan_id == loan_id;
@@ -75297,7 +75650,7 @@ var loanStore = _reflux2['default'].createStore({
 exports['default'] = loanStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":724,"reflux":650}],728:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"../api/syncStorage":683,"./criteriaStore":726,"reflux":650}],730:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, '__esModule', {
     value: true
@@ -75352,6 +75705,7 @@ var utilsStore = _reflux2['default'].createStore({
             _apiKiva.req.kiva.api.lender(lender_id).done(function (lender) {
                 _this.lenderObj = lender;
                 lsj.set("lenderObj", lender);
+                _actions2['default'].utils.dataLoaded();
             }).fail(function (msg, status) {
                 window.rga.event({ category: 'error', action: 'BadLenderId:' + status + ':' + msg, label: lender_id });
                 if (displayError && (status == 400 || status == 404)) {
@@ -75375,7 +75729,7 @@ var utilsStore = _reflux2['default'].createStore({
 exports['default'] = utilsStore;
 module.exports = exports['default'];
 
-},{"../actions":667,"../api/kiva":668,"reflux":650}],729:[function(require,module,exports){
+},{"../actions":667,"../api/kiva":668,"reflux":650}],731:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();

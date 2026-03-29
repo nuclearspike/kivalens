@@ -12,6 +12,9 @@ require('./stores/liveStore')
 require('./api/syncStorage')
 
 
+var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
+Highcharts.Highcharts.setOptions({lang: {thousandsSep: ','}})
+
 import React from 'react'
 import Reflux from 'reflux'
 import ReactDOM from 'react-dom'
@@ -42,7 +45,7 @@ const GlobalLenderIDModal = React.createClass({
     onSet(lenderId) {
         lsj.setMerge('Options', {kiva_lender_id: lenderId})
         window.dispatchEvent(new Event('storage')) // notify KLNav
-        window.location.reload()
+        a.utils.dataLoaded()
     },
     render() {
         return <SetLenderIDModal show={this.state.show} onSet={this.onSet} onHide={this.hideModal} />
@@ -66,10 +69,15 @@ global.rga.event({category: 'timer', action: 'loadToStart', value: Math.round((D
 
 const App = React.createClass({
     mixins: [Reflux.ListenerMixin],
-    getInitialState(){ return { } },
+    getInitialState(){ return {renderKey: 0} },
+    bumpKey(){ this.setState(s => ({renderKey: s.renderKey + 1})) },
     componentDidMount(){
         ga.initialize('UA-10202885-1')
         this.listenTo(a.loans.live.new, this.newLoansTest)
+        this.listenTo(a.loans.load.completed, this.bumpKey)
+        this.listenTo(a.loans.load.descriptions, this.bumpKey)
+        this.listenTo(a.partners.load.completed, this.bumpKey)
+        this.listenTo(a.utils.dataLoaded, this.bumpKey)
         if (!this.props.children)
             history.push('/search')
     },
@@ -94,7 +102,7 @@ const App = React.createClass({
     },
     render(){
         this.logPageChange()
-        return <div>
+        return <div key={this.state.renderKey}>
                 <KLNav/>
                     <PromptModal/>
                     <AlertModal/>

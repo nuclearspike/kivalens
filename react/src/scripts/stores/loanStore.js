@@ -100,6 +100,13 @@ var loanStore = Reflux.createStore({
             this._basketSave()
         }
     },
+    onBasketSetAmount(loan_id, amount){
+        var item = basket_loans.first(bi => bi.loan_id == loan_id)
+        if (item) {
+            item.amount = amount
+            this._basketSave()
+        }
+    },
     onBasketRemove(loan_id){
         basket_loans.removeAll(bi => bi.loan_id == loan_id)
         window.rga.event({category: 'basket', action: 'basket:remove'})

@@ -40,6 +40,7 @@ var utilsStore = Reflux.createStore({
                 .done(lender => {
                     this.lenderObj = lender
                     lsj.set("lenderObj",lender)
+                    a.utils.dataLoaded()
                 })
                 .fail((msg,status) => {
                     window.rga.event({category: 'error', action: `BadLenderId:${status}:${msg}`, label: lender_id})

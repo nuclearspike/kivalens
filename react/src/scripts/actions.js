@@ -10,7 +10,7 @@ a.loans = Reflux.createActions({
     "filter": {children: ["completed"]},
     "detail": {children: ["completed"]},
     'selection': {children: ["completed"]},
-    "basket": {children: ["add", "remove","select","changed","batchAdd","clear"]},
+    "basket": {children: ["add", "remove","select","changed","batchAdd","clear","setAmount"]},
     "backgroundResync":{ children: ["removed", "added", "updated"]}, //?
     "refresh": {children: ["completed"]}
 })
@@ -42,6 +42,8 @@ a.utils.modal = Reflux.createActions({
     "partnerDisplay": {children: ["completed"]},
     "alert": {children: ["completed"]}
 })
+
+a.utils.dataLoaded = Reflux.createAction()
 
 window.kl_actions = a
 export default a

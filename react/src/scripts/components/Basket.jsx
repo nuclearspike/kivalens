@@ -8,6 +8,7 @@ import a from '../actions'
 import s from '../stores'
 import InfiniteList from './InfiniteList.jsx'
 import extend from 'extend'
+import BasketRepaymentChart from './BasketRepaymentChart.jsx'
 
 const Basket = React.createClass({
     mixins: [Reflux.ListenerMixin],
@@ -22,17 +23,23 @@ const Basket = React.createClass({
     },
     generateState(){
         var basket_items = s.loans.syncGetBasket()
+        var selected_item_id = this.state && this.state.selected_item_id
+        if (selected_item_id && !basket_items.any(bi => bi.loan.id == selected_item_id))
+            selected_item_id = null
         return {
             loans_ready: kivaloans.isReady(),
             basket_count: basket_items.length,
             basket_items: basket_items,
             loans: basket_items.select(bi => bi.loan),
-            amount_sum: basket_items.sum(bi => bi.amount),
-            raw_basket_count: s.loans.syncBasketCount()
+            amount_sum: basket_items.where(bi => bi.loan.kl_still_needed > 0).sum(bi => bi.amount),
+            raw_basket_count: s.loans.syncBasketCount(),
+            selected_item_id
         }
     },
     makeBasket(){
-        return JSON.stringify(this.state.basket_items.select(bi => ({"id": bi.loan.id, "amount": bi.amount})))
+        return JSON.stringify(this.state.basket_items
+            .where(bi => bi.loan.kl_still_needed > 0)
+            .select(bi => ({"id": bi.loan.id, "amount": bi.amount})))
     },
     remove(e) {
         e.preventDefault()
@@ -102,7 +109,7 @@ const Basket = React.createClass({
         let {basket_count,selected_item_id,amount_sum,basket_items,refreshing,showGoodbye,loans_ready} = this.state
         return (
             <div style={{height:'100%', width: '100%'}}>
-                <Col md={4}>
+                <Col md={3}>
                     <ButtonGroup justified className="top-only">
                         <Button href="#" key={1} disabled={basket_count == 0} onClick={this.clear}>Empty Basket</Button>
                         <Button href="#" key={3} disabled={!selected_item_id} onClick={this.remove}>Remove Selected</Button>
@@ -118,16 +125,15 @@ const Basket = React.createClass({
                     <InfiniteList
                         className="loan_list_container"
                         items={basket_items}
-                        height={600}
+                        height={900}
                         itemHeight={100}
                         itemsCount={basket_count}
                         listItemClass={BasketListItem} />
                 </Col>
-                <Col md={8}>
+                <Col md={3}>
                     <Panel>
-                        <h1>Basket: {basket_count} loans ${amount_sum}</h1>
+                        <h3 style={{margin: '0 0 8px'}}>Basket: {basket_count} loans ${amount_sum}</h3>
                         <form method="POST" ref='basket_form' action="https://www.kiva.org/basket/set">
-                            <p>Note: Checking out will replace your current basket on Kiva.</p>
                             <input name="callback_url" value={`${location.protocol}//${location.host}${location.pathname}#clear-basket`} type="hidden" />
                             <input name="loans" value={this.makeBasket()} type="hidden" />
                             <input name="donation" value="0.00" type="hidden" />
@@ -141,6 +147,11 @@ const Basket = React.createClass({
                     {refreshing ? <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
                         </Alert> : null}
+                    {basket_count > 0 && loans_ready ?
+                        <BasketRepaymentChart basket_items={basket_items} amount_sum={amount_sum} />
+                    : null}
+                </Col>
+                <Col md={6} style={{overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
                     {selected_item_id ? <Loan params={{id: selected_item_id}}/> : null}
                 </Col>
 
