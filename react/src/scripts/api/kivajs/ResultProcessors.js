@@ -170,9 +170,17 @@ class ResultProcessors {
                     return { date: date, display: date.toString("MMM-yyyy"), amount: p.amount }
                 })
 
+                //merge payments that fall in the same display month (UTC vs local timezone edge case)
+                repayments = repayments.groupBy(r => r.display).select(g => ({
+                    date: g.last().date,
+                    display: g[0].display,
+                    amount: g.sum(r => r.amount)
+                }))
+
                 //fill in the gaps for southern-guy-toothy-shaped repayments.
                 var nextDate = new Date(Math.min(Date.next().month().set({day: 1}).clearTime(), repayments.first().date)).clearTime()
-                var lastDate = repayments.last().date.clearTime()
+                var lastDate = new Date(repayments.last().date.getTime())
+                lastDate.clearTime()
                 while (nextDate <= lastDate) {
                     let displayToTest = nextDate.toString("MMM-yyyy")
                     let repayment = repayments.first(r => r.display == displayToTest)

@@ -971,6 +971,9 @@ class Loans {
     if (refreshed.funded_amount < existing.funded_amount)
       delete refreshed.funded_amount //prevents the merge of this property
     extend(true, existing, refreshed, extra)
+    //recalculate computed fields that depend on the dynamic fields we just merged
+    existing.kl_still_needed = Math.max(existing.loan_amount - existing.funded_amount - existing.basket_amount, 0)
+    existing.kl_percent_funded = (100 * (existing.funded_amount + existing.basket_amount)) / existing.loan_amount
     if (old_status == 'fundraising' && refreshed.status != 'fundraising') {
       if (refreshed.status == "funded" || refreshed.status == 'in_repayment') this.running_totals.funded_loans++
       if (refreshed.status == "expired") this.running_totals.expired_loans++

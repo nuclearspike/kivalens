@@ -26,6 +26,7 @@ body {
   line-height: 22px;
   color: rgba(255, 255, 255, 0.85) !important;
   border-top: 3px solid transparent;
+  -webkit-transition: all 150ms ease;
   transition: all 150ms ease;
 }
 .navbar .navbar-nav > li > a:hover, .navbar .navbar-nav > li > a:focus {
@@ -138,6 +139,7 @@ body {
 }
 
 .loan_list_item {
+  -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
   z-index: 10;
 }
@@ -198,7 +200,8 @@ body {
 }
 .loan_list_item.selected {
   z-index: 12;
-  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+          transform: rotateY(0deg);
   background-color: #e8f5ee;
 }
 
@@ -260,7 +263,8 @@ div.panel.radioPanel div.radio {
 .PartnerDetail img {
   max-height: 300px;
   max-width: 100%;
-  object-fit: contain;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .loading_notice {
@@ -281,11 +285,13 @@ div.panel.radioPanel div.radio {
   background-image: none;
 }
 .KivaImage.loaded img {
+  -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
   opacity: 1;
 }
 
 .KivaImage.not_loaded img {
+  -webkit-transition: all 300ms ease;
   transition: all 300ms ease;
   opacity: 0;
 }
@@ -296,6 +302,7 @@ div.panel.radioPanel div.radio {
   padding-top: 3px !important;
   padding-bottom: 3px !important;
   border-left: 3px solid transparent !important;
+  -webkit-transition: border-color 200ms ease, background-color 300ms ease;
   transition: border-color 200ms ease, background-color 300ms ease;
 }
 .loan_list_item:hover {
@@ -507,12 +514,16 @@ ul.spacedList li {
     white-space: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    flex-wrap: nowrap;
+    -ms-flex-wrap: nowrap;
+        flex-wrap: nowrap;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
   }
   .nav-tabs > li {
     float: none;
-    flex-shrink: 0;
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
   }
 }
 .loan_list_container {
@@ -561,7 +572,8 @@ ul.spacedList li {
 }
 
 .blur-me {
-  filter: blur(20px);
+  -webkit-filter: blur(20px);
+          filter: blur(20px);
 }
 
 div.notification-bar {
@@ -593,7 +605,6 @@ div.notification-bar {
 .Select input,
 .Select span {
   -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -602,7 +613,8 @@ div.notification-bar {
 }
 
 .Select.is-disabled > .Select-control:hover {
-  box-shadow: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
 }
 
 .Select.is-disabled .Select-arrow-zone {
@@ -626,7 +638,8 @@ div.notification-bar {
 }
 
 .Select-control:hover {
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+          box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .is-searchable.is-open > .Select-control {
@@ -651,7 +664,8 @@ div.notification-bar {
 
 .is-focused:not(.is-open) > .Select-control {
   border-color: #007eff;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
 }
 
 .Select-placeholder,
@@ -701,7 +715,8 @@ div.notification-bar {
 .Select-input > input {
   background: none transparent;
   border: 0 none;
-  box-shadow: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
   cursor: default;
   display: inline-block;
   font-family: inherit;
@@ -736,11 +751,11 @@ div.notification-bar {
 
 .Select-loading {
   -webkit-animation: Select-animation-spin 400ms infinite linear;
-  -o-animation: Select-animation-spin 400ms infinite linear;
   animation: Select-animation-spin 400ms infinite linear;
   width: 16px;
   height: 16px;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   border-radius: 50%;
   border: 2px solid #ccc;
   border-right-color: #333;
@@ -751,7 +766,6 @@ div.notification-bar {
 
 .Select-clear-zone {
   -webkit-animation: Select-animation-fadeIn 200ms;
-  -o-animation: Select-animation-fadeIn 200ms;
   animation: Select-animation-fadeIn 200ms;
   color: #999;
   cursor: pointer;
@@ -822,8 +836,10 @@ div.notification-bar {
   background-color: #fff;
   border: 1px solid #ccc;
   border-top-color: #e6e6e6;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+          box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   margin-top: -1px;
   max-height: 200px;
   position: absolute;
@@ -839,7 +855,8 @@ div.notification-bar {
 }
 
 .Select-option {
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   background-color: #fff;
   color: #666666;
   cursor: pointer;
@@ -863,7 +880,8 @@ div.notification-bar {
 }
 
 .Select-noresults {
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   color: #999999;
   cursor: default;
   display: block;
@@ -953,7 +971,8 @@ div.notification-bar {
 
 @keyframes Select-animation-spin {
   to {
-    transform: rotate(1turn);
+    -webkit-transform: rotate(1turn);
+            transform: rotate(1turn);
   }
 }
 @-webkit-keyframes Select-animation-spin {
@@ -1028,6 +1047,7 @@ div.notification-bar {
 
 .simpleFade-enter.simpleFade-enter-active {
   opacity: 1;
+  -webkit-transition: opacity 200ms ease-in;
   transition: opacity 200ms ease-in;
 }
 
@@ -1037,5 +1057,6 @@ div.notification-bar {
 
 .simpleFade-leave.simpleFade-leave-active {
   opacity: 0.01;
+  -webkit-transition: opacity 100ms ease-in;
   transition: opacity 100ms ease-in;
 }
