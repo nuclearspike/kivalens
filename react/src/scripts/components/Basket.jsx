@@ -117,7 +117,7 @@ const Basket = React.createClass({
                     {basket_count == 0 ? <Alert className="not-rounded-top" style={{marginBottom:'0px'}} >
                             There are no loans in your basket. To add loans to your basket:
                             <ul>
-                                <li>Click the "Add to Basket" button when viewing a loan.</li>
+                                <li>Click the "Lend" button when viewing a loan.</li>
                                 <li>Double-click a loan in the results.</li>
                                 <li>Use the "Bulk Add" button to add many loans at once.</li>
                             </ul>
@@ -139,17 +139,17 @@ const Basket = React.createClass({
                             <input name="donation" value="0.00" type="hidden" />
                             <input name="app_id" value="org.kiva.kivalens" type="hidden" />
                         </form>
-                        <Button bsStyle='primary' disabled={basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
+                        <Button bsStyle='success' disabled={basket_count == 0} onClick={this.transferToKiva}>Checkout at Kiva</Button>
                     </Panel>
+                    {basket_count > 0 && loans_ready ?
+                        <BasketRepaymentChart basket_items={basket_items} amount_sum={amount_sum} />
+                    : null}
                     {!loans_ready ? <Alert bsStyle="warning">
                             Loans from Kiva are still loading. Please wait...
                         </Alert> : null}
                     {refreshing ? <Alert bsStyle="info">
                             Loans in your basket are being refreshed to get the latest funded and basket amounts from Kiva.
                         </Alert> : null}
-                    {basket_count > 0 && loans_ready ?
-                        <BasketRepaymentChart basket_items={basket_items} amount_sum={amount_sum} />
-                    : null}
                 </Col>
                 <Col md={6} style={{overflowY: 'auto', maxHeight: 'calc(100vh - 60px)'}}>
                     {selected_item_id ? <Loan params={{id: selected_item_id}}/> : null}

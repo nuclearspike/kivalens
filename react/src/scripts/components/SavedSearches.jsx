@@ -414,7 +414,7 @@ const SavedSearches = React.createClass({
                                 <span className="badge" style={{
                                     minWidth: 36, textAlign: 'center', marginRight: 6, flexShrink: 0,
                                     fontSize: 11, padding: '2px 5px',
-                                    backgroundColor: '#4a8a6c',
+                                    backgroundColor: '#2C8C5E',
                                     color: '#fff'
                                 }}>{allCounts[name] !== undefined ? allCounts[name] : '...'}</span>
                                 <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{name}</span>
@@ -459,7 +459,7 @@ const SavedSearches = React.createClass({
                             </h3>
 
                             <div style={{marginBottom: 16}}>
-                                <span style={{fontSize: 18, fontWeight: 600, color: '#2c6e49'}}>
+                                <span style={{fontSize: 18, fontWeight: 600, color: '#2C8C5E'}}>
                                     {counting ? 'Counting...' : loanCount !== null ? numeral(loanCount).format('0,0') + ' matching loans' : ''}
                                 </span>
                             </div>

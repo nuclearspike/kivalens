@@ -19,12 +19,12 @@ const WelcomePanel = React.createClass({
     render() {
         var {hasLenderID} = this.state
         return <div style={{padding: '20px 24px'}}>
-            <h2 style={{marginTop: 0, color: '#2c6e49'}}>Welcome to KivaLens</h2>
+            <h2 style={{marginTop: 0, color: '#2C8C5E'}}>Welcome to KivaLens</h2>
             <h4>Quick Start</h4>
             <ol style={{paddingLeft: 18, lineHeight: 1.8}}>
                 <li>Use the criteria on the left to filter loans</li>
                 <li>Click a loan to review details and repayment info</li>
-                <li>Click "Add to Basket" on loans you like</li>
+                <li>Click "Lend" on loans you like</li>
                 <li>Go to Basket tab to transfer loans to Kiva</li>
             </ol>
 

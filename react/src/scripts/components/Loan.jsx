@@ -190,7 +190,18 @@ var Loan = React.createClass({
         const borrowerPill = b => <span key={b.first_name+b.gender} className={`borrower-pill borrower-${b.gender == 'F' ? 'female' : 'male'}`}>{b.first_name}</span>
         var pictured = loan.borrowers.where(b=>b.pictured).map(borrowerPill)
         var not_pictured = loan.borrowers.where(b=>!b.pictured).map(borrowerPill)
-        var matching = s.criteria.syncGetMatchingCriteria(loan).join(', ') || '(none)'
+        var matchingNames = s.criteria.syncGetMatchingCriteria(loan)
+        var matching = matchingNames.length
+            ? matchingNames.map((name, i) => (
+                <span key={name}>
+                    {i > 0 ? ', ' : ''}
+                    <a href="#" onClick={function(e) {
+                        e.preventDefault()
+                        a.criteria.switchToSaved(name)
+                    }}>{name}</a>
+                </span>
+            ))
+            : '(none)'
         return {loan, matching, pictured, not_pictured, partner, basket_perc, funded_perc, similar: loan.kl_similar || [], inBasket: s.loans.syncInBasket(loan.id), lendAmount: this.defaultLendAmountForLoan(loan)}
     },
     displayLoan(loan){
@@ -248,7 +259,7 @@ var Loan = React.createClass({
         if (partner && !partner.social_performance_strengths) partner.social_performance_strengths = [] //happens other than old partners? todo: do a partner processor?
         return (
             <div className="Loan">
-                <h1 style={{marginTop:'0px'}}><LoanLink loan={loan}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></LoanLink>{loan.name}
+                <h1 style={{marginTop:'0px'}}><LoanLink loan={loan}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2C8C5E', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></LoanLink>{loan.name}
     {inBasket ?
                         <Button bsStyle="danger" className="float_right" onClick={a.loans.basket.remove.bind(this, loan.id)}>Remove from Basket</Button>
                     :
@@ -303,31 +314,31 @@ var Loan = React.createClass({
                         </p>
                         <div style={{display: 'flex', gap: 12}}>
                             <div style={{flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0}}>
-                                <div><span style={{color: '#999', fontSize: 11}}>Matches Saved Searches</span><br/>{matching}</div>
-                                <div><span style={{color: '#999', fontSize: 11}}>Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
-                                {(loan.themes && loan.themes.length) ? <div><span style={{color: '#999', fontSize: 11}}>Themes</span><br/>{loan.themes.join(', ')}</div> : null}
-                                <div><span style={{color: '#999', fontSize: 11}}>{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>
-                                <div><span style={{color: '#999', fontSize: 11}}>Posted</span><br/>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.posted_date} />)</div>
+                                <div><span className="detail-label">Matches Saved Searches</span><br/>{matching}</div>
+                                <div><span className="detail-label">Tags</span><br/>{(loan.kls_tags.length)? loan.kls_tags.select(t=>humanize(t)).join(', '): '(none)'}</div>
+                                {(loan.themes && loan.themes.length) ? <div><span className="detail-label">Themes</span><br/>{loan.themes.join(', ')}</div> : null}
+                                <div><span className="detail-label">{loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}</span><br/>{loan.borrowers.length === 1 ? (loan.kl_percent_women === 100 ? 'Female' : 'Male') : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women)}% Female)`}</div>
+                                <div><span className="detail-label">Posted</span><br/>{loan.kl_posted_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.posted_date} />)</div>
 {loan.status != 'fundraising' ?
-                                    <div><span style={{color: '#999', fontSize: 11}}>Status</span><br/>{humanize(loan.status)}</div>
+                                    <div><span className="detail-label">Status</span><br/>{humanize(loan.status)}</div>
                                 : null}
 {loan.funded_date ?
-                                    <div><span style={{color: '#999', fontSize: 11}}>Funded</span><br/>{new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm tt')}</div>
+                                    <div><span className="detail-label">Funded</span><br/>{new Date(loan.funded_date).toString('MMM d, yyyy @ h:mm tt')}</div>
                                 : null}
 {loan.status == 'fundraising' ?
-                                    <div><span style={{color: '#999', fontSize: 11}}>Expires</span><br/>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.planned_expiration_date} />)</div>
+                                    <div><span className="detail-label">Expires</span><br/>{loan.kl_planned_expiration_date.toString('MMM d, yyyy @ h:mm tt')} (<TimeAgo date={loan.planned_expiration_date} />)</div>
                                 : null}
 {loan.terms.disbursal_date ?
-                                    <div><span style={{color: '#999', fontSize: 11}}>Disbursed</span><br/>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />)</div>
+                                    <div><span className="detail-label">Disbursed</span><br/>{new Date(loan.terms.disbursal_date).toString('MMM d, yyyy')} (<TimeAgo date={loan.terms.disbursal_date} />)</div>
                                 : null}
 {loan.status == 'fundraising' ?
-                                    <div><span style={{color: '#999', fontSize: 11}}>Final Repayment In</span><br/>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
+                                    <div><span className="detail-label">Final Repayment In</span><br/>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
                                 : null}
 {loan.status == 'fundraising' ?
                                     <div style={{marginTop: 4}}>
-                                        <div><span style={{color: '#999', fontSize: 11}}>$/Hour</span> ${numeral(loan.kl_dollars_per_hour()).format('0.00')}</div>
-                                        <div><span style={{color: '#999', fontSize: 11}}>Amount</span> ${numeral(loan.loan_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Funded</span> ${numeral(loan.funded_amount).format('0,0')}</div>
-                                        <div><span style={{color: '#999', fontSize: 11}}>In Baskets</span> ${numeral(loan.basket_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span style={{color: '#999', fontSize: 11}}>Still Needed</span> ${numeral(loan.kl_still_needed).format('0,0')}</div>
+                                        <div><span className="detail-label">$/Hour</span> ${numeral(loan.kl_dollars_per_hour()).format('0.00')}</div>
+                                        <div><span className="detail-label">Amount</span> ${numeral(loan.loan_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span className="detail-label">Funded</span> ${numeral(loan.funded_amount).format('0,0')}</div>
+                                        <div><span className="detail-label">In Baskets</span> ${numeral(loan.basket_amount).format('0,0')} <span style={{color: '#ccc'}}>|</span> <span className="detail-label">Still Needed</span> ${numeral(loan.kl_still_needed).format('0,0')}</div>
                                     </div>
                                 : null}
                             </div>

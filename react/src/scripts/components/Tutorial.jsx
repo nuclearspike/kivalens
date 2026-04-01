@@ -29,11 +29,11 @@ const STEPS = [
         position: 'left'
     },
     {
-        title: 'Add to Basket',
-        text: 'Click a loan from the list, then click the green "Add to Basket" button. You can review everything in the Basket tab before checking out on Kiva.',
-        target: '.btn-success.float_right',
+        title: 'Lend',
+        text: 'Click a loan from the list, then click the green "Lend" button. You can review everything in the Basket tab before checking out on Kiva.',
+        target: '.float_right',
         position: 'below',
-        fallbackText: 'Try clicking a loan from the list first — you\'ll see an "Add to Basket" button appear in the loan details.'
+        fallbackText: 'Try clicking a loan from the list first — you\'ll see a "Lend" button appear in the loan details.'
     },
     {
         title: 'Your Basket',
@@ -124,7 +124,7 @@ const Tutorial = React.createClass({
             position: 'fixed',
             zIndex: 10002,
             background: '#fff',
-            border: '2px solid #2c6e49',
+            border: '2px solid #2C8C5E',
             borderRadius: 8,
             padding: '16px 20px',
             maxWidth: 360,
@@ -158,7 +158,7 @@ const Tutorial = React.createClass({
                 left: rect.left - 4,
                 width: rect.width + 8,
                 height: rect.height + 8,
-                border: '3px solid #2c6e49',
+                border: '3px solid #2C8C5E',
                 borderRadius: 6,
                 pointerEvents: 'none',
                 boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)',
@@ -181,7 +181,7 @@ const Tutorial = React.createClass({
                     <div style={{fontSize: 11, color: '#999', marginBottom: 4}}>
                         Step {stepNum + 1} of {totalSteps}
                     </div>
-                    <h4 style={{marginTop: 0, marginBottom: 8, color: '#2c6e49'}}>{step.title}</h4>
+                    <h4 style={{marginTop: 0, marginBottom: 8, color: '#2C8C5E'}}>{step.title}</h4>
                     <p style={{marginBottom: 12, fontSize: 13, lineHeight: 1.5}}>{displayText}</p>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Button bsSize="small" onClick={this.finish} style={{color: '#fff'}}>Skip Tutorial</Button>

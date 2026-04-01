@@ -2,7 +2,7 @@
 $kiva-green: #2C8C5E;
 $kiva-green-light: #e8f5ee;
 $kiva-green-dark: #1a3d2e;
-$kiva-action: #28a745;
+$kiva-action: $kiva-green;
 $kiva-text: #2d2d2d;
 $kiva-text-muted: #6c757d;
 $kiva-border: #dee2e6;
@@ -117,12 +117,28 @@ body {
   padding: 4px 8px;
 }
 
+// Detail labels (loan detail metadata)
+.detail-label {
+  color: $kiva-text-muted;
+  font-size: 11px;
+}
+
 // Compact alerts
 .alert {
   padding: 8px 12px;
   margin-bottom: 10px;
   font-size: 13px;
   a { color: black !important; }
+}
+
+// Green buttons (Checkout, etc.)
+.btn-success {
+  background-color: $kiva-green !important;
+  border-color: $kiva-green !important;
+  &:hover, &:focus, &:active {
+    background-color: darken($kiva-green, 8%) !important;
+    border-color: darken($kiva-green, 8%) !important;
+  }
 }
 
 // Badge styling

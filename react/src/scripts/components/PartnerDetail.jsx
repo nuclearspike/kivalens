@@ -50,7 +50,7 @@ const PartnerDetail = React.createClass({
                     </div>
                 : null}
                 <h2>
-                    <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2c6e49', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></KivaLink>
+                    <KivaLink path={`about/where-kiva-works/partners/${partner.id}`}><span style={{display: 'inline-block', width: 18, height: 18, lineHeight: '18px', borderRadius: '50%', background: '#2C8C5E', color: '#fff', textAlign: 'center', fontSize: 11, fontWeight: 700, verticalAlign: 'middle', marginRight: 6, position: 'relative', top: -2}}>K</span></KivaLink>
                     {partner.name}
                     {this.props.showStatus && partner.status !== 'active' ?
                         <span> <Label bsStyle={statusColors[partner.status] || 'default'}>{partner.status}</Label></span>

@@ -54,7 +54,7 @@ const About = React.createClass({
               repayment schedule, and partner information on the right.
             </li>
             <li>
-              <b>Add to basket</b> — Click "Add to Basket" on loans you like.
+              <b>Lend</b> — Click "Lend" on loans you like.
               Use "Bulk Add" to add many at once.
             </li>
             <li>

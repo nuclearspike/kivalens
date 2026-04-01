@@ -104,7 +104,7 @@ const Options = React.createClass({
                         <li><b>Portfolio Balancing:</b> Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.</li>
                         <li><b>Basket Pruning:</b> Automatically removes completed loans from your basket when you return to KivaLens.</li>
                         <li><b>Team Comparison:</b> Compare membership and lending across all your teams.</li>
-                        <li><b>3D Loan Wall:</b> Visualize your portfolio at <a href="#/portfolio">portfolio</a>.</li>
+                        <li><b>3D Loan Wall:</b> Visualize your portfolio at <a href="#/portfolio">wall</a>.</li>
                     </ul>
                 </Panel>
                 <Panel header='Display'>

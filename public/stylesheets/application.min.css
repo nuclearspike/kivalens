@@ -43,7 +43,7 @@ body {
   color: #2d2d2d !important;
 }
 .navbar .badge {
-  background-color: #28a745 !important;
+  background-color: #2C8C5E !important;
   color: #ffffff !important;
   font-size: 10px;
   padding: 2px 5px;
@@ -102,6 +102,11 @@ body {
   padding: 4px 8px;
 }
 
+.detail-label {
+  color: #6c757d;
+  font-size: 11px;
+}
+
 .alert {
   padding: 8px 12px;
   margin-bottom: 10px;
@@ -111,8 +116,17 @@ body {
   color: black !important;
 }
 
+.btn-success {
+  background-color: #2C8C5E !important;
+  border-color: #2C8C5E !important;
+}
+.btn-success:hover, .btn-success:focus, .btn-success:active {
+  background-color: rgb(34.2434782609, 108.9565217391, 73.1565217391) !important;
+  border-color: rgb(34.2434782609, 108.9565217391, 73.1565217391) !important;
+}
+
 .badge {
-  background-color: #28a745 !important;
+  background-color: #2C8C5E !important;
   font-size: 11px;
   padding: 2px 6px;
   margin-left: 3px;
@@ -522,7 +536,7 @@ ul.spacedList li {
 }
 
 .in_basket {
-  background-color: #28a745 !important;
+  background-color: #2C8C5E !important;
   color: #ffffff !important;
   border-left-color: #1e7e34 !important;
 }

@@ -35,6 +35,17 @@ var cluster = require('cluster')
 var fs = require('fs')
 var extend = require('extend')
 
+// Airbrake error tracking (server-side)
+var airbrake = null
+if (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_PROJECT_KEY) {
+    var Airbrake = require('@airbrake/node')
+    airbrake = new Airbrake.Notifier({
+        projectId: parseInt(process.env.AIRBRAKE_PROJECT_ID),
+        projectKey: process.env.AIRBRAKE_PROJECT_KEY,
+        environment: process.env.NODE_ENV || 'production'
+    })
+}
+
 const mb = 1024 * 1024
 function formatMB(bytes){
     return Math.round(bytes / mb)
@@ -123,7 +134,10 @@ if (cluster.isMaster){ //preps the downloads
             var todo = css.length + js.length
             const renderIndex = () => {
                 if (--todo) return //if it has anything left to do, leave.
-                var index = ejs.render(buffer.toString(), {js, css, start}, {})
+                var airbrakeClient = (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_PROJECT_KEY)
+                    ? {projectId: parseInt(process.env.AIRBRAKE_PROJECT_ID), projectKey: process.env.AIRBRAKE_PROJECT_KEY, environment: process.env.NODE_ENV || 'production'}
+                    : null
+                var index = ejs.render(buffer.toString(), {js, css, start, airbrake: airbrakeClient}, {})
                 fs.writeFile(__dirname + '/public/index.html', index, x => {
                     console.log("## rendered index!")
                 })
@@ -643,7 +657,7 @@ else  //workers handle all communication with the clients.
     // compress all responses
     app.use(compression()); //first!
 
-    if (typeof airbrake === 'object') {
+    if (airbrake !== null && typeof airbrake === 'object') {
         console.log("**** adding airbrake to express")
         app.use(airbrake.expressHandler());
     }
@@ -1051,8 +1065,8 @@ else  //workers handle all communication with the clients.
 <html><head><meta charset="utf-8"><title>KivaLens has moved</title>
 <style>
   body { font-family: -apple-system, system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; color: #333; }
-  h1 { color: #2c6e49; } a { color: #2c6e49; } .btn { display: inline-block; padding: 10px 20px; background: #2c6e49; color: white; text-decoration: none; border-radius: 4px; margin: 8px 4px 8px 0; }
-  .btn-outline { background: white; color: #2c6e49; border: 1px solid #2c6e49; }
+  h1 { color: #2C8C5E; } a { color: #2C8C5E; } .btn { display: inline-block; padding: 10px 20px; background: #2C8C5E; color: white; text-decoration: none; border-radius: 4px; margin: 8px 4px 8px 0; }
+  .btn-outline { background: white; color: #2C8C5E; border: 1px solid #2C8C5E; }
   #transfer { display: none; margin-top: 16px; padding: 16px; background: #f0f9f4; border-radius: 6px; border: 1px solid #c3e6cb; }
 </style></head><body>
 <h1>KivaLens has moved!</h1>

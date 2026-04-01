@@ -74,20 +74,19 @@ const SnowStack = React.createClass({
         var camera = document.getElementById('camera')
         if (!camera) return
         var style = document.createElement('style')
-        style.textContent = '@keyframes spin3d { to { transform: rotateY(360deg) } } @keyframes pulse3d { 0%,100% { opacity: 0.3 } 50% { opacity: 1 } }'
+        style.textContent = '@keyframes spin3d { to { transform: rotateY(360deg) } }'
         document.head.appendChild(style)
         this._spinnerStyle = style
 
+        var wrapper = document.createElement('div')
+        wrapper.id = 'kl-wall-spinner'
+        wrapper.style.cssText = 'position:absolute;left:50%;top:50%;margin-left:-48px;margin-top:-48px;width:96px;height:96px;-webkit-perspective:600px;perspective:600px;'
+
         var spinner = document.createElement('div')
-        spinner.id = 'kl-wall-spinner'
-        spinner.style.cssText = 'position:absolute;left:-60px;top:-60px;width:120px;height:120px;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;animation:spin3d 3s linear infinite;'
-        for (var i = 0; i < 4; i++) {
-            var panel = document.createElement('div')
-            panel.style.cssText = 'position:absolute;width:120px;height:120px;border:2px solid rgba(255,255,255,0.4);border-radius:8px;background:rgba(75,175,80,0.15);display:flex;align-items:center;justify-content:center;animation:pulse3d 2s ease-in-out ' + (i * 0.25) + 's infinite;-webkit-transform:rotateY(' + (i * 45) + 'deg) translateZ(60px);transform:rotateY(' + (i * 45) + 'deg) translateZ(60px);'
-            panel.innerHTML = '<div style="color:rgba(255,255,255,0.6);font-size:11px;text-align:center">Loading...</div>'
-            spinner.appendChild(panel)
-        }
-        camera.appendChild(spinner)
+        spinner.style.cssText = 'width:96px;height:96px;animation:spin3d 3s linear infinite;'
+        spinner.innerHTML = '<img src="/icon-512x512.png" style="width:96px;height:96px;border-radius:16px;opacity:0.8;" />'
+        wrapper.appendChild(spinner)
+        camera.appendChild(wrapper)
     },
     removeSpinner() {
         var spinner = document.getElementById('kl-wall-spinner')

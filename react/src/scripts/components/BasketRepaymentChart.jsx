@@ -102,8 +102,8 @@ const BasketRepaymentChart = React.createClass({
                 yAxis: 1,
                 zIndex: 5,
                 name: 'Cumulative',
-                color: '#2c6e49',
-                fillColor: 'rgba(44, 110, 73, 0.15)',
+                color: '#2C8C5E',
+                fillColor: 'rgba(44, 140, 94, 0.15)',
                 data: cumulativeAmounts
             }]
         }
@@ -133,7 +133,7 @@ const BasketRepaymentChart = React.createClass({
                         Repayment data unavailable for {skippedCount} of {basket_items.length} loans.
                     </Alert>
                 : null}
-                <Highcharts style={{height: chartHeight + 'px'}} config={config} />
+                <Highcharts key={chartHeight} style={{height: chartHeight + 'px'}} config={config} />
             </Panel>
         )
     }

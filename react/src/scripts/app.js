@@ -11,6 +11,12 @@ require('./linqextras')
 require('./stores/liveStore')
 require('./api/syncStorage')
 
+// Airbrake error tracking (client-side)
+if (window.__AIRBRAKE__ && window.__AIRBRAKE__.projectId) {
+    var AirbrakeClient = require('@airbrake/browser')
+    window.airbrake = new AirbrakeClient.Notifier(window.__AIRBRAKE__)
+}
+
 
 var Highcharts = require('react-highcharts/bundle/ReactHighcharts')
 Highcharts.Highcharts.setOptions({lang: {thousandsSep: ','}})
