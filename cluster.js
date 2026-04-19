@@ -527,29 +527,69 @@ if (cluster.isMaster){ //preps the downloads
         var prepping = extend({}, blankResponse)
 
         kivaloans.loans_from_kiva.removeAll(l=>l.status != 'fundraising')
-        var allLoans = ResultProcessors.unprocessLoans(kivaloans.loans_from_kiva)
-        //additional unprocessing and collecting keywords
-        var keywords = []
-        allLoans.forEach(loan => {
-            keywords.push({id: loan.id, t: loan.kls_use_or_descr_arr}) //only need to do descr... use already there.
-            delete loan.description //.texts.en
-            delete loan.kls_use_or_descr_arr
-            if (!loan.kls_age) delete loan.kls_age
-            delete loan.lender_count
-            if (!loan.funded_amount) delete loan.funded_amount
-            if (!loan.basket_amount) delete loan.basket_amount
-            if (!loan.kls_tags.length) delete loan.kls_tags
-            delete loan.terms.repayment_term
-            loan.klb = {}
-            loan.borrowers.groupByWithCount(b=>b.gender).forEach(g=>loan.klb[g.name] = g.count)
-            delete loan.borrowers
-            delete loan.terms.loss_liability.currency_exchange_coverage_rate
-            delete loan.borrower_count
-            delete loan.payments
-            delete loan.status
-            delete loan.terms.scheduled_payments
-            loan.kls = true
-        })
+        // Build slim loan objects directly instead of deep-copying every loan and
+        // then deleting most fields. The old path (ResultProcessors.unprocessLoans +
+        // forEach/delete) caused v8 hidden-class churn and heavy short-lived
+        // allocations across ~7k loans per 60s cycle, crashing the dyno on OOM.
+        var keywords = new Array(kivaloans.loans_from_kiva.length)
+        var allLoans = new Array(kivaloans.loans_from_kiva.length)
+        for (var i = 0; i < kivaloans.loans_from_kiva.length; i++) {
+            var src = kivaloans.loans_from_kiva[i]
+            keywords[i] = {id: src.id, t: src.kls_use_or_descr_arr}
+
+            var klb = {}
+            src.borrowers.groupByWithCount(b=>b.gender).forEach(g => klb[g.name] = g.count)
+
+            // shallow-copy src, strip kl_* fields, omit fields previously deleted
+            var out = {}
+            var keys = Object.keys(src)
+            for (var k = 0; k < keys.length; k++) {
+                var key = keys[k]
+                if (key.indexOf('kl_') === 0) continue
+                if (key === 'description' || key === 'kls_use_or_descr_arr' ||
+                    key === 'lender_count' || key === 'borrowers' ||
+                    key === 'borrower_count' || key === 'payments' ||
+                    key === 'status' || key === 'getPartner' ||
+                    key === 'terms') continue
+                if (key === 'kls_age' && !src.kls_age) continue
+                if (key === 'funded_amount' && !src.funded_amount) continue
+                if (key === 'basket_amount' && !src.basket_amount) continue
+                if (key === 'kls_tags' && !(src.kls_tags && src.kls_tags.length)) continue
+                out[key] = src[key]
+            }
+
+            // rebuild terms without repayment_term / scheduled_payments and with a
+            // fresh loss_liability sans currency_exchange_coverage_rate
+            if (src.terms) {
+                var t = {}
+                var tkeys = Object.keys(src.terms)
+                for (var tk = 0; tk < tkeys.length; tk++) {
+                    var tkey = tkeys[tk]
+                    if (tkey === 'repayment_term' || tkey === 'scheduled_payments' ||
+                        tkey === 'loss_liability') continue
+                    t[tkey] = src.terms[tkey]
+                }
+                if (src.terms.loss_liability) {
+                    var ll = {}
+                    var lkeys = Object.keys(src.terms.loss_liability)
+                    for (var lk = 0; lk < lkeys.length; lk++) {
+                        var lkey = lkeys[lk]
+                        if (lkey === 'currency_exchange_coverage_rate') continue
+                        ll[lkey] = src.terms.loss_liability[lkey]
+                    }
+                    t.loss_liability = ll
+                }
+                out.terms = t
+            }
+
+            out.kls_half_back = src.kls_half_back ? src.kls_half_back.toISOString() : null
+            out.kls_75_back = src.kls_75_back ? src.kls_75_back.toISOString() : null
+            out.kls_final_repayment = src.kls_final_repayment ? src.kls_final_repayment.toISOString() : null
+            out.klb = klb
+            out.kls = true
+
+            allLoans[i] = out
+        }
         var chunkSize = Math.ceil(allLoans.length / KLPageSplits)
         prepping.newestTime = kivaloans.loans_from_kiva.max(l=>l.kl_processed.getTime())
         var bigloanChunks = allLoans.chunk(chunkSize).select(chunk => JSON.stringify(chunk))
@@ -571,7 +611,7 @@ if (cluster.isMaster){ //preps the downloads
                 outputMemUsage("Master finishIfReady start")
                 loansToServe[latest] = prepping //must make a copy.
                 //delete the old batches.
-                Object.keys(loansToServe).where(batch => batch < latest - 10).forEach(batch => {
+                Object.keys(loansToServe).where(batch => batch < latest - 2).forEach(batch => {
                     if (batch > 0)
                         Array.range(1,KLPageSplits).forEach(page => {
                             fs.unlink(`/tmp/loans-${batch}-${page}.kl`, ()=>{})
