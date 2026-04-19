@@ -118,6 +118,8 @@ if (cluster.isMaster){ //preps the downloads
     var ejs = require('ejs')
     var loansToServe = {0: extend({},blankResponse)} //start empty.
     var latest = 0
+    var consecutiveFailures = 0
+    const MAX_CONSECUTIVE_FAILURES = 5
     //const guaranteeGoogleVisionForLoan = require('./vision').guaranteeGoogleVisionForLoan
     //const processFaceData = require('./vision').processFaceData
     const redis = require('redis')
@@ -298,7 +300,7 @@ if (cluster.isMaster){ //preps the downloads
      */
     hub.on("since", (batch, sender, callback) => {
         if (!loansToServe[batch]) {
-            callback('[]')
+            callback(null)
             return
         }
         var loans = kivaloans.loans_from_kiva.where(l=>l.kl_processed.getTime() > loansToServe[batch].newestTime)
@@ -524,6 +526,13 @@ if (cluster.isMaster){ //preps the downloads
         outputMemUsage('prepForRequests')
 
         loansChanged = false //hot loans &
+
+        // Wrap the body so a bad cycle (unexpected loan shape, OOM during
+        // JSON.stringify, etc.) logs and skips instead of crashing the master.
+        // Workers keep serving the previous batch; clients past staleness fall
+        // back to fetching from Kiva directly.
+        try {
+
         var prepping = extend({}, blankResponse)
 
         kivaloans.loans_from_kiva.removeAll(l=>l.status != 'fundraising')
@@ -620,6 +629,7 @@ if (cluster.isMaster){ //preps the downloads
                     delete loansToServe[batch]
                 })
                 console.log(`Loan chunks ready! Chunks: ${prepping.loanChunks.length} Batch: ${latest} Cached: ${Object.keys(loansToServe).length}`)
+                consecutiveFailures = 0
 
                 var startResponse = {batch: latest, pages: prepping.loanChunks.length, loanLengths: prepping.loanChunks, descrLengths: prepping.keywords}
                 var message = { downloadReady: JSON.stringify(startResponse)}
@@ -661,6 +671,30 @@ if (cluster.isMaster){ //preps the downloads
                 })
             })
         })
+
+        } catch (err) {
+            consecutiveFailures++
+            console.error(`prepForRequests failed (${consecutiveFailures} consecutive), skipping this cycle:`, err && err.stack || err)
+            // Ensure we retry next interval rather than going silent.
+            loansChanged = true
+
+            if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                // Invalidate all cached batches: better to serve nothing (clients
+                // fall back to Kiva direct) than stale data.
+                console.error(`Invalidating all batches after ${consecutiveFailures} consecutive failures`)
+                Object.keys(loansToServe).forEach(batch => {
+                    if (batch > 0)
+                        Array.range(1, KLPageSplits).forEach(page => {
+                            fs.unlink(`/tmp/loans-${batch}-${page}.kl`, ()=>{})
+                            fs.unlink(`/tmp/keywords-${batch}-${page}.kl`, ()=>{})
+                        })
+                    delete loansToServe[batch]
+                })
+                var emptyResponse = {batch: 0, pages: 0, loanLengths: [], descrLengths: []}
+                notifyAllWorkers({downloadReady: JSON.stringify(emptyResponse)})
+                regenIndex(emptyResponse)
+            }
+        }
     }
 
     setInterval(prepForRequests, 60000)
@@ -943,6 +977,10 @@ else  //workers handle all communication with the clients.
             return
         }
         hub.requestMaster('since', batch, result => {
+            if (result === null) {
+                res.sendStatus(404)
+                return
+            }
             res.type('application/json')
             res.send(result)
         })
