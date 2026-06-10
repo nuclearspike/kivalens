@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-    <script>
-        window.pageStarted = Date.now()
-        if (location.hostname == 'kivalens.org') {
-            if (document.referrer && document.referrer.indexOf('kivalens.org') == -1)
-                location.href = "http://www.kivalens.org/#/outdated?attempt=" + encodeURIComponent(document.referrer.replace('http://',''))
-            else
-                location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
-        }
-    </script>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -83,62 +74,11 @@
 </div>
 </body>
 
-<script>
-    if (typeof localStorage == 'object'){
-        var lenderObj = localStorage.getItem('lenderObj')
-        if (lenderObj) {
-            lenderObj = JSON.parse(lenderObj)
-            if (lenderObj.name) {
-                document.getElementById("welcome_text").innerHTML = 'Welcome back, ' + lenderObj.name + '!'
-            }
-        }
-    }
-</script>
 
-<script>
-    window.kl_api_start = {"batch":1,"pages":4,"loanLengths":[1664281,1628303,1619213,1631945],"descrLengths":[593441,852403,1207440,1199588]};
-    window.kl_progress = {};
-    
-</script>
+<script type="application/json" id="kl-bootstrap">{"start":{"batch":2,"pages":4,"loanLengths":[1113795,1099026,1112133,1111854],"descrLengths":[793874,798101,812979,732225]},"airbrake":null,"css":["//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/flatly/bootstrap.css","stylesheets/2994e67fdebbf3ec8fa5756909c03693399cc940/application.min.css","stylesheets/7b5b25ee81057767129e31b88b7332eed3bfc065/snowstack.min.css"]}</script>
 
+<script src="javascript/8592161ba1953ce8091f9cbd7023ac0cc37e84d5/boot.js" defer></script>
 <script src="javascript/ac660896586197aae39b9ae8b889d0da60417334/initialdownload.js" defer></script>
 <script src="javascript/fc87100c3faa76158f8c601eaca8941e48bb2fd6/vendor.js" defer></script>
-<script src="javascript/2704d2cb3506b4deb38baae2e81447d332c01d85/build.js" defer></script>
-<script>
-    window.isBootstrapLoaded = false
-    window.bootstrapLoaded = function(){
-        window.isBootstrapLoaded = true
-        if (typeof bootstrapLoadedCallback === 'function')
-            bootstrapLoadedCallback()
-    }
-
-    var cb = function() {
-        var cssfiles = ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/flatly/bootstrap.css'];
-        
-        cssfiles.push('stylesheets/fb9310fa12d6422546c57c0fbc2c9e7d4c4cdbdd/application.min.css');
-        cssfiles.push('stylesheets/7b5b25ee81057767129e31b88b7332eed3bfc065/snowstack.min.css');
-        var h = document.getElementsByTagName('head')[0];
-        for (var i = 0; i < cssfiles.length; i++) {
-            var l = document.createElement('link');
-            l.type = "text/css";
-            l.rel = 'stylesheet';
-            l.href = cssfiles[i];
-            if (i == 0) { //bootstrap
-                l.onload = bootstrapLoaded
-            }
-            h.appendChild(l);
-        }
-    };
-
-    setTimeout(function(){
-        var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-        if (raf) raf(cb);
-        else window.addEventListener('load', cb);
-    },1);
-
-    // Register service worker for PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(function() {});
-    }
-</script>
+<script src="javascript/0163f46a22dc0ef94a6144fb54e9fbd0b5fee46e/build.js" defer></script>
 </html>

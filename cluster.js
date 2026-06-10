@@ -132,14 +132,23 @@ if (cluster.isMaster){ //preps the downloads
             //starts with random hash just to make it always in a working state.
             var hash = Math.round(Math.random() * 100000000)
             var css = [{name: 'application', hash}, {name: 'snowstack', hash}]
-            var js = [{name: 'initialdownload', hash}, {name: 'vendor', hash}, {name: 'build', hash}]
+            // boot.js must load first so it sets up the globals (kl_api_start, etc.) the bundle expects.
+            var js = [{name: 'boot', hash}, {name: 'initialdownload', hash}, {name: 'vendor', hash}, {name: 'build', hash}]
             var todo = css.length + js.length
             const renderIndex = () => {
                 if (--todo) return //if it has anything left to do, leave.
                 var airbrakeClient = (process.env.AIRBRAKE_PROJECT_ID && process.env.AIRBRAKE_PROJECT_KEY)
                     ? {projectId: parseInt(process.env.AIRBRAKE_PROJECT_ID), projectKey: process.env.AIRBRAKE_PROJECT_KEY, environment: process.env.NODE_ENV || 'production'}
                     : null
-                var index = ejs.render(buffer.toString(), {js, css, start, airbrake: airbrakeClient}, {})
+                // Config consumed by boot.js via the non-executable JSON block in index.ejs
+                // (replaces the former inline scripts so the CSP can drop 'unsafe-inline').
+                var bootstrap = {
+                    start: start,
+                    airbrake: airbrakeClient,
+                    css: ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/flatly/bootstrap.css']
+                        .concat(css.map(fo => `stylesheets/${fo.hash}/${fo.name}.min.css`))
+                }
+                var index = ejs.render(buffer.toString(), {js, bootstrap}, {})
                 fs.writeFile(__dirname + '/public/index.html', index, x => {
                     console.log("## rendered index!")
                 })
@@ -756,7 +765,7 @@ else  //workers handle all communication with the clients.
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
+                scriptSrc: ["'self'", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
                 styleSrcElem: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "http://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],

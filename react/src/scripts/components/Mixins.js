@@ -64,7 +64,7 @@ const DelayStateTriggerMixin = function(stateSelector, onTrigger, delayTime = 20
         componentDidUpdate(prevProps, prevState){
             if ((stateSelectorFunc(prevState) != stateSelectorFunc(this.state)) ) { //|| (JSON.stringify(stateSelectorFunc(prevState)) != JSON.stringify(stateSelectorFunc(this.state)))
                 clearTimeout(this[handleName])
-                this[handleName] = setTimeout(eval(`this.${onTrigger}`), delayTime)
+                this[handleName] = setTimeout(() => this[onTrigger](), delayTime)
             }
             return true //this is not in the docs, but not having a return true doesn't update the page? bad assumption?
         },

@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-    <script>
-        window.pageStarted = Date.now()
-        if (location.hostname == 'kivalens.org') {
-            if (document.referrer && document.referrer.indexOf('kivalens.org') == -1)
-                location.href = "http://www.kivalens.org/#/outdated?attempt=" + encodeURIComponent(document.referrer.replace('http://',''))
-            else
-                location.replace(location.href.replace('kivalens.org','www.kivalens.org'))
-        }
-    </script>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -83,59 +74,8 @@
 </div>
 </body>
 
-<script>
-    if (typeof localStorage == 'object'){
-        var lenderObj = localStorage.getItem('lenderObj')
-        if (lenderObj) {
-            lenderObj = JSON.parse(lenderObj)
-            if (lenderObj.name) {
-                document.getElementById("welcome_text").innerHTML = 'Welcome back, ' + lenderObj.name + '!'
-            }
-        }
-    }
-</script>
-
-<script>
-    window.kl_api_start = <%- JSON.stringify(start) %>;
-    window.kl_progress = {};
-    <% if (airbrake) { %>window.__AIRBRAKE__ = <%- JSON.stringify(airbrake) %>;<% } %>
-</script>
+<%# Non-executable config block (not governed by script-src). boot.js reads this. %>
+<script type="application/json" id="kl-bootstrap"><%- JSON.stringify(bootstrap).replace(/</g, '\\u003c') %></script>
 <% js.forEach(function(file) { %>
 <script src="javascript/<%= file.hash %>/<%= file.name %>.js" defer></script><% }) %>
-<script>
-    window.isBootstrapLoaded = false
-    window.bootstrapLoaded = function(){
-        window.isBootstrapLoaded = true
-        if (typeof bootstrapLoadedCallback === 'function')
-            bootstrapLoadedCallback()
-    }
-
-    var cb = function() {
-        var cssfiles = ['//cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.5/flatly/bootstrap.css'];
-        <% css.forEach(function(file) {  %>
-        cssfiles.push('stylesheets/<%= file.hash %>/<%= file.name %>.min.css');<% }) %>
-        var h = document.getElementsByTagName('head')[0];
-        for (var i = 0; i < cssfiles.length; i++) {
-            var l = document.createElement('link');
-            l.type = "text/css";
-            l.rel = 'stylesheet';
-            l.href = cssfiles[i];
-            if (i == 0) { //bootstrap
-                l.onload = bootstrapLoaded
-            }
-            h.appendChild(l);
-        }
-    };
-
-    setTimeout(function(){
-        var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-        if (raf) raf(cb);
-        else window.addEventListener('load', cb);
-    },1);
-
-    // Register service worker for PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(function() {});
-    }
-</script>
 </html>
