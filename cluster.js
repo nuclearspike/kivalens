@@ -727,7 +727,12 @@ else  //workers handle all communication with the clients.
         }
     };
 
-    app.use(allowCrossDomain)
+    // CORS only on the data endpoints external clients (the KivaLens app, third
+    // parties) actually call cross-origin. The web app itself calls these same-origin,
+    // so scoping this keeps `Access-Control-Allow-Origin: *` OFF the HTML/static
+    // responses (where a wildcard CORS policy is pointless and flagged by scanners)
+    // while leaving the public data API reachable cross-origin.
+    app.use(['/api', '/graphql', '/proxy'], allowCrossDomain)
     // compress all responses
     app.use(compression()); //first!
 
