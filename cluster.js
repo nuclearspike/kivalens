@@ -746,6 +746,8 @@ else  //workers handle all communication with the clients.
 
     //some security
     app.use(helmet({
+        hsts: { maxAge: 31536000, includeSubDomains: true },
+        referrerPolicy: { policy: "strict-origin-when-cross-origin" },
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
@@ -762,18 +764,32 @@ else  //workers handle all communication with the clients.
         }
     }))
 
+    // helmet@4 sets CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and
+    // HSTS, but not Permissions-Policy — add it so every response carries one.
+    app.use((req, res, next) => {
+        res.setHeader('Permissions-Policy', "geolocation=(), microphone=(), camera=(), payment=(), usb=()")
+        next()
+    })
+
     const proxyHttpsGet = (hostname, req, res) => {
         const https = require('https')
         const targetPath = req.url
-        https.get({hostname, path: targetPath}, proxyRes => {
-            res.set('Access-Control-Allow-Origin', '*')
-            res.set('Content-Type', proxyRes.headers['content-type'] || 'application/octet-stream')
-            res.status(proxyRes.statusCode)
-            proxyRes.pipe(res)
-        }).on('error', err => {
-            console.error('[PROXY] Error:', err)
-            res.status(502).send('Proxy error')
-        })
+        try {
+            const upstream = https.get({hostname, path: targetPath}, proxyRes => {
+                res.set('Access-Control-Allow-Origin', '*')
+                res.set('Content-Type', proxyRes.headers['content-type'] || 'application/octet-stream')
+                res.status(proxyRes.statusCode)
+                proxyRes.on('error', () => res.destroy()) // upstream reset mid-stream: don't crash the worker
+                proxyRes.pipe(res)
+            }).on('error', err => {
+                console.error('[PROXY] Error:', err)
+                if (!res.headersSent) res.status(502).send('Proxy error'); else res.destroy()
+            })
+            upstream.setTimeout(15000, () => upstream.destroy(new Error('upstream timeout')))
+        } catch (e) {
+            // https.get throws synchronously on a path with unescaped/illegal chars
+            res.status(400).send('Bad proxy path')
+        }
     }
 
     const serveGzipFile = (res, fn) =>{
@@ -824,33 +840,58 @@ else  //workers handle all communication with the clients.
     main.set('port', (process.env.PORT || 5000))
 
     //PASSTHROUGH
+    // These two proxies exist only to dodge CORS for the handful of upstream endpoints
+    // the app actually uses. They MUST be locked to those exact paths — otherwise they
+    // are open relays: any client could fetch arbitrary paths on www.kiva.org /
+    // docs.google.com through this server (with Access-Control-Allow-Origin: *), using
+    // it as an anonymizing proxy. Exact-match the path (query string may vary) so no
+    // traversal or encoding trick can reach another endpoint; GET only.
+    const PROXY_KIVA_ALLOW = ['/ajax/getGraphData', '/ajax/getSuperGraphData']
+    const PROXY_GDOCS_ALLOW = ['/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export']
+    const proxyPathAllowed = (allow, reqUrl) => allow.indexOf(reqUrl.split('?')[0]) !== -1
+
     // manual proxy for Kiva - uses native https for full header control
     app.use('/proxy/kiva', (req, res) => {
+        if (req.method !== 'GET') return res.sendStatus(405)
+        if (!proxyPathAllowed(PROXY_KIVA_ALLOW, req.url)) { // req.url is already stripped of /proxy/kiva
+            console.warn('[PROXY] blocked kiva path:', req.url)
+            return res.sendStatus(403)
+        }
         const https = require('https')
-        const targetPath = req.url // express already strips /proxy/kiva
         const options = {
             hostname: 'www.kiva.org',
-            path: targetPath,
-            method: req.method,
+            path: req.url,
+            method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
                 'Referer': 'https://www.kiva.org/'
             }
         }
-        https.get(options, proxyRes => {
-            res.set('Access-Control-Allow-Origin', '*')
-            res.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-            res.set('Access-Control-Allow-Headers', 'X-Requested-With, Accept, Origin, Referer, User-Agent, Content-Type, Authorization')
-            res.set('Content-Type', proxyRes.headers['content-type'] || 'application/json')
-            res.status(proxyRes.statusCode)
-            proxyRes.pipe(res)
-        }).on('error', err => {
-            console.error('[PROXY] Error:', err)
-            res.status(502).send('Proxy error')
-        })
+        try {
+            const upstream = https.get(options, proxyRes => {
+                res.set('Access-Control-Allow-Origin', '*')
+                res.set('Content-Type', proxyRes.headers['content-type'] || 'application/json')
+                res.status(proxyRes.statusCode)
+                proxyRes.on('error', () => res.destroy()) // upstream reset mid-stream: don't crash the worker
+                proxyRes.pipe(res)
+            }).on('error', err => {
+                console.error('[PROXY] Error:', err)
+                if (!res.headersSent) res.status(502).send('Proxy error'); else res.destroy()
+            })
+            upstream.setTimeout(15000, () => upstream.destroy(new Error('upstream timeout')))
+        } catch (e) {
+            res.sendStatus(400)
+        }
     })
-    app.use('/proxy/gdocs', (req, res) => proxyHttpsGet('docs.google.com', req, res))
+    app.use('/proxy/gdocs', (req, res) => {
+        if (req.method !== 'GET') return res.sendStatus(405)
+        if (!proxyPathAllowed(PROXY_GDOCS_ALLOW, req.url)) {
+            console.warn('[PROXY] blocked gdocs path:', req.url)
+            return res.sendStatus(403)
+        }
+        proxyHttpsGet('docs.google.com', req, res)
+    })
 
     //app.use(express.static(__dirname + '/public'))
 
@@ -1137,8 +1178,23 @@ else  //workers handle all communication with the clients.
         const host = req.hostname
         const proto = req.headers['x-forwarded-proto'] || req.protocol
         if (host === 'localhost' || host === '127.0.0.1') return next()
-        if (proto !== 'https' || host === 'kivalens.org') {
+
+        // Force HTTPS with a real 301 (so browsers, scanners and SEO upgrade the
+        // scheme, and the request reaches the app's security headers over https).
+        if (proto !== 'https') {
+            return res.redirect(301, `https://${host}${req.originalUrl}`)
+        }
+
+        // Apex kivalens.org -> www: different origin, so localStorage saved searches
+        // won't carry over. Show the transfer page so users can migrate them.
+        if (host === 'kivalens.org') {
             var newUrl = `https://www.kivalens.org${req.originalUrl}`
+            res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'")
+            res.setHeader('X-Content-Type-Options', 'nosniff')
+            res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+            res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+            res.setHeader('Permissions-Policy', "geolocation=(), microphone=(), camera=(), payment=(), usb=()")
+            res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
             return res.send(`<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>KivaLens has moved</title>
 <style>
