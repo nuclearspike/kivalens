@@ -1,5 +1,11 @@
 # kivalensjs
 
+> [!WARNING]
+> **Deprecated.** This version (React 0.14 + Reflux + Bootstrap 3 + Browserify)
+> has been superseded by a modern, Bootstrap-free rebuild:
+> **[nuclearspike/kivalens-modern](https://github.com/nuclearspike/kivalens-modern)**
+> (Vite + React 19 + TypeScript). New development happens there.
+
 A re-thinking and re-implementation of KivaLens as a React app rather than a Silverlight app.
 
 Using React, Reflux, react-bootstrap, gulp, browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API,
