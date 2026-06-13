@@ -1,0 +1,151 @@
+@use 'tokens' as *;
+
+// Utility classes (Bootstrap-5-compatible names) — only the subset
+// this app uses, hand-written. Spacing scale matches BS5 so the
+// ported components keep their authored rhythm.
+
+$spacers: (
+  0: 0,
+  1: 0.25rem,
+  2: 0.5rem,
+  3: 1rem,
+  4: 1.5rem,
+  5: 3rem,
+);
+
+@each $k, $v in $spacers {
+  .m-#{$k} { margin: $v !important; }
+  .mt-#{$k} { margin-top: $v !important; }
+  .mb-#{$k} { margin-bottom: $v !important; }
+  .ms-#{$k} { margin-left: $v !important; }
+  .me-#{$k} { margin-right: $v !important; }
+  .mx-#{$k} { margin-left: $v !important; margin-right: $v !important; }
+  .my-#{$k} { margin-top: $v !important; margin-bottom: $v !important; }
+  .p-#{$k} { padding: $v !important; }
+  .pt-#{$k} { padding-top: $v !important; }
+  .pb-#{$k} { padding-bottom: $v !important; }
+  .ps-#{$k} { padding-left: $v !important; }
+  .pe-#{$k} { padding-right: $v !important; }
+  .px-#{$k} { padding-left: $v !important; padding-right: $v !important; }
+  .py-#{$k} { padding-top: $v !important; padding-bottom: $v !important; }
+}
+
+.ms-auto { margin-left: auto !important; }
+.me-auto { margin-right: auto !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+// --- display ---
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+
+@media (min-width: $breakpoint-md) {
+  .d-md-none { display: none !important; }
+  .d-md-block { display: block !important; }
+  .d-md-flex { display: flex !important; }
+  .d-md-inline { display: inline !important; }
+}
+
+@media (min-width: $breakpoint-lg) {
+  .d-lg-none { display: none !important; }
+  .d-lg-block { display: block !important; }
+  .d-lg-flex { display: flex !important; }
+  .d-lg-inline { display: inline !important; }
+}
+
+// --- flex ---
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-center { align-items: center !important; }
+.align-items-end { align-items: flex-end !important; }
+.align-middle { vertical-align: middle !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+
+// --- sizing ---
+.w-25 { width: 25% !important; }
+.w-50 { width: 50% !important; }
+.w-75 { width: 75% !important; }
+.w-100 { width: 100% !important; }
+.h-100 { height: 100% !important; }
+
+// --- text ---
+.text-start { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-end { text-align: right !important; }
+.text-muted { color: $kiva-text-muted !important; }
+.text-white { color: #fff !important; }
+.text-light { color: $kiva-bg-subtle !important; }
+.text-danger { color: $flatly-danger !important; }
+.text-success { color: $kiva-green !important; }
+.text-capitalize { text-transform: capitalize !important; }
+.text-decoration-none { text-decoration: none !important; }
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fw-bold { font-weight: 700 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-normal { font-weight: 400 !important; }
+.fst-italic { font-style: italic !important; }
+
+// --- backgrounds (badge/progress variants ride on these too) ---
+.bg-primary { background-color: $flatly-primary !important; }
+.bg-secondary { background-color: $flatly-default !important; }
+.bg-success { background-color: $kiva-green !important; }
+.bg-info { background-color: $flatly-info !important; }
+.bg-warning { background-color: $flatly-warning !important; }
+.bg-danger { background-color: $flatly-danger !important; }
+.bg-light { background-color: $kiva-bg-subtle !important; }
+.bg-dark { background-color: $flatly-primary !important; }
+.bg-white { background-color: #fff !important; }
+
+// --- borders ---
+.border { border: 1px solid $kiva-border !important; }
+.border-0 { border: 0 !important; }
+.border-top { border-top: 1px solid $kiva-border !important; }
+.border-bottom { border-bottom: 1px solid $kiva-border !important; }
+.rounded { border-radius: $radius-base !important; }
+.rounded-0 { border-radius: 0 !important; }
+.rounded-circle { border-radius: 50% !important; }
+
+// --- position / overflow / float ---
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.overflow-auto { overflow: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+.float-start { float: left !important; }
+.float-end { float: right !important; }
+
+// --- lists ---
+.list-unstyled {
+  padding-left: 0;
+  list-style: none;
+}
+
+// --- a11y ---
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

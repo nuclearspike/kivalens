@@ -1,0 +1,197 @@
+@use 'tokens' as *;
+
+// Nav / tabs / navbar structure. Colors for the KivaLens navbar
+// theme live in main.scss (ported from the old application.scss).
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  padding: 10px 15px;
+  color: $kiva-green;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    background-color: $flatly-line;
+  }
+
+  &.disabled {
+    color: $kiva-text-muted;
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+// --- tabs (Flatly) ---
+.nav-tabs {
+  border-bottom: 1px solid $flatly-line;
+
+  .nav-item {
+    margin-bottom: -1px;
+  }
+
+  .nav-link {
+    margin-right: 2px;
+    line-height: $line-height-base;
+    border: 1px solid transparent;
+    border-radius: $radius-base $radius-base 0 0;
+    color: $kiva-green;
+
+    &:hover,
+    &:focus {
+      background-color: $flatly-line;
+      border-color: transparent;
+    }
+
+    &.active {
+      color: $flatly-primary;
+      background-color: #fff;
+      border: 1px solid $flatly-line;
+      border-bottom-color: transparent;
+      cursor: default;
+    }
+  }
+}
+
+// --- pills ---
+.nav-pills {
+  .nav-link {
+    border-radius: $radius-base;
+
+    &.active {
+      color: #fff;
+      background-color: $kiva-green;
+    }
+  }
+}
+
+.tab-content {
+  > .tab-pane {
+    display: none;
+  }
+
+  > .tab-pane.active {
+    display: block;
+  }
+}
+
+// --- navbar (structure only; theme overrides in main.scss) ---
+.navbar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  min-height: 50px;
+  background-color: $flatly-primary;
+
+  > .container,
+  > .container-fluid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.navbar-brand {
+  display: inline-block;
+  padding: 15px;
+  margin-right: 1rem;
+  font-size: 19px;
+  line-height: 21px;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+  }
+}
+
+.navbar-nav {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+
+  .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+
+    &:hover,
+    &:focus {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  }
+}
+
+.navbar-collapse {
+  flex-basis: 100%;
+  flex-grow: 1;
+  align-items: center;
+  display: none;
+
+  &.show {
+    display: block;
+  }
+}
+
+.navbar-toggler {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: $radius-base;
+  cursor: pointer;
+
+  .navbar-toggler-bar {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background-color: #fff;
+    border-radius: 1px;
+  }
+}
+
+// expand="lg": horizontal layout at the lg breakpoint
+@media (min-width: $breakpoint-lg) {
+  .navbar-expand-lg {
+    .navbar-collapse {
+      display: flex !important;
+      flex-basis: auto;
+    }
+
+    .navbar-nav {
+      flex-direction: row;
+    }
+
+    .navbar-toggler {
+      display: none;
+    }
+  }
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+}

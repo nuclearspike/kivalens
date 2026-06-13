@@ -1,33 +1,76 @@
-# kivalensjs
+# KivaLens
 
-> [!WARNING]
-> **Deprecated.** This version (React 0.14 + Reflux + Bootstrap 3 + Browserify)
-> has been superseded by a modern, Bootstrap-free rebuild:
-> **[nuclearspike/kivalens-modern](https://github.com/nuclearspike/kivalens-modern)**
-> (Vite + React 19 + TypeScript). New development happens there.
+[KivaLens](https://www.kivalens.org) — the advanced loan-search tool for
+[Kiva.org](https://www.kiva.org) micro-lending — rebuilt on a modern stack with
+**zero Bootstrap**.
 
-A re-thinking and re-implementation of KivaLens as a React app rather than a Silverlight app.
+The original 2015 app (React 0.14 + Reflux + Bootstrap 3 / Bootswatch Flatly +
+Browserify) is preserved on the [`legacy`](../../tree/legacy) branch and the
+`v1-legacy` tag. This rebuild reproduces its rendered look and behavior using:
 
-Using React, Reflux, react-bootstrap, gulp, browserify, node, ES6, babel (JSX, ES6 transpiler), Kiva API,
-linqjs, Highcharts, ...
+| Layer            | Original                       | This app                          |
+| ---------------- | ------------------------------ | --------------------------------- |
+| Build            | Browserify + Babel 5 + gulp    | Vite 8                            |
+| Language         | ES2015 JSX                     | TypeScript 5.9                    |
+| UI runtime       | React 0.14                     | React 19                          |
+| State            | Reflux stores                  | zustand (+ immer)                 |
+| Routing          | react-router 1                 | react-router-dom 7 (hash router)  |
+| CSS framework    | Bootstrap 3 / Flatly + SCSS    | **None** — hand-rolled `src/ui/` + `src/styles/base/` |
+| Charts           | Highcharts (vendor bundle)     | recharts                          |
+| Selects          | react-select v1                | react-select v5 (restyled to v1)  |
+| Sliders          | react-slider                   | rc-slider (restyled)              |
+| Server           | Express proxy server           | Node server (`server/prod.mjs`) + Vite dev plugin |
 
-Contact me if you're interested in contributing.
+## No Bootstrap, same pixels
 
-This is my first React app and there are a number of things that I'd do differently now... and will
-eventually change. Don't judge too harshly. :D
+- `src/ui/` — hand-written components exposing the subset of the
+  react-bootstrap API the app uses (Grid, Button, Form, Card, ListGroup,
+  Badge, Alert, Tabs, Modal, Dropdown, ProgressBar, OverlayTrigger/Popover,
+  Navbar/Nav). No runtime dependencies.
+- `src/styles/base/` — a hand-written CSS base layer that reproduces the
+  Bootstrap 3 Flatly 3.3.5 rendering (buttons, forms, tabs, panels, alerts,
+  modals, badges, progress bars, grid, utilities). Values were lifted from
+  `reference/flatly-3.3.5-reference.css` (kept for reference only — never
+  imported).
+- `src/styles/main.scss` — the KivaLens green theme, ported from the original
+  `application.scss`.
 
-[See the live version](http://www.kivalens.org/#/search)
+## Run
 
-This project needs to be switched to Redux, GraphQL and Webpack!
+```bash
+npm install
+npm run dev      # http://localhost:5173 (or --port)
+```
 
-There are two separate npm packages. One that compiles the client code and sets up a directory
-watch (using gulp and browserify) and the other that runs the server (just by running cluster.js with node)
+On startup the dev plugin downloads all fundraising loans from Kiva's API and
+serves them at the same `/api/` endpoints the production KivaLens server uses
+(first page-load may briefly use the Kiva-direct path while data is prepared).
 
-To run the project:
-* In the /react directory, run "npm run kl" and leave that console running if you're going to make updates and test.
-* In a separate console, in the root project directory, run "npm start".
-* Once the server console has finished downloading Kiva loans, go to http://localhost:5000 in a browser (not by IP)
+```bash
+npm run build    # tsc + vite build
+npm run lint
+```
 
-There is no hot module reloading set up, so changes made to the client require that you
-refresh the browser window.
+## Production
 
+The same API the dev plugin provides is served in production by a tiny,
+dependency-free Node server, so dev and prod share one implementation:
+
+| File | Role |
+| ---- | ---- |
+| `server/klCore.mjs` | All the logic — Kiva download, KLS batch packaging, periodic refresh, and the `/api/*`, `/graphql`, `/proxy/*` request handlers. Node builtins only. |
+| `server/klDevPlugin.ts` | Thin Vite plugin that mounts `klCore` into `vite dev`. |
+| `server/prod.mjs` | Production HTTP server: serves the built `dist/` SPA + mounts `klCore`. Listens on `$PORT`. |
+
+```bash
+npm run build       # produces dist/
+npm start           # node server/prod.mjs — serves dist/ + the API on $PORT
+```
+
+The server upgrades HTTP→HTTPS behind a TLS-terminating proxy
+(`x-forwarded-proto`), sends an A+ set of security headers (CSP, HSTS,
+nosniff, frame-deny, referrer + permissions policies), gzips the loan batches,
+refreshes the dataset every 10 minutes, and proxies Kiva's `getGraphData` and
+the A+ Google-Sheet through `/proxy/*` with the header recipe Kiva's WAF
+requires (no browser `User-Agent`). It has **zero runtime dependencies** (Node
+builtins only).

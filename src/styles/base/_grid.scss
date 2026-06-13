@@ -1,0 +1,92 @@
+@use 'sass:math';
+@use 'tokens' as *;
+
+// Flexbox grid with Bootstrap-compatible class names. Gutters use
+// the old app's BS3 spacing (15px per side) rather than BS5's 12px
+// so column rhythm matches the original rendering.
+
+.container,
+.container-fluid {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: $gutter;
+  padding-right: $gutter;
+}
+
+// BS3 fixed-container widths (the old app rendered with these)
+@media (min-width: $breakpoint-md) {
+  .container { width: 750px; }
+}
+@media (min-width: $breakpoint-lg) {
+  .container { width: 970px; }
+}
+@media (min-width: $breakpoint-xl) {
+  .container { width: 1170px; }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -$gutter;
+  margin-right: -$gutter;
+
+  > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-left: $gutter;
+    padding-right: $gutter;
+  }
+}
+
+// g-* gutter overrides (BS5-style, used by ported components)
+.row.g-0 { margin-left: 0; margin-right: 0; > * { padding-left: 0; padding-right: 0; } }
+.row.g-1 { margin-left: -2px; margin-right: -2px; > * { padding-left: 2px; padding-right: 2px; } }
+.row.g-2 { margin-left: -4px; margin-right: -4px; > * { padding-left: 4px; padding-right: 4px; } }
+.row.g-3 { margin-left: -8px; margin-right: -8px; > * { padding-left: 8px; padding-right: 8px; } }
+
+.col {
+  flex: 1 0 0%;
+}
+
+.col-auto {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+@mixin make-cols($infix: '') {
+  @for $i from 1 through 12 {
+    .col#{$infix}-#{$i} {
+      flex: 0 0 auto;
+      width: math.percentage(math.div($i, 12));
+    }
+  }
+  .col#{$infix}-auto {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  .offset#{$infix}-0 {
+    margin-left: 0;
+  }
+  @for $i from 1 through 11 {
+    .offset#{$infix}-#{$i} {
+      margin-left: math.percentage(math.div($i, 12));
+    }
+  }
+}
+
+@include make-cols();
+
+@media (min-width: $breakpoint-sm) {
+  @include make-cols('-sm');
+}
+@media (min-width: $breakpoint-md) {
+  @include make-cols('-md');
+}
+@media (min-width: $breakpoint-lg) {
+  @include make-cols('-lg');
+}
+@media (min-width: $breakpoint-xl) {
+  @include make-cols('-xl');
+}

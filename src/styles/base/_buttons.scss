@@ -1,0 +1,174 @@
+@use 'sass:color';
+@use 'tokens' as *;
+
+// Buttons — Flatly 3.3.5 visuals (flat fills, 2px borders, white
+// text). The old app's "default" gray button maps to .btn-secondary.
+
+.btn {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: 400;
+  font-family: inherit;
+  text-align: center;
+  vertical-align: middle;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 2px solid transparent;
+  white-space: nowrap;
+  padding: 10px 15px;
+  font-size: 15px;
+  line-height: $line-height-base;
+  border-radius: $radius-base;
+  user-select: none;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($kiva-green, 0.5);
+    outline-offset: 1px;
+  }
+
+  &:disabled,
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    box-shadow: none;
+    pointer-events: none;
+  }
+}
+
+@mixin btn-variant($bg, $hover-bg: color.adjust($bg, $lightness: -8%), $hover-border: color.adjust($bg, $lightness: -10%)) {
+  color: #fff;
+  background-color: $bg;
+  border-color: $bg;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.active {
+    color: #fff;
+    background-color: $hover-bg;
+    border-color: $hover-border;
+  }
+}
+
+.btn-primary { @include btn-variant($flatly-primary); }
+.btn-secondary { @include btn-variant($flatly-default, $flatly-default-hover, $flatly-default-hover-border); }
+.btn-success { @include btn-variant($flatly-success); }
+.btn-info { @include btn-variant($flatly-info); }
+.btn-warning { @include btn-variant($flatly-warning); }
+.btn-danger { @include btn-variant($flatly-danger); }
+.btn-dark { @include btn-variant($kiva-green-dark); }
+.btn-light {
+  color: $kiva-text;
+  background-color: $kiva-bg-subtle;
+  border-color: $kiva-bg-subtle;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.active {
+    background-color: color.adjust($kiva-bg-subtle, $lightness: -6%);
+    border-color: color.adjust($kiva-bg-subtle, $lightness: -8%);
+  }
+}
+
+@mixin btn-outline-variant($clr, $text: $clr) {
+  color: $text;
+  background-color: transparent;
+  border-color: $clr;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.active {
+    color: #fff;
+    background-color: $clr;
+    border-color: $clr;
+  }
+}
+
+.btn-outline-primary { @include btn-outline-variant($flatly-primary); }
+.btn-outline-secondary { @include btn-outline-variant($flatly-default, #6c7a7b); }
+.btn-outline-success { @include btn-outline-variant($kiva-green); }
+.btn-outline-danger { @include btn-outline-variant($flatly-danger); }
+
+.btn-link {
+  color: $kiva-green;
+  font-weight: 400;
+  border-radius: 0;
+  background-color: transparent;
+  border-color: transparent;
+
+  &:hover,
+  &:focus {
+    color: color.adjust($kiva-green, $lightness: -10%);
+    text-decoration: underline;
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+
+.btn-lg {
+  padding: 18px 27px;
+  font-size: 19px;
+  line-height: 1.3333333;
+  border-radius: $radius-lg;
+}
+
+.btn-sm {
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: $radius-sm;
+}
+
+.btn-xs {
+  padding: 1px 5px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: $radius-sm;
+}
+
+// --- button groups (BS3 collapse-the-inner-radii treatment) ---
+.btn-group {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+
+  > .btn {
+    position: relative;
+    flex: 1 1 auto;
+
+    &:hover,
+    &:focus,
+    &:active,
+    &.active {
+      z-index: 2;
+    }
+  }
+
+  > .btn:not(:first-child) {
+    margin-left: -2px; // overlap the 2px Flatly borders
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  > .btn:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.btn-group-sm > .btn {
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: $radius-sm;
+}

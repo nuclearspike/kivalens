@@ -1,0 +1,63 @@
+// ============================================================
+// Design tokens — hand-written replacement for the Bootstrap 3
+// Flatly (Bootswatch 3.3.5) base the original KivaLens shipped,
+// merged with the KivaLens green theme. No Bootstrap dependency;
+// values were lifted from reference/flatly-3.3.5-reference.css
+// so the rendered result matches the original pixel-for-pixel.
+// ============================================================
+
+// --- Flatly palette ---
+$flatly-primary: #2c3e50; // dark slate
+$flatly-success: #18bc9c; // teal
+$flatly-info: #3498db;
+$flatly-warning: #f39c12;
+$flatly-danger: #e74c3c;
+$flatly-default: #95a5a6; // BS3 "btn-default" gray
+$flatly-default-hover: #798d8f;
+$flatly-default-hover-border: #74898a;
+$flatly-line: #ecf0f1; // panel borders, tab borders, hr
+$flatly-input-border: #dce4ec;
+$flatly-dropdown-link: #7b8a8b;
+
+// --- KivaLens green theme (from old application.scss) ---
+$kiva-green: #2c8c5e;
+$kiva-green-light: #e8f5ee;
+$kiva-green-dark: #1a3d2e;
+$kiva-text: #2d2d2d;
+$kiva-text-muted: #6c757d;
+$kiva-border: #dee2e6;
+$kiva-bg-subtle: #f8f9fa;
+
+// --- type ---
+$font-family-base: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$font-size-base: 13px;
+$line-height-base: 1.42857143; // Flatly/BS3 ratio
+
+// --- shape ---
+$radius-base: 4px;
+$radius-sm: 3px;
+$radius-lg: 6px;
+
+// --- grid ---
+$gutter: 15px; // BS3 half-gutter (30px total) — old app's spacing
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// --- z layers ---
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1070;
+
+:root {
+  --kl-flatly-primary: #{$flatly-primary};
+  --kl-flatly-success: #{$flatly-success};
+  --kl-flatly-info: #{$flatly-info};
+  --kl-flatly-warning: #{$flatly-warning};
+  --kl-flatly-danger: #{$flatly-danger};
+  --kl-flatly-default: #{$flatly-default};
+  --kl-flatly-line: #{$flatly-line};
+}

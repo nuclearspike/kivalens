@@ -1,0 +1,51 @@
+// KivaLens Theme Variables
+// ========================
+
+// Brand colors — single Kiva green, matching the original app's
+// $kiva-green (#2C8C5E) used for accents, badges, and basket states.
+$kl-green: #2c8c5e;
+$kl-green-light: #e8f5ee;
+$kl-green-dark: #1a3d2e;
+$kl-green-hover: #236f4a;
+
+// Kiva-inspired palette
+$kl-kiva-green: #2c8c5e;
+
+// UI colors
+$kl-text: #2d2d2d;
+$kl-text-muted: #6c757d;
+$kl-border: #dee2e6;
+$kl-bg-subtle: #f8f9fa;
+
+// Borrower gender pills
+$kl-female-bg: #fce4ec;
+$kl-female-text: #000;
+$kl-male-bg: #e3f2fd;
+$kl-male-text: #000;
+
+// Loan states
+$kl-in-basket-bg: $kl-green;
+$kl-funded-bg: #d5d5d5;
+$kl-portfolio-bg: #cfcfcf;
+
+// Typography
+$kl-font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$kl-font-size-base: 13px;
+$kl-font-size-sm: 11px;
+$kl-font-size-xs: 10px;
+
+// Spacing
+$kl-spacing-xs: 3px;
+$kl-spacing-sm: 6px;
+$kl-spacing-md: 10px;
+$kl-spacing-lg: 15px;
+
+// Navbar
+$kl-navbar-height: 32px;
+$kl-navbar-bg: $kl-green-dark;
+
+// Slider (rc-slider)
+$kl-slider-track: $kl-green;
+$kl-slider-rail: #cfcfcf;
+$kl-slider-handle-bg: #e6e6e6;
+$kl-slider-handle-border: #d3d3d3;

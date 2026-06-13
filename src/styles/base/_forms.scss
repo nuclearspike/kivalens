@@ -1,0 +1,224 @@
+@use 'sass:color';
+@use 'tokens' as *;
+
+// Forms — Flatly's chunky flat inputs (1px #dce4ec border), with
+// BS5-compatible class names used by the ported components.
+
+.form-label {
+  display: inline-block;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  height: 45px;
+  padding: 10px 15px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: $line-height-base;
+  color: $flatly-primary;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid $flatly-input-border;
+  border-radius: $radius-base;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+
+  &:focus {
+    border-color: $kiva-green;
+    outline: 0;
+  }
+
+  &::placeholder {
+    color: #acb6c0;
+    opacity: 1;
+  }
+
+  &:disabled,
+  &[readonly] {
+    background-color: $flatly-line;
+    opacity: 1;
+    cursor: not-allowed;
+  }
+}
+
+textarea.form-control {
+  height: auto;
+}
+
+.form-control-sm {
+  height: 35px;
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: $radius-sm;
+}
+
+.form-select {
+  display: block;
+  width: 100%;
+  height: 45px;
+  padding: 10px 36px 10px 15px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: $line-height-base;
+  color: $flatly-primary;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232c3e50' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 10px;
+  border: 1px solid $flatly-input-border;
+  border-radius: $radius-base;
+  appearance: none;
+
+  &:focus {
+    border-color: $kiva-green;
+    outline: 0;
+  }
+}
+
+.form-select-sm {
+  height: 35px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 9px;
+  font-size: 13px;
+  border-radius: $radius-sm;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+// Checkboxes / radios — the old app rendered native controls (BS3),
+// so these stay native; classes only handle layout.
+.form-check {
+  display: block;
+  min-height: 19.5px;
+  padding-left: 1.5em;
+  margin-bottom: 2px;
+
+  .form-check-input {
+    float: left;
+    margin-left: -1.5em;
+  }
+}
+
+.form-check-input {
+  width: 1em;
+  height: 1em;
+  margin-top: 0.25em;
+  vertical-align: top;
+  accent-color: $kiva-green;
+  cursor: pointer;
+}
+
+.form-check-label {
+  font-weight: 400;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.form-check-inline {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+// Native range input — appearance:none removes the platform track/thumb,
+// so both pseudo-elements must be styled explicitly (Bootstrap 5 look,
+// Kiva-green thumb).
+.form-range {
+  width: 100%;
+  height: 1.5rem;
+  padding: 0;
+  background-color: transparent;
+  appearance: none;
+
+  &:focus {
+    outline: 0;
+  }
+
+  &::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 0.5rem;
+    color: transparent;
+    cursor: pointer;
+    background-color: #dee2e6;
+    border-color: transparent;
+    border-radius: 1rem;
+  }
+
+  &::-webkit-slider-thumb {
+    width: 1rem;
+    height: 1rem;
+    margin-top: -0.25rem; // (track height - thumb height) / 2
+    appearance: none;
+    background-color: $kiva-green;
+    border: 0;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  &::-webkit-slider-thumb:active {
+    background-color: color.adjust($kiva-green, $lightness: 35%);
+  }
+
+  &::-moz-range-track {
+    width: 100%;
+    height: 0.5rem;
+    color: transparent;
+    cursor: pointer;
+    background-color: #dee2e6;
+    border-color: transparent;
+    border-radius: 1rem;
+  }
+
+  &::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    appearance: none;
+    background-color: $kiva-green;
+    border: 0;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+  }
+
+  &::-moz-range-thumb:active {
+    background-color: color.adjust($kiva-green, $lightness: 35%);
+  }
+}
+
+.form-text {
+  display: block;
+  margin-top: 5px;
+  color: $kiva-text-muted;
+  font-size: 11px;
+}
+
+// BS3 input-group look for LabeledNumber-style composites
+.input-group {
+  position: relative;
+  display: flex;
+  width: 100%;
+
+  .form-control {
+    flex: 1 1 auto;
+    width: 1%;
+  }
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  font-size: 15px;
+  color: #555;
+  text-align: center;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: $radius-base;
+}

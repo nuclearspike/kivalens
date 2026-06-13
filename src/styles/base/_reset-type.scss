@@ -1,0 +1,170 @@
+@use 'sass:color';
+@use 'tokens' as *;
+
+// Minimal modern reset + the typography the old app rendered
+// (normalize.css essentials that Bootstrap 3 shipped, trimmed to
+// what this app actually relies on).
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+body {
+  margin: 0;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: 1.5; // old index.ejs inline style
+  color: $kiva-text;
+  background-color: #fff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.1;
+  color: inherit;
+  margin-top: 0;
+}
+
+// BS3 heading scale at 13px base would differ from the 15px Flatly
+// base the old app loaded — headings inherited Flatly's px sizes,
+// which were computed off its own $font-size-base: 15px.
+h1 { font-size: 39px; margin: 21px 0 10.5px; }
+h2 { font-size: 32px; margin: 21px 0 10.5px; }
+h3 { font-size: 26px; margin: 21px 0 10.5px; }
+h4 { font-size: 19px; margin: 10.5px 0; }
+h5 { font-size: 15px; margin: 10.5px 0; }
+h6 { font-size: 13px; margin: 10.5px 0; }
+
+p {
+  margin: 0 0 10.5px;
+}
+
+a {
+  color: $kiva-green;
+  text-decoration: none;
+  background-color: transparent;
+
+  &:hover,
+  &:focus {
+    color: color.adjust($kiva-green, $lightness: -10%);
+    text-decoration: underline;
+  }
+}
+
+img {
+  border: 0;
+  vertical-align: middle;
+}
+
+hr {
+  margin-top: 21px;
+  margin-bottom: 21px;
+  border: 0;
+  border-top: 1px solid $flatly-line;
+}
+
+small,
+.small {
+  font-size: 85%;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  overflow: visible;
+  text-transform: none;
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  margin-top: 0;
+  margin-bottom: 10.5px;
+}
+
+dl {
+  margin-top: 0;
+  margin-bottom: 21px;
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  margin-left: 0;
+}
+
+// BS3 .dl-horizontal — used by loan/partner detail panes
+@media (min-width: $breakpoint-md) {
+  .dl-horizontal dt {
+    float: left;
+    width: 160px;
+    clear: left;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dl-horizontal dd {
+    margin-left: 180px;
+
+    &::before,
+    &::after {
+      content: ' ';
+      display: table;
+    }
+
+    &::after {
+      clear: both;
+    }
+  }
+}
+
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+  color: #c7254e;
+  background-color: #f9f2f4;
+  border-radius: $radius-base;
+}
+
+[hidden] {
+  display: none !important;
+}

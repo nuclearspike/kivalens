@@ -1,0 +1,188 @@
+@use 'tokens' as *;
+
+// Cards (rendered like Flatly's .panel), list groups, badges, alerts.
+
+// --- card (visuals of BS3 .panel-default in Flatly) ---
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  margin-bottom: 21px;
+  background-color: #fff;
+  border: 1px solid $flatly-line;
+  border-radius: $radius-base;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  padding: 10px 15px;
+  margin-bottom: 0;
+  color: $flatly-primary;
+  background-color: $flatly-line;
+  border-bottom: 1px solid $flatly-line;
+  border-radius: ($radius-base - 1px) ($radius-base - 1px) 0 0;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  padding: 15px;
+}
+
+.card-title {
+  margin-top: 0;
+  margin-bottom: 10.5px;
+  font-size: 15px;
+  color: inherit;
+}
+
+.card-footer {
+  padding: 10px 15px;
+  background-color: $kiva-bg-subtle;
+  border-top: 1px solid $flatly-line;
+  border-radius: 0 0 ($radius-base - 1px) ($radius-base - 1px);
+}
+
+// --- list group (BS3) ---
+.list-group {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-bottom: 20px;
+  border-radius: $radius-base;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+  border: 1px solid $flatly-line;
+  color: inherit;
+  text-decoration: none;
+
+  &:first-child {
+    border-top-left-radius: $radius-base;
+    border-top-right-radius: $radius-base;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+    border-bottom-left-radius: $radius-base;
+    border-bottom-right-radius: $radius-base;
+  }
+}
+
+button.list-group-item,
+a.list-group-item,
+.list-group-item-action {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background-color: $kiva-bg-subtle;
+    text-decoration: none;
+  }
+}
+
+.list-group-item.active {
+  z-index: 2;
+  // Selection color comes from the KivaLens theme (green family),
+  // matching the old app's .selected loan styling.
+  background-color: $kiva-green-light;
+  border-color: $flatly-line;
+}
+
+// --- badge ---
+.badge {
+  display: inline-block;
+  min-width: 10px;
+  padding: 3px 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-align: center;
+  background-color: $flatly-primary;
+  border-radius: 10px;
+
+  &:empty {
+    display: none;
+  }
+
+  &.bg-light {
+    color: $kiva-text;
+  }
+}
+
+.rounded-pill {
+  border-radius: 50rem !important;
+}
+
+// --- alerts (Flatly: saturated fills, white text) ---
+.alert {
+  padding: 15px;
+  margin-bottom: 21px;
+  border: 1px solid transparent;
+  border-radius: $radius-base;
+  position: relative;
+
+  .alert-link {
+    font-weight: 700;
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .alert-heading {
+    color: inherit;
+    margin-top: 0;
+  }
+}
+
+.alert-success {
+  background-color: $flatly-success;
+  border-color: $flatly-success;
+  color: #fff;
+}
+
+.alert-info {
+  background-color: $flatly-info;
+  border-color: $flatly-info;
+  color: #fff;
+}
+
+.alert-warning {
+  background-color: $flatly-warning;
+  border-color: $flatly-warning;
+  color: #fff;
+}
+
+.alert-danger {
+  background-color: $flatly-danger;
+  border-color: $flatly-danger;
+  color: #fff;
+}
+
+.alert-secondary,
+.alert-light {
+  background-color: $kiva-bg-subtle;
+  border-color: $kiva-border;
+  color: $kiva-text;
+}
+
+.alert-dismissible {
+  padding-right: 40px;
+
+  .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 14px;
+  }
+}

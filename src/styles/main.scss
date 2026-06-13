@@ -1,0 +1,1068 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+// ============================================================
+// CSS Custom Properties (for runtime theming / JS access)
+// ============================================================
+:root {
+  --kl-green: #{$kl-green};
+  --kl-green-light: #{$kl-green-light};
+  --kl-green-dark: #{$kl-green-dark};
+  --kl-green-hover: #{$kl-green-hover};
+  --kl-text: #{$kl-text};
+  --kl-text-muted: #{$kl-text-muted};
+  --kl-border: #{$kl-border};
+  --kl-bg-subtle: #{$kl-bg-subtle};
+}
+
+// ============================================================
+// Global Overrides
+// ============================================================
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ============================================================
+// Navbar (react-bootstrap Navbar)
+// ============================================================
+.navbar {
+  margin-bottom: $kl-spacing-sm;
+  min-height: $kl-navbar-height;
+  background-color: $kl-navbar-bg !important;
+  border: none;
+  border-radius: 0;
+
+  .navbar-brand {
+    padding: 5px $kl-spacing-lg;
+    font-weight: 600;
+    font-size: 15px;
+    height: $kl-navbar-height;
+    line-height: 22px;
+    color: #fff !important;
+  }
+
+  // Bootstrap 5 nav-link selectors
+  .nav-link {
+    padding: 5px 14px !important;
+    font-size: $kl-font-size-base;
+    font-weight: 500;
+    line-height: 22px;
+    color: rgba(255, 255, 255, 0.85) !important;
+    border-top: 3px solid transparent;
+    transition: all 150ms ease;
+
+    &:hover,
+    &:focus {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+    }
+
+    // Active tab: white bg, dark text, green top border
+    &.active {
+      background-color: #fff !important;
+      color: $kl-text !important;
+      border-top: 3px solid $kl-green;
+
+      &:hover {
+        background-color: #f0f0f0 !important;
+        color: $kl-text !important;
+      }
+    }
+  }
+
+  // Badge in navbar
+  .badge {
+    background-color: $kl-green !important;
+    color: #fff !important;
+    font-size: $kl-font-size-xs;
+    padding: 2px 5px;
+    vertical-align: middle;
+  }
+
+  .navbar-toggler {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 4px 8px;
+  }
+}
+
+// ============================================================
+// Cards (Bootstrap 5 .card replaces old .panel)
+// ============================================================
+.card {
+  margin-bottom: $kl-spacing-md;
+  border-color: $kl-border;
+
+  .card-header {
+    padding: $kl-spacing-sm 12px;
+    font-weight: 600;
+    font-size: $kl-font-size-base;
+  }
+
+  .card-body {
+    padding: $kl-spacing-md 12px;
+  }
+}
+
+// ============================================================
+// KivaImage
+// ============================================================
+.KivaImage {
+  background-repeat: no-repeat;
+  background-size: contain;
+  max-width: 100%;
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  &.loaded {
+    background-image: none;
+    img {
+      transition: all 300ms ease;
+      opacity: 1;
+    }
+  }
+
+  &.not_loaded img {
+    transition: all 300ms ease;
+    opacity: 0;
+  }
+}
+
+.fullsizeImage .KivaImage,
+.tab-content .KivaImage[style*='width: 100%'],
+.tab-pane .KivaImage {
+  max-width: 450px;
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.loading_notice {
+  display: none;
+  padding: 5px;
+}
+
+.fullsizeImage .KivaImage.not_loaded .loading_notice {
+  display: block;
+}
+
+// ============================================================
+// Loan Detail Images
+// ============================================================
+.Loan .fullsizeImage .KivaImage {
+  min-height: 200px;
+  min-width: 200px;
+  max-height: 400px;
+  background-size: 200px 200px;
+}
+
+.Loan .fullsizeImage img,
+.Loan .partner-image img,
+.PartnerDetail img {
+  max-height: 300px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+// ============================================================
+// Loan List
+// ============================================================
+.loan_list_container {
+  height: 500px;
+  width: 100%;
+  overflow-y: scroll;
+}
+
+.loan_list_item {
+  height: 82px;
+  width: 100%;
+  padding-top: $kl-spacing-xs !important;
+  padding-bottom: $kl-spacing-xs !important;
+  border-left: 3px solid transparent !important;
+  transition: border-color 200ms ease, background-color 300ms ease;
+  overflow-y: hidden;
+  z-index: 10;
+
+  &:hover {
+    border-left-color: $kl-green !important;
+  }
+
+  &.selected {
+    z-index: 12;
+    background-color: $kl-green-light;
+    border-left-color: $kl-green !important;
+  }
+
+  &.gone {
+    z-index: 1;
+    transform: translate3d(0, -50px, -50px) rotateX(-90deg);
+  }
+
+  &:first-child {
+    border-top-right-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+  }
+
+  // Loan thumbnail
+  .KivaImage {
+    float: left;
+    margin-right: 5px;
+    margin-left: -20px;
+    background-size: 90px 90px;
+    img {
+      width: 90px;
+      height: 90px;
+    }
+  }
+
+  // Loan details
+  .details {
+    overflow: hidden;
+
+    .loan-name {
+      font-weight: 600;
+      font-size: $kl-font-size-base;
+      line-height: 1.3;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .loan-meta {
+      margin-bottom: 2px;
+
+      .loan-tag {
+        display: inline-block;
+        font-size: $kl-font-size-sm;
+        color: $kl-text-muted;
+        background: $kl-bg-subtle;
+        padding: 0 5px;
+        border-radius: 3px;
+        margin-right: $kl-spacing-xs;
+      }
+    }
+
+    .loan-use {
+      font-size: 11.5px;
+      color: $kl-text-muted;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    p {
+      margin-bottom: 3.5px;
+    }
+  }
+}
+
+// ============================================================
+// Loan States
+// ============================================================
+.in_basket {
+  background-color: $kl-in-basket-bg !important;
+  color: #fff !important;
+  border-left-color: color.adjust($kl-green, $lightness: -15%) !important;
+
+  a,
+  a:hover {
+    color: #fff !important;
+  }
+
+  .loan-tag {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+  }
+
+  .loan-use {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+.funded {
+  background-color: $kl-funded-bg !important;
+  opacity: 0.7;
+}
+
+.in_portfolio {
+  background-color: $kl-portfolio-bg !important;
+}
+
+// ============================================================
+// Borrower Pills
+// ============================================================
+.borrower-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  margin: 2px 3px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.borrower-female {
+  background-color: $kl-female-bg;
+  color: $kl-female-text;
+}
+
+.borrower-male {
+  background-color: #d9ecff;
+  color: #174a7c;
+}
+
+.partner-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.partner-pill-muted {
+  background: $kl-bg-subtle;
+  color: $kl-text-muted;
+}
+
+.partner-pill-good {
+  background: #dff3e6;
+  color: #1f6b3a;
+}
+
+.partner-pill-warn {
+  background: #fff1d6;
+  color: #8b5a00;
+}
+
+.partner-pill-bad {
+  background: #f8d7da;
+  color: #8a1f2d;
+}
+
+.partner-pill-accent {
+  background: #dfeaff;
+  color: #184d94;
+}
+
+.borrower-male {
+  background-color: $kl-male-bg;
+  color: $kl-male-text;
+}
+
+// ============================================================
+// Saved Search Count Badges
+// ============================================================
+.saved-search-count {
+  display: inline-block;
+  min-width: 28px;
+  padding: 1px 6px;
+  margin-right: $kl-spacing-sm;
+  font-size: $kl-font-size-sm;
+  font-weight: 600;
+  text-align: center;
+  background: $kl-green;
+  color: #fff;
+  border-radius: 10px;
+}
+
+// ============================================================
+// Loan Count Bar
+// ============================================================
+.loan-count-bar {
+  background: $kl-bg-subtle;
+  border: 1px solid $kl-border;
+  border-top: none;
+  padding: $kl-spacing-xs $kl-spacing-md;
+  font-size: $kl-font-size-sm;
+  color: $kl-text-muted;
+  text-align: center;
+}
+
+// ============================================================
+// Labeled Number (criteria input groups)
+// ============================================================
+.labeledNumber {
+  color: $kl-text;
+  display: table;
+  height: 34px;
+  width: 100%;
+  margin-bottom: 2px;
+
+  .number {
+    color: #555;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 50px;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-right: 0;
+    border-radius: 4px 0 0 4px;
+    padding: $kl-spacing-sm 12px;
+  }
+
+  .name {
+    color: #555;
+    background: #fff;
+    display: table-cell;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+    border-radius: 0 4px 4px 0;
+    padding: $kl-spacing-sm 12px;
+  }
+}
+
+// ============================================================
+// Tabs (Bootstrap 5 .nav-tabs, .nav-link)
+// ============================================================
+.nav-tabs .nav-link {
+  padding: $kl-spacing-sm 12px;
+  font-size: $kl-font-size-base;
+}
+
+#about-tabs.about-tabs {
+  margin-bottom: 0 !important;
+
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 0.95rem;
+  }
+}
+
+#about-tabs.about-tabs + .tab-content {
+  border-top: 1px solid var(--bs-border-color);
+  margin-top: -1px;
+  padding-top: 0.75rem;
+}
+
+// ============================================================
+// Buttons
+// ============================================================
+.btn {
+  padding: 4px $kl-spacing-md;
+  font-size: $kl-font-size-base;
+}
+
+.btn-group .btn {
+  padding: 4px 8px;
+}
+
+.btn-success {
+  background-color: $kl-kiva-green !important;
+  border-color: $kl-kiva-green !important;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: color.adjust($kl-kiva-green, $lightness: -8%) !important;
+    border-color: color.adjust($kl-kiva-green, $lightness: -8%) !important;
+  }
+}
+
+.btn-group.top-only {
+  .btn:first-child:not(:last-child) {
+    border-bottom-left-radius: 0;
+  }
+  .btn:last-child:not(:first-child) {
+    border-bottom-right-radius: 0;
+  }
+}
+
+// ============================================================
+// Badges
+// ============================================================
+.badge {
+  background-color: $kl-green !important;
+  font-size: $kl-font-size-sm;
+  padding: 2px 6px;
+  margin-left: $kl-spacing-xs;
+}
+
+// ============================================================
+// Detail Label
+// ============================================================
+.detail-label {
+  color: $kl-text-muted;
+  font-size: $kl-font-size-sm;
+}
+
+// ============================================================
+// Alerts
+// ============================================================
+.alert {
+  padding: 8px 12px;
+  margin-bottom: $kl-spacing-md;
+  font-size: $kl-font-size-base;
+
+  a {
+    color: #000 !important;
+  }
+}
+
+// ============================================================
+// Definition Lists
+// ============================================================
+.dl-horizontal dt {
+  font-weight: 500;
+}
+
+.dl-horizontal dd {
+  margin-bottom: $kl-spacing-xs;
+}
+
+@media (min-width: 768px) {
+  .dl-horizontal.narrow dt {
+    width: 60px;
+  }
+  .dl-horizontal.narrow dd {
+    margin-left: 80px;
+  }
+}
+
+// ============================================================
+// Layout / Container
+// ============================================================
+.container-fluid {
+  padding-left: $kl-spacing-md;
+  padding-right: $kl-spacing-md;
+}
+
+// ============================================================
+// Utility Classes
+// ============================================================
+ul.spacedList li {
+  padding-top: $kl-spacing-md;
+}
+
+.float_left {
+  float: left;
+}
+
+.float_right {
+  float: right;
+}
+
+.ample-padding-top {
+  padding-top: 8px;
+}
+
+.not-rounded-top {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.not-rounded {
+  border-radius: 0 !important;
+}
+
+.blur-me {
+  filter: blur(20px);
+}
+
+.pad-sides {
+  padding-left: $kl-spacing-md;
+  padding-right: $kl-spacing-md;
+}
+
+.spacedChildren > * {
+  display: inline-block;
+}
+
+.spacedChildren.notEnabled > div.btn-group > button.btn {
+  background-color: #aaa !important;
+}
+
+// ============================================================
+// Infinite List (virtual scroll)
+// ============================================================
+.infinite-list {
+  overflow: auto;
+  position: relative;
+}
+
+.infinite-list-content {
+  margin: 0;
+  position: absolute;
+  width: 100%;
+}
+
+// ============================================================
+// Notification Bar — "N loans" toast, styled like the old
+// react-notification snackbar (black bar, bottom-left)
+// ============================================================
+.notification-bar {
+  position: fixed;
+  // The old app's 2rem values resolved against Bootstrap 3's 10px
+  // html font-size — i.e. 20px, not 32px.
+  bottom: 20px;
+  left: 20px;
+  z-index: 30000;
+  font-size: 20px;
+  padding: 8px 20px;
+  background-color: #212121;
+  color: #fafafa;
+  border-radius: 2px;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  animation: kl-toast-in 300ms ease-out;
+}
+
+@keyframes kl-toast-in {
+  from {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ============================================================
+// Graph Container
+// ============================================================
+#graph_container div {
+  // Reserve for chart transitions
+}
+
+// ============================================================
+// Criteria Panel Radio
+// ============================================================
+.card.radioPanel {
+  .form-check {
+    margin-left: 40px;
+  }
+}
+
+// ============================================================
+// Menu Selected State
+// ============================================================
+.menu_selected {
+  background-color: $kl-green-dark;
+
+  a,
+  a:hover,
+  a:focus {
+    color: #fff !important;
+  }
+}
+
+// ============================================================
+// 3D Face Page (portfolio wall)
+// ============================================================
+.facepage {
+  perspective: 5000px;
+  perspective-origin: 50% 100px;
+}
+
+// ============================================================
+// Snowstack (portfolio wall) — 3D CSS wall, ported unprefixed from
+// the original Snow Stack engine CSS (Charles Ying, Apache 2.0)
+// ============================================================
+.snowstack {
+  .view {
+    position: absolute;
+    display: block;
+    transform-style: preserve-3d;
+  }
+
+  div.page {
+    perspective: 600px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    text-align: center;
+    position: relative; // page is the 3D viewport, not abs-positioned
+  }
+
+  div.origin {
+    left: 50%;
+    top: 50%;
+  }
+
+  div.camera {
+    transition-property: transform;
+    transition-duration: 5s;
+    transition-timing-function: cubic-bezier(0.2, 0.6, 0.6, 0.9);
+    transform: translate3d(0, 0, 0);
+  }
+
+  div.dolly {
+    transition-property: transform;
+    transition-duration: 550ms;
+    transition-timing-function: ease-out;
+    transform: translate3d(0, 0, 0);
+  }
+
+  img.reflection {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 25%,
+      rgba(255, 255, 255, 0.5) 100%
+    );
+  }
+
+  div.cell {
+    position: absolute;
+    transform-style: preserve-3d;
+    transition-property: transform, opacity;
+    transition-duration: 550ms;
+    transform: translate3d(0, 0, 0);
+  }
+
+  div.cell .media {
+    display: block;
+    position: absolute;
+    transition-property: transform, opacity;
+    transition-duration: 550ms;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .mover {
+    transition-property: transform;
+    transition-duration: 550ms;
+    transform: translate3d(0, 0, 0);
+  }
+
+  div.selected .mover {
+    transform: translate3d(0, 0, 40px);
+  }
+
+  div.magnify .mover {
+    transform: translate3d(0, 0, 140px);
+  }
+
+  div.magnify img.media {
+    transform: translate3d(0, 0, 0) scale(2);
+  }
+
+  #caption {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    font-size: 10pt;
+    color: #fff;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 10pt 10pt 10pt 20pt;
+    transform: translate3d(0, 0, 2000px);
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 550ms;
+
+    &.hide {
+      opacity: 0;
+    }
+  }
+}
+
+// ============================================================
+// RC-Slider Overrides
+// ============================================================
+.horizontal-slider {
+  width: calc(100% - 10px);
+  max-width: 500px;
+  height: 20px;
+  border: 0;
+  margin: 5px;
+}
+
+// Match the old react-slider rendering: 25x25 square gray handles
+// with 4px corners riding a 5px rail, green selected range.
+.rc-slider {
+  height: 27px;
+  padding: 11px 0;
+  // Inset by half the handle width so the handle's outer edge lands on the
+  // column edge (aligned with the dropdowns) instead of overflowing into the
+  // criteria column's `overflow-x: hidden` and getting clipped.
+  width: calc(100% - 26px);
+  margin: 0 13px;
+
+  .rc-slider-track {
+    background-color: $kl-slider-track;
+    height: 5px;
+  }
+
+  .rc-slider-rail {
+    background-color: $kl-slider-rail;
+    height: 5px;
+  }
+
+  .rc-slider-handle {
+    width: 25px;
+    height: 25px;
+    margin-top: -10px;
+    background: $kl-slider-handle-bg;
+    border: 1px solid $kl-slider-handle-border;
+    border-radius: 4px;
+    opacity: 1;
+
+    &:active,
+    &-dragging {
+      background-color: grey;
+      box-shadow: none !important;
+      border-color: $kl-slider-handle-border !important;
+    }
+
+    &:focus-visible {
+      box-shadow: none;
+    }
+  }
+}
+
+// Legacy slider classes (react-slider compat)
+.handle {
+  color: #555;
+  height: 13.1875px;
+  position: absolute;
+  text-align: center;
+  width: 13.1875px;
+  cursor: pointer;
+  background: $kl-slider-handle-bg;
+  border: 1px solid $kl-slider-handle-border;
+  border-radius: 4px;
+  font: normal 11px Verdana, Arial, sans-serif;
+
+  &.active {
+    background-color: grey;
+  }
+}
+
+.bar {
+  position: relative;
+  background: $kl-slider-rail;
+
+  &.bar-1 {
+    background: $kl-slider-track;
+  }
+}
+
+.horizontal-slider .bar {
+  top: 12px;
+  height: 5px;
+}
+
+.horizontal-slider .handle {
+  top: 1px;
+  width: 25px;
+  height: 25px;
+  line-height: 15px;
+}
+
+// ============================================================
+// 3D Side-Tilt (search results / loan detail split)
+// ============================================================
+@media (min-width: 1024px) {
+  .side-tilted-container {
+    perspective: 1000px;
+    perspective-origin: 50% 100px;
+
+    .side-results {
+      background: #fff;
+      transition: all 1000ms ease;
+      transform: rotateY(0deg) translateX(0);
+    }
+
+    .side-tilted {
+      transform: rotateY(15deg) translateX(5px);
+      transform-origin: 100% 50%;
+
+      .btn {
+        z-index: 10;
+      }
+    }
+
+    .side-shadow-sometimes {
+      transition: all 1000ms ease;
+      box-shadow: -25px 10px 117px -16px rgba(0, 0, 0, 0);
+      height: 900px;
+      width: 300px;
+      position: absolute;
+      top: 20px;
+    }
+
+    .side-tilted-shadow {
+      transition: all 1000ms ease;
+      box-shadow: -25px 10px 117px -16px rgba(0, 0, 0, 0.75);
+      background: #000;
+      opacity: 0.75;
+      height: 900px;
+      width: 300px;
+      position: absolute;
+      top: 20px;
+    }
+  }
+
+  .flat-3d {
+    transform: rotate3d(0, 0, 0, 0deg);
+  }
+}
+
+// ============================================================
+// Transitions (React animation classes)
+// ============================================================
+.simpleFade-enter {
+  opacity: 0.01;
+}
+
+.simpleFade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.simpleFade-exit {
+  opacity: 1;
+}
+
+.simpleFade-exit-active {
+  opacity: 0.01;
+  transition: opacity 100ms ease-in;
+}
+
+// ============================================================
+// Responsive
+// ============================================================
+@media (max-width: 767.98px) {
+  .loan_list_container {
+    height: 300px !important;
+  }
+
+  // Navbar: vertical stacking on mobile
+  .navbar .nav-link {
+    padding: 8px $kl-spacing-lg !important;
+    border-top: none !important;
+    border-left: 3px solid transparent;
+
+    &:hover {
+      border-left-color: $kl-green;
+    }
+
+    &.active {
+      border-top: none !important;
+      border-left: 3px solid $kl-green;
+    }
+  }
+
+  // Loan items
+  .loan_list_item .KivaImage {
+    margin-left: -10px;
+  }
+
+  // Stack columns
+  .flat-3d {
+    margin-top: $kl-spacing-md;
+  }
+
+  // Tighter cards on mobile
+  .card .card-body {
+    padding: 8px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  // Criteria tabs scroll horizontally
+  .nav-tabs {
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    display: flex;
+
+    .nav-item {
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ============================================================
+// react-select v5 restyled to match the original react-select v1
+// (KLSelect sets classNamePrefix="Select")
+// ============================================================
+.Select__control {
+  min-height: 36px;
+  border-color: #ccc !important;
+  border-radius: 4px;
+  box-shadow: none !important;
+
+  &:hover {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+
+  &--is-focused {
+    border-color: #007eff !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1) !important;
+  }
+}
+
+.Select__indicator-separator {
+  display: none;
+}
+
+// v1-style gray triangle instead of the v5 chevron svg
+.Select__dropdown-indicator {
+  padding: 4px 8px !important;
+  color: #999;
+
+  svg {
+    display: none;
+  }
+
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-color: #999 transparent transparent;
+    border-style: solid;
+    border-width: 5px 5px 2.5px;
+  }
+
+  &:hover::after {
+    border-top-color: #666;
+  }
+}
+
+.Select__menu {
+  z-index: 1000 !important;
+}
+
+.Select__option {
+  padding: 8px 10px !important;
+}
+
+.Select__multi-value {
+  background-color: rgba(0, 126, 255, 0.08) !important;
+  border: 1px solid rgba(0, 126, 255, 0.24) !important;
+  border-radius: 2px !important;
+
+  .Select__multi-value__label {
+    color: #007eff !important;
+    font-size: 0.9em;
+  }
+
+  .Select__multi-value__remove {
+    border-left: 1px solid rgba(0, 126, 255, 0.24);
+    color: #007eff;
+
+    &:hover {
+      background-color: rgba(0, 113, 230, 0.08);
+      color: #0071e6;
+    }
+  }
+}
