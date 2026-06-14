@@ -1,22 +1,30 @@
-import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ElementType, ReactNode, RefObject } from 'react'
 import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { Button, type ButtonProps } from './Button'
 import { cx } from './types'
 
 type DropdownContextValue = {
   open: boolean
   setOpen: (open: boolean) => void
+  anchorRef: RefObject<HTMLDivElement | null>
+  menuRef: RefObject<HTMLDivElement | null>
+  align: 'start' | 'end'
 }
 
 const DropdownContext = createContext<DropdownContextValue>({
   open: false,
   setOpen: () => {},
+  anchorRef: { current: null },
+  menuRef: { current: null },
+  align: 'start',
 })
 
 type DropdownProps = ComponentPropsWithoutRef<'div'> & {
@@ -34,6 +42,7 @@ function DropdownRoot({
 }: DropdownProps) {
   const [open, setOpenState] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const setOpen = (next: boolean) => {
     setOpenState(next)
@@ -44,7 +53,10 @@ function DropdownRoot({
     if (!open) return
 
     const onDocClick = (e: globalThis.MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const inRoot = rootRef.current?.contains(target)
+      const inMenu = menuRef.current?.contains(target) // menu is portaled outside root
+      if (!inRoot && !inMenu) {
         setOpenState(false)
         onToggle?.(false)
       }
@@ -66,7 +78,9 @@ function DropdownRoot({
   }, [open])
 
   return (
-    <DropdownContext.Provider value={{ open, setOpen }}>
+    <DropdownContext.Provider
+      value={{ open, setOpen, anchorRef: rootRef, menuRef, align: _align ?? 'start' }}
+    >
       <div ref={rootRef} className={cx('dropdown', className)} {...rest}>
         {children}
       </div>
@@ -91,14 +105,58 @@ function DropdownToggle({ className, onClick, ...rest }: ButtonProps) {
 
 function DropdownMenu({
   className,
+  style,
+  align,
   ...rest
 }: ComponentPropsWithoutRef<'div'> & { align?: 'start' | 'end' }) {
-  const { open } = useContext(DropdownContext)
-  return (
+  const { open, anchorRef, menuRef, align: ctxAlign } = useContext(DropdownContext)
+  const useAlign = align ?? ctxAlign
+
+  // Position the menu with position:fixed in a portal so it escapes any ancestor with
+  // overflow:hidden/auto (e.g. the scrolling criteria column) instead of being clipped.
+  // Anchored to the toggle and positioned imperatively (no state) so there's no flash and
+  // it re-tracks on scroll/resize while open.
+  useLayoutEffect(() => {
+    if (!open) return
+    const compute = () => {
+      const el = menuRef.current
+      const a = anchorRef.current?.getBoundingClientRect()
+      if (!el || !a) return
+      const menuW = el.offsetWidth
+      let left = useAlign === 'end' ? a.right - menuW : a.left
+      const vw = window.innerWidth
+      if (left + menuW > vw - 8) left = vw - menuW - 8
+      if (left < 8) left = 8
+      el.style.top = `${a.bottom + 2}px`
+      el.style.left = `${left}px`
+      el.style.visibility = 'visible'
+    }
+    compute()
+    window.addEventListener('scroll', compute, true)
+    window.addEventListener('resize', compute)
+    return () => {
+      window.removeEventListener('scroll', compute, true)
+      window.removeEventListener('resize', compute)
+    }
+  }, [open, useAlign, anchorRef, menuRef])
+
+  if (!open) return null
+
+  return createPortal(
     <div
-      className={cx('dropdown-menu', open && 'show', className)}
+      ref={menuRef}
+      className={cx('dropdown-menu', 'show', className)}
+      style={{
+        ...style,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        visibility: 'hidden', // revealed by the layout effect once positioned
+        zIndex: 2000,
+      }}
       {...rest}
-    />
+    />,
+    document.body,
   )
 }
 

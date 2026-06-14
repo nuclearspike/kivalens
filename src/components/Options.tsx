@@ -4,6 +4,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { lsj } from '../lib/localStorage'
 import { useUtilsStore } from '../stores'
 import KivaImage from './KivaImage'
+import CompanionCard from './CompanionCard'
+import { companionEnabled } from '../api/companion'
 
 interface OptionsState {
   kiva_lender_id: string
@@ -161,34 +163,11 @@ export default function Options() {
                   </Col>
                 </Row>
               ) : null}
-
-              {opts.kiva_lender_id && (
-                <>
-                  <p className="pt-3">Your Lender ID enables:</p>
-                  <ul className="spacedList">
-                    <li>
-                      <b>Exclude Loans I&apos;ve Made:</b> Hides loans you&apos;ve already funded so
-                      you don&apos;t accidentally lend twice to the same borrower.
-                    </li>
-                    <li>
-                      <b>Portfolio Balancing:</b> Filter by Partners, Countries, Sectors, and
-                      Activities relative to your existing portfolio.
-                    </li>
-                    <li>
-                      <b>Basket Pruning:</b> Automatically removes completed loans from your basket
-                      when you return to KivaLens.
-                    </li>
-                    <li>
-                      <b>Team Comparison:</b> Compare membership and lending across all your teams.
-                    </li>
-                    <li>
-                      <b>3D Loan Wall:</b> Visualize your portfolio.
-                    </li>
-                  </ul>
-                </>
-              )}
             </Card.Body>
           </Card>
+
+          {/* --- KivaLens Companion extension (only when VITE_COMPANION_EXT_ID is set) --- */}
+          {companionEnabled && <CompanionCard />}
 
           {/* --- Display --- */}
           <Card className="mb-3">
