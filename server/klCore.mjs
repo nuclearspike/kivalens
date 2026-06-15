@@ -480,11 +480,18 @@ export async function prepareData(state, log = console.log) {
     }
     log(`Processed ${processed.length} loans`)
 
-    state.allLoans = processed.map((p) => p.loan)
+    // Drop loans Kiva still reports as fundraising but that are already fully
+    // funded (funded_amount >= loan_amount). basket_amount is deliberately
+    // ignored: Kiva's basket figures are unreliable and sometimes exceed the
+    // amount remaining, so only funded vs. total decides fundability.
+    const fundable = processed.filter((p) => p.loan.funded_amount < p.loan.loan_amount)
+    log(`Excluded ${processed.length - fundable.length} fully-funded loans; ${fundable.length} remain`)
+
+    state.allLoans = fundable.map((p) => p.loan)
     state.newestTime = Math.max(...state.allLoans.map((l) => new Date(l.kl_processed).getTime()))
 
-    const compressed = processed.map((p) => compressLoan(p.loan))
-    const keywords = processed.map((p) => p.keywords)
+    const compressed = fundable.map((p) => compressLoan(p.loan))
+    const keywords = fundable.map((p) => p.keywords)
 
     const loanChunks = chunkArray(compressed, KL_PAGE_SPLITS)
     const kwChunks = chunkArray(keywords, KL_PAGE_SPLITS)

@@ -952,6 +952,13 @@ export class Loans {
     // Only show fundraising loans
     ct.testers.push((l: KivaLoan) => l.status === 'fundraising')
 
+    // Exclude loans already fully funded on Kiva (funded >= total). basket_amount
+    // is intentionally ignored — Kiva's basket data is unreliable and can exceed
+    // the remaining amount; only funded vs. total decides fundability. This is the
+    // live-session safety net for loans that hit 100% after the server shipped
+    // them (funded_amount is updated in real time via mergeLoanAndNotify).
+    ct.testers.push((l: KivaLoan) => (l.funded_amount ?? 0) < l.loan_amount)
+
     cl('crit:loan:testers', ct.testers)
 
     let filtered = (loansToFilter || this.loansFromKiva).filter((loan) => ct.allPass(loan))
