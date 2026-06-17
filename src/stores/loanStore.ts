@@ -22,6 +22,38 @@ export interface BasketEntry {
   loan: KivaLoan | undefined
 }
 
+/**
+ * Outcome of verifying one orphan basket id against Kiva.
+ *  - loan present + fundraising  -> keep (hydrate; it was just missing locally)
+ *  - loan present, not fundraising -> remove (funded/expired/in_repayment/...)
+ *  - loan === null               -> remove (Kiva reports the id invalid/gone)
+ *  - transientError === true     -> keep (couldn't verify; retry later)
+ */
+export type OrphanProbe = {
+  id: number
+  loan?: { status?: string } | null
+  transientError?: boolean
+}
+
+/**
+ * Pure decision logic for reconcileBasketOrphans (exported for testing).
+ * Safety rule: only confirmed-fundraising loans are kept, and loans we could
+ * not verify (transientError) are left alone. Everything else — confirmed
+ * non-fundraising or confirmed gone — is removable.
+ */
+export function partitionBasketOrphans(
+  probes: OrphanProbe[],
+): { removeIds: number[]; fundraising: number[] } {
+  const removeIds: number[] = []
+  const fundraising: number[] = []
+  for (const p of probes) {
+    if (p.transientError) continue // couldn't verify — never destroy on doubt
+    if (p.loan?.status === 'fundraising') fundraising.push(p.id)
+    else removeIds.push(p.id) // non-fundraising, or confirmed gone (loan null)
+  }
+  return { removeIds, fundraising }
+}
+
 export interface LoanState {
   /** All loans loaded from Kiva */
   loans: KivaLoan[]
@@ -66,6 +98,9 @@ export interface LoanActions {
   getBasket: () => BasketEntry[]
   /** Check whether a loan is in the basket */
   inBasket: (loanId: number) => boolean
+  /** Verify basket ids that have no local loan data against Kiva and drop the
+   *  ones that are no longer fundraising (funded/expired/refunded/gone). */
+  reconcileBasketOrphans: () => Promise<void>
 
   // ---- Loans ------------------------------------------------------------
   setLoans: (loans: KivaLoan[]) => void
@@ -223,6 +258,63 @@ export const useLoanStore = create<LoanState & LoanActions>()(
 
       inBasket: (loanId: number): boolean => {
         return get().basket.some((bi) => bi.loan_id === loanId)
+      },
+
+      reconcileBasketOrphans: async (): Promise<void> => {
+        const kl = getKivaLoans()
+        const state = get()
+        // Only after the dataset has loaded; otherwise a missing loan just means
+        // "not downloaded yet" and we'd wrongly purge still-fundraising loans.
+        if (!kl || state.downloading || state.loans.length === 0) return
+        const orphanIds = state.basket
+          .map((bi) => bi.loan_id)
+          .filter((id) => !kl.getById(id))
+        if (!orphanIds.length) return
+        // Verify each orphan independently. Kiva's batch loans() endpoint 404s
+        // the WHOLE request if any single id is invalid, so one dead id would
+        // mask the status of the others. Per-id isolates each outcome.
+        const probes: OrphanProbe[] = await Promise.all(
+          orphanIds.map(async (id): Promise<OrphanProbe> => {
+            try {
+              const loans = await kl.fetchLoansByIds([id])
+              const loan = loans.find((l) => l.id === id)
+              // Only act on the loan we actually asked for. A success that
+              // didn't return it is ambiguous — keep rather than destroy.
+              return loan ? { id, loan } : { id, transientError: true }
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : String(e)
+              // "Invalid loan ID" => the loan is gone (removable). Anything
+              // else (network / 5xx) is transient => keep and retry later.
+              const gone = /InvalidIdentifier|Invalid loan ID/i.test(msg)
+              return { id, loan: gone ? null : undefined, transientError: !gone }
+            }
+          }),
+        )
+        const { removeIds, fundraising } = partitionBasketOrphans(probes)
+        // Still-fundraising orphans were merely absent from the local set;
+        // hydrate them so they display instead of vanishing from the basket.
+        const loanById = new Map(
+          probes.filter((p) => p.loan).map((p) => [p.id, p.loan as unknown as KivaLoan]),
+        )
+        const fundraisingLoans = fundraising
+          .map((id) => loanById.get(id))
+          .filter((l): l is KivaLoan => Boolean(l))
+        if (fundraisingLoans.length) kl.setKivaLoans(fundraisingLoans, false)
+        if (!fundraisingLoans.length && !removeIds.length) return
+        set((s) => {
+          if (fundraisingLoans.length) {
+            // Sync the store's reactive loan array with the singleton so basket
+            // entries recompute and the newly hydrated loans show.
+            s.loans = kl.loansFromKiva as never
+            s.loanCount = kl.loansFromKiva.length
+          }
+          if (removeIds.length) {
+            s.basket = s.basket.filter((bi) => !removeIds.includes(bi.loan_id))
+            s.basketNotice =
+              `${removeIds.length} loan${removeIds.length === 1 ? '' : 's'} removed from your ` +
+              `basket (no longer available on Kiva).`
+          }
+        })
       },
 
       // ---------------------------------------------------------------

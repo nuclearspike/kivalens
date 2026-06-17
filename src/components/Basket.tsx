@@ -176,6 +176,7 @@ export default function Basket() {
   const beginCheckout = useLoanStore((s) => s.beginCheckout)
   const clearPendingCheckout = useLoanStore((s) => s.clearPendingCheckout)
   const batchRemoveFromBasket = useLoanStore((s) => s.batchRemoveFromBasket)
+  const reconcileBasketOrphans = useLoanStore((s) => s.reconcileBasketOrphans)
   const lenderId = useUtilsStore((s) => s.lenderId)
 
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -288,6 +289,20 @@ export default function Basket() {
   )
 
   const basketCount = basketEntries.length
+
+  // Prune basket ids whose loan has left the fundraising set. The nav badge
+  // counts raw basket ids while the list only shows hydrated ones, so a
+  // raw > hydrated gap means there are orphan ids to verify against Kiva.
+  // Gated on a finished load so initial-load "not yet downloaded" can't purge.
+  const orphanReconcileRef = useRef(false)
+  useEffect(() => {
+    if (downloading || loanCount === 0 || rawBasketCount <= basketCount) return
+    if (orphanReconcileRef.current) return
+    orphanReconcileRef.current = true
+    void reconcileBasketOrphans().finally(() => {
+      orphanReconcileRef.current = false
+    })
+  }, [downloading, loanCount, rawBasketCount, basketCount, reconcileBasketOrphans])
 
   // Build the JSON payload for Kiva's /basket/set endpoint
   const makeBasketPayload = useCallback((): string => {

@@ -1312,6 +1312,14 @@ export class Loans {
     return loan
   }
 
+  // Fetch loans by id straight from Kiva (with their current status), without
+  // mutating the local dataset or running totals. Used to reconcile orphaned
+  // basket ids whose loan data has dropped out of the fundraising set.
+  async fetchLoansByIds(ids: number[]): Promise<KivaLoan[]> {
+    if (!ids.length) return []
+    return (await new LoanBatch(ids).start()) as KivaLoan[]
+  }
+
   // ---- Batch refresh ----
 
   async refreshLoans(loanIdArr: number[]): Promise<void> {
