@@ -110,6 +110,11 @@ export function OverlayTrigger({
                     ? 'translate(-50%, 6px)'
                     : 'translate(-50%, -50%)',
               zIndex: 1070,
+              // Read-only help popover: let the cursor pass through to the
+              // trigger beneath it. Without this, moving onto the tip fires
+              // the trigger's mouseleave -> hide -> mouseenter -> show loop,
+              // which flickers the fade transition (looks ~50% transparent).
+              pointerEvents: 'none',
             }}
           >
             {overlay}
