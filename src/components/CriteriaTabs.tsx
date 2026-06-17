@@ -1054,6 +1054,21 @@ function LoanCriteriaPanel({
 // Sub-component: PartnerCriteriaPanel
 // ---------------------------------------------------------------------------
 
+/** Field-partner (MFI) options for the partner picker, built from the loaded
+ *  active partners. Recomputes when the loaded loan total changes (partners
+ *  arrive alongside the loan data). Sorted by name. */
+function usePartnerOptions(): SelectOption[] {
+  const loanCount = useLoanStore((s) => s.loanCount)
+  return useMemo(() => {
+    const partners = getKivaLoans()?.activePartners ?? []
+    return partners
+      .map((p) => ({ value: String(p.id), label: p.name }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    // loanCount is the trigger; activePartners is read imperatively.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanCount])
+}
+
 function PartnerCriteriaPanel({
   criteria,
   onUpdate,
@@ -1066,12 +1081,15 @@ function PartnerCriteriaPanel({
   onInspectEnd: () => void
 }) {
   const partner = criteria.partner as Record<string, unknown>
+  const partnerOptions = usePartnerOptions()
 
   const partnerSelects: Array<{
     key: string; label: string; options: SelectOption[]; isMulti: boolean
     hasAan?: boolean; canAll?: boolean; helpText?: string; showDistribution?: boolean
   }> = [
     { key: 'direct', label: 'MFI or Direct', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true },
+    { key: 'partners', label: 'Field Partner', options: partnerOptions, isMulti: true, hasAan: true,
+      helpText: 'Pick specific field partners (MFIs). Use the Any/None toggle to require loans from any of the selected partners, or to exclude them. Only applies in MFI mode.' },
     { key: 'region', label: 'Region', options: REGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
     { key: 'social_performance', label: 'Social Performance', options: SOCIAL_PERFORMANCE_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
     { key: 'charges_fees_and_interest', label: 'Charges Interest', options: CHARGES_INTEREST_OPTIONS, isMulti: false, showDistribution: true },
