@@ -8,7 +8,6 @@ import CompanionCard from './CompanionCard'
 import { companionEnabled } from '../api/companion'
 
 interface OptionsState {
-  kiva_lender_id: string
   default_lend_amount: number
   hide_criteria_graphs: boolean
   mergeAtheistList: boolean
@@ -26,7 +25,6 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
   const [state, setState] = useState<OptionsState>(() => {
     const saved = lsj.get<Partial<OptionsState>>('Options')
     return {
-      kiva_lender_id: saved.kiva_lender_id ?? '',
       default_lend_amount: saved.default_lend_amount ?? 25,
       hide_criteria_graphs: saved.hide_criteria_graphs ?? false,
       mergeAtheistList: saved.mergeAtheistList ?? true,
@@ -40,11 +38,10 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
   })
 
   const update = useCallback((patch: Partial<OptionsState>) => {
-    setState((prev) => {
-      const next = { ...prev, ...patch }
-      lsj.set('Options', next)
-      return next
-    })
+    setState((prev) => ({ ...prev, ...patch }))
+    // Merge only the changed fields so unmanaged legacy keys (the lender id, now
+    // owned by utilsStore) are preserved in the Options blob.
+    lsj.setMerge('Options', patch)
   }, [])
 
   return [state, update]
@@ -56,18 +53,6 @@ export default function Options() {
   const lenderId = useUtilsStore((s) => s.lenderId)
   const fetchLenderObj = useUtilsStore((s) => s.fetchLenderObj)
   const openLenderIdModal = useUtilsStore((s) => s.openLenderIdModal)
-
-  // Sync external localStorage changes (e.g. from other tabs)
-  useEffect(() => {
-    const handler = () => {
-      const saved = lsj.get<Partial<OptionsState>>('Options')
-      if (saved.kiva_lender_id !== opts.kiva_lender_id) {
-        setOpts({ kiva_lender_id: saved.kiva_lender_id ?? '' })
-      }
-    }
-    window.addEventListener('storage', handler)
-    return () => window.removeEventListener('storage', handler)
-  }, [opts.kiva_lender_id, setOpts])
 
   useEffect(() => {
     if (lenderId && !lenderObj) {
@@ -84,9 +69,9 @@ export default function Options() {
           <Card className="mb-3">
             <Card.Header>Who are you?</Card.Header>
             <Card.Body>
-              {opts.kiva_lender_id ? (
+              {lenderId ? (
                 <p>
-                  Your Lender ID: <b>{opts.kiva_lender_id}</b>{' '}
+                  Your Lender ID: <b>{lenderId}</b>{' '}
                   <Button variant="link" size="sm" onClick={openLenderIdModal}>
                     Change
                   </Button>

@@ -28,12 +28,22 @@ export function useKivaLensInit() {
       initialized.current = true
       const options = lsj.get<Record<string, any>>('Options')
       kl = createKivaLoans(10 * 60_000) // 10 minute resync interval
-      kl.init(criteria, () => lsj.get<Record<string, any>>('Options'), {
-        maxConcurrent: options.maxConcurrent ?? 8,
-      })
+      // Source the lender id from the store (single source of truth); the rest of
+      // the engine config still comes from the Options blob.
+      kl.init(
+        criteria,
+        () => ({
+          ...lsj.get<Record<string, any>>('Options'),
+          kiva_lender_id: useUtilsStore.getState().lenderId,
+        }),
+        {
+          maxConcurrent: options.maxConcurrent ?? 8,
+        },
+      )
       useUtilsStore.getState().startHeartbeat()
-      if (options.kiva_lender_id) {
-        void useUtilsStore.getState().fetchLenderObj(options.kiva_lender_id, false)
+      const seededLenderId = useUtilsStore.getState().lenderId
+      if (seededLenderId) {
+        void useUtilsStore.getState().fetchLenderObj(seededLenderId, false)
       }
 
       // Load the authoritative facet taxonomy (sectors/activities/themes/tags)

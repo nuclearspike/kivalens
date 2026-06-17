@@ -70,6 +70,8 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
   persist(
     immer((set, get) => ({
       // -- state --
+      // LEGACY MIGRATION (added 2026-06; remove ~2027-06): seed lenderId from the
+      // pre-persist Options blob. persist ('kivalens-utils') wins via merge once set.
       lenderId: lsj.get<{ kiva_lender_id?: string }>('Options').kiva_lender_id ?? '',
       lenderObj: null,
       lenderDataVersion: 0,
@@ -89,8 +91,8 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
           state.lenderObj = nextId ? lenderObj as never : null
           state.lenderDataVersion += 1
         })
-        lsj.setMerge('Options', { kiva_lender_id: nextId })
-        window.dispatchEvent(new Event('storage'))
+        // lenderId is persisted by zustand ('kivalens-utils'); no legacy Options
+        // write, and no synthetic 'storage' event — zustand re-renders consumers.
 
         // Propagate to kivaloans singleton
         const kl = getKivaLoans()
@@ -146,8 +148,7 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
             console.error(
               `Invalid Lender ID: ${lenderId}. ${hint} It has been cleared out. Set it again to continue.`,
             )
-            // Clear invalid lender id
-            lsj.setMerge('Options', { kiva_lender_id: '' })
+            // Clear invalid lender id (store is the source of truth now)
             set((state) => {
               state.lenderId = ''
               state.lenderObj = null

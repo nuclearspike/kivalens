@@ -7,6 +7,7 @@ import { lsj } from '../lib/localStorage'
 import { cl, wait } from '../lib/utils'
 import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
+import { useUtilsStore } from './utilsStore'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -198,7 +199,10 @@ function setCache(key: string, value: BalancerResult): void {
 export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
   persist(
     immer((set, get) => {
-      // Load saved searches from localStorage, falling back to defaults
+      // LEGACY MIGRATION (added 2026-06; safe to remove ~2027-06 once the long
+      // tail of infrequent lenders has loaded at least once): seed from the
+      // pre-persist localStorage keys. zustand persist ('kivalens-criteria') wins
+      // via merge when present, so this only matters for data that predates it.
       const storedAll = lsj.get<Record<string, SavedSearch>>('all_criteria')
       const initialSavedSearches =
         Object.keys(storedAll).length > 0 ? storedAll : { ...DEFAULT_SAVED_SEARCHES }
@@ -226,7 +230,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           set((state) => {
             state.lastKnown = criteria as never
           })
-          lsj.set('last_criteria', criteria)
           // Trigger loan filtering
           useLoanStore.getState().filterLoans(criteria)
         },
@@ -283,7 +286,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             state.savedSearches[name] = (stripped ?? get().lastKnown) as never
             state.lastSwitch = name
           })
-          lsj.set('all_criteria', get().savedSearches)
         },
 
         deleteSearch: (name: string) => {
@@ -291,7 +293,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             delete state.savedSearches[name]
             if (state.lastSwitch === name) state.lastSwitch = null
           })
-          lsj.set('all_criteria', get().savedSearches)
         },
 
         // Atomic rename: move the saved criteria from oldName to newName in a
@@ -308,7 +309,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             delete state.savedSearches[oldName]
             if (state.lastSwitch === oldName) state.lastSwitch = trimmed
           })
-          lsj.set('all_criteria', get().savedSearches)
         },
 
         loadSearch: (name: string) => {
@@ -332,7 +332,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
               newValue = !!search.notifyOnNew
             }
           })
-          lsj.set('all_criteria', get().savedSearches)
           return newValue
         },
 
@@ -410,7 +409,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             : names
 
           const results: string[] = []
-          const lenderId = lsj.get<{ kiva_lender_id?: string }>('Options').kiva_lender_id
+          const lenderId = useUtilsStore.getState().lenderId
 
           for (const name of filtered) {
             try {
@@ -439,7 +438,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         // -------------------------------------------------------------
 
         updateBalancers: () => {
-          const lenderId = lsj.get<{ kiva_lender_id?: string }>('Options').kiva_lender_id
+          const lenderId = useUtilsStore.getState().lenderId
           if (!lenderId) return
 
           const state = get()
@@ -477,7 +476,6 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
                       draftBal.values = values
                     }
                   })
-                  lsj.set('all_criteria', get().savedSearches)
                 } catch (e) {
                   console.warn('updateBalancers error', slice, name, e)
                 }
@@ -490,7 +488,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           sliceBy: string,
           config: BalancerConfig,
         ): Promise<BalancerResult> => {
-          const lenderId = lsj.get<{ kiva_lender_id?: string }>('Options').kiva_lender_id
+          const lenderId = useUtilsStore.getState().lenderId
           if (!lenderId) return { slices: [], total_sum: 0 }
 
           const cacheKey = `balancer_lender_${lenderId}_${sliceBy}_${config.allactive ?? 'all'}`
