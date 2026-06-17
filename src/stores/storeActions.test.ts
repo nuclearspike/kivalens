@@ -36,30 +36,38 @@ describe('loanStore.batchAddToBasket dedup (T1.6)', () => {
 })
 
 describe('partitionBasketOrphans (basket cleanup)', () => {
-  it('keeps still-fundraising orphans and removes everything else', () => {
-    const { removeIds, fundraising } = partitionBasketOrphans(
-      [1, 2, 3, 4, 5, 6],
-      [
-        { id: 1, status: 'fundraising' },
-        { id: 2, status: 'funded' },
-        { id: 3, status: 'expired' },
-        { id: 4, status: 'in_repayment' },
-        { id: 5, status: 'refunded' },
-        // id 6 not returned by Kiva at all (deleted / invalid)
-      ],
-    )
+  it('keeps fundraising, removes non-fundraising and confirmed-gone ids', () => {
+    const { removeIds, fundraising } = partitionBasketOrphans([
+      { id: 1, loan: { status: 'fundraising' } },
+      { id: 2, loan: { status: 'funded' } },
+      { id: 3, loan: { status: 'expired' } },
+      { id: 4, loan: { status: 'in_repayment' } },
+      { id: 5, loan: { status: 'refunded' } },
+      { id: 6, loan: null }, // Kiva reports the id invalid / gone
+    ])
     expect(fundraising).toEqual([1])
     expect(removeIds).toEqual([2, 3, 4, 5, 6])
   })
 
-  it('treats a missing status as removable (never keeps unconfirmed loans)', () => {
-    const { removeIds, fundraising } = partitionBasketOrphans([7], [{ id: 7 }])
+  it('keeps orphans that could not be verified (transient error)', () => {
+    const { removeIds, fundraising } = partitionBasketOrphans([
+      { id: 8, transientError: true },
+      { id: 9, loan: { status: 'funded' } },
+    ])
+    // 8 is left alone (never destroy on doubt); only the verified-funded 9 goes.
     expect(fundraising).toEqual([])
-    expect(removeIds).toEqual([7])
+    expect(removeIds).toEqual([9])
+  })
+
+  it('treats a present loan with no status as removable', () => {
+    expect(partitionBasketOrphans([{ id: 7, loan: {} }])).toEqual({
+      removeIds: [7],
+      fundraising: [],
+    })
   })
 
   it('no-ops on empty input', () => {
-    expect(partitionBasketOrphans([], [])).toEqual({ removeIds: [], fundraising: [] })
+    expect(partitionBasketOrphans([])).toEqual({ removeIds: [], fundraising: [] })
   })
 })
 
