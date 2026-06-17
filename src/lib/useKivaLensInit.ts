@@ -44,8 +44,10 @@ export function useKivaLensInit() {
         .then((opts) => {
           if (opts) useCriteriaStore.getState().setAllOptions(opts)
         })
-        .catch(() => {
-          /* non-fatal: dropdowns fall back to the baseline */
+        .catch((err) => {
+          // Non-fatal: dropdowns fall back to the hard-coded baseline. Surface
+          // it rather than swallowing silently so failures are diagnosable.
+          console.warn('KivaLens: failed to load facet options from /api/options', err)
         })
     } else {
       kl = getKivaLoans()
@@ -102,6 +104,10 @@ export function useKivaLensInit() {
       // the basket (the original app's advertised "Basket Pruning")
       if (msg.loan_not_fundraising) {
         const gone = msg.loan_not_fundraising as { id: number }
+        // T1.5: don't silently drop a basket loan — tell the user why.
+        if (store.inBasket(gone.id)) {
+          store.setBasketNotice('A loan in your basket finished funding and was removed.')
+        }
         store.removeFromBasket(gone.id)
         store.setLoans(kl.loansFromKiva)
         store.filterLoans()
@@ -120,7 +126,13 @@ export function useKivaLensInit() {
         store.setSecondaryStatus(msg.secondary_load_label as string)
       }
 
+      // Portfolio-exclusion (T1.4): track the load so the UI can reveal that
+      // exclusion is pending instead of silently showing already-funded loans.
+      if (msg.lender_loans_event === 'started') {
+        store.setLenderLoansLoading(true)
+      }
       if (msg.lender_loans_event === 'done') {
+        store.setLenderLoansLoading(false)
         useCriteriaStore.getState().updateBalancers()
         store.filterLoans()
       }

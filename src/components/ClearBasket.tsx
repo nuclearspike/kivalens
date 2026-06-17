@@ -1,15 +1,26 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// TODO: import { useLoanStore } from '../stores'
-
+// Kiva's basket-set callback lands here (in the checkout tab). We deliberately
+// do NOT blind-clear the basket — a callback fires when the basket is *set*, not
+// when payment completes, so clearing here would assume a lend that may not have
+// happened. Instead we notify any open tab and route to the basket, where the
+// outcome is reconciled (confirm against Kiva, or ask) per T1.1.
 export default function ClearBasket() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // TODO: useLoanStore.getState().clearBasket()
-    navigate('/search', { replace: true })
+    try {
+      if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('kivalens')
+        bc.postMessage({ type: 'checkout-returned' })
+        bc.close()
+      }
+    } catch {
+      /* BroadcastChannel unavailable — the basket page reconciles on mount anyway */
+    }
+    navigate('/basket', { replace: true })
   }, [navigate])
 
-  return <div><span>One moment...</span></div>
+  return <div><span>One moment…</span></div>
 }

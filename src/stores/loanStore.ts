@@ -44,6 +44,12 @@ export interface LoanState {
   secondaryStatus: string | null
   /** Background resync state label */
   backgroundResyncState: string | null
+  /** Transient notice shown when the basket is auto-adjusted (loans removed/capped) */
+  basketNotice: string | null
+  /** True while the lender's funded-loan list is downloading (portfolio exclusion pending) */
+  lenderLoansLoading: boolean
+  /** Snapshot of loan ids sent to Kiva at checkout, awaiting outcome confirmation (T1.1) */
+  pendingCheckout: { ids: number[]; at: number } | null
 }
 
 export interface LoanActions {
@@ -71,6 +77,11 @@ export interface LoanActions {
   setRunningTotals: (totals: RunningTotals | null) => void
   setSecondaryStatus: (label: string | null) => void
   setBackgroundResyncState: (state: string | null) => void
+  setBasketNotice: (msg: string | null) => void
+  setLenderLoansLoading: (loading: boolean) => void
+  /** Record the loan ids sent to Kiva so the outcome can be reconciled on return */
+  beginCheckout: (ids: number[]) => void
+  clearPendingCheckout: () => void
   getLoan: (id: number) => KivaLoan | undefined
 
   // ---- Refresh ----------------------------------------------------------
@@ -96,6 +107,9 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       runningTotals: null,
       secondaryStatus: null,
       backgroundResyncState: null,
+      basketNotice: null,
+      lenderLoansLoading: false,
+      pendingCheckout: null,
 
       // ---------------------------------------------------------------
       // Basket actions
@@ -116,7 +130,17 @@ export const useLoanStore = create<LoanState & LoanActions>()(
 
       batchAddToBasket: (items: BasketItem[]) => {
         set((state) => {
-          state.basket = state.basket.concat(items)
+          // Dedup against what's already in the basket AND within `items` itself,
+          // mirroring addToBasket's single-item guard so no caller can create
+          // duplicate basket entries.
+          const seen = new Set(state.basket.map((bi) => bi.loan_id))
+          const toAdd: BasketItem[] = []
+          for (const it of items) {
+            if (seen.has(it.loan_id)) continue
+            seen.add(it.loan_id)
+            toAdd.push(it)
+          }
+          if (toAdd.length) state.basket = state.basket.concat(toAdd)
         })
       },
 
@@ -144,6 +168,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
 
       adjustBasketAmountsToWhatsLeft: () => {
         const entries = get().getBasket()
+        const originalAmounts = new Map(get().basket.map((bi) => [bi.loan_id, bi.amount]))
         set((state) => {
           // Cap each basket item amount to what the loan still needs
           for (const entry of entries) {
@@ -153,7 +178,8 @@ export const useLoanStore = create<LoanState & LoanActions>()(
               bi.amount = Math.min(bi.amount, entry.loan.kl_still_needed ?? bi.amount)
             }
           }
-          // Remove items with zero amount
+          const before = state.basket.length
+          // Remove items with zero amount (fully funded)
           state.basket = state.basket.filter((bi) => bi.amount > 0)
           // Remove non-fundraising loans
           const nonFundraising = entries
@@ -163,6 +189,22 @@ export const useLoanStore = create<LoanState & LoanActions>()(
             state.basket = state.basket.filter(
               (bi) => !nonFundraising.includes(bi.loan_id),
             )
+          }
+          // T1.5: tell the user what silently changed. Count removals and
+          // amount reductions (among surviving items) and surface a notice.
+          const removed = before - state.basket.length
+          let reduced = 0
+          for (const bi of state.basket) {
+            const orig = originalAmounts.get(bi.loan_id)
+            if (orig != null && bi.amount < orig) reduced++
+          }
+          if (removed > 0 || reduced > 0) {
+            const parts: string[] = []
+            if (removed > 0)
+              parts.push(`${removed} loan${removed === 1 ? '' : 's'} removed (finished funding)`)
+            if (reduced > 0)
+              parts.push(`${reduced} amount${reduced === 1 ? '' : 's'} lowered to what's still needed`)
+            state.basketNotice = `Basket updated: ${parts.join('; ')}.`
           }
         })
       },
@@ -263,6 +305,30 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         })
       },
 
+      setBasketNotice: (msg: string | null) => {
+        set((state) => {
+          state.basketNotice = msg
+        })
+      },
+
+      setLenderLoansLoading: (loading: boolean) => {
+        set((state) => {
+          state.lenderLoansLoading = loading
+        })
+      },
+
+      beginCheckout: (ids: number[]) => {
+        set((state) => {
+          state.pendingCheckout = { ids, at: Date.now() }
+        })
+      },
+
+      clearPendingCheckout: () => {
+        set((state) => {
+          state.pendingCheckout = null
+        })
+      },
+
       getLoan: (id: number): KivaLoan | undefined => {
         return getKivaLoans()?.getById(id)
       },
@@ -281,8 +347,9 @@ export const useLoanStore = create<LoanState & LoanActions>()(
     })),
     {
       name: 'kivalens-basket',
-      // Only persist the basket array to localStorage
-      partialize: (state) => ({ basket: state.basket }),
+      // Persist the basket and any in-flight checkout so the outcome can be
+      // reconciled after the user returns (even via the checkout tab / a reload).
+      partialize: (state) => ({ basket: state.basket, pendingCheckout: state.pendingCheckout }),
       merge: (persisted, current) => ({
         ...current,
         ...(persisted as Partial<LoanState>),

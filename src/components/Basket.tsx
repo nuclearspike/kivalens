@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import {
   ComposedChart,
   Bar,
@@ -11,7 +11,7 @@ import {
 } from 'recharts'
 import numeral from 'numeral'
 import { Button, ButtonGroup } from '../ui'
-import { useLoanStore } from '../stores'
+import { useLoanStore, useUtilsStore } from '../stores'
 import { showConfirm } from '../lib/dialog'
 import type { BasketEntry } from '../stores'
 import BasketListItem from './BasketListItem'
@@ -171,6 +171,12 @@ export default function Basket() {
   const rawBasketCount = useLoanStore((s) => s.basket.length)
   const loanCount = useLoanStore((s) => s.loans.length)
   const downloading = useLoanStore((s) => s.downloading)
+  const basketNotice = useLoanStore((s) => s.basketNotice)
+  const setBasketNotice = useLoanStore((s) => s.setBasketNotice)
+  const beginCheckout = useLoanStore((s) => s.beginCheckout)
+  const clearPendingCheckout = useLoanStore((s) => s.clearPendingCheckout)
+  const batchRemoveFromBasket = useLoanStore((s) => s.batchRemoveFromBasket)
+  const lenderId = useUtilsStore((s) => s.lenderId)
 
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [showTransfer, setShowTransfer] = useState(false)
@@ -196,6 +202,82 @@ export default function Basket() {
       setSelectedId(null)
     }
   }, [basketEntries, selectedId])
+
+  // T1.1 outcome closure: after a checkout, reconcile the basket with reality on
+  // return instead of blind-clearing. If the lender id is set, confirm which
+  // loans Kiva now shows as supported; otherwise ask. Never clears unconfirmed
+  // loans without the user's say-so.
+  const reconcilingRef = useRef(false)
+  const reconcileCheckout = useCallback(async () => {
+    if (reconcilingRef.current) return
+    const pending = useLoanStore.getState().pendingCheckout
+    if (!pending) return
+    // Drop stale checkouts (>24h) silently rather than nagging.
+    if (Date.now() - pending.at > 24 * 60 * 60 * 1000) {
+      clearPendingCheckout()
+      return
+    }
+    reconcilingRef.current = true
+    try {
+      let confirmed: number[] = []
+      if (lenderId) {
+        try {
+          const fundIds = await getKivaLoans().refreshLenderFundraisingLoans()
+          const fundSet = new Set(fundIds)
+          confirmed = pending.ids.filter((id) => fundSet.has(id))
+        } catch (e) {
+          // Verification unavailable — log and fall through to asking the user.
+          console.warn('KivaLens: could not verify loans against Kiva; asking instead', e)
+        }
+      }
+      if (confirmed.length) batchRemoveFromBasket(confirmed)
+      const remaining = pending.ids.filter((id) => !confirmed.includes(id))
+      if (remaining.length === 0) {
+        setBasketNotice(
+          `${confirmed.length} loan${confirmed.length === 1 ? '' : 's'} confirmed on Kiva and removed from your basket.`,
+        )
+        clearPendingCheckout()
+      } else {
+        // Clear pending before awaiting the dialog so re-entry can't double-prompt.
+        clearPendingCheckout()
+        const message = confirmed.length
+          ? `Confirmed ${confirmed.length} of ${pending.ids.length} loans on your Kiva account. Did your checkout complete for the rest?`
+          : 'Did your Kiva checkout complete?'
+        const ok = await showConfirm(message, {
+          title: 'Confirm your lending',
+          confirmLabel: 'Yes, remove them',
+          cancelLabel: 'Not yet, keep them',
+        })
+        if (ok) {
+          batchRemoveFromBasket(remaining)
+          setBasketNotice(
+            `${remaining.length} loan${remaining.length === 1 ? '' : 's'} removed from your basket after checkout.`,
+          )
+        }
+      }
+    } finally {
+      reconcilingRef.current = false
+    }
+  }, [lenderId, batchRemoveFromBasket, clearPendingCheckout, setBasketNotice])
+
+  useEffect(() => {
+    void reconcileCheckout() // covers reload / navigating back to the basket
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void reconcileCheckout()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    let bc: BroadcastChannel | null = null
+    if ('BroadcastChannel' in window) {
+      bc = new BroadcastChannel('kivalens')
+      bc.onmessage = (e) => {
+        if ((e.data as { type?: string })?.type === 'checkout-returned') void reconcileCheckout()
+      }
+    }
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      bc?.close()
+    }
+  }, [reconcileCheckout])
 
   const amountSum = useMemo(
     () =>
@@ -230,6 +312,12 @@ export default function Basket() {
 
   const handleCheckout = () => {
     if (basketCount === 0) return
+    // Snapshot what we're sending so the outcome can be reconciled on return.
+    const sentIds = basketEntries
+      .filter((e) => e.loan && (e.loan.kl_still_needed ?? 0) > 0)
+      .map((e) => e.id)
+    if (sentIds.length === 0) return
+    beginCheckout(sentIds)
     setShowTransfer(true)
 
     // Submit the hidden form to transfer basket to Kiva
@@ -246,7 +334,8 @@ export default function Basket() {
     setSelectedId(id)
   }
 
-  const callbackUrl = `${location.protocol}//${location.host}${location.pathname}#clear-basket`
+  // Hash-router route is /clear-basket, so the callback hash needs the leading slash.
+  const callbackUrl = `${location.protocol}//${location.host}${location.pathname}#/clear-basket`
 
   return (
     <div className="d-flex h-100 w-100">
@@ -296,6 +385,20 @@ export default function Basket() {
 
       {/* Center column: summary + checkout */}
       <div className="col-md-3 px-3">
+        {basketNotice && (
+          <div
+            className="alert alert-warning d-flex justify-content-between align-items-start mt-2"
+            role="alert"
+          >
+            <span>{basketNotice}</span>
+            <button
+              type="button"
+              className="btn-close ms-2"
+              aria-label="Dismiss"
+              onClick={() => setBasketNotice(null)}
+            />
+          </div>
+        )}
         <div className="card mb-3">
           <div className="card-body">
             <h3 style={{ margin: '0 0 8px' }}>

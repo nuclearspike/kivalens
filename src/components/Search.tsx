@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
 import numeral from 'numeral'
-import { useLoanStore, useUtilsStore } from '../stores'
+import { useLoanStore, useUtilsStore, useCriteriaStore } from '../stores'
 import { Criteria } from './Criteria'
 import LoanListItem from './LoanListItem'
 import Loan from './Loan'
@@ -26,6 +26,12 @@ export function Search() {
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
   const { id: routeLoanId } = useParams<{ id: string }>()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
+  // Portfolio-exclusion reveal (T1.4): is "exclude loans I've funded" on, and
+  // is the lender's funded-loan list still loading?
+  const excludePortfolio = useCriteriaStore(
+    (s) => s.lastKnown?.portfolio?.exclude_portfolio_loans === 'true',
+  )
+  const lenderLoansLoading = useLoanStore((s) => s.lenderLoansLoading)
 
   // /search/loan/:id pre-selects the loan; plain /search shows the welcome
   // panel. The URL is the source of truth for the right-hand panel.
@@ -112,6 +118,13 @@ export function Search() {
           {backgroundResyncState === 'started' ? (
             <Alert variant="info" className="not-rounded" style={{ marginBottom: 0 }}>
               Continue using the site while the loans are refreshed...
+            </Alert>
+          ) : null}
+
+          {excludePortfolio && lenderLoansLoading ? (
+            <Alert variant="info" className="not-rounded" style={{ marginBottom: 0 }}>
+              Hiding loans you&apos;ve already funded — still loading your
+              portfolio. Results will update in a moment.
             </Alert>
           ) : null}
 

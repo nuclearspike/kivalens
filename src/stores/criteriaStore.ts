@@ -65,6 +65,7 @@ export interface CriteriaActions {
   // ---- Saved searches ---------------------------------------------------
   saveSearch: (name: string) => void
   deleteSearch: (name: string) => void
+  renameSearch: (oldName: string, newName: string) => void
   loadSearch: (name: string) => void
   toggleNotifyOnNew: (name: string) => boolean | undefined
   getSavedSearchNames: () => string[]
@@ -289,6 +290,23 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           set((state) => {
             delete state.savedSearches[name]
             if (state.lastSwitch === name) state.lastSwitch = null
+          })
+          lsj.set('all_criteria', get().savedSearches)
+        },
+
+        // Atomic rename: move the saved criteria from oldName to newName in a
+        // single immer update. (The old UI mutated store state directly and then
+        // called saveSearch, which clobbered the criteria with whatever was being
+        // edited — so renaming a non-active search saved the wrong filters.)
+        renameSearch: (oldName: string, newName: string) => {
+          const trimmed = newName.trim()
+          if (!trimmed || !oldName || trimmed === oldName) return
+          set((state) => {
+            const crit = state.savedSearches[oldName]
+            if (!crit) return
+            state.savedSearches[trimmed] = crit
+            delete state.savedSearches[oldName]
+            if (state.lastSwitch === oldName) state.lastSwitch = trimmed
           })
           lsj.set('all_criteria', get().savedSearches)
         },

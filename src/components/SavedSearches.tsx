@@ -99,7 +99,7 @@ function summarizeCriteria(crit: SavedSearch | undefined): SummaryItem[] {
 export function SavedSearches() {
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
   const getSavedSearch = useCriteriaStore((s) => s.getSavedSearch)
-  const saveSearch = useCriteriaStore((s) => s.saveSearch)
+  const renameSearch = useCriteriaStore((s) => s.renameSearch)
   const deleteSearch = useCriteriaStore((s) => s.deleteSearch)
   const loadSearch = useCriteriaStore((s) => s.loadSearch)
   const savedSearches = useCriteriaStore((s) => s.savedSearches)
@@ -197,14 +197,7 @@ export function SavedSearches() {
       setRenaming(false)
       return
     }
-    const crit = getSavedSearch(oldName)
-    if (crit) {
-      deleteSearch(oldName)
-      // Store the criteria under the new name by setting it, then saving
-      // We need to use the store directly
-      useCriteriaStore.getState().savedSearches[newName] = crit
-      saveSearch(newName)
-    }
+    renameSearch(oldName, newName)
     const newChecked = { ...checked }
     if (newChecked[oldName]) {
       newChecked[newName] = true
@@ -214,7 +207,7 @@ export function SavedSearches() {
     setSelected(newName)
     setRenaming(false)
     refreshList()
-  }, [selected, renameTo, getSavedSearch, deleteSearch, saveSearch, checked, refreshList])
+  }, [selected, renameTo, renameSearch, checked, refreshList])
 
   const handleToggleCheck = useCallback((name: string, e: React.MouseEvent) => {
     e.stopPropagation()
