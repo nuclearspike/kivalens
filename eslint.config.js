@@ -34,4 +34,12 @@ export default defineConfig([
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    // Unit tests use loose `any` fixtures to mirror the matching engine's own
+    // typing (CritTester, ResultProcessors, etc. are all `any`-based).
+    files: ['**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 ])

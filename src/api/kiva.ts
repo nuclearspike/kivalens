@@ -1194,6 +1194,17 @@ export class Loans {
 
   // ---- Lender ----
 
+  // Re-fetch the lender's currently-supported fundraising loans from Kiva's
+  // public lenders/{id}/loans.json. Used both for portfolio exclusion and to
+  // confirm (T1.1) which checked-out loans actually went through.
+  async refreshLenderFundraisingLoans(): Promise<number[]> {
+    const id = this.lenderId
+    if (!id) return []
+    const ids = await new LenderFundraisingLoans(id).ids()
+    this.lenderLoans[id] = ids
+    return ids
+  }
+
   setLender(lenderId?: string | null): void {
     if (!lenderId) {
       this.lenderId = ''
@@ -1438,7 +1449,7 @@ export class Loans {
 // Sorting helper (extracted from filter's inner function)
 // ---------------------------------------------------------------------------
 
-function sortLoans(loans: KivaLoan[], sortOption?: string | null): KivaLoan[] {
+export function sortLoans(loans: KivaLoan[], sortOption?: string | null): KivaLoan[] {
   if (loans.length <= 1) return loans
 
   switch (sortOption) {

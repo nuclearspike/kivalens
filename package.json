@@ -7,11 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "start": "node server/prod.mjs"
   },
   "dependencies": {
-    "@airbrake/browser": "^2.1.9",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "immer": "^11.1.4",
