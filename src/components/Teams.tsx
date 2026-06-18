@@ -14,6 +14,7 @@ import numeral from 'numeral'
 import { req } from '../api/kivajs/req'
 import { LenderTeams } from '../api/kivajs/LenderTeams'
 import { useUtilsStore } from '../stores'
+import { showLenderIDModal } from '../lib/showLenderIdModal'
 
 interface Team {
   id: number
@@ -52,6 +53,12 @@ function formatTooltipLabel(value: number) {
  */
 export default function Teams() {
   const lenderId = useUtilsStore((s) => s.lenderId)
+  // When the user sets their Lender ID via the in-page modal link below, reload
+  // once it lands so this tab (and the nav) re-initialize with portfolio data.
+  const reloadAfterLenderSet = useRef(false)
+  useEffect(() => {
+    if (reloadAfterLenderSet.current && lenderId) location.reload()
+  }, [lenderId])
   const lenderDataVersion = useUtilsStore((s) => s.lenderDataVersion)
   const [teams, setTeams] = useState<Team[]>([])
   const [error, setError] = useState('')
@@ -185,8 +192,19 @@ export default function Teams() {
     return (
       <Container className="py-3">
         <Alert variant="danger">
-          Please set your Kiva Lender ID set on the Options page to use this
-          feature.
+          Please{' '}
+          <a
+            href="#"
+            className="alert-link"
+            onClick={(e) => {
+              e.preventDefault()
+              reloadAfterLenderSet.current = true
+              showLenderIDModal()
+            }}
+          >
+            set your Kiva Lender ID
+          </a>{' '}
+          to use this feature.
         </Alert>
       </Container>
     )
