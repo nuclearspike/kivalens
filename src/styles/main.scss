@@ -199,9 +199,11 @@ body {
 
   &.selected {
     z-index: 12;
-    background-color: color.mix($kl-green, #fff, 34%);
+    // !important so selection stays green even while the row is focused/hovered
+    // (the list-group :hover/:focus rule otherwise outranks this selector).
+    background-color: color.mix($kl-green, #fff, 45%) !important;
     border-left-color: $kl-green !important;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   &.gone {

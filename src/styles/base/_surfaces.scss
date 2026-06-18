@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'tokens' as *;
 
 // Cards (rendered like Flatly's .panel), list groups, badges, alerts.
@@ -91,10 +92,15 @@ a.list-group-item,
 
 .list-group-item.active {
   z-index: 2;
-  // Selection color comes from the KivaLens theme (green family),
-  // matching the old app's .selected loan styling.
-  background-color: $kiva-green-light;
+  // Selected partner: a clearly visible green with a left accent, matching the
+  // loan list's .selected styling (the old $kiva-green-light was too faint).
+  // box-shadow (not border) for the accent so the row doesn't shift on select.
+  // !important so the selected partner stays green even while focused/hovered
+  // (a.list-group-item:focus otherwise outranks .list-group-item.active).
+  background-color: color.mix($kiva-green, #fff, 45%) !important;
   border-color: $flatly-line;
+  box-shadow: inset 3px 0 0 $kiva-green;
+  font-weight: 600;
 }
 
 // --- badge ---
