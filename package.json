@@ -24,6 +24,7 @@
     "react-router-dom": "^7.13.2",
     "react-select": "^5.10.2",
     "recharts": "^3.8.1",
+    "redis": "^6.0.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

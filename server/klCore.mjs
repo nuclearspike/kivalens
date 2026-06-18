@@ -15,11 +15,14 @@
  *   GET  /proxy/kiva/ajax/...               (Kiva-WAF header recipe)
  *   GET  /proxy/gdocs/spreadsheets/...
  *
- * Plain JavaScript with zero third-party deps so it runs directly on Heroku
- * (Node builtins only); klCore.d.ts gives the TS dev plugin its types.
+ * Plain JavaScript, Node builtins only in the hot path, so it runs directly on
+ * Heroku; klCore.d.ts gives the TS dev plugin its types. The optional Redis
+ * warm-start cache (server/klCache.mjs) lazily imports the `redis` dependency
+ * only when a connection URL is configured.
  */
 
 import zlib from 'node:zlib'
+import { loadSnapshot, saveSnapshot } from './klCache.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -526,6 +529,10 @@ export async function prepareData(state, log = console.log) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
     log(`Data ready! ${processed.length} loans in ${elapsed}s`)
     log(`  kl_api_start: ${JSON.stringify(state.klStart)}`)
+
+    // Persist the freshly-published dataset for the next boot's warm start.
+    // Fire-and-forget: never blocks or fails the refresh cycle.
+    void saveSnapshot(state, log)
   } catch (e) {
     log(`Data preparation failed: ${e}`)
   } finally {
@@ -533,8 +540,46 @@ export async function prepareData(state, log = console.log) {
   }
 }
 
+/**
+ * Warm start: hydrate the served dataset from the Redis snapshot so the server
+ * can answer /api/* immediately while the live fetch runs. No-ops when there's
+ * no cache (local dev / Redis down / first ever boot). Runs concurrently with
+ * the live fetch in startRefresh; whichever lands is fine — the live batch
+ * supersedes the cached one, and we never clobber an already-published batch.
+ */
+async function hydrateFromCache(state, log) {
+  try {
+    const snap = await loadSnapshot(log)
+    if (!snap) return
+    // The live fetch already published while Redis was being read — keep it.
+    if (state.batch > 0) return
+    state.batch = snap.batch
+    state.klStart = snap.klStart
+    state.partnersGz = snap.partnersGz
+    state.optionsGz = snap.optionsGz
+    state.newestTime = snap.newestTime
+    // allLoans backs /api/since and /graphql detail lookups; the live fetch
+    // fills it within the same cycle. Until then /api/since returns [] and
+    // /graphql returns no descriptions — the loan listing itself is fully served.
+    state.allLoans = []
+    state.batches.set(snap.batch, {
+      loanPages: snap.loanPages,
+      keywordPages: snap.keywordPages,
+      klStart: snap.klStart,
+      newestTime: snap.newestTime,
+    })
+    state.ready = true
+    const age = snap.savedAt ? `${Math.round((Date.now() - snap.savedAt) / 1000)}s old` : 'age unknown'
+    log(`Warm start from cache: batch ${snap.batch}, ${snap.klStart.pages} pages (${age})`)
+  } catch (e) {
+    log(`Warm start skipped (non-fatal): ${e}`)
+  }
+}
+
 /** Kick off the initial download and a refresh timer. Returns the timer id. */
 export function startRefresh(state, log = console.log) {
+  // Serve cached data ASAP (non-blocking) and fetch live data in parallel.
+  void hydrateFromCache(state, log)
   prepareData(state, log)
   return setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS)
 }

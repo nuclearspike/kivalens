@@ -3,8 +3,9 @@
  *
  * Serves the built SPA from dist/ and mounts the shared API + proxy handlers
  * (server/klCore.mjs) — the exact same endpoints the Vite dev plugin serves.
- * Zero third-party deps: Node builtins only, so it runs after Heroku prunes
- * devDependencies. Start with `node server/prod.mjs`.
+ * Runs on Node builtins plus a single runtime dependency (`redis`, a regular
+ * dependency so it survives Heroku's devDependency prune) used only for the
+ * optional warm-start cache (server/klCache.mjs). Start with `node server/prod.mjs`.
  */
 
 import http from 'node:http'
@@ -12,6 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createState, startRefresh, handleApi, handleProxy } from './klCore.mjs'
+import { closeCache } from './klCache.mjs'
 
 const PORT = process.env.PORT || 3000
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
@@ -162,5 +164,6 @@ server.listen(PORT, () => log(`KivaLens server listening on :${PORT} (serving ${
 
 process.on('SIGTERM', () => {
   clearInterval(refreshTimer)
+  closeCache()
   server.close(() => process.exit(0))
 })
