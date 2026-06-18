@@ -7,13 +7,14 @@ import type { ChangeEvent } from 'react'
 interface BasketListItemProps {
   entry: BasketEntry
   onSelect: (id: number) => void
+  selected?: boolean
 }
 
 /**
  * Individual basket row showing loan image, borrower name, country/sector,
  * amount dropdown (via lendAmountOptions), and a remove button.
  */
-export default function BasketListItem({ entry, onSelect }: BasketListItemProps) {
+export default function BasketListItem({ entry, onSelect, selected }: BasketListItemProps) {
   const setBasketAmount = useLoanStore((s) => s.setBasketAmount)
   const loan = entry.loan
 
@@ -33,7 +34,7 @@ export default function BasketListItem({ entry, onSelect }: BasketListItemProps)
 
   return (
     <div
-      className="list-group-item loan_list_item"
+      className={`list-group-item loan_list_item${selected ? ' selected' : ''}`}
       onClick={() => onSelect(entry.id)}
       role="button"
       tabIndex={0}

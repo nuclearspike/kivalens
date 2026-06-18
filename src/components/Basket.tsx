@@ -393,7 +393,12 @@ export default function Basket() {
 
         <div className="list-group flex-grow-1 overflow-auto">
           {basketEntries.map((entry) => (
-            <BasketListItem key={entry.id} entry={entry} onSelect={handleSelect} />
+            <BasketListItem
+              key={entry.id}
+              entry={entry}
+              onSelect={handleSelect}
+              selected={entry.id === selectedId}
+            />
           ))}
         </div>
       </div>
