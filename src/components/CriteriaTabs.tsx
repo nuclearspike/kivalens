@@ -862,7 +862,11 @@ function LimitResultRow({
               isDisabled={!v.enabled}
               isClearable={false}
               onChange={(opt) => onChange({ ...v, limit_by: opt?.value ?? 'Partner' })}
-              styles={{ control: (base) => ({ ...base, minHeight: 34 }) }}
+              // Portal the menu out of the scrollable criteria panel; otherwise
+              // hovering the bottom option scrolls the container and react-select
+              // resets the highlight back to the first option.
+              menuPortalTarget={document.body}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
             />
           </div>
         </div>
