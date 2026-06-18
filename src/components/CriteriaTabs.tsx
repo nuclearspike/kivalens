@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popover } from '../ui'
+import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popover, Modal, Button } from '../ui'
 import Select from './KLSelect'
 import type { MultiValue, SingleValue } from 'react-select'
 import Slider from 'rc-slider'
 // rc-slider base CSS is imported globally in main.tsx
 import numeral from 'numeral'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
-import { useCriteriaStore, useLoanStore } from '../stores'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
+import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { showAlert } from '../lib/dialog'
 import type { Criteria, BalancerConfig, KivaLoan, Partner } from '../types'
 import type { BalancerResult } from '../stores/criteriaStore'
@@ -307,6 +308,19 @@ const PARTNER_SLIDERS: Record<string, SliderConfig> = {
   loans_posted: { min: 0, max: 20000, step: 50, label: 'Loans Posted', helpText: 'How many loans the partner has posted to Kiva.' },
   fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'Fundraising Loans', helpText: 'How many loans from this partner are currently fundraising on Kiva.' },
 }
+
+// Partner-criteria help text, exported so the standalone Partners page shows
+// the SAME hover hints as this Search > Partner criteria tab (single source —
+// derived from PARTNER_SLIDERS above, so the two can't drift). Intentionally
+// sharing constants from this component file; that disables fast-refresh for
+// this module only (harmless), hence the react-refresh disables.
+// eslint-disable-next-line react-refresh/only-export-components
+export const PARTNER_SLIDER_HELP: Record<string, string> = Object.fromEntries(
+  Object.entries(PARTNER_SLIDERS).map(([k, v]) => [k, v.helpText ?? '']),
+)
+
+export const RELIGION_HELP =
+  'Field-partner religious-affiliation data comes from the A+ Team’s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the Non-Religious) research — it isn’t provided by Kiva.'
 
 // Balancer configs
 interface BalancerMeta {
@@ -688,6 +702,30 @@ function SliderRow({
     [oMin, oMax, onChange],
   )
 
+  // Exact-value modal: type precise min/max, or check "not set" to drop that
+  // bound entirely (no constraint). Lets users go beyond the slider's range/step.
+  const [showModal, setShowModal] = useState(false)
+  const [minUnset, setMinUnset] = useState(cMin === null)
+  const [maxUnset, setMaxUnset] = useState(cMax === null)
+  const [minDraft, setMinDraft] = useState<number>(cMin ?? oMin)
+  const [maxDraft, setMaxDraft] = useState<number>(cMax ?? oMax)
+
+  const openModal = () => {
+    setMinUnset(cMin === null)
+    setMaxUnset(cMax === null)
+    setMinDraft(cMin ?? oMin)
+    setMaxDraft(cMax ?? oMax)
+    setShowModal(true)
+  }
+
+  const applyModal = () => {
+    // A checked "not set" box — or an empty/invalid number — drops that bound
+    // (no constraint) rather than writing NaN into the criteria.
+    const bound = (unset: boolean, n: number) => (unset || Number.isNaN(n) ? null : n)
+    onChange(bound(minUnset, minDraft), bound(maxUnset, maxDraft))
+    setShowModal(false)
+  }
+
   const labelEl = helpText ? (
     <OverlayTrigger
       trigger={['hover', 'focus']}
@@ -709,15 +747,71 @@ function SliderRow({
         </div>
       </Col>
       <Col md={9} style={{ paddingTop: 8 }}>
-        <Slider
-          range
-          min={oMin}
-          max={oMax}
-          step={step}
-          value={[aMin, aMax]}
-          onChange={handleChange}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <Slider
+              range
+              min={oMin}
+              max={oMax}
+              step={step}
+              value={[aMin, aMax]}
+              onChange={handleChange}
+            />
+          </div>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={openModal}
+            title={`Set exact ${label} min/max`}
+            aria-label={`Set exact ${label} min/max`}
+            style={{ flexShrink: 0, lineHeight: 1, padding: '2px 9px' }}
+          >
+            &hellip;
+          </Button>
+        </div>
       </Col>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="sm" centered>
+        <Modal.Header closeButton>
+          <Modal.Title style={{ fontSize: 18 }}>{label}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {helpText ? (
+            <p className="text-muted" style={{ fontSize: 13 }}>{helpText}</p>
+          ) : null}
+          {[
+            { which: 'Min', unset: minUnset, setUnset: setMinUnset, draft: minDraft, setDraft: setMinDraft },
+            { which: 'Max', unset: maxUnset, setUnset: setMaxUnset, draft: maxDraft, setDraft: setMaxDraft },
+          ].map((r) => (
+            <div key={r.which} className="d-flex align-items-center gap-2 mb-2">
+              <span style={{ width: 36, fontWeight: 600 }}>{r.which}</span>
+              <Form.Check
+                type="checkbox"
+                label="not set"
+                checked={r.unset}
+                onChange={(e) => r.setUnset(e.target.checked)}
+              />
+              <Form.Control
+                type="number"
+                size="sm"
+                step={step}
+                style={{ width: 120 }}
+                value={r.unset ? '' : r.draft}
+                disabled={r.unset}
+                onChange={(e) => r.setDraft(Number(e.target.value))}
+              />
+            </div>
+          ))}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" size="sm" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" onClick={applyModal}>
+            Apply
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Row>
   )
 }
@@ -1096,13 +1190,15 @@ function PartnerCriteriaPanel({
     key: string; label: string; options: SelectOption[]; isMulti: boolean
     hasAan?: boolean; canAll?: boolean; helpText?: string; showDistribution?: boolean
   }> = [
-    { key: 'direct', label: 'MFI or Direct', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true },
+    { key: 'direct', label: 'MFI or Direct', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true,
+      helpText: 'Most Kiva loans go through a field partner (an MFI). “Direct” loans are made straight to the borrower with no MFI. The default “MFI Only” hides Direct loans — that’s why the loans shown can be fewer than the total fundraising count.' },
     { key: 'partners', label: 'Field Partner', options: partnerOptions, isMulti: true, hasAan: true,
       helpText: 'Pick specific field partners (MFIs). Use the Any/None toggle to require loans from any of the selected partners, or to exclude them. Only applies in MFI mode.' },
     { key: 'region', label: 'Region', options: REGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
     { key: 'social_performance', label: 'Social Performance', options: SOCIAL_PERFORMANCE_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
     { key: 'charges_fees_and_interest', label: 'Charges Interest', options: CHARGES_INTEREST_OPTIONS, isMulti: false, showDistribution: true },
-    { key: 'religion', label: 'Religion', options: RELIGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'religion', label: 'Religion', options: RELIGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true,
+      helpText: RELIGION_HELP },
   ]
 
   return (
@@ -1152,9 +1248,26 @@ function PortfolioCriteriaPanel({
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
 }) {
   const portfolio = criteria.portfolio as Record<string, unknown>
+  const lenderId = useUtilsStore((s) => s.lenderId)
 
   return (
     <>
+      {!lenderId && (
+        <Alert variant="warning" className="py-2" style={{ fontSize: 13 }}>
+          <a
+            href="#"
+            className="alert-link"
+            onClick={(e) => {
+              e.preventDefault()
+              showLenderIDModal()
+            }}
+          >
+            Set your Lender ID
+          </a>{' '}
+          to use these. Without it, KivaLens doesn&apos;t know which loans you&apos;ve funded,
+          so &ldquo;Exclude My Loans&rdquo; and Portfolio Balancing have no effect.
+        </Alert>
+      )}
       <SelectRow
         label="Exclude My Loans"
         options={EXCLUDE_PORTFOLIO_OPTIONS}
