@@ -234,6 +234,11 @@ const REGION_OPTIONS: SelectOption[] = [
   { value: 'we', label: 'Western Europe' },
 ]
 
+// Region code -> readable label (e.g. 'sa' -> 'South America') for chart axes.
+const REGION_LABELS: Record<string, string> = Object.fromEntries(
+  REGION_OPTIONS.map((o) => [o.value, o.label]),
+)
+
 const SOCIAL_PERFORMANCE_OPTIONS: SelectOption[] = [
   { value: '1', label: 'Anti-Poverty Focus' },
   { value: '3', label: 'Client Voice' },
@@ -427,7 +432,11 @@ function buildHelperChart(loans: KivaLoan[], key: string): HelperChart | null {
     case 'region':
       return groupForHelperChart(loans, 'Region', (loan) => {
         const partner = getPartnerForLoan(loan, kl)
-        return partner?.kl_regions ?? partner?.countries.map((country) => country.region) ?? []
+        const regions =
+          partner?.kl_regions ?? partner?.countries.map((country) => country.region) ?? []
+        // kl_regions are codes (e.g. 'sa'); map to readable labels. Full region
+        // names from the countries fallback pass through unchanged.
+        return regions.map((r) => REGION_LABELS[r] ?? r)
       })
     case 'social_performance':
       return groupForHelperChart(loans, 'Social Performance', (loan) => {
