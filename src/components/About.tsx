@@ -203,6 +203,10 @@ export default function About() {
             . For questions about loan data, contact{' '}
             <KivaLink path="help">Kiva&apos;s Help Center</KivaLink>. For KivaLens
             bugs,{' '}
+            <NewTabLink href="https://github.com/nuclearspike/kivalens/issues">
+              open an issue on GitHub
+            </NewTabLink>{' '}
+            or{' '}
             <EmailLink
               subject="KivaLens Bug"
               body="I found a bug!\nThe problem is...\nSteps to reproduce..."
@@ -212,6 +216,13 @@ export default function About() {
             . Join the{' '}
             <KivaLink path="team/kivalens">KivaLens Lending Team</KivaLink> for
             discussion and announcements.
+          </p>
+          <p>
+            KivaLens is open source — you can{' '}
+            <NewTabLink href="https://github.com/nuclearspike/kivalens">
+              browse the code on GitHub
+            </NewTabLink>
+            .
           </p>
         </Tab>
       </Tabs>
