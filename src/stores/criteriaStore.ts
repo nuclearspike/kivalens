@@ -212,7 +212,10 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
       const initialLastKnown =
         storedLast && storedLast.loan
           ? storedLast
-          : { loan: {}, partner: {}, portfolio: {} }
+          : // Default a fresh visitor to excluding loans they've funded. This
+            // only takes effect once a Lender ID is set (the filter no-ops
+            // without it), matching the Portfolio tab's behavior.
+            { loan: {}, partner: {}, portfolio: { exclude_portfolio_loans: 'true' } }
 
       return {
         // -- state --
