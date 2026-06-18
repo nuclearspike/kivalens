@@ -58,9 +58,14 @@ async function getClient() {
       client.on('error', () => {})
       await client.connect()
       return client
-    })().catch(() => null) // connection failure -> stay disabled for this process
+    })().catch(() => null) // connection failure -> null (handled below)
   }
-  return clientPromise
+  const client = await clientPromise
+  // A failed initial connect resolves to null; clear the cached promise so a
+  // later call (next save cycle) retries instead of staying disabled forever.
+  // An established client persists — node-redis reconnects internally.
+  if (!client) clientPromise = null
+  return client
 }
 
 const b64 = (buf) => (buf ? buf.toString('base64') : null)
@@ -107,6 +112,17 @@ export async function loadSnapshot(log = () => {}) {
     if (!payload) return null
     const snap = JSON.parse(payload)
     if (snap.v !== CACHE_VERSION) return null // defensive; key already encodes version
+    // Guard against a corrupt/partial snapshot — require the fields we serve
+    // from before trusting it (options may be absent; taxonomy is non-essential).
+    if (
+      !snap.klStart ||
+      !snap.partners ||
+      !Array.isArray(snap.loanPages) || snap.loanPages.length === 0 ||
+      !Array.isArray(snap.keywordPages)
+    ) {
+      log('[cache] snapshot incomplete; ignoring')
+      return null
+    }
     return {
       batch: snap.batch,
       newestTime: snap.newestTime,
