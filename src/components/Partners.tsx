@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown } from '../ui'
+import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown, OverlayTrigger, Popover } from '../ui'
 import Select from './KLSelect'
+import { PARTNER_SLIDER_HELP, RELIGION_HELP } from './CriteriaTabs'
 import Slider from 'rc-slider'
 import numeral from 'numeral'
 import type { Partner } from '../types'
@@ -168,17 +169,33 @@ function FilterRow({
   label,
   aan,
   subLabel,
+  hint,
   children,
 }: {
   label: string
   aan?: React.ReactNode
   subLabel?: React.ReactNode
+  hint?: string
   children: React.ReactNode
 }) {
+  // Same dotted-underline help affordance as the Search > Partner criteria tab.
+  const labelEl = hint ? (
+    <OverlayTrigger
+      trigger={['hover', 'focus']}
+      placement="top"
+      overlay={<Popover id={`pop-${label}`}><Popover.Body>{hint}</Popover.Body></Popover>}
+    >
+      <Form.Label className="small" style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>
+        {label}
+      </Form.Label>
+    </OverlayTrigger>
+  ) : (
+    <Form.Label className="small">{label}</Form.Label>
+  )
   return (
     <Row className="mb-2 align-items-start">
       <Col md={3}>
-        <Form.Label className="small">{label}</Form.Label>
+        {labelEl}
         {subLabel}
       </Col>
       <Col md={9}>
@@ -202,6 +219,7 @@ function RangeRow({
   step,
   minVal,
   maxVal,
+  hint,
   onChange,
 }: {
   label: string
@@ -210,6 +228,7 @@ function RangeRow({
   step?: number
   minVal: unknown
   maxVal: unknown
+  hint?: string
   onChange: (nextMin: number | null, nextMax: number | null) => void
 }) {
   const actualMin = minVal != null && !isNaN(Number(minVal)) ? Number(minVal) : min
@@ -220,6 +239,7 @@ function RangeRow({
   return (
     <FilterRow
       label={label}
+      hint={hint}
       subLabel={
         <div className="small text-muted">
           {displayMin} - {displayMax}
@@ -409,6 +429,7 @@ export function Component() {
             >
               <Select
                 isMulti
+                placeholder=""
                 options={STATUS_MULTI_OPTIONS}
                 value={csvToOptions(filters.status, STATUS_MULTI_OPTIONS)}
                 onChange={(value) => updateFilter('status', optionsToCsv(value as readonly SelectOption[]))}
@@ -429,6 +450,7 @@ export function Component() {
             >
               <Select
                 isMulti
+                placeholder=""
                 options={COUNTRY_OPTIONS}
                 value={csvToOptions(filters.country_code, COUNTRY_OPTIONS)}
                 onChange={(value) => updateFilter('country_code', optionsToCsv(value as readonly SelectOption[]))}
@@ -449,6 +471,7 @@ export function Component() {
             >
               <Select
                 isMulti
+                placeholder=""
                 options={REGION_OPTIONS}
                 value={csvToOptions(filters.region, REGION_OPTIONS)}
                 onChange={(value) => updateFilter('region', optionsToCsv(value as readonly SelectOption[]))}
@@ -469,6 +492,7 @@ export function Component() {
             >
               <Select
                 isMulti
+                placeholder=""
                 options={SOCIAL_PERFORMANCE_OPTIONS}
                 value={csvToOptions(filters.social_performance, SOCIAL_PERFORMANCE_OPTIONS)}
                 onChange={(value) => updateFilter('social_performance', optionsToCsv(value as readonly SelectOption[]))}
@@ -493,6 +517,7 @@ export function Component() {
 
             <FilterRow
               label="Religion"
+              hint={RELIGION_HELP}
               aan={
                 <AanDropdown
                   
@@ -503,6 +528,7 @@ export function Component() {
             >
               <Select
                 isMulti
+                placeholder=""
                 options={RELIGION_OPTIONS}
                 value={csvToOptions(filters.religion, RELIGION_OPTIONS)}
                 onChange={(value) => updateFilter('religion', optionsToCsv(value as readonly SelectOption[]))}
@@ -522,6 +548,7 @@ export function Component() {
                   step={config.step}
                   minVal={filters[`${key}_min`]}
                   maxVal={filters[`${key}_max`]}
+                  hint={PARTNER_SLIDER_HELP[key]}
                   onChange={(nextMin, nextMax) => {
                     updateFilter(`${key}_min`, nextMin)
                     updateFilter(`${key}_max`, nextMax)
