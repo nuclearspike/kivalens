@@ -14,7 +14,6 @@ interface OptionsState {
   debugging: boolean
   betaTester: boolean
   loansFromKiva: boolean
-  lenderLoansFromKiva: boolean
   maxRepaymentTerms: number
   maxRepaymentTerms_on: boolean
 }
@@ -31,7 +30,6 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
       debugging: saved.debugging ?? false,
       betaTester: saved.betaTester ?? false,
       loansFromKiva: saved.loansFromKiva ?? false,
-      lenderLoansFromKiva: saved.lenderLoansFromKiva ?? false,
       maxRepaymentTerms: saved.maxRepaymentTerms ?? 8,
       maxRepaymentTerms_on: saved.maxRepaymentTerms_on ?? false,
     }
@@ -227,13 +225,6 @@ export default function Options() {
                 label="Show me features that are being beta-tested"
                 checked={opts.betaTester}
                 onChange={(e) => setOpts({ betaTester: e.target.checked })}
-              />
-              <Form.Check
-                type="checkbox"
-                className="mb-2"
-                label="Download lender portfolio loans from Kiva's server instead of KivaLens (slower, use only if experiencing problems)"
-                checked={opts.lenderLoansFromKiva}
-                onChange={(e) => setOpts({ lenderLoansFromKiva: e.target.checked })}
               />
               <Form.Check
                 type="checkbox"
