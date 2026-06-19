@@ -29,7 +29,9 @@ const log = (msg) => console.log(`[KL] ${msg}`)
 //   - img-src covers Kiva's image CDN + data: (CSS SVG backgrounds, favicons)
 //   - connect-src covers the same-origin /api & /proxy plus the client's
 //     direct Kiva-API and Google-Docs fallbacks
-//   - form-action allows the basket checkout POST to www.kiva.org
+//   - form-action allows the basket checkout POST to Kiva (the POST and its
+//     redirects can land on www/apex/other kiva.org subdomains, so allow the
+//     whole kiva.org family or the browser blocks the submission)
 // ---------------------------------------------------------------------------
 
 const CSP = [
@@ -39,7 +41,7 @@ const CSP = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
   "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com",
-  "form-action 'self' https://www.kiva.org",
+  "form-action 'self' https://www.kiva.org https://kiva.org https://*.kiva.org",
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",

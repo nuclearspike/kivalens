@@ -341,13 +341,23 @@ export default function Basket() {
     // Set the hidden input values right before submit.
     const loansInput = form.querySelector<HTMLInputElement>('input[name="loans"]')
     if (loansInput) loansInput.value = makeBasketPayload()
-    // Submit synchronously, inside the click's user gesture. A deferred submit
-    // (the old setTimeout) of a target="_blank" form is treated as a popup and
-    // blocked by the browser — it opened a blank tab that never navigated.
-    form.submit()
 
     beginCheckout(sentIds)
     setShowTransfer(true)
+
+    // Kiva 404s a basket POST when the lender's session has expired. Open the
+    // checkout window to a Kiva page first (in-gesture, so it isn't popup-
+    // blocked) to establish the session, then submit the form INTO that same
+    // named window once it has had time to load. Submitting into an existing
+    // window is not a popup, so the delay is safe — whereas a deferred
+    // target="_blank" submit gets blocked and opens a blank tab. If the popup is
+    // blocked outright, fall back to an immediate in-gesture submit.
+    const checkoutWin = window.open('https://www.kiva.org/about', 'kivaCheckout')
+    if (checkoutWin) {
+      setTimeout(() => form.submit(), 2500)
+    } else {
+      form.submit()
+    }
   }
 
   const handleSelect = (id: number) => {
@@ -433,7 +443,7 @@ export default function Basket() {
               id="kiva-basket-form"
               method="POST"
               action="https://www.kiva.org/basket/set"
-              target="_blank"
+              target="kivaCheckout"
             >
               <input name="callback_url" value={callbackUrl} type="hidden" />
               <input name="loans" value={makeBasketPayload()} type="hidden" />
