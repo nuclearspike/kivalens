@@ -11,8 +11,9 @@
  * behaves exactly as it did before this module existed.
  *
  * ╔═ VERSIONING ══════════════════════════════════════════════════╗
- * The snapshot encodes the server's *served-data format*: klStart, and the
- * gzipped partner / options / loan / keyword page buffers. If you change any of
+ * The snapshot encodes the server's *served-data format*: klStart, the gzipped
+ * partner / options / loan / keyword page buffers, and the per-loan details
+ * (descriptions + kl_repayments) that /graphql serves. If you change any of
  * that format — compressLoan() output, klStart shape, the taxonomy shape, or the
  * snapshot shape below — BUMP CACHE_VERSION. The version is part of the key name,
  * so old-format data is never read back into a new build (clean miss -> the
@@ -21,7 +22,9 @@
  * ╚════════════════════════════════════════════════════╝
  */
 
-const CACHE_VERSION = 1
+import zlib from 'node:zlib'
+
+const CACHE_VERSION = 2
 const KEY = `kl:snapshot:v${CACHE_VERSION}`
 const TTL_SECONDS = 7 * 24 * 60 * 60 // 7 days; refreshed on every save
 const REDIS_URL =
@@ -70,6 +73,10 @@ async function getClient() {
 
 const b64 = (buf) => (buf ? buf.toString('base64') : null)
 const unb64 = (s) => (s ? Buffer.from(s, 'base64') : null)
+const gzipAsync = (buf) =>
+  new Promise((resolve, reject) => zlib.gzip(buf, { level: 6 }, (e, r) => (e ? reject(e) : resolve(r))))
+const gunzipAsync = (buf) =>
+  new Promise((resolve, reject) => zlib.gunzip(buf, (e, r) => (e ? reject(e) : resolve(r))))
 
 /**
  * Persist the currently-published served dataset. Fire-and-forget: callers do
@@ -91,6 +98,21 @@ export async function saveSnapshot(state, log = () => {}) {
       options: b64(state.optionsGz),
       loanPages: served.loanPages.map(b64),
       keywordPages: served.keywordPages.map(b64),
+      // Per-loan descriptions + repayment schedules — the dataset /graphql serves.
+      // gzip'd here because, unlike the page buffers, these are raw objects.
+      details: b64(
+        await gzipAsync(
+          Buffer.from(
+            JSON.stringify(
+              (state.allLoans || []).map((l) => ({
+                id: l.id,
+                description: l.description,
+                kl_repayments: l.kl_repayments,
+              })),
+            ),
+          ),
+        ),
+      ),
     }
     const payload = JSON.stringify(snap)
     await client.set(KEY, payload, { EX: TTL_SECONDS })
@@ -123,6 +145,14 @@ export async function loadSnapshot(log = () => {}) {
       log('[cache] snapshot incomplete; ignoring')
       return null
     }
+    let details = []
+    if (snap.details) {
+      try {
+        details = JSON.parse((await gunzipAsync(unb64(snap.details))).toString('utf8'))
+      } catch (e) {
+        log(`[cache] details decode failed (non-fatal): ${e}`)
+      }
+    }
     return {
       batch: snap.batch,
       newestTime: snap.newestTime,
@@ -131,6 +161,7 @@ export async function loadSnapshot(log = () => {}) {
       optionsGz: unb64(snap.options),
       loanPages: (snap.loanPages || []).map(unb64),
       keywordPages: (snap.keywordPages || []).map(unb64),
+      details,
       savedAt: snap.savedAt,
     }
   } catch (e) {

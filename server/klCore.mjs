@@ -558,10 +558,11 @@ async function hydrateFromCache(state, log) {
     state.partnersGz = snap.partnersGz
     state.optionsGz = snap.optionsGz
     state.newestTime = snap.newestTime
-    // allLoans backs /api/since and /graphql detail lookups; the live fetch
-    // fills it within the same cycle. Until then /api/since returns [] and
-    // /graphql returns no descriptions — the loan listing itself is fully served.
-    state.allLoans = []
+    // Restore the per-loan details (descriptions + repayment schedules) so
+    // /graphql can serve them immediately. The live fetch replaces allLoans with
+    // the full objects within the cycle. /api/since stays correct meanwhile:
+    // these partial objects have no kl_processed, so none count as "changed".
+    state.allLoans = snap.details ?? []
     state.batches.set(snap.batch, {
       loanPages: snap.loanPages,
       keywordPages: snap.keywordPages,
