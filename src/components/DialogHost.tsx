@@ -36,7 +36,7 @@ export default function DialogHost() {
   const onHide = () => (current.kind === 'alert' ? confirm() : cancel())
 
   return (
-    <Modal show onHide={onHide} size="sm">
+    <Modal show onHide={onHide}>
       {current.title ? (
         <Modal.Header closeButton>
           <Modal.Title>{current.title}</Modal.Title>
