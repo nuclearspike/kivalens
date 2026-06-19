@@ -210,6 +210,9 @@ export default function Basket() {
   // loans without the user's say-so.
   const reconcilingRef = useRef(false)
   const reconcileCheckout = useCallback(async () => {
+    // Back on this tab — the Kiva hand-off is over, so drop the "Transferring…"
+    // modal (it was never being dismissed once checkout completed).
+    setShowTransfer(false)
     if (reconcilingRef.current) return
     const pending = useLoanStore.getState().pendingCheckout
     if (!pending) return
@@ -332,17 +335,19 @@ export default function Basket() {
       .filter((e) => e.loan && (e.loan.kl_still_needed ?? 0) > 0)
       .map((e) => e.id)
     if (sentIds.length === 0) return
+
+    const form = document.getElementById('kiva-basket-form') as HTMLFormElement | null
+    if (!form) return
+    // Set the hidden input values right before submit.
+    const loansInput = form.querySelector<HTMLInputElement>('input[name="loans"]')
+    if (loansInput) loansInput.value = makeBasketPayload()
+    // Submit synchronously, inside the click's user gesture. A deferred submit
+    // (the old setTimeout) of a target="_blank" form is treated as a popup and
+    // blocked by the browser — it opened a blank tab that never navigated.
+    form.submit()
+
     beginCheckout(sentIds)
     setShowTransfer(true)
-
-    // Submit the hidden form to transfer basket to Kiva
-    const form = document.getElementById('kiva-basket-form') as HTMLFormElement | null
-    if (form) {
-      // Set the hidden input values right before submit
-      const loansInput = form.querySelector<HTMLInputElement>('input[name="loans"]')
-      if (loansInput) loansInput.value = makeBasketPayload()
-      setTimeout(() => form.submit(), 500)
-    }
   }
 
   const handleSelect = (id: number) => {
@@ -459,11 +464,20 @@ export default function Basket() {
           className="modal d-block"
           tabIndex={-1}
           style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTransfer(false)
+          }}
         >
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Transferring Basket to Kiva</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => setShowTransfer(false)}
+                />
               </div>
               <div className="modal-body">
                 <p>
