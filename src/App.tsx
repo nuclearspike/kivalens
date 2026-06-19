@@ -34,6 +34,17 @@ export const router = createHashRouter([
     path: '/',
     element: <AppLayout />,
     errorElement: <RouteErrorBoundary />,
+    // Shown during the brief initial chunk fetch for the matched lazy route.
+    // Without it, the data router renders null during hydration and React
+    // Router logs a (non-dev-gated) "No HydrateFallback" warning even in prod.
+    hydrateFallbackElement: (
+      <div
+        className="d-flex align-items-center justify-content-center text-muted"
+        style={{ height: '100vh' }}
+      >
+        Loading…
+      </div>
+    ),
     children: [
       { index: true, element: <Navigate to="/search" replace /> },
       {
