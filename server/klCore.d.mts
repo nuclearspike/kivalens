@@ -9,6 +9,10 @@ export interface KLState {
   partnersGz: Buffer | null
   optionsGz: Buffer | null
   allLoans: unknown[]
+  partners: unknown[]
+  activePartners: unknown[]
+  atheistListProcessed: boolean
+  aplusMerged: number
   newestTime: number
   building: boolean
 }
@@ -31,3 +35,10 @@ export function handleApi(
 
 /** Handle /proxy/kiva and /proxy/gdocs. Returns true if it handled the request. */
 export function handleProxy(req: IncomingMessage, res: ServerResponse): boolean
+
+/** Handle /rss/<criteria> and /rss_click/<go_to>/<id>. Returns true if handled. */
+export function handleRss(
+  state: KLState,
+  req: IncomingMessage,
+  res: ServerResponse,
+): boolean

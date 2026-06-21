@@ -7,7 +7,7 @@
 
 import type { Plugin, ViteDevServer } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { createState, startRefresh, handleApi, handleProxy } from './klCore.mjs'
+import { createState, startRefresh, handleApi, handleProxy, handleRss } from './klCore.mjs'
 
 export function klDevServer(): Plugin {
   const state = createState()
@@ -23,6 +23,7 @@ export function klDevServer(): Plugin {
       server.middlewares.use(
         (req: IncomingMessage, res: ServerResponse, next: () => void) => {
           if (handleProxy(req, res)) return
+          if (handleRss(state, req, res)) return
           if (handleApi(state, req, res)) return
           next()
         },

@@ -22,12 +22,12 @@ import type {
   ProgressEvent,
   RunningTotals,
 } from '../types'
-import { sortBy, distinct, groupBy } from '../lib/arrayUtils'
+import { distinct } from '../lib/arrayUtils'
+import { filterLoans, filterPartners as sharedFilterPartners } from '../../server/loanFilter.mjs'
 import { today } from '../lib/dateUtils'
 import { cl, wait } from '../lib/utils'
 import { setAPIOptions, getUrl } from './kivajs/kivaBase'
 import { ResultProcessors } from './kivajs/ResultProcessors'
-import { CritTester } from './kivajs/CritTester'
 import { req } from './kivajs/req'
 import { LoansSearch } from './kivajs/LoansSearch'
 import { LoanBatch } from './kivajs/LoanBatch'
@@ -751,101 +751,16 @@ export class Loans {
 
     this.lastPartnerSearchCount++
 
-    // Parse social_performance
-    let spArr: number[] = []
-    try {
-      if (typeof partner.social_performance === 'string') {
-        spArr = partner.social_performance
-          .split(',')
-          .filter((sp: string) => sp && !isNaN(Number(sp)))
-          .map((sp: string) => parseInt(sp, 10))
-      }
-    } catch {
-      spArr = []
-    }
+    // Delegates to the shared engine (server/loanFilter.mjs) so RSS feeds
+    // generated on the server match this search exactly.
+    const matches = sharedFilterPartners(c, {
+      loans: this.loansFromKiva,
+      activePartners: this.activePartners,
+      partnerPool,
+      atheistListProcessed: this.atheistListProcessed,
+    }) as Partner[]
 
-    // Explicitly given partner IDs
-    let partnersGiven: number[] = []
-    if (partner.partners) {
-      const p = partner.partners
-      partnersGiven = (Array.isArray(p) ? p : p.toString().split(','))
-        .map((id: any) => parseInt(id, 10))
-    }
-
-    const ct = new CritTester(partner)
-
-    // Status filter (only when searching all partners, not just active)
-    if (partnerPool) {
-      ct.addAnyAllNoneTester('status', null, 'any', (p: Partner) => p.status)
-    }
-
-    // Country filter for partners
-    if (partner.country_code) {
-      const countryCodes = partner.country_code.split(',')
-      const countryMode = partner.country_code_all_any_none || 'any'
-      if (countryMode === 'none') {
-        ct.testers.push((p: Partner) => !(p.countries || []).some((c) => countryCodes.includes(c.iso_code)))
-      } else if (countryMode === 'all') {
-        ct.testers.push((p: Partner) => countryCodes.every((code: string) => (p.countries || []).some((c) => c.iso_code === code)))
-      } else {
-        ct.testers.push((p: Partner) => (p.countries || []).some((c) => countryCodes.includes(c.iso_code)))
-      }
-    }
-
-    ct.addAnyAllNoneTester('region', null, 'any', (p: Partner) => p.kl_regions, true)
-    ct.addAnyAllNoneTester('social_performance', spArr, 'all', (p: Partner) => p.kl_sp, true)
-    ct.addAnyAllNoneTester('partners', partnersGiven, 'any', (p: Partner) => p.id)
-    ct.addRangeTesters('partner_default', (p: Partner) => p.default_rate)
-    ct.addRangeTesters('partner_arrears', (p: Partner) => p.delinquency_rate)
-    ct.addRangeTesters('portfolio_yield', (p: Partner) => p.portfolio_yield)
-    ct.addRangeTesters('profit', (p: Partner) => p.profitability)
-    ct.addRangeTesters('loans_at_risk_rate', (p: Partner) => p.loans_at_risk_rate)
-    ct.addRangeTesters('currency_exchange_loss_rate', (p: Partner) => p.currency_exchange_loss_rate)
-    ct.addRangeTesters('average_loan_size_percent_per_capita_income', (p: Partner) => p.average_loan_size_percent_per_capita_income)
-    ct.addRangeTesters('years_on_kiva', (p: Partner) => p.kl_years_on_kiva)
-    ct.addRangeTesters('loans_posted', (p: Partner) => p.loans_posted)
-
-    // Build fundraising loan count per partner from currently loaded loans
-    const flcMap: Record<number, number> = {}
-    for (const loan of this.loansFromKiva) {
-      if (loan.status === 'fundraising' && loan.partner_id != null) {
-        flcMap[loan.partner_id] = (flcMap[loan.partner_id] ?? 0) + 1
-      }
-    }
-    ct.addRangeTesters('fundraising_loan_count', (p: Partner) => flcMap[p.id] ?? 0)
-
-    ct.addThreeStateTester(partner.charges_fees_and_interest, (p: Partner) => p.charges_fees_and_interest)
-
-    if (this.atheistListProcessed) {
-      ct.addRangeTesters(
-        'secular_rating',
-        (p: Partner) => p.atheistScore?.secularRating,
-        (p: Partner) => !p.atheistScore,
-      )
-      ct.addRangeTesters(
-        'social_rating',
-        (p: Partner) => p.atheistScore?.socialRating,
-        (p: Partner) => !p.atheistScore,
-      )
-    }
-
-    ct.addAnyAllNoneTester('religion', null, 'any', (p: Partner) => p.normalizedReligions || ['Unknown'], true)
-    ct.addBalancer(portfolio.pb_partner, (p: Partner) => p.id)
-    ct.addRangeTesters(
-      'partner_risk_rating',
-      (p: Partner) => p.rating,
-      (p: Partner) => isNaN(parseFloat(String(p.rating))),
-      (crit: any) => crit.partner_risk_rating_min == null,
-    )
-
-    cl('crit:partner:testers', ct.testers)
-
-    const pool = partnerPool || this.activePartners
-    let result: any[] = pool.filter((p) => ct.allPass(p))
-    if (idsOnly) {
-      result = result.map((p) => p.id)
-    }
-
+    const result: any[] = idsOnly ? matches.map((p) => p.id) : matches
     this.lastPartnerSearch[cacheKey] = result
     return result
   }
@@ -883,116 +798,15 @@ export class Loans {
   ): KivaLoan[] {
     if (!this.isReady()) return []
 
-    // Ensure all sub-objects exist
-    const criteria = {
-      loan: { ...(c.loan ?? {}) } as Record<string, any>,
-      partner: { ...(c.partner ?? {}) } as Record<string, any>,
-      portfolio: { ...(c.portfolio ?? {}) } as PortfolioCriteria,
-    }
-
-    const ct = new CritTester(criteria.loan)
-
-    ct.addAnyAllNoneTester('sector', null, 'any', (l: KivaLoan) => l.sector)
-    ct.addAnyAllNoneTester('activity', null, 'any', (l: KivaLoan) => l.activity)
-    ct.addAnyAllNoneTester('country_code', null, 'any', (l: KivaLoan) => l.location.country_code)
-    ct.addAnyAllNoneTester('tags', null, 'all', (l: KivaLoan) => l.kls_tags, true)
-    ct.addAnyAllNoneTester('themes', null, 'all', (l: KivaLoan) => l.themes, true)
-
-    ct.addFieldContainsOneOfArrayTester(
-      criteria.loan.repayment_interval,
-      (l: KivaLoan) => l.terms.repayment_interval ?? 'unknown',
-    )
-    ct.addFieldContainsOneOfArrayTester(
-      criteria.loan.currency_exchange_loss_liability,
-      (l: KivaLoan) => l.terms.loss_liability?.currency_exchange,
-    )
-
-    ct.addRangeTesters('repaid_in', (l: KivaLoan) => l.kls_repaid_in)
-    ct.addRangeTesters('borrower_count', (l: KivaLoan) => l.borrower_count)
-    ct.addRangeTesters('percent_female', (l: KivaLoan) => l.kl_percent_women)
-    ct.addRangeTesters('age', (l: KivaLoan) => l.kls_age)
-    ct.addRangeTesters('still_needed', (l: KivaLoan) => l.kl_still_needed)
-    ct.addRangeTesters('loan_amount', (l: KivaLoan) => l.loan_amount)
-    ct.addRangeTesters('dollars_per_hour', (l: KivaLoan) => (l as any).kl_dollars_per_hour?.())
-    ct.addRangeTesters('percent_funded', (l: KivaLoan) => l.kl_percent_funded)
-    ct.addRangeTesters('expiring_in_days', (l: KivaLoan) => (l as any).kl_expiring_in_days?.())
-    ct.addRangeTesters('disbursal_in_days', (l: KivaLoan) => (l as any).kl_disbursal_in_days?.())
-
-    ct.addArrayAllStartWithTester(criteria.loan.use, (l: KivaLoan) => l.kls_use_or_descr_arr)
-    ct.addArrayAllStartWithTester(criteria.loan.name, (l: KivaLoan) => l.kl_name_arr)
-
-    // Partner filtering (BOTH is also an option)
-    if (!criteria.partner.direct || criteria.partner.direct === '') {
-      ct.addFieldContainsOneOfArrayTester(
-        this.filterPartners(criteria as Criteria),
-        (l: KivaLoan) => l.partner_id,
-        true,
-      )
-    } else if (criteria.partner.direct === 'direct') {
-      ct.testers.push((l: KivaLoan) => l.partner_id == null)
-    }
-
-    // Exclude portfolio loans
-    if (
-      criteria.portfolio.exclude_portfolio_loans === 'true' &&
-      this.lenderId &&
-      this.lenderLoans[this.lenderId]?.length
-    ) {
-      ct.addFieldNotContainsOneOfArrayTester(
-        this.lenderLoans[this.lenderId],
-        (l: KivaLoan) => l.id,
-      )
-    }
-
-    ct.addBalancer(criteria.portfolio.pb_sector, (l: KivaLoan) => l.sector)
-    ct.addBalancer(criteria.portfolio.pb_country, (l: KivaLoan) => l.location.country)
-    ct.addBalancer(criteria.portfolio.pb_activity, (l: KivaLoan) => l.activity)
-    ct.addThreeStateTester(criteria.loan.bonus_credit_eligibility, (l: KivaLoan) => l.bonus_credit_eligibility === true)
-
-    // Only show fundraising loans
-    ct.testers.push((l: KivaLoan) => l.status === 'fundraising')
-
-    // Exclude loans already fully funded on Kiva (funded >= total). basket_amount
-    // is intentionally ignored — Kiva's basket data is unreliable and can exceed
-    // the remaining amount; only funded vs. total decides fundability. This is the
-    // live-session safety net for loans that hit 100% after the server shipped
-    // them (funded_amount is updated in real time via mergeLoanAndNotify).
-    ct.testers.push((l: KivaLoan) => (l.funded_amount ?? 0) < l.loan_amount)
-
-    cl('crit:loan:testers', ct.testers)
-
-    let filtered = (loansToFilter || this.loansFromKiva).filter((loan) => ct.allPass(loan))
-
-    // Limit-to logic (limit N per Partner/Country/Activity/Sector)
-    const limitTo = criteria.loan.limit_to
-    if (limitTo?.enabled) {
-      const count = isNaN(limitTo.count) ? 1 : limitTo.count
-      let selector: ((l: KivaLoan) => any) | undefined
-      switch (limitTo.limit_by) {
-        case 'Partner':
-          selector = (l) => l.partner_id
-          break
-        case 'Country':
-          selector = (l) => l.location.country_code
-          break
-        case 'Activity':
-          selector = (l) => l.activity
-          break
-        case 'Sector':
-          selector = (l) => l.sector
-          break
-      }
-      if (selector) {
-        const groups = groupBy(filtered, selector)
-        filtered = groups.flatMap((g) => sortLoans(g, criteria.loan.sort).slice(0, count))
-      }
-    }
-
-    filtered = sortLoans(filtered, criteria.loan.sort)
-
-    if (criteria.loan.limit_results) {
-      filtered = filtered.slice(0, criteria.loan.limit_results)
-    }
+    // Delegates to the shared engine (server/loanFilter.mjs) so RSS feeds
+    // generated on the server match this search exactly.
+    const filtered = filterLoans(c, {
+      loans: loansToFilter || this.loansFromKiva,
+      activePartners: this.activePartners,
+      atheistListProcessed: this.atheistListProcessed,
+      lenderId: this.lenderId,
+      lenderLoans: this.lenderLoans,
+    }) as KivaLoan[]
 
     if (cacheResults) {
       this.lastFiltered = filtered
@@ -1457,55 +1271,9 @@ export class Loans {
 // Sorting helper (extracted from filter's inner function)
 // ---------------------------------------------------------------------------
 
-export function sortLoans(loans: KivaLoan[], sortOption?: string | null): KivaLoan[] {
-  if (loans.length <= 1) return loans
-
-  switch (sortOption) {
-    case 'half_back':
-      return sortBy(
-        loans,
-        { fn: (l) => l.kls_half_back },
-        { fn: (l) => l.kls_half_back_actual, desc: true },
-        { fn: (l) => l.kls_75_back },
-        { fn: (l) => l.kls_75_back_actual, desc: true },
-        { fn: (l) => l.kls_final_repayment },
-      )
-
-    case 'popularity':
-      return sortBy(loans, { fn: (l) => (l as any).kl_dollars_per_hour?.(), desc: true })
-
-    case 'newest':
-      return sortBy(
-        loans,
-        { fn: (l) => l.kl_newest_sort, desc: true },
-        { fn: (l) => l.id, desc: true },
-      )
-
-    case 'expiring':
-      return sortBy(
-        loans,
-        { fn: (l) => l.kl_planned_expiration_date?.getTime() },
-        { fn: (l) => l.id },
-      )
-
-    case 'still_needed':
-      return sortBy(loans, { fn: (l) => l.kl_still_needed })
-
-    case 'none':
-      return loans
-
-    default:
-      // Default: order by final repayment, then half back, 75 back
-      return sortBy(
-        loans,
-        { fn: (l) => l.kls_final_repayment },
-        { fn: (l) => l.kls_half_back },
-        { fn: (l) => l.kls_half_back_actual, desc: true },
-        { fn: (l) => l.kls_75_back },
-        { fn: (l) => l.kls_75_back_actual, desc: true },
-      )
-  }
-}
+// sortLoans lives in the shared filter engine (server/loanFilter.mjs); re-exported
+// here to keep the import path stable for the client and its test.
+export { sortLoans } from '../../server/loanFilter.mjs'
 
 // ---------------------------------------------------------------------------
 // Singleton

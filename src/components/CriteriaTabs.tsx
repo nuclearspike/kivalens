@@ -1323,13 +1323,24 @@ function NewTabLink({ href, children }: { href: string; children: React.ReactNod
 
 function RSSPanel({ criteria }: { criteria: Criteria }) {
   const prepForRSS = useCriteriaStore((s) => s.prepForRSS)
+  const lenderId = useUtilsStore((s) => s.lenderId)
   const [rssName, setRssName] = useState('')
   const [rssLinkTo, setRssLinkTo] = useState('kiva')
+  const [includePortfolio, setIncludePortfolio] = useState(false)
 
-  const critRSS = useMemo(
-    () => ({ feed: { name: rssName, link_to: rssLinkTo }, ...prepForRSS(criteria) }),
-    [criteria, prepForRSS, rssName, rssLinkTo],
-  )
+  const critRSS = useMemo(() => {
+    const feed: Record<string, unknown> = { name: rssName, link_to: rssLinkTo }
+    const base: Record<string, unknown> = { feed, ...prepForRSS(criteria) }
+    // The server can now apply portfolio features (balancing + excluding loans
+    // you've funded) using your lender id, which it rides in feed.lender_id.
+    if (includePortfolio && lenderId) {
+      feed.lender_id = lenderId
+      if (criteria.portfolio && Object.keys(criteria.portfolio).length > 0) {
+        base.portfolio = { ...criteria.portfolio }
+      }
+    }
+    return base
+  }, [criteria, prepForRSS, rssName, rssLinkTo, includePortfolio, lenderId])
   const critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
 
   return (
@@ -1348,9 +1359,9 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
           .
         </p>
         <p>
-          It will only show the first 100 matching loans and it currently doesn&apos;t support
-          anything that requires any knowledge of your portfolio (excluding your fundraising loans
-          or portfolio balancing).
+          It will only show the first 100 matching loans. Portfolio features (excluding loans
+          you&apos;ve already funded and portfolio balancing) are supported when you set your Kiva
+          Lender ID and enable &quot;Include my portfolio&quot; below.
         </p>
         <Card>
           <Card.Header>RSS Feed Details</Card.Header>
@@ -1371,14 +1382,31 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
                 <option value="kivalens">KivaLens</option>
               </Form.Select>
             </Form.Group>
+            <Form.Group className="mt-2">
+              <Form.Check
+                type="checkbox"
+                id="rss-include-portfolio"
+                label="Include my portfolio (balancing + exclude loans I've already funded)"
+                checked={includePortfolio && !!lenderId}
+                disabled={!lenderId}
+                onChange={(e) => setIncludePortfolio(e.target.checked)}
+              />
+              {!lenderId && (
+                <Form.Text className="text-muted">
+                  Set your Kiva Lender ID to enable portfolio-aware feeds.
+                </Form.Text>
+              )}
+            </Form.Group>
           </Card.Body>
         </Card>
         <Card>
           <Card.Header>Your Settings</Card.Header>
           <Card.Body>
             <p>
-              These are the criteria options that will be used to generate your feed. Anything
-              related to your portfolio has been removed.
+              These are the criteria options that will be used to generate your feed.
+              {includePortfolio && lenderId
+                ? ' Your portfolio settings are included.'
+                : ' Anything related to your portfolio has been removed.'}
             </p>
             <pre>{JSON.stringify(critRSS, null, 2)}</pre>
           </Card.Body>

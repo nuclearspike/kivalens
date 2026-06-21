@@ -23,6 +23,10 @@
 
 import zlib from 'node:zlib'
 import { loadSnapshot, saveSnapshot } from './klCache.mjs'
+import { applyAtheistData } from './aplus.mjs'
+import { readCache, writeCache, cleanupCache } from './diskCache.mjs'
+import { filterLoans } from './loanFilter.mjs'
+import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -35,6 +39,11 @@ export const REFRESH_INTERVAL_MS = 10 * 60_000
 const RETAINED_BATCHES = 2
 const KIVA_API = 'https://api.kivaws.org/v1'
 const APP_ID = 'org.kiva.kivalens'
+// A+ (Atheist Team) partner ratings spreadsheet, exported as CSV.
+const APLUS_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
+const APLUS_CACHE_KEY = 'aplus.csv'
+const APLUS_TTL_MS = 24 * 60 * 60_000
 
 // ---------------------------------------------------------------------------
 // Utilities
@@ -404,6 +413,43 @@ function processPartners(partners) {
   return partners
 }
 
+/**
+ * Load the A+ (Atheist Team) ratings CSV. Prefers a fresh disk-cached copy,
+ * otherwise fetches the spreadsheet and caches it. On fetch failure, falls back
+ * to any stale cached copy. Returns the CSV text, or null if truly unavailable.
+ * (The disk is ephemeral; the cache just avoids re-fetching every 10-min refresh
+ * and across restarts until the dyno is recycled.)
+ */
+async function loadAplusCsv(log) {
+  const cached = await readCache(APLUS_CACHE_KEY, APLUS_TTL_MS)
+  if (cached) {
+    log(`A+ data: using cached copy (${cached.length} bytes)`)
+    return cached
+  }
+  try {
+    const res = await fetch(APLUS_CSV_URL, {
+      headers: { 'User-Agent': FETCH_HEADERS['User-Agent'], Accept: 'text/csv,*/*' },
+      redirect: 'follow',
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const csv = await res.text()
+    if (csv && csv.length > 100) {
+      await writeCache(APLUS_CACHE_KEY, csv)
+      log(`A+ data: fetched + cached (${csv.length} bytes)`)
+      return csv
+    }
+    log(`A+ data: fetch returned empty/short body (${csv?.length ?? 0} bytes)`)
+  } catch (e) {
+    log(`A+ data: fetch failed (${e})`)
+  }
+  const stale = await readCache(APLUS_CACHE_KEY)
+  if (stale) {
+    log('A+ data: using stale cached copy')
+    return stale
+  }
+  return null
+}
+
 // ---------------------------------------------------------------------------
 // State + data preparation
 // ---------------------------------------------------------------------------
@@ -415,6 +461,10 @@ export function createState() {
     klStart: null,
     batches: new Map(), // retained batches (latest RETAINED_BATCHES)
     partnersGz: null,
+    partners: [], // retained processed partners (for server-side RSS filtering)
+    activePartners: [], // status === 'active' subset (the RSS partner pool)
+    atheistListProcessed: false, // true once A+ data has been merged at least once
+    aplusMerged: 0, // count of partners matched to an A+ row last refresh
     optionsGz: null, // gzipped facet taxonomy from Kiva GraphQL
     allLoans: [],
     newestTime: 0,
@@ -444,6 +494,20 @@ export async function prepareData(state, log = console.log) {
     const partners = processPartners(rawPartners)
     state.partnersGz = await gzipAsync(JSON.stringify(partners))
     log(`Partners ready: ${partners.length}`)
+
+    // Retain the partner array for server-side RSS filtering, then merge the A+
+    // (Atheist Team) data into it. Done AFTER gzip so the /api/partners payload
+    // sent to clients is unchanged (the client still loads A+ data on its own).
+    state.partners = partners
+    state.activePartners = partners.filter((p) => p.status === 'active')
+    try {
+      const aplusCsv = await loadAplusCsv(log)
+      state.aplusMerged = applyAtheistData(state.partners, aplusCsv)
+      state.atheistListProcessed = !!aplusCsv
+      log(`A+ merged into ${state.aplusMerged}/${state.partners.length} partners`)
+    } catch (e) {
+      log(`A+ merge failed (continuing without it): ${e}`)
+    }
 
     // Facet taxonomy (sectors/activities/themes/tags) from GraphQL — keep the
     // previous list if this fails; it's non-essential to the loan dataset.
@@ -578,10 +642,28 @@ async function hydrateFromCache(state, log) {
 }
 
 /** Kick off the initial download and a refresh timer. Returns the timer id. */
+// Per-lender RSS cache hygiene: the disk is ephemeral but restarts can be rare,
+// so evict entries older than a day and cap the namespace's count/size so a
+// burst of distinct lender feeds can't fill the dyno disk.
+const LENDER_CLEANUP_INTERVAL_MS = 6 * 60 * 60_000
+async function cleanupLenderCache(log = console.log) {
+  const removed = await cleanupCache({
+    prefix: 'lender-',
+    maxAgeMs: 24 * 60 * 60_000,
+    maxFiles: 1000,
+    maxBytes: 20 * 1024 * 1024,
+  })
+  if (removed.length) log(`lender RSS cache: evicted ${removed.length} stale entries`)
+}
+
 export function startRefresh(state, log = console.log) {
   // Serve cached data ASAP (non-blocking) and fetch live data in parallel.
   void hydrateFromCache(state, log)
   prepareData(state, log)
+  // Periodically prune the per-lender RSS disk cache. unref() so this timer
+  // never keeps the process alive on its own.
+  void cleanupLenderCache(log)
+  setInterval(() => void cleanupLenderCache(log), LENDER_CLEANUP_INTERVAL_MS).unref()
   return setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS)
 }
 
@@ -611,6 +693,155 @@ function send404(res) {
 // API request handler — returns true if it handled the request.
 // Works with both Vite's connect middleware and a raw Node http server.
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// RSS feeds
+// ---------------------------------------------------------------------------
+
+function xmlEscape(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    // strip control chars that are illegal in XML 1.0
+    .replace(/[ --]/g, '')
+}
+
+function buildRssXml(feedName, linkTo, loans, selfUrl) {
+  const now = new Date().toUTCString()
+  const items = loans
+    .map((l) => {
+      const link = `https://www.kivalens.org/rss_click/${linkTo}/${l.id}`
+      const descr = l.description?.texts?.en || ''
+      const d = l.posted_date ? new Date(l.posted_date) : null
+      const pub = d && !Number.isNaN(d.getTime()) ? d.toUTCString() : now
+      return (
+        '    <item>\n' +
+        `      <title>${xmlEscape(l.name)}</title>\n` +
+        `      <link>${xmlEscape(link)}</link>\n` +
+        `      <description>${xmlEscape(descr)}</description>\n` +
+        `      <guid isPermaLink="false">${xmlEscape(l.id)}</guid>\n` +
+        `      <pubDate>${pub}</pubDate>\n` +
+        '    </item>'
+      )
+    })
+    .join('\n')
+  const selfLink = selfUrl
+    ? `    <atom:link href="${xmlEscape(selfUrl)}" rel="self" type="application/rss+xml" />\n`
+    : ''
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n' +
+    '  <channel>\n' +
+    `    <title>${xmlEscape(feedName)}</title>\n` +
+    '    <link>https://www.kivalens.org/</link>\n' +
+    `    <description>${xmlEscape('KivaLens loan feed: ' + feedName)}</description>\n` +
+    `    <lastBuildDate>${now}</lastBuildDate>\n` +
+    selfLink +
+    (items ? items + '\n' : '') +
+    '  </channel>\n' +
+    '</rss>\n'
+  )
+}
+
+/**
+ * Handle /rss/<encoded-criteria> (an RSS 2.0 feed of matching loans, filtered by
+ * the SAME shared engine the on-site search uses) and /rss_click/<go_to>/<id>
+ * (the per-item redirect). Returns true if it handled the request.
+ */
+export function handleRss(state, req, res) {
+  const url = req.url || ''
+
+  // Per-item click redirect: /rss_click/<kiva|kivalens>/<loanId>
+  let m = url.match(/^\/rss_click\/([^/]+)\/([^/?#]+)/)
+  if (m) {
+    const goTo = decodeURIComponent(m[1])
+    const id = encodeURIComponent(decodeURIComponent(m[2]))
+    const dest =
+      goTo === 'kiva'
+        ? `https://www.kiva.org/lend/${id}?app_id=${APP_ID}`
+        : `https://www.kivalens.org/#/search/loan/${id}`
+    res.statusCode = 302
+    res.setHeader('Location', dest)
+    res.end()
+    return true
+  }
+
+  // Feed: /rss/<uriComponent-encoded JSON criteria>. We own it as soon as the
+  // path matches; the actual work is async (lender portfolio data may need
+  // fetching), but the routing contract stays a synchronous boolean.
+  if (!/^\/rss\//.test(url)) return false
+  serveRssFeed(state, req, res).catch((e) => {
+    console.error('RSS feed error:', e)
+    try {
+      res.statusCode = 500
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+      res.end('RSS feed error')
+    } catch {
+      /* response already started */
+    }
+  })
+  return true
+}
+
+async function serveRssFeed(state, req, res) {
+  const url = req.url || ''
+  const m = url.match(/^\/rss\/(.+)$/)
+  let crit
+  try {
+    crit = JSON.parse(decodeURIComponent(m[1].split('?')[0]))
+  } catch {
+    res.statusCode = 400
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.end('Invalid RSS criteria')
+    return
+  }
+
+  const feed = crit.feed || {}
+  const linkTo = feed.link_to === 'kivalens' ? 'kivalens' : 'kiva'
+  const feedName = feed.name && String(feed.name).trim() ? String(feed.name) : 'KivaLens Feed'
+
+  // Cap the feed size (mirrors the original RSS handler).
+  const criteria = {
+    loan: { ...(crit.loan || {}), limit_results: 100 },
+    partner: { ...(crit.partner || {}) },
+    portfolio: { ...(crit.portfolio || {}) },
+  }
+
+  const ctx = {
+    loans: state.allLoans,
+    activePartners: state.activePartners,
+    atheistListProcessed: state.atheistListProcessed,
+  }
+
+  // Portfolio features (exclude-my-loans + balancing) require the lender's data,
+  // which we fetch + disk-cache per lender. The lender id rides in feed.lender_id.
+  const lenderId = feed.lender_id ? String(feed.lender_id) : null
+  const wantsLender =
+    lenderId &&
+    (criteria.portfolio.exclude_portfolio_loans === 'true' ||
+      BALANCER_SLICES.some((s) => criteria.portfolio[`pb_${s}`]?.enabled))
+  if (wantsLender) {
+    try {
+      const lender = await loadLenderRssData(lenderId, criteria.portfolio, console.log)
+      criteria.portfolio = lender.portfolio // pb_<slice>.values now resolved
+      if (criteria.portfolio.exclude_portfolio_loans === 'true') {
+        ctx.lenderId = lenderId
+        ctx.lenderLoans = { [lenderId]: lender.loanIds }
+      }
+    } catch (e) {
+      console.error(`RSS lender data failed (serving feed without portfolio): ${e}`)
+    }
+  }
+
+  const loans = filterLoans(criteria, ctx)
+  const selfUrl = req.headers?.host ? `https://${req.headers.host}${url}` : ''
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
+  res.setHeader('Cache-Control', 'public, max-age=300')
+  res.end(buildRssXml(feedName, linkTo, loans, selfUrl))
+}
 
 export function handleApi(state, req, res) {
   const url = req.url || ''
