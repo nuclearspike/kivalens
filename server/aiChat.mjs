@@ -406,10 +406,50 @@ async function execTool(name, args, sctx, sse) {
       const base = sctx.criteria && typeof sctx.criteria === 'object'
         ? sctx.criteria
         : { loan: {}, partner: {}, portfolio: {} }
-      const delta = validateCriteria(args.criteria || {}, vocab)
+      const raw = args.criteria || {}
+      const delta = validateCriteria(raw, vocab)
       // Merge onto the current filter by default so passing only the changed
       // field never wipes the others; replace:true sets the criteria wholesale.
-      const criteria = args.replace ? delta : mergeCriteria(base, delta)
+      let criteria
+      if (args.replace) {
+        criteria = delta
+      } else {
+        criteria = mergeCriteria(base, delta)
+        // Honor explicit clears: validateCriteria strips empty values, so re-apply
+        // any raw field set to ""/null/[] as a DELETE. This is how the model removes
+        // ONE filter (e.g. {loan:{activity:""}}) without a full replace — without it,
+        // a merge can never drop a field, so a 0-result filter gets stuck.
+        for (const sec of ['loan', 'partner', 'portfolio']) {
+          const d = (raw && raw[sec]) || {}
+          for (const k of Object.keys(d)) {
+            const v = d[k]
+            if (v === '' || v == null || (Array.isArray(v) && v.length === 0)) delete criteria[sec][k]
+          }
+        }
+      }
+      // Explicit removal: each entry is either a FIELD KEY (drop the whole field,
+      // e.g. "activity", "percent_female_min") or a MULTI-SELECT VALUE (drop just
+      // that value, e.g. "Cereals"). Handling both makes removal robust to how the
+      // model phrases it — far more reliable than empty-string clears.
+      if (Array.isArray(args.remove)) {
+        const MULTI = ['sector', 'activity', 'country_code', 'themes', 'tags']
+        for (const entry of args.remove) {
+          const k = String(entry)
+          // field-key removal
+          delete criteria.loan[k]
+          delete criteria.partner[k]
+          delete criteria.portfolio[k]
+          // value removal from any multi-select CSV (case-insensitive)
+          for (const f of MULTI) {
+            const cur = criteria.loan[f]
+            if (typeof cur === 'string' && cur) {
+              const kept = cur.split(',').map((s) => s.trim()).filter((v) => v && v.toLowerCase() !== k.toLowerCase())
+              if (kept.length) criteria.loan[f] = kept.join(',')
+              else delete criteria.loan[f]
+            }
+          }
+        }
+      }
       sctx.criteria = criteria
       sse({ type: 'apply_criteria', criteria })
       let count = null
@@ -670,12 +710,13 @@ const TOOL_DEFS = [
     function: {
       name: 'set_criteria',
       description:
-        'Add or change search filters and APPLY them (immediately updates the on-site results). MERGES what you pass onto the CURRENT filter and returns the full resulting criteria + live count, so pass ONLY the field(s) you want to add or change — the rest are kept. Pass replace:true to set the criteria wholesale instead (to remove a filter or start a specific fresh search).',
+        'Add or change search filters and APPLY them (immediately updates the on-site results). MERGES what you pass onto the CURRENT filter and returns the full resulting criteria + live count, so to add or change a filter pass ONLY that field — the rest are kept. To REMOVE filters, pass remove: a list of field keys to drop, e.g. {remove:["activity"]} or {remove:["percent_female_min","percent_female_max"]} for the women filter (merging keeps omitted fields, so you cannot remove by omission). Pass replace:true to set the whole criteria wholesale (start fresh).',
       parameters: {
         type: 'object',
         properties: {
           criteria: CRITERIA_PARAM,
           replace: { type: 'boolean', description: 'If true, replace the whole filter with `criteria` instead of merging it onto the current one.' },
+          remove: { type: 'array', items: { type: 'string' }, description: 'Things to REMOVE from the current filter. Each entry is a FIELD KEY (drops the whole field: "activity", or ["percent_female_min","percent_female_max"] for the women filter) OR a MULTI-SELECT VALUE (drops just that value: "Cereals" leaves other activities).' },
         },
         required: ['criteria'],
       },
@@ -751,7 +792,8 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'PLAYBOOK:',
     '1. Understand what the user wants. If it is broad, call analyze_loans on a rough criteria to see counts + facet breakdowns and find the biggest ways to narrow it.',
     '2. Ask the user what matters MOST to them (1 short question at a time) before locking in a narrow filter.',
-    '3. Call set_criteria to apply, then quote the match count FROM ITS RESULT. set_criteria MERGES onto the current filter and returns the full resulting criteria + count, so to add or change a filter just pass that one field — the rest are kept. To remove filters pass replace:true with the full criteria you want; to clear everything call reset_criteria.',
+    '3. Call set_criteria to apply, then quote the match count FROM ITS RESULT. set_criteria MERGES onto the current filter and returns the full resulting criteria + count, so to add or change a filter just pass that one field — the rest are kept. To remove a filter, pass remove with its field key(s) (e.g. remove:["activity"], or remove:["percent_female_min","percent_female_max"] for the women filter); to clear everything call reset_criteria.',
+    'EMPTY RESULTS / REMOVING FILTERS: if set_criteria returns count 0, do NOT leave the user stuck — say nothing matches and the likely reason (e.g. an activity may belong to a different sector than the one set), and offer to relax or remove the limiting filter. To REMOVE the limiting filter, call set_criteria with remove:[its field key(s)] — e.g. remove:["activity"], or remove:["percent_female_min","percent_female_max"] for the women filter (do NOT just omit the field; merging keeps omitted fields). Then check the new count — if it is still 0, a DIFFERENT filter is limiting, so remove that one too.',
     '4. Offer to save_search once the criteria is dialed in. AFTER you save, call point_at("saved-searches", "I saved your search here — reload it anytime!") so they can find it.',
     'CRITICAL — never fake a filter change: EVERY time the search should change — INCLUDING a one-word confirmation of something you suggested ("yes", "sure", "yes vegan", "add women", "ok do it") — you MUST call set_criteria again THAT SAME TURN (just pass the changed field — it merges). The search only changes when set_criteria runs. NEVER say you "narrowed / added / applied / set / tagged" anything, and NEVER state a match count, unless you called set_criteria (or analyze_loans) THIS turn and are quoting the number it returned. Do not reuse a count from an earlier turn or describe a filter you did not just apply.',
     'GUIDANCE TOOLS: point_at(target, message) shows a bouncing arrow + callout at a UI element (targets: saved-searches, reset, bulk-add, criteria-tabs, results, and nav-search/basket/partners/stats/saved/options/about/teams/wall). navigate(page) switches pages. switch_criteria_tab(tab) switches the Search criteria tab. Use these to guide the user and give walkthroughs of where to find things.',

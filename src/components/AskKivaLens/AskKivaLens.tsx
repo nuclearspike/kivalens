@@ -122,6 +122,7 @@ export default function AskKivaLens() {
 
   const rootRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const streamRef = useRef('')
   const rafRef = useRef<number | null>(null)
@@ -299,6 +300,8 @@ export default function AskKivaLens() {
   // When opened via the "Getting Started" CTA, auto-send the seed prompt once.
   useEffect(() => {
     if (!open) return
+    // Focus the message box as soon as the panel opens.
+    requestAnimationFrame(() => inputRef.current?.focus())
     const seed = useUtilsStore.getState().consumeAskKlSeed()
     if (seed) send(seed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -353,12 +356,16 @@ export default function AskKivaLens() {
       )}
       {open && (
         <div className="ask-kl-panel" role="dialog" aria-label="KivaLens AI assistant">
-          <div className="ask-kl-header">
+          <div
+            className="ask-kl-header"
+            onClick={() => closeAskKl()}
+            title="Click to minimize"
+          >
             <Eyes />
             <strong className="ask-kl-title">Ask KivaLens</strong>
             <span className="ask-kl-beta">beta</span>
             <span className="ask-kl-badge">AI</span>
-            <button type="button" className="ask-kl-close" aria-label="Close" onClick={() => closeAskKl()}>
+            <button type="button" className="ask-kl-close" aria-label="Minimize" onClick={() => closeAskKl()}>
               ×
             </button>
           </div>
@@ -394,6 +401,7 @@ export default function AskKivaLens() {
             }}
           >
             <input
+              ref={inputRef}
               type="text"
               value={input}
               placeholder="Ask about finding loans…"
