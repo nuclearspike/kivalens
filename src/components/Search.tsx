@@ -9,6 +9,7 @@ import Loan from './Loan'
 import InfiniteList from './InfiniteList'
 import LoadingLoansPanel from './LoadingLoansPanel'
 import BulkAddModal from './BulkAddModal'
+import { NoResultsHelp } from './NoResultsHelp'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 
 // ---------------------------------------------------------------------------
@@ -136,12 +137,7 @@ export function Search() {
             </div>
           ) : null}
 
-          {hasHadLoans && loanCount === 0 && !downloading ? (
-            <Alert variant="info" className="not-rounded-top" style={{ marginBottom: 0 }}>
-              There are no matching loans for your current criteria. Loosen the
-              criteria or click &quot;Reset&quot; to start over.
-            </Alert>
-          ) : null}
+          {hasHadLoans && loanCount === 0 && !downloading ? <NoResultsHelp /> : null}
 
           <LoadingLoansPanel />
           <InfiniteList

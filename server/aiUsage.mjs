@@ -126,6 +126,34 @@ export async function claimDigest(day) {
   }
 }
 
+// After a day's digest is emailed, wipe the chats it covered: delete that day's
+// per-day list and drop entries on/before `day` from the rolling log (keep newer).
+// Keeps Redis small — the emailed digest is the archive.
+export async function clearLogsThrough(day) {
+  const client = await getRedisClient()
+  if (!client) {
+    mem.log = mem.log.filter((e) => (e.at || '').slice(0, 10) > day)
+    return
+  }
+  try {
+    await client.del(`kl:ai:log:${day}`)
+    const rows = await client.lRange(LOG_KEY, 0, -1)
+    const keep = rows.filter((r) => {
+      try {
+        return ((JSON.parse(r).at) || '').slice(0, 10) > day
+      } catch {
+        return true
+      }
+    })
+    const multi = client.multi()
+    multi.del(LOG_KEY)
+    if (keep.length) multi.rPush(LOG_KEY, keep)
+    await multi.exec()
+  } catch {
+    // best-effort; the per-day key TTLs out on its own
+  }
+}
+
 export async function getRecentLogs(n = 100) {
   const client = await getRedisClient()
   if (!client) return mem.log.slice(0, n)

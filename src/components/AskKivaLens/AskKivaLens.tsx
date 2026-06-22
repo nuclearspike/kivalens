@@ -11,6 +11,13 @@ import './AskKivaLens.scss'
 
 const CHART_COLORS = ['#2C8C5E', '#5BA882', '#8AC4A6', '#1f6b46', '#3a9e6d', '#7bbf9b', '#b9dfca', '#155138']
 
+// Per-browser id used to group a user's turns in the server digest.
+function newClientId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : 'c-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
 // Never render images in chat (the model occasionally tries to embed a base64
 // chart; real charts come through render_chart). Strip them defensively.
 const MD_COMPONENTS = { img: () => null }
@@ -130,13 +137,10 @@ export default function AskKivaLens() {
   // effect (which would otherwise clobber the saved `open` flag before we read it).
   const [savedChat] = useState<SavedChat>(() => lsj.get<SavedChat>(CHAT_KEY))
   // Stable per-browser id so the server can group a user's turns in the digest.
-  const [clientId] = useState<string>(() => {
+  const [clientId, setClientId] = useState<string>(() => {
     const saved = lsj.get<{ id?: string }>('AskKivaLensClientId')
     if (saved.id) return saved.id
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : 'c-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+    const id = newClientId()
     lsj.set('AskKivaLensClientId', { id })
     return id
   })
@@ -188,6 +192,33 @@ export default function AskKivaLens() {
     if (t) setMessages((m) => [...m, { role: 'assistant', content: t }])
   }, [])
 
+  // Wipe the conversation and start fresh ("Reset chat" button / reset_chat tool).
+  const resetChat = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    streamRef.current = ''
+    setStreaming('')
+    setMessages([])
+    setInput('')
+    setLoading(false)
+    try {
+      localStorage.removeItem('AskKivaLensChat')
+    } catch {
+      /* ignore */
+    }
+    // Detach from the old conversation: a fresh id so new turns aren't grouped
+    // with the cleared chat in the server digest. (Server logs aren't deleted
+    // here — they're the analytics record and the daily digest wipes them.)
+    const id = newClientId()
+    lsj.set('AskKivaLensClientId', { id })
+    setClientId(id)
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }, [])
+
   const send = useCallback(
     (text: string) => {
       const msg = text.trim()
@@ -230,6 +261,14 @@ export default function AskKivaLens() {
           case 'add_to_basket':
             useLoanStore.getState().addToBasket(e.loanId, e.amount)
             break
+          case 'bulk_add':
+            useLoanStore
+              .getState()
+              .batchAddToBasket((e.items || []).map((it) => ({ loan_id: it.loanId, amount: it.amount })))
+            break
+          case 'toggle_notify':
+            useCriteriaStore.getState().toggleNotifyOnNew(e.name)
+            break
           case 'point_at':
             useUtilsStore.getState().showCallout(e.target, e.message)
             break
@@ -253,6 +292,22 @@ export default function AskKivaLens() {
             break
           case 'clear_basket':
             useLoanStore.getState().clearBasket()
+            break
+          case 'reset_chat':
+            // AI-triggered "start over": clear prior turns; the fresh-start
+            // greeting it streams next becomes the new first message.
+            if (rafRef.current != null) {
+              cancelAnimationFrame(rafRef.current)
+              rafRef.current = null
+            }
+            setMessages([])
+            streamRef.current = ''
+            setStreaming('')
+            try {
+              localStorage.removeItem('AskKivaLensChat')
+            } catch {
+              /* ignore */
+            }
             break
           case 'load_search':
             useCriteriaStore.getState().loadSearch(e.name)
@@ -418,9 +473,29 @@ export default function AskKivaLens() {
               </button>
             )}
           </form>
-          <div className="ask-kl-disclosure">
-            Chats are logged to improve KivaLens.{' '}
-            <a href="#/privacy">Privacy</a>
+          <div
+            className="ask-kl-disclosure"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
+          >
+            <button
+              type="button"
+              onClick={resetChat}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--kl-green, #2C8C5E)',
+                cursor: 'pointer',
+                font: 'inherit',
+                padding: 0,
+                textDecoration: 'underline',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ↺ Reset chat
+            </button>
+            <span>
+              Chats are logged · <a href="#/privacy">Privacy</a>
+            </span>
           </div>
         </div>
       )}

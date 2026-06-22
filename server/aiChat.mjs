@@ -12,7 +12,7 @@
  */
 import zlib from 'node:zlib'
 import OpenAI from 'openai'
-import { filterLoans, groupBy } from './loanFilter.mjs'
+import { filterLoans, groupBy, filterPartners } from './loanFilter.mjs'
 import { fetchSuperGraphSlices, fetchLenderProfile } from './lenderData.mjs'
 import { budgetExceeded, addSpend, costOf, logInteraction, getRecentLogs, getMonthlySpend, monthKey, BUDGET_USD } from './aiUsage.mjs'
 import { sendDigestNow } from './digest.mjs'
@@ -177,6 +177,43 @@ function findPartner(state, partnerId) {
   return (state.partners || []).find((p) => p.id === partnerId) || null
 }
 
+// Compact field-partner row for search_partners / compare_partners.
+function partnerRow(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    rating: p.rating,
+    default_rate: p.default_rate,
+    delinquency_rate: p.delinquency_rate,
+    portfolio_yield: p.portfolio_yield,
+    profitability: p.profitability,
+    years_on_kiva: Math.round((p.kl_years_on_kiva ?? 0) * 10) / 10,
+    loans_posted: p.loans_posted,
+    charges_fees_and_interest: p.charges_fees_and_interest,
+  }
+}
+
+// Slim loan row for list_results (lets the model actually recommend specifics).
+function loanRow(state, l) {
+  const p = findPartner(state, l.partner_id)
+  return {
+    id: l.id,
+    name: l.name,
+    country: l.location?.country,
+    sector: l.sector,
+    activity: l.activity,
+    use: l.use,
+    still_needed: l.kl_still_needed,
+    percent_funded: Math.round(l.kl_percent_funded ?? 0),
+    partner: l.partner_id == null
+      ? 'Direct (no field partner)'
+      : p
+        ? { name: p.name, rating: p.rating, default_rate: p.default_rate, delinquency_rate: p.delinquency_rate }
+        : null,
+  }
+}
+
 // Compact loan + field-partner summary for context / the get_loan_details tool.
 function loanBrief(state, id) {
   const l = (state.allLoans || []).find((x) => x.id === Number(id))
@@ -251,13 +288,25 @@ function resolveBasketLoan(sctx, state, args) {
   return null
 }
 
+// The model sometimes passes the criteria object directly as the tool args
+// ({loan,partner,portfolio}) instead of wrapped in {criteria:{...}} (it tends to
+// wrap only when there are sibling args like facets). Accept BOTH shapes so a
+// call with correct values never silently no-ops.
+function criteriaArg(args) {
+  if (args && args.criteria && typeof args.criteria === 'object') return args.criteria
+  if (args && (args.loan || args.partner || args.portfolio)) {
+    return { loan: args.loan, partner: args.partner, portfolio: args.portfolio }
+  }
+  return {}
+}
+
 async function execTool(name, args, sctx, sse) {
   const { state, lenderId } = sctx
   const vocab = getTaxonomy(state).vocab
   switch (name) {
     case 'analyze_loans': {
       if (!state.ready || !state.allLoans?.length) return { ready: false, note: 'Loan data is still loading; ask the user to retry shortly.' }
-      const criteria = validateCriteria(args.criteria || {}, vocab)
+      const criteria = validateCriteria(criteriaArg(args), vocab)
       const matched = filterLoans(criteria, loanCtx(state))
       const facets = {}
       const want = Array.isArray(args.facets) && args.facets.length ? args.facets : ['sector', 'country_code']
@@ -369,14 +418,27 @@ async function execTool(name, args, sctx, sse) {
       return { ok: true, note: 'Cleared all filters back to the default.' }
     }
     case 'generate_rss_feed': {
-      const criteria = validateCriteria(args.criteria || sctx.criteria || {}, getTaxonomy(state).vocab)
+      const argCrit = criteriaArg(args)
+      const criteria = validateCriteria(Object.keys(argCrit).length ? argCrit : sctx.criteria || {}, getTaxonomy(state).vocab)
+      const linkTo = args.linkTo === 'kivalens' ? 'kivalens' : 'kiva'
+      const includePortfolio = !!args.includePortfolio && !!lenderId
+      const feed = { name: String(args.name || 'My KivaLens Feed'), link_to: linkTo }
+      if (includePortfolio) feed.lender_id = lenderId
       const payload = {
-        feed: { name: String(args.name || 'My KivaLens Feed'), link_to: 'kiva' },
+        feed,
         loan: criteria.loan,
         partner: criteria.partner,
+        ...(includePortfolio ? { portfolio: criteria.portfolio } : {}),
       }
       const url = 'https://www.kivalens.org/rss/' + encodeURIComponent(JSON.stringify(payload))
-      return { url, note: 'Subscribe to this URL in any RSS reader or IFTTT. Portfolio-only filters are not included in feeds.' }
+      return {
+        url,
+        linkTo,
+        includesPortfolio: includePortfolio,
+        note: includePortfolio
+          ? 'Feed includes the portfolio filters, resolved server-side via the lender id.'
+          : 'Subscribe in any RSS reader or IFTTT. Pass includePortfolio:true (with a lender id) to bake portfolio filters into the feed.',
+      }
     }
     case 'render_chart': {
       const data = Array.isArray(args.data)
@@ -406,7 +468,7 @@ async function execTool(name, args, sctx, sse) {
       const base = sctx.criteria && typeof sctx.criteria === 'object'
         ? sctx.criteria
         : { loan: {}, partner: {}, portfolio: {} }
-      const raw = args.criteria || {}
+      const raw = criteriaArg(args)
       const delta = validateCriteria(raw, vocab)
       // Merge onto the current filter by default so passing only the changed
       // field never wipes the others; replace:true sets the criteria wholesale.
@@ -481,9 +543,15 @@ async function execTool(name, args, sctx, sse) {
       }
       // Make it usable by later tools IN THIS SAME TURN (e.g. get_lender_profile),
       // not just on the next request once the client has applied it.
+      // Verify against Kiva before accepting it — a typo would silently engage
+      // portfolio filters against the wrong/empty account and mislabel the logs.
+      const profile = await fetchLenderProfile(id).catch(() => null)
+      if (!profile) {
+        return { error: 'invalid_lender', note: `No Kiva lender found for "${id}". Ask the user to double-check it, or use open_kiva_lender_help.` }
+      }
       sctx.lenderId = id
       sse({ type: 'set_lender_id', lenderId: id })
-      return { ok: true, lender_id: id, note: 'Set the lender id. Use get_lender_profile to confirm it is valid.' }
+      return { ok: true, lender_id: id, profile, note: 'Verified against Kiva and set the lender id.' }
     }
     case 'open_kiva_lender_help': {
       sse({ type: 'open_url', url: 'https://www.kiva.org/myLenderId' })
@@ -501,6 +569,76 @@ async function execTool(name, args, sctx, sse) {
       const slices = await fetchSuperGraphSlices(lenderId, sliceBy)
       return { sliceBy, slices: (slices || []).slice(0, 20) }
     }
+    case 'list_results': {
+      if (!state.ready || !state.allLoans?.length) return { ready: false, note: 'Loan data is still loading; ask the user to retry shortly.' }
+      const base = sctx.criteria && typeof sctx.criteria === 'object' ? sctx.criteria : { loan: {}, partner: {}, portfolio: {} }
+      const argCrit = criteriaArg(args)
+      const crit = validateCriteria(Object.keys(argCrit).length ? mergeCriteria(base, validateCriteria(argCrit, vocab)) : base, vocab)
+      if (args.sort) crit.loan = { ...crit.loan, sort: String(args.sort) }
+      const matched = filterLoans(crit, loanCtx(state))
+      const limit = Math.min(Math.max(Number(args.limit) || 8, 1), 20)
+      return { count: matched.length, showing: Math.min(limit, matched.length), loans: matched.slice(0, limit).map((l) => loanRow(state, l)) }
+    }
+    case 'bulk_add_to_basket': {
+      if (!state.ready || !state.allLoans?.length) return { ready: false, note: 'Loan data is still loading.' }
+      const crit = validateCriteria(sctx.criteria || {}, vocab)
+      const matched = filterLoans(crit, loanCtx(state))
+      const perLoan = Math.min(Math.max(Number(args.perLoan) || 25, 25), 500)
+      const HARD_CAP = 10000
+      const maxTotal = Math.min(Math.max(Number(args.maxTotal) || 250, perLoan), HARD_CAP)
+      const existing = new Set((sctx.basket || []).map((b) => Number(b.loanId)))
+      let total = (sctx.basket || []).reduce((s, b) => s + (Number(b.amount) || 0), 0)
+      const items = []
+      for (const l of matched) {
+        if (existing.has(l.id)) continue
+        if (total + perLoan > maxTotal) break
+        const need = Number(l.kl_still_needed)
+        const amt = need > 0 ? Math.min(perLoan, Math.max(25, Math.ceil(need))) : perLoan
+        items.push({ loanId: l.id, amount: amt })
+        total += amt
+      }
+      if (!items.length) return { added: 0, note: matched.length ? 'Nothing added — the $ cap was reached or those loans are already in the basket.' : 'No loans match the current filter.' }
+      sse({ type: 'bulk_add', items })
+      return { added: items.length, totalUsd: total, matched: matched.length, note: `Queued ${items.length} loans into the basket (~$${total}). Nothing is funded until the user reviews the basket and checks out on Kiva.` }
+    }
+    case 'search_partners': {
+      const pool = state.partners || []
+      if (!pool.length) return { note: 'Field-partner data is not loaded yet.' }
+      const validated = validateCriteria({ partner: criteriaArg(args).partner || args.partner || {}, loan: {}, portfolio: {} }, vocab)
+      // Default to ACTIVE partners (matches the on-site Partners page); closed/
+      // inactive partners have no fundraising loans.
+      const partnerCrit = { ...validated.partner, status: validated.partner.status || 'active' }
+      let results = filterPartners({ partner: partnerCrit, portfolio: {} }, { partnerPool: pool })
+      const name = String(args.name || '').trim().toLowerCase()
+      if (name) results = results.filter((p) => (p.name || '').toLowerCase().includes(name))
+      const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 25)
+      return { count: results.length, showing: Math.min(limit, results.length), partners: results.slice(0, limit).map(partnerRow) }
+    }
+    case 'compare_partners': {
+      const ids = (Array.isArray(args.ids) ? args.ids : []).map(Number).filter((n) => !Number.isNaN(n))
+      const rows = ids.map((id) => (state.partners || []).find((p) => p.id === id)).filter(Boolean).map(partnerRow)
+      if (!rows.length) return { error: 'not_found', note: 'No partners matched those ids. Use search_partners to find ids first.' }
+      return { partners: rows }
+    }
+    case 'toggle_notify_on_new': {
+      const nm = String(args.name || '')
+      const avail = sctx.savedSearches || []
+      if (!avail.includes(nm)) return { error: 'not_found', note: 'No saved search by that name.', available: avail }
+      sse({ type: 'toggle_notify', name: nm })
+      return { ok: true, name: nm, note: 'Toggled new-loan notifications for that saved search (the badge on the Saved Searches dropdown reflects it).' }
+    }
+    case 'reset_chat': {
+      sse({ type: 'reset_chat' })
+      return { ok: true, note: 'Cleared the conversation. Reply with ONE short fresh-start greeting and nothing else.' }
+    }
+    case 'get_selected_loan': {
+      const id = sctx.selectedLoanId
+      if (id == null) return { none: true, note: 'The user is not viewing a specific loan right now.' }
+      const brief = loanBrief(state, id)
+      if (!brief) return { none: true, note: 'The selected loan is not in the loaded set.' }
+      const l = (state.allLoans || []).find((x) => x.id === Number(id))
+      return { ...brief, description: l?.description?.texts?.en || '', repayment_schedule: l?.kl_repayments || [] }
+    }
     default:
       return { error: 'unknown_tool' }
   }
@@ -510,7 +648,12 @@ async function execTool(name, args, sctx, sse) {
 const CRITERIA_PARAM = {
   type: 'object',
   description:
-    'A KivaLens criteria object. Multi-selects are comma-separated strings (sector:"Agriculture,Retail"); ranges use _min/_max numbers; tags carry a leading # ("#Parent"); multi-selects accept a *_all_any_none modifier ("any"|"all"|"none").',
+    'A KivaLens criteria object { loan, partner, portfolio }. EXPECTED INPUT: ' +
+    'Multi-selects are a SINGLE comma-separated string holding ALL values — loan.country_code:"UG,GH,CD,TJ,ML" (use the 2-letter CODE, never the country name), loan.sector:"Agriculture,Retail", loan.tags:"#Parent,#Vegan". ' +
+    'Ranges use _min/_max numbers — loan.percent_female_min:50, loan.percent_female_max:100, loan.loan_amount_max:500. ' +
+    'Multi-select modifier <field>_all_any_none: "any" (default — match ANY value) | "all" (must have ALL) | "none" (EXCLUDE these values). To HIDE/exclude you MUST add it as "none" — e.g. hide Peru = {"loan":{"country_code":"PE","country_code_all_any_none":"none"}}. ' +
+    'FULL EXAMPLE: {"loan":{"sector":"Agriculture","country_code":"UG,GH,CD,TJ,ML","percent_female_min":50,"percent_female_max":100,"sort":"popularity"},"partner":{},"portfolio":{}}. ' +
+    'Put EVERY value for a field in this ONE object — never split a field\'s values across multiple calls.',
   properties: {
     loan: { type: 'object', additionalProperties: true },
     partner: { type: 'object', additionalProperties: true },
@@ -639,7 +782,7 @@ const TOOL_DEFS = [
       name: 'generate_rss_feed',
       description:
         'Build a shareable RSS feed URL for a search so the user gets alerts on new matching loans (IFTTT, RSS readers). Uses the current criteria unless you pass one.',
-      parameters: { type: 'object', properties: { criteria: CRITERIA_PARAM, name: { type: 'string' } } },
+      parameters: { type: 'object', properties: { criteria: CRITERIA_PARAM, name: { type: 'string' }, linkTo: { type: 'string', enum: ['kiva', 'kivalens'], description: 'Where feed items link (default kiva).' }, includePortfolio: { type: 'boolean', description: 'Bake the portfolio filters into the feed (needs a lender id).' } } },
     },
   },
   {
@@ -771,6 +914,69 @@ const TOOL_DEFS = [
       parameters: { type: 'object', properties: { sliceBy: { type: 'string', enum: ['sector', 'activity', 'country', 'partner'] } } },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'list_results',
+      description:
+        'List the actual loans matching the CURRENT filter so you can recommend specific ones. Returns compact rows (id, name, country, sector, still_needed, %funded, field-partner risk). Pass sort to reorder (half_back|newest|expiring|popularity|still_needed).',
+      parameters: { type: 'object', properties: { sort: { type: 'string' }, limit: { type: 'number', description: '1-20, default 8' }, criteria: CRITERIA_PARAM } },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'bulk_add_to_basket',
+      description:
+        'Add MANY loans from the current filter into the basket at once (the KivaLens power move). Fills up to maxTotal USD at perLoan each ($25 Kiva minimum, $10k hard cap), skipping loans already in the basket. Nothing is funded — the user still reviews the basket and checks out on Kiva. Confirm the rough $ total with the user before calling.',
+      parameters: { type: 'object', properties: { maxTotal: { type: 'number', description: 'Total USD to add (default 250).' }, perLoan: { type: 'number', description: 'USD per loan (default/min 25).' } } },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_partners',
+      description:
+        'Search Kiva field partners by criteria (region, social_performance, religion, risk ranges) and/or name. Returns rating, default & delinquency rates, yield, profitability, years on Kiva. Feed the rows into render_chart to compare risk visually.',
+      parameters: { type: 'object', properties: { criteria: CRITERIA_PARAM, name: { type: 'string' }, limit: { type: 'number' } } },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'compare_partners',
+      description:
+        "Compare specific field partners side by side by id (get ids from search_partners or a loan's partner). Returns each one's risk stats; pair with render_chart for a visual.",
+      parameters: { type: 'object', properties: { ids: { type: 'array', items: { type: 'number' } } }, required: ['ids'] },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'toggle_notify_on_new',
+      description:
+        "Turn new-loan notifications on/off for one of the user's saved searches, by name (the bell on the Saved Searches dropdown).",
+      parameters: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'reset_chat',
+      description:
+        'Clear the CONVERSATION and start fresh. Call ONLY when the user wants to start the chat over ("start over", "reset the chat", "clear this conversation"). This is NOT the same as reset_criteria, which clears the search FILTERS — if they mean their search/filters, use reset_criteria instead.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_selected_loan',
+      description:
+        'Get the loan the user is CURRENTLY viewing (the one they navigated to) with FULL details — borrower, amounts, field-partner stats, description, and repayment schedule. Call this whenever they say "this loan / this borrower / this partner" or ask about the loan on screen and you need its data. No id needed. Returns {none:true} if they are not on a specific loan.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
 ]
 
 export { validateCriteria }
@@ -788,6 +994,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     '',
     'YOUR JOB: help the user find loans by BUILDING and APPLYING the search criteria for them, conversationally.',
     'You act only through tools — never claim to have changed the search, saved anything, or read a profile unless you called the matching tool.',
+    'SHOW, DON\'T TELL (important): for ANY "where is / where do I / how do I find / how do I get to" question about a feature, page, setting, or control, you MUST call point_at to bounce the arrow at it — do NOT answer with words alone. If it is on another page, navigate there too. Examples: "where are my saved searches?" → point_at("nav-saved","Right here!"); "how do I see partners?" → navigate("partners") + point_at("nav-partners","Here!"); "turn that off in Options" → point_at("nav-options","Set it here!"). (Targets + rules are under GUIDANCE TOOLS below.)',
     '',
     'PLAYBOOK:',
     '1. Understand what the user wants. If it is broad, call analyze_loans on a rough criteria to see counts + facet breakdowns and find the biggest ways to narrow it.',
@@ -796,26 +1003,32 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'EMPTY RESULTS / REMOVING FILTERS: if set_criteria returns count 0, do NOT leave the user stuck — say nothing matches and the likely reason (e.g. an activity may belong to a different sector than the one set), and offer to relax or remove the limiting filter. To REMOVE the limiting filter, call set_criteria with remove:[its field key(s)] — e.g. remove:["activity"], or remove:["percent_female_min","percent_female_max"] for the women filter (do NOT just omit the field; merging keeps omitted fields). Then check the new count — if it is still 0, a DIFFERENT filter is limiting, so remove that one too.',
     '4. Offer to save_search once the criteria is dialed in. AFTER you save, call point_at("saved-searches", "I saved your search here — reload it anytime!") so they can find it.',
     'CRITICAL — never fake a filter change: EVERY time the search should change — INCLUDING a one-word confirmation of something you suggested ("yes", "sure", "yes vegan", "add women", "ok do it") — you MUST call set_criteria again THAT SAME TURN (just pass the changed field — it merges). The search only changes when set_criteria runs. NEVER say you "narrowed / added / applied / set / tagged" anything, and NEVER state a match count, unless you called set_criteria (or analyze_loans) THIS turn and are quoting the number it returned. Do not reuse a count from an earlier turn or describe a filter you did not just apply.',
-    'GUIDANCE TOOLS: point_at(target, message) shows a bouncing arrow + callout at a UI element (targets: saved-searches, reset, bulk-add, criteria-tabs, results, and nav-search/basket/partners/stats/saved/options/about/teams/wall). navigate(page) switches pages. switch_criteria_tab(tab) switches the Search criteria tab. Use these to guide the user and give walkthroughs of where to find things.',
+    'ONE CALL, ALL VALUES: when a multi-select takes several values, put them ALL into ONE comma-separated string in a SINGLE set_criteria call — five countries = set_criteria({loan:{country_code:"UG,GH,CD,TJ,ML"}}). NEVER make a separate set_criteria call per value: each call REPLACES that field, so multiple calls keep only the LAST value (you would end up with just one country). Always use the 2-letter country CODE (UG), never the name.',
+    'GUIDANCE TOOLS — SHOW, don\'t just tell: point_at(target, message) bounces an arrow + callout at a UI element. DEFAULT to point_at WHENEVER you tell the user WHERE a feature / control / setting / page is, or HOW to get to it — point at it, don\'t only describe the location. E.g. "you can set that on the Options page" → ALSO call point_at("nav-options", "Set it here!"); "your saved searches are here" → point_at("nav-saved", "Right here!"). Header nav tabs (present on EVERY page): nav-search, nav-basket, nav-partners, nav-stats, nav-wall, nav-teams, nav-saved, nav-options, nav-about. Search-page targets: results, bulk-add, criteria-tabs, reset, saved-searches — if the user is NOT on the Search page, navigate("search") first (the arrow only appears if the target is on the current page). navigate(page) switches pages; switch_criteria_tab(tab) switches the Search criteria tab.',
     'LENDER ID: check CONTEXT below. NEVER call prompt_lender_id or ask for the id if it is already set. If it is NOT set and you need it: ask the user and call set_lender_id when they give it; or call prompt_lender_id to open the entry dialog; if they do not know it, offer open_kiva_lender_help (opens kiva.org in a new tab where their id appears) and have them paste it back.',
     'PORTFOLIO: if the lender id is set, you may read their lending history directly with get_lender_profile / get_portfolio_distribution — no permission step. Compare their distribution to advise more-of-the-same vs. diversify, then propose criteria. If no lender id is set, get it first (see LENDER ID).',
     'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / set_lend_amount / clear_basket. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
     'MORE TOOLS: list_saved_searches / load_search / delete_search manage saved searches; reset_criteria clears all filters; generate_rss_feed returns a shareable feed URL for alerts; render_chart draws a bar/pie chart inline — use it whenever a visual helps (portfolio breakdowns, facet counts, comparisons). render_chart shows the chart to the user AUTOMATICALLY; after calling it just add a one-line caption.',
-    'OUTPUT RULES: plain text + simple markdown (bold, lists) only. NEVER output images, base64 data, data: URIs, or markdown image syntax — for any visual, call render_chart instead.',
-    'CONTEXT AWARENESS: CONTEXT below tells you which page the user is on and, if they have a loan open, its full SELECTED LOAN summary (incl. field-partner stats). When they say "this loan", "this borrower", or "this partner", use that. Call get_loan_details(loanId) for a loan\'s full description or repayment schedule.',
+    'START OVER: reset_chat clears the CONVERSATION (call it for "start over" / "reset the chat" / "clear this"). reset_criteria clears the search FILTERS. If it is ambiguous, ask which they mean in one line.',
+    'RESULTS & PARTNERS: list_results returns the ACTUAL matching loans so you can recommend specific ones (then add_to_basket by id). bulk_add_to_basket loads MANY at once from the current filter — confirm the rough $ total with the user first; nothing is funded until they check out on Kiva. search_partners / compare_partners inspect field-partner risk (pair with render_chart). toggle_notify_on_new turns new-loan alerts on/off for a saved search.',
+    'RECOMMENDING A LOAN: do NOT repeat data already on screen. But if a loan has an UNUSUAL risk factor — a high-risk / low-rated / delinquent field partner, currency-exchange-loss liability, an unusually long term, or it is a Direct loan (no partner backing) — flag it in one short phrase and offer to explain. Otherwise keep it brief.',
+    'OUTPUT RULES: plain text + simple markdown (bold, lists) only. NEVER output an image, base64 data, a "data:" URI, or "![" image markdown under ANY circumstance — not even after render_chart. Charts appear ONLY via render_chart; after calling it, write at most a one-line caption. (The server cuts off any image/base64 output mid-stream.)',
+    'CONTEXT AWARENESS: CONTEXT below tells you which page the user is on and, when they have a loan open, its full SELECTED LOAN summary (incl. field-partner stats). When a SELECTED LOAN is present, treat ANY question that could be about the loan/borrower/partner on screen as being about THAT loan — including implicit references like "this", "it", "the repayment term", "is this normal?", "why so short?", "the partner". Answer with the selected loan\'s ACTUAL data; NEVER reply generically ("loans can vary…") or ask them to "share the loan details" / "which loan" — they are looking at it right now. Call get_selected_loan (no id needed) for the full details of the loan they are currently viewing, or get_loan_details(loanId) for any loan by id.',
     '',
     'CRITERIA SHAPE: { loan, partner, portfolio }.',
     '- loan multi-selects (comma-separated values, optional <field>_all_any_none = any|all|none): sector, activity, country_code, themes, tags.',
     '- loan ranges (<field>_min / <field>_max numbers): age, percent_female, still_needed, loan_amount, repaid_in, borrower_count, percent_funded, expiring_in_days, dollars_per_hour.',
     '- loan single: sort (one of: half_back, newest, expiring, popularity, still_needed), bonus_credit_eligibility, repayment_interval; free text: name, use.',
     '- portfolio: exclude_portfolio_loans ("true"), pb_sector/pb_country/pb_activity/pb_partner balancers.',
+    'DIVERSIFY: loan.limit_to = {enabled:true, count:1, limit_by:"Partner"|"Country"|"Sector"|"Activity"} caps results to N per group (e.g. "one loan per country"). Portfolio balancers compare against the user\'s existing loans: portfolio.pb_country (or pb_sector / pb_activity / pb_partner) = {enabled:true, hideshow:"hide", ltgt:"gt", percent:0, allactive:"all"} HIDES groups they already hold — ideal for "diversify me" / "countries I don\'t have". Both need the lender id and resolve in the browser, so quote the resulting count as approximate.',
     'Use EXACT values from the vocabulary below. tags include the leading #. age is parsed from English text and is often missing, so an age range drops loans with unknown age — use it sparingly and widen if results collapse.',
-    'WOMEN: when the user asks for loans to/for women ("female borrowers", "women\'s groups", etc.), set percent_female_min=50 and percent_female_max=100 — percent_female is the share of the borrower group that is women, so 50-100 means majority-to-all women. (For men, use percent_female_max=49.)',
+    'WOMEN: when the user asks for loans to/for women ("female borrowers", "women\'s groups", etc.), set percent_female_min=50 and percent_female_max=100 — percent_female is the share of the borrower group that is women, so 50-100 means majority-to-all women. (For men, set percent_female_min=0 AND percent_female_max=49 in the SAME call — always set both bounds when switching gender so a prior women filter\'s min does not linger.)',
+    'HIDE / EXCLUDE: when the user says hide / exclude / "not from" / without / except / "no X", set that multi-select to the value(s) AND <field>_all_any_none:"none" in the SAME set_criteria call — e.g. "hide Peru" = set_criteria({loan:{country_code:"PE",country_code_all_any_none:"none"}}). WITHOUT the "none" modifier you INCLUDE them, the opposite of what they asked. To switch a field from exclude back to include, set <field>_all_any_none:"any" in the SAME call — otherwise the prior "none" keeps excluding.',
     '',
     `SECTORS: ${vocab.sectors.join(', ') || '(loading)'}`,
     `THEMES: ${vocab.themes.join(', ') || '(none)'}`,
     `TAGS: ${vocab.tags.join(', ') || '(none)'}`,
-    `COUNTRIES (code): ${countryList || '(loading)'}`,
+    `COUNTRIES — pass the 2-letter CODE shown before the parenthesis (e.g. "UG"), NEVER the country name: ${countryList || '(loading)'}`,
     'PARTNER region codes: na, ca, sa, af, as, me, ee, oc, we. religion: Secular, Christian, Christian Influence, Muslim, Hindu, Jewish, Buddhist, Other, Unknown.',
     '(For activity values, call list_activities.)',
     '',
@@ -831,7 +1044,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
   const selected = extra.selectedLoanId ? loanBrief(state, extra.selectedLoanId) : null
   if (selected) {
     lines.push(
-      'SELECTED LOAN — the user is looking at this loan right now; when they say "this loan / borrower / partner", they mean this one. Use get_loan_details for its full description or repayment schedule:',
+      'SELECTED LOAN — the user is viewing THIS loan right now. ANY question that could be about the loan/borrower/partner on screen ("this", "it", the repayment term, the partner, "is this normal") is about THIS loan — answer with its specifics below, never generically and never asking which loan. Use get_loan_details for its full description or repayment schedule:',
       JSON.stringify(selected),
     )
   }
@@ -890,6 +1103,18 @@ function sanitizeHistory(messages) {
 }
 
 // --- the streaming tool loop ------------------------------------------------
+// Earliest index of forbidden image output: markdown image "![", a "data:image"
+// URI, or a ";base64," run. Used to cut the stream before the model loops on a
+// giant base64 blob (token burn + on-screen garbage).
+function badImageIndex(s) {
+  const m = s.match(/!\[[^\]]*\]\(/) // a real markdown image opener "![alt](", not a bare "![" in prose
+  const i1 = m ? m.index : -1
+  const i2 = s.search(/data:image|;base64,/i)
+  if (i1 < 0) return i2
+  if (i2 < 0) return i1
+  return Math.min(i1, i2)
+}
+
 async function runChat(state, payload, res, signal) {
   const sse = sseWriter(res)
   const client = getClient()
@@ -913,6 +1138,7 @@ async function runChat(state, payload, res, signal) {
     state,
     lenderId,
     criteria,
+    selectedLoanId: payload.selectedLoanId ?? null,
     basket: Array.isArray(payload.basket) ? payload.basket : [],
     savedSearches: Array.isArray(payload.savedSearches) ? payload.savedSearches : [],
   }
@@ -948,7 +1174,18 @@ async function runChat(state, payload, res, signal) {
       if (!choice) continue
       const d = choice.delta || {}
       if (d.content) {
+        const before = textBuf.length
         textBuf += d.content
+        // Guard: the model occasionally ignores OUTPUT RULES and emits an image /
+        // base64 data URI, then loops on it (huge token burn + garbled on-screen
+        // text). Forward the clean text up to the marker, drop the rest, and stop
+        // the stream so it can't keep generating the blob.
+        const mi = badImageIndex(textBuf)
+        if (mi >= 0) {
+          if (mi > before) sse({ type: 'token', text: textBuf.slice(before, mi) })
+          textBuf = textBuf.slice(0, mi).trimEnd()
+          break
+        }
         sse({ type: 'token', text: d.content })
       }
       if (d.tool_calls) {

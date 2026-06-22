@@ -2,7 +2,7 @@
  * digest.mjs — build + send the daily "Ask KivaLens" interaction digest,
  * grouped by user (clientId, labelled with lenderId when known), chronological.
  */
-import { getDayLogs, claimDigest } from './aiUsage.mjs'
+import { getDayLogs, claimDigest, clearLogsThrough } from './aiUsage.mjs'
 import { sendEmail, emailConfigured } from './email.mjs'
 
 const TO = process.env.DIGEST_TO || 'liquidmonkey@gmail.com'
@@ -91,4 +91,9 @@ export async function sendDailyDigest(day, log = console.log) {
   const html = buildDigestHtml(day, logs)
   const r = await sendEmail({ to: TO, subject: `Ask KivaLens digest — ${day} (${logs.length} chats)`, html })
   log(`[digest] ${day}: ${r.ok ? `sent to ${TO}` : `failed — ${r.error}`}`)
+  // Redis is tight: once the day is emailed, wipe the chats it covered.
+  if (r.ok) {
+    await clearLogsThrough(day)
+    log(`[digest] ${day}: wiped logged chats through ${day}`)
+  }
 }

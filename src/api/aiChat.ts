@@ -15,6 +15,8 @@ export type ChatEvent =
   | { type: 'set_lender_id'; lenderId: string }
   | { type: 'open_url'; url: string }
   | { type: 'add_to_basket'; loanId: number; amount?: number }
+  | { type: 'bulk_add'; items: { loanId: number; amount: number }[] }
+  | { type: 'toggle_notify'; name: string }
   | { type: 'point_at'; target: string; message: string }
   | { type: 'navigate'; page: string }
   | { type: 'switch_tab'; tab: string }
@@ -24,6 +26,7 @@ export type ChatEvent =
   | { type: 'load_search'; name: string }
   | { type: 'delete_search'; name: string }
   | { type: 'reset_criteria' }
+  | { type: 'reset_chat' }
   | { type: 'chart'; chart: ChartSpec }
   | { type: 'error'; message: string }
   | { type: 'done' }
