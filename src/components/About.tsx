@@ -28,7 +28,7 @@ function EmailLink({
   body: string
   children: React.ReactNode
 }) {
-  const href = `mailto:liquidmonkey@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  const href = `mailto:contact@kivalens.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   return <a href={href}>{children}</a>
 }
 

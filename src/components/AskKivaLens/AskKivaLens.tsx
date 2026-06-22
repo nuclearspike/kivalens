@@ -62,6 +62,26 @@ function Ellipses() {
   )
 }
 
+// Pie slice labels = the category NAME (recharts' default/string label shows the
+// value). Custom renderer reads name from props (payload fallback for v3).
+type PieLabelProps = { x?: number; y?: number; textAnchor?: string; name?: string; payload?: { name?: string } }
+function renderPieLabel(p: PieLabelProps) {
+  const name = p.name ?? p.payload?.name ?? ''
+  if (!name) return null
+  return (
+    <text
+      x={p.x}
+      y={p.y}
+      textAnchor={(p.textAnchor as 'start' | 'middle' | 'end') ?? 'middle'}
+      dominantBaseline="central"
+      fontSize={11}
+      fill="#15352b"
+    >
+      {name}
+    </text>
+  )
+}
+
 // An inline chart the AI chose to render.
 function ChartBubble({ spec }: { spec: ChartSpec }) {
   const data = spec.data.slice(0, 12)
@@ -72,7 +92,7 @@ function ChartBubble({ spec }: { spec: ChartSpec }) {
       <ResponsiveContainer width="100%" height={height}>
         {spec.type === 'pie' ? (
           <PieChart>
-            <Pie data={data} dataKey="value" nameKey="name" outerRadius={72} label={{ fontSize: 11 }}>
+            <Pie data={data} dataKey="value" nameKey="name" outerRadius={70} label={renderPieLabel} labelLine>
               {data.map((_, i) => (
                 <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
               ))}
@@ -140,7 +160,9 @@ export default function AskKivaLens() {
     }
     window.addEventListener('mousemove', onMove, { passive: true })
     return () => window.removeEventListener('mousemove', onMove)
-  }, [open, disabled])
+    // aiServerEnabled is included so tracking attaches the moment the launcher
+    // chip appears (not only after the panel opens).
+  }, [open, disabled, aiServerEnabled])
 
   // Keep the latest message in view.
   useEffect(() => {
@@ -334,6 +356,7 @@ export default function AskKivaLens() {
           <div className="ask-kl-header">
             <Eyes />
             <strong className="ask-kl-title">Ask KivaLens</strong>
+            <span className="ask-kl-beta">beta</span>
             <span className="ask-kl-badge">AI</span>
             <button type="button" className="ask-kl-close" aria-label="Close" onClick={() => closeAskKl()}>
               ×

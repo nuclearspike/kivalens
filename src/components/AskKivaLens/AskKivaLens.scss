@@ -83,6 +83,17 @@
     border-radius: 999px;
     padding: 1px 7px;
   }
+  .ask-kl-beta {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--kl-green, #4a8b5c);
+    background: rgba(74, 139, 92, 0.14);
+    border: 1px solid rgba(74, 139, 92, 0.32);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
   .ask-kl-close {
     margin-left: auto;
     border: none;

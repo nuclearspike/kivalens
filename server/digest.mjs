@@ -6,6 +6,20 @@ import { getDayLogs, claimDigest } from './aiUsage.mjs'
 import { sendEmail, emailConfigured } from './email.mjs'
 
 const TO = process.env.DIGEST_TO || 'liquidmonkey@gmail.com'
+// Display all digest times in Mountain Time (auto MST/MDT via the IANA zone).
+const DIGEST_TZ = process.env.DIGEST_TZ || 'America/Denver'
+
+function fmtTime(at) {
+  const d = new Date(at)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString('en-US', {
+    timeZone: DIGEST_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short',
+  })
+}
 
 const esc = (s) =>
   String(s ?? '')
@@ -41,11 +55,11 @@ export function buildDigestHtml(day, logs) {
       `<h3 style="margin-top:24px;border-bottom:1px solid #ddd;padding-bottom:4px">` +
       `User ${esc(key)}${lender ? ` (lender ${esc(lender)})` : ''} — ${items.length} turn(s)</h3>`
     for (const it of items) {
-      const time = String(it.at || '').slice(11, 19)
+      const time = fmtTime(it.at)
       const tools = (it.tools || []).map((t) => t.name).join(', ')
       html +=
         `<div style="margin:0 0 12px;padding:8px 10px;border-left:3px solid #2C8C5E;background:#f7faf8">` +
-        `<div style="color:#888;font-size:12px">${esc(time)} UTC${it.page ? ` · ${esc(it.page)}` : ''}${tools ? ` · tools: ${esc(tools)}` : ''}</div>` +
+        `<div style="color:#888;font-size:12px">${esc(time)}${it.page ? ` · ${esc(it.page)}` : ''}${tools ? ` · tools: ${esc(tools)}` : ''}</div>` +
         `<div style="margin-top:4px"><b>User:</b> ${esc(it.userMessage)}</div>` +
         `<div style="margin-top:2px"><b>KivaLens:</b> ${esc(it.response)}</div>` +
         `</div>`
