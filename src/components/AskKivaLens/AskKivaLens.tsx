@@ -125,6 +125,7 @@ function ChartBubble({ spec }: { spec: ChartSpec }) {
 
 export default function AskKivaLens() {
   const open = useUtilsStore((s) => s.askKlOpen)
+  const askKlSeed = useUtilsStore((s) => s.askKlSeed)
   const disabled = useUtilsStore((s) => s.aiWidgetDisabled)
   const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
   const setAiServerEnabled = useUtilsStore((s) => s.setAiServerEnabled)
@@ -369,15 +370,19 @@ export default function AskKivaLens() {
     [loading, messages, flushStreaming, commitStreaming, clientId],
   )
 
-  // When opened via the "Getting Started" CTA, auto-send the seed prompt once.
+  // Auto-send a seed prompt (the no-results "Ask KivaLens for a suggestion"
+  // button, the Getting Started CTA, etc.). Watching askKlSeed — not just open —
+  // matters: when the panel is ALREADY open at click time, `open` never
+  // transitions, so keying solely on it dropped the seed and nothing happened.
   useEffect(() => {
     if (!open) return
     // Focus the message box as soon as the panel opens.
     requestAnimationFrame(() => inputRef.current?.focus())
+    if (!askKlSeed) return
     const seed = useUtilsStore.getState().consumeAskKlSeed()
     if (seed) send(seed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, askKlSeed])
 
   const stopStream = useCallback(() => {
     abortRef.current?.abort()
