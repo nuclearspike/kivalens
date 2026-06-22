@@ -150,6 +150,23 @@ function validateCriteria(input, vocab) {
   return out
 }
 
+// Merge a (validated) delta onto the current criteria so the model can pass just
+// the fields it wants to add/change without dropping the rest. The model is
+// unreliable at repeating the whole filter, so the server preserves it. An
+// empty-string/null value in the delta deletes that key.
+function mergeCriteria(base, delta) {
+  const out = { loan: {}, partner: {}, portfolio: {} }
+  for (const sec of ['loan', 'partner', 'portfolio']) {
+    out[sec] = { ...((base && base[sec]) || {}) }
+    const d = (delta && delta[sec]) || {}
+    for (const [k, v] of Object.entries(d)) {
+      if (v === '' || v == null) delete out[sec][k]
+      else out[sec][k] = v
+    }
+  }
+  return out
+}
+
 // --- loan-data context for the shared filter --------------------------------
 function loanCtx(state) {
   return { loans: state.allLoans, activePartners: state.activePartners, atheistListProcessed: state.atheistListProcessed }
@@ -386,7 +403,14 @@ async function execTool(name, args, sctx, sse) {
       return { ok: true, note: `Switched to the ${args.tab} criteria tab.` }
     }
     case 'set_criteria': {
-      const criteria = validateCriteria(args.criteria || {}, vocab)
+      const base = sctx.criteria && typeof sctx.criteria === 'object'
+        ? sctx.criteria
+        : { loan: {}, partner: {}, portfolio: {} }
+      const delta = validateCriteria(args.criteria || {}, vocab)
+      // Merge onto the current filter by default so passing only the changed
+      // field never wipes the others; replace:true sets the criteria wholesale.
+      const criteria = args.replace ? delta : mergeCriteria(base, delta)
+      sctx.criteria = criteria
       sse({ type: 'apply_criteria', criteria })
       let count = null
       let note = 'Applied to the live search.'
@@ -646,8 +670,15 @@ const TOOL_DEFS = [
     function: {
       name: 'set_criteria',
       description:
-        'Build and APPLY the search criteria. This immediately updates the on-site search results the user sees, and returns the live match count.',
-      parameters: { type: 'object', properties: { criteria: CRITERIA_PARAM }, required: ['criteria'] },
+        'Add or change search filters and APPLY them (immediately updates the on-site results). MERGES what you pass onto the CURRENT filter and returns the full resulting criteria + live count, so pass ONLY the field(s) you want to add or change — the rest are kept. Pass replace:true to set the criteria wholesale instead (to remove a filter or start a specific fresh search).',
+      parameters: {
+        type: 'object',
+        properties: {
+          criteria: CRITERIA_PARAM,
+          replace: { type: 'boolean', description: 'If true, replace the whole filter with `criteria` instead of merging it onto the current one.' },
+        },
+        required: ['criteria'],
+      },
     },
   },
   {
@@ -720,8 +751,9 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'PLAYBOOK:',
     '1. Understand what the user wants. If it is broad, call analyze_loans on a rough criteria to see counts + facet breakdowns and find the biggest ways to narrow it.',
     '2. Ask the user what matters MOST to them (1 short question at a time) before locking in a narrow filter.',
-    '3. Call set_criteria to apply. Tell them how many loans match. Iterate if they want changes.',
+    '3. Call set_criteria to apply, then quote the match count FROM ITS RESULT. set_criteria MERGES onto the current filter and returns the full resulting criteria + count, so to add or change a filter just pass that one field — the rest are kept. To remove filters pass replace:true with the full criteria you want; to clear everything call reset_criteria.',
     '4. Offer to save_search once the criteria is dialed in. AFTER you save, call point_at("saved-searches", "I saved your search here — reload it anytime!") so they can find it.',
+    'CRITICAL — never fake a filter change: EVERY time the search should change — INCLUDING a one-word confirmation of something you suggested ("yes", "sure", "yes vegan", "add women", "ok do it") — you MUST call set_criteria again THAT SAME TURN (just pass the changed field — it merges). The search only changes when set_criteria runs. NEVER say you "narrowed / added / applied / set / tagged" anything, and NEVER state a match count, unless you called set_criteria (or analyze_loans) THIS turn and are quoting the number it returned. Do not reuse a count from an earlier turn or describe a filter you did not just apply.',
     'GUIDANCE TOOLS: point_at(target, message) shows a bouncing arrow + callout at a UI element (targets: saved-searches, reset, bulk-add, criteria-tabs, results, and nav-search/basket/partners/stats/saved/options/about/teams/wall). navigate(page) switches pages. switch_criteria_tab(tab) switches the Search criteria tab. Use these to guide the user and give walkthroughs of where to find things.',
     'LENDER ID: check CONTEXT below. NEVER call prompt_lender_id or ask for the id if it is already set. If it is NOT set and you need it: ask the user and call set_lender_id when they give it; or call prompt_lender_id to open the entry dialog; if they do not know it, offer open_kiva_lender_help (opens kiva.org in a new tab where their id appears) and have them paste it back.',
     'PORTFOLIO: if the lender id is set, you may read their lending history directly with get_lender_profile / get_portfolio_distribution — no permission step. Compare their distribution to advise more-of-the-same vs. diversify, then propose criteria. If no lender id is set, get it first (see LENDER ID).',
@@ -736,6 +768,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     '- loan single: sort (one of: half_back, newest, expiring, popularity, still_needed), bonus_credit_eligibility, repayment_interval; free text: name, use.',
     '- portfolio: exclude_portfolio_loans ("true"), pb_sector/pb_country/pb_activity/pb_partner balancers.',
     'Use EXACT values from the vocabulary below. tags include the leading #. age is parsed from English text and is often missing, so an age range drops loans with unknown age — use it sparingly and widen if results collapse.',
+    'WOMEN: when the user asks for loans to/for women ("female borrowers", "women\'s groups", etc.), set percent_female_min=50 and percent_female_max=100 — percent_female is the share of the borrower group that is women, so 50-100 means majority-to-all women. (For men, use percent_female_max=49.)',
     '',
     `SECTORS: ${vocab.sectors.join(', ') || '(loading)'}`,
     `THEMES: ${vocab.themes.join(', ') || '(none)'}`,
