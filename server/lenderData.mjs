@@ -49,6 +49,28 @@ function continuePaging(loans) {
   return newest >= cutoff
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// Fetch one page of a lender's loans with retry + exponential backoff. Busy
+// lenders have hundreds of pages (Kiva forces 20/page); without backoff a single
+// rate-limit 403 threw and failed the whole fetch, so RSS "exclude my loans"
+// silently did nothing for them.
+async function fetchLenderLoansPage(lenderId, page, tries = 5) {
+  let lastErr
+  for (let attempt = 0; attempt < tries; attempt++) {
+    try {
+      const url = `${KIVA_API}/lenders/${encodeURIComponent(lenderId)}/loans.json?page=${page}&app_id=${APP_ID}`
+      const res = await fetch(url, { headers: API_HEADERS })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return JSON.parse(await res.text())
+    } catch (e) {
+      lastErr = e
+      await sleep(500 * 2 ** attempt) // 0.5s, 1s, 2s, 4s, 8s
+    }
+  }
+  throw lastErr
+}
+
 export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}) {
   const key = `lender-loans-${lenderId}`
   const cached = await readCache(key, LENDER_LOANS_TTL_MS)
@@ -64,10 +86,7 @@ export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}) {
     let page = 1
     let pages = 1
     do {
-      const url = `${KIVA_API}/lenders/${encodeURIComponent(lenderId)}/loans.json?page=${page}&app_id=${APP_ID}`
-      const res = await fetch(url, { headers: API_HEADERS })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = JSON.parse(await res.text())
+      const data = await fetchLenderLoansPage(lenderId, page)
       const loans = data.loans || []
       pages = data.paging?.pages ?? page
       for (const l of loans) if (l.status === 'fundraising') ids.push(l.id)

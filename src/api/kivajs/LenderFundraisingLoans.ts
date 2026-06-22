@@ -1,5 +1,8 @@
 import { LenderLoans } from './LenderLoans'
+import { Request } from './Request'
 import type { OnProgress } from './PagedKiva'
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 class LenderStatusLoans extends LenderLoans {
   constructor(lenderId: string, options: Record<string, any> = {}) {
@@ -55,9 +58,48 @@ export class LenderFundraisingLoans extends LenderStatusLoans {
   }
 
   async ids(onProgress?: OnProgress): Promise<number[]> {
-    const loans = await this.start(onProgress)
-    return loans
-      .filter((loan) => loan.status === 'fundraising')
-      .map((loan) => loan.id)
+    const out: number[] = []
+    const seen = new Set<number>()
+    let page = 1
+    let pages = 1
+    do {
+      const data = await this.fetchPageWithBackoff(page)
+      const loans: any[] = data?.loans ?? []
+      pages = data?.paging?.pages ?? page
+      for (const loan of loans) {
+        if (loan.status === 'fundraising' && !seen.has(loan.id)) {
+          seen.add(loan.id)
+          out.push(loan.id)
+        }
+      }
+      onProgress?.({
+        task: 'details',
+        done: page,
+        total: pages,
+        label: `Scanning your loans (page ${page}/${pages})...`,
+      })
+      if (!this.continuePaging(loans)) break
+      page++
+    } while (page <= pages)
+    return out
+  }
+
+  // Page the lender's loans SEQUENTIALLY (one request at a time) with retry +
+  // exponential backoff, instead of PagedKiva's all-at-once fan-out. Busy lenders
+  // have hundreds of pages (Kiva forces 20/page and ignores per_page), and the
+  // burst tripped Kiva's WAF (403) and failed the WHOLE fetch — so "hide loans
+  // I've lent to" silently did nothing for heavy lenders. Sequential + backoff
+  // self-throttles and rides out transient 403s.
+  private async fetchPageWithBackoff(page: number, tries = 5): Promise<any> {
+    let lastErr: unknown
+    for (let attempt = 0; attempt < tries; attempt++) {
+      try {
+        return await Request.get(this.url, { ...this.params, page })
+      } catch (e) {
+        lastErr = e
+        await sleep(500 * 2 ** attempt) // 0.5s, 1s, 2s, 4s, 8s
+      }
+    }
+    throw lastErr
   }
 }
