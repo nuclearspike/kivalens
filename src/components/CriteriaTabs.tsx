@@ -581,6 +581,7 @@ function SelectRow({
   canAll,
   onInspect,
   onInspectEnd,
+  fieldKey,
 }: {
   label: string
   options: SelectOption[]
@@ -595,6 +596,8 @@ function SelectRow({
   onInspect?: (top?: number) => void
   /** blur: lets the parent dismiss the floating graph (with a grace delay) */
   onInspectEnd?: () => void
+  /** criteria field key — exposes data-aikl="crit-<key>" so the AI can point here */
+  fieldKey?: string
 }) {
   // react-select refocuses its input right after its menu closes; that
   // spurious focus must not (re-)arm this row's distribution graph.
@@ -631,7 +634,7 @@ function SelectRow({
   )
 
   return (
-    <Row className="mb-2 align-items-start">
+    <Row className="mb-2 align-items-start" data-aikl={fieldKey ? `crit-${fieldKey}` : undefined}>
       <Col md={3}>{labelEl}</Col>
       <Col md={9}>
         <div style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
@@ -1122,6 +1125,7 @@ function LoanCriteriaPanel({
       {loanSelects.map((sel) => (
         <SelectRow
           key={sel.key}
+          fieldKey={sel.key}
           label={sel.label}
           options={sel.options}
           isMulti={sel.isMulti}
@@ -1210,6 +1214,7 @@ function PartnerCriteriaPanel({
       {partnerSelects.map((sel) => (
         <SelectRow
           key={sel.key}
+          fieldKey={sel.key}
           label={sel.label}
           options={sel.options}
           isMulti={sel.isMulti}

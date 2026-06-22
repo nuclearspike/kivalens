@@ -28,7 +28,11 @@ const GREETING =
 const CHAT_KEY = 'AskKivaLensChat'
 
 type Bubble = ChatMessage & { interrupted?: boolean; chart?: ChartSpec }
-type SavedChat = { messages?: Bubble[]; open?: boolean }
+type SavedChat = { messages?: Bubble[]; open?: boolean; savedAt?: number }
+
+// Restore the persisted chat only on a genuine browser refresh (saved within this
+// window), not when returning to a stale session.
+const CHAT_RESTORE_TTL_MS = 2 * 60 * 1000
 
 // A short label for the page the user is on, from the hash route.
 function describePage(): string {
@@ -134,8 +138,21 @@ export default function AskKivaLens() {
   const streamRef = useRef('')
   const rafRef = useRef<number | null>(null)
   // Snapshot the persisted chat ONCE so the mount effects don't race the save
-  // effect (which would otherwise clobber the saved `open` flag before we read it).
-  const [savedChat] = useState<SavedChat>(() => lsj.get<SavedChat>(CHAT_KEY))
+  // effect. Only RESTORE it on a genuine browser refresh — i.e. saved within the
+  // last 2 minutes. Closed longer than that = a new session: start fresh and drop
+  // the stale copy.
+  const [savedChat] = useState<SavedChat>(() => {
+    const s = lsj.get<SavedChat>(CHAT_KEY)
+    if (s && s.savedAt && Date.now() - s.savedAt <= CHAT_RESTORE_TTL_MS) return s
+    if (s && (s.messages?.length || s.open)) {
+      try {
+        localStorage.removeItem(CHAT_KEY)
+      } catch {
+        /* ignore */
+      }
+    }
+    return {}
+  })
   // Stable per-browser id so the server can group a user's turns in the digest.
   const [clientId, setClientId] = useState<string>(() => {
     const saved = lsj.get<{ id?: string }>('AskKivaLensClientId')
@@ -390,9 +407,12 @@ export default function AskKivaLens() {
     }
   }, [setAiServerEnabled])
 
-  // Remember the conversation across reloads; reopen if it was open.
+  // Remember the conversation across reloads, stamping the last-activity time.
+  // On mount we only RESTORE it if that stamp is within CHAT_RESTORE_TTL_MS (a
+  // genuine refresh during active use), else we start fresh — so returning to a
+  // window that's been idle/closed >2 min does not reload the old chat.
   useEffect(() => {
-    lsj.setMerge(CHAT_KEY, { messages, open })
+    lsj.setMerge(CHAT_KEY, { messages, open, savedAt: Date.now() })
   }, [messages, open])
   useEffect(() => {
     if (savedChat.open) openAskKl()
