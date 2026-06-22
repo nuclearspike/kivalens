@@ -5,10 +5,8 @@ import type { MultiValue, SingleValue } from 'react-select'
 import Slider from 'rc-slider'
 // rc-slider base CSS is imported globally in main.tsx
 import numeral from 'numeral'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
-import { showAlert } from '../lib/dialog'
 import type { Criteria, BalancerConfig, KivaLoan, Partner } from '../types'
 import type { BalancerResult } from '../stores/criteriaStore'
 import { getKivaLoans } from '../api/kiva'
@@ -331,29 +329,6 @@ interface BalancerMeta {
 
 // Options list per criteria key — used to map a clicked distribution bar's
 // display name back to the stored option value.
-const OPTIONS_BY_KEY: Record<string, SelectOption[]> = {
-  country_code: COUNTRY_OPTIONS,
-  sector: SECTOR_OPTIONS,
-  activity: ACTIVITY_OPTIONS,
-  themes: THEME_OPTIONS,
-  tags: TAG_OPTIONS,
-  repayment_interval: REPAYMENT_INTERVAL_OPTIONS,
-  currency_exchange_loss_liability: CURRENCY_LOSS_OPTIONS,
-  bonus_credit_eligibility: BONUS_CREDIT_OPTIONS,
-  direct: DIRECT_OPTIONS,
-  region: REGION_OPTIONS,
-  social_performance: SOCIAL_PERFORMANCE_OPTIONS,
-  charges_fees_and_interest: CHARGES_INTEREST_OPTIONS,
-  religion: RELIGION_OPTIONS,
-}
-
-/** Facets whose criteria value is a single selection rather than a CSV. */
-const SINGLE_VALUE_KEYS = new Set([
-  'bonus_credit_eligibility',
-  'direct',
-  'charges_fees_and_interest',
-])
-
 const BALANCER_OPTIONS: Record<string, BalancerMeta> = {
   pb_partner: { label: 'Partners', sliceBy: 'partner', key: 'id' },
   pb_country: { label: 'Countries', sliceBy: 'country' },
@@ -582,6 +557,9 @@ function SelectRow({
   onInspect,
   onInspectEnd,
   fieldKey,
+  distribution,
+  sortMode,
+  onSortMode,
 }: {
   label: string
   options: SelectOption[]
@@ -598,6 +576,10 @@ function SelectRow({
   onInspectEnd?: () => void
   /** criteria field key — exposes data-aikl="crit-<key>" so the AI can point here */
   fieldKey?: string
+  /** option label -> count; draws in-list distribution bars + the sort tabs */
+  distribution?: Record<string, number>
+  sortMode?: 'abc' | 'count'
+  onSortMode?: (mode: 'abc' | 'count') => void
 }) {
   // react-select refocuses its input right after its menu closes; that
   // spurious focus must not (re-)arm this row's distribution graph.
@@ -660,6 +642,9 @@ function SelectRow({
               isClearable={isMulti}
               menuPortalTarget={document.body}
               styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
+              distribution={distribution}
+              sortMode={sortMode}
+              onSortMode={onSortMode}
             />
           </div>
         </div>
@@ -1085,11 +1070,19 @@ function LoanCriteriaPanel({
   onUpdate,
   onInspectSelect,
   onInspectEnd,
+  distribution,
+  distributionKey,
+  sortMode,
+  onSortMode,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
   onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
   onInspectEnd: () => void
+  distribution?: Record<string, number>
+  distributionKey?: string
+  sortMode?: 'abc' | 'count'
+  onSortMode?: (mode: 'abc' | 'count') => void
 }) {
   const loan = criteria.loan as Record<string, unknown>
   const discovered = useDiscoveredOptions()
@@ -1137,6 +1130,9 @@ function LoanCriteriaPanel({
           canAll={sel.canAll}
           onInspect={sel.showDistribution ? (top) => onInspectSelect('loan', sel.key, sel.canAll, top) : undefined}
           onInspectEnd={onInspectEnd}
+          distribution={sel.showDistribution && distributionKey === sel.key ? distribution : undefined}
+          sortMode={sortMode}
+          onSortMode={onSortMode}
         />
       ))}
 
@@ -1185,11 +1181,19 @@ function PartnerCriteriaPanel({
   onUpdate,
   onInspectSelect,
   onInspectEnd,
+  distribution,
+  distributionKey,
+  sortMode,
+  onSortMode,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
   onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
   onInspectEnd: () => void
+  distribution?: Record<string, number>
+  distributionKey?: string
+  sortMode?: 'abc' | 'count'
+  onSortMode?: (mode: 'abc' | 'count') => void
 }) {
   const partner = criteria.partner as Record<string, unknown>
   const partnerOptions = usePartnerOptions()
@@ -1226,6 +1230,9 @@ function PartnerCriteriaPanel({
           canAll={sel.canAll}
           onInspect={sel.showDistribution ? (top) => onInspectSelect('partner', sel.key, sel.canAll, top) : undefined}
           onInspectEnd={onInspectEnd}
+          distribution={sel.showDistribution && distributionKey === sel.key ? distribution : undefined}
+          sortMode={sortMode}
+          onSortMode={onSortMode}
         />
       ))}
 
@@ -1442,6 +1449,8 @@ export function CriteriaTabs() {
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
+  const sortMode = useUtilsStore((s) => s.criteriaSortMode)
+  const setSortMode = useUtilsStore((s) => s.setCriteriaSortMode)
 
   // Local copy of criteria for debounced editing
   const [criteria, setCriteriaLocal] = useState<Criteria>(() => ({
@@ -1453,7 +1462,6 @@ export function CriteriaTabs() {
   const [activeTab, setActiveTab] = useState<string>('borrower')
   const [helperTarget, setHelperTarget] = useState<HelperChartTarget | null>(null)
   const [helperChart, setHelperChart] = useState<HelperChart | null>(null)
-  const [graphTop, setGraphTop] = useState(100)
   const removeGraphTimer = useRef(0)
   // react-select refocuses its input after closing the menu on an outside
   // click; suppress that follow-up onFocus so it can't re-arm the graph.
@@ -1502,11 +1510,10 @@ export function CriteriaTabs() {
   )
 
   const handleInspectSelect = useCallback(
-    (group: 'loan' | 'partner', key: string, canAll = false, top?: number) => {
+    (group: 'loan' | 'partner', key: string, canAll = false) => {
       if (hideGraphs) return
       if (Date.now() < suppressInspectUntil.current) return
       window.clearTimeout(removeGraphTimer.current)
-      if (top != null) setGraphTop(Math.max(60, top))
       setHelperTarget({ group, key, canAll })
     },
     [hideGraphs],
@@ -1520,37 +1527,6 @@ export function CriteriaTabs() {
       setHelperChart(null)
     }, 200)
   }, [])
-
-  // Clicking a distribution bar selects that value in the facet's control.
-  const handleBarClick = useCallback(
-    (name: string) => {
-      if (!helperTarget || !name) return
-      const { group, key } = helperTarget
-      const options = OPTIONS_BY_KEY[key]
-      if (!options) return
-      const match = options.find(
-        (o) =>
-          o.label === name ||
-          String(o.value) === name ||
-          humanize(String(o.value)) === name,
-      )
-      if (!match) return
-
-      if (SINGLE_VALUE_KEYS.has(key)) {
-        handleUpdate(group, key, String(match.value))
-        return
-      }
-      const current = String(
-        (criteria[group] as Record<string, unknown>)[key] ?? '',
-      )
-      const values = current ? current.split(',').filter(Boolean) : []
-      if (!values.includes(String(match.value))) {
-        values.push(String(match.value))
-        handleUpdate(group, key, values.join(','))
-      }
-    },
-    [helperTarget, criteria, handleUpdate],
-  )
 
   useEffect(() => () => window.clearTimeout(removeGraphTimer.current), [])
 
@@ -1604,9 +1580,13 @@ export function CriteriaTabs() {
     setHelperChart(buildHelperChart(loans, helperTarget.key))
   }, [criteria, filteredLoans, helperTarget, hideGraphs])
 
-  const helperChartHeight = helperChart
-    ? Math.max(280, Math.min(helperChart.data.length * 28, 700))
-    : 0
+  // The focused field's distribution, fed INTO its own dropdown as in-list bars.
+  const distributionMap = useMemo<Record<string, number> | undefined>(() => {
+    if (!helperChart) return undefined
+    const m: Record<string, number> = {}
+    for (const d of helperChart.data) m[d.name] = d.count
+    return m
+  }, [helperChart])
 
   return (
     <div data-aikl="criteria-tabs">
@@ -1626,6 +1606,10 @@ export function CriteriaTabs() {
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
               onInspectEnd={handleInspectEnd}
+              distribution={distributionMap}
+              distributionKey={helperTarget?.key}
+              sortMode={sortMode}
+              onSortMode={setSortMode}
             />
           </div>
         </Tab>
@@ -1637,6 +1621,10 @@ export function CriteriaTabs() {
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
               onInspectEnd={handleInspectEnd}
+              distribution={distributionMap}
+              distributionKey={helperTarget?.key}
+              sortMode={sortMode}
+              onSortMode={setSortMode}
             />
           </div>
         </Tab>
@@ -1653,89 +1641,6 @@ export function CriteriaTabs() {
           </div>
         </Tab>
       </Tabs>
-
-      {!hideGraphs && helperChart ? (
-        // Floating distribution graph beside the focused facet, to the right
-        // of the criteria column (original app behavior)
-        <div
-          className="kl-helper-popover d-none d-lg-block"
-          style={{
-            position: 'fixed',
-            top: graphTop,
-            left: 'calc(33.33% + 15px)',
-            zIndex: 1050,
-            background: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: 8,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-            padding: '8px 12px',
-            width: 320,
-            maxHeight: '70vh',
-            overflowY: 'auto',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 12, fontWeight: 600 }}>{helperChart.title}</span>
-            <span>
-              <span
-                style={{ fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  lsj.setMerge('Options', { hide_criteria_graphs: true })
-                  setHelperTarget(null)
-                  setHelperChart(null)
-                  void showAlert('Distribution graphs disabled. You can re-enable them in Options > Display.')
-                }}
-              >
-                Do not show again
-              </span>
-              <span
-                style={{ fontSize: 11, color: '#999', cursor: 'pointer', textDecoration: 'underline', marginLeft: 8 }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setHelperTarget(null)
-                  setHelperChart(null)
-                }}
-              >
-                Close
-              </span>
-            </span>
-          </div>
-          <div>
-            <ResponsiveContainer width="100%" height={helperChartHeight}>
-              <BarChart
-                data={helperChart.data}
-                layout="vertical"
-                margin={{ top: 6, right: 10, bottom: 6, left: 10 }}
-              >
-                <XAxis type="number" allowDecimals={false} />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  width={110}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(value: string) =>
-                    value.length > 18 ? `${value.slice(0, 18)}...` : value
-                  }
-                />
-                <Tooltip formatter={(value) => [Number(value), 'Matching Loans']} />
-                <Bar
-                  dataKey="count"
-                  fill="#2C8C5E"
-                  radius={[0, 4, 4, 0]}
-                  isAnimationActive={false}
-                  cursor="pointer"
-                  onClick={(entry: { payload?: { name?: string } }) =>
-                    handleBarClick(String(entry?.payload?.name ?? ''))
-                  }
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

@@ -41,6 +41,8 @@ export interface UtilsState {
   askKlSeed: string | null
   /** User preference: hide the Ask KivaLens AI widget entirely */
   aiWidgetDisabled: boolean
+  /** Sticky sort for criteria multi-select dropdowns: alphabetical or by count. */
+  criteriaSortMode: 'abc' | 'count'
   /** Server global switch (ASK_KIVALENS_ENABLED + key present); null until checked. */
   aiServerEnabled: boolean | null
   /** AI spotlight: point a bouncing arrow + callout at a UI element (by data-aikl). */
@@ -65,6 +67,7 @@ export interface UtilsActions {
   closeAskKl: () => void
   consumeAskKlSeed: () => string | null
   setAiWidgetDisabled: (disabled: boolean) => void
+  setCriteriaSortMode: (mode: 'abc' | 'count') => void
   setAiServerEnabled: (enabled: boolean) => void
   showCallout: (target: string, message: string) => void
   clearCallout: () => void
@@ -99,6 +102,7 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       askKlOpen: false,
       askKlSeed: null,
       aiWidgetDisabled: false,
+      criteriaSortMode: 'abc',
       aiServerEnabled: null,
       aiCallout: null,
       aiCriteriaTab: null,
@@ -182,6 +186,12 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
         set((state) => {
           state.aiWidgetDisabled = disabled
           if (disabled) state.askKlOpen = false
+        })
+      },
+
+      setCriteriaSortMode: (mode: 'abc' | 'count') => {
+        set((state) => {
+          state.criteriaSortMode = mode
         })
       },
 
@@ -305,6 +315,7 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       partialize: (state) => ({
         lenderId: state.lenderId,
         aiWidgetDisabled: state.aiWidgetDisabled,
+        criteriaSortMode: state.criteriaSortMode,
       }),
       merge: (persisted, current) => ({
         ...current,
