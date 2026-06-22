@@ -92,6 +92,8 @@ export interface LoanActions {
   batchRemoveFromBasket: (loanIds: number[]) => void
   clearBasket: () => void
   setBasketAmount: (loanId: number, amount: number) => void
+  /** Set the same lend amount on every loan in the basket */
+  setAllBasketAmounts: (amount: number) => void
   /** Adjust every basket item amount to the lesser of current amount and kl_still_needed */
   adjustBasketAmountsToWhatsLeft: () => void
   /** Return hydrated basket entries (with loan objects attached) */
@@ -198,6 +200,12 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         set((state) => {
           const item = state.basket.find((bi) => bi.loan_id === loanId)
           if (item) item.amount = amount
+        })
+      },
+
+      setAllBasketAmounts: (amount: number) => {
+        set((state) => {
+          for (const bi of state.basket) bi.amount = amount
         })
       },
 
@@ -355,7 +363,12 @@ export const useLoanStore = create<LoanState & LoanActions>()(
             prev.every((v, i) => v.id === next[i]?.id))
 
         set((state) => {
-          state.filteredLoans = next as never
+          // kl.filter() always returns a fresh array. When the result is
+          // identical to last time (a no-op re-filter, e.g. a background resync
+          // that changed nothing, or an echoed criteria push), keep the SAME
+          // reference so filteredLoans subscribers (Search, the loan list, Live)
+          // don't re-render and re-persist on every such pass.
+          if (!same) state.filteredLoans = next as never
           state.filteredSameAsLast = same
           state.loanCount = kl.loansFromKiva.length
         })

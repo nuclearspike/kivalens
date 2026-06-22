@@ -278,13 +278,21 @@ function facetCounts(loans, selector, topN = 12) {
 function resolveBasketLoan(sctx, state, args) {
   const basket = sctx.basket || []
   const ids = basket.map((b) => Number(b.loanId))
+  // 1. an explicit loanId that IS actually in the basket
   if (args.loanId != null && ids.includes(Number(args.loanId))) return Number(args.loanId)
+  // 2. by borrower name, restricted to loans actually in the basket
   if (args.name) {
     const q = String(args.name).toLowerCase()
     const match = (state.allLoans || []).find((l) => ids.includes(l.id) && (l.name || '').toLowerCase().includes(q))
     if (match) return match.id
   }
-  if (args.loanId != null) return Number(args.loanId)
+  // 3. "change it" with a single-loan basket is unambiguous — use that loan. The
+  //    model often passes the SELECTED loan's id, which may NOT be the basket
+  //    loan; this rescues that common case.
+  if (ids.length === 1) return ids[0]
+  // Do NOT fall back to a loanId that isn't in the basket: doing so made the
+  // server claim success while the client silently no-op'd ("it said it did but
+  // nothing changed"). Returning null surfaces an honest error instead.
   return null
 }
 
@@ -392,6 +400,14 @@ async function execTool(name, args, sctx, sse) {
       if (!(amount > 0)) return { error: 'invalid_amount', note: 'Amount must be a positive number of USD.' }
       sse({ type: 'set_lend_amount', loanId: id, amount })
       return { ok: true, loanId: id, amount }
+    }
+    case 'set_all_lend_amounts': {
+      const basket = sctx.basket || []
+      if (!basket.length) return { error: 'empty_basket', note: 'The basket is empty — nothing to change.' }
+      const amount = Number(args.amount)
+      if (!(amount > 0)) return { error: 'invalid_amount', note: 'Amount must be a positive number of USD.' }
+      sse({ type: 'set_all_lend_amounts', amount })
+      return { ok: true, count: basket.length, amount }
     }
     case 'clear_basket': {
       sse({ type: 'clear_basket' })
@@ -732,8 +748,16 @@ const TOOL_DEFS = [
     type: 'function',
     function: {
       name: 'set_lend_amount',
-      description: 'Change the lend amount (USD) for a loan already in the basket, by loanId or borrower name.',
+      description: 'Change the lend amount (USD) for a SINGLE loan already in the basket, by loanId or borrower name. For ALL basket loans at once, use set_all_lend_amounts.',
       parameters: { type: 'object', properties: { loanId: { type: 'number' }, name: { type: 'string' }, amount: { type: 'number' } }, required: ['amount'] },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'set_all_lend_amounts',
+      description: 'Set the SAME lend amount (USD) on EVERY loan currently in the basket, in one call. Use for "change all basket loans to $X" / "set everything to $X" / "make them all $X".',
+      parameters: { type: 'object', properties: { amount: { type: 'number' } }, required: ['amount'] },
     },
   },
   {
@@ -1009,7 +1033,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'GUIDANCE TOOLS — SHOW, don\'t just tell: point_at(target, message) bounces an arrow + callout at a UI element. DEFAULT to point_at WHENEVER you tell the user WHERE a feature / control / setting / page is, or HOW to get to it — point at it, don\'t only describe the location. E.g. "you can set that on the Options page" → ALSO call point_at("nav-options", "Set it here!"); "your saved searches are here" → point_at("nav-saved", "Right here!"). Header nav tabs (present on EVERY page): nav-search, nav-basket, nav-partners, nav-stats, nav-wall, nav-teams, nav-saved, nav-options, nav-about. Search-page targets: results, bulk-add, criteria-tabs, reset, saved-searches. INDIVIDUAL CRITERIA FIELDS: crit-country_code (Countries), crit-sector (Sectors), crit-activity (Activities), crit-themes (Themes), crit-tags (Tags) live on the "borrower" tab; crit-region, crit-social_performance, crit-religion on the "partner" tab — you MUST switch_criteria_tab to that tab FIRST so the field is on screen, then point_at("crit-<field>"). If the user is NOT on the Search page, navigate("search") first (the arrow only appears if the target is on the current page). navigate(page) switches pages; switch_criteria_tab(tab) switches the Search criteria tab.',
     'LENDER ID: check CONTEXT below. NEVER call prompt_lender_id or ask for the id if it is already set. If it is NOT set and you need it: ask the user and call set_lender_id when they give it; or call prompt_lender_id to open the entry dialog; if they do not know it, offer open_kiva_lender_help (opens kiva.org in a new tab where their id appears) and have them paste it back.',
     'PORTFOLIO: if the lender id is set, you may read their lending history directly with get_lender_profile / get_portfolio_distribution — no permission step. Compare their distribution to advise more-of-the-same vs. diversify, then propose criteria. If no lender id is set, get it first (see LENDER ID).',
-    'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / set_lend_amount / clear_basket. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
+    'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / set_lend_amount / set_all_lend_amounts (sets EVERY basket loan to one amount — use for "change all loans to $X") / clear_basket. For set_lend_amount / remove_from_basket when the user says "it" / "this" / "my basket loan", target the loan that is IN THE BASKET — pass the loanId from the CONTEXT basket list (which now shows each basket loan\'s loanId), NOT the selected loan\'s id, which may be a different loan. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
     'MORE TOOLS: list_saved_searches / load_search / delete_search manage saved searches; reset_criteria clears all filters; generate_rss_feed returns a shareable feed URL for alerts; render_chart draws a bar/pie chart inline — use it whenever a visual helps (portfolio breakdowns, facet counts, comparisons). render_chart shows the chart to the user AUTOMATICALLY; after calling it just add a one-line caption.',
     'START OVER: reset_chat clears the CONVERSATION (call it for "start over" / "reset the chat" / "clear this"). reset_criteria clears the search FILTERS. If it is ambiguous, ask which they mean in one line.',
     'RESULTS & PARTNERS: list_results returns the ACTUAL matching loans so you can recommend specific ones (then add_to_basket by id). bulk_add_to_basket loads MANY at once from the current filter — confirm the rough $ total with the user first; nothing is funded until they check out on Kiva. search_partners / compare_partners inspect field-partner risk (pair with render_chart). toggle_notify_on_new turns new-loan alerts on/off for a saved search.',
@@ -1053,7 +1077,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
   if (extra.basket && extra.basket.length) {
     const names = extra.basket.map((b) => {
       const l = (state.allLoans || []).find((x) => x.id === Number(b.loanId))
-      return `${l?.name || '#' + b.loanId} ($${b.amount ?? 25})`
+      return `${l?.name || 'Loan'} (loanId ${b.loanId}, $${b.amount ?? 25})`
     })
     lines.push(`BASKET: ${extra.basket.length} loan(s) — ${names.join(', ')}.`)
   } else {

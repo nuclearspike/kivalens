@@ -22,6 +22,7 @@ export type ChatEvent =
   | { type: 'switch_tab'; tab: string }
   | { type: 'remove_from_basket'; loanId: number }
   | { type: 'set_lend_amount'; loanId: number; amount: number }
+  | { type: 'set_all_lend_amounts'; amount: number }
   | { type: 'clear_basket' }
   | { type: 'load_search'; name: string }
   | { type: 'delete_search'; name: string }

@@ -363,6 +363,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               useThumbAsBackground
               type="width"
               image_width={800}
+              enlargeable
             />
             <div className="card mt-2">
               <div className="card-body py-2">

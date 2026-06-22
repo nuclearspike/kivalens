@@ -1265,6 +1265,28 @@ export class Loans {
       this.notify({ failed: e })
     }
   }
+
+  /**
+   * Evict loans that are no longer fundraising from the in-memory dataset so a
+   * long-lived tab doesn't accumulate every loan ever seen. The resync paths only
+   * ever APPENDED, so funded/expired loans piled up with their full descriptions +
+   * repayment arrays — a slow client memory leak that climbs over hours toward GBs.
+   * `keepIds` (the current basket) are preserved so getById still resolves them;
+   * the store separately prunes funded loans from the basket. Returns count evicted.
+   */
+  pruneNonFundraising(keepIds: number[] = []): number {
+    const keep = new Set(keepIds)
+    const before = this.loansFromKiva.length
+    const next = this.loansFromKiva.filter(
+      (l) => l.status === 'fundraising' || keep.has(l.id),
+    )
+    if (next.length === before) return 0
+    this.loansFromKiva = next
+    const idx: Record<number, KivaLoan> = {}
+    for (const l of next) idx[l.id] = l
+    this.indexedLoans = idx
+    return before - next.length
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -356,7 +356,13 @@ function processLoan(raw) {
 }
 
 function compressLoan(loan) {
-  const l = JSON.parse(JSON.stringify(loan))
+  // Shallow copy + targeted field stripping, instead of a full
+  // JSON.parse(JSON.stringify(loan)) deep clone. The round-trip allocated a
+  // SECOND full copy of every loan during the refresh peak (~7000 loans) on top
+  // of state.allLoans + the source set — a major contributor to the dyno's R14.
+  // Nested objects (location, image, kls_tags) are shared with the source (we
+  // never mutate them); `terms` IS mutated below, so it is cloned first.
+  const l = { ...loan }
 
   for (const key of Object.keys(l)) {
     if (key.startsWith('kl_')) delete l[key]
@@ -365,14 +371,15 @@ function compressLoan(loan) {
   delete l.kls_use_or_descr_arr
   if (!l.kls_age) delete l.kls_age
 
-  const borrowers = l.borrowers || []
-  l.klb = { M: 0, F: 0 }
+  const borrowers = loan.borrowers || []
+  const klb = { M: 0, F: 0 }
   for (const b of borrowers) {
-    if (b.gender === 'M') l.klb.M++
-    else if (b.gender === 'F') l.klb.F++
+    if (b.gender === 'M') klb.M++
+    else if (b.gender === 'F') klb.F++
   }
-  if (!l.klb.M) delete l.klb.M
-  if (!l.klb.F) delete l.klb.F
+  if (!klb.M) delete klb.M
+  if (!klb.F) delete klb.F
+  l.klb = klb
 
   delete l.description
   delete l.borrowers
@@ -383,9 +390,19 @@ function compressLoan(loan) {
   if (!l.funded_amount) delete l.funded_amount
   if (!l.basket_amount) delete l.basket_amount
   if (l.kls_tags && !l.kls_tags.length) delete l.kls_tags
-  delete l.terms?.repayment_term
-  delete l.terms?.scheduled_payments
-  delete l.terms?.loss_liability?.currency_exchange_coverage_rate
+
+  // terms is shared with the source loan (state.allLoans) — clone before stripping
+  // so /graphql, RSS and the AI still see the full terms.
+  if (l.terms) {
+    const terms = { ...l.terms }
+    delete terms.repayment_term
+    delete terms.scheduled_payments
+    if (terms.loss_liability) {
+      terms.loss_liability = { ...terms.loss_liability }
+      delete terms.loss_liability.currency_exchange_coverage_rate
+    }
+    l.terms = terms
+  }
 
   l.kls = true
   return l
@@ -524,21 +541,26 @@ export async function prepareData(state, log = console.log) {
     }
 
     log('Fetching loans from search...')
-    const searchLoans = await fetchAllSearchLoans(log)
+    let searchLoans = await fetchAllSearchLoans(log)
     log(`Found ${searchLoans.length} fundraising loans`)
 
     log('Fetching full loan details...')
-    const ids = searchLoans.map((l) => l.id)
-    const detailMap = await fetchLoanDetails(ids, log)
+    let detailMap = await fetchLoanDetails(searchLoans.map((l) => l.id), log)
     log(`Fetched details for ${detailMap.size} loans`)
 
-    const rawLoans = searchLoans.map((searchLoan) => {
+    // Free each heavy intermediate as soon as it is consumed. The refresh used to
+    // hold 6-8 full copies of the ~7000-loan dataset live at once (search +
+    // detail + merged + processed + fundable + compressed), which is what spiked
+    // the 512MB dyno into R14. Nulling lets GC reclaim mid-cycle.
+    let rawLoans = searchLoans.map((searchLoan) => {
       const detail = detailMap.get(searchLoan.id)
       return detail ? { ...searchLoan, ...detail } : searchLoan
     })
+    searchLoans = null
+    detailMap = null
 
     log('Processing loans...')
-    const processed = []
+    let processed = []
     for (const raw of rawLoans) {
       try {
         processed.push(processLoan(raw))
@@ -546,23 +568,28 @@ export async function prepareData(state, log = console.log) {
         // Skip bad loans
       }
     }
+    rawLoans = null
     log(`Processed ${processed.length} loans`)
 
     // Drop loans Kiva still reports as fundraising but that are already fully
     // funded (funded_amount >= loan_amount). basket_amount is deliberately
     // ignored: Kiva's basket figures are unreliable and sometimes exceed the
     // amount remaining, so only funded vs. total decides fundability.
-    const fundable = processed.filter((p) => p.loan.funded_amount < p.loan.loan_amount)
+    let fundable = processed.filter((p) => p.loan.funded_amount < p.loan.loan_amount)
     log(`Excluded ${processed.length - fundable.length} fully-funded loans; ${fundable.length} remain`)
+    processed = null
 
     state.allLoans = fundable.map((p) => p.loan)
     state.newestTime = Math.max(...state.allLoans.map((l) => new Date(l.kl_processed).getTime()))
 
-    const compressed = fundable.map((p) => compressLoan(p.loan))
-    const keywords = fundable.map((p) => p.keywords)
+    let compressed = fundable.map((p) => compressLoan(p.loan))
+    let keywords = fundable.map((p) => p.keywords)
+    fundable = null
 
     const loanChunks = chunkArray(compressed, KL_PAGE_SPLITS)
+    compressed = null
     const kwChunks = chunkArray(keywords, KL_PAGE_SPLITS)
+    keywords = null
 
     const loanLengths = []
     const descrLengths = []

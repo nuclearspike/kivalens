@@ -1474,22 +1474,38 @@ export function CriteriaTabs() {
     if (aiCriteriaTab?.tab) setActiveTab(aiCriteriaTab.tab)
   }, [aiCriteriaTab])
 
+  // The exact criteria object the debounce below last pushed to the store. Lets
+  // the sync-from-store effect distinguish our own echo from a genuine external
+  // change (declared here so that effect can read it).
+  const lastPushedRef = useRef<Criteria | null>(null)
+
   // Sync from store when criteria is reloaded externally (saved search load, reset)
   const prevLastKnownRef = useRef(lastKnown)
   useEffect(() => {
-    if (lastKnown !== prevLastKnownRef.current) {
-      prevLastKnownRef.current = lastKnown
-      setCriteriaLocal({
-        loan: { ...lastKnown.loan },
-        partner: { ...lastKnown.partner },
-        portfolio: { ...lastKnown.portfolio },
-      })
-    }
+    if (lastKnown === prevLastKnownRef.current) return
+    prevLastKnownRef.current = lastKnown
+    // Ignore the echo of our own debounced push: setCriteria set lastKnown to the
+    // very object we sent, so there is nothing external to sync and rebuilding
+    // local state here would only spin the loop.
+    if (lastKnown === lastPushedRef.current) return
+    setCriteriaLocal({
+      loan: { ...lastKnown.loan },
+      partner: { ...lastKnown.partner },
+      portfolio: { ...lastKnown.portfolio },
+    })
   }, [lastKnown])
 
-  // Debounced push to store triggers loan filtering
+  // Debounced push to store triggers loan filtering.
+  // Track the exact object we push so the sync-from-store effect below can tell
+  // "this lastKnown change is our own write" from a genuine external change
+  // (saved-search load, AI apply_criteria, reset). Without this, the push set
+  // lastKnown to a new ref, the sync effect saw a new ref and rebuilt local
+  // criteria into yet another new ref, which re-armed this debounce — an
+  // endless idle setCriteria<->setCriteriaLocal loop that re-rendered the whole
+  // panel ~3x/sec and rewrote both persist stores forever.
   useDebouncedEffect(
     () => {
+      lastPushedRef.current = criteria
       setCriteria(criteria)
     },
     [criteria],

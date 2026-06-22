@@ -91,6 +91,10 @@ export function useKivaLensInit() {
         const state = (msg.backgroundResync as { state?: string }).state
         store.setBackgroundResyncState(state ?? null)
       if (state === 'done') {
+        // Evict now-funded/expired loans so the in-memory dataset stays bounded to
+        // the live fundraising set (+ basket loans) instead of growing every
+        // resync — the slow client memory leak behind the multi-GB tab.
+        kl.pruneNonFundraising(store.basket.map((b) => b.loan_id))
         store.setLoans(kl.loansFromKiva)
         store.filterLoans()
         // Clear the resync banner after a moment

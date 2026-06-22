@@ -174,7 +174,16 @@ export default function AskKivaLens() {
     if (!root || typeof window === 'undefined') return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const MAX = 4 // max pupil travel within the eye (px)
-    const onMove = (e: MouseEvent) => {
+    // Coalesce to one DOM write per animation frame. A raw mousemove listener
+    // fires ~60-120x/sec and each call wrote 4 inline-style props (2 eyes x 2
+    // vars) — a continuous style-attr mutation + repaint storm. rAF batching
+    // collapses that to <=4 writes per frame, only while the cursor moves.
+    let raf = 0
+    let last: MouseEvent | null = null
+    const apply = () => {
+      raf = 0
+      const e = last
+      if (!e) return
       root.querySelectorAll<HTMLElement>('.ask-kl-eye').forEach((el) => {
         const r = el.getBoundingClientRect()
         const dx = e.clientX - (r.left + r.width / 2)
@@ -189,8 +198,15 @@ export default function AskKivaLens() {
         el.style.setProperty('--kl-py', `${dy * reach}px`)
       })
     }
+    const onMove = (e: MouseEvent) => {
+      last = e
+      if (raf === 0) raf = requestAnimationFrame(apply)
+    }
     window.addEventListener('mousemove', onMove, { passive: true })
-    return () => window.removeEventListener('mousemove', onMove)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      if (raf) cancelAnimationFrame(raf)
+    }
     // aiServerEnabled is included so tracking attaches the moment the launcher
     // chip appears (not only after the panel opens).
   }, [open, disabled, aiServerEnabled])
@@ -316,6 +332,9 @@ export default function AskKivaLens() {
           case 'set_lend_amount':
             useLoanStore.getState().setBasketAmount(e.loanId, e.amount)
             break
+          case 'set_all_lend_amounts':
+            useLoanStore.getState().setAllBasketAmounts(e.amount)
+            break
           case 'clear_basket':
             useLoanStore.getState().clearBasket()
             break
@@ -424,8 +443,19 @@ export default function AskKivaLens() {
   // On mount we only RESTORE it if that stamp is within CHAT_RESTORE_TTL_MS (a
   // genuine refresh during active use), else we start fresh — so returning to a
   // window that's been idle/closed >2 min does not reload the old chat.
+  //
+  // Debounced 500ms: setMerge re-serializes the whole transcript on every
+  // committed message and open/close, so bursts (e.g. a turn finishing then the
+  // view scrolling) collapse into a single write. The latest messages/open are
+  // captured per render, and the cleanup clears the pending timer, so the flush
+  // always reflects the newest state. A genuine refresh recovers the last
+  // flushed copy (well within the 2-min TTL); at most the final <500ms of
+  // activity is unsaved, which is harmless for restore.
   useEffect(() => {
-    lsj.setMerge(CHAT_KEY, { messages, open, savedAt: Date.now() })
+    const t = setTimeout(() => {
+      lsj.setMerge(CHAT_KEY, { messages, open, savedAt: Date.now() })
+    }, 500)
+    return () => clearTimeout(t)
   }, [messages, open])
   useEffect(() => {
     if (savedChat.open) openAskKl()
