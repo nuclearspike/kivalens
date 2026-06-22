@@ -173,12 +173,20 @@ export default function AskKivaLens() {
     const root = rootRef.current
     if (!root || typeof window === 'undefined') return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const clamp = (v: number) => Math.max(-4, Math.min(4, v))
+    const MAX = 4 // max pupil travel within the eye (px)
     const onMove = (e: MouseEvent) => {
       root.querySelectorAll<HTMLElement>('.ask-kl-eye').forEach((el) => {
         const r = el.getBoundingClientRect()
-        el.style.setProperty('--kl-px', `${clamp((e.clientX - (r.left + r.width / 2)) / 4)}px`)
-        el.style.setProperty('--kl-py', `${clamp((e.clientY - (r.top + r.height / 2)) / 4)}px`)
+        const dx = e.clientX - (r.left + r.width / 2)
+        const dy = e.clientY - (r.top + r.height / 2)
+        const dist = Math.hypot(dx, dy)
+        // Move the pupil ALONG the direction of the cursor (its true angle), with
+        // travel ramping up to MAX. Clamping each axis independently made both
+        // saturate and lock the pupil in the corner (~45deg) for any far cursor;
+        // normalizing the vector keeps the real angle so the eyes zero in on it.
+        const reach = dist > 0 ? Math.min(dist / 8, MAX) / dist : 0
+        el.style.setProperty('--kl-px', `${dx * reach}px`)
+        el.style.setProperty('--kl-py', `${dy * reach}px`)
       })
     }
     window.addEventListener('mousemove', onMove, { passive: true })
