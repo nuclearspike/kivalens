@@ -30,6 +30,7 @@ const AJAX_HEADERS = {
 
 const LENDER_LOANS_TTL_MS = 60 * 60_000 // 1h — fundraising set shifts as loans fund/expire
 const SUPERGRAPH_TTL_MS = 6 * 60 * 60_000 // 6h — portfolio distribution moves slowly
+const LENDER_PROFILE_TTL_MS = 24 * 60 * 60_000 // 24h — profile (loan count, member-since) moves slowly
 export const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country']
 
 // Stop paging a lender's loans once no fundraising loan remains AND the newest
@@ -87,6 +88,50 @@ export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}) {
       }
     }
     return ids
+  }
+}
+
+// A lender's public profile: total loans made + member-since (for the AI to
+// gauge how experienced the lender is). Kiva v1: lenders/<id>.json -> {lenders:[..]}.
+export async function fetchLenderProfile(lenderId, log = () => {}) {
+  const key = `lender-profile-${lenderId}`
+  const cached = await readCache(key, LENDER_PROFILE_TTL_MS)
+  if (cached) {
+    try {
+      return JSON.parse(cached)
+    } catch {
+      /* fall through to refetch */
+    }
+  }
+  try {
+    const url = `${KIVA_API}/lenders/${encodeURIComponent(lenderId)}.json?app_id=${APP_ID}`
+    const res = await fetch(url, { headers: API_HEADERS })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = JSON.parse(await res.text())
+    const l = (data.lenders || [])[0]
+    if (!l) return null
+    const profile = {
+      name: l.name,
+      loan_count: l.loan_count,
+      member_since: l.member_since,
+      country_code: l.country_code,
+      occupation: l.occupation,
+      loan_because: l.loan_because,
+    }
+    await writeCache(key, JSON.stringify(profile))
+    log(`lender ${lenderId}: profile loan_count=${profile.loan_count}`)
+    return profile
+  } catch (e) {
+    log(`lender ${lenderId} profile fetch failed: ${e}`)
+    const stale = await readCache(key)
+    if (stale) {
+      try {
+        return JSON.parse(stale)
+      } catch {
+        /* ignore */
+      }
+    }
+    return null
   }
 }
 

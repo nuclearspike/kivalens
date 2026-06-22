@@ -1455,6 +1455,12 @@ export function CriteriaTabs() {
   const suppressInspectUntil = useRef(0)
   const hideGraphs = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
 
+  // The AI assistant can switch which criteria tab is shown.
+  const aiCriteriaTab = useUtilsStore((s) => s.aiCriteriaTab)
+  useEffect(() => {
+    if (aiCriteriaTab?.tab) setActiveTab(aiCriteriaTab.tab)
+  }, [aiCriteriaTab])
+
   // Sync from store when criteria is reloaded externally (saved search load, reset)
   const prevLastKnownRef = useRef(lastKnown)
   useEffect(() => {
@@ -1598,7 +1604,7 @@ export function CriteriaTabs() {
     : 0
 
   return (
-    <div>
+    <div data-aikl="criteria-tabs">
       <Tabs
         activeKey={activeTab}
         onSelect={(k) => {

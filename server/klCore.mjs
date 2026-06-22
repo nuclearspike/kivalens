@@ -27,6 +27,7 @@ import { applyAtheistData } from './aplus.mjs'
 import { readCache, writeCache, cleanupCache } from './diskCache.mjs'
 import { filterLoans } from './loanFilter.mjs'
 import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
+import { sendDailyDigest } from './digest.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -656,10 +657,20 @@ async function cleanupLenderCache(log = console.log) {
   if (removed.length) log(`lender RSS cache: evicted ${removed.length} stale entries`)
 }
 
+// Daily "Ask KivaLens" digest: hourly check, sends yesterday's grouped chat
+// log once/day at DIGEST_HOUR_UTC (no-ops without RESEND_API_KEY / Redis).
+const DIGEST_HOUR_UTC = Number(process.env.DIGEST_HOUR_UTC ?? 13)
+async function maybeSendDigest(log = console.log) {
+  if (new Date().getUTCHours() !== DIGEST_HOUR_UTC) return
+  const yesterday = new Date(Date.now() - 24 * 60 * 60_000).toISOString().slice(0, 10)
+  await sendDailyDigest(yesterday, log)
+}
+
 export function startRefresh(state, log = console.log) {
   // Serve cached data ASAP (non-blocking) and fetch live data in parallel.
   void hydrateFromCache(state, log)
   prepareData(state, log)
+  setInterval(() => void maybeSendDigest(log), 60 * 60_000).unref()
   // Periodically prune the per-lender RSS disk cache. unref() so this timer
   // never keeps the process alive on its own.
   void cleanupLenderCache(log)

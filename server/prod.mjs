@@ -13,6 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createState, startRefresh, handleApi, handleProxy, handleRss } from './klCore.mjs'
+import { handleChat } from './aiChat.mjs'
 import { closeCache } from './klCache.mjs'
 
 const PORT = process.env.PORT || 3000
@@ -159,6 +160,7 @@ const server = http.createServer((req, res) => {
 
   if (handleProxy(req, res)) return
   if (handleRss(state, req, res)) return
+  if (handleChat(state, req, res)) return
   if (handleApi(state, req, res)) return
   serveStatic(req, res)
 })

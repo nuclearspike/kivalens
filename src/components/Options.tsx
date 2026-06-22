@@ -51,6 +51,8 @@ export default function Options() {
   const lenderId = useUtilsStore((s) => s.lenderId)
   const fetchLenderObj = useUtilsStore((s) => s.fetchLenderObj)
   const openLenderIdModal = useUtilsStore((s) => s.openLenderIdModal)
+  const aiWidgetDisabled = useUtilsStore((s) => s.aiWidgetDisabled)
+  const setAiWidgetDisabled = useUtilsStore((s) => s.setAiWidgetDisabled)
 
   useEffect(() => {
     if (lenderId && !lenderObj) {
@@ -239,6 +241,19 @@ export default function Options() {
                 label="Output debugging messages to the console"
                 checked={opts.debugging}
                 onChange={(e) => setOpts({ debugging: e.target.checked })}
+              />
+            </Card.Body>
+          </Card>
+
+          {/* --- AI Assistant --- */}
+          <Card className="mb-3">
+            <Card.Header>AI Assistant</Card.Header>
+            <Card.Body>
+              <Form.Check
+                type="checkbox"
+                label="Show the Ask KivaLens AI assistant (the chat bubble in the corner)"
+                checked={!aiWidgetDisabled}
+                onChange={(e) => setAiWidgetDisabled(!e.target.checked)}
               />
             </Card.Body>
           </Card>

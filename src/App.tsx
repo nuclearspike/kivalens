@@ -3,6 +3,7 @@ import { useKivaLensInit } from './lib/useKivaLensInit'
 import KLNav from './components/KLNav'
 import KLFooter from './components/KLFooter'
 import About from './components/About'
+import Privacy from './components/Privacy'
 import ClearBasket from './components/ClearBasket'
 import Outdated from './components/Outdated'
 import Donate from './components/Donate'
@@ -13,6 +14,8 @@ import Teams from './components/Teams'
 import RouteErrorBoundary from './components/RouteErrorBoundary'
 import SetLenderIDModal from './components/SetLenderIDModal'
 import DialogHost from './components/DialogHost'
+import AskKivaLens from './components/AskKivaLens/AskKivaLens'
+import AICallout from './components/AICallout'
 
 function AppLayout() {
   useKivaLensInit()
@@ -22,6 +25,8 @@ function AppLayout() {
       <KLNav />
       <SetLenderIDModal />
       <DialogHost />
+      <AskKivaLens />
+      <AICallout />
       <Outlet />
       <KLFooter />
       <ScrollRestoration />
@@ -84,6 +89,7 @@ export const router = createHashRouter([
       },
       { path: 'options', element: <Options /> },
       { path: 'about', element: <About /> },
+      { path: 'privacy', element: <Privacy /> },
       { path: 'live', element: <Live /> },
       { path: 'on', element: <OnNow /> },
       { path: 'donate', element: <Donate /> },

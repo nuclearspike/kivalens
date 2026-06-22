@@ -7,7 +7,8 @@ export default function KLFooter() {
       <Row style={{ paddingTop: 20, paddingBottom: 50 }}>
         <Col md={12} className="pt-4 text-center">
           &copy;{new Date().getFullYear()} KivaLens is not supported by
-          Kiva.org. See <Link to="/about">About</Link> for contact information.
+          Kiva.org. See <Link to="/about">About</Link> for contact information ·{' '}
+          <Link to="/privacy">Privacy</Link>
         </Col>
       </Row>
     </Container>

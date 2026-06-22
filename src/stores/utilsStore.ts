@@ -35,6 +35,18 @@ export interface UtilsState {
   lenderDataVersion: number
   /** Global lender-ID modal visibility */
   lenderModalOpen: boolean
+  /** Whether the Ask KivaLens widget panel is open */
+  askKlOpen: boolean
+  /** A seed prompt to auto-send when the widget opens (consumed once) */
+  askKlSeed: string | null
+  /** User preference: hide the Ask KivaLens AI widget entirely */
+  aiWidgetDisabled: boolean
+  /** Server global switch (ASK_KIVALENS_ENABLED + key present); null until checked. */
+  aiServerEnabled: boolean | null
+  /** AI spotlight: point a bouncing arrow + callout at a UI element (by data-aikl). */
+  aiCallout: { target: string; message: string; nonce: number } | null
+  /** AI request to switch the Search criteria tab (borrower/partner/portfolio/rss). */
+  aiCriteriaTab: { tab: string; nonce: number } | null
   /** Whether the heartbeat interval is active */
   heartbeatActive: boolean
   /** Timestamp of last heartbeat */
@@ -49,6 +61,14 @@ export interface UtilsActions {
   fetchLenderObj: (lenderId: string, displayError?: boolean) => Promise<void>
   openLenderIdModal: () => void
   closeLenderIdModal: () => void
+  openAskKl: (seed?: string) => void
+  closeAskKl: () => void
+  consumeAskKlSeed: () => string | null
+  setAiWidgetDisabled: (disabled: boolean) => void
+  setAiServerEnabled: (enabled: boolean) => void
+  showCallout: (target: string, message: string) => void
+  clearCallout: () => void
+  setAiCriteriaTab: (tab: string) => void
   doHeartbeat: () => Promise<void>
   startHeartbeat: () => void
   stopHeartbeat: () => void
@@ -76,6 +96,12 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       lenderObj: null,
       lenderDataVersion: 0,
       lenderModalOpen: false,
+      askKlOpen: false,
+      askKlSeed: null,
+      aiWidgetDisabled: false,
+      aiServerEnabled: null,
+      aiCallout: null,
+      aiCriteriaTab: null,
       heartbeatActive: false,
       lastHeartbeat: null,
       sharedVars: {},
@@ -126,6 +152,62 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       closeLenderIdModal: () => {
         set((state) => {
           state.lenderModalOpen = false
+        })
+      },
+
+      openAskKl: (seed?: string) => {
+        set((state) => {
+          state.askKlOpen = true
+          if (seed) state.askKlSeed = seed
+        })
+      },
+
+      closeAskKl: () => {
+        set((state) => {
+          state.askKlOpen = false
+        })
+      },
+
+      consumeAskKlSeed: () => {
+        const seed = get().askKlSeed
+        if (seed) {
+          set((state) => {
+            state.askKlSeed = null
+          })
+        }
+        return seed
+      },
+
+      setAiWidgetDisabled: (disabled: boolean) => {
+        set((state) => {
+          state.aiWidgetDisabled = disabled
+          if (disabled) state.askKlOpen = false
+        })
+      },
+
+      setAiServerEnabled: (enabled: boolean) => {
+        set((state) => {
+          state.aiServerEnabled = enabled
+        })
+      },
+
+      showCallout: (target: string, message: string) => {
+        const nonce = (get().aiCallout?.nonce ?? 0) + 1
+        set((state) => {
+          state.aiCallout = { target, message, nonce }
+        })
+      },
+
+      clearCallout: () => {
+        set((state) => {
+          state.aiCallout = null
+        })
+      },
+
+      setAiCriteriaTab: (tab: string) => {
+        const nonce = (get().aiCriteriaTab?.nonce ?? 0) + 1
+        set((state) => {
+          state.aiCriteriaTab = { tab, nonce }
         })
       },
 
@@ -222,6 +304,7 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       name: 'kivalens-utils',
       partialize: (state) => ({
         lenderId: state.lenderId,
+        aiWidgetDisabled: state.aiWidgetDisabled,
       }),
       merge: (persisted, current) => ({
         ...current,

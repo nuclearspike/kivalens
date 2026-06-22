@@ -18,33 +18,33 @@ export default function KLNav() {
         <Navbar.Toggle aria-controls="kl-navbar-nav" />
         <Navbar.Collapse id="kl-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/search" active={isActive('/search')}>
+            <Nav.Link as={Link} to="/search" active={isActive('/search')} data-aikl="nav-search">
               Search
             </Nav.Link>
-            <Nav.Link as={Link} to="/basket" active={isActive('/basket')}>
+            <Nav.Link as={Link} to="/basket" active={isActive('/basket')} data-aikl="nav-basket">
               Basket <Badge>{basketCount}</Badge>
             </Nav.Link>
-            <Nav.Link as={Link} to="/partners" active={isActive('/partners')}>
+            <Nav.Link as={Link} to="/partners" active={isActive('/partners')} data-aikl="nav-partners">
               Partners
             </Nav.Link>
-            <Nav.Link as={Link} to="/live" active={isActive('/live')}>
+            <Nav.Link as={Link} to="/live" active={isActive('/live')} data-aikl="nav-stats">
               Stats
             </Nav.Link>
             {hasLenderId && (
-              <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')}>
+              <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')} data-aikl="nav-wall">
                 Wall
               </Nav.Link>
             )}
-            <Nav.Link as={Link} to="/teams" active={isActive('/teams')}>
+            <Nav.Link as={Link} to="/teams" active={isActive('/teams')} data-aikl="nav-teams">
               Teams
             </Nav.Link>
-            <Nav.Link as={Link} to="/saved" active={isActive('/saved')}>
+            <Nav.Link as={Link} to="/saved" active={isActive('/saved')} data-aikl="nav-saved">
               Saved
             </Nav.Link>
-            <Nav.Link as={Link} to="/options" active={isActive('/options')}>
+            <Nav.Link as={Link} to="/options" active={isActive('/options')} data-aikl="nav-options">
               Options
             </Nav.Link>
-            <Nav.Link as={Link} to="/about" active={isActive('/about')}>
+            <Nav.Link as={Link} to="/about" active={isActive('/about')} data-aikl="nav-about">
               About
             </Nav.Link>
           </Nav>

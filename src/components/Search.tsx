@@ -26,6 +26,7 @@ export function Search() {
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
   const { id: routeLoanId } = useParams<{ id: string }>()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
+  const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
   // Portfolio-exclusion reveal (T1.4): is "exclude loans I've funded" on, and
   // is the lender's funded-loan list still loading?
   const excludePortfolio = useCriteriaStore(
@@ -99,12 +100,12 @@ export function Search() {
         )}
 
         {/* Loan list */}
-        <Col md={listCol}>
+        <Col md={listCol} data-aikl="results">
           <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
             <Button onClick={toggleCriteria} className="w-50">
               {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
             </Button>
-            <Button onClick={openBulkAdd} className="w-50">
+            <Button onClick={openBulkAdd} className="w-50" data-aikl="bulk-add">
               Bulk Add
             </Button>
           </ButtonGroup>
@@ -166,6 +167,28 @@ export function Search() {
                 <li>Click &quot;Lend&quot; on loans you like</li>
                 <li>Go to Basket tab to transfer loans to Kiva</li>
               </ol>
+              {aiServerEnabled ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    useUtilsStore
+                      .getState()
+                      .openAskKl("I'm new to KivaLens — can you help me find loans to fund?")
+                  }
+                  style={{
+                    marginTop: 8,
+                    background: 'var(--kl-green)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 999,
+                    padding: '10px 18px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Need help getting started? Chat with KivaLens AI
+                </button>
+              ) : null}
               {!hasLenderId ? (
                 <div
                   style={{

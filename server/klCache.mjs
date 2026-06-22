@@ -71,6 +71,11 @@ async function getClient() {
   return client
 }
 
+// Shared with server/aiUsage.mjs so the AI cost counter + interaction log reuse
+// this single connection (and its RESP2/password-only handshake) instead of
+// opening a second one. Returns null when Redis isn't configured/available.
+export { getClient as getRedisClient }
+
 const b64 = (buf) => (buf ? buf.toString('base64') : null)
 const unb64 = (s) => (s ? Buffer.from(s, 'base64') : null)
 const gzipAsync = (buf) =>

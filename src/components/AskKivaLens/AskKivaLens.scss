@@ -1,0 +1,268 @@
+// Ask KivaLens widget. Every selector is scoped under .ask-kl so these generic
+// class names can't collide with the rest of the app (no CSS modules here).
+.ask-kl {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1040; // below the lender modal so prompt_lender_id overlays the chat
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-size: 14px;
+
+  .ask-kl-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--kl-green);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px 9px 11px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(12, 27, 53, 0.18);
+  }
+  .ask-kl-chip:hover { background: var(--kl-green-hover); }
+
+  .ask-kl-eyes {
+    display: flex;
+    gap: 5px;
+  }
+  .ask-kl-eye {
+    width: 19px;
+    height: 19px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 50%;
+    position: relative;
+    animation: ask-kl-blink 6s infinite;
+  }
+  .ask-kl-pupil {
+    width: 8px;
+    height: 8px;
+    background: var(--kl-green-dark, #15352b);
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(calc(-50% + var(--kl-px, 0px)), calc(-50% + var(--kl-py, 0px)));
+    transition: transform 0.16s ease-out;
+  }
+
+  .ask-kl-panel {
+    width: 340px;
+    max-width: 86vw;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 72vh;
+    box-shadow: 0 16px 40px rgba(12, 27, 53, 0.22);
+  }
+
+  .ask-kl-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .ask-kl-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--kl-text, #1a1a1a);
+  }
+  .ask-kl-badge {
+    font-size: 11px;
+    color: var(--kl-text-muted, #6b6b6b);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+  .ask-kl-close {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--kl-text-muted, #6b6b6b);
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .ask-kl-body {
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ask-kl-msg,
+  .ask-kl-msg-user {
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 10px;
+    padding: 9px 11px;
+    max-width: 90%;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .ask-kl-msg {
+    background: var(--kl-bg-subtle, #f1efe8);
+    color: var(--kl-text, #1a1a1a);
+    align-self: flex-start;
+    white-space: normal; // assistant content is markdown-rendered
+  }
+  // tighten markdown blocks inside assistant bubbles
+  .ask-kl-msg :where(p, ul, ol) { margin: 0 0 6px; }
+  .ask-kl-msg :where(p, ul, ol):last-child { margin-bottom: 0; }
+  .ask-kl-msg :where(ul, ol) { padding-left: 18px; }
+  .ask-kl-msg li { margin: 2px 0; }
+  .ask-kl-msg :where(h1, h2, h3, h4) { font-size: 14px; font-weight: 600; margin: 4px 0; }
+  .ask-kl-msg :where(code) { background: rgba(0, 0, 0, 0.06); padding: 1px 4px; border-radius: 4px; }
+  .ask-kl-msg a { color: var(--kl-green-dark, #15352b); }
+
+  // inline AI charts get the full bubble width
+  .ask-kl-msg-chart {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+    background: #fff;
+    border: 1px solid var(--kl-border, rgba(0, 0, 0, 0.12));
+  }
+  .ask-kl-chart-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+    text-align: center;
+    color: var(--kl-text, #1a1a1a);
+  }
+  .ask-kl-msg-user {
+    background: var(--kl-green);
+    color: #fff;
+    align-self: flex-end;
+  }
+  .ask-kl-interrupted {
+    color: var(--kl-text-muted, #6b6b6b);
+    font-style: italic;
+  }
+
+  .ask-kl-consent {
+    display: flex;
+    gap: 8px;
+    align-self: flex-start;
+  }
+  .ask-kl-consent button {
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--kl-border, rgba(0, 0, 0, 0.18));
+  }
+  .ask-kl-consent-yes {
+    background: var(--kl-green);
+    color: #fff;
+    border-color: var(--kl-green) !important;
+  }
+  .ask-kl-consent-no {
+    background: transparent;
+    color: var(--kl-text, #1a1a1a);
+  }
+
+  .ask-kl-ellipses {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 16px;
+    align-self: flex-start;
+    padding: 4px 2px;
+  }
+  .ask-kl-ellipse {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--kl-green);
+    opacity: 0.4;
+    animation: ask-kl-ripple 1.15s infinite ease-in-out;
+  }
+  .ask-kl-ellipse:nth-child(2) { animation-delay: 0.15s; }
+  .ask-kl-ellipse:nth-child(3) { animation-delay: 0.3s; }
+
+  .ask-kl-foot {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+  }
+  .ask-kl-foot input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    font-size: 14px;
+    margin: 0;
+  }
+  .ask-kl-send {
+    border: none;
+    background: var(--kl-green);
+    color: #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .ask-kl-send:hover { background: var(--kl-green-hover); }
+
+  .ask-kl-disclosure {
+    padding: 4px 12px 8px;
+    font-size: 11px;
+    color: var(--kl-text-muted, #6b6b6b);
+    text-align: center;
+  }
+  .ask-kl-disclosure a {
+    color: var(--kl-green);
+  }
+}
+
+@keyframes ask-kl-blink {
+  0%,
+  92%,
+  100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.12); }
+}
+
+@keyframes ask-kl-ripple {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.35;
+  }
+  40% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-kl .ask-kl-eye { animation: none; }
+  .ask-kl .ask-kl-pupil { transition: none; }
+  .ask-kl .ask-kl-ellipse { animation: none; opacity: 0.6; }
+}
+
+@media (max-width: 600px) {
+  .ask-kl {
+    right: 12px;
+    bottom: 12px;
+  }
+  .ask-kl .ask-kl-panel { width: calc(100vw - 24px); }
+}

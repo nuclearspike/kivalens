@@ -4,6 +4,7 @@ import numeral from 'numeral'
 import { formatDistanceToNow } from 'date-fns'
 import { useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
+import YourLending from './YourLending'
 
 function AnimInt({ value }: { value: number }) {
   return <span>{numeral(Math.round(value)).format('0,0')}</span>
@@ -54,6 +55,7 @@ export default function Live() {
 
   return (
     <Container className="py-3">
+      <YourLending />
       <Row>
         <h1>Kiva Lending</h1>
         <p>

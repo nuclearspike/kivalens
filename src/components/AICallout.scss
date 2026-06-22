@@ -1,0 +1,59 @@
+// AI spotlight callout — bounces, points at a data-aikl element, dismiss on click.
+.ai-callout {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 1100; // above content + the chat panel, below the lender modal
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  pointer-events: auto;
+  max-width: 260px;
+
+  &[data-place='above'] {
+    transform: translate(-50%, -100%);
+    flex-direction: column-reverse;
+  }
+}
+
+.ai-callout-arrow {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--kl-green);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45));
+  animation: ai-callout-bounce 1s infinite ease-in-out;
+}
+
+.ai-callout-bubble {
+  margin-top: 2px;
+  background: var(--kl-green);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(12, 27, 53, 0.32);
+  animation: ai-callout-bounce 1s infinite ease-in-out;
+}
+.ai-callout[data-place='above'] .ai-callout-bubble {
+  margin-top: 0;
+  margin-bottom: 2px;
+}
+
+@keyframes ai-callout-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-callout-arrow,
+  .ai-callout-bubble {
+    animation: none;
+  }
+}
