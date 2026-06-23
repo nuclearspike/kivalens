@@ -10,6 +10,7 @@ import InfiniteList from './InfiniteList'
 import LoadingLoansPanel from './LoadingLoansPanel'
 import BulkAddModal from './BulkAddModal'
 import { NoResultsHelp } from './NoResultsHelp'
+import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 
 // ---------------------------------------------------------------------------
@@ -169,7 +170,7 @@ export function Search() {
                   onClick={() =>
                     useUtilsStore
                       .getState()
-                      .openAskKl("I'm new to KivaLens — can you help me find loans to fund?")
+                      .openAskKl(WELCOME_PROMPT)
                   }
                   style={{
                     marginTop: 8,

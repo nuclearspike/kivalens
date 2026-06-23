@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts'
 import { lsj } from '../../lib/localStorage'
 import { streamChat, type ChatEvent, type ChatMessage, type ChartSpec } from '../../api/aiChat'
+import { WELCOME_PROMPT, WELCOME_REPLY } from '../../lib/askKivaLensWelcome'
 import './AskKivaLens.scss'
 
 const CHART_COLORS = ['#2C8C5E', '#5BA882', '#8AC4A6', '#1f6b46', '#3a9e6d', '#7bbf9b', '#b9dfca', '#155138']
@@ -265,6 +266,18 @@ export default function AskKivaLens() {
     (text: string) => {
       const msg = text.trim()
       if (!msg || loading) return
+      // The "Need help getting started?" CTA sends one fixed prompt. Answer it
+      // locally with a canned reply — no OpenAI call — so clicking the button
+      // never burns credits. A real follow-up the user then types hits the model.
+      if (msg === WELCOME_PROMPT) {
+        setMessages([
+          ...messages,
+          { role: 'user', content: msg } as Bubble,
+          { role: 'assistant', content: WELCOME_REPLY } as Bubble,
+        ])
+        setInput('')
+        return
+      }
       const history = [...messages, { role: 'user', content: msg } as Bubble]
       setMessages(history)
       setInput('')
