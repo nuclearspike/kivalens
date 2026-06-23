@@ -562,15 +562,50 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
     }),
     {
       name: 'kivalens-criteria',
+      version: 1,
       partialize: (state) => ({
         lastKnown: state.lastKnown,
         savedSearches: state.savedSearches,
         lastSwitch: state.lastSwitch,
       }),
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<CriteriaState>),
-      }),
+      // Recover saved searches orphaned when an early rewrite build persisted an
+      // empty/default `savedSearches` over (and then ignored, via merge) the
+      // legacy `all_criteria` key. Runs once per pre-v1 blob and ONLY when the
+      // blob has no saved searches, so it never clobbers searches a user still has.
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<CriteriaState>
+        if (version < 1) {
+          // Recover saved searches orphaned in the legacy `all_criteria` key when an
+          // early rewrite build seeded the built-in defaults over them. UNION the old
+          // ones back in (not only when the blob is empty) — a user whose blob now
+          // holds just the defaults must still get their custom searches. The persisted
+          // blob wins on a name collision, so this never downgrades a search they've
+          // since edited; it only ADDS back ones that are missing.
+          const storedAll = lsj.get<Record<string, SavedSearch>>('all_criteria')
+          if (Object.keys(storedAll).length > 0) {
+            p.savedSearches = { ...storedAll, ...(p.savedSearches ?? {}) }
+          } else if (!p.savedSearches || Object.keys(p.savedSearches).length === 0) {
+            p.savedSearches = { ...DEFAULT_SAVED_SEARCHES }
+          }
+        }
+        return p as CriteriaState & CriteriaActions
+      },
+      // Guard the data-loss bug: the bare `{ ...current, ...persisted }` spread let
+      // an empty/missing persisted `savedSearches` wipe out the recovered/default
+      // set seeded into the initial state. Keep `current` when persisted is empty.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<CriteriaState>
+        const merged = { ...current, ...p }
+        const cur = current as CriteriaState & CriteriaActions
+        if (
+          (!p.savedSearches || Object.keys(p.savedSearches).length === 0) &&
+          cur.savedSearches &&
+          Object.keys(cur.savedSearches).length > 0
+        ) {
+          merged.savedSearches = cur.savedSearches
+        }
+        return merged
+      },
     },
   ),
 )

@@ -305,6 +305,11 @@ const PARTNER_SLIDERS: Record<string, SliderConfig> = {
   years_on_kiva: { min: 0, max: 12, step: 0.25, label: 'Years on Kiva', helpText: 'How long the partner has been on Kiva.' },
   loans_posted: { min: 0, max: 20000, step: 50, label: 'Loans Posted', helpText: 'How many loans the partner has posted to Kiva.' },
   fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'Fundraising Loans', helpText: 'How many loans from this partner are currently fundraising on Kiva.' },
+  // A+ Team research scores (1-4). Only meaningful once the A+ data is merged
+  // (Options > "Merge A+ Team's data"); the panel hides them until then. Dropped
+  // in the rewrite — restored so loan & partner search can filter on them again.
+  secular_rating: { min: 1, max: 4, step: 1, label: 'Secular Score (A+ Team)', helpText: '4 Completely secular; 3 Secular but some religious influence; 2 Nonsecular but lends without regard to belief; 1 Nonsecular with a religious agenda.' },
+  social_rating: { min: 1, max: 4, step: 1, label: 'Social Score (A+ Team)', helpText: '4 Excellent, proactive social programs; 3 Good initiatives in most areas; 2 Social goals but few initiatives; 1 No attention to social goals.' },
 }
 
 // Partner-criteria help text, exported so the standalone Partners page shows
@@ -1236,7 +1241,15 @@ function PartnerCriteriaPanel({
         />
       ))}
 
-      {Object.entries(PARTNER_SLIDERS).map(([key, config]) => (
+      {Object.entries(PARTNER_SLIDERS)
+        // The A+ secular/social sliders only filter once A+ data is merged; hide
+        // them otherwise (matches the standalone Partners page).
+        .filter(
+          ([key]) =>
+            !!getKivaLoans()?.atheistListProcessed ||
+            (key !== 'secular_rating' && key !== 'social_rating'),
+        )
+        .map(([key, config]) => (
         <SliderRow
           key={key}
           config={config}

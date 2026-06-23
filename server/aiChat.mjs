@@ -191,6 +191,11 @@ function partnerRow(p) {
     years_on_kiva: Math.round((p.kl_years_on_kiva ?? 0) * 10) / 10,
     loans_posted: p.loans_posted,
     charges_fees_and_interest: p.charges_fees_and_interest,
+    // A+ Team research scores (present once A+ data is merged) so the assistant
+    // can report/compare secular & social ratings.
+    secular_rating: p.atheistScore?.secularRating,
+    social_rating: p.atheistScore?.socialRating,
+    religious_affiliation: p.atheistScore?.religiousAffiliation,
   }
 }
 
@@ -624,7 +629,10 @@ async function execTool(name, args, sctx, sse) {
       // Default to ACTIVE partners (matches the on-site Partners page); closed/
       // inactive partners have no fundraising loans.
       const partnerCrit = { ...validated.partner, status: validated.partner.status || 'active' }
-      let results = filterPartners({ partner: partnerCrit, portfolio: {} }, { partnerPool: pool })
+      // Spread loanCtx so the filter registers the A+ secular_rating/social_rating
+      // testers (gated on atheistListProcessed) and can compute fundraising_loan_count;
+      // partnerPool still overrides which partners are searched.
+      let results = filterPartners({ partner: partnerCrit, portfolio: {} }, { ...loanCtx(state), partnerPool: pool })
       const name = String(args.name || '').trim().toLowerCase()
       if (name) results = results.filter((p) => (p.name || '').toLowerCase().includes(name))
       const limit = Math.min(Math.max(Number(args.limit) || 10, 1), 25)
