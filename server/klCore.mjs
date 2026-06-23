@@ -40,6 +40,9 @@ export const REFRESH_INTERVAL_MS = 10 * 60_000
 const RETAINED_BATCHES = 2
 const KIVA_API = 'https://api.kivaws.org/v1'
 const APP_ID = 'org.kiva.kivalens'
+
+// Resident set size in MB — for diagnosing the dyno's R14 memory pressure.
+const memMB = () => Math.round(process.memoryUsage().rss / 1048576)
 // A+ (Atheist Team) partner ratings spreadsheet, exported as CSV.
 const APLUS_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
@@ -540,6 +543,7 @@ export async function prepareData(state, log = console.log) {
       log(`Taxonomy fetch failed (keeping previous): ${e}`)
     }
 
+    log(`[mem] refresh start rss=${memMB()}MB`)
     log('Fetching loans from search...')
     let searchLoans = await fetchAllSearchLoans(log)
     log(`Found ${searchLoans.length} fundraising loans`)
@@ -585,6 +589,7 @@ export async function prepareData(state, log = console.log) {
     let compressed = fundable.map((p) => compressLoan(p.loan))
     let keywords = fundable.map((p) => p.keywords)
     fundable = null
+    log(`[mem] after compress rss=${memMB()}MB`)
 
     const loanChunks = chunkArray(compressed, KL_PAGE_SPLITS)
     compressed = null
@@ -623,8 +628,11 @@ export async function prepareData(state, log = console.log) {
     log(`  kl_api_start: ${JSON.stringify(state.klStart)}`)
 
     // Persist the freshly-published dataset for the next boot's warm start.
-    // Fire-and-forget: never blocks or fails the refresh cycle.
-    void saveSnapshot(state, log)
+    log(`[mem] published batch ${batch} rss=${memMB()}MB`)
+    // Fire-and-forget, and DEFERRED off the refresh peak: the snapshot builds a
+    // multi-MB transient JSON+gzip+base64 string; running it ~8s after publish
+    // lets the rebuild's garbage GC first so the two peaks don't stack.
+    setTimeout(() => void saveSnapshot(state, log), 8000)
   } catch (e) {
     log(`Data preparation failed: ${e}`)
   } finally {
@@ -702,6 +710,11 @@ export function startRefresh(state, log = console.log) {
   // never keeps the process alive on its own.
   void cleanupLenderCache(log)
   setInterval(() => void cleanupLenderCache(log), LENDER_CLEANUP_INTERVAL_MS).unref()
+  // Periodic memory sample so we can see steady-state vs. the refresh spike.
+  setInterval(
+    () => log(`[mem] rss=${memMB()}MB heapUsed=${Math.round(process.memoryUsage().heapUsed / 1048576)}MB`),
+    60_000,
+  ).unref()
   return setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS)
 }
 
