@@ -712,11 +712,16 @@ export function startRefresh(state, log = console.log) {
   // never keeps the process alive on its own.
   void cleanupLenderCache(log)
   setInterval(() => void cleanupLenderCache(log), LENDER_CLEANUP_INTERVAL_MS).unref()
-  // Periodic memory sample so we can see steady-state vs. the refresh spike.
-  setInterval(
-    () => log(`[mem] rss=${memMB()}MB heapUsed=${Math.round(process.memoryUsage().heapUsed / 1048576)}MB`),
-    60_000,
-  ).unref()
+  // Periodic memory breakdown so we can see WHAT holds RSS (heapTotal over-commit
+  // that --max-old-space-size can bind, vs. external/buffer memory it can't).
+  setInterval(() => {
+    const m = process.memoryUsage()
+    const mb = (n) => Math.round(n / 1048576)
+    log(
+      `[mem] rss=${mb(m.rss)} heapTotal=${mb(m.heapTotal)} heapUsed=${mb(m.heapUsed)} ` +
+        `external=${mb(m.external)} arrayBuffers=${mb(m.arrayBuffers)}`,
+    )
+  }, 60_000).unref()
   return setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS)
 }
 
