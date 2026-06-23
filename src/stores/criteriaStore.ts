@@ -174,9 +174,16 @@ const DEFAULT_SAVED_SEARCHES: Record<string, SavedSearch> = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Simple cache with 1-hour TTL for balancer API results */
+/**
+ * LRU + TTL cache for balancer API results. Each BalancerResult can hold up to
+ * ~1000 slices, so we bound the entry COUNT (not just age): the TTL only evicts
+ * on a read of an already-expired key, which left cold entries resident for the
+ * whole tab session. CACHE_MAX caps distinct entries; a Map preserves insertion
+ * order, so the oldest key is the least-recently-used.
+ */
 const balancerCache = new Map<string, { value: BalancerResult; time: number }>()
 const CACHE_TTL = 60 * 60 * 1000
+const CACHE_MAX = 50
 
 function getCached(key: string): BalancerResult | null {
   const entry = balancerCache.get(key)
@@ -185,11 +192,21 @@ function getCached(key: string): BalancerResult | null {
     balancerCache.delete(key)
     return null
   }
+  // Mark most-recently-used: re-insert moves the key to the end of the Map.
+  balancerCache.delete(key)
+  balancerCache.set(key, entry)
   return entry.value
 }
 
 function setCache(key: string, value: BalancerResult): void {
+  balancerCache.delete(key) // re-insert at the end (most-recently-used)
   balancerCache.set(key, { value, time: Date.now() })
+  // Evict least-recently-used entries (oldest insertion order) beyond the cap.
+  while (balancerCache.size > CACHE_MAX) {
+    const lru = balancerCache.keys().next().value
+    if (lru === undefined) break
+    balancerCache.delete(lru)
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -108,10 +108,13 @@ export function useKivaLensInit() {
         store.filterLoans()
       }
 
-      // Background resync changed existing loans (funded amounts, etc.)
+      // Background resync changed existing loans (funded amounts, etc.).
+      // funded_amount is mutated in place, so the filter result's id-set is
+      // unchanged — force a fresh filteredLoans array so the funding bars
+      // actually re-render (otherwise the no-op guard in filterLoans swallows it).
       if (msg.background_updated) {
         store.setLoans(kl.loansFromKiva)
-        store.filterLoans()
+        store.filterLoans(undefined, true)
       }
 
       // Loan no longer fundraising: drop it from the list AND prune it from

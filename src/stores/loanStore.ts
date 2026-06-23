@@ -107,7 +107,7 @@ export interface LoanActions {
   // ---- Loans ------------------------------------------------------------
   setLoans: (loans: KivaLoan[]) => void
   setFilteredLoans: (loans: KivaLoan[], sameAsLast: boolean) => void
-  filterLoans: (criteria?: Criteria) => void
+  filterLoans: (criteria?: Criteria, force?: boolean) => void
   setSelectedId: (id: number | null) => void
   setDownloading: (downloading: boolean) => void
   setDownloadProgress: (progress: ProgressEvent | null) => void
@@ -344,7 +344,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         })
       },
 
-      filterLoans: (criteria?: Criteria) => {
+      filterLoans: (criteria?: Criteria, force = false) => {
         const kl = getKivaLoans()
         if (!kl || !kl.isReady()) return
 
@@ -364,11 +364,17 @@ export const useLoanStore = create<LoanState & LoanActions>()(
 
         set((state) => {
           // kl.filter() always returns a fresh array. When the result is
-          // identical to last time (a no-op re-filter, e.g. a background resync
-          // that changed nothing, or an echoed criteria push), keep the SAME
-          // reference so filteredLoans subscribers (Search, the loan list, Live)
-          // don't re-render and re-persist on every such pass.
-          if (!same) state.filteredLoans = next as never
+          // identical to last time (a no-op re-filter, e.g. an echoed criteria
+          // push), keep the SAME reference so filteredLoans subscribers (Search,
+          // the loan list, Live) don't re-render on every such pass.
+          //
+          // `force` overrides that: a background resync mutates funded_amount on
+          // existing loans IN PLACE, so the id-set is unchanged (same === true)
+          // even though the data changed. Without forcing, the funding bars would
+          // never re-render until a loan was evicted. The background_updated path
+          // passes force=true; it fires ~once per 10-min resync, so there is no
+          // idle-render cost. (filteredLoans is not persisted, so no extra write.)
+          if (!same || force) state.filteredLoans = next as never
           state.filteredSameAsLast = same
           state.loanCount = kl.loansFromKiva.length
         })

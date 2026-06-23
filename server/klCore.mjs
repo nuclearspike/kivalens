@@ -949,7 +949,19 @@ export function handleApi(state, req, res) {
       try {
         const idsMatch = body.match(/ids:\[([^\]]+)\]/)
         if (!idsMatch) return sendJSON(res, { data: { loans: [] } })
-        const ids = idsMatch[1].split(',').map((s) => parseInt(s.trim(), 10))
+        // Cap how many loan details one request can resolve. Without a bound, a
+        // single request could buffer the whole dataset in memory (and the
+        // find-per-id below is O(ids × allLoans)). Real clients page in small
+        // batches, so 500 is generous; truncation is logged, not silent.
+        const GRAPHQL_MAX_IDS = 500
+        let ids = idsMatch[1]
+          .split(',')
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => Number.isFinite(n))
+        if (ids.length > GRAPHQL_MAX_IDS) {
+          console.warn(`/graphql: capping ${ids.length} loanIds to ${GRAPHQL_MAX_IDS}`)
+          ids = ids.slice(0, GRAPHQL_MAX_IDS)
+        }
         const loans = ids
           .map((id) => state.allLoans.find((l) => l.id === id))
           .filter(Boolean)
