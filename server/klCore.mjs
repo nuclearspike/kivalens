@@ -41,8 +41,10 @@ const RETAINED_BATCHES = 2
 const KIVA_API = 'https://api.kivaws.org/v1'
 const APP_ID = 'org.kiva.kivalens'
 
-// Resident set size in MB — for diagnosing the dyno's R14 memory pressure.
+// Resident set size + live heap in MB — for diagnosing the dyno's R14 memory
+// pressure (RSS is what Heroku's 512MB quota measures; heapUsed is live JS).
 const memMB = () => Math.round(process.memoryUsage().rss / 1048576)
+const heapMB = () => Math.round(process.memoryUsage().heapUsed / 1048576)
 // A+ (Atheist Team) partner ratings spreadsheet, exported as CSV.
 const APLUS_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/export?gid=1&format=csv'
@@ -543,7 +545,7 @@ export async function prepareData(state, log = console.log) {
       log(`Taxonomy fetch failed (keeping previous): ${e}`)
     }
 
-    log(`[mem] refresh start rss=${memMB()}MB`)
+    log(`[mem] refresh start rss=${memMB()}MB heapUsed=${heapMB()}MB`)
     log('Fetching loans from search...')
     let searchLoans = await fetchAllSearchLoans(log)
     log(`Found ${searchLoans.length} fundraising loans`)
@@ -589,7 +591,7 @@ export async function prepareData(state, log = console.log) {
     let compressed = fundable.map((p) => compressLoan(p.loan))
     let keywords = fundable.map((p) => p.keywords)
     fundable = null
-    log(`[mem] after compress rss=${memMB()}MB`)
+    log(`[mem] after compress rss=${memMB()}MB heapUsed=${heapMB()}MB`)
 
     const loanChunks = chunkArray(compressed, KL_PAGE_SPLITS)
     compressed = null
@@ -628,7 +630,7 @@ export async function prepareData(state, log = console.log) {
     log(`  kl_api_start: ${JSON.stringify(state.klStart)}`)
 
     // Persist the freshly-published dataset for the next boot's warm start.
-    log(`[mem] published batch ${batch} rss=${memMB()}MB`)
+    log(`[mem] published batch ${batch} rss=${memMB()}MB heapUsed=${heapMB()}MB`)
     // Fire-and-forget, and DEFERRED off the refresh peak: the snapshot builds a
     // multi-MB transient JSON+gzip+base64 string; running it ~8s after publish
     // lets the rebuild's garbage GC first so the two peaks don't stack.
