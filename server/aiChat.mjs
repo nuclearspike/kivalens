@@ -71,6 +71,9 @@ function getTaxonomy(state) {
 
 // --- criteria validator (defense-in-depth; clamps to known vocab + fields) ---
 const LOAN_VOCAB_FIELDS = { sector: 'sectors', activity: 'activities', country_code: 'countryCodes', themes: 'themes', tags: 'tags' }
+// A loan has exactly ONE of these, so the "all" modifier ("has ALL listed values
+// at once") can never match and always returns 0 — only tags/themes can be "all".
+const LOAN_SINGLE_VALUE = new Set(['sector', 'activity', 'country_code'])
 const LOAN_RANGE = new Set([
   'repaid_in', 'borrower_count', 'percent_female', 'age', 'still_needed', 'loan_amount',
   'dollars_per_hour', 'percent_funded', 'expiring_in_days', 'disbursal_in_days',
@@ -121,7 +124,11 @@ function validateCriteria(input, vocab) {
       const m = k.match(/^(.+)_(min|max)$/)
       const aan = k.match(/^(.+)_all_any_none$/)
       if (m && LOAN_RANGE.has(m[1])) { const n = num(v); if (n != null) out.loan[k] = n }
-      else if (aan && aan[1] in LOAN_VOCAB_FIELDS && AAN.has(String(v))) out.loan[k] = String(v)
+      else if (aan && aan[1] in LOAN_VOCAB_FIELDS && AAN.has(String(v))) {
+        // Coerce a nonsensical "all" on a single-value field to "any" so the
+        // model can never produce a guaranteed-empty country/sector/activity filter.
+        out.loan[k] = String(v) === 'all' && LOAN_SINGLE_VALUE.has(aan[1]) ? 'any' : String(v)
+      }
     }
   }
   for (const [k, v] of Object.entries(inPartner)) {
@@ -675,7 +682,7 @@ const CRITERIA_PARAM = {
     'A KivaLens criteria object { loan, partner, portfolio }. EXPECTED INPUT: ' +
     'Multi-selects are a SINGLE comma-separated string holding ALL values — loan.country_code:"UG,GH,CD,TJ,ML" (use the 2-letter CODE, never the country name), loan.sector:"Agriculture,Retail", loan.tags:"#Parent,#Vegan". ' +
     'Ranges use _min/_max numbers — loan.percent_female_min:50, loan.percent_female_max:100, loan.loan_amount_max:500. ' +
-    'Multi-select modifier <field>_all_any_none: "any" (default — match ANY value) | "all" (must have ALL) | "none" (EXCLUDE these values). To HIDE/exclude you MUST add it as "none" — e.g. hide Peru = {"loan":{"country_code":"PE","country_code_all_any_none":"none"}}. ' +
+    'Multi-select modifier <field>_all_any_none: "any" (DEFAULT — match ANY of the listed values) | "all" (item has ALL listed values AT ONCE) | "none" (EXCLUDE the listed values). CARDINALITY: "all" is valid ONLY where one item can hold several values — loan tags & themes (and partner region & social_performance). A loan has exactly ONE sector, ONE activity, ONE country, so for sector/activity/country_code NEVER use "all" (it always returns 0 — no loan is in two countries at once); list several with "any" (the default), or exclude with "none". "Peru and Ecuador" / "only Peru and Ecuador" = {"loan":{"country_code":"PE,EC"}} (any, the default). To HIDE/exclude you MUST add "none" — e.g. hide Peru = {"loan":{"country_code":"PE","country_code_all_any_none":"none"}}. ' +
     'FULL EXAMPLE: {"loan":{"sector":"Agriculture","country_code":"UG,GH,CD,TJ,ML","percent_female_min":50,"percent_female_max":100,"sort":"popularity"},"partner":{},"portfolio":{}}. ' +
     'Put EVERY value for a field in this ONE object — never split a field\'s values across multiple calls.',
   properties: {
@@ -1053,7 +1060,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'CONTEXT AWARENESS: CONTEXT below tells you which page the user is on and, when they have a loan open, its full SELECTED LOAN summary (incl. field-partner stats). When a SELECTED LOAN is present, treat ANY question that could be about the loan/borrower/partner on screen as being about THAT loan — including implicit references like "this", "it", "the repayment term", "is this normal?", "why so short?", "the partner". Answer with the selected loan\'s ACTUAL data; NEVER reply generically ("loans can vary…") or ask them to "share the loan details" / "which loan" — they are looking at it right now. Call get_selected_loan (no id needed) for the full details of the loan they are currently viewing, or get_loan_details(loanId) for any loan by id.',
     '',
     'CRITERIA SHAPE: { loan, partner, portfolio }.',
-    '- loan multi-selects (comma-separated values, optional <field>_all_any_none = any|all|none): sector, activity, country_code, themes, tags.',
+    '- loan multi-selects (comma-separated values, optional <field>_all_any_none = any|all|none): sector, activity, country_code, themes, tags. A loan has just ONE sector/activity/country, so list several of those with "any" (the default) and NEVER "all" ("all" means "has every one at once" → 0 results). "all" is only meaningful for tags & themes, where one loan can carry several.',
     '- loan ranges (<field>_min / <field>_max numbers): age, percent_female, still_needed, loan_amount, repaid_in, borrower_count, percent_funded, expiring_in_days, dollars_per_hour.',
     '- loan single: sort (one of: half_back, newest, expiring, popularity, still_needed), bonus_credit_eligibility, repayment_interval; free text: name, use.',
     '- portfolio: exclude_portfolio_loans ("true"), pb_sector/pb_country/pb_activity/pb_partner balancers.',
