@@ -89,12 +89,15 @@ const PARTNER_PASS = new Set(['direct', 'charges_fees_and_interest'])
 const AAN = new Set(['any', 'all', 'none', ''])
 
 function clampCsv(value, allowed) {
-  const allowedLc = new Map(allowed.map((v) => [String(v).toLowerCase(), String(v)]))
   const items = Array.isArray(value) ? value : String(value ?? '').split(',')
+  const clean = items.map((s) => String(s).trim()).filter(Boolean)
+  // If the vocabulary is not loaded yet (empty list), do NOT drop the model's
+  // values — dropping silently diverges the server count from the on-site client
+  // (which never clamps). Pass them through; an unknown value simply won't match.
+  if (!allowed || allowed.length === 0) return [...new Set(clean)].join(',')
+  const allowedLc = new Map(allowed.map((v) => [String(v).toLowerCase(), String(v)]))
   const kept = []
-  for (const raw of items) {
-    const t = String(raw).trim()
-    if (!t) continue
+  for (const t of clean) {
     const hit = allowedLc.get(t.toLowerCase())
     if (hit && !kept.includes(hit)) kept.push(hit)
   }
@@ -1290,7 +1293,11 @@ async function runChat(state, payload, res, signal) {
         } catch (e) {
           result = { error: 'tool_failed', message: String(e && e.message ? e.message : e) }
         }
-        toolsCalled.push({ name: t.name, args: (t.args || '').slice(0, 300) })
+        toolsCalled.push({
+          name: t.name,
+          args: (t.args || '').slice(0, 300),
+          result: (() => { try { return JSON.stringify(result).slice(0, 400) } catch { return String(result).slice(0, 400) } })(),
+        })
         convo.push({ role: 'tool', tool_call_id: t.id, content: JSON.stringify(result) })
       }
       continue
@@ -1310,6 +1317,8 @@ async function runChat(state, payload, res, signal) {
     lenderId,
     page: typeof payload.page === 'string' ? payload.page : null,
     selectedLoanId: payload.selectedLoanId ?? null,
+    criteriaIn: (() => { try { return JSON.stringify(payload.criteria).slice(0, 500) } catch { return null } })(),
+    criteriaOut: (() => { try { return JSON.stringify(sctx.criteria).slice(0, 500) } catch { return null } })(),
     userMessage,
     response: responseText.trim().slice(0, 4000),
     tools: toolsCalled,
