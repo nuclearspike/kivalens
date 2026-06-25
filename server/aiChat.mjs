@@ -363,27 +363,37 @@ async function execTool(name, args, sctx, sse) {
       // emits one chart per facet here (once per turn, guarded on sctx) and tells the
       // model the breakdown is already on screen so it will not re-list the counts.
       const FACET_LABEL = { sector: 'Sector', activity: 'Activity', country_code: 'Country', country: 'Country', tags: 'Tag', age: 'Age', percent_women: 'Gender' }
-      let charted = false
+      // Auto-draw AT MOST 2 facet charts (4+ is overwhelming). Prefer the most useful
+      // dimensions; the model still gets EVERY facet in `facets` for its reasoning and
+      // can render_chart additional ones only if the user explicitly asks.
+      const FACET_PRIORITY = ['sector', 'activity', 'country', 'country_code', 'tags', 'percent_women', 'age']
+      const MAX_AUTO_CHARTS = 2
+      let charted = 0
       if (matched.length && !sctx._breakdownCharted) {
-        for (const f of want) {
+        const ordered = [...want].sort((a, b) => {
+          const ia = FACET_PRIORITY.indexOf(a), ib = FACET_PRIORITY.indexOf(b)
+          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib)
+        })
+        for (const f of ordered) {
+          if (charted >= MAX_AUTO_CHARTS) break
           const rows = facets[f]
           if (!Array.isArray(rows) || rows.length < 2) continue
           const data = rows.map((r) => ({ name: String(r.key), value: r.count }))
           sse({ type: 'chart', chart: { type: data.length <= 5 ? 'pie' : 'bar', title: `Loans by ${FACET_LABEL[f] || f}`, data } })
-          charted = true
+          charted++
         }
-        if (charted) sctx._breakdownCharted = true
+        if (charted > 0) sctx._breakdownCharted = true
       }
       const matchNote = matched.length === 0
         ? 'No loans match this criteria — tell the user and offer to relax or remove a filter; do NOT leave them stuck.'
         : charted
-          ? `${matched.length} loans match. The breakdown is ALREADY displayed to the user as charts — reply with at most a ONE-LINE caption and do NOT restate the sector/activity/country counts in text.`
+          ? `${matched.length} loans match. ${charted} chart(s) for the most useful facets are ALREADY on the user's screen — reply with at most a ONE-LINE caption and NEVER restate any facet counts as a text list. If the user EXPLICITLY asked to break down by more dimensions than charted, call render_chart for each extra one — do NOT text-list them.`
           : `${matched.length} loans match this criteria. State this exact number; NEVER tell them there are no/zero matching loans.`
       return {
         count: matched.length,
         total_fundraising: state.allLoans.length,
         facets,
-        charts_shown: charted,
+        charts_shown: charted > 0,
         age_known_fraction: matched.length ? +(ageKnown / matched.length).toFixed(2) : 0,
         note: matchNote + ' Age is parsed from English descriptions and is often missing; an age range silently drops loans with unknown age, so prefer it only when the user explicitly cares about age.',
       }
@@ -1078,7 +1088,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'SHOW, DON\'T TELL (important): for ANY "where is / where do I / how do I find / how do I get to" question about a feature, page, setting, or control, you MUST call point_at to bounce the arrow at it — do NOT answer with words alone. If it is on another page, navigate there too. Examples: "where are my saved searches?" → point_at("nav-saved","Right here!"); "how do I see partners?" → navigate("partners") + point_at("nav-partners","Here!"); "turn that off in Options" → point_at("nav-options","Set it here!"). For a SPECIFIC search FIELD (a country/sector/activity/tag/theme filter), point at THAT field\'s anchor crit-<field>, NOT the generic criteria-tabs — e.g. "where is the countries dropdown?" → switch_criteria_tab("borrower") + point_at("crit-country_code","Right here!"); "where do I filter by sector?" → switch_criteria_tab("borrower") + point_at("crit-sector","Here!"). (Targets + rules are under GUIDANCE TOOLS below.)',
     'SHOWING CONTENT — default to ON-SCREEN, not text: when the user asks to SEE / SHOW / "let me see" / "what\'s in" something that lives on a page (their basket, saved searches, the loan results, a specific loan, partners, stats), NAVIGATE there (and point_at if useful) so they SEE it on screen — do NOT just list it in words. Always ask yourself "can I show this on screen instead of describing it?" and if so, do that. E.g. "show me my basket" → navigate("basket"); "show my saved searches" → navigate("saved"). After navigating, add at MOST one short line ("Here\'s your basket — ↑") — do NOT reproduce the on-screen contents in text. (Genuine analysis/comparison can use render_chart — that is still on-screen.)',
     'NEVER LIST/ENUMERATE LOANS IN CHAT: the loans matching the filter are ALWAYS on screen in the results list — NEVER reproduce them in your reply. Do NOT output a numbered or bulleted list of borrowers with their sector / activity / use / amount / still-needed / % funded / partner (e.g. never "1. Malena Margarita (Ecuador) — Sector: Food — Use: ... — Still Needed: $575"). After you apply a filter, say ONE short line (e.g. "Done — 68 loans now show on the left ↑.") and stop. The ONLY exception: to single out ONE loan for a real reason (e.g. an unusual risk factor), name THAT one loan in a single sentence — never a list, never its full detail block. Data from list_results / get_loan_details / get_selected_loan is for YOUR reasoning only; it must NOT be copied into the chat.',
-    'BREAKDOWNS = CHARTS, NEVER NUMBER LISTS: analyze_loans AUTOMATICALLY draws a chart for each facet it returns — the breakdown is ALREADY on screen, so after calling it reply with at most a ONE-LINE caption and do NOT restate the sector/activity/country counts in text (never type "Retail: 20 loans, Food: 14 loans, ..."). Do NOT call render_chart for that same breakdown — it is already drawn. For any OTHER distribution you present (e.g. a portfolio breakdown from get_portfolio_distribution, or a partner comparison), call render_chart yourself rather than listing numbers — PIE for a few categories (~6 or fewer), BAR for rankings or many categories. Write counts in text ONLY if the user explicitly says "list it" / "in text", or there are just 1-2 values.',
+    'BREAKDOWNS = CHARTS, NEVER NUMBER LISTS: analyze_loans AUTOMATICALLY draws up to 2 of the most useful facet charts (so request just 1-2 facets by default — e.g. sector, or sector+activity — NOT four). Only if the user EXPLICITLY asks to break down by more dimensions, call render_chart yourself for the extra ones. The breakdown is ALREADY on screen, so after analyze_loans reply with at most a ONE-LINE caption and do NOT restate the sector/activity/country counts in text (never type "Retail: 20 loans, Food: 14 loans, ..."). Do NOT call render_chart for that same breakdown — it is already drawn. For any OTHER distribution you present (e.g. a portfolio breakdown from get_portfolio_distribution, or a partner comparison), call render_chart yourself rather than listing numbers — PIE for a few categories (~6 or fewer), BAR for rankings or many categories. Write counts in text ONLY if the user explicitly says "list it" / "in text", or there are just 1-2 values.',
     'HOW-DO-I IS A TEACHING MOMENT, NOT AN INSTRUCTION: "how do I X" / "how can I X" / "how would I X" asks you to SHOW the way, NOT to do X. point_at / navigate / switch_criteria_tab to where they would do it, explain it in one short line, and your FINAL sentence MUST be an offer like "Want me to do that for you?" — only perform X if they then say yes. NEVER auto-execute X, and never end without the offer, on a "how do I" question.',
     '',
     'PLAYBOOK:',
