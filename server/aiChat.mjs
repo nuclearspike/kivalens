@@ -349,12 +349,15 @@ async function execTool(name, args, sctx, sse) {
         }
       }
       const ageKnown = matched.filter((l) => l.kls_age != null).length
+      const matchNote = matched.length === 0
+        ? 'No loans match this criteria — tell the user and offer to relax or remove a filter; do NOT leave them stuck.'
+        : `${matched.length} loans match this criteria. State this exact number to the user; NEVER tell them there are no/zero/none matching loans.`
       return {
         count: matched.length,
         total_fundraising: state.allLoans.length,
         facets,
         age_known_fraction: matched.length ? +(ageKnown / matched.length).toFixed(2) : 0,
-        note: 'Age is parsed from English descriptions and is often missing; an age range silently drops loans with unknown age. Prefer it only when the user explicitly cares about age.',
+        note: matchNote + ' Age is parsed from English descriptions and is often missing; an age range silently drops loans with unknown age, so prefer it only when the user explicitly cares about age.',
       }
     }
     case 'list_activities': {
@@ -543,12 +546,17 @@ async function execTool(name, args, sctx, sse) {
       sctx.criteria = criteria
       sse({ type: 'apply_criteria', criteria })
       let count = null
-      let note = 'Applied to the live search.'
+      let note = 'Applied to the live search. Loan data is still loading, so no count is available yet.'
       if (state.ready && state.allLoans?.length) {
         count = filterLoans(criteria, loanCtx(state)).length
         const portfolioGated = criteria.portfolio?.exclude_portfolio_loans === 'true' ||
           ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner'].some((k) => criteria.portfolio?.[k]?.enabled)
-        if (portfolioGated) note = 'Applied. Portfolio filters are resolved in the browser, so this count is an upper bound — do not quote it as exact.'
+        if (count === 0) {
+          note = 'No loans match this filter. Tell the user nothing matches and offer to relax or remove a limiting filter (see EMPTY RESULTS) — do NOT leave them stuck.'
+        } else {
+          note = `${count} loans match this filter. State this exact number to the user; NEVER tell them there are no/zero/none matching loans.`
+          if (portfolioGated) note += ' Portfolio filters resolve in the browser, so treat this count as an upper bound — do not quote it as exact.'
+        }
       }
       return { ok: true, count, criteria, note }
     }
@@ -1047,6 +1055,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'DIAGNOSING A SEARCH (no/few results): read the ACTUAL current criteria — it is in CONTEXT below ("Current criteria") and in every set_criteria result — and reason ONLY from those filters. NEVER invent or guess filters the user has not set (e.g. do not claim an "age filter" or "one loan per country" limit unless it is actually present in the criteria). Use analyze_loans to find which real filter is the limiter. And never say loans "match but are not showing": if N loans match the criteria, those N ARE the results — a non-zero match count is not "nothing showing".',
     '4. Offer to save_search once the criteria is dialed in. AFTER you save, call point_at("saved-searches", "I saved your search here — reload it anytime!") so they can find it.',
     'CRITICAL — never fake a filter change: EVERY time the search should change — INCLUDING a one-word confirmation of something you suggested ("yes", "sure", "yes vegan", "add women", "ok do it") — you MUST call set_criteria again THAT SAME TURN (just pass the changed field — it merges). The search only changes when set_criteria runs. NEVER say you "narrowed / added / applied / set / tagged" anything, and NEVER state a match count, unless you called set_criteria (or analyze_loans) THIS turn and are quoting the number it returned. Do not reuse a count from an earlier turn or describe a filter you did not just apply.',
+    'GROUNDING — your words MUST match the tool result: the number of matching loans you tell the user MUST equal the count set_criteria / analyze_loans just returned. If that count is greater than 0 there ARE matching loans — NEVER tell the user there are none / zero / "no loans available". Say "no loans match" ONLY when the tool returned count 0. (Tool returned 68 → tell them 68; never claim zero when the tool said 68.)',
     'ONE CALL, ALL VALUES: when a multi-select takes several values, put them ALL into ONE comma-separated string in a SINGLE set_criteria call — five countries = set_criteria({loan:{country_code:"UG,GH,CD,TJ,ML"}}). NEVER make a separate set_criteria call per value: each call REPLACES that field, so multiple calls keep only the LAST value (you would end up with just one country). Always use the 2-letter country CODE (UG), never the name.',
     'GUIDANCE TOOLS — SHOW, don\'t just tell: point_at(target, message) bounces an arrow + callout at a UI element. DEFAULT to point_at WHENEVER you tell the user WHERE a feature / control / setting / page is, or HOW to get to it — point at it, don\'t only describe the location. E.g. "you can set that on the Options page" → ALSO call point_at("nav-options", "Set it here!"); "your saved searches are here" → point_at("nav-saved", "Right here!"). Header nav tabs (present on EVERY page): nav-search, nav-basket, nav-partners, nav-stats, nav-wall, nav-teams, nav-saved, nav-options, nav-about. Search-page targets: results, bulk-add, criteria-tabs, reset, saved-searches. INDIVIDUAL CRITERIA FIELDS: crit-country_code (Countries), crit-sector (Sectors), crit-activity (Activities), crit-themes (Themes), crit-tags (Tags) live on the "borrower" tab; crit-region, crit-social_performance, crit-religion on the "partner" tab — you MUST switch_criteria_tab to that tab FIRST so the field is on screen, then point_at("crit-<field>"). If the user is NOT on the Search page, navigate("search") first (the arrow only appears if the target is on the current page). navigate(page) switches pages; switch_criteria_tab(tab) switches the Search criteria tab.',
     'LENDER ID: check CONTEXT below. NEVER call prompt_lender_id or ask for the id if it is already set. If it is NOT set and you need it: ask the user and call set_lender_id when they give it; or call prompt_lender_id to open the entry dialog; if they do not know it, offer open_kiva_lender_help (opens kiva.org in a new tab where their id appears) and have them paste it back.',
