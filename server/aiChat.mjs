@@ -329,7 +329,13 @@ async function execTool(name, args, sctx, sse) {
   switch (name) {
     case 'analyze_loans': {
       if (!state.ready || !state.allLoans?.length) return { ready: false, note: 'Loan data is still loading; ask the user to retry shortly.' }
-      const criteria = validateCriteria(criteriaArg(args), vocab)
+      // Merge the model's (often partial) facet criteria onto the CURRENT applied
+      // filter so the breakdown/count matches the live search — mirrors list_results.
+      // Passing only {percent_female} must NOT drop the applied country/portfolio
+      // filters (that bug reported 5198 global women instead of the real 226 in PE/EC).
+      const aBase = sctx.criteria && typeof sctx.criteria === 'object' ? sctx.criteria : { loan: {}, partner: {}, portfolio: {} }
+      const aArg = criteriaArg(args)
+      const criteria = validateCriteria(Object.keys(aArg).length ? mergeCriteria(aBase, validateCriteria(aArg, vocab)) : aBase, vocab)
       const matched = filterLoans(criteria, loanCtx(state))
       const facets = {}
       const want = Array.isArray(args.facets) && args.facets.length ? args.facets : ['sector', 'country_code']
@@ -1099,6 +1105,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'DIVERSIFY: loan.limit_to = {enabled:true, count:1, limit_by:"Partner"|"Country"|"Sector"|"Activity"} caps results to N per group (e.g. "one loan per country"). Portfolio balancers compare against the user\'s existing loans: portfolio.pb_country (or pb_sector / pb_activity / pb_partner) = {enabled:true, hideshow:"hide", ltgt:"gt", percent:0, allactive:"all"} HIDES groups they already hold — ideal for "diversify me" / "countries I don\'t have". Both need the lender id and resolve in the browser, so quote the resulting count as approximate.',
     'Use EXACT values from the vocabulary below. tags include the leading #. age is parsed from English text and is often missing, so an age range drops loans with unknown age — use it sparingly and widen if results collapse.',
     'GENDER — there is NO gender field; gender is expressed ONLY through the percent_female range (the share of the borrower group that is women). So you cannot just SAY "male"/"female" — you MUST set the range, and ALWAYS set BOTH percent_female_min AND percent_female_max in the same call so a previous gender filter cannot linger and contradict. WOMEN / female / mother / "women\'s group" → percent_female_min=50, percent_female_max=100. MEN / male / father / dad / son / "men\'s group" → percent_female_min=0, percent_female_max=50. (E.g. "a vegan father in retail" sets percent_female_min=0 AND percent_female_max=50, sector=Retail, tags=#Vegan.)',
+    'PARENTS = the #Parent TAG, NOT a gender filter: "parent" / "parents" / "only parents" / "with kids" / "has children" → set loan.tags to include "#Parent" (gender-neutral). NEVER turn "parents" into a percent_female (women) filter — that is a different thing. Gendered parent words still set percent_female as above and MAY also add #Parent: "mothers" → tags:"#Parent" + percent_female 50-100; "fathers" → tags:"#Parent" + percent_female 0-50.',
     'HIDE / EXCLUDE: when the user says hide / exclude / "not from" / without / except / "everything but X" / "all but X" / "everything/all except X" / "no X", set that multi-select to ONLY the EXCLUDED value(s) AND <field>_all_any_none:"none" in the SAME set_criteria call — e.g. "everything but retail" = set_criteria({loan:{sector:"Retail",sector_all_any_none:"none"}}); "hide Peru" = set_criteria({loan:{country_code:"PE",country_code_all_any_none:"none"}}). NEVER enumerate all the OTHER values to exclude one (do NOT list every sector except Retail) — that is verbose AND backwards: "none" of the complement leaves ONLY the value they wanted gone. Name JUST the thing to exclude. WITHOUT the "none" modifier you INCLUDE them, the opposite of what they asked. To switch a field from exclude back to include, set <field>_all_any_none:"any" in the SAME call — otherwise the prior "none" keeps excluding.',
     '',
     `SECTORS: ${vocab.sectors.join(', ') || '(loading)'}`,
