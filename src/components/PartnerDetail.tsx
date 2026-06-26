@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge, Button } from '../ui'
 import numeral from 'numeral'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import type { Partner } from '../types'
 import { useLoanStore, useCriteriaStore } from '../stores'
 import KivaImage from './KivaImage'
@@ -32,10 +33,27 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const blankCriteria = useCriteriaStore((s) => s.blankCriteria)
 
-  const loanCount = useMemo(() => {
-    if (partner.status !== 'active') return 0
-    return loans.filter((l) => l.partner_id === partner.id && l.status === 'fundraising').length
-  }, [loans, partner.id, partner.status])
+  const fundraisingLoans = useMemo(
+    () =>
+      partner.status !== 'active'
+        ? []
+        : loans.filter((l) => l.partner_id === partner.id && l.status === 'fundraising'),
+    [loans, partner.id, partner.status],
+  )
+  const loanCount = fundraisingLoans.length
+
+  // Sector distribution of this partner's CURRENT fundraising loans. Lives in
+  // PartnerDetail so it renders on BOTH the Partners page and the loan Partner tab.
+  const sectorData = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const l of fundraisingLoans) {
+      const s = l.sector || 'Unknown'
+      counts[s] = (counts[s] || 0) + 1
+    }
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [fundraisingLoans])
 
   const searchLoans = () => {
     const crit = blankCriteria()
@@ -168,6 +186,20 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
           />
         </div>
       </div>
+
+      {sectorData.length > 0 && (
+        <div className="mt-3">
+          <h3>Fundraising Loans by Sector</h3>
+          <ResponsiveContainer width="100%" height={Math.max(120, sectorData.length * 30)}>
+            <BarChart data={sectorData} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
+              <XAxis type="number" hide allowDecimals={false} />
+              <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {partner.kl_sp && partner.kl_sp.length > 0 && partner.social_performance_strengths && (
         <div className="mt-3">
