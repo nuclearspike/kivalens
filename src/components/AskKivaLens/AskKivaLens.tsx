@@ -174,7 +174,7 @@ export default function AskKivaLens() {
     const root = rootRef.current
     if (!root || typeof window === 'undefined') return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const MAX = 4 // max pupil travel within the eye (px)
+    const MAX = 5 // max pupil travel within the eye (px) — reaches the inner edge so it goes fully cross-eyed
     // Coalesce to one DOM write per animation frame. A raw mousemove listener
     // fires ~60-120x/sec and each call wrote 4 inline-style props (2 eyes x 2
     // vars) — a continuous style-attr mutation + repaint storm. rAF batching
@@ -190,11 +190,12 @@ export default function AskKivaLens() {
         const dx = e.clientX - (r.left + r.width / 2)
         const dy = e.clientY - (r.top + r.height / 2)
         const dist = Math.hypot(dx, dy)
-        // Move the pupil ALONG the direction of the cursor (its true angle), with
-        // travel ramping up to MAX. Clamping each axis independently made both
-        // saturate and lock the pupil in the corner (~45deg) for any far cursor;
+        // Move the pupil ALONG the direction of the cursor (its true angle), travel
+        // saturating to MAX quickly (by ~the eye-to-eye distance) so a cursor right
+        // BETWEEN the eyes pulls both pupils fully inward — cross-eyed, no white gap.
+        // Clamping each axis independently locked the pupil in the corner (~45deg);
         // normalizing the vector keeps the real angle so the eyes zero in on it.
-        const reach = dist > 0 ? Math.min(dist / 8, MAX) / dist : 0
+        const reach = dist > 0 ? Math.min(dist / 2, MAX) / dist : 0
         el.style.setProperty('--kl-px', `${dx * reach}px`)
         el.style.setProperty('--kl-py', `${dy * reach}px`)
       })
