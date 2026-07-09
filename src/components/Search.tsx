@@ -29,6 +29,7 @@ export function Search() {
   const { id: routeLoanId } = useParams<{ id: string }>()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
   const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
+  const aiWidgetDisabled = useUtilsStore((s) => s.aiWidgetDisabled)
   // Portfolio-exclusion reveal (T1.4): is "exclude loans I've funded" on, and
   // is the lender's funded-loan list still loading?
   const excludePortfolio = useCriteriaStore(
@@ -164,7 +165,7 @@ export function Search() {
                 <li>Click &quot;Lend&quot; on loans you like</li>
                 <li>Go to Basket tab to transfer loans to Kiva</li>
               </ol>
-              {aiServerEnabled ? (
+              {aiServerEnabled && !aiWidgetDisabled ? (
                 <button
                   type="button"
                   onClick={() =>
