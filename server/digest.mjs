@@ -5,7 +5,7 @@
 import { getDayLogs, claimDigest, clearLogsThrough } from './aiUsage.mjs'
 import { sendEmail, emailConfigured } from './email.mjs'
 
-const TO = process.env.DIGEST_TO || 'liquidmonkey@gmail.com'
+const TO = process.env.DIGEST_TO || 'contact@kivalens.org'
 // Display all digest times in Mountain Time (auto MST/MDT via the IANA zone).
 const DIGEST_TZ = process.env.DIGEST_TZ || 'America/Denver'
 
