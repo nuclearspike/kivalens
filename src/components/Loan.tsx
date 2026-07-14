@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import numeral from 'numeral'
-import { useLoanStore, useCriteriaStore } from '../stores'
+import { useLoanStore, useCriteriaStore, useUtilsStore } from '../stores'
+import { translateText } from '../api/aiChat'
 import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
 import PartnerDetail from './PartnerDetail'
@@ -118,7 +119,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
 // ---------------------------------------------------------------------------
 
 export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
-  const { t, sector, date, relativeTime } = useI18n()
+  const { t, sector, date, relativeTime, locale } = useI18n()
   const { id } = useParams<{ id: string }>()
   const loanId = loanIdProp ?? parseInt(id ?? '0', 10)
   const getLoan = useLoanStore((s) => s.getLoan)
@@ -127,6 +128,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const inBasket = useLoanStore((s) => s.inBasket(loanId))
   const getMatchingCriteria = useCriteriaStore((s) => s.getMatchingCriteria)
   const loadSearch = useCriteriaStore((s) => s.loadSearch)
+  const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
 
   const loan = getLoan(loanId)
 
@@ -142,6 +144,17 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         .catch(() => {})
     }
   }, [loanId, loanAvailable]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // AI translation of the English description into the UI language (non-EN only).
+  const [translation, setTranslation] = useState<string | null>(null)
+  const [translating, setTranslating] = useState(false)
+  const [showOriginal, setShowOriginal] = useState(false)
+  const [translateError, setTranslateError] = useState(false)
+  useEffect(() => {
+    setTranslation(null)
+    setShowOriginal(false)
+    setTranslateError(false)
+  }, [loanId, locale])
 
   const [activeTab, setActiveTab] = useState<number>(() => {
     const stored = localStorage.getItem('loan_active_tab')
@@ -233,6 +246,20 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const tags = loan.kls_tags ?? []
   const themes = loan.themes ?? []
   const descriptionText = loan.description?.texts?.en
+  const handleTranslate = async () => {
+    if (!descriptionText || translating) return
+    setTranslating(true)
+    setTranslateError(false)
+    try {
+      const result = await translateText(descriptionText, locale)
+      setTranslation(result)
+      setShowOriginal(false)
+    } catch {
+      setTranslateError(true)
+    } finally {
+      setTranslating(false)
+    }
+  }
 
   return (
     <div className="Loan">
@@ -530,10 +557,34 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </div>
 
             {descriptionText && (
-              <p
-                className="mt-3"
-                dangerouslySetInnerHTML={{ __html: descriptionText }}
-              />
+              <div className="mt-3">
+                {locale !== 'en' && aiServerEnabled && (
+                  <div className="mb-1">
+                    {!translation ? (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-success"
+                        onClick={handleTranslate}
+                        disabled={translating}
+                      >
+                        {translating ? t('Translating…') : t('Translate')}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-link p-0"
+                        onClick={() => setShowOriginal((o) => !o)}
+                      >
+                        {showOriginal ? t('Show translation') : t('Show original')}
+                      </button>
+                    )}
+                    {translateError && (
+                      <span className="text-danger small ms-2">{t('Translation failed. Try again.')}</span>
+                    )}
+                  </div>
+                )}
+                <p dangerouslySetInnerHTML={{ __html: translation && !showOriginal ? translation : descriptionText }} />
+              </div>
             )}
           </div>
         )}

@@ -77,6 +77,19 @@ export function parseSseFrame(frame: string): ChatEvent | null {
   }
 }
 
+// One-shot translation of a loan description into the UI language (server caches it).
+export async function translateText(text: string, lang: string): Promise<string> {
+  const res = await fetch('/api/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, lang }),
+  })
+  if (!res.ok) throw new Error(`translate failed (${res.status})`)
+  const data = (await res.json()) as { translation?: unknown }
+  if (typeof data.translation !== 'string') throw new Error('no translation in response')
+  return data.translation
+}
+
 export async function streamChat(
   body: StreamChatBody,
   opts: { onEvent: (e: ChatEvent) => void; signal?: AbortSignal },
