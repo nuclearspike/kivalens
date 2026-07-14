@@ -6,6 +6,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recha
 import type { Partner } from '../types'
 import { useLoanStore, useCriteriaStore } from '../stores'
 import KivaImage from './KivaImage'
+import { useI18n } from '../i18n'
 
 interface PartnerDetailProps {
   partner: Partner
@@ -28,6 +29,7 @@ function KivaLink({ path, children }: { path: string; children: React.ReactNode 
 }
 
 export default function PartnerDetail({ partner, showStatus = true }: PartnerDetailProps) {
+  const { t, sector, date } = useI18n()
   const navigate = useNavigate()
   const loans = useLoanStore((s) => s.loans)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
@@ -51,9 +53,9 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
       counts[s] = (counts[s] || 0) + 1
     }
     return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, value]) => ({ name: sector(name), value }))
       .sort((a, b) => b.value - a.value)
-  }, [fundraisingLoans])
+  }, [fundraisingLoans, sector])
 
   const searchLoans = () => {
     const crit = blankCriteria()
@@ -74,11 +76,10 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
           style={{ background: '#e8f5e9' }}
         >
           <span>
-            <b>{numeral(loanCount).format('0,0')}</b> fundraising loan
-            {loanCount !== 1 ? 's' : ''}
+            {t('{count} fundraising loans', { count: numeral(loanCount).format('0,0') })}
           </span>
           <Button size="sm" variant="success" onClick={searchLoans}>
-            Show Loans
+             {t('Show Loans')}
           </Button>
         </div>
       )}
@@ -105,7 +106,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
         {partner.name}
         {showStatus && partner.status !== 'active' && (
           <>{' '}
-            <Badge bg={statusVariant[partner.status] ?? 'secondary'}>{partner.status}</Badge>
+            <Badge bg={statusVariant[partner.status] ?? 'secondary'}>{t(partner.status)}</Badge>
           </>
         )}
       </h2>
@@ -113,60 +114,54 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
       <div className="row">
         <div className="col-lg-6">
           <dl className="dl-horizontal">
-            <dt>Rating</dt>
+            <dt>{t('Rating')}</dt>
             <dd>{partner.rating}</dd>
             {partner.status !== 'active' && (
               <>
-                <dt>Status</dt>
-                <dd style={{ textTransform: 'capitalize' }}>{partner.status}</dd>
+                <dt>{t('Status')}</dt>
+                <dd>{t(partner.status)}</dd>
               </>
             )}
-            <dt>Start Date</dt>
-            <dd>
-              {new Date(partner.start_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </dd>
-            <dt>{partner.countries?.length === 1 ? 'Country' : 'Countries'}</dt>
+            <dt>{t('Start Date')}</dt>
+            <dd>{date(partner.start_date, { dateStyle: 'medium' })}</dd>
+            <dt>{t(partner.countries?.length === 1 ? 'Country' : 'Countries')}</dt>
             <dd>{countryNames}</dd>
-            <dt>Delinquency</dt>
+            <dt>{t('Delinquency')}</dt>
             <dd>
               {numeral(partner.delinquency_rate).format('0.000')}%{' '}
               {(partner as unknown as { delinquency_rate_note?: string }).delinquency_rate_note}
             </dd>
-            <dt>Loans at Risk Rate</dt>
+            <dt>{t('Loans at Risk Rate')}</dt>
             <dd>{numeral(partner.loans_at_risk_rate).format('0.000')}%</dd>
-            <dt>Default</dt>
+            <dt>{t('Default')}</dt>
             <dd>
               {numeral(partner.default_rate).format('0.000')}%{' '}
               {(partner as unknown as { default_rate_note?: string }).default_rate_note}
             </dd>
-            <dt>Total Raised</dt>
+            <dt>{t('Total Raised')}</dt>
             <dd>${numeral((partner as unknown as { total_amount_raised?: number }).total_amount_raised).format('0,0')}</dd>
-            <dt>Loans</dt>
+            <dt>{t('Loans')}</dt>
             <dd>{numeral(partner.loans_posted).format('0,0')}</dd>
-            <dt>Portfolio Yield</dt>
+            <dt>{t('Portfolio Yield')}</dt>
             <dd>
               {numeral(partner.portfolio_yield).format('0.0')}%{' '}
               {(partner as unknown as { portfolio_yield_note?: string }).portfolio_yield_note}
             </dd>
-            <dt>Profitability</dt>
+            <dt>{t('Profitability')}</dt>
             {partner.profitability != null ? (
               <dd>{numeral(partner.profitability).format('0.0')}%</dd>
             ) : (
-              <dd>(unknown)</dd>
+              <dd>{t('(unknown)')}</dd>
             )}
-            <dt>Charges Fees / Interest</dt>
-            <dd>{partner.charges_fees_and_interest ? 'Yes' : 'No'}</dd>
-            <dt>Avg Loan/Cap Income</dt>
+            <dt>{t('Charges Fees / Interest')}</dt>
+            <dd>{t(partner.charges_fees_and_interest ? 'Yes' : 'No')}</dd>
+            <dt>{t('Avg Loan/Cap Income')}</dt>
             <dd>{numeral(partner.average_loan_size_percent_per_capita_income).format('0.00')}%</dd>
-            <dt>Currency Ex Loss</dt>
+            <dt>{t('Currency Ex Loss')}</dt>
             <dd>{numeral(partner.currency_exchange_loss_rate).format('0.000')}%</dd>
             {(partner as unknown as { url?: string }).url ? (
               <>
-                <dt>Website</dt>
+                <dt>{t('Website')}</dt>
                 <dd>
                   <a href={(partner as unknown as { url?: string }).url} target="_blank" rel="noreferrer">
                     {(partner as unknown as { url?: string }).url}
@@ -189,7 +184,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
 
       {sectorData.length > 0 && (
         <div className="mt-3">
-          <h3>Fundraising Loans by Sector</h3>
+          <h3>{t('Fundraising Loans by Sector')}</h3>
           <ResponsiveContainer width="100%" height={Math.max(120, sectorData.length * 30)}>
             <BarChart data={sectorData} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
               <XAxis type="number" hide allowDecimals={false} />
@@ -203,7 +198,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
 
       {partner.kl_sp && partner.kl_sp.length > 0 && partner.social_performance_strengths && (
         <div className="mt-3">
-          <h3>Social Performance Strengths</h3>
+          <h3>{t('Social Performance Strengths')}</h3>
           <ul>
             {partner.social_performance_strengths.map((sp, i) => (
               <li key={i}>
@@ -218,19 +213,19 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
 
       {showAtheistResearch && atheistScore && (
         <div className="mt-3">
-          <h3>A+ Team Research</h3>
+          <h3>{t('A+ Team Research')}</h3>
           <dl className="dl-horizontal">
-            <dt>Secular Rating</dt>
+            <dt>{t('Secular Rating')}</dt>
             <dd>{atheistScore.secularRating}</dd>
-            <dt>Religious Affiliation</dt>
+            <dt>{t('Religious Affiliation')}</dt>
             <dd>{atheistScore.religiousAffiliation}</dd>
-            <dt>Comments on Rating</dt>
+            <dt>{t('Comments on Rating')}</dt>
             <dd>{atheistScore.commentsOnSecularRating}</dd>
-            <dt>Social Rating</dt>
+            <dt>{t('Social Rating')}</dt>
             <dd>{atheistScore.socialRating}</dd>
-            <dt>Comments on Rating</dt>
+            <dt>{t('Comments on Rating')}</dt>
             <dd>{atheistScore.commentsOnSocialRating}</dd>
-            <dt>Review Comments</dt>
+            <dt>{t('Review Comments')}</dt>
             <dd>{atheistScore.reviewComments}</dd>
           </dl>
         </div>

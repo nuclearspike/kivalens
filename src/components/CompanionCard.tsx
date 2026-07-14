@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Alert, Button, Card } from '../ui'
 import { companion } from '../api/companion'
+import { useI18n } from '../i18n'
 
 const muted = { color: '#6b7280' }
 
@@ -9,6 +10,7 @@ const muted = { color: '#6b7280' }
  * the integration is enabled (VITE_COMPANION_EXT_ID set) - the parent gates on companionEnabled.
  */
 export default function CompanionCard() {
+  const { t } = useI18n()
   const [available, setAvailable] = useState<boolean | null>(null)
   const [version, setVersion] = useState<string | null>(null)
   const [hasToken, setHasToken] = useState(false)
@@ -36,43 +38,40 @@ export default function CompanionCard() {
 
   return (
     <Card className="mb-3">
-      <Card.Header>KivaLens Companion (browser extension)</Card.Header>
+      <Card.Header>{t('KivaLens Companion (browser extension)')}</Card.Header>
       <Card.Body>
         <p>
-          The optional <b>KivaLens Companion</b> Chrome extension securely connects KivaLens to
-          your logged-in Kiva account, so KivaLens can read your <b>exact</b> portfolio, account
-          balances, saved searches and autolend settings. Your Kiva login and access token never
-          leave your browser — KivaLens only receives the resulting data.
+          {t('The optional KivaLens Companion browser extension securely connects KivaLens to your logged-in Kiva account, so KivaLens can read your exact portfolio, account balances, saved searches, and Auto-Lending settings. Your Kiva login and access token never leave your browser — KivaLens only receives the resulting data.')}
         </p>
 
-        {available === null ? <p style={muted}>Checking for the extension…</p> : null}
+        {available === null ? <p style={muted}>{t('Checking for the extension…')}</p> : null}
 
         {available === true ? (
           <Alert variant="success">
-            Connected{version ? ` (v${version})` : ''}.{' '}
+            {t('Connected')}{version ? ` (v${version})` : ''}.{' '}
             {hasToken
-              ? 'Authenticated with your Kiva session.'
-              : 'Open kiva.org in another tab and log in to authenticate.'}
+              ? t('Authenticated with your Kiva session.')
+              : t('Open kiva.org in another tab and log in to authenticate.')}
           </Alert>
         ) : null}
 
         {available === false ? (
           <Alert variant="secondary">
-            Not detected. Install the KivaLens Companion extension to enable these features.
+            {t('Not detected. Install the KivaLens Companion extension to enable these features.')}
           </Alert>
         ) : null}
 
         <p style={{ marginTop: 12, marginBottom: 4 }}>
-          <b>What it unlocks:</b>
+          <b>{t('What it unlocks:')}</b>
         </p>
         <ul className="spacedList">
-          <li>Exact portfolio breakdowns by country, sector, partner &amp; gender (instead of estimates).</li>
-          <li>Your real account ledger — deposits, donations, repayments, currency &amp; default losses.</li>
-          <li>Auto-detect your Lender ID, and (coming soon) two-way saved searches &amp; autolend.</li>
+          <li>{t('Exact portfolio breakdowns by country, sector, partner, and gender (instead of estimates).')}</li>
+          <li>{t('Your real account ledger — deposits, donations, repayments, currency, and default losses.')}</li>
+          <li>{t('Auto-detect your Lender ID and, coming soon, synchronize saved searches and Auto-Lending settings.')}</li>
         </ul>
 
         <Button variant="link" size="sm" onClick={() => void refresh()} disabled={busy}>
-          {busy ? 'Checking…' : 'Refresh'}
+          {busy ? t('Checking…') : t('Refresh')}
         </Button>
       </Card.Body>
     </Card>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { KivaLoan } from '../types'
 import cx from 'classnames'
+import { useI18n } from '../i18n'
 
 interface KivaImageProps {
   loan?: KivaLoan
@@ -38,6 +39,7 @@ export default function KivaImage({
   useThumbAsBackground = false,
   enlargeable = false,
 }: KivaImageProps) {
+  const { t } = useI18n()
   const [loaded, setLoaded] = useState(false)
   const [zoom, setZoom] = useState(false)
 
@@ -72,7 +74,7 @@ export default function KivaImage({
 
   return (
     <div className={cx('KivaImage', { loaded, not_loaded: !loaded })} style={style}>
-      {!loaded && <div className="loading_notice">Larger version loading...</div>}
+      {!loaded && <div className="loading_notice">{t('Larger version loading…')}</div>}
       <img
         width={width ?? image_width}
         height={height}
@@ -81,7 +83,7 @@ export default function KivaImage({
         src={imageUrl}
         onClick={enlargeable ? () => setZoom(true) : undefined}
         style={enlargeable ? { cursor: 'zoom-in' } : undefined}
-        title={enlargeable ? 'Click to enlarge' : undefined}
+        title={enlargeable ? t('Click to enlarge') : undefined}
       />
 
       {enlargeable &&
@@ -90,7 +92,7 @@ export default function KivaImage({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label={altText || 'Borrower photo'}
+            aria-label={altText || t('Borrower photo')}
             onClick={() => setZoom(false)}
             style={{
               position: 'fixed',
@@ -119,7 +121,7 @@ export default function KivaImage({
             />
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t('Close')}
               onClick={() => setZoom(false)}
               style={{
                 position: 'fixed',

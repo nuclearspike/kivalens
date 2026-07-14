@@ -4,12 +4,14 @@ import { useCriteriaStore, useLoanStore } from '../stores'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // Criteria sidebar panel — wraps CriteriaTabs + saved-search dropdown
 // ---------------------------------------------------------------------------
 
 export function Criteria() {
+  const { t } = useI18n()
   const startFresh = useCriteriaStore((s) => s.startFresh)
   const loadSearch = useCriteriaStore((s) => s.loadSearch)
   const saveSearch = useCriteriaStore((s) => s.saveSearch)
@@ -52,20 +54,20 @@ export function Criteria() {
   )
 
   const handleSaveAs = useCallback(async () => {
-    const name = await showPrompt('Enter name for saved search criteria:', {
-      title: 'Save Search',
+    const name = await showPrompt(t('Enter name for saved search criteria:'), {
+      title: t('Save Search'),
     })
     if (name?.trim()) {
       saveSearch(name.trim())
       refreshNames()
     }
-  }, [saveSearch, refreshNames])
+  }, [saveSearch, refreshNames, t])
 
   const handleDelete = useCallback(
     async (name: string) => {
-      const ok = await showConfirm(`Delete saved search "${name}"?`, {
-        title: 'Delete Saved Search',
-        confirmLabel: 'Delete',
+      const ok = await showConfirm(t('Delete saved search “{name}”?', { name: t(name) }), {
+        title: t('Delete Saved Search'),
+        confirmLabel: t('Delete'),
         danger: true,
       })
       if (ok) {
@@ -73,19 +75,19 @@ export function Criteria() {
         refreshNames()
       }
     },
-    [deleteSearch, refreshNames],
+    [deleteSearch, refreshNames, t],
   )
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center' }}>
         <Button size="sm" onClick={handleClear} style={{ whiteSpace: 'nowrap' }} data-aikl="reset">
-          Reset
+          {t('Reset')}
         </Button>
 
         <Dropdown onToggle={(isOpen) => { if (isOpen) refreshNames() }}>
           <Dropdown.Toggle size="sm" id="saved-search-dropdown" style={{ flex: 1 }} data-aikl="saved-searches">
-            {lastSwitch ? `'${lastSwitch}'` : 'Saved Searches'}
+            {lastSwitch ? `‘${t(lastSwitch)}’` : t('Saved Searches')}
           </Dropdown.Toggle>
           <Dropdown.Menu style={{ maxHeight: 400, overflowY: 'auto', fontSize: 12 }}>
             {searchNames.map((name) => (
@@ -98,23 +100,19 @@ export function Criteria() {
                 {searchCounts[name] != null ? (
                   <span className="saved-search-count">{searchCounts[name]}</span>
                 ) : null}
-                <span>{name}</span>
+                <span>{t(name)}</span>
               </Dropdown.Item>
             ))}
             {searchNames.length > 0 ? <Dropdown.Divider /> : null}
             {lastSwitch ? (
               <>
-                <Dropdown.Item onClick={() => saveSearch(lastSwitch)}>
-                  Re-save &apos;{lastSwitch}&apos;
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => handleDelete(lastSwitch)}>
-                  Delete &apos;{lastSwitch}&apos;
-                </Dropdown.Item>
+                <Dropdown.Item onClick={() => saveSearch(lastSwitch)}>{t('Re-save “{name}”', { name: t(lastSwitch) })}</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleDelete(lastSwitch)}>{t('Delete “{name}”', { name: t(lastSwitch) })}</Dropdown.Item>
               </>
             ) : null}
-            <Dropdown.Item href="#/saved">Manage Saved Searches</Dropdown.Item>
+            <Dropdown.Item href="#/saved">{t('Manage Saved Searches')}</Dropdown.Item>
             <Dropdown.Divider />
-            <Dropdown.Item onClick={handleSaveAs}>Save Current Criteria As...</Dropdown.Item>
+            <Dropdown.Item onClick={handleSaveAs}>{t('Save Current Criteria As...')}</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>

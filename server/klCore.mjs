@@ -626,7 +626,9 @@ export async function prepareData(state, log = console.log) {
     state.ready = true
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
-    log(`Data ready! ${processed.length} loans in ${elapsed}s`)
+    // `processed` is deliberately released above to lower the refresh peak; use
+    // the published collection here so logging cannot abort snapshot scheduling.
+    log(`Data ready! ${state.allLoans.length} loans in ${elapsed}s`)
     log(`  kl_api_start: ${JSON.stringify(state.klStart)}`)
 
     // Persist the freshly-published dataset for the next boot's warm start.

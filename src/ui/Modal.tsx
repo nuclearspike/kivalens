@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react'
 import { createContext, useContext, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cx } from './types'
+import { useI18n } from '../i18n'
 
 const ModalContext = createContext<{ onHide?: () => void }>({})
 
@@ -76,6 +77,7 @@ function ModalHeader({
   ...rest
 }: ComponentPropsWithoutRef<'div'> & { closeButton?: boolean }) {
   const { onHide } = useContext(ModalContext)
+  const { t } = useI18n()
   return (
     <div className={cx('modal-header', className)} {...rest}>
       {children}
@@ -83,7 +85,7 @@ function ModalHeader({
         <button
           type="button"
           className="btn-close"
-          aria-label="Close"
+          aria-label={t('Close')}
           onClick={onHide}
         />
       )}

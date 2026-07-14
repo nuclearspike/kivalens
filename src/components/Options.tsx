@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Container, Card, Form, Button, Col, Row } from '../ui'
-import { formatDistanceToNow } from 'date-fns'
 import { lsj } from '../lib/localStorage'
 import { useUtilsStore } from '../stores'
 import KivaImage from './KivaImage'
 import CompanionCard from './CompanionCard'
 import { companionEnabled } from '../api/companion'
+import { useI18n } from '../i18n'
 
 interface OptionsState {
   default_lend_amount: number
@@ -46,6 +46,7 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
 }
 
 export default function Options() {
+  const { t, relativeTime } = useI18n()
   const [opts, setOpts] = usePersistedOptions()
   const lenderObj = useUtilsStore((s) => s.lenderObj)
   const lenderId = useUtilsStore((s) => s.lenderId)
@@ -62,31 +63,31 @@ export default function Options() {
 
   return (
     <Container className="py-3">
-      <h1>Options</h1>
+      <h1>{t('Options')}</h1>
       <Row>
         <Col md={12}>
           {/* --- Who Are You --- */}
           <Card className="mb-3">
-            <Card.Header>Who are you?</Card.Header>
+            <Card.Header>{t('Who are you?')}</Card.Header>
             <Card.Body>
               {lenderId ? (
                 <p>
-                  Your Lender ID: <b>{lenderId}</b>{' '}
+                  {t('Your Lender ID')}: <b>{lenderId}</b>{' '}
                   <Button variant="link" size="sm" onClick={openLenderIdModal}>
-                    Change
+                    {t('Change')}
                   </Button>
                 </p>
               ) : (
-                <Button onClick={openLenderIdModal}>Set Kiva Lender ID</Button>
+                <Button onClick={openLenderIdModal}>{t('Set Kiva Lender ID')}</Button>
               )}
 
-              <p className="ample-padding-top">Your Lender ID enables:</p>
+              <p className="ample-padding-top">{t('Your Lender ID enables:')}</p>
               <ul className="spacedList">
-                <li><b>Exclude Loans I&apos;ve Made:</b> Hides loans you&apos;ve already funded so you don&apos;t accidentally lend twice to the same borrower.</li>
-                <li><b>Portfolio Balancing:</b> Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.</li>
-                <li><b>Basket Pruning:</b> Automatically removes completed loans from your basket when you return to KivaLens.</li>
-                <li><b>Team Comparison:</b> Compare membership and lending across all your teams.</li>
-                <li><b>3D Loan Wall:</b> Visualize your portfolio at <a href="#/portfolio">wall</a>.</li>
+                <li>{t("Exclude Loans I've Made: Hides loans you've already funded so you don't accidentally lend twice to the same borrower.")}</li>
+                <li>{t('Portfolio Balancing: Filter by Partners, Countries, Sectors, and Activities relative to your existing portfolio.')}</li>
+                <li>{t('Basket Pruning: Automatically removes completed loans from your basket when you return to KivaLens.')}</li>
+                <li>{t('Team Comparison: Compare membership and lending across all your teams.')}</li>
+                <li>{t('3D Loan Wall: Visualize your portfolio on the Wall page.')}</li>
               </ul>
 
               {lenderObj ? (
@@ -102,16 +103,16 @@ export default function Options() {
                   </Col>
                   <Col sm={9} md={10}>
                     <dl className="row mb-0">
-                      <dt className="col-sm-4">Name</dt>
+                      <dt className="col-sm-4">{t('Name')}</dt>
                       <dd className="col-sm-8">{lenderObj.name}</dd>
 
-                      <dt className="col-sm-4">Loan Count</dt>
+                      <dt className="col-sm-4">{t('Loan Count')}</dt>
                       <dd className="col-sm-8">{lenderObj.loan_count ?? 0}</dd>
 
-                      <dt className="col-sm-4">Invitees</dt>
+                      <dt className="col-sm-4">{t('Invitees')}</dt>
                       <dd className="col-sm-8">{lenderObj.invitee_count ?? 0}</dd>
 
-                      <dt className="col-sm-4">Invitation Link</dt>
+                      <dt className="col-sm-4">{t('Invitation Link')}</dt>
                       <dd className="col-sm-8">
                         <a
                           href={`https://www.kiva.org/invitedby/${lenderObj.lender_id}`}
@@ -122,26 +123,22 @@ export default function Options() {
                         </a>
                       </dd>
 
-                      <dt className="col-sm-4">Joined</dt>
+                      <dt className="col-sm-4">{t('Joined')}</dt>
                       <dd className="col-sm-8">
-                        {lenderObj.member_since
-                          ? formatDistanceToNow(new Date(lenderObj.member_since), {
-                              addSuffix: true,
-                            })
-                          : '(unknown)'}
+                         {lenderObj.member_since ? relativeTime(lenderObj.member_since) : t('(unknown)')}
                       </dd>
 
-                      <dt className="col-sm-4">Location</dt>
-                      <dd className="col-sm-8">{lenderObj.whereabouts ?? '(unknown)'}</dd>
+                      <dt className="col-sm-4">{t('Location')}</dt>
+                      <dd className="col-sm-8">{lenderObj.whereabouts ?? t('(unknown)')}</dd>
 
-                      <dt className="col-sm-4">Lender Page</dt>
+                      <dt className="col-sm-4">{t('Lender Page')}</dt>
                       <dd className="col-sm-8">
                         <a
                           href={`https://www.kiva.org/lender/${lenderObj.lender_id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Your Lender Page
+                           {t('Your Lender Page')}
                         </a>
                       </dd>
                     </dl>
@@ -156,10 +153,10 @@ export default function Options() {
 
           {/* --- Display --- */}
           <Card className="mb-3">
-            <Card.Header>Display</Card.Header>
+            <Card.Header>{t('Display')}</Card.Header>
             <Card.Body>
               <Form.Group className="mb-3">
-                <Form.Label>Default Lending Amount</Form.Label>
+                <Form.Label>{t('Default Lending Amount')}</Form.Label>
                 <div>
                   <select
                     value={opts.default_lend_amount}
@@ -176,7 +173,7 @@ export default function Options() {
               </Form.Group>
               <Form.Check
                 type="checkbox"
-                label="Show distribution graphs when selecting criteria options"
+                label={t('Show distribution graphs when selecting criteria options')}
                 checked={!opts.hide_criteria_graphs}
                 onChange={(e) => setOpts({ hide_criteria_graphs: !e.target.checked })}
               />
@@ -185,60 +182,54 @@ export default function Options() {
 
           {/* --- External Research --- */}
           <Card className="mb-3">
-            <Card.Header>External Research</Card.Header>
+            <Card.Header>{t('External Research')}</Card.Header>
             <Card.Body>
               <Form.Check
                 type="checkbox"
-                label="Merge A+ Team's MFI Research Data for Secular, Social, and Religion ratings"
+                label={t("Merge A+ Team's MFI Research Data for Secular, Social, and Religion ratings")}
                 checked
                 disabled
                 readOnly
               />
               <p className="mt-2">
-                KivaLens pulls the{' '}
-                <a href="https://www.kiva.org/team/aplus" target="_blank" rel="noreferrer">A+ Team</a>
-                &apos;s (Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and the
-                Non-Religious) MFI List from{' '}
+                {t('KivaLens combines field-partner research from the')}{' '}
+                <a href="https://www.kiva.org/team/aplus" target="_blank" rel="noreferrer">A+ Team</a>{' '}
+                {t('with data from')}{' '}
                 <a
                   href="https://docs.google.com/spreadsheets/d/1KP7ULBAyavnohP4h8n2J2yaXNpIRnyIXdjJj_AwtwK0/edit#gid=1"
                   target="_blank"
                   rel="noreferrer"
-                  title="View Google Doc"
+                  title={t('View Google Doc')}
                 >
-                  this Google Doc
-                </a>{' '}
-                and merges some of the data which allows you to search using their Secular (1-4) and
-                Social ratings (1-4) where a 1 represents a low score, so a 1 in the Secular Score
-                means that it is religion based. This adds 2 sliders to the Partner Criteria tab, a
-                Religion filter, and an additional section displaying and explaining the ratings on
-                the Partner tab of the loan. If a partner is not present in the MFI Research Data,
-                by default, it will show up in the results.
+                  {t('this Google Doc')}
+                </a>.{' '}
+                {t('This adds Secular and Social score sliders, a Religion filter, and rating details on partner pages. A score of 1 is low; for the Secular score, it indicates a religion-based organization. Partners absent from the research remain in results by default.')}
               </p>
             </Card.Body>
           </Card>
 
           {/* --- Debug / Beta --- */}
           <Card className="mb-3">
-            <Card.Header>Debug / Beta Testing</Card.Header>
+            <Card.Header>{t('Debug / Beta Testing')}</Card.Header>
             <Card.Body>
               <Form.Check
                 type="checkbox"
                 className="mb-2"
-                label="Show me features that are being beta-tested"
+                label={t('Show me features that are being beta-tested')}
                 checked={opts.betaTester}
                 onChange={(e) => setOpts({ betaTester: e.target.checked })}
               />
               <Form.Check
                 type="checkbox"
                 className="mb-2"
-                label="Download loans from Kiva's server instead of KivaLens (slower, use only if experiencing problems)"
+                label={t("Download loans from Kiva's server instead of KivaLens (slower, use only if experiencing problems)")}
                 checked={opts.loansFromKiva}
                 onChange={(e) => setOpts({ loansFromKiva: e.target.checked })}
               />
               <Form.Check
                 type="checkbox"
                 className="mb-2"
-                label="Output debugging messages to the console"
+                label={t('Output debugging messages to the console')}
                 checked={opts.debugging}
                 onChange={(e) => setOpts({ debugging: e.target.checked })}
               />
@@ -247,11 +238,11 @@ export default function Options() {
 
           {/* --- AI Assistant --- */}
           <Card className="mb-3">
-            <Card.Header>AI Assistant</Card.Header>
+            <Card.Header>{t('AI Assistant')}</Card.Header>
             <Card.Body>
               <Form.Check
                 type="checkbox"
-                label="Show the Ask KivaLens AI assistant (the chat bubble in the corner)"
+                label={t('Show the Ask KivaLens AI assistant (the chat bubble in the corner)')}
                 checked={!aiWidgetDisabled}
                 onChange={(e) => setAiWidgetDisabled(!e.target.checked)}
               />

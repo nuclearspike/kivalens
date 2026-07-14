@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { Container, Row, Col } from '../ui'
 import numeral from 'numeral'
-import { formatDistanceToNow } from 'date-fns'
 import { useLoanStore } from '../stores'
+import { useI18n } from '../i18n'
 import { getKivaLoans } from '../api/kiva'
 import YourLending from './YourLending'
 
@@ -15,6 +15,7 @@ function AnimInt({ value }: { value: number }) {
  * Shows running totals since session start and current fundraising snapshot.
  */
 export default function Live() {
+  const { t, relativeTime } = useI18n()
   const loans = useLoanStore((s) => s.loans)
   const runningTotals = useLoanStore((s) => s.runningTotals)
 
@@ -57,49 +58,45 @@ export default function Live() {
     <Container className="py-3">
       <YourLending />
       <Row>
-        <h1>Kiva Lending</h1>
+        <h1>{t('Kiva Lending')}</h1>
         <p>
-          {startupTime ? (
-            <>
-              Session started {formatDistanceToNow(startupTime, { addSuffix: true })}.{' '}
-            </>
-          ) : null}
-          Stats are updated from periodic syncs with Kiva&apos;s API.
+          {startupTime ? `${t('Session started {time}.', { time: relativeTime(startupTime) })} ` : null}
+          {t("Stats are updated from periodic syncs with Kiva's API.")}
         </p>
       </Row>
       <Row>
         <Col md={4}>
-          <h3>Since session start</h3>
+          <h3>{t('Since session start')}</h3>
           <dl className="dl-horizontal" style={{ fontSize: 'large' }}>
-            <dt>New Loans</dt>
+            <dt>{t('New Loans')}</dt>
             <dd><AnimInt value={totals.new_loans} /></dd>
 
-            <dt>Fully Funded</dt>
+            <dt>{t('Fully Funded')}</dt>
             <dd><AnimInt value={totals.funded_loans} /></dd>
 
-            <dt>Expired</dt>
+            <dt>{t('Expired')}</dt>
             <dd><AnimInt value={totals.expired_loans} /></dd>
 
-            <dt>Lending Total</dt>
+            <dt>{t('Lending Total')}</dt>
             <dd>$<AnimInt value={totals.funded_amount} /></dd>
           </dl>
         </Col>
         <Col md={4}>
-          <h3>Fundraising Loans</h3>
+          <h3>{t('Fundraising Loans')}</h3>
           <dl className="dl-horizontal" style={{ fontSize: 'large' }}>
-            <dt>Fundraising</dt>
+            <dt>{t('Fundraising')}</dt>
             <dd>$<AnimInt value={fundraisingAmount} /></dd>
 
-            <dt>Funded Amount</dt>
+            <dt>{t('Funded Amount')}</dt>
             <dd>$<AnimInt value={fundedSum} /></dd>
 
-            <dt>In Baskets</dt>
+            <dt>{t('In Baskets')}</dt>
             <dd>$<AnimInt value={basketAmount} /></dd>
 
-            <dt>Still Needed</dt>
+            <dt>{t('Still Needed')}</dt>
             <dd>$<AnimInt value={stillNeeded} /></dd>
 
-            <dt>Average Funded</dt>
+            <dt>{t('Average Funded')}</dt>
             <dd><AnimInt value={avgPercentFunded} />%</dd>
           </dl>
         </Col>

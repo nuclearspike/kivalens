@@ -12,12 +12,14 @@ import BulkAddModal from './BulkAddModal'
 import { NoResultsHelp } from './NoResultsHelp'
 import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // Search page — criteria panel + loan list + detail area
 // ---------------------------------------------------------------------------
 
 export function Search() {
+  const { t } = useI18n()
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
   const downloading = useLoanStore((s) => s.downloading)
   const secondaryStatus = useLoanStore((s) => s.secondaryStatus)
@@ -106,36 +108,37 @@ export function Search() {
         <Col md={listCol} data-aikl="results">
           <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
             <Button onClick={toggleCriteria} className="w-50">
-              {showCriteria ? 'Hide Criteria' : 'Show Criteria'}
+              {t(showCriteria ? 'Hide Criteria' : 'Show Criteria')}
             </Button>
             <Button onClick={openBulkAdd} className="w-50" data-aikl="bulk-add">
-              Bulk Add
+              {t('Bulk Add')}
             </Button>
           </ButtonGroup>
 
           {secondaryStatus ? (
             <Alert variant="warning" className="not-rounded" style={{ marginBottom: 0 }}>
-              More loans are still loading. Carry on. {secondaryStatus}
+              {t('More loans are still loading. Carry on.')} {secondaryStatus}
             </Alert>
           ) : null}
 
           {backgroundResyncState === 'started' ? (
             <Alert variant="info" className="not-rounded" style={{ marginBottom: 0 }}>
-              Continue using the site while the loans are refreshed...
+              {t('Continue using the site while the loans are refreshed…')}
             </Alert>
           ) : null}
 
           {excludePortfolio && lenderLoansLoading ? (
             <Alert variant="info" className="not-rounded" style={{ marginBottom: 0 }}>
-              Hiding loans you&apos;ve already funded — still loading your
-              portfolio. Results will update in a moment.
+              {t('Hiding loans you have already funded — still loading your portfolio. Results will update in a moment.')}
             </Alert>
           ) : null}
 
           {loanCount > 0 ? (
             <div className="loan-count-bar">
-              Showing {numeral(loanCount).format('0,0')} of{' '}
-              {numeral(totalFundraising).format('0,0')} fundraising loans
+              {t('Showing {shown} of {total} fundraising loans', {
+                shown: numeral(loanCount).format('0,0'),
+                total: numeral(totalFundraising).format('0,0'),
+              })}
             </div>
           ) : null}
 
@@ -157,13 +160,13 @@ export function Search() {
             <Loan loanId={selectedId} />
           ) : (
             <div className="p-3">
-              <h2 style={{ marginTop: 0, color: '#2C8C5E' }}>Welcome to KivaLens</h2>
-              <h4>Quick Start</h4>
+              <h2 style={{ marginTop: 0, color: '#2C8C5E' }}>{t('Welcome to KivaLens')}</h2>
+              <h4>{t('Quick Start')}</h4>
               <ol style={{ paddingLeft: 18, lineHeight: 1.8 }}>
-                <li>Use the criteria on the left to filter loans</li>
-                <li>Click a loan to review details and repayment info</li>
-                <li>Click &quot;Lend&quot; on loans you like</li>
-                <li>Go to Basket tab to transfer loans to Kiva</li>
+                <li>{t('Use the criteria on the left to filter loans')}</li>
+                <li>{t('Click a loan to review details and repayment info')}</li>
+                <li>{t('Click “Lend” on loans you like')}</li>
+                <li>{t('Go to Basket tab to transfer loans to Kiva')}</li>
               </ol>
               {aiServerEnabled && !aiWidgetDisabled ? (
                 <button
@@ -171,7 +174,7 @@ export function Search() {
                   onClick={() =>
                     useUtilsStore
                       .getState()
-                      .openAskKl(WELCOME_PROMPT)
+                      .openAskKl(t(WELCOME_PROMPT))
                   }
                   style={{
                     marginTop: 8,
@@ -184,7 +187,7 @@ export function Search() {
                     cursor: 'pointer',
                   }}
                 >
-                  Need help getting started? Chat with KivaLens AI
+                  {t('Need help getting started? Chat with KivaLens AI')}
                 </button>
               ) : null}
               {!hasLenderId ? (
@@ -204,13 +207,13 @@ export function Search() {
                       showLenderIDModal()
                     }}
                   >
-                    Set your Lender ID
+                    {t('Set your Lender ID')}
                   </a>{' '}
-                  to hide loans you&apos;ve already funded and enable portfolio balancing.
+                  {t('to hide loans you have already funded and enable portfolio balancing.')}
                 </div>
               ) : null}
               <div style={{ marginTop: 16 }}>
-                <a href="#/about">Learn more</a>
+                <a href="#/about">{t('Learn more')}</a>
               </div>
             </div>
           )}

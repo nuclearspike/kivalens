@@ -9,6 +9,7 @@ import type { Partner } from '../types'
 import { useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
 import PartnerDetail from './PartnerDetail'
+import { useI18n } from '../i18n'
 
 interface SelectOption {
   value: string
@@ -141,6 +142,7 @@ function AanDropdown({
   onChange: (val: string) => void
   canAll?: boolean
 }) {
+  const { t } = useI18n()
   const selected = value || (canAll ? 'all' : 'any')
   const styles: Record<string, string> = canAll
     ? { all: 'success', any: 'primary', none: 'danger' }
@@ -152,14 +154,14 @@ function AanDropdown({
         size="sm"
         variant={styles[selected] ?? 'primary'}
         id="partner-aan-dropdown"
-        style={{ height: 34, padding: '4px 8px', width: 53 }}
+        style={{ height: 34, padding: '4px 8px', minWidth: 53, width: 'max-content', whiteSpace: 'nowrap' }}
       >
-        {selected}
+        {t(selected)}
       </Dropdown.Toggle>
       <Dropdown.Menu>
-        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>All of these</Dropdown.Item> : null}
-        <Dropdown.Item onClick={() => onChange('any')}>Any of these</Dropdown.Item>
-        <Dropdown.Item onClick={() => onChange('none')}>None of these</Dropdown.Item>
+        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>{t('All of these')}</Dropdown.Item> : null}
+        <Dropdown.Item onClick={() => onChange('any')}>{t('Any of these')}</Dropdown.Item>
+        <Dropdown.Item onClick={() => onChange('none')}>{t('None of these')}</Dropdown.Item>
       </Dropdown.Menu>
     </Dropdown>
   )
@@ -178,19 +180,22 @@ function FilterRow({
   hint?: string
   children: React.ReactNode
 }) {
+  const { t } = useI18n()
+  const localizedLabel = t(label)
+  const localizedHint = hint ? t(hint) : undefined
   // Same dotted-underline help affordance as the Search > Partner criteria tab.
-  const labelEl = hint ? (
+  const labelEl = localizedHint ? (
     <OverlayTrigger
       trigger={['hover', 'focus']}
       placement="top"
-      overlay={<Popover id={`pop-${label}`}><Popover.Body>{hint}</Popover.Body></Popover>}
+      overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHint}</Popover.Body></Popover>}
     >
       <Form.Label className="small" style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>
-        {label}
+        {localizedLabel}
       </Form.Label>
     </OverlayTrigger>
   ) : (
-    <Form.Label className="small">{label}</Form.Label>
+    <Form.Label className="small">{localizedLabel}</Form.Label>
   )
   return (
     <Row className="mb-2 align-items-start">
@@ -233,8 +238,9 @@ function RangeRow({
 }) {
   const actualMin = minVal != null && !isNaN(Number(minVal)) ? Number(minVal) : min
   const actualMax = maxVal != null && !isNaN(Number(maxVal)) ? Number(maxVal) : max
-  const displayMin = minVal == null ? 'min' : actualMin
-  const displayMax = maxVal == null ? 'max' : actualMax
+  const { t } = useI18n()
+  const displayMin = minVal == null ? t('Min') : actualMin
+  const displayMax = maxVal == null ? t('Max') : actualMax
 
   return (
     <FilterRow
@@ -272,6 +278,7 @@ function PartnerListItem({
   loanCount: number | null
   selected: boolean
 }) {
+  const { t } = useI18n()
   const bg = !selected ? statusBg[partner.status] : undefined
   return (
     <ListGroup.Item
@@ -304,7 +311,9 @@ function PartnerListItem({
               <span className="partner-pill partner-pill-muted">+{partner.countries.length - 3}</span>
             ) : null}
             {partner.rating ? (
-              <span className="partner-pill partner-pill-good">{partner.rating} stars</span>
+              <span className="partner-pill partner-pill-good">
+                {t('{count} stars', { count: partner.rating })}
+              </span>
             ) : null}
           </div>
         </div>
@@ -324,6 +333,7 @@ function PartnerListItem({
 }
 
 export function Component() {
+  const { t } = useI18n()
   const loans = useLoanStore((s) => s.loans)
   const downloading = useLoanStore((s) => s.downloading)
 
@@ -332,6 +342,18 @@ export function Component() {
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
   const [partnerTick, setPartnerTick] = useState(0)
   const [filters, setFilters] = useState<PartnerFilters>({ status: 'active', status_all_any_none: 'any' })
+  const localizedOptions = useMemo(() => {
+    const localize = (options: SelectOption[]) =>
+      options.map((option) => ({ ...option, label: t(option.label) }))
+    return {
+      statuses: localize(STATUS_MULTI_OPTIONS),
+      countries: localize(COUNTRY_OPTIONS),
+      regions: localize(REGION_OPTIONS),
+      socialPerformance: localize(SOCIAL_PERFORMANCE_OPTIONS),
+      charges: localize(CHARGES_OPTIONS),
+      religions: localize(RELIGION_OPTIONS),
+    }
+  }, [t])
 
   useEffect(() => {
     const kl = getKivaLoans()
@@ -413,13 +435,13 @@ export function Component() {
               type="text"
               size="sm"
               className="mb-2"
-              placeholder="Search by name..."
+              placeholder={t('Search by name...')}
               value={nameSearch}
               onChange={(e) => setNameSearch(e.target.value)}
             />
 
             <FilterRow
-              label="Status"
+              label={t('Status')}
               aan={
                 <AanDropdown
                   value={String(filters.status_all_any_none ?? 'any')}
@@ -430,8 +452,8 @@ export function Component() {
               <Select
                 isMulti
                 placeholder=""
-                options={STATUS_MULTI_OPTIONS}
-                value={csvToOptions(filters.status, STATUS_MULTI_OPTIONS)}
+                options={localizedOptions.statuses}
+                value={csvToOptions(filters.status, localizedOptions.statuses)}
                 onChange={(value) => updateFilter('status', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -439,7 +461,7 @@ export function Component() {
             </FilterRow>
 
             <FilterRow
-              label="Countries"
+              label={t('Countries')}
               aan={
                 <AanDropdown
                   
@@ -451,8 +473,8 @@ export function Component() {
               <Select
                 isMulti
                 placeholder=""
-                options={COUNTRY_OPTIONS}
-                value={csvToOptions(filters.country_code, COUNTRY_OPTIONS)}
+                options={localizedOptions.countries}
+                value={csvToOptions(filters.country_code, localizedOptions.countries)}
                 onChange={(value) => updateFilter('country_code', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -460,7 +482,7 @@ export function Component() {
             </FilterRow>
 
             <FilterRow
-              label="Region"
+              label={t('Region')}
               aan={
                 <AanDropdown
                   
@@ -472,8 +494,8 @@ export function Component() {
               <Select
                 isMulti
                 placeholder=""
-                options={REGION_OPTIONS}
-                value={csvToOptions(filters.region, REGION_OPTIONS)}
+                options={localizedOptions.regions}
+                value={csvToOptions(filters.region, localizedOptions.regions)}
                 onChange={(value) => updateFilter('region', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -481,7 +503,7 @@ export function Component() {
             </FilterRow>
 
             <FilterRow
-              label="Social Perf."
+              label={t('Social Performance')}
               aan={
                 <AanDropdown
                   canAll
@@ -493,21 +515,21 @@ export function Component() {
               <Select
                 isMulti
                 placeholder=""
-                options={SOCIAL_PERFORMANCE_OPTIONS}
-                value={csvToOptions(filters.social_performance, SOCIAL_PERFORMANCE_OPTIONS)}
+                options={localizedOptions.socialPerformance}
+                value={csvToOptions(filters.social_performance, localizedOptions.socialPerformance)}
                 onChange={(value) => updateFilter('social_performance', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
               />
             </FilterRow>
 
-            <FilterRow label="Charges Interest">
+            <FilterRow label={t('Charges Interest')}>
               <Form.Select
                 size="sm"
                 value={String(filters.charges_fees_and_interest ?? '')}
                 onChange={(e) => updateFilter('charges_fees_and_interest', e.target.value)}
               >
-                {CHARGES_OPTIONS.map((option) => (
+                {localizedOptions.charges.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -516,7 +538,7 @@ export function Component() {
             </FilterRow>
 
             <FilterRow
-              label="Religion"
+              label={t('Religion')}
               hint={RELIGION_HELP}
               aan={
                 <AanDropdown
@@ -529,8 +551,8 @@ export function Component() {
               <Select
                 isMulti
                 placeholder=""
-                options={RELIGION_OPTIONS}
-                value={csvToOptions(filters.religion, RELIGION_OPTIONS)}
+                options={localizedOptions.religions}
+                value={csvToOptions(filters.religion, localizedOptions.religions)}
                 onChange={(value) => updateFilter('religion', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -561,11 +583,13 @@ export function Component() {
         <div className="col-md-3">
           <div className="d-flex justify-content-between align-items-center mb-1">
             <span className="small text-muted">
-              Showing {numeral(filtered.length).format('0,0')} of{' '}
-              {numeral(totalCount).format('0,0')} partners
+               {t('Showing {shown} of {total} partners', {
+                 shown: numeral(filtered.length).format('0,0'),
+                 total: numeral(totalCount).format('0,0'),
+               })}
             </span>
             <Button size="sm" variant="outline-secondary" onClick={clearCriteria}>
-              Reset
+              {t('Reset')}
             </Button>
           </div>
           <div style={{ maxHeight: 'calc(100vh - 110px)', overflowY: 'auto' }}>
@@ -589,10 +613,11 @@ export function Component() {
             </div>
           ) : (
             <div className="text-center text-muted" style={{ paddingTop: 60 }}>
-              <h3>Select a partner from the list</h3>
+              <h3>{t('Select a partner from the list')}</h3>
               <p>
-                Browse all {numeral(totalCount).format('0,0')} partners including inactive and
-                paused ones.
+                {t('Browse all {count} partners, including inactive and paused ones.', {
+                  count: numeral(totalCount).format('0,0'),
+                })}
               </p>
             </div>
           )}

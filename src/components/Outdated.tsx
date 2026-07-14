@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Container } from '../ui'
+import { useI18n } from '../i18n'
 
 export default function Outdated() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -16,7 +18,7 @@ export default function Outdated() {
 
   return (
     <Container>
-      <h4>Outdated Link...</h4>
+      <h4>{t('Outdated Link…')}</h4>
     </Container>
   )
 }

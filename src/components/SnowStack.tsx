@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { LenderLoans } from '../api/kivajs/LenderLoans'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // SnowStack — the 3D CSS portfolio wall.
@@ -67,6 +68,7 @@ function fitImage(img: HTMLImageElement, dims: WallDims) {
 }
 
 export function Component() {
+  const { t } = useI18n()
   const [searchParams] = useSearchParams()
   const savedLenderId = useUtilsStore((s) => s.lenderId)
   const lenderDataVersion = useUtilsStore((s) => s.lenderDataVersion)
@@ -75,7 +77,7 @@ export function Component() {
   const storeLoans = useLoanStore((s) => s.loans)
 
   const [images, setImages] = useState<WallImage[]>([])
-  const [message, setMessage] = useState('Loading...')
+  const [message, setMessage] = useState(() => t('Loading…'))
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(Math.floor(ROWS / 2))
   const [magnify, setMagnify] = useState(false)
@@ -104,21 +106,26 @@ export function Component() {
 
     if (lenderId) {
       setLoading(true)
-      setMessage(`Loading loans for ${lenderId}...`)
+      setMessage(t('Loading loans for {lenderId}…', { lenderId }))
       new LenderLoans(lenderId, { max_pages: 10 })
         .start()
         .then((loans: Array<{ id: number; name?: string; image?: { id: number } }>) => {
           if (unmounted) return
           setImages(loans.map(loanToWallImage).filter((i): i is WallImage => i !== null))
           setMessage(
-            `${lenderId}'s portfolio (up to 200): arrow keys to move, space toggles magnify.`,
+            t('{lenderId}’s portfolio (up to 200): arrow keys move; space toggles magnification.', {
+              lenderId,
+            }),
           )
           setLoading(false)
         })
         .catch((err: unknown) => {
           if (unmounted) return
           setMessage(
-            `Failed to load loans for ${lenderId}: ${err instanceof Error ? err.message : err}`,
+            t('Failed to load loans for {lenderId}: {error}', {
+              lenderId,
+              error: err instanceof Error ? err.message : String(err),
+            }),
           )
           setLoading(false)
         })
@@ -142,17 +149,17 @@ export function Component() {
           .map(loanToWallImage)
           .filter((i): i is WallImage => i !== null),
       )
-      setMessage('Fundraising loans: arrow keys to move, space toggles magnify.')
+      setMessage(t('Fundraising loans: arrow keys move; space toggles magnification.'))
       setLoading(false)
     } else {
       setLoading(true)
-      setMessage('Loading...')
+      setMessage(t('Loading…'))
     }
 
     return () => {
       unmounted = true
     }
-  }, [lenderId, lenderDataVersion, storeLoans])
+  }, [lenderId, lenderDataVersion, storeLoans, t])
 
   // Reset selection when the image set changes
   useEffect(() => {

@@ -17,6 +17,7 @@ import type { BasketEntry } from '../stores'
 import BasketListItem from './BasketListItem'
 import Loan from './Loan'
 import { getKivaLoans } from '../api/kiva'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // BasketRepaymentChart - combined repayment forecast across all basket items
@@ -31,6 +32,7 @@ interface BasketRepaymentDatum {
 
 
 function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
+  const { t } = useI18n()
   const { data, skippedCount } = useMemo(() => {
     const monthMap = new Map<string, { amount: number; date: number }>()
     let skipped = 0
@@ -76,7 +78,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
         <div className="card mb-3">
           <div className="card-body">
             <div className="alert alert-info mb-0">
-              Repayment schedule data is not yet available for the loans in your basket.
+              {t('Repayment schedule data is not yet available for the loans in your basket.')}
             </div>
           </div>
         </div>
@@ -92,10 +94,13 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
   return (
     <div className="card mb-3">
       <div className="card-body p-2">
-        <h4>Repayments for Basket: {data.length} months</h4>
+        <h4>{t('Repayments')}: {t('{count} months', { count: data.length })}</h4>
         {skippedCount > 0 ? (
           <div className="alert alert-warning py-1 mb-2">
-            Repayment data unavailable for {skippedCount} of {entries.length} loans.
+            {t('Repayment data unavailable for {skipped} of {total} loans.', {
+              skipped: skippedCount,
+              total: entries.length,
+            })}
           </div>
         ) : null}
         <ResponsiveContainer width="100%" height={chartHeight}>
@@ -162,6 +167,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
  * Checkout builds a Kiva URL and submits the basket via a hidden form POST.
  */
 export default function Basket() {
+  const { t } = useI18n()
   const getBasket = useLoanStore((s) => s.getBasket)
   const clearBasket = useLoanStore((s) => s.clearBasket)
   const removeFromBasket = useLoanStore((s) => s.removeFromBasket)
@@ -238,31 +244,31 @@ export default function Basket() {
       const remaining = pending.ids.filter((id) => !confirmed.includes(id))
       if (remaining.length === 0) {
         setBasketNotice(
-          `${confirmed.length} loan${confirmed.length === 1 ? '' : 's'} confirmed on Kiva and removed from your basket.`,
+          t('{count} loans confirmed on Kiva and removed from your basket.', { count: confirmed.length }),
         )
         clearPendingCheckout()
       } else {
         // Clear pending before awaiting the dialog so re-entry can't double-prompt.
         clearPendingCheckout()
         const message = confirmed.length
-          ? `Confirmed ${confirmed.length} of ${pending.ids.length} loans on your Kiva account. Did your checkout complete for the rest?`
-          : 'Did your Kiva checkout complete?'
+          ? t('Confirmed {confirmed} of {total} loans on your Kiva account. Did your checkout complete for the rest?', { confirmed: confirmed.length, total: pending.ids.length })
+          : t('Did your Kiva checkout complete?')
         const ok = await showConfirm(message, {
-          title: 'Confirm your lending',
-          confirmLabel: 'Yes, remove them',
-          cancelLabel: 'Not yet, keep them',
+          title: t('Confirm your lending'),
+          confirmLabel: t('Yes, remove them'),
+          cancelLabel: t('Not yet, keep them'),
         })
         if (ok) {
           batchRemoveFromBasket(remaining)
           setBasketNotice(
-            `${remaining.length} loan${remaining.length === 1 ? '' : 's'} removed from your basket after checkout.`,
+            t('{count} loans removed from your basket after checkout.', { count: remaining.length }),
           )
         }
       }
     } finally {
       reconcilingRef.current = false
     }
-  }, [lenderId, batchRemoveFromBasket, clearPendingCheckout, setBasketNotice])
+  }, [lenderId, batchRemoveFromBasket, clearPendingCheckout, setBasketNotice, t])
 
   useEffect(() => {
     void reconcileCheckout() // covers reload / navigating back to the basket
@@ -317,9 +323,9 @@ export default function Basket() {
   }, [basketEntries])
 
   const handleClear = async () => {
-    const ok = await showConfirm('Are you sure you want to empty your basket?', {
-      title: 'Empty Basket',
-      confirmLabel: 'Empty Basket',
+    const ok = await showConfirm(t('Are you sure you want to empty your basket?'), {
+      title: t('Empty Basket'),
+      confirmLabel: t('Empty Basket'),
       danger: true,
     })
     if (ok) {
@@ -373,7 +379,7 @@ export default function Basket() {
       <div className="col-md-3 d-flex flex-column">
         <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
           <Button className="w-50" disabled={basketCount === 0} onClick={handleClear}>
-            Empty Basket
+            {t('Empty Basket')}
           </Button>
           <Button
             className="w-50"
@@ -385,24 +391,24 @@ export default function Basket() {
               }
             }}
           >
-            Remove Selected
+            {t('Remove Selected')}
           </Button>
         </ButtonGroup>
 
         {basketCount === 0 ? (
           <div className="alert alert-info mt-2">
-            There are no loans in your basket. To add loans:
+            {t('There are no loans in your basket.')} {t('To add loans:')}
             <ul className="mb-0 mt-1">
-              <li>Click the "Lend" button when viewing a loan.</li>
-              <li>Double-click a loan in the results.</li>
-              <li>Use the "Bulk Add" button to add many loans at once.</li>
+              <li>{t('Click the “Lend” button when viewing a loan.')}</li>
+              <li>{t('Double-click a loan in the results.')}</li>
+              <li>{t('Use the “Bulk Add” button to add many loans at once.')}</li>
             </ul>
           </div>
         ) : null}
 
         {rawBasketCount > 0 && basketCount === 0 && downloading ? (
           <div className="alert alert-warning mt-2">
-            Loans in your basket are being restored. Please wait while loan data finishes loading.
+            {t('Loans in your basket are being restored. Please wait while loan data finishes loading.')}
           </div>
         ) : null}
 
@@ -429,7 +435,7 @@ export default function Basket() {
             <button
               type="button"
               className="btn-close ms-2"
-              aria-label="Dismiss"
+              aria-label={t('Dismiss')}
               onClick={() => setBasketNotice(null)}
             />
           </div>
@@ -437,7 +443,7 @@ export default function Basket() {
         <div className="card mb-3">
           <div className="card-body">
             <h3 style={{ margin: '0 0 8px' }}>
-              Basket: {basketCount} loans ${amountSum}
+              {t('Basket: {count} loans ${amount}', { count: basketCount, amount: amountSum })}
             </h3>
             <form
               id="kiva-basket-form"
@@ -455,7 +461,7 @@ export default function Basket() {
               disabled={basketCount === 0}
               onClick={handleCheckout}
             >
-              Checkout at Kiva
+              {t('Checkout at Kiva')}
             </button>
           </div>
         </div>
@@ -481,18 +487,17 @@ export default function Basket() {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Transferring Basket to Kiva</h5>
+                <h5 className="modal-title">{t('Transferring Basket to Kiva')}</h5>
                 <button
                   type="button"
                   className="btn-close"
-                  aria-label="Close"
+                  aria-label={t('Close')}
                   onClick={() => setShowTransfer(false)}
                 />
               </div>
               <div className="modal-body">
                 <p>
-                  Depending upon the number of loans in your basket, transferring your selection
-                  to Kiva could take some time. Please wait.
+                  {t('Depending on the number of loans in your basket, transferring your selection to Kiva may take some time. Please wait.')}
                 </p>
               </div>
               <div className="modal-footer">

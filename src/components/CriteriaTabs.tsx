@@ -12,6 +12,7 @@ import type { BalancerResult } from '../stores/criteriaStore'
 import { getKivaLoans } from '../api/kiva'
 import { lsj } from '../lib/localStorage'
 import { humanize } from '../lib/utils'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // Custom hook: useDebouncedEffect
@@ -400,31 +401,36 @@ function groupForHelperChart(
   return data.length ? { title, data } : null
 }
 
-function buildHelperChart(loans: KivaLoan[], key: string): HelperChart | null {
+function buildHelperChart(
+  loans: KivaLoan[],
+  key: string,
+  sector: (englishSector: string) => string = (value) => value,
+  t: (key: string) => string = (value) => value,
+): HelperChart | null {
   const kl = getKivaLoans()
   if (!kl) return null
 
   switch (key) {
     case 'country_code':
-      return groupForHelperChart(loans, 'Countries', (loan) => loan.location.country)
+      return groupForHelperChart(loans, t('Countries'), (loan) => loan.location.country)
     case 'sector':
-      return groupForHelperChart(loans, 'Sectors', (loan) => loan.sector)
+      return groupForHelperChart(loans, t('Sectors'), (loan) => sector(loan.sector))
     case 'activity':
-      return groupForHelperChart(loans, 'Activities', (loan) => loan.activity)
+      return groupForHelperChart(loans, t('Activities'), (loan) => loan.activity)
     case 'themes':
-      return groupForHelperChart(loans, 'Themes', (loan) => loan.themes ?? [])
+      return groupForHelperChart(loans, t('Themes'), (loan) => loan.themes ?? [])
     case 'tags':
-      return groupForHelperChart(loans, 'Tags', (loan) => (loan.kls_tags ?? []).map((tag) => humanize(tag)))
+      return groupForHelperChart(loans, t('Tags'), (loan) => (loan.kls_tags ?? []).map((tag) => humanize(tag)))
     case 'repayment_interval':
-      return groupForHelperChart(loans, 'Repayment Interval', (loan) => loan.terms.repayment_interval ?? 'Unknown')
+      return groupForHelperChart(loans, t('Repayment Interval'), (loan) => loan.terms.repayment_interval ?? 'Unknown')
     case 'currency_exchange_loss_liability':
-      return groupForHelperChart(loans, 'Currency Loss', (loan) => humanize(loan.terms.loss_liability?.currency_exchange ?? 'unknown'))
+      return groupForHelperChart(loans, t('Currency Loss'), (loan) => humanize(loan.terms.loss_liability?.currency_exchange ?? 'unknown'))
     case 'bonus_credit_eligibility':
-      return groupForHelperChart(loans, 'Bonus Credit', (loan) => loan.bonus_credit_eligibility ? 'Eligible' : 'Not Eligible')
+      return groupForHelperChart(loans, t('Bonus Credit'), (loan) => t(loan.bonus_credit_eligibility ? 'Eligible' : 'Not Eligible'))
     case 'direct':
-      return groupForHelperChart(loans, 'MFI or Direct', (loan) => loan.partner_id == null ? 'Direct' : 'MFI')
+      return groupForHelperChart(loans, t('MFI or Direct'), (loan) => t(loan.partner_id == null ? 'Direct' : 'MFI'))
     case 'region':
-      return groupForHelperChart(loans, 'Region', (loan) => {
+      return groupForHelperChart(loans, t('Region'), (loan) => {
         const partner = getPartnerForLoan(loan, kl)
         const regions =
           partner?.kl_regions ?? partner?.countries.map((country) => country.region) ?? []
@@ -433,21 +439,21 @@ function buildHelperChart(loans: KivaLoan[], key: string): HelperChart | null {
         return regions.map((r) => REGION_LABELS[r] ?? r)
       })
     case 'social_performance':
-      return groupForHelperChart(loans, 'Social Performance', (loan) => {
+      return groupForHelperChart(loans, t('Social Performance'), (loan) => {
         const partner = getPartnerForLoan(loan, kl)
         return (partner?.social_performance_strengths ?? []).map((strength) =>
           SOCIAL_PERFORMANCE_LABELS[String(strength.id)] ?? String(strength.id),
         )
       })
     case 'charges_fees_and_interest':
-      return groupForHelperChart(loans, 'Charges Interest', (loan) => {
+      return groupForHelperChart(loans, t('Charges Interest'), (loan) => {
         const partner = getPartnerForLoan(loan, kl)
-        return partner?.charges_fees_and_interest ? 'Charges fees and interest' : 'Does not charge fees and interest'
+        return t(partner?.charges_fees_and_interest ? 'Charges fees and interest' : 'Does not charge fees and interest')
       })
     case 'religion':
-      return groupForHelperChart(loans, 'Religion', (loan) => {
+      return groupForHelperChart(loans, t('Religion'), (loan) => {
         const partner = getPartnerForLoan(loan, kl)
-        return partner?.normalizedReligions?.length ? partner.normalizedReligions : ['Unknown']
+        return partner?.normalizedReligions?.length ? partner.normalizedReligions : [t('Unknown')]
       })
     default:
       return null
@@ -469,6 +475,7 @@ function InputRow({
   onChange: (val: string) => void
   disabled?: boolean
 }) {
+  const { t } = useI18n()
   const [local, setLocal] = useState(value)
   const prevValueRef = useRef(value)
 
@@ -493,7 +500,7 @@ function InputRow({
   return (
     <Row className="mb-2">
       <Col md={3}>
-        <Form.Label>{label}</Form.Label>
+        <Form.Label>{t(label)}</Form.Label>
       </Col>
       <Col md={9}>
         <Form.Control
@@ -521,6 +528,7 @@ function AllAnyNoneButton({
   onChange: (val: string) => void
   canAll?: boolean
 }) {
+  const { t } = useI18n()
   const selected = value || (canAll ? 'all' : 'any')
   const styles: Record<string, string> = canAll
     ? { all: 'success', any: 'primary', none: 'danger' }
@@ -532,14 +540,14 @@ function AllAnyNoneButton({
         size="sm"
         variant={styles[selected] ?? 'primary'}
         id="aan-dropdown"
-        style={{ height: 34, padding: '4px 8px', width: 53 }}
+        style={{ height: 34, padding: '4px 8px', minWidth: 53, width: 'max-content', whiteSpace: 'nowrap' }}
       >
-        {selected}
+        {t(selected)}
       </Dropdown.Toggle>
       <Dropdown.Menu>
-        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>All of these</Dropdown.Item> : null}
-        <Dropdown.Item onClick={() => onChange('any')}>Any of these</Dropdown.Item>
-        <Dropdown.Item onClick={() => onChange('none')}>None of these</Dropdown.Item>
+        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>{t('All of these')}</Dropdown.Item> : null}
+        <Dropdown.Item onClick={() => onChange('any')}>{t('Any of these')}</Dropdown.Item>
+        <Dropdown.Item onClick={() => onChange('none')}>{t('None of these')}</Dropdown.Item>
       </Dropdown.Menu>
     </Dropdown>
   )
@@ -586,16 +594,20 @@ function SelectRow({
   sortMode?: 'abc' | 'count'
   onSortMode?: (mode: 'abc' | 'count') => void
 }) {
+  const { t } = useI18n()
+  const localizedLabel = t(label)
+  const localizedHelp = helpText ? t(helpText) : undefined
+  const localizedOptions = useMemo(() => options.map((option) => ({ ...option, label: t(option.label) })), [options, t])
   // react-select refocuses its input right after its menu closes; that
   // spurious focus must not (re-)arm this row's distribution graph.
   const selfSuppressUntil = useRef(0)
 
   const selectedOptions = useMemo(() => {
     if (!isMulti) {
-      return options.find((o) => o.value === String(value ?? '')) ?? null
+      return localizedOptions.find((o) => o.value === String(value ?? '')) ?? null
     }
-    return csvToOptions(value, options)
-  }, [value, options, isMulti])
+    return csvToOptions(value, localizedOptions)
+  }, [value, localizedOptions, isMulti])
 
   const handleChange = useCallback(
     (newVal: MultiValue<SelectOption> | SingleValue<SelectOption>) => {
@@ -608,16 +620,16 @@ function SelectRow({
     [isMulti, onChange],
   )
 
-  const labelEl = helpText ? (
+  const labelEl = localizedHelp ? (
     <OverlayTrigger
       trigger={['hover', 'focus']}
       placement="top"
-      overlay={<Popover id={`pop-${label}`}><Popover.Body>{helpText}</Popover.Body></Popover>}
+      overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHelp}</Popover.Body></Popover>}
     >
-      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{label}</Form.Label>
+      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
     </OverlayTrigger>
   ) : (
-    <Form.Label>{label}</Form.Label>
+    <Form.Label>{localizedLabel}</Form.Label>
   )
 
   return (
@@ -631,7 +643,7 @@ function SelectRow({
           <div style={{ flex: 1 }}>
             <Select<SelectOption, boolean>
               isMulti={isMulti}
-              options={options}
+              options={localizedOptions}
               value={selectedOptions}
               onChange={handleChange as (newVal: MultiValue<SelectOption> | SingleValue<SelectOption>) => void}
               onFocus={(e) => {
@@ -673,7 +685,10 @@ function SliderRow({
   maxVal: unknown
   onChange: (minV: number | null, maxV: number | null) => void
 }) {
+  const { t } = useI18n()
   const { min: oMin, max: oMax, step = 1, label, helpText } = config
+  const localizedLabel = t(label)
+  const localizedHelp = helpText ? t(helpText) : undefined
 
   const cMin = minVal != null && !isNaN(Number(minVal)) ? Number(minVal) : null
   const cMax = maxVal != null && !isNaN(Number(maxVal)) ? Number(maxVal) : null
@@ -681,8 +696,8 @@ function SliderRow({
   const aMin = cMin ?? oMin
   const aMax = cMax ?? oMax
 
-  const dMin = cMin === null || cMin === oMin ? 'min' : String(cMin)
-  const dMax = cMax === null || cMax === oMax ? 'max' : String(cMax)
+  const dMin = cMin === null || cMin === oMin ? t('Min') : String(cMin)
+  const dMax = cMax === null || cMax === oMax ? t('Max') : String(cMax)
 
   const handleChange = useCallback(
     (vals: number | number[]) => {
@@ -719,16 +734,16 @@ function SliderRow({
     setShowModal(false)
   }
 
-  const labelEl = helpText ? (
+  const labelEl = localizedHelp ? (
     <OverlayTrigger
       trigger={['hover', 'focus']}
       placement="top"
-      overlay={<Popover id={`pop-${label}`}><Popover.Body>{helpText}</Popover.Body></Popover>}
+      overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHelp}</Popover.Body></Popover>}
     >
-      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{label}</Form.Label>
+      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
     </OverlayTrigger>
   ) : (
-    <Form.Label>{label}</Form.Label>
+    <Form.Label>{localizedLabel}</Form.Label>
   )
 
   return (
@@ -755,8 +770,8 @@ function SliderRow({
             variant="outline-secondary"
             size="sm"
             onClick={openModal}
-            title={`Set exact ${label} min/max`}
-            aria-label={`Set exact ${label} min/max`}
+            title={t('Set exact {label} minimum and maximum', { label: localizedLabel })}
+            aria-label={t('Set exact {label} minimum and maximum', { label: localizedLabel })}
             style={{ flexShrink: 0, lineHeight: 1, padding: '2px 9px' }}
           >
             &hellip;
@@ -766,21 +781,21 @@ function SliderRow({
 
       <Modal show={showModal} onHide={() => setShowModal(false)} size="sm" centered>
         <Modal.Header closeButton>
-          <Modal.Title style={{ fontSize: 18 }}>{label}</Modal.Title>
+          <Modal.Title style={{ fontSize: 18 }}>{localizedLabel}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {helpText ? (
-            <p className="text-muted" style={{ fontSize: 13 }}>{helpText}</p>
+            <p className="text-muted" style={{ fontSize: 13 }}>{localizedHelp}</p>
           ) : null}
           {[
             { which: 'Min', unset: minUnset, setUnset: setMinUnset, draft: minDraft, setDraft: setMinDraft },
             { which: 'Max', unset: maxUnset, setUnset: setMaxUnset, draft: maxDraft, setDraft: setMaxDraft },
           ].map((r) => (
             <div key={r.which} className="d-flex align-items-center gap-2 mb-2">
-              <span style={{ width: 36, fontWeight: 600 }}>{r.which}</span>
+              <span style={{ width: 36, fontWeight: 600 }}>{t(r.which)}</span>
               <Form.Check
                 type="checkbox"
-                label="not set"
+                label={t('not set')}
                 checked={r.unset}
                 onChange={(e) => r.setUnset(e.target.checked)}
               />
@@ -798,10 +813,10 @@ function SliderRow({
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" size="sm" onClick={() => setShowModal(false)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button variant="primary" size="sm" onClick={applyModal}>
-            Apply
+            {t('Apply')}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -820,6 +835,7 @@ function LimitResultRow({
   value: { enabled?: boolean; count?: number; limit_by?: string } | undefined
   onChange: (val: { enabled?: boolean; count?: number; limit_by?: string }) => void
 }) {
+  const { t } = useI18n()
   const v = value ?? { enabled: false, count: 1, limit_by: 'Partner' }
 
   return (
@@ -827,7 +843,7 @@ function LimitResultRow({
       <Col md={3}>
         <Form.Check
           type="checkbox"
-          label={<strong>Limit to top</strong>}
+          label={<strong>{t('Limit to top')}</strong>}
           checked={!!v.enabled}
           onChange={(e) => onChange({ ...v, enabled: e.target.checked })}
         />
@@ -842,16 +858,16 @@ function LimitResultRow({
             disabled={!v.enabled}
             onChange={(e) => onChange({ ...v, count: parseInt(e.target.value) || 1 })}
           />
-          <span style={{ fontSize: 12 }}>loans per</span>
+          <span style={{ fontSize: 12 }}>{t('loans per')}</span>
           <div style={{ flex: 1 }}>
             <Select<SelectOption, false>
               options={[
-                { value: 'Partner', label: 'Partner' },
-                { value: 'Country', label: 'Country' },
-                { value: 'Sector', label: 'Sector' },
-                { value: 'Activity', label: 'Activity' },
+                { value: 'Partner', label: t('Partner') },
+                { value: 'Country', label: t('Country') },
+                { value: 'Sector', label: t('Sector') },
+                { value: 'Activity', label: t('Activity') },
               ]}
-              value={{ value: v.limit_by ?? 'Partner', label: v.limit_by ?? 'Partner' }}
+              value={{ value: v.limit_by ?? 'Partner', label: t(v.limit_by ?? 'Partner') }}
               isDisabled={!v.enabled}
               isClearable={false}
               onChange={(opt) => onChange({ ...v, limit_by: opt?.value ?? 'Partner' })}
@@ -883,6 +899,7 @@ function BalancingRow({
   value: BalancerConfig | undefined
   onChange: (val: BalancerConfig) => void
 }) {
+  const { t, sector, date } = useI18n()
   const fetchBalancerData = useCriteriaStore((s) => s.fetchBalancerData)
 
   const v: BalancerConfig & { values?: unknown[] } = {
@@ -933,12 +950,12 @@ function BalancingRow({
   return (
     <Row className="mb-3">
       <Col md={2}>
-        <Form.Label>{meta.label}</Form.Label>
+        <Form.Label>{t(meta.label)}</Form.Label>
       </Col>
       <Col md={10}>
         <Form.Check
           type="checkbox"
-          label="Enable filter"
+          label={t('Enable filter')}
           checked={!!v.enabled}
           onChange={(e) => onChange({ ...v, enabled: e.target.checked })}
           className="mb-1"
@@ -948,21 +965,21 @@ function BalancingRow({
             <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
               <Dropdown>
                 <Dropdown.Toggle size="sm" variant="primary" id={`bal-hs-${name}`}>
-                  {v.hideshow === 'show' ? 'Show' : 'Hide'}
+                  {t(v.hideshow === 'show' ? 'Show' : 'Hide')}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => onChange({ ...v, hideshow: 'show' })}>Only Show</Dropdown.Item>
-                  <Dropdown.Item onClick={() => onChange({ ...v, hideshow: 'hide' })}>Hide all</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, hideshow: 'show' })}>{t('Only Show')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, hideshow: 'hide' })}>{t('Hide all')}</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-              <span>{meta.label.toLowerCase()} that have</span>
+              <span>{t('{category} that have', { category: t(meta.label).toLocaleLowerCase() })}</span>
               <Dropdown>
                 <Dropdown.Toggle size="sm" variant="primary" id={`bal-lg-${name}`}>
                   {v.ltgt === 'gt' ? '>' : '<'}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => onChange({ ...v, ltgt: 'lt' })}>&lt; Less than</Dropdown.Item>
-                  <Dropdown.Item onClick={() => onChange({ ...v, ltgt: 'gt' })}>&gt; More than</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, ltgt: 'lt' })}>&lt; {t('Less than')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, ltgt: 'gt' })}>&gt; {t('More than')}</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
               <Form.Control
@@ -972,38 +989,42 @@ function BalancingRow({
                 value={v.percent ?? 0}
                 onChange={(e) => onChange({ ...v, percent: parseFloat(e.target.value) || 0 })}
               />
-              <span>% of my</span>
+              <span>{t('% of my')}</span>
               <Dropdown>
                 <Dropdown.Toggle size="sm" variant="primary" id={`bal-aa-${name}`}>
-                  {v.allactive === 'all' ? 'Total' : 'Active'}
+                  {t(v.allactive === 'all' ? 'Total' : 'Active')}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => onChange({ ...v, allactive: 'active' })}>Active Portfolio</Dropdown.Item>
-                  <Dropdown.Item onClick={() => onChange({ ...v, allactive: 'all' })}>Total Portfolio</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, allactive: 'active' })}>{t('Active Portfolio')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => onChange({ ...v, allactive: 'all' })}>{t('Total Portfolio')}</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
             </div>
 
             <div className="mt-2">
-              {loading ? <Alert variant="info" className="py-1">Loading data from Kiva...</Alert> : null}
+              {loading ? <Alert variant="info" className="py-1">{t('Loading data from Kiva…')}</Alert> : null}
               {!loading ? (
                 <div>
                   <span style={{ fontSize: 13 }}>
-                    Matching: {slices.length}. Loans from these <strong>{meta.label.toLowerCase()}</strong> will
-                    be <strong>{v.hideshow === 'show' ? 'shown' : 'hidden'}</strong>.
+                    {t('Matching: {count}. Loans from these {category} will be {visibility}.', {
+                      count: slices.length,
+                      category: t(meta.label).toLocaleLowerCase(),
+                      visibility: t(v.hideshow === 'show' ? 'shown' : 'hidden'),
+                    })}
                   </span>
                   {slices.length > 0 ? (
                     <ul style={{ overflowY: 'auto', maxHeight: 200, fontSize: 12, marginTop: 4 }}>
                       {slices.map((slice, i) => (
                         <li key={i}>
-                          {numeral(slice.percent).format('0.000')}%: {slice.name}
+                          {numeral(slice.percent).format('0.000')}%:{' '}
+                          {meta.sliceBy === 'sector' && slice.name ? sector(slice.name) : slice.name}
                         </li>
                       ))}
                     </ul>
                   ) : null}
                   {lastUpdated ? (
                     <p style={{ fontSize: 11, color: '#999' }}>
-                      Last updated: {new Date(Number(lastUpdated) * 1000).toLocaleString()}
+                      {t('Last updated {time}', { time: date(Number(lastUpdated) * 1000) })}
                     </p>
                   ) : null}
                 </div>
@@ -1038,6 +1059,7 @@ function mergeByValue(...lists: SelectOption[][]): SelectOption[] {
 }
 
 function useDiscoveredOptions() {
+  const { locale, sector } = useI18n()
   // Recompute when the loaded loan total changes or server options arrive.
   const loanCount = useLoanStore((s) => s.loanCount)
   const serverOptions = useCriteriaStore((s) => s.allOptions)
@@ -1056,14 +1078,17 @@ function useDiscoveredOptions() {
     const discovered = (set: Set<string>): SelectOption[] =>
       [...set].map((v) => ({ value: v, label: v }))
     return {
-      sector: mergeByValue(serverOptions.sectors ?? [], SECTOR_OPTIONS, discovered(sectors)),
+      // Keep the English `value` as filter authority; localize only the label.
+      sector: mergeByValue(serverOptions.sectors ?? [], SECTOR_OPTIONS, discovered(sectors))
+        .map((option) => ({ ...option, label: sector(option.value) }))
+        .sort((a, b) => a.label.localeCompare(b.label, locale)),
       activity: mergeByValue(serverOptions.activities ?? [], ACTIVITY_OPTIONS, discovered(activities)),
       themes: mergeByValue(serverOptions.themes ?? [], THEME_OPTIONS, discovered(themes)),
       tags: mergeByValue(serverOptions.tags ?? [], TAG_OPTIONS, discovered(tags)),
     }
     // loanCount/serverOptions are the triggers; loans are read imperatively.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loanCount, serverOptions])
+  }, [loanCount, serverOptions, locale, sector])
 }
 
 // ---------------------------------------------------------------------------
@@ -1089,6 +1114,7 @@ function LoanCriteriaPanel({
   sortMode?: 'abc' | 'count'
   onSortMode?: (mode: 'abc' | 'count') => void
 }) {
+  const { t } = useI18n()
   const loan = criteria.loan as Record<string, unknown>
   const discovered = useDiscoveredOptions()
 
@@ -1096,26 +1122,26 @@ function LoanCriteriaPanel({
     key: string; label: string; options: SelectOption[]; isMulti: boolean
     hasAan?: boolean; canAll?: boolean; helpText?: string; showDistribution?: boolean
   }> = [
-    { key: 'country_code', label: 'Countries', options: COUNTRY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'sector', label: 'Sectors', options: discovered.sector, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'activity', label: 'Activities', options: discovered.activity, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'themes', label: 'Themes', options: discovered.themes, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
-    { key: 'tags', label: 'Tags', options: discovered.tags, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
-    { key: 'repayment_interval', label: 'Repayment Interval', options: REPAYMENT_INTERVAL_OPTIONS, isMulti: true, showDistribution: true },
-    { key: 'currency_exchange_loss_liability', label: 'Currency Loss', options: CURRENCY_LOSS_OPTIONS, isMulti: true, showDistribution: true },
-    { key: 'bonus_credit_eligibility', label: 'Bonus Credit', options: BONUS_CREDIT_OPTIONS, isMulti: false, showDistribution: true },
-    { key: 'sort', label: 'Sort', options: SORT_OPTIONS, isMulti: false },
+    { key: 'country_code', label: t('Countries'), options: COUNTRY_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'sector', label: t('Sectors'), options: discovered.sector, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'activity', label: t('Activities'), options: discovered.activity, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'themes', label: t('Themes'), options: discovered.themes, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
+    { key: 'tags', label: t('Tags'), options: discovered.tags, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
+    { key: 'repayment_interval', label: t('Repayment Interval'), options: REPAYMENT_INTERVAL_OPTIONS, isMulti: true, showDistribution: true },
+    { key: 'currency_exchange_loss_liability', label: t('Currency Loss'), options: CURRENCY_LOSS_OPTIONS, isMulti: true, showDistribution: true },
+    { key: 'bonus_credit_eligibility', label: t('Bonus Credit'), options: BONUS_CREDIT_OPTIONS, isMulti: false, showDistribution: true },
+    { key: 'sort', label: t('Sort'), options: SORT_OPTIONS, isMulti: false },
   ]
 
   return (
     <>
       <InputRow
-        label="Use or Description"
+        label={t('Use or Description')}
         value={String(loan['use'] ?? '')}
         onChange={(val) => onUpdate('loan', 'use', val)}
       />
       <InputRow
-        label="Name"
+        label={t('Name')}
         value={String(loan['name'] ?? '')}
         onChange={(val) => onUpdate('loan', 'name', val)}
       />
@@ -1276,6 +1302,7 @@ function PortfolioCriteriaPanel({
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
 }) {
+  const { t } = useI18n()
   const portfolio = criteria.portfolio as Record<string, unknown>
   const lenderId = useUtilsStore((s) => s.lenderId)
 
@@ -1291,14 +1318,13 @@ function PortfolioCriteriaPanel({
               showLenderIDModal()
             }}
           >
-            Set your Lender ID
+            {t('Set your Lender ID')}
           </a>{' '}
-          to use these. Without it, KivaLens doesn&apos;t know which loans you&apos;ve funded,
-          so &ldquo;Exclude My Loans&rdquo; and Portfolio Balancing have no effect.
+          {t("to use these. Without it, KivaLens doesn't know which loans you've funded, so “Exclude My Loans” and Portfolio Balancing have no effect.")}
         </Alert>
       )}
       <SelectRow
-        label="Exclude My Loans"
+        label={t('Exclude My Loans')}
         options={EXCLUDE_PORTFOLIO_OPTIONS}
         isMulti={false}
         value={portfolio['exclude_portfolio_loans']}
@@ -1306,12 +1332,9 @@ function PortfolioCriteriaPanel({
       />
 
       <Card className="mt-3">
-        <Card.Header>Portfolio Balancing</Card.Header>
+        <Card.Header>{t('Portfolio Balancing')}</Card.Header>
         <Card.Body>
-          <p style={{ fontSize: 13 }}>
-            Balance your lending across partners, countries, sectors, and activities.
-            Diversify to reduce risk or find new areas to lend in.
-          </p>
+          <p style={{ fontSize: 13 }}>{t('Balance your lending across partners, countries, sectors, and activities. Diversify to reduce risk or find new areas to lend in.')}</p>
 
           {Object.entries(BALANCER_OPTIONS).map(([key, meta]) => (
             <BalancingRow
@@ -1347,6 +1370,7 @@ function NewTabLink({ href, children }: { href: string; children: React.ReactNod
 }
 
 function RSSPanel({ criteria }: { criteria: Criteria }) {
+  const { t } = useI18n()
   const prepForRSS = useCriteriaStore((s) => s.prepForRSS)
   const lenderId = useUtilsStore((s) => s.lenderId)
   const [rssName, setRssName] = useState('')
@@ -1372,27 +1396,21 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
     <Row className="ample-padding-top">
       <Col lg={12}>
         <p>
-          With an RSS feed, you can use any number of RSS Readers (including some browsers or
-          browser extensions), or sites like{' '}
-          <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink> to set up
-          all sorts of actions in response to new items in the feed. You can set it to send you
-          emails, SMS, Instant Messages, flash your lights, turn on your sprinklers... You have a
-          lot of options! You can create as many RSS feeds as you want.{' '}
+          {t('An RSS feed lets you follow matching loans in a feed reader, browser extension, or an automation service such as')}{' '}
+          <NewTabLink href="http://www.ifttt.com">IFTTT (If This Then That)</NewTabLink>.{' '}
+          {t('You can create as many feeds as you want and use new feed items to trigger email, SMS, smart-home, and other actions.')}{' '}
           <NewTabLink href="https://ifttt.com/recipes/147561-rss-feed-to-email">
-            Create &apos;Recipe&apos; to send you an email when loans match your criteria
-          </NewTabLink>
-          .
+            {t('Create an IFTTT recipe to email you when loans match your criteria')}
+          </NewTabLink>.
         </p>
         <p>
-          It will only show the first 100 matching loans. Portfolio features (excluding loans
-          you&apos;ve already funded and portfolio balancing) are supported when you set your Kiva
-          Lender ID and enable &quot;Include my portfolio&quot; below.
+          {t('The feed shows the first 100 matching loans. Portfolio features are supported when you set your Kiva Lender ID and enable “Include my portfolio” below.')}
         </p>
         <Card>
-          <Card.Header>RSS Feed Details</Card.Header>
+          <Card.Header>{t('RSS Feed Details')}</Card.Header>
           <Card.Body>
             <Form.Group>
-              <Form.Label>Name (this will appear in your RSS feed reader)</Form.Label>
+              <Form.Label>{t('Name (this will appear in your RSS feed reader)')}</Form.Label>
               <Form.Control
                 type="text"
                 style={{ height: 38, minWidth: 50 }}
@@ -1401,7 +1419,7 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
               />
             </Form.Group>
             <Form.Group>
-              <Form.Label>Links in RSS go to</Form.Label>
+              <Form.Label>{t('Links in RSS go to')}</Form.Label>
               <Form.Select value={rssLinkTo} onChange={(e) => setRssLinkTo(e.target.value)}>
                 <option value="kiva">Kiva</option>
                 <option value="kivalens">KivaLens</option>
@@ -1411,39 +1429,38 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
               <Form.Check
                 type="checkbox"
                 id="rss-include-portfolio"
-                label="Include my portfolio (balancing + exclude loans I've already funded)"
+                label={t("Include my portfolio (balancing + exclude loans I've already funded)")}
                 checked={includePortfolio && !!lenderId}
                 disabled={!lenderId}
                 onChange={(e) => setIncludePortfolio(e.target.checked)}
               />
               {!lenderId && (
                 <Form.Text className="text-muted">
-                  Set your Kiva Lender ID to enable portfolio-aware feeds.
+                  {t('Set your Kiva Lender ID to enable portfolio-aware feeds.')}
                 </Form.Text>
               )}
             </Form.Group>
           </Card.Body>
         </Card>
         <Card>
-          <Card.Header>Your Settings</Card.Header>
+          <Card.Header>{t('Your Settings')}</Card.Header>
           <Card.Body>
             <p>
-              These are the criteria options that will be used to generate your feed.
+              {t('These are the criteria options that will be used to generate your feed.')}
               {includePortfolio && lenderId
-                ? ' Your portfolio settings are included.'
-                : ' Anything related to your portfolio has been removed.'}
+                ? ` ${t('Your portfolio settings are included.')}`
+                : ` ${t('Anything related to your portfolio has been removed.')}`}
             </p>
             <pre>{JSON.stringify(critRSS, null, 2)}</pre>
           </Card.Body>
         </Card>
         <Card>
-          <Card.Header>RSS Link</Card.Header>
+          <Card.Header>{t('RSS Link')}</Card.Header>
           <Card.Body>
             <p>
-              Copy and Paste this entire URL into your RSS reader or use{' '}
-              <NewTabLink href="http://www.ifttt.com">If This Then That</NewTabLink> to create a
-              &quot;recipe&quot; to respond to new items in the news feed and either send you an
-              email or an SMS.
+              {t('Copy this entire URL into your RSS reader, or use')}{' '}
+              <NewTabLink href="http://www.ifttt.com">IFTTT</NewTabLink>{' '}
+              {t('to trigger an email, SMS, or another action when a matching loan appears.')}
             </p>
             <textarea
               style={{ width: '100%', height: 150 }}
@@ -1459,6 +1476,7 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
 
 
 export function CriteriaTabs() {
+  const { t, sector } = useI18n()
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
@@ -1606,8 +1624,8 @@ export function CriteriaTabs() {
       loans = kl.filter(nextCriteria, false)
     }
 
-    setHelperChart(buildHelperChart(loans, helperTarget.key))
-  }, [criteria, filteredLoans, helperTarget, hideGraphs])
+    setHelperChart(buildHelperChart(loans, helperTarget.key, sector, t))
+  }, [criteria, filteredLoans, helperTarget, hideGraphs, sector, t])
 
   // The focused field's distribution, fed INTO its own dropdown as in-list bars.
   const distributionMap = useMemo<Record<string, number> | undefined>(() => {
@@ -1628,7 +1646,7 @@ export function CriteriaTabs() {
         }}
         className="mb-2"
       >
-        <Tab eventKey="borrower" title="Borrower">
+        <Tab eventKey="borrower" title={t('Borrower')}>
           <div className="pt-2">
             <LoanCriteriaPanel
               criteria={criteria}
@@ -1643,7 +1661,7 @@ export function CriteriaTabs() {
           </div>
         </Tab>
 
-        <Tab eventKey="partner" title="Partner">
+        <Tab eventKey="partner" title={t('Partner')}>
           <div className="pt-2">
             <PartnerCriteriaPanel
               criteria={criteria}
@@ -1658,13 +1676,13 @@ export function CriteriaTabs() {
           </div>
         </Tab>
 
-        <Tab eventKey="portfolio" title="Your Portfolio">
+        <Tab eventKey="portfolio" title={t('Your Portfolio')}>
           <div className="pt-2">
             <PortfolioCriteriaPanel criteria={criteria} onUpdate={handleUpdate} />
           </div>
         </Tab>
 
-        <Tab eventKey="rss" title="RSS">
+        <Tab eventKey="rss" title={t('RSS')}>
           <div className="pt-2">
             <RSSPanel criteria={criteria} />
           </div>

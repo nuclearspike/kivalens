@@ -2,12 +2,14 @@ import { useMemo } from 'react'
 import { Card, ProgressBar } from '../ui'
 import { useLoanStore } from '../stores'
 import DidYouKnow from './DidYouKnow'
+import { useI18n } from '../i18n'
 
 /**
  * Overlay panel shown while fundraising loans are being downloaded from Kiva.
  * Displays a segmented progress bar and status label.
  */
 export default function LoadingLoansPanel() {
+  const { t } = useI18n()
   const downloading = useLoanStore((s) => s.downloading)
   const progress = useLoanStore((s) => s.downloadProgress)
   // Gate on the SAME array the list renders (filteredLoans), so the
@@ -27,12 +29,12 @@ export default function LoadingLoansPanel() {
 
     return {
       show: downloading && !progress?.complete,
-      title: progress?.title ?? 'Loading Fundraising Loans from Kiva.org',
-      progressLabel: progress?.label ?? 'Please Wait...',
+      title: progress?.title ?? t('Loading Fundraising Loans from Kiva.org'),
+      progressLabel: progress?.label ?? t('Please Wait...'),
       idsProgress,
       detailsProgress,
     }
-  }, [downloading, progress])
+  }, [downloading, progress, t])
 
   // Either the loading panel or the loan list — never both. If any loan
   // is visible in the list, hide the panel even if progress isn't 100%.
@@ -50,13 +52,13 @@ export default function LoadingLoansPanel() {
           <ProgressBar
             variant="info"
             animated={state.idsProgress < 32}
-            label={state.idsProgress > 10 ? 'basics' : ''}
+            label={state.idsProgress > 10 ? t('basics') : ''}
             now={state.idsProgress}
             key="ids"
           />
           <ProgressBar
             animated
-            label={state.detailsProgress > 10 ? 'details' : ''}
+            label={state.detailsProgress > 10 ? t('details') : ''}
             now={state.detailsProgress}
             key="details"
           />

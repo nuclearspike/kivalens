@@ -4,11 +4,13 @@ import { useCriteriaStore } from '../stores/criteriaStore'
 import { useUtilsStore } from '../stores/utilsStore'
 import { getKivaLoans } from '../api/kiva'
 import { activeCriteria } from '../lib/criteriaActive'
+import { useI18n } from '../i18n'
 
 // Shown in place of the plain "no matching loans" alert: lists the active filters
 // causing zero results, with the count each removal would yield and a one-click
 // remove, plus an "Ask KivaLens" suggestion shortcut.
 export function NoResultsHelp() {
+  const { t } = useI18n()
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const startFresh = useCriteriaStore((s) => s.startFresh)
@@ -50,14 +52,13 @@ export function NoResultsHelp() {
   return (
     <div className="no-results-help">
       <Alert variant="info" className="not-rounded-top" style={{ marginBottom: 0 }}>
-        No loans match your current criteria. Remove a filter below, loosen the
-        criteria, or reset to start over.
+         {t('No loans match your current criteria. Remove a filter below, loosen the criteria, or reset to start over.')}
       </Alert>
       <div style={{ background: '#eef5f1', padding: '10px 12px' }}>
         {items.length > 0 ? (
           <>
             <div style={{ fontSize: 12, color: '#557', marginBottom: 4 }}>
-              Your active filters — tap ✕ to remove (the number is how many loans you’d get back):
+               {t('Your active filters — tap ✕ to remove (the number is how many loans you would get back):')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
               {items.map((it) => (
@@ -68,11 +69,11 @@ export function NoResultsHelp() {
                     ...chipBase,
                     borderColor: it.count > 0 ? 'var(--kl-green, #2C8C5E)' : 'rgba(0,0,0,0.15)',
                   }}
-                  title={`Remove “${it.label}: ${it.value}” → ${it.count} loans`}
+                   title={t('Remove “{label}: {value}” → {count} loans', { label: t(it.label), value: t(it.value), count: it.count })}
                   onClick={() => setCriteria(it.without(lastKnown))}
                 >
                   <span>
-                    <strong>{it.label}:</strong> {it.value}
+                    <strong>{t(it.label)}:</strong> {t(it.value)}
                   </span>
                   <span
                     style={{
@@ -89,7 +90,7 @@ export function NoResultsHelp() {
             </div>
           </>
         ) : (
-          <div style={{ fontSize: 13, color: '#557' }}>No removable filters detected.</div>
+          <div style={{ fontSize: 13, color: '#557' }}>{t('No removable filters detected.')}</div>
         )}
         <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {aiServerEnabled ? (
@@ -98,15 +99,15 @@ export function NoResultsHelp() {
               variant="success"
               onClick={() =>
                 openAskKl(
-                  'My search has no matching loans. Break down which of my current filters are causing that, and suggest which to remove (or loosen) to get results.',
+                   t('My search has no matching loans. Break down which of my current filters are causing that, and suggest which to remove or loosen to get results.'),
                 )
               }
             >
-              ✨ Ask KivaLens for a suggestion
+               ✨ {t('Ask KivaLens for a suggestion')}
             </Button>
           ) : null}
           <Button size="sm" variant="outline-secondary" onClick={() => startFresh()}>
-            Reset all filters
+             {t('Reset all filters')}
           </Button>
         </div>
       </div>

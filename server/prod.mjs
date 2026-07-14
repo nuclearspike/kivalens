@@ -89,9 +89,32 @@ const MIME = {
   '.txt': 'text/plain; charset=utf-8',
 }
 
-function sendFile(res, filePath, status = 200) {
+const COMPRESSIBLE = new Set(['.css', '.html', '.js', '.json', '.mjs', '.svg', '.txt', '.webmanifest'])
+
+function acceptedEncoding(req, filePath) {
   const ext = path.extname(filePath).toLowerCase()
-  fs.readFile(filePath, (err, data) => {
+  if (!COMPRESSIBLE.has(ext)) return null
+  const accepted = new Map(
+    String(req.headers['accept-encoding'] || '')
+      .split(',')
+      .map((part) => {
+        const [name, ...params] = part.trim().toLowerCase().split(';')
+        const qParam = params.find((param) => param.trim().startsWith('q='))
+        const q = qParam ? Number(qParam.trim().slice(2)) : 1
+        return [name, Number.isFinite(q) ? q : 0]
+      }),
+  )
+  const quality = (name) => accepted.get(name) ?? accepted.get('*') ?? 0
+  if (quality('br') > 0 && fs.existsSync(`${filePath}.br`)) return { name: 'br', file: `${filePath}.br` }
+  if (quality('gzip') > 0 && fs.existsSync(`${filePath}.gz`)) return { name: 'gzip', file: `${filePath}.gz` }
+  return null
+}
+
+function sendFile(req, res, filePath, status = 200) {
+  const ext = path.extname(filePath).toLowerCase()
+  const encoded = acceptedEncoding(req, filePath)
+  const source = encoded?.file || filePath
+  fs.readFile(source, (err, data) => {
     if (err) {
       res.statusCode = 404
       res.end('Not found')
@@ -99,6 +122,9 @@ function sendFile(res, filePath, status = 200) {
     }
     res.statusCode = status
     res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream')
+    if (COMPRESSIBLE.has(ext)) res.setHeader('Vary', 'Accept-Encoding')
+    if (encoded) res.setHeader('Content-Encoding', encoded.name)
+    res.setHeader('Content-Length', data.length)
     if (filePath.includes(`${path.sep}assets${path.sep}`)) {
       // Vite content-hashes asset filenames — safe to cache forever.
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
@@ -107,7 +133,8 @@ function sendFile(res, filePath, status = 200) {
     } else {
       res.setHeader('Cache-Control', 'public, max-age=3600')
     }
-    res.end(data)
+    if (req.method === 'HEAD') res.end()
+    else res.end(data)
   })
 }
 
@@ -116,7 +143,7 @@ function serveStatic(req, res) {
 
   // Strip query, decode, normalize
   let pathname = decodeURIComponent((req.url || '/').split('?')[0])
-  if (pathname === '/') return sendFile(res, indexFile)
+  if (pathname === '/') return sendFile(req, res, indexFile)
 
   // Resolve against DIST and guard against path traversal
   const resolved = path.normalize(path.join(DIST, pathname))
@@ -127,14 +154,14 @@ function serveStatic(req, res) {
   }
 
   fs.stat(resolved, (err, stat) => {
-    if (!err && stat.isFile()) return sendFile(res, resolved)
+    if (!err && stat.isFile()) return sendFile(req, res, resolved)
     // No file: an extension-less path is a client route -> SPA shell;
     // a missing asset (has an extension) is a genuine 404.
     if (path.extname(pathname)) {
       res.statusCode = 404
       res.end('Not found')
     } else {
-      sendFile(res, indexFile)
+      sendFile(req, res, indexFile)
     }
   })
 }

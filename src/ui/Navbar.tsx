@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementType } from 'react'
 import { createContext, useContext, useState } from 'react'
 import { cx, type PolymorphicProps } from './types'
+import { useI18n } from '../i18n'
 
 const NavbarContext = createContext<{
   expanded: boolean
@@ -64,13 +65,14 @@ function NavbarToggle({
   ...rest
 }: ComponentPropsWithoutRef<'button'>) {
   const { expanded, toggle } = useContext(NavbarContext)
+  const { t } = useI18n()
   return (
     <button
       type="button"
       className={cx('navbar-toggler', className)}
       aria-controls={ariaControls}
       aria-expanded={expanded}
-      aria-label="Toggle navigation"
+      aria-label={t('Toggle navigation')}
       onClick={toggle}
       {...rest}
     >

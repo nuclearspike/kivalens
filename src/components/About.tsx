@@ -2,6 +2,7 @@ import { Container, Tabs, Tab } from '../ui'
 import { Link } from 'react-router-dom'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'
+import { useI18n } from '../i18n'
 
 function KivaLink({ path, children }: { path: string; children: React.ReactNode }) {
   return (
@@ -33,58 +34,49 @@ function EmailLink({
 }
 
 export default function About() {
+  const { t } = useI18n()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
 
   return (
     <Container className="py-3">
-      <h1>About KivaLens</h1>
+      <h1>{t('About KivaLens')}</h1>
 
       <Tabs defaultActiveKey="getting-started" id="about-tabs" className="mb-0 about-tabs">
-        <Tab eventKey="getting-started" title="Getting Started">
-          <h3>What is KivaLens?</h3>
+        <Tab eventKey="getting-started" title={t('Getting Started')}>
+          <h3>{t('What is KivaLens?')}</h3>
           <p>
-            KivaLens is a free tool that gives you powerful ways to search for loans
-            on <KivaLink path="">Kiva.org</KivaLink>. Find loans by country, sector,
-            repayment speed, partner quality, and much more — then add them to your
-            basket and check out on Kiva.
+            {t('KivaLens is a free tool with powerful ways to search for loans on')}{' '}
+            <KivaLink path="">Kiva.org</KivaLink>.{' '}
+            {t('Find loans by country, sector, repayment speed, partner quality, and much more — then add them to your basket and check out on Kiva.')}
           </p>
 
           {!hasLenderId ? (
             <>
-              <h3>What is Kiva?</h3>
+              <h3>{t('What is Kiva?')}</h3>
               <p>
-                <KivaLink path="invitedby/nuclearspike">Kiva</KivaLink> is a
-                non-profit where you lend as little as $25 to borrowers around the
-                world. Borrowers repay over time (over 97% repayment rate) and you
-                can re-lend that money to someone else. It&apos;s not a donation — it&apos;s
-                a loan that makes a real difference.
+                <KivaLink path="invitedby/nuclearspike">Kiva</KivaLink>{' '}
+                {t('is a nonprofit where you can lend as little as $25 to borrowers around the world. Borrowers repay over time and you can lend that money again. It is not a donation — it is a loan that makes a real difference.')}
               </p>
             </>
           ) : null}
 
-          <h3>Quick Start</h3>
+          <h3>{t('Quick Start')}</h3>
           <ol className="spacedList">
             <li>
-              <b>Search for loans</b> — Use the Search tab. The criteria panel on the
-              left lets you filter by country, sector, repayment terms, partner risk,
-              and dozens of other options. Results update instantly as you change
-              filters.
+               {t('Search for loans — Use the Search tab. Filter by country, sector, repayment terms, partner risk, and dozens of other options. Results update as you change filters.')}
             </li>
             <li>
-              <b>Review a loan</b> — Click any loan in the list to see details,
-              repayment schedule, and partner information on the right.
+               {t('Review a loan — Click any loan to see details, its repayment schedule, and partner information.')}
             </li>
             <li>
-              <b>Lend</b> — Click &quot;Lend&quot; on loans you like. Use &quot;Bulk Add&quot;
-              {' '}to add many at once.
+               {t('Lend — Click “Lend” on loans you like. Use “Bulk Add” to add many at once.')}
             </li>
             <li>
-              <b>Check out on Kiva</b> — Go to the Basket tab and click &quot;Transfer to
-              Kiva&quot; to complete your loans on Kiva&apos;s site.
+               {t('Check out on Kiva — Go to the Basket tab and transfer your basket to complete the loans on Kiva.')}
             </li>
           </ol>
 
-          <h3>Set Up Your Lender ID</h3>
+          <h3>{t('Set Up Your Lender ID')}</h3>
           <p>
             <a
               href="#"
@@ -93,134 +85,100 @@ export default function About() {
                 showLenderIDModal()
               }}
             >
-              Set your Kiva lender ID
+               {t('Set your Kiva lender ID')}
             </a>{' '}
-            so KivaLens can hide loans you&apos;ve already funded and enable portfolio
-            balancing and the 3D Wall.
+             {t('so KivaLens can hide loans you have already funded and enable portfolio balancing and the 3D Wall.')}
           </p>
 
-          <h3>Save Your Searches</h3>
+          <h3>{t('Save Your Searches')}</h3>
           <p>
-            Found a great set of filters? Use the &quot;Saved Search&quot; dropdown in
-            the criteria panel to save it. KivaLens comes with some preset searches
-            like &quot;Expiring Soon&quot; and &quot;Balance Partner Risk&quot; to get
-            you started. Manage all your saved searches on the{' '}
-            <Link to="/saved">Saved</Link> tab.
+            {t('Found a useful set of filters? Save it from the Saved Searches menu. KivaLens includes presets such as “Expiring Soon” and “Balance Partner Risk”. Manage all saved searches on the')}{' '}
+            <Link to="/saved">{t('Saved')}</Link> {t('tab.')}
           </p>
         </Tab>
 
-        <Tab eventKey="advanced" title="Advanced">
-          <h3>Sorting &amp; Filtering by Repayment</h3>
+        <Tab eventKey="advanced" title={t('Advanced')}>
+          <h3>{t('Sorting & Filtering by Repayment')}</h3>
           <p>
-            Kiva sorts by repayment <i>terms</i> (e.g. &quot;8 months&quot;), but that
-            doesn&apos;t account for when the loan was posted or disbursed. KivaLens
-            sorts by <b>final repayment date relative to today</b>, giving you a true
-            picture of when you&apos;ll get your money back. You can also sort by when
-            you&apos;ll have 50% or 75% repaid — useful for finding loans that pay back
-            sooner even if the final date is the same.
+            {t('Kiva sorts by repayment terms, which do not account for when a loan was posted or disbursed. KivaLens sorts by final repayment date relative to today. You can also sort by the dates when 50% or 75% will be repaid.')}
           </p>
 
-          <h3>Any / All / None Filtering</h3>
+          <h3>{t('Any / All / None Filtering')}</h3>
           <p>
-            For fields where a loan can have multiple values (like Tags), you can
-            choose: <b>Any</b> (match at least one), <b>All</b> (must have every
-            selection), or <b>None</b> (exclude all selected).
+            {t('For fields with multiple values, choose Any to match at least one, All to require every selection, or None to exclude all selected values.')}
           </p>
 
-          <h3>Portfolio Balancing</h3>
+          <h3>{t('Portfolio Balancing')}</h3>
           <p>
-            On the Portfolio tab in criteria, you can balance your lending across
-            countries, sectors, activities, and partners. This helps you diversify and
-            reduce risk. Try the &quot;Balance Partner Risk&quot; saved search to
-            automatically hide loans from partners you already have exposure to.
+            {t('Use the Portfolio criteria tab to balance lending across countries, sectors, activities, and partners. This can diversify your portfolio and reduce concentration risk.')}
           </p>
 
-          <h3>Partners Tab</h3>
+          <h3>{t('Partners Tab')}</h3>
           <p>
-            Browse all Kiva field partners — active, closed, and paused. Filter by
-            country, risk rating, delinquency rate, religion, and more. Click &quot;Show
-            Loans&quot; to jump to the Search tab filtered to that partner&apos;s
-            fundraising loans.
+            {t('Browse active, closed, and paused Kiva field partners. Filter by country, risk rating, delinquency, religion, and more, then show that partner’s fundraising loans.')}
           </p>
 
-          <h3>A+ Team Research</h3>
+          <h3>{t('A+ Team Research')}</h3>
           <p>
-            KivaLens integrates data from the <KivaLink path="team/aplus">A+ Team</KivaLink>
-            {' '}(Atheists, Agnostics, Skeptics, Freethinkers, Secular Humanists and
-            the Non-Religious). Their research includes secular and social ratings for
-            field partners, plus religious affiliation data. Filter by religion in the
-            Partner criteria tab, or view the research on any loan&apos;s Partner detail
-            tab.
+            {t('KivaLens integrates field-partner research from the')}{' '}
+            <KivaLink path="team/aplus">A+ Team</KivaLink>.{' '}
+            {t('It includes secular and social ratings plus religious-affiliation data, available in Partner filters and details.')}
           </p>
 
-          <h3>RSS Feeds</h3>
+          <h3>{t('RSS Feeds')}</h3>
           <p>
-            Set your criteria, go to the RSS tab, and get a URL you can use with any
-            RSS reader or <NewTabLink href="https://www.ifttt.com">IFTTT</NewTabLink>
-            {' '}to get notified when new matching loans are posted.
+            {t('Set your criteria and use the RSS tab to create a feed for any RSS reader or')}{' '}
+            <NewTabLink href="https://www.ifttt.com">IFTTT</NewTabLink>{' '}
+            {t('to be notified when new matching loans are posted.')}
           </p>
 
-          <h3>Reducing Risk</h3>
+          <h3>{t('Reducing Risk')}</h3>
           <ul className="spacedList">
             <li>
-              <b>Risk Rating:</b> Kiva&apos;s assessment of how likely a partner is to
-              fail. Higher stars = lower institutional risk. This doesn&apos;t predict
-              individual borrower default.
+               {t('Risk Rating: Kiva’s assessment of partner failure risk. More stars mean lower institutional risk; this does not predict individual borrower default.')}
             </li>
             <li>
-              <b>Currency Exchange Risk:</b> If a loan isn&apos;t in USD, exchange rate
-              changes can reduce your repayment. Use the Currency Loss filter and
-              partner currency loss % to manage this.
+               {t('Currency Exchange Risk: Exchange-rate changes can reduce repayment on non-USD loans. Use the Currency Loss filter and partner loss rate to manage it.')}
             </li>
             <li>
-              <b>Default Rates:</b> All partners have some defaults. A 0% default rate
-              usually means the partner covers losses — good for risk-averse lenders.
+               {t('Default Rates: All partners can have defaults. A 0% rate often means the partner covers losses.')}
             </li>
             <li>
-              <b>Portfolio Yield:</b> High PY% doesn&apos;t necessarily mean predatory
-              lending. Rural partners with small loans and high servicing costs
-              naturally have higher PY. Don&apos;t judge too harshly or you may exclude
-              partners serving the neediest borrowers.
+               {t('Portfolio Yield: This is interest and fees charged by the partner, not a return to you. High values can reflect small rural loans with high servicing costs.')}
             </li>
             <li>
-              <b>Diversify!</b> Spread your lending across partners and countries. Use
-              Portfolio Balancing to limit exposure to any single partner. If a
-              partner has institutional default, you only lose what you had with them.
+               {t('Diversify: Spread lending across partners and countries. Portfolio Balancing helps limit exposure to any single partner.')}
             </li>
             <li>
-              <b>Repeat Borrowers:</b> A borrower coming back usually means their
-              previous loan was successful. #RepeatBorrower loans historically have a
-              99.16% repayment rate vs 98.55% for #FirstLoan.
+               {t('Repeat Borrowers: A returning borrower often indicates a successful prior loan. Historical repayment has been slightly higher for #RepeatBorrower than #FirstLoan loans.')}
             </li>
           </ul>
 
-          <h3>Questions or Problems?</h3>
+          <h3>{t('Questions or Problems?')}</h3>
           <p>
-            Data comes from{' '}
-            <NewTabLink href="https://build.kiva.org/api">
-              Kiva&apos;s Public API
+             {t('Data comes from')}{' '}
+             <NewTabLink href="https://build.kiva.org/api">
+              {t("Kiva's Public API")}
             </NewTabLink>
-            . For questions about loan data, contact{' '}
-            <KivaLink path="help">Kiva&apos;s Help Center</KivaLink>. For KivaLens
-            bugs,{' '}
+             . {t('For questions about loan data, contact')}{' '}
+            <KivaLink path="help">{t("Kiva's Help Center")}</KivaLink>. {t('For KivaLens bugs,')}{' '}
             <NewTabLink href="https://github.com/nuclearspike/kivalens/issues">
-              open an issue on GitHub
+               {t('open an issue on GitHub')}
             </NewTabLink>{' '}
-            or{' '}
+             {t('or')}{' '}
             <EmailLink
-              subject="KivaLens Bug"
-              body="I found a bug!\nThe problem is...\nSteps to reproduce..."
+               subject={t('KivaLens Bug')}
+              body={t('I found a bug!\nThe problem is…\nSteps to reproduce…')}
             >
-              email me
+               {t('email me')}
             </EmailLink>
-            . Join the{' '}
-            <KivaLink path="team/kivalens">KivaLens Lending Team</KivaLink> for
-            discussion and announcements.
+             . {t('Join the')}{' '}
+            <KivaLink path="team/kivalens">{t('KivaLens Lending Team')}</KivaLink> {t('for discussion and announcements.')}
           </p>
           <p>
-            KivaLens is open source — you can{' '}
+             {t('KivaLens is open source — you can')}{' '}
             <NewTabLink href="https://github.com/nuclearspike/kivalens">
-              browse the code on GitHub
+               {t('browse the code on GitHub')}
             </NewTabLink>
             .
           </p>

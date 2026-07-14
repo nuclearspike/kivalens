@@ -11,7 +11,6 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import numeral from 'numeral'
-import { formatDistanceToNow } from 'date-fns'
 import { useLoanStore, useCriteriaStore } from '../stores'
 import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
@@ -19,8 +18,8 @@ import PartnerDetail from './PartnerDetail'
 import { getKivaLoans } from '../api/kiva'
 import { lendAmountOptions } from '../lib/lendAmountOptions'
 import { lsj } from '../lib/localStorage'
-import { formatDate } from '../lib/dateUtils'
 import { humanize } from '../lib/utils'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
 // RepaymentGraphs sub-component
@@ -37,6 +36,7 @@ interface RepaymentChartDatum {
 
 
 function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
+  const { t, date } = useI18n()
   const data: RepaymentChartDatum[] = useMemo(() => {
     if (!loan.kl_repayments?.length) return []
     const maxAmount = Math.max(...loan.kl_repayments.map((p) => p.amount), 1)
@@ -56,16 +56,16 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
       {/* Repayment info */}
       <div style={{ fontSize: 13, lineHeight: 1.6, marginBottom: 4 }}>
         {loan.terms.repayment_interval && (
-          <div><span style={{ color: '#999' }}>Interval:</span> <b>{loan.terms.repayment_interval}</b></div>
+          <div><span style={{ color: '#999' }}>{t('Interval')}:</span> <b>{t(loan.terms.repayment_interval)}</b></div>
         )}
         {loan.kls_half_back && loan.kls_half_back_actual != null && (
-          <div><span style={{ color: '#999' }}>{Math.round(loan.kls_half_back_actual)}% back:</span> <b>{formatDate(new Date(loan.kls_half_back), 'MMM yyyy')}</b></div>
+          <div><span style={{ color: '#999' }}>{t('{percent}% back', { percent: Math.round(loan.kls_half_back_actual) })}:</span> <b>{date(loan.kls_half_back, { month: 'short', year: 'numeric' })}</b></div>
         )}
         {loan.kls_75_back && loan.kls_75_back_actual != null && (
-          <div><span style={{ color: '#999' }}>{Math.round(loan.kls_75_back_actual)}% back:</span> <b>{formatDate(new Date(loan.kls_75_back), 'MMM yyyy')}</b></div>
+          <div><span style={{ color: '#999' }}>{t('{percent}% back', { percent: Math.round(loan.kls_75_back_actual) })}:</span> <b>{date(loan.kls_75_back, { month: 'short', year: 'numeric' })}</b></div>
         )}
         {loan.kls_final_repayment && (
-          <div><span style={{ color: '#999' }}>Final:</span> <b>{formatDate(new Date(loan.kls_final_repayment), 'MMM yyyy')}</b></div>
+          <div><span style={{ color: '#999' }}>{t('Final')}:</span> <b>{date(loan.kls_final_repayment, { month: 'short', year: 'numeric' })}</b></div>
         )}
       </div>
 
@@ -84,7 +84,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
           <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
           <Tooltip
             formatter={(value, name) =>
-              name === 'Repayment'
+              name === t('Repayment')
                 ? `$${Number(value).toFixed(2)}`
                 : `${Number(value).toFixed(1)}%`
             }
@@ -95,7 +95,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
             xAxisId="amount"
             dataKey="amount"
             fill="#7cb5ec"
-            name="Repayment"
+            name={t('Repayment')}
             isAnimationActive={false}
           />
           <Area
@@ -104,7 +104,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
             stroke="#434348"
             fill="#434348"
             fillOpacity={0.75}
-            name="Cumulative %"
+            name={t('Cumulative %')}
             isAnimationActive={false}
           />
         </ComposedChart>
@@ -118,6 +118,7 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
 // ---------------------------------------------------------------------------
 
 export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
+  const { t, sector, date, relativeTime } = useI18n()
   const { id } = useParams<{ id: string }>()
   const loanId = loanIdProp ?? parseInt(id ?? '0', 10)
   const getLoan = useLoanStore((s) => s.getLoan)
@@ -186,7 +187,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   if (!loan) {
     return (
       <div className="p-3">
-        <h3>Loading...</h3>
+        <h3>{t('Loading…')}</h3>
       </div>
     )
   }
@@ -225,8 +226,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
     </span>
   )
 
-  const timeAgo = (d: Date | string | number) =>
-    formatDistanceToNow(new Date(d), { addSuffix: true }).replace(/^(about|over|almost) /, '')
+  const timeAgo = (d: Date | string | number) => relativeTime(d)
 
   const loanUrl = `https://www.kiva.org/lend/${loan.id}`
   const options = lendAmountOptions(loan.kl_still_needed ?? 0)
@@ -242,7 +242,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             the borrower name wraps */}
         {inBasket ? (
           <button className="btn btn-danger float_right" onClick={handleRemove}>
-            Remove from Basket
+             {t('Remove from Basket')}
           </button>
         ) : (
           <span
@@ -290,12 +290,12 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 cursor: 'pointer',
               }}
             >
-              Lend
+              {t('Lend')}
             </button>
           </span>
         )}
 
-        <a href={loanUrl} target="_blank" rel="noopener noreferrer" title="View on Kiva">
+        <a href={loanUrl} target="_blank" rel="noopener noreferrer" title={t('View on Kiva')}>
           <span
             style={{
               display: 'inline-block',
@@ -322,8 +322,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
 
       {inBasket && (loan.kl_still_needed ?? 0) === 0 && (
         <div className="alert alert-warning py-1 mb-2">
-          This loan has been fully funded by other lenders on Kiva and will be skipped on
-          checkout.
+           {t('This loan has been fully funded by other lenders on Kiva and will be skipped at checkout.')}
         </div>
       )}
 
@@ -334,7 +333,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             className={`nav-link${activeTab === 1 ? ' active' : ''}`}
             onClick={() => handleTabSelect(1)}
           >
-            Image
+             {t('Image')}
           </button>
         </li>
         <li className="nav-item">
@@ -342,13 +341,13 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             className={`nav-link${activeTab === 2 ? ' active' : ''}`}
             onClick={() => handleTabSelect(2)}
           >
-            Details
+            {t('Details')}
           </button>
         </li>
         {loan.partner_id && (
           <li className="nav-item">
             <button className={`nav-link${activeTab === 3 ? ' active' : ''}`} onClick={() => handleTabSelect(3)}>
-              Partner
+              {t('Partner')}
             </button>
           </li>
         )}
@@ -368,14 +367,14 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             <div className="card mt-2">
               <div className="card-body py-2">
                 {loan.borrowers.length > 1 && (
-                  <p className="text-muted small mb-1">In no particular order</p>
+                  <p className="text-muted small mb-1">{t('In no particular order')}</p>
                 )}
                 <p className="mb-1">
-                  Pictured: {pictured.length ? pictured.map(renderBorrowerPill) : '(none)'}
+                   {t('Pictured')}: {pictured.length ? pictured.map(renderBorrowerPill) : t('(none)')}
                 </p>
                 <p className="mb-0">
-                  Not Pictured:{' '}
-                  {notPictured.length ? notPictured.map(renderBorrowerPill) : '(none)'}
+                   {t('Not Pictured')}:{' '}
+                  {notPictured.length ? notPictured.map(renderBorrowerPill) : t('(none)')}
                 </p>
               </div>
             </div>
@@ -404,14 +403,14 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </div>
 
             <p className="fw-bold mb-2">
-              {loan.location.country} | {loan.sector} | {loan.activity} | {loan.use}
+              {loan.location.country} | {sector(loan.sector)} | {loan.activity} | {loan.use}
             </p>
 
             <div className="d-flex gap-3">
               {/* Left detail column */}
               <div style={{ flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0 }}>
                 <div>
-                  <div className="detail-label">Matches Saved Searches</div>
+                  <div className="detail-label">{t('Matches Saved Searches')}</div>
                   <div>
                   {matchingNames.length > 0
                     ? matchingNames.map((name, i) => (
@@ -424,77 +423,77 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                               loadSearch(name)
                             }}
                           >
-                            {name}
+                             {t(name)}
                           </a>
                         </span>
-                      ))
-                    : '(none)'}
+                       ))
+                    : t('(none)')}
                   </div>
                 </div>
 
                 <div>
-                  <div className="detail-label">Tags</div>
-                  <div>{tags.length ? tags.map((t) => humanize(t)).join(', ') : '(none)'}</div>
+                  <div className="detail-label">{t('Tags')}</div>
+                  <div>{tags.length ? tags.map((tag) => humanize(tag)).join(', ') : t('(none)')}</div>
                 </div>
 
                 {themes.length > 0 && (
                   <div>
-                    <div className="detail-label">Themes</div>
+                    <div className="detail-label">{t('Themes')}</div>
                     <div>{themes.join(', ')}</div>
                   </div>
                 )}
 
                 <div>
                   <div className="detail-label">
-                    {loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers'}
+                    {t(loan.borrowers.length === 1 ? 'Borrower' : 'Borrowers')}
                   </div>
                   <div>
                   {loan.borrowers.length === 1
                     ? loan.kl_percent_women === 100
-                      ? 'Female'
-                      : 'Male'
-                    : `${loan.borrowers.length} (${Math.round(loan.kl_percent_women ?? 0)}% Female)`}
+                      ? t('Female')
+                      : t('Male')
+                    : t('{count} ({percent}% Female)', { count: loan.borrowers.length, percent: Math.round(loan.kl_percent_women ?? 0) })}
                   </div>
                 </div>
 
                 {loan.kl_posted_date && (
                   <div>
-                    <div className="detail-label">Posted</div>
+                    <div className="detail-label">{t('Posted')}</div>
                     <div>
-                    {formatDate(new Date(loan.kl_posted_date), 'MMM d, yyyy @ h:mm a')} ({timeAgo(loan.posted_date)})
+                    {date(loan.kl_posted_date, { dateStyle: 'medium', timeStyle: 'short' })} ({timeAgo(loan.posted_date)})
                     </div>
                   </div>
                 )}
 
                 {loan.status !== 'fundraising' && (
                   <div>
-                    <div className="detail-label">Status</div>
-                    <div>{humanize(loan.status)}</div>
+                    <div className="detail-label">{t('Status')}</div>
+                    <div>{t(humanize(loan.status))}</div>
                   </div>
                 )}
 
                 {loan.status === 'fundraising' && loan.kl_planned_expiration_date && (
                   <div>
-                    <div className="detail-label">Expires</div>
+                    <div className="detail-label">{t('Expires')}</div>
                     <div>
-                    {formatDate(new Date(loan.kl_planned_expiration_date), 'MMM d, yyyy @ h:mm a')} ({timeAgo(loan.planned_expiration_date ?? '')})
+                    {date(loan.kl_planned_expiration_date, { dateStyle: 'medium', timeStyle: 'short' })} ({timeAgo(loan.planned_expiration_date ?? '')})
                     </div>
                   </div>
                 )}
 
                 {loan.terms.disbursal_date && (
                   <div>
-                    <div className="detail-label">Disbursed</div>
+                    <div className="detail-label">{t('Disbursed')}</div>
                     <div>
-                    {formatDate(new Date(loan.terms.disbursal_date), 'MMM d, yyyy')} ({timeAgo(loan.terms.disbursal_date)})
+                    {date(loan.terms.disbursal_date, { dateStyle: 'medium' })} ({timeAgo(loan.terms.disbursal_date)})
                     </div>
                   </div>
                 )}
 
                 {loan.status === 'fundraising' && loan.kls_repaid_in != null && (
                   <div>
-                    <div className="detail-label">Final Repayment In</div>
-                    <div>{numeral(loan.kls_repaid_in).format('0.0')} months</div>
+                    <div className="detail-label">{t('Final Repayment In')}</div>
+                    <div>{t('{count} months', { count: numeral(loan.kls_repaid_in).format('0.0') })}</div>
                   </div>
                 )}
 
@@ -502,22 +501,22 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                   <div style={{ marginTop: 4 }}>
                     {loan.kl_dollars_per_hour && (
                       <div>
-                        <span className="detail-label">$/Hour</span>{' '}
+                        <span className="detail-label">{t('$/Hour')}</span>{' '}
                         ${numeral(loan.kl_dollars_per_hour()).format('0.00')}
                       </div>
                     )}
                     <div>
-                      <span className="detail-label">Amount</span>{' '}
+                      <span className="detail-label">{t('Amount')}</span>{' '}
                       ${numeral(loan.loan_amount).format('0,0')}{' '}
                       <span style={{ color: '#ccc' }}>|</span>{' '}
-                      <span className="detail-label">Funded</span>{' '}
+                      <span className="detail-label">{t('Funded')}</span>{' '}
                       ${numeral(loan.funded_amount).format('0,0')}
                     </div>
                     <div>
-                      <span className="detail-label">In Baskets</span>{' '}
+                      <span className="detail-label">{t('In Baskets')}</span>{' '}
                       ${numeral(loan.basket_amount).format('0,0')}{' '}
                       <span style={{ color: '#ccc' }}>|</span>{' '}
-                      <span className="detail-label">Still Needed</span>{' '}
+                      <span className="detail-label">{t('Still Needed')}</span>{' '}
                       ${numeral(loan.kl_still_needed ?? 0).format('0,0')}
                     </div>
                   </div>
@@ -543,7 +542,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         {activeTab === 3 && loan.partner_id && (() => {
           const kl = getKivaLoans()
           const partner = kl?.getPartner(loan.partner_id)
-          return partner ? <PartnerDetail partner={partner} /> : <p>Partner data not available.</p>
+          return partner ? <PartnerDetail partner={partner} /> : <p>{t('Partner data not available.')}</p>
         })()}
       </div>
     </div>

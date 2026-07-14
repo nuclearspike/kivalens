@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Row, Col, Card } from '../ui'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { useCriteriaStore, useUtilsStore } from '../stores'
+import { useI18n } from '../i18n'
 
 // "Your Lending" — charts of how the signed-in lender's past loans break down,
 // from Kiva's SuperGraph data (the same source the portfolio balancers use).
@@ -15,6 +16,7 @@ const SLICES: { key: string; label: string }[] = [
 ]
 
 function SliceChart({ sliceBy, label }: { sliceBy: string; label: string }) {
+  const { t, sector } = useI18n()
   const fetchBalancerData = useCriteriaStore((s) => s.fetchBalancerData)
   const lenderId = useUtilsStore((s) => s.lenderId)
   const [slices, setSlices] = useState<Slice[] | null>(null)
@@ -28,24 +30,24 @@ function SliceChart({ sliceBy, label }: { sliceBy: string; label: string }) {
       .then((r) => {
         if (!active) return
         const top = [...(r.slices as Slice[])].sort((a, b) => b.value - a.value).slice(0, 12)
-        setSlices(top)
+        setSlices(sliceBy === 'sector' ? top.map((item) => ({ ...item, name: sector(item.name) })) : top)
       })
       .catch(() => active && setFailed(true))
     return () => {
       active = false
     }
-  }, [sliceBy, fetchBalancerData, lenderId])
+  }, [sliceBy, fetchBalancerData, lenderId, sector])
 
   return (
     <Card className="mb-3">
-      <Card.Header>{label}</Card.Header>
+      <Card.Header>{t(label)}</Card.Header>
       <Card.Body>
         {failed ? (
-          <div className="text-muted">Couldn&apos;t load this breakdown.</div>
+          <div className="text-muted">{t("Couldn't load this breakdown.")}</div>
         ) : !slices ? (
-          <div className="text-muted">Loading…</div>
+          <div className="text-muted">{t('Loading…')}</div>
         ) : slices.length === 0 ? (
-          <div className="text-muted">No data.</div>
+          <div className="text-muted">{t('No data.')}</div>
         ) : (
           <ResponsiveContainer width="100%" height={Math.max(170, slices.length * 26)}>
             <BarChart data={slices} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
@@ -54,7 +56,7 @@ function SliceChart({ sliceBy, label }: { sliceBy: string; label: string }) {
               <Tooltip
                 formatter={(value, _name, item) => {
                   const p = (item as unknown as { payload?: Slice }).payload
-                  return [`${value} loans (${(p?.percent ?? 0).toFixed(1)}%)`, p?.name ?? '']
+                  return [t('{count} loans ({percent}%)', { count: String(value), percent: (p?.percent ?? 0).toFixed(1) }), p?.name ?? '']
                 }}
               />
               <Bar dataKey="value" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
@@ -67,12 +69,13 @@ function SliceChart({ sliceBy, label }: { sliceBy: string; label: string }) {
 }
 
 export default function YourLending() {
+  const { t } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
   if (!lenderId) return null
   return (
     <div className="mb-4">
-      <h2>Your Lending</h2>
-      <p className="text-muted">How your past Kiva loans break down, from your portfolio data.</p>
+      <h2>{t('Your Lending')}</h2>
+      <p className="text-muted">{t('How your past Kiva loans break down, from your portfolio data.')}</p>
       <Row>
         {SLICES.map((s) => (
           <Col md={4} key={s.key}>

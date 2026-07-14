@@ -3,6 +3,7 @@ import { useLoanStore } from '../stores'
 import KivaImage from './KivaImage'
 import { lendAmountOptions } from '../lib/lendAmountOptions'
 import type { ChangeEvent } from 'react'
+import { useI18n } from '../i18n'
 
 interface BasketListItemProps {
   entry: BasketEntry
@@ -15,6 +16,7 @@ interface BasketListItemProps {
  * amount dropdown (via lendAmountOptions), and a remove button.
  */
 export default function BasketListItem({ entry, onSelect, selected }: BasketListItemProps) {
+  const { sector, t } = useI18n()
   const setBasketAmount = useLoanStore((s) => s.setBasketAmount)
   const loan = entry.loan
 
@@ -44,7 +46,7 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
         <div className="loan-name">{loan.name}</div>
         <div className="loan-meta">
           <span className="loan-tag">{loan.location.country}</span>
-          <span className="loan-tag">{loan.sector}</span>
+          <span className="loan-tag">{sector(loan.sector)}</span>
           <span className="loan-tag d-none d-lg-inline">{loan.activity}</span>
         </div>
         {options.length > 0 ? (
@@ -63,7 +65,7 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
           </select>
         ) : (
           <span style={{ fontSize: 11, color: '#c0392b', fontWeight: 600 }}>
-            Fully funded — will be removed on checkout
+            {t('Fully funded — will be removed on checkout')}
           </span>
         )}
       </div>

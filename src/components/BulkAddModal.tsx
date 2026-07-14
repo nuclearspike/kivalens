@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useLoanStore } from '../stores'
 import type { BasketItem } from '../types'
+import { useI18n } from '../i18n'
 
 interface BulkAddModalProps {
   onHide: () => void
@@ -12,6 +13,7 @@ interface BulkAddModalProps {
  * Respects Kiva's $10,000 basket maximum.
  */
 export default function BulkAddModal({ onHide }: BulkAddModalProps) {
+  const { t } = useI18n()
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
   const basket = useLoanStore((s) => s.basket)
   const inBasket = useLoanStore((s) => s.inBasket)
@@ -47,17 +49,15 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
       <div className="modal-dialog" role="document">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Bulk Add</h5>
-            <button type="button" className="btn-close" onClick={onHide} aria-label="Close" />
+            <h5 className="modal-title">{t('Bulk Add')}</h5>
+            <button type="button" className="btn-close" onClick={onHide} aria-label={t('Close')} />
           </div>
           <div className="modal-body">
             <p>
-              Mega-Lender Tool: Using the current sort and criteria, this will start at the top
-              of the list and for any loan not currently in your basket, it will apply the rules
-              below. Kiva has a maximum basket amount of $10,000.
+              {t('Mega-Lender Tool: Using the current sort and criteria, this starts at the top of the list and applies the rules below to each loan not already in your basket. Kiva has a maximum basket amount of $10,000.')}
             </p>
             <div className="mb-3">
-              <label className="form-label">Max to lend: ${maxBasket}</label>
+              <label className="form-label">{t('Max to lend: ${amount}', { amount: maxBasket })}</label>
               <input
                 type="range"
                 className="form-range"
@@ -69,7 +69,7 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Max per loan: ${maxPerLoan}</label>
+              <label className="form-label">{t('Max per loan: ${amount}', { amount: maxPerLoan })}</label>
               <input
                 type="range"
                 className="form-range"
@@ -83,10 +83,10 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
           </div>
           <div className="modal-footer">
             <button className="btn btn-primary" onClick={handleAdd}>
-              Add a bunch!
+              {t('Add a bunch!')}
             </button>
             <button className="btn btn-secondary" onClick={onHide}>
-              Close
+              {t('Close')}
             </button>
           </div>
         </div>

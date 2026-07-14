@@ -13,7 +13,21 @@ dotenv.config()
 // The klDevServer plugin mounts the same /api/*, /graphql, and /proxy/*
 // endpoints the production server (server/prod.mjs) serves, so dev and prod
 // share one implementation (server/klCore.mjs).
+// When fronted by the `directory` hub (dev.kivalens.com:80 -> :5555), the hub
+// starts vite with DIRECTORY_PROXY=1 so we can allow that Host and make HMR
+// reconnect through port 80. Direct `localhost:5555` access is unaffected.
+const viaProxy = process.env.DIRECTORY_PROXY === '1'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), klDevServer()],
+  server: {
+    port: 5555,
+    ...(viaProxy
+      ? {
+          allowedHosts: ['dev.kivalens.com'],
+          hmr: { host: 'dev.kivalens.com', clientPort: 80, protocol: 'ws' },
+        }
+      : {}),
+  },
 })

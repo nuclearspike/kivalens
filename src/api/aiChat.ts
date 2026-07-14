@@ -28,6 +28,7 @@ export type ChatEvent =
   | { type: 'delete_search'; name: string }
   | { type: 'reset_criteria' }
   | { type: 'reset_chat' }
+  | { type: 'application_storage_set'; key: string; value: string }
   | { type: 'chart'; chart: ChartSpec }
   | { type: 'error'; message: string }
   | { type: 'done' }
@@ -40,6 +41,8 @@ export interface ChartSpec {
 
 export interface StreamChatBody {
   messages: ChatMessage[]
+  /** Selected UI locale; the server instructs the model to answer in it. */
+  locale?: 'en' | 'es' | 'fr' | 'de' | 'it' | 'nl'
   lenderId?: string | null
   criteria?: unknown
   /** What the user currently sees in the result header ("Showing X of Y"). */
@@ -53,6 +56,8 @@ export interface StreamChatBody {
   basket?: { loanId: number; amount: number }[]
   /** Names of the user's saved searches. */
   savedSearches?: string[]
+  /** Browser-local values visible only inside the AskKivaLens: namespace. */
+  applicationStorage?: Record<string, string>
   /** Stable per-browser id so server logs can group a user's turns. */
   clientId?: string
 }

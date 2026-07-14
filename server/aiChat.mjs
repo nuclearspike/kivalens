@@ -17,12 +17,15 @@ import { fetchSuperGraphSlices, fetchLenderProfile } from './lenderData.mjs'
 import { budgetExceeded, addSpend, costOf, logInteraction, getRecentLogs, getMonthlySpend, monthKey, BUDGET_USD } from './aiUsage.mjs'
 import { sendDigestNow } from './digest.mjs'
 
-const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+const MODEL = process.env.OPENAI_RESPONSES_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
 // Global kill switch: the assistant is available ONLY when this is exactly 'true'.
 const askEnabled = () => process.env.ASK_KIVALENS_ENABLED === 'true'
 const MAX_TOOL_ROUNDS = 5
 const MAX_BODY_BYTES = 256 * 1024
 const MAX_HISTORY_MESSAGES = 24
+const APPLICATION_STORAGE_PREFIX = 'AskKivaLens:'
+const MAX_APPLICATION_STORAGE_KEYS = 32
+const MAX_APPLICATION_STORAGE_VALUE_BYTES = 4 * 1024
 
 let _client = null
 function getClient() {
@@ -323,10 +326,60 @@ function criteriaArg(args) {
   return {}
 }
 
+function cleanApplicationStorageKey(value) {
+  const key = String(value ?? '').trim()
+  return /^[a-z0-9][a-z0-9._-]{0,63}$/i.test(key) ? key : null
+}
+
+export function sanitizeApplicationStorage(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {}
+  const entries = Object.entries(input).slice(0, MAX_APPLICATION_STORAGE_KEYS)
+  const clean = {}
+  for (const [rawKey, rawValue] of entries) {
+    const key = cleanApplicationStorageKey(rawKey)
+    if (!key || typeof rawValue !== 'string') continue
+    clean[key] = rawValue.slice(0, MAX_APPLICATION_STORAGE_VALUE_BYTES)
+  }
+  return clean
+}
+
 async function execTool(name, args, sctx, sse) {
   const { state, lenderId } = sctx
   const vocab = getTaxonomy(state).vocab
   switch (name) {
+    case 'save_application_storage': {
+      const key = cleanApplicationStorageKey(args.key)
+      if (!key) return { error: 'invalid_key', note: 'Use 1-64 letters, numbers, dots, dashes, or underscores.' }
+      let value
+      try {
+        value = typeof args.value === 'string' ? args.value : JSON.stringify(args.value)
+      } catch {
+        return { error: 'invalid_value', note: 'The value must be text or JSON-serializable.' }
+      }
+      if (!value) return { error: 'value_required' }
+      if (Buffer.byteLength(value, 'utf8') > MAX_APPLICATION_STORAGE_VALUE_BYTES) {
+        return { error: 'value_too_large', maxBytes: MAX_APPLICATION_STORAGE_VALUE_BYTES }
+      }
+      if (!(key in sctx.applicationStorage) && Object.keys(sctx.applicationStorage).length >= MAX_APPLICATION_STORAGE_KEYS) {
+        return { error: 'storage_full', maxKeys: MAX_APPLICATION_STORAGE_KEYS }
+      }
+      sctx.applicationStorage[key] = value
+      sse({ type: 'application_storage_set', key, value })
+      return { ok: true, key: `${APPLICATION_STORAGE_PREFIX}${key}`, storedLocally: true }
+    }
+    case 'retrieve_application_storage': {
+      const requested = args.key == null || args.key === '' ? null : cleanApplicationStorageKey(args.key)
+      if (args.key != null && args.key !== '' && !requested) return { error: 'invalid_key' }
+      if (requested) {
+        return requested in sctx.applicationStorage
+          ? { key: `${APPLICATION_STORAGE_PREFIX}${requested}`, value: sctx.applicationStorage[requested] }
+          : { key: `${APPLICATION_STORAGE_PREFIX}${requested}`, found: false }
+      }
+      return {
+        prefix: APPLICATION_STORAGE_PREFIX,
+        entries: Object.entries(sctx.applicationStorage).map(([key, value]) => ({ key, value })),
+      }
+    }
     case 'analyze_loans': {
       if (!state.ready || !state.allLoans?.length) return { ready: false, note: 'Loan data is still loading; ask the user to retry shortly.' }
       // Merge the model's (often partial) facet criteria onto the CURRENT applied
@@ -1061,6 +1114,31 @@ const TOOL_DEFS = [
   {
     type: 'function',
     function: {
+      name: 'save_application_storage',
+      description:
+        'Save a compact preference, lending goal, or continuity note in browser-local ApplicationStorage owned by Ask KivaLens. The fixed AskKivaLens: prefix is applied automatically. Do not store secrets, lender IDs, payment data, or loan descriptions.',
+      parameters: {
+        type: 'object',
+        properties: {
+          key: { type: 'string', description: 'Stable 1-64 character key using letters, numbers, dots, dashes, or underscores.' },
+          value: { description: 'Compact text or JSON-serializable value to remember.' },
+        },
+        required: ['key', 'value'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'retrieve_application_storage',
+      description:
+        'Read browser-local values previously saved by Ask KivaLens. Pass a key for one value or omit it to list everything in the isolated AskKivaLens: namespace.',
+      parameters: { type: 'object', properties: { key: { type: 'string' } } },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_selected_loan',
       description:
         'Get the loan the user is CURRENTLY viewing (the one they navigated to) with FULL details — borrower, amounts, field-partner stats, description, and repayment schedule. Call this whenever they say "this loan / this borrower / this partner" or ask about the loan on screen and you need its data. No id needed. Returns {none:true} if they are not on a specific loan.',
@@ -1069,17 +1147,30 @@ const TOOL_DEFS = [
   },
 ]
 
+// Responses function tools are internally tagged rather than wrapped in a
+// `function` property. Existing schemas remain explicitly non-strict until the
+// eval suite can lock down every dynamic criteria shape.
+export const RESPONSES_TOOL_DEFS = TOOL_DEFS.map(({ function: fn }) => ({
+  type: 'function',
+  name: fn.name,
+  description: fn.description,
+  parameters: fn.parameters,
+  strict: false,
+}))
+
 export { validateCriteria }
 
 // --- system prompt ----------------------------------------------------------
-function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
+export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
   const { vocab, countries } = getTaxonomy(state)
+  const language = ({ en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', nl: 'Dutch' })[extra.locale] || 'English'
   const countryList = countries.map((c) => `${c.code} (${c.name})`).join(', ')
   const total = (state.allLoans || []).length
   const directCount = (state.allLoans || []).filter((l) => l.partner_id == null).length
   const mfiCount = total - directCount
   const lines = [
     'You are "Ask KivaLens", the assistant inside KivaLens — an advanced search tool for lenders on Kiva.org, the microfinance site where people fund small loans to borrowers worldwide.',
+    `LANGUAGE: Always answer in ${language}. Translate your explanations, questions, chart titles, and UI callout messages into ${language}. Keep canonical criteria values, saved-search names, tool arguments, country codes, and sector values in English so tools continue to work.`,
     'KivaLens filters the LIVE set of fundraising Kiva loans by rich criteria (sector, country, activity, tags, themes, borrower age/gender, amounts, repayment speed, field-partner quality, and more), can exclude loans the user already funded, balance a portfolio, save searches, and emit RSS feeds.',
     'HOW KIVA WORKS — NO LENDER RETURN: Kiva is philanthropic micro-LENDING, not investing. Lenders earn NO interest and make NO profit — at best you are repaid your principal, and sometimes less (default or currency loss). NEVER advise on "maximizing returns / yield / profit", never call a loan "high-return", and never frame Kiva as an investment. If the user asks how to maximize return/profit/yield, gently correct the premise (lenders are not paid interest) and pivot to what they CAN optimize: social impact, being repaid reliably (safer field partners), how fast money comes back to re-lend, and diversification. A partner\'s portfolio_yield is the interest that PARTNER charges its BORROWERS — it is NOT income to the lender; never present it as the user\'s return.',
     '',
@@ -1107,6 +1198,7 @@ function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / set_lend_amount / set_all_lend_amounts (sets EVERY basket loan to one amount — use for "change all loans to $X") / clear_basket. For set_lend_amount / remove_from_basket when the user says "it" / "this" / "my basket loan", target the loan that is IN THE BASKET — pass the loanId from the CONTEXT basket list (which now shows each basket loan\'s loanId), NOT the selected loan\'s id, which may be a different loan. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
     'BASKET COST vs. STILL-NEEDED: the cost to ADD loans to the basket is the lend amount YOU choose per loan — the $25 Kiva minimum unless the user picks more — NOT the loans\' total "still needed". Adding N loans at the minimum costs $25 x N. When you quote what it costs to add/queue loans, quote $25 x N (or perLoan x N), never the sum of their still-needed amounts.',
     'MORE TOOLS: list_saved_searches / load_search / delete_search manage saved searches; reset_criteria clears all filters; generate_rss_feed returns a shareable feed URL for alerts; render_chart draws a bar/pie chart inline — use it whenever a visual helps (portfolio breakdowns, facet counts, comparisons). render_chart shows the chart to the user AUTOMATICALLY; after calling it just add a one-line caption.',
+    'APPLICATION STORAGE: save_application_storage and retrieve_application_storage give you a small browser-local memory under the fixed AskKivaLens: prefix. Use it for durable preferences, lending goals, and short continuity notes when the user asks you to remember something or it will clearly improve a later visit. Retrieve before claiming what you remember. Never store secrets, lender IDs, payment data, entire transcripts, or borrower descriptions. Storage stays on this browser and is not an account or cloud sync.',
     'START OVER: reset_chat clears the CONVERSATION (call it for "start over" / "reset the chat" / "clear this"). reset_criteria clears the search FILTERS. If it is ambiguous, ask which they mean in one line.',
     'RESULTS & PARTNERS: list_results lets YOU read the matching loans (to pick ONE to recommend, or answer a question) — they are already on screen, so do NOT print them as a list; recommend at most one by name, then add_to_basket by id if they want it. bulk_add_to_basket loads MANY at once from the current filter — confirm the rough $ total with the user first; nothing is funded until they check out on Kiva. search_partners / compare_partners inspect field-partner risk (pair with render_chart). toggle_notify_on_new turns new-loan alerts on/off for a saved search.',
     'RECOMMENDING A LOAN: do NOT repeat data already on screen. But if a loan has an UNUSUAL risk factor — a high-risk / low-rated / delinquent field partner, currency-exchange-loss liability, an unusually long term, or it is a Direct loan (no partner backing) — flag it in one short phrase and offer to explain. Otherwise keep it brief.',
@@ -1215,25 +1307,41 @@ function badImageIndex(s) {
   return Math.min(i1, i2)
 }
 
+export function buildResponsesRequest({ instructions, input, lastRound = false, clientId = null }) {
+  return {
+    model: MODEL,
+    instructions,
+    input,
+    tools: RESPONSES_TOOL_DEFS,
+    tool_choice: lastRound ? 'none' : 'auto',
+    temperature: 0.3,
+    max_output_tokens: 900,
+    stream: true,
+    // KivaLens already carries the transcript and tool items locally. Keeping
+    // OpenAI storage off preserves the app's existing privacy boundary.
+    store: false,
+    prompt_cache_key: 'kivalens-assistant-v2',
+    ...(typeof clientId === 'string' && clientId
+      ? { safety_identifier: clientId.slice(0, 64) }
+      : {}),
+  }
+}
+
 async function runChat(state, payload, res, signal) {
   const sse = sseWriter(res)
   const client = getClient()
   const lenderId = payload.lenderId ? String(payload.lenderId) : null
   const criteria = payload.criteria || null
-  const convo = [
-    {
-      role: 'system',
-      content: buildSystemPrompt(state, lenderId, criteria, {
-        shown: payload.shownCount,
-        total: payload.totalCount,
-        page: typeof payload.page === 'string' ? payload.page.slice(0, 120) : null,
-        selectedLoanId: payload.selectedLoanId,
-        basket: Array.isArray(payload.basket) ? payload.basket : [],
-        savedSearches: Array.isArray(payload.savedSearches) ? payload.savedSearches : [],
-      }),
-    },
-    ...sanitizeHistory(payload.messages),
-  ]
+  const instructions = buildSystemPrompt(state, lenderId, criteria, {
+    shown: payload.shownCount,
+    total: payload.totalCount,
+    page: typeof payload.page === 'string' ? payload.page.slice(0, 120) : null,
+    selectedLoanId: payload.selectedLoanId,
+    basket: Array.isArray(payload.basket) ? payload.basket : [],
+    savedSearches: Array.isArray(payload.savedSearches) ? payload.savedSearches : [],
+    locale: ['en', 'es', 'fr', 'de', 'it', 'nl'].includes(payload.locale) ? payload.locale : 'en',
+  })
+  const input = sanitizeHistory(payload.messages)
   const sctx = {
     state,
     lenderId,
@@ -1241,6 +1349,7 @@ async function runChat(state, payload, res, signal) {
     selectedLoanId: payload.selectedLoanId ?? null,
     basket: Array.isArray(payload.basket) ? payload.basket : [],
     savedSearches: Array.isArray(payload.savedSearches) ? payload.savedSearches : [],
+    applicationStorage: sanitizeApplicationStorage(payload.applicationStorage),
   }
   let promptTokens = 0
   let completionTokens = 0
@@ -1249,83 +1358,69 @@ async function runChat(state, payload, res, signal) {
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const lastRound = round === MAX_TOOL_ROUNDS - 1
-    const stream = await client.chat.completions.create(
-      {
-        model: MODEL,
-        messages: convo,
-        tools: TOOL_DEFS,
-        tool_choice: lastRound ? 'none' : 'auto',
-        temperature: 0.3,
-        max_tokens: 900,
-        stream: true,
-        stream_options: { include_usage: true },
-      },
+    const stream = await client.responses.create(
+      buildResponsesRequest({ instructions, input, lastRound, clientId: payload.clientId }),
       { signal },
     )
     let textBuf = ''
-    const calls = []
-    let finish = null
-    for await (const chunk of stream) {
-      if (chunk.usage) {
-        promptTokens += chunk.usage.prompt_tokens || 0
-        completionTokens += chunk.usage.completion_tokens || 0
-      }
-      const choice = chunk.choices?.[0]
-      if (!choice) continue
-      const d = choice.delta || {}
-      if (d.content) {
+    let completed = null
+    let imageCutoff = false
+    for await (const event of stream) {
+      if (event.type === 'response.output_text.delta' && event.delta) {
         const before = textBuf.length
-        textBuf += d.content
+        textBuf += event.delta
         // Guard: the model occasionally ignores OUTPUT RULES and emits an image /
         // base64 data URI, then loops on it (huge token burn + garbled on-screen
-        // text). Forward the clean text up to the marker, drop the rest, and stop
-        // the stream so it can't keep generating the blob.
+        // text). Forward the clean text up to the marker, drop the rest, and stop.
         const mi = badImageIndex(textBuf)
         if (mi >= 0) {
           if (mi > before) sse({ type: 'token', text: textBuf.slice(before, mi) })
           textBuf = textBuf.slice(0, mi).trimEnd()
+          imageCutoff = true
           break
         }
-        sse({ type: 'token', text: d.content })
+        sse({ type: 'token', text: event.delta })
+      } else if (event.type === 'response.completed') {
+        completed = event.response
+      } else if (event.type === 'response.failed') {
+        throw new Error(event.response?.error?.message || 'OpenAI response failed')
+      } else if (event.type === 'error') {
+        throw new Error(event.message || 'OpenAI stream failed')
       }
-      if (d.tool_calls) {
-        for (const tc of d.tool_calls) {
-          const i = tc.index
-          calls[i] = calls[i] || { id: '', name: '', args: '' }
-          if (tc.id) calls[i].id = tc.id
-          if (tc.function?.name) calls[i].name = tc.function.name
-          if (tc.function?.arguments) calls[i].args += tc.function.arguments
-        }
-      }
-      if (choice.finish_reason) finish = choice.finish_reason
     }
 
-    const toolCalls = calls.filter(Boolean)
+    if (completed?.usage) {
+      promptTokens += completed.usage.input_tokens || 0
+      completionTokens += completed.usage.output_tokens || 0
+    }
     if (textBuf) responseText += (responseText ? '\n' : '') + textBuf
-    if (finish === 'tool_calls' && toolCalls.length) {
-      convo.push({
-        role: 'assistant',
-        content: textBuf || null,
-        tool_calls: toolCalls.map((t) => ({ id: t.id, type: 'function', function: { name: t.name, arguments: t.args || '{}' } })),
-      })
-      for (const t of toolCalls) {
+    if (imageCutoff) break
+
+    const outputItems = completed?.output || []
+    const toolCalls = outputItems.filter((item) => item.type === 'function_call')
+    if (toolCalls.length && !lastRound) {
+      // With store:false we keep conversation state locally: replay every output
+      // item, then append one function_call_output item for each call_id.
+      input.push(...outputItems)
+      for (const call of toolCalls) {
         let result
         try {
-          const parsed = t.args ? JSON.parse(t.args) : {}
-          result = await execTool(t.name, parsed, sctx, sse)
+          const parsed = call.arguments ? JSON.parse(call.arguments) : {}
+          result = await execTool(call.name, parsed, sctx, sse)
         } catch (e) {
           result = { error: 'tool_failed', message: String(e && e.message ? e.message : e) }
         }
+        const output = (() => { try { return JSON.stringify(result) } catch { return JSON.stringify({ error: 'unserializable_tool_result' }) } })()
         toolsCalled.push({
-          name: t.name,
-          args: (t.args || '').slice(0, 300),
-          result: (() => { try { return JSON.stringify(result).slice(0, 400) } catch { return String(result).slice(0, 400) } })(),
+          name: call.name,
+          args: (call.arguments || '').slice(0, 300),
+          result: output.slice(0, 400),
         })
-        convo.push({ role: 'tool', tool_call_id: t.id, content: JSON.stringify(result) })
+        input.push({ type: 'function_call_output', call_id: call.call_id, output })
       }
       continue
     }
-    break // finish_reason 'stop' (or nothing to do)
+    break
   }
   sse({ type: 'done' })
   endSafely(res)
@@ -1333,7 +1428,7 @@ async function runChat(state, payload, res, signal) {
   // Cost tracking + interaction log (fire-and-forget; never blocks the reply).
   const costUsd = costOf(MODEL, promptTokens, completionTokens)
   void addSpend(costUsd)
-  const userMessage = [...convo].reverse().find((m) => m.role === 'user')?.content ?? ''
+  const userMessage = [...sanitizeHistory(payload.messages)].reverse().find((m) => m.role === 'user')?.content ?? ''
   void logInteraction({
     at: new Date().toISOString(),
     clientId: typeof payload.clientId === 'string' ? payload.clientId : null,

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useUtilsStore } from '../stores/utilsStore'
+import { useI18n } from '../i18n'
 import './AICallout.scss'
 
 // A general AI "spotlight": a bouncing arrow + callout bubble that points at any
 // element tagged with data-aikl="<target>". Driven by utilsStore.aiCallout.
 // Fades after 30s or when clicked.
 export default function AICallout() {
+  const { t } = useI18n()
   const callout = useUtilsStore((s) => s.aiCallout)
   const clear = useUtilsStore((s) => s.clearCallout)
   const [pos, setPos] = useState<{ top: number; left: number; place: 'below' | 'above' } | null>(null)
@@ -50,7 +52,7 @@ export default function AICallout() {
       style={{ top: pos.top, left: pos.left }}
       onClick={clear}
       role="button"
-      aria-label="Dismiss hint"
+      aria-label={t('Dismiss hint')}
     >
       <div className="ai-callout-arrow" aria-hidden="true">
         {pos.place === 'below' ? '▲' : '▼'}

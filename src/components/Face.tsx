@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'
+import { useI18n } from '../i18n'
 
 interface PortfolioImage {
   thumb: string
@@ -16,6 +17,7 @@ function randomBetween(low: number, high: number): number {
  * Placeholder implementation -- full version needs the LenderLoans API client.
  */
 export default function Face() {
+  const { t } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
   const lenderDataVersion = useUtilsStore((s) => s.lenderDataVersion)
   const [images, _setImages] = useState<PortfolioImage[]>([])
@@ -23,10 +25,10 @@ export default function Face() {
 
   useEffect(() => {
     if (lenderId) {
-      setMessage(`Loading loans for ${lenderId}...`)
+      setMessage(t('Loading loans for {lenderId}…', { lenderId }))
       // TODO: fetch portfolio via LenderLoans API
       // For now, show placeholder message
-      setMessage(`Portfolio wall for ${lenderId} -- loan fetching not yet implemented.`)
+      setMessage(t('Portfolio wall for {lenderId} — loan fetching is not yet implemented.', { lenderId }))
     } else {
       setMessage(
         <>
@@ -37,13 +39,13 @@ export default function Face() {
               showLenderIDModal()
             }}
           >
-            Set your Lender ID
+            {t('Set your Lender ID')}
           </a>{' '}
-          to see your portfolio. Arrow keys to move, space toggles magnify.
+          {t('to see your portfolio. Arrow keys move; space toggles magnification.')}
         </>,
       )
     }
-  }, [lenderDataVersion, lenderId])
+  }, [lenderDataVersion, lenderId, t])
 
   const renderedImages = useMemo(
     () =>

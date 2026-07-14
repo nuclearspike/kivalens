@@ -8,6 +8,8 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pi
 import { lsj } from '../../lib/localStorage'
 import { streamChat, type ChatEvent, type ChatMessage, type ChartSpec } from '../../api/aiChat'
 import { WELCOME_PROMPT, WELCOME_REPLY } from '../../lib/askKivaLensWelcome'
+import { readAskKivaLensStorage, writeAskKivaLensStorage } from '../../lib/applicationStorage'
+import { useI18n } from '../../i18n'
 import './AskKivaLens.scss'
 
 const CHART_COLORS = ['#2C8C5E', '#5BA882', '#8AC4A6', '#1f6b46', '#3a9e6d', '#7bbf9b', '#b9dfca', '#155138']
@@ -64,9 +66,9 @@ function Eyes() {
   )
 }
 
-function Ellipses() {
+function Ellipses({ label }: { label: string }) {
   return (
-    <div className="ask-kl-ellipses" aria-label="KivaLens AI is thinking">
+    <div className="ask-kl-ellipses" aria-label={label}>
       <span className="ask-kl-ellipse" />
       <span className="ask-kl-ellipse" />
       <span className="ask-kl-ellipse" />
@@ -96,7 +98,8 @@ function renderPieLabel(p: PieLabelProps) {
 
 // An inline chart the AI chose to render.
 function ChartBubble({ spec }: { spec: ChartSpec }) {
-  const data = spec.data.slice(0, 12)
+  const { sector } = useI18n()
+  const data = spec.data.slice(0, 12).map((item) => ({ ...item, name: sector(item.name) }))
   const height = spec.type === 'pie' ? 200 : Math.max(150, data.length * 26)
   return (
     <div className="ask-kl-chart">
@@ -125,6 +128,7 @@ function ChartBubble({ spec }: { spec: ChartSpec }) {
 }
 
 export default function AskKivaLens() {
+  const { t, locale } = useI18n()
   const open = useUtilsStore((s) => s.askKlOpen)
   const askKlSeed = useUtilsStore((s) => s.askKlSeed)
   const disabled = useUtilsStore((s) => s.aiWidgetDisabled)
@@ -270,11 +274,11 @@ export default function AskKivaLens() {
       // The "Need help getting started?" CTA sends one fixed prompt. Answer it
       // locally with a canned reply — no OpenAI call — so clicking the button
       // never burns credits. A real follow-up the user then types hits the model.
-      if (msg === WELCOME_PROMPT) {
+      if (msg === t(WELCOME_PROMPT)) {
         setMessages([
           ...messages,
           { role: 'user', content: msg } as Bubble,
-          { role: 'assistant', content: WELCOME_REPLY } as Bubble,
+          { role: 'assistant', content: t(WELCOME_REPLY) } as Bubble,
         ])
         setInput('')
         return
@@ -352,6 +356,9 @@ export default function AskKivaLens() {
           case 'clear_basket':
             useLoanStore.getState().clearBasket()
             break
+          case 'application_storage_set':
+            writeAskKivaLensStorage(e.key, e.value)
+            break
           case 'reset_chat':
             // AI-triggered "start over": clear prior turns; the fresh-start
             // greeting it streams next becomes the new first message.
@@ -395,6 +402,7 @@ export default function AskKivaLens() {
       void streamChat(
         {
           messages: history.map((m) => ({ role: m.role, content: m.content })),
+          locale,
           lenderId,
           criteria,
           shownCount: loanState.filteredLoans.length,
@@ -403,12 +411,13 @@ export default function AskKivaLens() {
           page: describePage(),
           basket: loanState.basket.map((b) => ({ loanId: b.loan_id, amount: b.amount })),
           savedSearches: useCriteriaStore.getState().getSavedSearchNames(),
+          applicationStorage: readAskKivaLensStorage(),
           clientId,
         },
         { onEvent, signal: ac.signal },
       )
     },
-    [loading, messages, flushStreaming, commitStreaming, clientId],
+    [loading, messages, flushStreaming, commitStreaming, clientId, t, locale],
   )
 
   // Auto-send a seed prompt (the no-results "Ask KivaLens for a suggestion"
@@ -481,28 +490,28 @@ export default function AskKivaLens() {
   return (
     <div className="ask-kl" ref={rootRef}>
       {!open && (
-        <button type="button" className="ask-kl-chip" aria-label="Open the KivaLens AI assistant" onClick={() => openAskKl()}>
+        <button type="button" className="ask-kl-chip" aria-label={t('Open the KivaLens AI assistant')} onClick={() => openAskKl()}>
           <Eyes />
-          <span>Ask KivaLens</span>
+          <span>{t('Ask KivaLens')}</span>
         </button>
       )}
       {open && (
-        <div className="ask-kl-panel" role="dialog" aria-label="KivaLens AI assistant">
+        <div className="ask-kl-panel" role="dialog" aria-label={t('KivaLens AI assistant')}>
           <div
             className="ask-kl-header"
             onClick={() => closeAskKl()}
-            title="Click to minimize"
+            title={t('Click to minimize')}
           >
             <Eyes />
-            <strong className="ask-kl-title">Ask KivaLens</strong>
-            <span className="ask-kl-beta">beta</span>
-            <span className="ask-kl-badge">AI</span>
-            <button type="button" className="ask-kl-close" aria-label="Minimize" onClick={() => closeAskKl()}>
+            <strong className="ask-kl-title">{t('Ask KivaLens')}</strong>
+            <span className="ask-kl-beta">{t('beta')}</span>
+            <span className="ask-kl-badge">{t('AI')}</span>
+            <button type="button" className="ask-kl-close" aria-label={t('Minimize')} onClick={() => closeAskKl()}>
               ×
             </button>
           </div>
           <div className="ask-kl-body" ref={bodyRef}>
-            {messages.length === 0 && !streaming && !loading && <div className="ask-kl-msg">{GREETING}</div>}
+            {messages.length === 0 && !streaming && !loading && <div className="ask-kl-msg">{t(GREETING)}</div>}
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -515,7 +524,7 @@ export default function AskKivaLens() {
                 ) : (
                   <ReactMarkdown components={MD_COMPONENTS}>{m.content}</ReactMarkdown>
                 )}
-                {m.interrupted && <span className="ask-kl-interrupted"> (interrupted)</span>}
+                {m.interrupted && <span className="ask-kl-interrupted"> ({t('interrupted')})</span>}
               </div>
             ))}
             {streaming && (
@@ -523,7 +532,7 @@ export default function AskKivaLens() {
                 <ReactMarkdown components={MD_COMPONENTS}>{streaming}</ReactMarkdown>
               </div>
             )}
-            {loading && !streaming && <Ellipses />}
+            {loading && !streaming && <Ellipses label={t('KivaLens AI is thinking')} />}
           </div>
           <form
             className="ask-kl-foot"
@@ -536,16 +545,16 @@ export default function AskKivaLens() {
               ref={inputRef}
               type="text"
               value={input}
-              placeholder="Ask about finding loans…"
-              aria-label="Message the KivaLens assistant"
+              placeholder={t('Ask about finding loans…')}
+              aria-label={t('Message the KivaLens assistant')}
               onChange={(e) => setInput(e.target.value)}
             />
             {loading ? (
-              <button type="button" className="ask-kl-send" aria-label="Stop" onClick={stopStream}>
+              <button type="button" className="ask-kl-send" aria-label={t('Stop')} onClick={stopStream}>
                 ■
               </button>
             ) : (
-              <button type="submit" className="ask-kl-send" aria-label="Send">
+              <button type="submit" className="ask-kl-send" aria-label={t('Send')}>
                 ↑
               </button>
             )}
@@ -568,10 +577,10 @@ export default function AskKivaLens() {
                 whiteSpace: 'nowrap',
               }}
             >
-              ↺ Reset chat
+              ↺ {t('Reset chat')}
             </button>
             <span>
-              Chats are logged · <a href="#/privacy">Privacy</a>
+              {t('Chats are logged')} · <a href="#/privacy">{t('Privacy')}</a>
             </span>
           </div>
         </div>

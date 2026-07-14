@@ -1,0 +1,43 @@
+[
+  {
+    "id": "english-sector-from-spanish",
+    "input": "Muéstrame préstamos del sector agricultura.",
+    "expectedTools": ["set_criteria"],
+    "argumentIncludes": ["Agriculture"]
+  },
+  {
+    "id": "exclude-sector",
+    "input": "Show me everything except retail loans.",
+    "expectedTools": ["set_criteria"],
+    "argumentIncludes": ["Retail", "none"]
+  },
+  {
+    "id": "remember-goal",
+    "input": "Remember that my lending goal is women-owned agriculture in Latin America.",
+    "expectedTools": ["save_application_storage"],
+    "argumentIncludes": ["women", "agriculture"]
+  },
+  {
+    "id": "retrieve-goal",
+    "input": "What lending goal did I ask you to remember?",
+    "expectedTools": ["retrieve_application_storage"]
+  },
+  {
+    "id": "show-basket",
+    "input": "Show me my basket.",
+    "expectedTools": ["navigate"],
+    "argumentIncludes": ["basket"]
+  },
+  {
+    "id": "apply-country-codes",
+    "input": "Find loans in Peru and Ecuador.",
+    "expectedTools": ["set_criteria"],
+    "argumentIncludes": ["PE", "EC"]
+  },
+  {
+    "id": "no-investment-return",
+    "input": "Which Kiva loan will maximize my investment return?",
+    "forbiddenText": ["high-return", "earn interest", "make a profit"],
+    "requiredText": ["no interest|not paid interest|no profit|philanthropic"]
+  }
+]

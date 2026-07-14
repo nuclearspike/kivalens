@@ -15,6 +15,7 @@ import { req } from '../api/kivajs/req'
 import { LenderTeams } from '../api/kivajs/LenderTeams'
 import { useUtilsStore } from '../stores'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
+import { useI18n, type Locale } from '../i18n'
 
 interface Team {
   id: number
@@ -35,12 +36,12 @@ const SERIES_COLORS = [
   '#af7aa1',
 ]
 
-function formatXAxisLabel(value: number) {
-  return new Date(value).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+function formatXAxisLabel(value: number, locale: Locale) {
+  return new Date(value).toLocaleDateString(locale, { month: 'short', year: '2-digit' })
 }
 
-function formatTooltipLabel(value: number) {
-  return new Date(value).toLocaleDateString('en-US', {
+function formatTooltipLabel(value: number, locale: Locale) {
+  return new Date(value).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -52,6 +53,7 @@ function formatTooltipLabel(value: number) {
  * Lets lenders compare Kiva lending teams via membership and loan count charts.
  */
 export default function Teams() {
+  const { t, locale } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
   // When the user sets their Lender ID via the in-page modal link below, reload
   // once it lands so this tab (and the nav) re-initialize with portfolio data.
@@ -94,12 +96,12 @@ export default function Teams() {
         setTeams(loadedTeams as Team[])
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load your teams.')
+        setError(err instanceof Error ? err.message : t('Failed to load your teams.'))
       })
       .finally(() => {
         setLoadingTeams(false)
       })
-  }, [lenderDataVersion, lenderId])
+  }, [lenderDataVersion, lenderId, t])
 
   useEffect(() => {
     // Track in-flight requests across effect re-runs (the effect re-fires on
@@ -141,14 +143,14 @@ export default function Teams() {
         })
         .catch((err) => {
           // Scope graph-fetch failures to the chart pane; never unmount the page.
-          setGraphError(err instanceof Error ? err.message : 'Failed to load team graph data.')
+          setGraphError(err instanceof Error ? err.message : t('Failed to load team graph data.'))
         })
         .finally(() => {
           inFlight.current.delete(flightKey)
           setQuerying((count) => Math.max(0, count - 1))
         })
     })
-  }, [checkedTeamIds, graphType, teamData])
+  }, [checkedTeamIds, graphType, teamData, t])
 
   const toggleTeam = useCallback((teamId: number) => {
     setCheckedTeamIds((prev) => {
@@ -175,7 +177,7 @@ export default function Teams() {
     return xValues.map((x) => {
       const row: Record<string, number | string> = {
         x,
-        label: formatXAxisLabel(x),
+        label: formatXAxisLabel(x, locale),
       }
       ids.forEach((teamId) => {
         const point = (teamData[graphType][teamId] ?? []).find(([px]) => px === x)
@@ -186,13 +188,13 @@ export default function Teams() {
       })
       return row
     })
-  }, [checkedTeamIds, graphType, teamData, teams])
+  }, [checkedTeamIds, graphType, teamData, teams, locale])
 
   if (!lenderId) {
     return (
       <Container className="py-3">
         <Alert variant="danger">
-          Please{' '}
+           {t('Please')}{' '}
           <a
             href="#"
             className="alert-link"
@@ -202,9 +204,9 @@ export default function Teams() {
               showLenderIDModal()
             }}
           >
-            set your Kiva Lender ID
+             {t('set your Kiva Lender ID')}
           </a>{' '}
-          to use this feature.
+           {t('to use this feature.')}
         </Alert>
       </Container>
     )
@@ -220,17 +222,17 @@ export default function Teams() {
 
   return (
     <Container className="py-3">
-      <h1>Compare Teams</h1>
-      <p>Select the teams to compare and graphs will show.</p>
+      <h1>{t('Compare Teams')}</h1>
+      <p>{t('Select the teams to compare and graphs will appear.')}</p>
       <Row>
         <Col sm={4}>
           <Card className="mb-3">
-            <Card.Header>Compare</Card.Header>
+            <Card.Header>{t('Compare')}</Card.Header>
             <Card.Body>
               <Form.Check
                 type="radio"
                 name="graph_type"
-                label="Membership"
+                label={t('Membership')}
                 value="team_new_users"
                 checked={graphType === 'team_new_users'}
                 onChange={() => setGraphType('team_new_users')}
@@ -238,7 +240,7 @@ export default function Teams() {
               <Form.Check
                 type="radio"
                 name="graph_type"
-                label="Loan Count"
+                label={t('Loan Count')}
                 value="team_loan_count"
                 checked={graphType === 'team_loan_count'}
                 onChange={() => setGraphType('team_loan_count')}
@@ -248,13 +250,13 @@ export default function Teams() {
 
           <Card>
             <Card.Header>
-              Your Teams
-              {querying > 0 ? ` - Waiting on ${querying} results...` : ''}
-              {!querying && loadingTeams ? ' - Loading teams...' : ''}
+               {t('Your Teams')}
+              {querying > 0 ? ` — ${t('Waiting on {count} results…', { count: querying })}` : ''}
+              {!querying && loadingTeams ? ` — ${t('Loading teams…')}` : ''}
             </Card.Header>
             <Card.Body>
               {teams.length === 0 && !loadingTeams && (
-                <p className="text-muted">No teams loaded yet.</p>
+                <p className="text-muted">{t('No teams loaded yet.')}</p>
               )}
               <ul className="list-unstyled">
                 {teams.map((team) => (
@@ -281,14 +283,14 @@ export default function Teams() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="x"
-                    tickFormatter={formatXAxisLabel}
+                     tickFormatter={(value) => formatXAxisLabel(value, locale)}
                     minTickGap={24}
                     type="number"
                     domain={['dataMin', 'dataMax']}
                   />
                   <YAxis />
                   <Tooltip
-                    labelFormatter={(value) => formatTooltipLabel(Number(value))}
+                     labelFormatter={(value) => formatTooltipLabel(Number(value), locale)}
                     formatter={(value) => numeral(Number(value ?? 0)).format('0,0')}
                   />
                   <Legend />
@@ -311,9 +313,9 @@ export default function Teams() {
               </ResponsiveContainer>
             </div>
           ) : checkedTeamIds.size > 0 ? (
-            <p className="text-muted">Loading chart data for the selected teams...</p>
+            <p className="text-muted">{t('Loading chart data for the selected teams…')}</p>
           ) : (
-            <p className="text-muted">Select teams on the left to see comparison charts.</p>
+            <p className="text-muted">{t('Select teams on the left to see comparison charts.')}</p>
           )}
         </Col>
       </Row>

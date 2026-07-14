@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementType } from 'react'
 import { cx, type PolymorphicProps } from './types'
+import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------- Card
 
@@ -132,6 +133,7 @@ function AlertRoot({
   children,
   ...rest
 }: AlertProps) {
+  const { t } = useI18n()
   if (!show) return null
   return (
     <div
@@ -149,7 +151,7 @@ function AlertRoot({
         <button
           type="button"
           className="btn-close"
-          aria-label="Close alert"
+          aria-label={t('Close alert')}
           onClick={onClose}
         />
       )}

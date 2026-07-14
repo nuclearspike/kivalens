@@ -12,6 +12,7 @@ import {
   CartesianGrid,
 } from 'recharts'
 import type { KivaLoan } from '../types'
+import { useI18n } from '../i18n'
 
 // -- Color palette for chart segments --
 const COLORS = [
@@ -62,7 +63,13 @@ export default function ChartDistribution({
   height = 250,
   title,
 }: ChartDistributionProps) {
-  const data = useMemo(() => groupLoans(loans, field), [loans, field])
+  const { sector } = useI18n()
+  const data = useMemo(() => {
+    const grouped = groupLoans(loans, field)
+    return field === 'sector'
+      ? grouped.map((item) => ({ ...item, name: sector(item.name) }))
+      : grouped
+  }, [loans, field, sector])
 
   if (data.length === 0) {
     return null
@@ -130,18 +137,19 @@ export function ChartDistributionTriple({
   mode?: ChartMode
   height?: number
 }) {
+  const { t } = useI18n()
   if (loans.length === 0) return null
 
   return (
     <div className="row d-none d-md-flex">
       <div className="col-md-4">
-        <ChartDistribution loans={loans} groupBy="country" mode={mode} height={height} title="Countries" />
+        <ChartDistribution loans={loans} groupBy="country" mode={mode} height={height} title={t('Countries')} />
       </div>
       <div className="col-md-4">
-        <ChartDistribution loans={loans} groupBy="sector" mode={mode} height={height} title="Sectors" />
+        <ChartDistribution loans={loans} groupBy="sector" mode={mode} height={height} title={t('Sectors')} />
       </div>
       <div className="col-md-4">
-        <ChartDistribution loans={loans} groupBy="activity" mode={mode} height={height} title="Activities" />
+        <ChartDistribution loans={loans} groupBy="activity" mode={mode} height={height} title={t('Activities')} />
       </div>
     </div>
   )

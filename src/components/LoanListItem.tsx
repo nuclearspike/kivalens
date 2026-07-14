@@ -5,6 +5,7 @@ import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
 import { lendAmountOptions } from '../lib/lendAmountOptions'
 import { lsj } from '../lib/localStorage'
+import { useI18n } from '../i18n'
 
 interface LoanListItemProps {
   loan: KivaLoan
@@ -14,6 +15,7 @@ interface LoanListItemProps {
  * Compact card for a single loan in the search results list.
  */
 export default function LoanListItem({ loan }: LoanListItemProps) {
+  const { sector } = useI18n()
   const inBasket = useLoanStore((s) => s.inBasket(loan.id))
   const addToBasket = useLoanStore((s) => s.addToBasket)
   const selectedId = useLoanStore((s) => s.selectedId)
@@ -45,7 +47,7 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
         <div className="loan-name">{loan.name}</div>
         <div className="loan-meta">
           <span className="loan-tag">{loan.location.country}</span>
-          <span className="loan-tag">{loan.sector}</span>
+          <span className="loan-tag">{sector(loan.sector)}</span>
           <span className="loan-tag d-none d-lg-inline">{loan.activity}</span>
         </div>
         <div className="loan-use d-none d-lg-block">{loan.use}</div>
