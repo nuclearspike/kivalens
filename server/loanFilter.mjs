@@ -363,6 +363,20 @@ export function filterLoans(c, ctx) {
   ct.addBalancer(criteria.portfolio.pb_sector, (l) => l.sector)
   ct.addBalancer(criteria.portfolio.pb_country, (l) => l.location.country)
   ct.addBalancer(criteria.portfolio.pb_activity, (l) => l.activity)
+  // pb_region: derive each loan's region NAME from its country via partner country
+  // data (partner.countries[].region are names like "South America", matching the
+  // supergraph region slices). Built only when the region balancer is enabled.
+  if (criteria.portfolio.pb_region?.enabled) {
+    const regionByCode = {}
+    for (const p of ctx.activePartners || []) {
+      for (const c of p.countries || []) {
+        if (c?.iso_code && c.region) regionByCode[c.iso_code] = c.region
+      }
+    }
+    ct.addBalancer(criteria.portfolio.pb_region, (l) => regionByCode[l.location?.country_code])
+  }
+  // pb_gender: bucket by majority-women share to match the supergraph Female/Male slices.
+  ct.addBalancer(criteria.portfolio.pb_gender, (l) => ((l.kl_percent_women ?? 0) >= 50 ? 'Female' : 'Male'))
   ct.addThreeStateTester(criteria.loan.bonus_credit_eligibility, (l) => l.bonus_credit_eligibility === true)
 
   ct.testers.push((l) => l.status === 'fundraising')

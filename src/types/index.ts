@@ -149,6 +149,8 @@ export interface PortfolioCriteria {
   pb_country?: BalancerConfig
   pb_activity?: BalancerConfig
   pb_partner?: BalancerConfig
+  pb_region?: BalancerConfig
+  pb_gender?: BalancerConfig
 }
 
 export interface BalancerConfig {

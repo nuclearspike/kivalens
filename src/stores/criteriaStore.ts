@@ -462,7 +462,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           if (!lenderId) return
 
           const state = get()
-          const SLICES = ['sector', 'activity', 'partner', 'country'] as const
+          const SLICES = ['sector', 'activity', 'partner', 'country', 'region', 'gender'] as const
 
           for (const name of state.getSavedSearchNames()) {
             const crit = state.savedSearches[name]

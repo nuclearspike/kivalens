@@ -150,7 +150,7 @@ function validateCriteria(input, vocab) {
     }
   }
   if (inPortfolio.exclude_portfolio_loans != null) out.portfolio.exclude_portfolio_loans = String(inPortfolio.exclude_portfolio_loans)
-  for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner']) {
+  for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender']) {
     const c = inPortfolio[pb]
     if (c && typeof c === 'object') {
       out.portfolio[pb] = {
@@ -643,7 +643,7 @@ async function execTool(name, args, sctx, sse) {
       if (state.ready && state.allLoans?.length) {
         count = filterLoans(criteria, loanCtx(state)).length
         const portfolioGated = criteria.portfolio?.exclude_portfolio_loans === 'true' ||
-          ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner'].some((k) => criteria.portfolio?.[k]?.enabled)
+          ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender'].some((k) => criteria.portfolio?.[k]?.enabled)
         if (count === 0) {
           note = 'No loans match this filter. Tell the user nothing matches and offer to relax or remove a limiting filter (see EMPTY RESULTS) — do NOT leave them stuck.'
         } else {
@@ -694,7 +694,7 @@ async function execTool(name, args, sctx, sse) {
     }
     case 'get_portfolio_distribution': {
       if (!lenderId) return { error: 'no_lender_id', note: 'Use prompt_lender_id first.' }
-      const sliceBy = ['sector', 'activity', 'country', 'partner'].includes(args.sliceBy) ? args.sliceBy : 'sector'
+      const sliceBy = ['sector', 'activity', 'country', 'partner', 'region', 'gender'].includes(args.sliceBy) ? args.sliceBy : 'sector'
       const slices = await fetchSuperGraphSlices(lenderId, sliceBy)
       return { sliceBy, slices: (slices || []).slice(0, 20) }
     }
@@ -1056,7 +1056,7 @@ const TOOL_DEFS = [
       name: 'get_portfolio_distribution',
       description:
         "Read how the user's past loans are distributed (to advise more-of-the-same vs. diversify). Needs a lender id.",
-      parameters: { type: 'object', properties: { sliceBy: { type: 'string', enum: ['sector', 'activity', 'country', 'partner'] } } },
+      parameters: { type: 'object', properties: { sliceBy: { type: 'string', enum: ['sector', 'activity', 'country', 'partner', 'region', 'gender'] } } },
     },
   },
   {
@@ -1211,8 +1211,8 @@ export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     '- loan multi-selects (comma-separated values, optional <field>_all_any_none = any|all|none): sector, activity, country_code, themes, tags. A loan has just ONE sector/activity/country, so list several of those with "any" (the default) and NEVER "all" ("all" means "has every one at once" → 0 results). "all" is only meaningful for tags & themes, where one loan can carry several.',
     '- loan ranges (<field>_min / <field>_max numbers): age, percent_female, still_needed, loan_amount, repaid_in, borrower_count, percent_funded, expiring_in_days, dollars_per_hour.',
     '- loan single: sort (one of: half_back, newest, expiring, popularity, still_needed), bonus_credit_eligibility, repayment_interval; free text: name, use.',
-    '- portfolio: exclude_portfolio_loans ("true"), pb_sector/pb_country/pb_activity/pb_partner balancers.',
-    'DIVERSIFY: loan.limit_to = {enabled:true, count:1, limit_by:"Partner"|"Country"|"Sector"|"Activity"} caps results to N per group (e.g. "one loan per country"). Portfolio balancers compare against the user\'s existing loans: portfolio.pb_country (or pb_sector / pb_activity / pb_partner) = {enabled:true, hideshow:"hide", ltgt:"gt", percent:0, allactive:"all"} HIDES groups they already hold — ideal for "diversify me" / "countries I don\'t have". Both need the lender id and resolve in the browser, so quote the resulting count as approximate.',
+    '- portfolio: exclude_portfolio_loans ("true"), pb_sector/pb_country/pb_region/pb_activity/pb_partner/pb_gender balancers. pb_region balances by world region; pb_gender balances by borrower gender (Female/Male).',
+    'DIVERSIFY: loan.limit_to = {enabled:true, count:1, limit_by:"Partner"|"Country"|"Sector"|"Activity"} caps results to N per group (e.g. "one loan per country"). Portfolio balancers compare against the user\'s existing loans: portfolio.pb_country (or pb_region / pb_sector / pb_activity / pb_partner / pb_gender) = {enabled:true, hideshow:"hide", ltgt:"gt", percent:0, allactive:"all"} HIDES groups they already hold — ideal for "diversify me" / "countries I don\'t have". Both need the lender id and resolve in the browser, so quote the resulting count as approximate.',
     'Use EXACT values from the vocabulary below. tags include the leading #. age is parsed from English text and is often missing, so an age range drops loans with unknown age — use it sparingly and widen if results collapse.',
     'GENDER — there is NO gender field; gender is expressed ONLY through the percent_female range (the share of the borrower group that is women). So you cannot just SAY "male"/"female" — you MUST set the range, and ALWAYS set BOTH percent_female_min AND percent_female_max in the same call so a previous gender filter cannot linger and contradict. WOMEN / female / mother / "women\'s group" → percent_female_min=50, percent_female_max=100. MEN / male / father / dad / son / "men\'s group" → percent_female_min=0, percent_female_max=50. (E.g. "a vegan father in retail" sets percent_female_min=0 AND percent_female_max=50, sector=Retail, tags=#Vegan.)',
     'PARENTS = the #Parent TAG, NOT a gender filter: "parent" / "parents" / "only parents" / "with kids" / "has children" → set loan.tags to include "#Parent" (gender-neutral). NEVER turn "parents" into a percent_female (women) filter — that is a different thing. Gendered parent words still set percent_female as above and MAY also add #Parent: "mothers" → tags:"#Parent" + percent_female 50-100; "fathers" → tags:"#Parent" + percent_female 0-50.',

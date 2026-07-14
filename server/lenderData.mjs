@@ -31,7 +31,7 @@ const AJAX_HEADERS = {
 const LENDER_LOANS_TTL_MS = 60 * 60_000 // 1h — fundraising set shifts as loans fund/expire
 const SUPERGRAPH_TTL_MS = 6 * 60 * 60_000 // 6h — portfolio distribution moves slowly
 const LENDER_PROFILE_TTL_MS = 24 * 60 * 60_000 // 24h — profile (loan count, member-since) moves slowly
-export const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country']
+export const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country', 'region', 'gender']
 
 // Stop paging a lender's loans once no fundraising loan remains AND the newest
 // loan on the page predates the fundraising window (ported verbatim from

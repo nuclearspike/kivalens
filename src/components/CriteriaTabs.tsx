@@ -338,8 +338,10 @@ interface BalancerMeta {
 const BALANCER_OPTIONS: Record<string, BalancerMeta> = {
   pb_partner: { label: 'Partners', sliceBy: 'partner', key: 'id' },
   pb_country: { label: 'Countries', sliceBy: 'country' },
+  pb_region: { label: 'Regions', sliceBy: 'region' },
   pb_sector: { label: 'Sectors', sliceBy: 'sector' },
   pb_activity: { label: 'Activities', sliceBy: 'activity' },
+  pb_gender: { label: 'Gender', sliceBy: 'gender' },
 }
 
 // ---------------------------------------------------------------------------
@@ -469,11 +471,13 @@ function InputRow({
   value,
   onChange,
   disabled,
+  placeholder,
 }: {
   label: string
   value: string
   onChange: (val: string) => void
   disabled?: boolean
+  placeholder?: string
 }) {
   const { t } = useI18n()
   const [local, setLocal] = useState(value)
@@ -509,6 +513,7 @@ function InputRow({
           value={local}
           onChange={(e) => setLocal(e.target.value)}
           disabled={disabled}
+          placeholder={placeholder}
         />
       </Col>
     </Row>
@@ -1114,7 +1119,7 @@ function LoanCriteriaPanel({
   sortMode?: 'abc' | 'count'
   onSortMode?: (mode: 'abc' | 'count') => void
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const loan = criteria.loan as Record<string, unknown>
   const discovered = useDiscoveredOptions()
 
@@ -1139,6 +1144,7 @@ function LoanCriteriaPanel({
         label={t('Use or Description')}
         value={String(loan['use'] ?? '')}
         onChange={(val) => onUpdate('loan', 'use', val)}
+        placeholder={locale !== 'en' ? t('Search in English') : undefined}
       />
       <InputRow
         label={t('Name')}
