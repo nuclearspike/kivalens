@@ -32,7 +32,7 @@ interface BasketRepaymentDatum {
 
 
 function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
-  const { t } = useI18n()
+  const { t, date } = useI18n()
   const { data, skippedCount } = useMemo(() => {
     const monthMap = new Map<string, { amount: number; date: number }>()
     let skipped = 0
@@ -60,17 +60,17 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
 
     const sorted = Array.from(monthMap.entries()).sort(([, a], [, b]) => a.date - b.date)
     let cumulative = 0
-    const chartData = sorted.map(([label, month]) => {
+    const chartData = sorted.map(([, month]) => {
       cumulative += month.amount
       return {
-        label,
+        label: date(month.date, { month: 'short', year: 'numeric' }),
         amount: Math.round(month.amount * 100) / 100,
         cumulativeAmount: Math.round(cumulative * 100) / 100,
       }
     })
 
     return { data: chartData, skippedCount: skipped }
-  }, [entries])
+  }, [entries, date])
 
   if (!data.length) {
     if (skippedCount > 0) {
@@ -144,7 +144,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               xAxisId="amount"
               dataKey="amount"
               fill="#e8871a"
-              name="Monthly Repayment"
+              name={t('Monthly Repayment')}
               isAnimationActive={false}
             />
             <Area
@@ -152,7 +152,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               dataKey="cumulativeAmount"
               stroke="#2C8C5E"
               fill="rgba(44, 140, 94, 0.15)"
-              name="Cumulative"
+              name={t('Cumulative')}
               isAnimationActive={false}
             />
           </ComposedChart>

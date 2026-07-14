@@ -41,12 +41,12 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
     if (!loan.kl_repayments?.length) return []
     const maxAmount = Math.max(...loan.kl_repayments.map((p) => p.amount), 1)
     return loan.kl_repayments.map((p) => ({
-      label: p.display,
+      label: p.date ? date(p.date, { month: 'short', year: 'numeric' }) : p.display,
       amount: p.amount,
       amountPct: (p.amount * 100) / maxAmount,
       percent: p.percent ?? 0,
     }))
-  }, [loan.kl_repayments])
+  }, [loan.kl_repayments, date])
 
   if (!data.length) return null
   const chartHeight = Math.max(300, Math.min(data.length * 25, 600))
@@ -403,7 +403,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </div>
 
             <p className="fw-bold mb-2">
-              {loan.location.country} | {sector(loan.sector)} | {loan.activity} | {loan.use}
+              {loan.location.country} | {sector(loan.sector)} | {t(loan.activity)} | {loan.use}
             </p>
 
             <div className="d-flex gap-3">
