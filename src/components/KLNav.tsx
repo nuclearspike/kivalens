@@ -3,6 +3,19 @@ import { Navbar, Nav, Badge, Container } from '../ui'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { LOCALES, useI18n, type Locale } from '../i18n'
 
+// "Switch to <language>" written IN each target language — the browser-language
+// suggestion button is always shown in the language it offers, not the current UI.
+const SWITCH_LABELS: Record<Locale, string> = {
+  en: 'Switch to English',
+  es: 'Cambiar a español',
+  fr: 'Passer au français',
+  de: 'Auf Deutsch wechseln',
+  it: "Passa all'italiano",
+  nl: 'Overschakelen naar Nederlands',
+}
+const SUPPORTED_CODES = new Set<string>(LOCALES.map((l) => l.code))
+const browserLocale = typeof navigator !== 'undefined' ? (navigator.language || '').split('-')[0] : ''
+
 export default function KLNav() {
   const location = useLocation()
   const { locale, setLocale, t } = useI18n()
@@ -74,6 +87,15 @@ export default function KLNav() {
               ))}
             </select>
           </label>
+          {browserLocale !== locale && SUPPORTED_CODES.has(browserLocale) && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-light ms-2 my-2 my-lg-0"
+              onClick={() => setLocale(browserLocale as Locale)}
+            >
+              {SWITCH_LABELS[browserLocale as Locale]}
+            </button>
+          )}
         </Navbar.Collapse>
       </Container>
     </Navbar>

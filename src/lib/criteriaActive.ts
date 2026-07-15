@@ -92,7 +92,7 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
       out.push({
         id: `loan.${base}`,
         label,
-        value: `${min ?? '–'} to ${max ?? '–'}`,
+        value: `${min ?? '–'} – ${max ?? '–'}`,
         without: (cc) => {
           const n = clone(cc)
           delete n.loan[`${base}_min`]
@@ -139,7 +139,7 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
   for (const base of partnerBases) {
     const min = partner[`${base}_min`]
     const max = partner[`${base}_max`]
-    out.push({ id: `partner.${base}`, label: humanize(base), value: `${min ?? '–'} to ${max ?? '–'}`, without: (cc) => { const n = clone(cc); delete n.partner[`${base}_min`]; delete n.partner[`${base}_max`]; return n } })
+    out.push({ id: `partner.${base}`, label: humanize(base), value: `${min ?? '–'} – ${max ?? '–'}`, without: (cc) => { const n = clone(cc); delete n.partner[`${base}_min`]; delete n.partner[`${base}_max`]; return n } })
   }
 
   // portfolio: exclude loans I funded
@@ -147,7 +147,7 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
     out.push({ id: 'portfolio.exclude', label: 'Exclude loans I funded', value: 'on', without: (cc) => { const n = clone(cc); n.portfolio = { ...n.portfolio, exclude_portfolio_loans: 'false' }; return n } })
   }
   // portfolio balancers
-  for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner'] as const) {
+  for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender'] as const) {
     const b = portfolio[pb] as BalancerConfig | undefined
     if (b && b.enabled) {
       out.push({ id: `portfolio.${pb}`, label: `Balancer: ${pb.replace('pb_', '')}`, value: 'on', without: (cc) => { const n = clone(cc); n.portfolio = { ...n.portfolio, [pb]: { ...b, enabled: false } }; return n } })

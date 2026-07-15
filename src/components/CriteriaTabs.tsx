@@ -1029,7 +1029,7 @@ function BalancingRow({
                   ) : null}
                   {lastUpdated ? (
                     <p style={{ fontSize: 11, color: '#999' }}>
-                      {t('Last updated {time}', { time: date(Number(lastUpdated) * 1000) })}
+                      {t('Last updated {time}', { time: date(Number(lastUpdated) * 1000, { dateStyle: 'medium', timeStyle: 'short' }) })}
                     </p>
                   ) : null}
                 </div>
