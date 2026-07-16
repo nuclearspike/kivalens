@@ -430,7 +430,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </div>
 
             <p className="fw-bold mb-2">
-              {loan.location.country} | {sector(loan.sector)} | {t(loan.activity)} | {loan.use}
+              {t(loan.location.country)} | {sector(loan.sector)} | {t(loan.activity)} | {loan.use}
             </p>
 
             <div className="d-flex gap-3">

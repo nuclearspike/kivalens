@@ -46,7 +46,7 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
       <div className="details">
         <div className="loan-name">{loan.name}</div>
         <div className="loan-meta">
-          <span className="loan-tag">{loan.location.country}</span>
+          <span className="loan-tag">{t(loan.location.country)}</span>
           <span className="loan-tag">{sector(loan.sector)}</span>
           <span className="loan-tag d-none d-lg-inline">{t(loan.activity)}</span>
         </div>

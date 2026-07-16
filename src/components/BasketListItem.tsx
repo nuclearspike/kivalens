@@ -45,9 +45,9 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
       <div className="details">
         <div className="loan-name">{loan.name}</div>
         <div className="loan-meta">
-          <span className="loan-tag">{loan.location.country}</span>
+          <span className="loan-tag">{t(loan.location.country)}</span>
           <span className="loan-tag">{sector(loan.sector)}</span>
-          <span className="loan-tag d-none d-lg-inline">{loan.activity}</span>
+          <span className="loan-tag d-none d-lg-inline">{t(loan.activity)}</span>
         </div>
         {options.length > 0 ? (
           <select
