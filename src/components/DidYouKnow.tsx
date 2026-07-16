@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useI18n } from '../i18n'
 
-const TIPS = [
+// Rendered via t(TIPS_HELP[index]); the _HELP suffix makes the catalog-coverage
+// test enforce a translation for every tip (see src/i18n/extraCatalog.ts).
+const TIPS_HELP = [
   'Use Portfolio Balancing to help balance your risk by diversifying across partners or to find countries and sectors you don\'t have yet.',
   'Did you know that KivaLens works on smart-phones and tablets, too?',
   'Click the "Saved Searches" button to see some samples of the types of queries you can do.',
@@ -26,10 +29,11 @@ const TIPS = [
  * Cycles through KivaLens tips/trivia on a timer.
  */
 export default function DidYouKnow() {
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * TIPS.length))
+  const { t } = useI18n()
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * TIPS_HELP.length))
 
   const advance = useCallback(() => {
-    setIndex((prev) => (prev + 1) % TIPS.length)
+    setIndex((prev) => (prev + 1) % TIPS_HELP.length)
   }, [])
 
   useEffect(() => {
@@ -37,5 +41,5 @@ export default function DidYouKnow() {
     return () => clearInterval(id)
   }, [advance])
 
-  return <p>{TIPS[index]}</p>
+  return <p>{t(TIPS_HELP[index])}</p>
 }
