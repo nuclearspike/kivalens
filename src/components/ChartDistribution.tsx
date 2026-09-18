@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import type { KivaLoan } from '../types'
 import { useI18n } from '../i18n'
+import { localizeSliceName } from '../lib/localizeSliceName'
 
 // -- Color palette for chart segments --
 const COLORS = [
@@ -63,13 +64,11 @@ export default function ChartDistribution({
   height = 250,
   title,
 }: ChartDistributionProps) {
-  const { sector, percent: formatPercent } = useI18n()
-  const data = useMemo(() => {
-    const grouped = groupLoans(loans, field)
-    return field === 'sector'
-      ? grouped.map((item) => ({ ...item, name: sector(item.name) }))
-      : grouped
-  }, [loans, field, sector])
+  const { data: translateName, percent: formatPercent } = useI18n()
+  const data = useMemo(
+    () => groupLoans(loans, field).map((item) => ({ ...item, name: localizeSliceName(field, item.name, translateName) })),
+    [loans, field, translateName],
+  )
 
   if (data.length === 0) {
     return null

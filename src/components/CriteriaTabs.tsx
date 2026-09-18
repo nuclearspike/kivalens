@@ -14,6 +14,7 @@ import { lsj } from '../lib/localStorage'
 import { humanize } from '../lib/utils'
 import { PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadiness'
 import { useI18n } from '../i18n'
+import { localizeSliceName } from '../lib/localizeSliceName'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
 
@@ -1189,7 +1190,7 @@ function BalancingRow({
                       {slices.map((slice, i) => (
                         <li key={i}>
                           {percent(slice.percent, 3)}:{' '}
-                          {meta.sliceBy === 'sector' && slice.name ? sector(slice.name) : slice.name}
+                          {slice.name ? localizeSliceName(meta.sliceBy, slice.name, sector) : slice.name}
                         </li>
                       ))}
                     </ul>
@@ -1253,14 +1254,18 @@ function useDiscoveredOptions() {
     }
     const discovered = (set: Set<string>): SelectOption[] =>
       [...set].map((v) => ({ value: v, label: v }))
-    const discoveredCountries: SelectOption[] = [...countries].map(([code, name]) => ({ value: code, label: name }))
+    const discoveredCountries: SelectOption[] = [...countries].map(([code, name]) => ({ value: code, label: sector(name) }))
     return {
       // Keep the English `value` as filter authority; localize only the label.
       sector: mergeByValue(serverOptions.sectors ?? [], SECTOR_OPTIONS, discovered(sectors))
         .map((option) => ({ ...option, label: sector(option.value) }))
         .sort((a, b) => a.label.localeCompare(b.label, locale)),
-      activity: mergeByValue(serverOptions.activities ?? [], ACTIVITY_OPTIONS, discovered(activities)),
-      themes: mergeByValue(serverOptions.themes ?? [], THEME_OPTIONS, discovered(themes)),
+      activity: mergeByValue(serverOptions.activities ?? [], ACTIVITY_OPTIONS, discovered(activities))
+        .map((option) => ({ ...option, label: sector(option.value) }))
+        .sort((a, b) => a.label.localeCompare(b.label, locale)),
+      themes: mergeByValue(serverOptions.themes ?? [], THEME_OPTIONS, discovered(themes))
+        .map((option) => ({ ...option, label: sector(option.value) }))
+        .sort((a, b) => a.label.localeCompare(b.label, locale)),
       tags: mergeByValue(serverOptions.tags ?? [], TAG_OPTIONS, discovered(tags)),
       // Countries behave like sectors: curated COUNTRY_OPTIONS labels win, and any
       // country present in the loaded loans but missing from the list is auto-added.

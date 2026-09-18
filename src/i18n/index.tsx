@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- locale helpers and the provider intentionally share one public module. */
+import { localizeCountryName } from './countryNames'
 import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import enCatalog from './locales/en'
@@ -148,7 +149,11 @@ const keyByEnglishText: ReadonlyMap<string, string> = (() => {
 export function translateData(locale: Locale, text: string, catalog: Catalog = EMPTY_CATALOG): string {
   if (text == null) return ''
   const key = keyByEnglishText.get(text)
-  return key ? translate(locale, key, {}, catalog) : text
+  if (key) return translate(locale, key, {}, catalog)
+  // Not in the catalog: a country Kiva is not fundraising in today still gets
+  // its name in the lender's language (see countryNames.ts); anything else
+  // passes through as Kiva sent it.
+  return (locale === 'en' ? undefined : localizeCountryName(locale, text)) ?? text
 }
 
 /** Sector names are one case of Kiva data vocabulary; kept as a named alias for existing callers. */

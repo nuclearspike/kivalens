@@ -4,20 +4,18 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recha
 import { useCriteriaStore, useUtilsStore } from '../stores'
 import { useI18n } from '../i18n'
 import { useLatestRef } from '../lib/useLatestRef'
+import { localizeSliceName } from '../lib/localizeSliceName'
 
 // "Your Lending" — charts of how the signed-in lender's past loans break down,
 // from Kiva's SuperGraph data (the same source the portfolio balancers use).
 
 type Slice = { id: string; name: string; value: number; percent: number }
 
-const SLICES: { key: string; label: string }[] = [
-  { key: 'sector', label: 'By Sector' },
-  { key: 'country', label: 'By Country' },
-  { key: 'activity', label: 'By Activity' },
-]
+const SLICES = ['sector', 'country', 'activity'] as const
 
+/** `label` is the chart's title, already in the lender's language. */
 export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string }) {
-  const { t, sector, number, percent } = useI18n()
+  const { t, data, number, percent } = useI18n()
   const fetchBalancerData = useCriteriaStore((s) => s.fetchBalancerData)
   const lenderId = useUtilsStore((s) => s.lenderId)
   const [slices, setSlices] = useState<Slice[] | null>(null)
@@ -27,7 +25,7 @@ export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string 
   // for EVERY trigger that starts a new fetch — an exact proxy for "the
   // effect is about to re-run." Same pattern as BalancingRow in
   // CriteriaTabs.tsx (see that file for the fuller writeup of why).
-  const effectDeps = [sliceBy, fetchBalancerData, lenderId, sector] as const
+  const effectDeps = [sliceBy, fetchBalancerData, lenderId, data] as const
   const [prevEffectDeps, setPrevEffectDeps] = useState<readonly unknown[]>(effectDeps)
   // Object.is, not !==, to mirror what React itself uses to decide whether a
   // dependency changed.
@@ -62,12 +60,12 @@ export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string 
     // is a counter that only ever starts at 0 and adds 1, so it can never be
     // NaN or -0 — the cases Object.is and !== actually disagree on. Object.is
     // above is for effectDepsChanged, which compares the raw dependency
-    // VALUES (lenderId, sector, etc.), where those cases are reachable.
+    // VALUES (lenderId, data, etc.), where those cases are reachable.
     fetchBalancerData(sliceBy, { enabled: true, allactive: 'all' })
       .then((r) => {
         if (cancelled || activeGenerationRef.current !== myGeneration) return
         const top = [...(r.slices as Slice[])].sort((a, b) => b.value - a.value).slice(0, 12)
-        setSlices(sliceBy === 'sector' ? top.map((item) => ({ ...item, name: sector(item.name) })) : top)
+        setSlices(top.map((item) => ({ ...item, name: localizeSliceName(sliceBy, item.name, data) })))
       })
       .catch(() => {
         if (!cancelled && activeGenerationRef.current === myGeneration) setFailed(true)
@@ -84,7 +82,7 @@ export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string 
 
   return (
     <Card className="mb-3">
-      <Card.Header>{t(label)}</Card.Header>
+      <Card.Header>{label}</Card.Header>
       <Card.Body>
         {failed ? (
           <div className="text-muted">{t('couldnt_load_breakdown')}</div>
@@ -116,14 +114,16 @@ export default function YourLending() {
   const { t } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
   if (!lenderId) return null
+  // Literal keys, so the catalog check can see each title is translated.
+  const titles = { sector: t('by_sector'), country: t('by_country'), activity: t('by_activity') }
   return (
     <div className="mb-4">
       <h2>{t('lending')}</h2>
       <p className="text-muted">{t('how_past_kiva_loans_break')}</p>
       <Row>
-        {SLICES.map((s) => (
-          <Col md={4} key={s.key}>
-            <SliceChart sliceBy={s.key} label={s.label} />
+        {SLICES.map((sliceBy) => (
+          <Col md={4} key={sliceBy}>
+            <SliceChart sliceBy={sliceBy} label={titles[sliceBy]} />
           </Col>
         ))}
       </Row>
