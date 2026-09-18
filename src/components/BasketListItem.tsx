@@ -55,7 +55,7 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
             onChange={handleAmountChange}
             onClick={(e) => e.stopPropagation()}
             className="basket-amount-select"
-            style={{ padding: '2px 4px', fontSize: 13, borderRadius: 4, border: '1px solid #ccc', cursor: 'pointer' }}
+            style={{ padding: '2px 4px', fontSize: 13, borderRadius: 4, border: '1px solid var(--kl-border-strong)', background: 'var(--kl-input-bg)', color: 'var(--kl-text)', cursor: 'pointer' }}
           >
             {options.map((o) => (
               <option key={o} value={o}>
@@ -64,7 +64,7 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
             ))}
           </select>
         ) : (
-          <span style={{ fontSize: 11, color: '#c0392b', fontWeight: 600 }}>
+          <span style={{ fontSize: 11, color: 'var(--kl-danger-text)', fontWeight: 600 }}>
             {t('fully_funded_removed_checkout')}
           </span>
         )}

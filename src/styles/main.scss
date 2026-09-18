@@ -1,21 +1,6 @@
-@use 'sass:color';
 @use 'variables' as *;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-// ============================================================
-// CSS Custom Properties (for runtime theming / JS access)
-// ============================================================
-:root {
-  --kl-green: #{$kl-green};
-  --kl-green-light: #{$kl-green-light};
-  --kl-green-dark: #{$kl-green-dark};
-  --kl-green-hover: #{$kl-green-hover};
-  --kl-text: #{$kl-text};
-  --kl-text-muted: #{$kl-text-muted};
-  --kl-border: #{$kl-border};
-  --kl-bg-subtle: #{$kl-bg-subtle};
-}
 
 // ============================================================
 // Global Overrides
@@ -67,12 +52,12 @@ body {
 
     // Active tab: white bg, dark text, green top border
     &.active {
-      background-color: #fff !important;
+      background-color: var(--kl-bg) !important;
       color: $kl-text !important;
       border-top: 3px solid $kl-green;
 
       &:hover {
-        background-color: #f0f0f0 !important;
+        background-color: var(--kl-fill-hover) !important;
         color: $kl-text !important;
       }
     }
@@ -220,7 +205,7 @@ body {
   z-index: 10;
 
   &:hover {
-    background-color: color.mix($kl-green, #fff, 16%);
+    background-color: var(--kl-row-hover);
     border-left-color: $kl-green !important;
   }
 
@@ -228,7 +213,7 @@ body {
     z-index: 12;
     // !important so selection stays green even while the row is focused/hovered
     // (the list-group :hover/:focus rule otherwise outranks this selector).
-    background-color: color.mix($kl-green, #fff, 45%) !important;
+    background-color: var(--kl-row-selected) !important;
     border-left-color: $kl-green !important;
     font-weight: 600;
   }
@@ -306,30 +291,55 @@ body {
 .in_basket {
   background-color: $kl-in-basket-bg !important;
   color: #fff !important;
-  border-left-color: color.adjust($kl-green, $lightness: -15%) !important;
+  border-left-color: var(--kl-green-hover) !important;
 
   a,
   a:hover {
     color: #fff !important;
   }
 
+  // White text on the green fill passes contrast only at full strength, and a
+  // tag needs a DARKER chip than the row: a lighter one drops white below 4.5:1.
   .loan-tag {
-    background: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(0, 0, 0, 0.22) !important;
     color: #fff !important;
   }
 
   .loan-use {
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: #fff !important;
+  }
+
+  // Selected while in the basket: stay a green fill (deeper), because the pale
+  // selection tint under the basket row's white text is unreadable.
+  &.selected {
+    background-color: var(--kl-green-hover) !important;
   }
 }
 
+// Dimmed through its picture only: fading the whole row washes its text out
+// below readable contrast.
 .funded {
   background-color: $kl-funded-bg !important;
-  opacity: 0.7;
+
+  img {
+    opacity: 0.7;
+  }
 }
 
 .in_portfolio {
   background-color: $kl-portfolio-bg !important;
+}
+
+// A row with a state fill carries its secondary text at full strength: the
+// muted grey fails contrast on the selection, funded and portfolio fills.
+// (.in_basket sets its own white text above.)
+.loan_list_item.selected,
+.loan_list_item.funded,
+.loan_list_item.in_portfolio {
+  .loan-use,
+  .loan-tag {
+    color: $kl-text;
+  }
 }
 
 // ============================================================
@@ -350,8 +360,8 @@ body {
 }
 
 .borrower-male {
-  background-color: #d9ecff;
-  color: #174a7c;
+  background-color: $kl-male-bg;
+  color: $kl-male-text;
 }
 
 .partner-pill {
@@ -369,23 +379,23 @@ body {
 }
 
 .partner-pill-good {
-  background: #dff3e6;
-  color: #1f6b3a;
+  background: var(--kl-pill-good-bg);
+  color: var(--kl-pill-good-text);
 }
 
 .partner-pill-warn {
-  background: #fff1d6;
-  color: #8b5a00;
+  background: var(--kl-pill-warn-bg);
+  color: var(--kl-pill-warn-text);
 }
 
 .partner-pill-bad {
-  background: #f8d7da;
-  color: #8a1f2d;
+  background: var(--kl-pill-bad-bg);
+  color: var(--kl-pill-bad-text);
 }
 
 .partner-pill-accent {
-  background: #dfeaff;
-  color: #184d94;
+  background: var(--kl-pill-accent-bg);
+  color: var(--kl-pill-accent-text);
 }
 
 .borrower-male {
@@ -433,25 +443,25 @@ body {
   margin-bottom: 2px;
 
   .number {
-    color: #555;
+    color: var(--kl-addon-text);
     display: table-cell;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
     width: 50px;
-    background: #eee;
-    border: 1px solid #ccc;
+    background: var(--kl-addon-bg);
+    border: 1px solid var(--kl-border-strong);
     border-right: 0;
     border-radius: 4px 0 0 4px;
     padding: $kl-spacing-sm 12px;
   }
 
   .name {
-    color: #555;
-    background: #fff;
+    color: var(--kl-addon-text);
+    background: var(--kl-surface);
     display: table-cell;
     vertical-align: middle;
-    border: 1px solid #ccc;
+    border: 1px solid var(--kl-border-strong);
     border-radius: 0 4px 4px 0;
     padding: $kl-spacing-sm 12px;
   }
@@ -499,8 +509,8 @@ body {
   &:hover,
   &:focus,
   &:active {
-    background-color: color.adjust($kl-kiva-green, $lightness: -8%) !important;
-    border-color: color.adjust($kl-kiva-green, $lightness: -8%) !important;
+    background-color: var(--kl-green-hover) !important;
+    border-color: var(--kl-green-hover) !important;
   }
 }
 
@@ -540,7 +550,7 @@ body {
   font-size: $kl-font-size-base;
 
   a {
-    color: #000 !important;
+    color: inherit !important;
   }
 }
 
@@ -614,7 +624,7 @@ ul.spacedList li {
 }
 
 .spacedChildren.notEnabled > div.btn-group > button.btn {
-  background-color: #aaa !important;
+  background-color: var(--kl-secondary) !important;
 }
 
 // ============================================================
@@ -855,45 +865,6 @@ ul.spacedList li {
   }
 }
 
-// Legacy slider classes (react-slider compat)
-.handle {
-  color: #555;
-  height: 13.1875px;
-  position: absolute;
-  text-align: center;
-  width: 13.1875px;
-  cursor: pointer;
-  background: $kl-slider-handle-bg;
-  border: 1px solid $kl-slider-handle-border;
-  border-radius: 4px;
-  font: normal 11px Verdana, Arial, sans-serif;
-
-  &.active {
-    background-color: grey;
-  }
-}
-
-.bar {
-  position: relative;
-  background: $kl-slider-rail;
-
-  &.bar-1 {
-    background: $kl-slider-track;
-  }
-}
-
-.horizontal-slider .bar {
-  top: 12px;
-  height: 5px;
-}
-
-.horizontal-slider .handle {
-  top: 1px;
-  width: 25px;
-  height: 25px;
-  line-height: 15px;
-}
-
 // ============================================================
 // 3D Side-Tilt (search results / loan detail split)
 // ============================================================
@@ -903,7 +874,7 @@ ul.spacedList li {
     perspective-origin: 50% 100px;
 
     .side-results {
-      background: #fff;
+      background: var(--kl-bg);
       transition: all 1000ms ease;
       transform: rotateY(0deg) translateX(0);
     }
@@ -1027,7 +998,7 @@ ul.spacedList li {
 // ============================================================
 .Select__control {
   min-height: 36px;
-  border-color: #ccc !important;
+  border-color: var(--kl-border-strong) !important;
   border-radius: 4px;
   box-shadow: none !important;
 
@@ -1048,7 +1019,7 @@ ul.spacedList li {
 // v1-style gray triangle instead of the v5 chevron svg
 .Select__dropdown-indicator {
   padding: 4px 8px !important;
-  color: #999;
+  color: var(--kl-text-muted);
 
   svg {
     display: none;
@@ -1059,13 +1030,13 @@ ul.spacedList li {
     display: inline-block;
     width: 0;
     height: 0;
-    border-color: #999 transparent transparent;
+    border-color: var(--kl-text-muted) transparent transparent;
     border-style: solid;
     border-width: 5px 5px 2.5px;
   }
 
   &:hover::after {
-    border-top-color: #666;
+    border-top-color: var(--kl-text);
   }
 }
 
@@ -1078,22 +1049,129 @@ ul.spacedList li {
 }
 
 .Select__multi-value {
-  background-color: rgba(0, 126, 255, 0.08) !important;
-  border: 1px solid rgba(0, 126, 255, 0.24) !important;
+  background-color: var(--kl-chip-bg) !important;
+  border: 1px solid var(--kl-chip-border) !important;
   border-radius: 2px !important;
 
   .Select__multi-value__label {
-    color: #007eff !important;
+    color: var(--kl-chip-text) !important;
     font-size: 0.9em;
   }
 
   .Select__multi-value__remove {
-    border-left: 1px solid rgba(0, 126, 255, 0.24);
-    color: #007eff;
+    border-left: 1px solid var(--kl-chip-border);
+    color: var(--kl-chip-text);
 
     &:hover {
       background-color: rgba(0, 113, 230, 0.08);
-      color: #0071e6;
+      color: var(--kl-chip-text-hover);
     }
   }
+}
+
+// react-select paints its control, menu and options from a JS theme; these
+// rules put them on the runtime tokens so the select follows the page theme.
+.Select__control {
+  background-color: var(--kl-input-bg) !important;
+}
+
+.Select__single-value,
+.Select__input-container {
+  color: var(--kl-text) !important;
+}
+
+.Select__placeholder {
+  color: var(--kl-placeholder) !important;
+}
+
+.Select__clear-indicator {
+  color: var(--kl-text-muted) !important;
+
+  &:hover {
+    color: var(--kl-text) !important;
+  }
+}
+
+.Select__menu {
+  background-color: var(--kl-surface-raised) !important;
+  border: 1px solid var(--kl-overlay-border);
+  box-shadow: 0 6px 12px var(--kl-shadow) !important;
+}
+
+.Select__option {
+  color: var(--kl-text) !important;
+  background-color: transparent !important;
+
+  &--is-focused {
+    background-color: var(--kl-row-hover) !important;
+  }
+
+  &--is-selected {
+    color: var(--kl-on-accent) !important;
+    background-color: var(--kl-green) !important;
+  }
+
+  &--is-disabled {
+    color: var(--kl-text-muted) !important;
+  }
+}
+
+.Select__menu-notice,
+.Select__group-heading {
+  color: var(--kl-text-muted) !important;
+}
+
+// ============================================================
+// Charts (recharts) — axis, grid, legend and tooltip follow the theme. CSS
+// outranks the SVG presentation attributes recharts writes.
+// ============================================================
+.recharts-cartesian-axis-tick-value,
+.recharts-label,
+.recharts-pie-label-text {
+  fill: var(--kl-chart-text);
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--kl-chart-grid);
+}
+
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line,
+.recharts-pie-label-line {
+  stroke: var(--kl-chart-text);
+}
+
+.recharts-tooltip-cursor {
+  fill: var(--kl-fill);
+}
+
+.recharts-default-tooltip {
+  color: var(--kl-text);
+  background-color: var(--kl-surface-raised) !important;
+  border: 1px solid var(--kl-overlay-border) !important;
+
+  .recharts-tooltip-label,
+  .recharts-tooltip-item {
+    color: var(--kl-text) !important;
+  }
+}
+
+.recharts-legend-item-text {
+  color: var(--kl-text) !important;
+}
+
+// rc-slider ships light-only mark and tooltip colours.
+.rc-slider-mark-text {
+  color: var(--kl-text-muted);
+
+  &-active {
+    color: var(--kl-text);
+  }
+}
+
+// Native controls drawn inline by a few pages.
+select,
+input,
+textarea {
+  color-scheme: inherit;
 }

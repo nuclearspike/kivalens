@@ -14,7 +14,7 @@
 .nav-link {
   display: block;
   padding: 10px 15px;
-  color: $kiva-green;
+  color: var(--kl-green-text);
   text-decoration: none;
   background: none;
   border: 0;
@@ -23,7 +23,7 @@
   &:hover,
   &:focus {
     text-decoration: none;
-    background-color: $flatly-line;
+    background-color: var(--kl-fill);
   }
 
   &.disabled {
@@ -46,17 +46,17 @@
     line-height: $line-height-base;
     border: 1px solid transparent;
     border-radius: $radius-base $radius-base 0 0;
-    color: $kiva-green;
+    color: var(--kl-green-text);
 
     &:hover,
     &:focus {
-      background-color: $flatly-line;
+      background-color: var(--kl-fill);
       border-color: transparent;
     }
 
     &.active {
-      color: $flatly-primary;
-      background-color: #fff;
+      color: var(--kl-text-strong);
+      background-color: var(--kl-bg);
       border: 1px solid $flatly-line;
       border-bottom-color: transparent;
       cursor: default;
@@ -70,7 +70,7 @@
     border-radius: $radius-base;
 
     &.active {
-      color: #fff;
+      color: var(--kl-on-accent);
       background-color: $kiva-green;
     }
   }

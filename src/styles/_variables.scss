@@ -1,32 +1,34 @@
 // KivaLens Theme Variables
 // ========================
+// Colour variables are aliases of the runtime tokens in base/_theme.scss (they
+// hold `var(--kl-…)`), so one rule serves the light and the dark theme. Sass
+// colour functions cannot take them; mix at runtime with color-mix().
 
-// Brand colors — single Kiva green, matching the original app's
-// $kiva-green (#2C8C5E) used for accents, badges, and basket states.
-$kl-green: #2c8c5e;
-$kl-green-light: #e8f5ee;
-$kl-green-dark: #1a3d2e;
-$kl-green-hover: #236f4a;
+// Brand colors — single Kiva green used for accents, badges, and basket states.
+$kl-green: var(--kl-green);
+$kl-green-light: var(--kl-green-light);
+$kl-green-dark: var(--kl-green-dark);
+$kl-green-hover: var(--kl-green-hover);
 
 // Kiva-inspired palette
-$kl-kiva-green: #2c8c5e;
+$kl-kiva-green: var(--kl-green);
 
 // UI colors
-$kl-text: #2d2d2d;
-$kl-text-muted: #6c757d;
-$kl-border: #dee2e6;
-$kl-bg-subtle: #f8f9fa;
+$kl-text: var(--kl-text);
+$kl-text-muted: var(--kl-text-muted);
+$kl-border: var(--kl-border);
+$kl-bg-subtle: var(--kl-bg-subtle);
 
 // Borrower gender pills
-$kl-female-bg: #fce4ec;
-$kl-female-text: #000;
-$kl-male-bg: #e3f2fd;
-$kl-male-text: #000;
+$kl-female-bg: var(--kl-female-bg);
+$kl-female-text: var(--kl-female-text);
+$kl-male-bg: var(--kl-male-bg);
+$kl-male-text: var(--kl-male-text);
 
 // Loan states
 $kl-in-basket-bg: $kl-green;
-$kl-funded-bg: #d5d5d5;
-$kl-portfolio-bg: #cfcfcf;
+$kl-funded-bg: var(--kl-row-funded);
+$kl-portfolio-bg: var(--kl-row-portfolio);
 
 // Typography
 $kl-font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -46,6 +48,6 @@ $kl-navbar-bg: $kl-green-dark;
 
 // Slider (rc-slider)
 $kl-slider-track: $kl-green;
-$kl-slider-rail: #cfcfcf;
-$kl-slider-handle-bg: #e6e6e6;
-$kl-slider-handle-border: #d3d3d3;
+$kl-slider-rail: var(--kl-slider-rail);
+$kl-slider-handle-bg: var(--kl-slider-handle);
+$kl-slider-handle-border: var(--kl-slider-handle-border);

@@ -103,7 +103,7 @@ export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string 
                   return [t('count_loans_percent_percent', { count: number(value), percent: percent(p?.percent ?? 0, 1) }), p?.name ?? '']
                 }}
               />
-              <Bar dataKey="value" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill="var(--kl-green)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

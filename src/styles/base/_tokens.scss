@@ -6,27 +6,31 @@
 // so the rendered result matches the original pixel-for-pixel.
 // ============================================================
 
-// --- Flatly palette ---
-$flatly-primary: #2c3e50; // dark slate
-$flatly-success: #18bc9c; // teal
-$flatly-info: #3498db;
-$flatly-warning: #f39c12;
-$flatly-danger: #e74c3c;
-$flatly-default: #95a5a6; // BS3 "btn-default" gray
-$flatly-default-hover: #798d8f;
-$flatly-default-hover-border: #74898a;
-$flatly-line: #ecf0f1; // panel borders, tab borders, hr
-$flatly-input-border: #dce4ec;
-$flatly-dropdown-link: #7b8a8b;
+// --- colours ---
+// Aliases of the runtime tokens in _theme.scss, so the light and dark themes
+// share every rule below. They hold `var(--kl-…)`, not a colour: Sass colour
+// functions cannot take them — mix at runtime with color-mix() instead.
+// $flatly-* are FILLS that carry white text; use --kl-text-strong for slate
+// text and --kl-green-text for green text.
+$flatly-primary: var(--kl-primary);
+$flatly-success: var(--kl-success);
+$flatly-info: var(--kl-info);
+$flatly-warning: var(--kl-warning);
+$flatly-danger: var(--kl-danger);
+$flatly-default: var(--kl-secondary); // BS3 "btn-default" gray
+$flatly-default-hover: var(--kl-secondary-hover);
+$flatly-default-hover-border: var(--kl-secondary-hover-border);
+$flatly-line: var(--kl-line); // panel borders, tab borders, hr
+$flatly-input-border: var(--kl-input-border);
+$flatly-dropdown-link: var(--kl-dropdown-link);
 
-// --- KivaLens green theme (from old application.scss) ---
-$kiva-green: #2c8c5e;
-$kiva-green-light: #e8f5ee;
-$kiva-green-dark: #1a3d2e;
-$kiva-text: #2d2d2d;
-$kiva-text-muted: #6c757d;
-$kiva-border: #dee2e6;
-$kiva-bg-subtle: #f8f9fa;
+$kiva-green: var(--kl-green);
+$kiva-green-light: var(--kl-green-light);
+$kiva-green-dark: var(--kl-green-dark);
+$kiva-text: var(--kl-text);
+$kiva-text-muted: var(--kl-text-muted);
+$kiva-border: var(--kl-border);
+$kiva-bg-subtle: var(--kl-bg-subtle);
 
 // --- type ---
 $font-family-base: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -51,13 +55,3 @@ $z-sticky: 1020;
 $z-modal-backdrop: 1040;
 $z-modal: 1050;
 $z-popover: 1070;
-
-:root {
-  --kl-flatly-primary: #{$flatly-primary};
-  --kl-flatly-success: #{$flatly-success};
-  --kl-flatly-info: #{$flatly-info};
-  --kl-flatly-warning: #{$flatly-warning};
-  --kl-flatly-danger: #{$flatly-danger};
-  --kl-flatly-default: #{$flatly-default};
-  --kl-flatly-line: #{$flatly-line};
-}

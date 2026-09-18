@@ -119,9 +119,9 @@ $spacers: (
 .text-end { text-align: right !important; }
 .text-muted { color: $kiva-text-muted !important; }
 .text-white { color: #fff !important; }
-.text-light { color: $kiva-bg-subtle !important; }
-.text-danger { color: $flatly-danger !important; }
-.text-success { color: $kiva-green !important; }
+.text-light { color: #f8f9fa !important; }
+.text-danger { color: var(--kl-danger-text) !important; }
+.text-success { color: var(--kl-green-text) !important; }
 .text-capitalize { text-transform: capitalize !important; }
 .text-decoration-none { text-decoration: none !important; }
 .text-truncate {
@@ -143,7 +143,7 @@ $spacers: (
 .bg-danger { background-color: $flatly-danger !important; }
 .bg-light { background-color: $kiva-bg-subtle !important; }
 .bg-dark { background-color: $flatly-primary !important; }
-.bg-white { background-color: #fff !important; }
+.bg-white { background-color: var(--kl-surface) !important; }
 
 // --- borders ---
 .border { border: 1px solid $kiva-border !important; }

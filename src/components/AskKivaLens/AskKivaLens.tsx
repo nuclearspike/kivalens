@@ -118,7 +118,7 @@ function ChartBubble({ spec }: { spec: ChartSpec }) {
             <XAxis type="number" hide />
             <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
             <Tooltip />
-            <Bar dataKey="value" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="value" fill="var(--kl-green)" radius={[0, 4, 4, 0]} />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -568,7 +568,7 @@ export default function AskKivaLens() {
               style={{
                 border: 'none',
                 background: 'transparent',
-                color: 'var(--kl-green, #2C8C5E)',
+                color: 'var(--kl-green-text)',
                 cursor: 'pointer',
                 font: 'inherit',
                 padding: 0,

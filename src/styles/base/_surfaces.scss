@@ -11,7 +11,7 @@
   min-width: 0;
   word-wrap: break-word;
   margin-bottom: 21px;
-  background-color: #fff;
+  background-color: var(--kl-surface);
   border: 1px solid $flatly-line;
   border-radius: $radius-base;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
@@ -20,8 +20,8 @@
 .card-header {
   padding: 10px 15px;
   margin-bottom: 0;
-  color: $flatly-primary;
-  background-color: $flatly-line;
+  color: var(--kl-text-strong);
+  background-color: var(--kl-fill);
   border-bottom: 1px solid $flatly-line;
   border-radius: ($radius-base - 1px) ($radius-base - 1px) 0 0;
 }
@@ -59,7 +59,7 @@
   display: block;
   padding: 10px 15px;
   margin-bottom: -1px;
-  background-color: #fff;
+  background-color: var(--kl-surface);
   border: 1px solid $flatly-line;
   color: inherit;
   text-decoration: none;
@@ -97,7 +97,7 @@ a.list-group-item,
   // box-shadow (not border) for the accent so the row doesn't shift on select.
   // !important so the selected partner stays green even while focused/hovered
   // (a.list-group-item:focus otherwise outranks .list-group-item.active).
-  background-color: color.mix($kiva-green, #fff, 45%) !important;
+  background-color: var(--kl-row-selected) !important;
   border-color: $flatly-line;
   box-shadow: inset 3px 0 0 $kiva-green;
   font-weight: 600;
@@ -110,7 +110,7 @@ a.list-group-item,
   padding: 3px 7px;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--kl-on-accent);
   line-height: 1;
   vertical-align: middle;
   white-space: nowrap;
@@ -154,25 +154,25 @@ a.list-group-item,
 .alert-success {
   background-color: $flatly-success;
   border-color: $flatly-success;
-  color: #fff;
+  color: var(--kl-on-accent);
 }
 
 .alert-info {
   background-color: $flatly-info;
   border-color: $flatly-info;
-  color: #fff;
+  color: var(--kl-on-accent);
 }
 
 .alert-warning {
   background-color: $flatly-warning;
   border-color: $flatly-warning;
-  color: #fff;
+  color: var(--kl-on-warning);
 }
 
 .alert-danger {
   background-color: $flatly-danger;
   border-color: $flatly-danger;
-  color: #fff;
+  color: var(--kl-on-accent);
 }
 
 .alert-secondary,

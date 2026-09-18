@@ -382,10 +382,10 @@ export function SavedSearches() {
               ))}
             </ListGroup>
             {searches.length === 0 ? (
-              <p style={{ color: '#999', padding: 12 }}>{t('no_saved_searches_yet')}</p>
+              <p style={{ color: 'var(--kl-text-muted)', padding: 12 }}>{t('no_saved_searches_yet')}</p>
             ) : null}
           </div>
-          <div style={{ paddingTop: 8, borderTop: '1px solid #ddd' }}>
+          <div style={{ paddingTop: 8, borderTop: '1px solid var(--kl-border)' }}>
             <ButtonGroup size="sm" className="mb-1">
               <Button onClick={handleExportAll}>{t('export_all')}</Button>
               <Button onClick={handleExportSelected} disabled={checkedNames.length === 0}>
@@ -437,7 +437,7 @@ export function SavedSearches() {
               </h3>
 
               <div style={{ marginBottom: 16 }}>
-                <span style={{ fontSize: 18, fontWeight: 600, color: '#2C8C5E' }}>
+                <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--kl-green-text)' }}>
                   {t('count_matching_loans', { count: number(matchingCount) })}
                 </span>
               </div>
@@ -466,13 +466,13 @@ export function SavedSearches() {
               ) : (
                 <Card>
                   <Card.Body>
-                    <p style={{ color: '#999', marginBottom: 0 }}>{t('no_specific_criteria_set_matches')}</p>
+                    <p style={{ color: 'var(--kl-text-muted)', marginBottom: 0 }}>{t('no_specific_criteria_set_matches')}</p>
                   </Card.Body>
                 </Card>
               )}
             </div>
           ) : (
-            <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--kl-text-muted)' }}>
               <h3>{t('select_saved_search')}</h3>
               <p>{t('browse_rename_share_export_import')}</p>
             </div>

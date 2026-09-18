@@ -22,7 +22,7 @@ body {
   font-size: $font-size-base;
   line-height: 1.5; // old index.ejs inline style
   color: $kiva-text;
-  background-color: #fff;
+  background-color: var(--kl-bg);
 }
 
 h1,
@@ -53,13 +53,13 @@ p {
 }
 
 a {
-  color: $kiva-green;
+  color: var(--kl-green-text);
   text-decoration: none;
   background-color: transparent;
 
   &:hover,
   &:focus {
-    color: color.adjust($kiva-green, $lightness: -10%);
+    color: var(--kl-green-text-hover);
     text-decoration: underline;
   }
 }
@@ -101,6 +101,13 @@ textarea {
   margin: 0;
   font: inherit;
   color: inherit;
+}
+
+// Every placeholder, styled control or not: the browser's default grey fails
+// contrast on a dark field.
+::placeholder {
+  color: var(--kl-placeholder);
+  opacity: 1;
 }
 
 button {
@@ -160,8 +167,8 @@ code {
   padding: 2px 4px;
   font-size: 90%;
   font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-  color: #c7254e;
-  background-color: #f9f2f4;
+  color: var(--kl-code-text);
+  background-color: var(--kl-code-bg);
   border-radius: $radius-base;
 }
 

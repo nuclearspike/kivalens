@@ -94,9 +94,9 @@ const CHARGES_OPTIONS: SelectOption[] = [
 
 const statusBg: Record<string, string | undefined> = {
   active: undefined,
-  inactive: '#e8e8e8',
-  paused: '#fff8e1',
-  closed: '#fce4ec',
+  inactive: 'var(--kl-status-inactive)',
+  paused: 'var(--kl-status-paused)',
+  closed: 'var(--kl-status-closed)',
 }
 
 const statusVariant: Record<string, string> = {
@@ -190,7 +190,7 @@ function FilterRow({
       placement="top"
       overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHint}</Popover.Body></Popover>}
     >
-      <Form.Label className="small" style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>
+      <Form.Label className="small" style={{ borderBottom: 'var(--kl-text-muted) 1px dotted', cursor: 'help' }}>
         {localizedLabel}
       </Form.Label>
     </OverlayTrigger>

@@ -1,4 +1,3 @@
-@use 'sass:color';
 @use 'tokens' as *;
 
 // Buttons — Flatly 3.3.5 visuals (flat fills, 2px borders, white
@@ -30,7 +29,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid rgba($kiva-green, 0.5);
+    outline: 2px solid var(--kl-focus-ring);
     outline-offset: 1px;
   }
 
@@ -43,8 +42,8 @@
   }
 }
 
-@mixin btn-variant($bg, $hover-bg: color.adjust($bg, $lightness: -8%), $hover-border: color.adjust($bg, $lightness: -10%)) {
-  color: #fff;
+@mixin btn-variant($bg, $hover-bg: color-mix(in srgb, #{$bg} 86%, #000), $hover-border: color-mix(in srgb, #{$bg} 82%, #000), $on: var(--kl-on-accent)) {
+  color: $on;
   background-color: $bg;
   border-color: $bg;
 
@@ -52,7 +51,7 @@
   &:focus,
   &:active,
   &.active {
-    color: #fff;
+    color: $on;
     background-color: $hover-bg;
     border-color: $hover-border;
   }
@@ -62,7 +61,7 @@
 .btn-secondary { @include btn-variant($flatly-default, $flatly-default-hover, $flatly-default-hover-border); }
 .btn-success { @include btn-variant($flatly-success); }
 .btn-info { @include btn-variant($flatly-info); }
-.btn-warning { @include btn-variant($flatly-warning); }
+.btn-warning { @include btn-variant($flatly-warning, $on: var(--kl-on-warning)); }
 .btn-danger { @include btn-variant($flatly-danger); }
 .btn-dark { @include btn-variant($kiva-green-dark); }
 .btn-light {
@@ -74,12 +73,12 @@
   &:focus,
   &:active,
   &.active {
-    background-color: color.adjust($kiva-bg-subtle, $lightness: -6%);
-    border-color: color.adjust($kiva-bg-subtle, $lightness: -8%);
+    background-color: var(--kl-fill);
+    border-color: var(--kl-border);
   }
 }
 
-@mixin btn-outline-variant($clr, $text: $clr) {
+@mixin btn-outline-variant($clr, $text: $clr, $fill: $clr) {
   color: $text;
   background-color: transparent;
   border-color: $clr;
@@ -88,37 +87,37 @@
   &:focus,
   &:active,
   &.active {
-    color: #fff;
-    background-color: $clr;
-    border-color: $clr;
+    color: var(--kl-on-accent);
+    background-color: $fill;
+    border-color: $fill;
   }
 }
 
-.btn-outline-primary { @include btn-outline-variant($flatly-primary); }
-.btn-outline-secondary { @include btn-outline-variant($flatly-default, #6c7a7b); }
-.btn-outline-success { @include btn-outline-variant($kiva-green); }
-.btn-outline-danger { @include btn-outline-variant($flatly-danger); }
+.btn-outline-primary { @include btn-outline-variant(var(--kl-primary-outline), var(--kl-primary-outline), $flatly-primary); }
+.btn-outline-secondary { @include btn-outline-variant($flatly-default, var(--kl-secondary-text)); }
+.btn-outline-success { @include btn-outline-variant($kiva-green, var(--kl-green-text)); }
+.btn-outline-danger { @include btn-outline-variant($flatly-danger, var(--kl-danger-text)); }
 
 // White outline for use on colored (e.g. danger) surfaces. Not from the mixin
 // because its hover fills with the outline colour + white text (white-on-white
 // here); instead hover fills white and flips the label to dark for contrast.
 .btn-outline-light {
-  color: #fff;
+  color: var(--kl-on-accent);
   background-color: transparent;
-  border-color: #fff;
+  border-color: var(--kl-on-accent);
 
   &:hover,
   &:focus,
   &:active,
   &.active {
-    color: $kiva-text;
-    background-color: #fff;
-    border-color: #fff;
+    color: var(--kl-ink);
+    background-color: var(--kl-paper);
+    border-color: var(--kl-paper);
   }
 }
 
 .btn-link {
-  color: $kiva-green;
+  color: var(--kl-green-text);
   font-weight: 400;
   border-radius: 0;
   background-color: transparent;
@@ -126,7 +125,7 @@
 
   &:hover,
   &:focus {
-    color: color.adjust($kiva-green, $lightness: -10%);
+    color: var(--kl-green-text-hover);
     text-decoration: underline;
     background-color: transparent;
     border-color: transparent;

@@ -56,16 +56,16 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
       {/* Repayment info */}
       <div style={{ fontSize: 13, lineHeight: 1.6, marginBottom: 4 }}>
         {loan.terms.repayment_interval && (
-          <div><span style={{ color: '#999' }}>{t('interval')}:</span> <b>{dataLabel(loan.terms.repayment_interval)}</b></div>
+          <div><span style={{ color: 'var(--kl-text-muted)' }}>{t('interval')}:</span> <b>{dataLabel(loan.terms.repayment_interval)}</b></div>
         )}
         {loan.kls_half_back && loan.kls_half_back_actual != null && (
-          <div><span style={{ color: '#999' }}>{t('percent_percent_back', { percent: Math.round(loan.kls_half_back_actual) })}:</span> <b>{date(loan.kls_half_back, { month: 'short', year: 'numeric' })}</b></div>
+          <div><span style={{ color: 'var(--kl-text-muted)' }}>{t('percent_percent_back', { percent: Math.round(loan.kls_half_back_actual) })}:</span> <b>{date(loan.kls_half_back, { month: 'short', year: 'numeric' })}</b></div>
         )}
         {loan.kls_75_back && loan.kls_75_back_actual != null && (
-          <div><span style={{ color: '#999' }}>{t('percent_percent_back', { percent: Math.round(loan.kls_75_back_actual) })}:</span> <b>{date(loan.kls_75_back, { month: 'short', year: 'numeric' })}</b></div>
+          <div><span style={{ color: 'var(--kl-text-muted)' }}>{t('percent_percent_back', { percent: Math.round(loan.kls_75_back_actual) })}:</span> <b>{date(loan.kls_75_back, { month: 'short', year: 'numeric' })}</b></div>
         )}
         {loan.kls_final_repayment && (
-          <div><span style={{ color: '#999' }}>{t('final')}:</span> <b>{date(loan.kls_final_repayment, { month: 'short', year: 'numeric' })}</b></div>
+          <div><span style={{ color: 'var(--kl-text-muted)' }}>{t('final')}:</span> <b>{date(loan.kls_final_repayment, { month: 'short', year: 'numeric' })}</b></div>
         )}
       </div>
 
@@ -101,8 +101,8 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
           <Area
             xAxisId="pct"
             dataKey="percent"
-            stroke="#434348"
-            fill="#434348"
+            stroke="var(--kl-chart-ink)"
+            fill="var(--kl-chart-ink)"
             fillOpacity={0.75}
             name={t('cumulative_percent')}
             isAnimationActive={false}
@@ -277,7 +277,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               display: 'inline-flex',
               borderRadius: 6,
               overflow: 'hidden',
-              border: '1px solid #2C8C5E',
+              border: '1px solid var(--kl-green)',
               opacity: loan.status !== 'fundraising' ? 0.5 : 1,
             }}
           >
@@ -289,9 +289,9 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 padding: '4px 8px',
                 fontSize: 14,
                 border: 'none',
-                borderRight: '1px solid #2C8C5E',
-                background: '#fff',
-                color: '#2C8C5E',
+                borderRight: '1px solid var(--kl-green)',
+                background: 'var(--kl-surface)',
+                color: 'var(--kl-green-text)',
                 fontWeight: 600,
                 cursor: 'pointer',
                 outline: 'none',
@@ -310,7 +310,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 padding: '4px 14px',
                 fontSize: 14,
                 border: 'none',
-                background: '#2C8C5E',
+                background: 'var(--kl-green)',
                 color: '#fff',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -329,7 +329,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               height: 18,
               lineHeight: '18px',
               borderRadius: '50%',
-              background: '#2C8C5E',
+              background: 'var(--kl-green)',
               color: '#fff',
               textAlign: 'center',
               fontSize: 11,
@@ -416,14 +416,14 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 className="progress-bar progress-bar-striped"
                 style={{
                   width: `${Math.min(fundedPerc, 100)}%`,
-                  backgroundColor: '#18bc9c',
+                  backgroundColor: 'var(--kl-success)',
                 }}
               />
               <div
                 className="progress-bar"
                 style={{
                   width: `${Math.min(basketPerc, 100 - fundedPerc)}%`,
-                  backgroundColor: '#f39c12',
+                  backgroundColor: 'var(--kl-warning)',
                 }}
               />
             </div>
@@ -534,14 +534,14 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                     <div>
                       <span className="detail-label">{t('amount')}</span>{' '}
                       {currency(loan.loan_amount)}{' '}
-                      <span style={{ color: '#ccc' }}>|</span>{' '}
+                      <span style={{ color: 'var(--kl-text-muted)' }}>|</span>{' '}
                       <span className="detail-label">{t('funded')}</span>{' '}
                       {currency(loan.funded_amount)}
                     </div>
                     <div>
                       <span className="detail-label">{t('baskets')}</span>{' '}
                       {currency(loan.basket_amount)}{' '}
-                      <span style={{ color: '#ccc' }}>|</span>{' '}
+                      <span style={{ color: 'var(--kl-text-muted)' }}>|</span>{' '}
                       <span className="detail-label">{t('still_needed')}</span>{' '}
                       {currency(loan.kl_still_needed ?? 0)}
                     </div>

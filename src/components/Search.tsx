@@ -145,12 +145,12 @@ export function Search() {
         </Col>
 
         {/* Loan detail panel / Welcome panel */}
-        <Col md={detailCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)', borderLeft: '1px solid #ddd' }}>
+        <Col md={detailCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)', borderLeft: '1px solid var(--kl-border)' }}>
           {selectedId ? (
             <Loan loanId={selectedId} />
           ) : (
             <div className="p-3">
-              <h2 style={{ marginTop: 0, color: '#2C8C5E' }}>{t('welcome_kivalens')}</h2>
+              <h2 style={{ marginTop: 0, color: 'var(--kl-green-text)' }}>{t('welcome_kivalens')}</h2>
               <h4>{t('quick_start')}</h4>
               <ol style={{ paddingLeft: 18, lineHeight: 1.8 }}>
                 <li>{t('use_criteria_left_filter_loans')}</li>
@@ -185,9 +185,9 @@ export function Search() {
                   style={{
                     marginTop: 16,
                     padding: '12px 16px',
-                    background: '#f0f8f4',
+                    background: 'var(--kl-green-light)',
                     borderRadius: 6,
-                    border: '1px solid #d4edda',
+                    border: '1px solid var(--kl-green-border)',
                   }}
                 >
                   {tx('set_lender_id_purpose', {

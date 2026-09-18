@@ -3,7 +3,7 @@ import { Alert, Button, Card } from '../ui'
 import { companion } from '../api/companion'
 import { useI18n } from '../i18n'
 
-const muted = { color: '#6b7280' }
+const muted = { color: 'var(--kl-text-muted)' }
 
 /**
  * Surfaces the optional KivaLens Companion extension on the Options page. Only rendered when

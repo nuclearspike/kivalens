@@ -6,6 +6,7 @@ import KivaImage from './KivaImage'
 import CompanionCard from './CompanionCard'
 import { companionEnabled } from '../api/companion'
 import { useI18n } from '../i18n'
+import { applyThemeChoice, readThemeChoice, saveThemeChoice, type ThemeChoice } from '../lib/theme'
 
 interface OptionsState {
   default_lend_amount: number
@@ -48,6 +49,12 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
 export default function Options() {
   const { t, tx, relativeTime } = useI18n()
   const [opts, setOpts] = usePersistedOptions()
+  const [themeChoice, setThemeChoice] = useState<ThemeChoice>(readThemeChoice)
+  const chooseTheme = (choice: ThemeChoice) => {
+    setThemeChoice(choice)
+    saveThemeChoice(choice)
+    applyThemeChoice(choice)
+  }
   const lenderObj = useUtilsStore((s) => s.lenderObj)
   const lenderId = useUtilsStore((s) => s.lenderId)
   const fetchLenderObj = useUtilsStore((s) => s.fetchLenderObj)
@@ -156,12 +163,28 @@ export default function Options() {
             <Card.Header>{t('display')}</Card.Header>
             <Card.Body>
               <Form.Group className="mb-3">
+                <Form.Label htmlFor="kl-appearance">{t('appearance')}</Form.Label>
+                <div>
+                  <select
+                    id="kl-appearance"
+                    value={themeChoice}
+                    onChange={(e) => chooseTheme(e.target.value as ThemeChoice)}
+                    style={{ padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid var(--kl-border-strong)', background: 'var(--kl-input-bg)', color: 'var(--kl-text)' }}
+                  >
+                    <option value="system">{t('appearance_match_device')}</option>
+                    <option value="light">{t('appearance_light')}</option>
+                    <option value="dark">{t('appearance_dark')}</option>
+                  </select>
+                </div>
+                <Form.Text className="text-muted">{t('appearance_help')}</Form.Text>
+              </Form.Group>
+              <Form.Group className="mb-3">
                 <Form.Label>{t('default_lending_amount')}</Form.Label>
                 <div>
                   <select
                     value={opts.default_lend_amount}
                     onChange={(e) => setOpts({ default_lend_amount: parseInt(e.target.value, 10) })}
-                    style={{ padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid #ccc' }}
+                    style={{ padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid var(--kl-border-strong)', background: 'var(--kl-input-bg)', color: 'var(--kl-text)' }}
                   >
                     {LEND_AMOUNTS.map((amt) => (
                       <option key={amt} value={amt}>

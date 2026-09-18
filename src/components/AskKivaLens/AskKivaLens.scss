@@ -33,7 +33,8 @@
   .ask-kl-eye {
     width: 19px;
     height: 19px;
-    background: #fff;
+    // An eyeball: white in both themes.
+    background: var(--kl-paper);
     border: 1px solid rgba(0, 0, 0, 0.18);
     border-radius: 50%;
     position: relative;
@@ -54,8 +55,8 @@
   .ask-kl-panel {
     width: 510px; // 50% wider than the original 340px
     max-width: 86vw;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: var(--kl-surface-raised);
+    border: 1px solid var(--kl-overlay-border);
     border-radius: 14px;
     overflow: hidden;
     display: flex;
@@ -70,7 +71,7 @@
     gap: 8px;
     cursor: pointer;
     padding: 10px 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--kl-line);
   }
   .ask-kl-title {
     font-size: 14px;
@@ -80,7 +81,7 @@
   .ask-kl-badge {
     font-size: 11px;
     color: var(--kl-text-muted, #6b6b6b);
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--kl-border);
     border-radius: 999px;
     padding: 1px 7px;
   }
@@ -89,7 +90,7 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--kl-green, #4a8b5c);
+    color: var(--kl-green-text);
     background: rgba(74, 139, 92, 0.14);
     border: 1px solid rgba(74, 139, 92, 0.32);
     border-radius: 999px;
@@ -136,16 +137,16 @@
   .ask-kl-msg :where(ul, ol) { padding-left: 18px; }
   .ask-kl-msg li { margin: 2px 0; }
   .ask-kl-msg :where(h1, h2, h3, h4) { font-size: 14px; font-weight: 600; margin: 4px 0; }
-  .ask-kl-msg :where(code) { background: rgba(0, 0, 0, 0.06); padding: 1px 4px; border-radius: 4px; }
-  .ask-kl-msg a { color: var(--kl-green-dark, #15352b); }
+  .ask-kl-msg :where(code) { background: var(--kl-fill); color: var(--kl-text); padding: 1px 4px; border-radius: 4px; }
+  .ask-kl-msg a { color: var(--kl-green-text); text-decoration: underline; }
 
   // inline AI charts get the full bubble width
   .ask-kl-msg-chart {
     width: 100%;
     max-width: 100%;
     align-self: stretch;
-    background: #fff;
-    border: 1px solid var(--kl-border, rgba(0, 0, 0, 0.12));
+    background: var(--kl-surface);
+    border: 1px solid var(--kl-border);
   }
   .ask-kl-chart-title {
     font-weight: 600;
@@ -206,7 +207,7 @@
   .ask-kl-ellipse:nth-child(3) { animation-delay: 0.3s; }
 
   .ask-kl-foot {
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--kl-line);
     padding: 10px 12px;
     display: flex;
     gap: 8px;
@@ -216,7 +217,9 @@
   .ask-kl-foot input {
     flex: 1;
     padding: 8px 10px;
-    border: 1px solid rgba(0, 0, 0, 0.18);
+    border: 1px solid var(--kl-input-border);
+    background: var(--kl-input-bg);
+    color: var(--kl-text);
     border-radius: 8px;
     font-size: 14px;
     margin: 0;
@@ -242,7 +245,7 @@
     text-align: center;
   }
   .ask-kl-disclosure a {
-    color: var(--kl-green);
+    color: var(--kl-green-text);
   }
 }
 

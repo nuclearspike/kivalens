@@ -18,8 +18,8 @@
   font-family: inherit;
   font-size: 15px;
   line-height: $line-height-base;
-  color: $flatly-primary;
-  background-color: #fff;
+  color: var(--kl-text-strong);
+  background-color: var(--kl-input-bg);
   background-image: none;
   border: 1px solid $flatly-input-border;
   border-radius: $radius-base;
@@ -31,13 +31,13 @@
   }
 
   &::placeholder {
-    color: #acb6c0;
+    color: var(--kl-placeholder);
     opacity: 1;
   }
 
   &:disabled,
   &[readonly] {
-    background-color: $flatly-line;
+    background-color: var(--kl-fill);
     opacity: 1;
     cursor: not-allowed;
   }
@@ -63,9 +63,9 @@ textarea.form-control {
   font-family: inherit;
   font-size: 15px;
   line-height: $line-height-base;
-  color: $flatly-primary;
-  background-color: #fff;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232c3e50' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  color: var(--kl-text-strong);
+  background-color: var(--kl-input-bg);
+  background-image: var(--kl-select-caret);
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 14px 10px;
@@ -145,7 +145,7 @@ textarea.form-control {
     height: 0.5rem;
     color: transparent;
     cursor: pointer;
-    background-color: #dee2e6;
+    background-color: var(--kl-border);
     border-color: transparent;
     border-radius: 1rem;
   }
@@ -163,7 +163,7 @@ textarea.form-control {
   }
 
   &::-webkit-slider-thumb:active {
-    background-color: color.adjust($kiva-green, $lightness: 35%);
+    background-color: color-mix(in srgb, var(--kl-green) 45%, #fff);
   }
 
   &::-moz-range-track {
@@ -171,7 +171,7 @@ textarea.form-control {
     height: 0.5rem;
     color: transparent;
     cursor: pointer;
-    background-color: #dee2e6;
+    background-color: var(--kl-border);
     border-color: transparent;
     border-radius: 1rem;
   }
@@ -188,7 +188,7 @@ textarea.form-control {
   }
 
   &::-moz-range-thumb:active {
-    background-color: color.adjust($kiva-green, $lightness: 35%);
+    background-color: color-mix(in srgb, var(--kl-green) 45%, #fff);
   }
 }
 
@@ -216,9 +216,9 @@ textarea.form-control {
   align-items: center;
   padding: 10px 15px;
   font-size: 15px;
-  color: #555;
+  color: var(--kl-addon-text);
   text-align: center;
-  background-color: #eee;
-  border: 1px solid #ccc;
+  background-color: var(--kl-addon-bg);
+  border: 1px solid var(--kl-border-strong);
   border-radius: $radius-base;
 }

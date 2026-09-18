@@ -54,7 +54,7 @@ function DistOption(op: AnyOption) {
         }}
       >
         <span style={{ flex: 1 }}>{op.children}</span>
-        {count > 0 && <span style={{ fontSize: 11, color: '#6b7d72', marginLeft: 8 }}>{count}</span>}
+        {count > 0 && <span style={{ fontSize: 11, color: 'var(--kl-text-muted)', marginLeft: 8 }}>{count}</span>}
       </span>
     </RSComponents.Option>
   )
@@ -78,8 +78,8 @@ function DistMenuList(ml: AnyMenuList) {
         flex: 1,
         border: 'none',
         borderRadius: 4,
-        background: sortMode === mode ? 'var(--kl-green, #2C8C5E)' : 'transparent',
-        color: sortMode === mode ? '#fff' : 'var(--kl-green, #2C8C5E)',
+        background: sortMode === mode ? 'var(--kl-green)' : 'transparent',
+        color: sortMode === mode ? 'var(--kl-on-accent)' : 'var(--kl-green-text)',
         fontWeight: 600,
         fontSize: 13,
         padding: '8px 0',
@@ -94,7 +94,7 @@ function DistMenuList(ml: AnyMenuList) {
     <RSComponents.MenuList {...ml}>
       <div
         onMouseDown={(e) => e.preventDefault()}
-        style={{ display: 'flex', gap: 4, padding: '2px 4px 6px', position: 'sticky', top: 0, background: '#fff', zIndex: 2, borderBottom: '1px solid rgba(0,0,0,0.08)' }}
+        style={{ display: 'flex', gap: 4, padding: '2px 4px 6px', position: 'sticky', top: 0, background: 'var(--kl-surface-raised)', zIndex: 2, borderBottom: '1px solid var(--kl-line)' }}
       >
         {tab('abc', 'ABC')}
         {tab('count', 'Count')}

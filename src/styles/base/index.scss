@@ -3,6 +3,7 @@
 // (Bootstrap 3 + Bootswatch Flatly 3.3.5) for exactly the pieces
 // this app uses. App-specific theming lives in ../main.scss.
 
+@use 'theme';
 @use 'tokens';
 @use 'reset-type';
 @use 'grid';

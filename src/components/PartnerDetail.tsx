@@ -72,7 +72,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
       {loanCount > 0 && (
         <div
           className="d-flex align-items-center justify-content-between mb-2 p-2 rounded"
-          style={{ background: '#e8f5e9' }}
+          style={{ background: 'var(--kl-green-light)' }}
         >
           <span>
             {t('count_fundraising_loans', { count: number(loanCount) })}
@@ -92,7 +92,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
               height: 18,
               lineHeight: '18px',
               borderRadius: '50%',
-              background: '#2C8C5E',
+              background: 'var(--kl-green)',
               fontSize: 11,
               marginRight: 6,
               position: 'relative',
@@ -189,7 +189,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
               <XAxis type="number" hide allowDecimals={false} />
               <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="value" fill="#2C8C5E" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill="var(--kl-green)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -687,7 +687,7 @@ function SelectRow({
       placement="top"
       overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHelp}</Popover.Body></Popover>}
     >
-      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
+      <Form.Label style={{ borderBottom: 'var(--kl-text-muted) 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
     </OverlayTrigger>
   ) : (
     <Form.Label>{localizedLabel}</Form.Label>
@@ -892,7 +892,7 @@ export function SliderRow({
       placement="top"
       overlay={<Popover id={`pop-${label}`}><Popover.Body>{localizedHelp}</Popover.Body></Popover>}
     >
-      <Form.Label style={{ borderBottom: '#333 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
+      <Form.Label style={{ borderBottom: 'var(--kl-text-muted) 1px dotted', cursor: 'help' }}>{localizedLabel}</Form.Label>
     </OverlayTrigger>
   ) : (
     <Form.Label>{localizedLabel}</Form.Label>
@@ -902,7 +902,7 @@ export function SliderRow({
     <Row className="mb-3">
       <Col md={3}>
         {labelEl}
-        <div style={{ fontSize: 12, color: '#666' }}>
+        <div style={{ fontSize: 12, color: 'var(--kl-text-muted)' }}>
           {dMin} &ndash; {dMax}
         </div>
       </Col>
@@ -1195,7 +1195,7 @@ function BalancingRow({
                     </ul>
                   ) : null}
                   {lastUpdated ? (
-                    <p style={{ fontSize: 11, color: '#999' }}>
+                    <p style={{ fontSize: 11, color: 'var(--kl-text-muted)' }}>
                       {t('last_updated_time', { time: date(Number(lastUpdated) * 1000, { dateStyle: 'medium', timeStyle: 'short' }) })}
                     </p>
                   ) : null}

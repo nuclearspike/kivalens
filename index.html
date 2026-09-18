@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Applies a saved light/dark choice before first paint (CSP: scripts from 'self' only). -->
+    <script src="/theme-init.js"></script>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -20,12 +22,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* The loading shell follows the theme before the app's stylesheet
+           arrives: the same two tokens, same selectors, as base/_theme.scss. */
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme='light']) { --kl-text: #e7ece9; --kl-bg: #121715; }
+        }
+        :root[data-theme='dark'] { --kl-text: #e7ece9; --kl-bg: #121715; }
         body {
             font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 13px;
             line-height: 1.5;
-            color: #2d2d2d;
-            background-color: #ffffff;
+            color: var(--kl-text, #2d2d2d);
+            background-color: var(--kl-bg, #ffffff);
             margin: 0;
         }
         .fast_jumbo {
@@ -54,7 +62,9 @@
     </style>
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" data-kl-scheme="light" content="#ffffff">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" data-kl-scheme="dark" content="#121715">
     <meta name="viewport" content="width=device-width, user-scalable=0" />
     <meta name="description" content="How Experts and Mega-Lenders search for Kiva loans" />
     <meta property="og:title" content="KivaLens" />

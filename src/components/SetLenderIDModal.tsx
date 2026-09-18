@@ -154,7 +154,7 @@ export default function SetLenderIDModal() {
                 </Button>
               </div>
             ) : (
-              <p style={{ marginBottom: 6, color: '#6b7280' }}>
+              <p style={{ marginBottom: 6, color: 'var(--kl-text-muted)' }}>
                  {t('install_kivalens_companion_extension')}
               </p>
             )}

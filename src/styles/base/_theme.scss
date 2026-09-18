@@ -1,0 +1,222 @@
+// ============================================================
+// Runtime colour tokens — the only place a themed colour is given a value.
+//
+// Every surface, text, border and state colour in the app reads one of these
+// custom properties, so the light and dark themes differ only in this file.
+// The Sass variables in _tokens.scss and ../_variables.scss are aliases of
+// these properties; they hold `var(--kl-…)`, not a colour, so Sass colour
+// functions cannot be applied to them — mix at runtime with color-mix().
+//
+// Which theme applies:
+//   - the browser's prefers-color-scheme, unless the lender chose otherwise;
+//   - <html data-theme="light|dark"> when the lender chose one in Options
+//     (applied before first paint by public/theme-init.js; see src/lib/theme.ts).
+//
+// Each pair below was checked for WCAG AA text contrast (4.5:1) on every
+// surface it is used on; scripts/contrast-audit.browser.js re-measures the
+// rendered pages. Fills that carry white text (green, slate, info, danger,
+// secondary) are therefore a shade deeper than the Flatly originals.
+// ============================================================
+
+@mixin kl-light-tokens {
+  // surfaces
+  --kl-bg: #ffffff;
+  --kl-surface: #ffffff;
+  --kl-surface-raised: #ffffff;
+  --kl-bg-subtle: #f8f9fa;
+  --kl-fill: #ecf0f1;
+  --kl-fill-hover: #f0f0f0;
+  --kl-line: #ecf0f1;
+  --kl-border: #dee2e6;
+  --kl-border-strong: #cccccc;
+  --kl-overlay-border: rgba(0, 0, 0, 0.2);
+  --kl-shadow: rgba(0, 0, 0, 0.175);
+
+  // text
+  --kl-text: #2d2d2d;
+  --kl-text-strong: #2c3e50;
+  --kl-text-muted: #646c74;
+  --kl-placeholder: #6b7680;
+  --kl-dropdown-link: #5d6b6c;
+
+  // brand green: fill (white text on it), text/link on a surface, tints
+  --kl-green: #2a8459;
+  --kl-green-hover: #236f4a;
+  --kl-green-text: #267951;
+  --kl-green-text-hover: #1d5e3f;
+  --kl-green-light: #e8f5ee;
+  --kl-green-border: #d4edda;
+  --kl-green-dark: #1a3d2e;
+  --kl-focus-ring: rgba(44, 140, 94, 0.5);
+  --kl-row-hover: #e4f1ea;
+  --kl-row-selected: #a0cbb7;
+  --kl-row-funded: #d5d5d5;
+  --kl-row-portfolio: #cfcfcf;
+
+  // state fills (white text, except warning which carries dark text)
+  --kl-primary: #2c3e50;
+  --kl-primary-outline: #2c3e50;
+  --kl-success: #11846d;
+  --kl-info: #207ab7;
+  --kl-warning: #f39c12;
+  --kl-danger: #df2e1b;
+  --kl-danger-text: #c0392b;
+  --kl-secondary: #667879;
+  --kl-secondary-hover: #566667;
+  --kl-secondary-hover-border: #4f5e5f;
+  --kl-secondary-text: #5d6b6c;
+
+  // form controls
+  --kl-input-bg: #ffffff;
+  --kl-input-border: #dce4ec;
+  --kl-addon-bg: #eeeeee;
+  --kl-addon-text: #555555;
+  --kl-select-caret: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232c3e50' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  --kl-icon-filter: none;
+  --kl-slider-rail: #cfcfcf;
+  --kl-slider-handle: #e6e6e6;
+  --kl-slider-handle-border: #d3d3d3;
+  --kl-chip-bg: rgba(0, 126, 255, 0.08);
+  --kl-chip-border: rgba(0, 126, 255, 0.24);
+  --kl-chip-text: #005fbf;
+  --kl-chip-text-hover: #004c99;
+
+  // inline code
+  --kl-code-text: #c7254e;
+  --kl-code-bg: #f9f2f4;
+
+  // pills and row states
+  --kl-female-bg: #fce4ec;
+  --kl-female-text: #000000;
+  --kl-male-bg: #e3f2fd;
+  --kl-male-text: #000000;
+  --kl-pill-good-bg: #dff3e6;
+  --kl-pill-good-text: #1f6b3a;
+  --kl-pill-warn-bg: #fff1d6;
+  --kl-pill-warn-text: #7a4f00;
+  --kl-pill-bad-bg: #f8d7da;
+  --kl-pill-bad-text: #8a1f2d;
+  --kl-pill-accent-bg: #dfeaff;
+  --kl-pill-accent-text: #184d94;
+  --kl-status-inactive: #e8e8e8;
+  --kl-status-paused: #fff8e1;
+  --kl-status-closed: #fce4ec;
+
+  // charts
+  --kl-chart-text: #555555;
+  --kl-chart-grid: #e0e0e0;
+  --kl-chart-ink: #434348;
+}
+
+@mixin kl-dark-tokens {
+  // surfaces
+  --kl-bg: #121715;
+  --kl-surface: #1a201d;
+  --kl-surface-raised: #212825;
+  --kl-bg-subtle: #222926;
+  --kl-fill: #262e2b;
+  --kl-fill-hover: #2d3633;
+  --kl-line: #2e3734;
+  --kl-border: #3a4541;
+  --kl-border-strong: #4d5954;
+  --kl-overlay-border: rgba(255, 255, 255, 0.14);
+  --kl-shadow: rgba(0, 0, 0, 0.6);
+
+  // text
+  --kl-text: #e7ece9;
+  --kl-text-strong: #eef2f0;
+  --kl-text-muted: #a7b2ad;
+  --kl-placeholder: #8f9a96;
+  --kl-dropdown-link: #c3cdc9;
+
+  // brand green
+  --kl-green: #2a8459;
+  --kl-green-hover: #236f4a;
+  --kl-green-text: #5fcf9a;
+  --kl-green-text-hover: #86dfb4;
+  --kl-green-light: #1c3228;
+  --kl-green-border: #2c4a3b;
+  --kl-green-dark: #1a3d2e;
+  --kl-focus-ring: rgba(95, 207, 154, 0.6);
+  --kl-row-hover: #1f2f27;
+  --kl-row-selected: #1f4332;
+  --kl-row-funded: #2c302e;
+  --kl-row-portfolio: #2a3530;
+
+  // state fills
+  --kl-primary: #34495e;
+  --kl-primary-outline: #a9bccf;
+  --kl-success: #11846d;
+  --kl-info: #207ab7;
+  --kl-warning: #f39c12;
+  --kl-danger: #df2e1b;
+  --kl-danger-text: #ff8d7e;
+  --kl-secondary: #667879;
+  --kl-secondary-hover: #566667;
+  --kl-secondary-hover-border: #4f5e5f;
+  --kl-secondary-text: #b4c0c1;
+
+  // form controls
+  --kl-input-bg: #151a18;
+  --kl-input-border: #3f4b47;
+  --kl-addon-bg: #2a322f;
+  --kl-addon-text: #c9d2ce;
+  --kl-select-caret: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e7ece9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  --kl-icon-filter: invert(1);
+  --kl-slider-rail: #3a4541;
+  --kl-slider-handle: #73807b;
+  --kl-slider-handle-border: #95a19c;
+  --kl-chip-bg: rgba(80, 160, 255, 0.16);
+  --kl-chip-border: rgba(80, 160, 255, 0.4);
+  --kl-chip-text: #9accff;
+  --kl-chip-text-hover: #c2e0ff;
+
+  // inline code
+  --kl-code-text: #ff9dba;
+  --kl-code-bg: #2d2226;
+
+  // pills and row states
+  --kl-female-bg: #4a2a36;
+  --kl-female-text: #ffdbe7;
+  --kl-male-bg: #1f3a52;
+  --kl-male-text: #d9ecff;
+  --kl-pill-good-bg: #1d3a29;
+  --kl-pill-good-text: #a3e2b8;
+  --kl-pill-warn-bg: #3f3115;
+  --kl-pill-warn-text: #f5cf85;
+  --kl-pill-bad-bg: #45222a;
+  --kl-pill-bad-text: #f7b9c0;
+  --kl-pill-accent-bg: #1f3154;
+  --kl-pill-accent-text: #b9d0fb;
+  --kl-status-inactive: #2b302e;
+  --kl-status-paused: #3d3520;
+  --kl-status-closed: #432a33;
+
+  // charts
+  --kl-chart-text: #b4beb9;
+  --kl-chart-grid: #2e3734;
+  --kl-chart-ink: #c5ccd3;
+}
+
+:root {
+  color-scheme: light;
+  // The same in both themes: text on a coloured fill, and the fixed ink/paper
+  // pair for islands that stay light or dark whatever the theme.
+  --kl-on-accent: #ffffff;
+  --kl-on-warning: #10201a;
+  --kl-ink: #2d2d2d;
+  --kl-paper: #ffffff;
+  @include kl-light-tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    @include kl-dark-tokens;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  @include kl-dark-tokens;
+}

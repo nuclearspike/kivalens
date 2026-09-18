@@ -60,10 +60,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  background-color: var(--kl-surface-raised);
+  border: 1px solid var(--kl-overlay-border);
   border-radius: $radius-lg;
-  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 9px var(--kl-shadow);
   background-clip: padding-box;
   outline: 0;
 }
@@ -73,7 +73,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 15px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--kl-line);
 }
 
 .modal-title {
@@ -94,7 +94,7 @@
   justify-content: flex-end;
   gap: 5px;
   padding: 15px 20px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--kl-line);
 }
 
 .modal-backdrop {
@@ -139,10 +139,11 @@ body.modal-open {
   width: 1em;
   height: 1em;
   padding: 4px;
-  color: #000;
+  color: var(--kl-text);
   background: transparent
     url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e")
     center / 1em auto no-repeat;
+  filter: var(--kl-icon-filter);
   border: 0;
   border-radius: $radius-base;
   opacity: 0.4;
@@ -181,10 +182,10 @@ body.modal-open {
   list-style: none;
   font-size: 15px;
   text-align: left;
-  background-color: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  background-color: var(--kl-surface-raised);
+  border: 1px solid var(--kl-overlay-border);
   border-radius: $radius-base;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  box-shadow: 0 6px 12px var(--kl-shadow);
   background-clip: padding-box;
 
   &.show {
@@ -236,7 +237,7 @@ body.modal-open {
   height: 1px;
   margin: 9px 0;
   overflow: hidden;
-  background-color: #e5e5e5;
+  background-color: var(--kl-line);
   border: 0;
 }
 
@@ -261,10 +262,10 @@ body.modal-open {
   font-size: $font-size-base;
   text-align: left;
   white-space: normal;
-  background-color: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  background-color: var(--kl-surface-raised);
+  border: 1px solid var(--kl-overlay-border);
   border-radius: $radius-lg;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px var(--kl-shadow);
   background-clip: padding-box;
 }
 
@@ -272,8 +273,8 @@ body.modal-open {
   margin: 0;
   padding: 8px 14px;
   font-size: 15px;
-  background-color: #f7f7f7;
-  border-bottom: 1px solid #ebebeb;
+  background-color: var(--kl-bg-subtle);
+  border-bottom: 1px solid var(--kl-line);
   border-radius: ($radius-lg - 1px) ($radius-lg - 1px) 0 0;
 }
 

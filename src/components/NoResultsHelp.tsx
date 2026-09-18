@@ -61,11 +61,11 @@ export function NoResultsHelp() {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    border: '1px solid rgba(0,0,0,0.15)',
+    border: '1px solid var(--kl-overlay-border)',
     borderRadius: 999,
     padding: '4px 10px',
     margin: '3px',
-    background: '#fff',
+    background: 'var(--kl-surface-raised)',
     cursor: 'pointer',
     fontSize: 13,
   }
@@ -75,10 +75,10 @@ export function NoResultsHelp() {
       <Alert variant="info" className="not-rounded-top" style={{ marginBottom: 0 }}>
          {t('no_loans_match_current_criteria')}
       </Alert>
-      <div style={{ background: '#eef5f1', padding: '10px 12px' }}>
+      <div style={{ background: 'var(--kl-green-light)', padding: '10px 12px' }}>
         {items.length > 0 ? (
           <>
-            <div style={{ fontSize: 12, color: '#557', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--kl-text-muted)', marginBottom: 4 }}>
                {t('active_filters_tap_remove_number')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -88,7 +88,7 @@ export function NoResultsHelp() {
                   type="button"
                   style={{
                     ...chipBase,
-                    borderColor: it.count > 0 ? 'var(--kl-green, #2C8C5E)' : 'rgba(0,0,0,0.15)',
+                    borderColor: it.count > 0 ? 'var(--kl-green)' : 'var(--kl-border-strong)',
                   }}
                    title={t('remove_label_value_count_loans', { label: labelOf(it), value: valueOf(it), count: it.count })}
                   onClick={() => setCriteria(it.without(lastKnown))}
@@ -100,18 +100,18 @@ export function NoResultsHelp() {
                     style={{
                       fontSize: 11,
                       fontWeight: 700,
-                      color: it.count > 0 ? 'var(--kl-green, #2C8C5E)' : '#999',
+                      color: it.count > 0 ? 'var(--kl-green-text)' : 'var(--kl-text-muted)',
                     }}
                   >
                     {it.count > 0 ? `+${it.count}` : '0'}
                   </span>
-                  <span style={{ color: '#b33', fontWeight: 700 }}>✕</span>
+                  <span style={{ color: 'var(--kl-danger-text)', fontWeight: 700 }}>✕</span>
                 </button>
               ))}
             </div>
           </>
         ) : (
-          <div style={{ fontSize: 13, color: '#557' }}>{t('no_removable_filters_detected')}</div>
+          <div style={{ fontSize: 13, color: 'var(--kl-text-muted)' }}>{t('no_removable_filters_detected')}</div>
         )}
         <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {aiServerEnabled ? (
