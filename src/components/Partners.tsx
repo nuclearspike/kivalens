@@ -7,13 +7,13 @@ import { PARTNER_SLIDER_HELP, RELIGION_HELP, RangeExactControl } from './Criteri
 import Slider from 'rc-slider'
 import RangeHistogram from './RangeHistogram'
 import { useHistogramHover } from './useHistogramHover'
-import { binSpecFor } from '../lib/sliderConfig'
+import { DATA_MAX_KEYS, PARTNER_SLIDERS as SHARED_PARTNER_SLIDERS, binSpecFor, dataMaxFor } from '../lib/sliderConfig'
 import { barCentre } from '../lib/rangeHistogram'
 import { PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
 import { pluralCategory } from '../lib/pluralCategory'
 import { lsj } from '../lib/localStorage'
 import { DEFAULT_PARTNER_FILTERS, partnerFiltersArePristine } from '../lib/partnerFilterDefaults'
-import { partnerRangeDistributions } from '../../server/loanFilter.mjs'
+import { partnerRangeDistributions, partnerRangeValues } from '../../server/loanFilter.mjs'
 import type { Partner } from '../types'
 import { useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
@@ -122,7 +122,6 @@ const PARTNER_SLIDERS: Record<string, { min: number; max: number; step?: number;
   portfolio_yield: { min: 0, max: 100, step: 0.1, label: 'portfolio_yield_percent' },
   profit: { min: -100, max: 100, step: 0.1, label: 'profit_percent' },
   currency_exchange_loss_rate: { min: 0, max: 10, step: 0.1, label: 'currency_exchange_loss_percent' },
-  average_loan_size_percent_per_capita_income: { min: 0, max: 300, label: 'average_loan_capita_income' },
   years_on_kiva: { min: 0, max: 12, step: 0.25, label: 'years_kiva' },
   loans_posted: { min: 0, max: 20000, step: 50, label: 'loans_posted' },
   fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'fundraising_loans' },
@@ -486,12 +485,25 @@ export function Component() {
   // The histograms behind the sliders: per slider, the partners that match every
   // other filter on this page (the name search included), so each one shows what
   // moving its own handles would add or drop.
+  // Years on Kiva, loans posted and fundraising loans keep growing, so those
+  // sliders take their upper end from the partners listed here (every status),
+  // not from a number fixed when the slider was written.
+  const sliderMaxima = useMemo(() => {
+    const kl = getKivaLoans()
+    if (!kl?.partnersFromKiva?.length) return {} as Record<string, number>
+    const values = partnerRangeValues({ loans, activePartners: kl.activePartners, partnerPool: kl.partnersFromKiva, atheistListProcessed: kl.atheistListProcessed }, DATA_MAX_KEYS)
+    return Object.fromEntries(DATA_MAX_KEYS.map((key) => [key, dataMaxFor(SHARED_PARTNER_SLIDERS[key], values[key] ?? [])]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loans, downloading, partnerTick])
+
   const sliderBins = useMemo(() => {
     const kl = getKivaLoans()
     if (!kl?.partnersFromKiva?.length) return null
     if (lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs) return null
     const terms = nameSearch.toUpperCase().match(/(\w+)/g)
-    const specs = Object.fromEntries(Object.entries(PARTNER_SLIDERS).map(([key, config]) => [key, binSpecFor(config)]))
+    const specs = Object.fromEntries(
+      Object.entries(PARTNER_SLIDERS).map(([key, config]) => [key, binSpecFor({ ...config, max: sliderMaxima[key] ?? config.max })]),
+    )
     return partnerRangeDistributions(
       { partner: filters },
       { loans, activePartners: kl.activePartners, partnerPool: kl.partnersFromKiva, atheistListProcessed: kl.atheistListProcessed },
@@ -500,7 +512,7 @@ export function Component() {
     )
     // Same hidden inputs as `filtered` above: the partner data behind getKivaLoans().
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, nameSearch, loans, downloading, partnerTick])
+  }, [filters, nameSearch, loans, downloading, partnerTick, sliderMaxima])
 
   const updateFilter = useCallback((key: string, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -659,7 +671,7 @@ export function Component() {
                   key={key}
                   label={config.label}
                   min={config.min}
-                  max={config.max}
+                  max={sliderMaxima[key] ?? config.max}
                   step={config.step}
                   minVal={filters[`${key}_min`]}
                   maxVal={filters[`${key}_max`]}

@@ -5,10 +5,21 @@ import type { BinSpec } from '../../server/loanFilter.mjs'
 
 export interface SliderConfig {
   min: number
+  /** The slider's upper end. For a slider that follows the data (dataMaxPercentile)
+   *  this is only the value used until the partner data has loaded. */
   max: number
   step?: number
   label: string
   helpText?: string
+  /** The upper end follows the partners' own values instead of a number fixed
+   *  when the slider was written: 1 = their maximum, 0.95 = their 95th
+   *  percentile. Use the maximum for a light-tailed value (years on Kiva: the
+   *  oldest partner is only a few years past the median) and a percentile for a
+   *  heavy-tailed one (loans posted: median 1,200, maximum 530,000 - a linear
+   *  scale to the maximum would squeeze nearly every partner into the first few
+   *  pixels). The last stop always means "no limit", so partners past it are
+   *  still included when the handle rests there. */
+  dataMaxPercentile?: number
 }
 
 export const LOAN_SLIDERS: Record<string, SliderConfig> = {
@@ -32,10 +43,9 @@ export const PARTNER_SLIDERS: Record<string, SliderConfig> = {
   portfolio_yield: { min: 0, max: 100, step: 0.1, label: 'portfolio_yield_percent', helpText: 'interest_fees_charged_field_partner' },
   profit: { min: -100, max: 100, step: 0.1, label: 'profit_percent', helpText: 'return_assets_indicator' },
   currency_exchange_loss_rate: { min: 0, max: 10, step: 0.1, label: 'currency_exchange_loss_percent', helpText: 'currency_exchange_loss_rate' },
-  average_loan_size_percent_per_capita_income: { min: 0, max: 300, label: 'average_loan_capita_income', helpText: 'average_loan_percentage_national_income' },
-  years_on_kiva: { min: 0, max: 12, step: 0.25, label: 'years_kiva', helpText: 'how_long_partner_has_been' },
-  loans_posted: { min: 0, max: 20000, step: 50, label: 'loans_posted', helpText: 'how_many_loans_partner_has' },
-  fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'fundraising_loans', helpText: 'how_many_loans_partner_currently' },
+  years_on_kiva: { min: 0, max: 12, step: 0.25, label: 'years_kiva', helpText: 'how_long_partner_has_been', dataMaxPercentile: 1 },
+  loans_posted: { min: 0, max: 20000, step: 50, label: 'loans_posted', helpText: 'how_many_loans_partner_has', dataMaxPercentile: 0.95 },
+  fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'fundraising_loans', helpText: 'how_many_loans_partner_currently', dataMaxPercentile: 0.95 },
   // A+ Team research scores (1-4). Only meaningful once the A+ data is merged
   // (Options > "Merge A+ Team's data"); the panel hides them until then. Dropped
   // in the rewrite — restored so loan & partner search can filter on them again.
@@ -63,10 +73,57 @@ export function binSpecFor(config: SliderConfig): BinSpec {
   return { min: config.min, max: config.max, count, discrete: false }
 }
 
-const specsOf = (sliders: Record<string, SliderConfig>): Record<string, BinSpec> =>
-  Object.fromEntries(Object.entries(sliders).map(([key, config]) => [key, binSpecFor(config)]))
+// --- sliders whose upper end follows the data ---
 
-export const RANGE_BIN_SPECS = { loan: specsOf(LOAN_SLIDERS), partner: specsOf(PARTNER_SLIDERS) }
+/** Partner sliders whose max is derived from the partners' values. */
+export const DATA_MAX_KEYS = Object.keys(PARTNER_SLIDERS).filter((key) => PARTNER_SLIDERS[key].dataMaxPercentile)
+
+// Too few partners to describe a distribution (data still loading): keep the configured max.
+const MIN_VALUES = 10
+
+/** Rounds up to a number that reads well as the end of a scale: 20.1 -> 21, 359 -> 400, 43,654 -> 50,000. */
+export function niceCeil(value: number): number {
+  if (value <= 30) return Math.ceil(value)
+  const magnitude = 10 ** Math.floor(Math.log10(value))
+  for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * magnitude >= value) return m * magnitude
+  return 10 * magnitude
+}
+
+/** The upper end a data-following slider should have for these values; config.max when it does not follow the data. */
+export function dataMaxFor(config: SliderConfig, values: readonly number[]): number {
+  const p = config.dataMaxPercentile
+  if (!p) return config.max
+  // Partners sitting at the bottom of the scale say nothing about where it should
+  // end: most partners have no fundraising loans at all, and while the loans are
+  // still loading every partner has none.
+  const usable = values.filter((v) => v > config.min)
+  if (usable.length < MIN_VALUES) return config.max
+  const sorted = usable.sort((a, b) => a - b)
+  // Nearest-rank percentile: the smallest value with at least p of the values at or below it.
+  const at = sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)]
+  const step = config.step ?? 1
+  const nice = niceCeil(at)
+  // Whole steps only, so the top stop is reachable and bins stay aligned.
+  return Math.max(config.min + step, Math.ceil((nice - config.min) / step) * step + config.min)
+}
+
+/** Upper ends for the data-following partner sliders, from partnerRangeValues(). */
+export function partnerSliderMaxima(valuesByKey: Record<string, readonly number[]>): Record<string, number> {
+  return Object.fromEntries(DATA_MAX_KEYS.map((key) => [key, dataMaxFor(PARTNER_SLIDERS[key], valuesByKey[key] ?? [])]))
+}
+
+/** `config` with its data-derived max, when one is known. */
+export function withDataMax(config: SliderConfig, max: number | undefined): SliderConfig {
+  return max === undefined || max === config.max ? config : { ...config, max }
+}
+
+const specsOf = (sliders: Record<string, SliderConfig>, maxima: Record<string, number> = {}): Record<string, BinSpec> =>
+  Object.fromEntries(Object.entries(sliders).map(([key, config]) => [key, binSpecFor(withDataMax(config, maxima[key]))]))
+
+/** Histogram layouts for every slider, with the data-derived maxima applied to the partner sliders. */
+export const rangeBinSpecs = (maxima: Record<string, number> = {}) => ({ loan: specsOf(LOAN_SLIDERS), partner: specsOf(PARTNER_SLIDERS, maxima) })
+
+export const RANGE_BIN_SPECS = rangeBinSpecs()
 
 /** The values a bar stands for: [from, to]; equal for a one-stop bar. */
 export function binRange(spec: BinSpec, index: number): [number, number] {

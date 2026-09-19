@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { binIndex, rangeDistributions } from '../../server/loanFilter.mjs'
-import { LOAN_SLIDERS, PARTNER_SLIDERS, RANGE_BIN_SPECS, binRange, binSpecFor } from './sliderConfig'
+import { DATA_MAX_KEYS, LOAN_SLIDERS, PARTNER_SLIDERS, RANGE_BIN_SPECS, binRange, binSpecFor, dataMaxFor, niceCeil, partnerSliderMaxima, rangeBinSpecs, withDataMax } from './sliderConfig'
 
 describe('binSpecFor', () => {
   it('gives a slider with few stops one bar per stop', () => {
@@ -35,7 +35,7 @@ describe('slider keys and the filter engine', () => {
     const partner = {
       id: 7, status: 'active', rating: '4.5', delinquency_rate: 2, loans_at_risk_rate: 3, default_rate: 1,
       portfolio_yield: 30, profitability: 5, currency_exchange_loss_rate: 0.2,
-      average_loan_size_percent_per_capita_income: 40, kl_years_on_kiva: 6, loans_posted: 5000,
+      kl_years_on_kiva: 6, loans_posted: 5000,
       kl_regions: [], kl_sp: [], countries: [], atheistScore: { secularRating: 3, socialRating: 4 },
     }
     const d = rangeDistributions({}, { loans: [loan], activePartners: [partner], atheistListProcessed: true }, RANGE_BIN_SPECS)
@@ -60,5 +60,54 @@ describe('every selectable value lands in its own bar', () => {
       if (binIndex(value, spec) !== expected) wrong.push(`${value} -> ${binIndex(value, spec)}, expected ${expected}`)
     }
     expect(wrong).toEqual([])
+  })
+})
+
+describe('sliders whose upper end follows the data', () => {
+  const years = PARTNER_SLIDERS.years_on_kiva
+  const posted = PARTNER_SLIDERS.loans_posted
+  const many = (n: number, f: (i: number) => number) => Array.from({ length: n }, (_, i) => f(i))
+
+  it('years on Kiva reaches the oldest partner, rounded up to a whole year', () => {
+    expect(dataMaxFor(years, many(187, (i) => (i / 186) * 20.13))).toBe(21)
+    expect(dataMaxFor(years, many(646, (i) => (i / 645) * 21.43))).toBe(22)
+  })
+
+  it('a heavy-tailed value stops at a round 95th percentile, not at the one giant partner', () => {
+    const values = [...many(180, (i) => i * 240), 156097, 531920] // p95 ~ 41,000
+    const max = dataMaxFor(posted, values)
+    expect(max).toBe(50000)
+    expect((max - posted.min) % (posted.step ?? 1)).toBe(0) // the top stop is reachable
+  })
+
+  it('keeps the configured max until enough partners have loaded, and for sliders that do not follow the data', () => {
+    expect(dataMaxFor(years, [3, 19.5])).toBe(years.max)
+    expect(dataMaxFor(PARTNER_SLIDERS.partner_default, many(200, (i) => i))).toBe(PARTNER_SLIDERS.partner_default.max)
+  })
+
+  it('ignores partners sitting at the bottom of the scale, so loading data or idle partners cannot collapse it', () => {
+    const fundraising = PARTNER_SLIDERS.fundraising_loan_count
+    expect(dataMaxFor(fundraising, many(187, () => 0))).toBe(fundraising.max) // loans not loaded yet
+    const idleMajority = [...many(546, () => 0), ...many(100, (i) => 4 + i * 3.6)] // 100 fundraising partners, p95 ~ 346
+    expect(dataMaxFor(fundraising, idleMajority)).toBe(400)
+  })
+
+  it('takes the nearest-rank percentile: of 20 partners, the 95th percentile is the 19th, not the largest', () => {
+    const fundraising = PARTNER_SLIDERS.fundraising_loan_count
+    const twenty = [...many(19, (i) => 10 + i), 5000] // 10..28, then one giant
+    expect(dataMaxFor(fundraising, twenty)).toBe(28)
+  })
+
+  it('niceCeil gives scale ends that read well', () => {
+    expect([20.13, 30, 359, 1118, 43654, 531920].map(niceCeil)).toEqual([21, 30, 400, 1200, 50000, 600000])
+  })
+
+  it('publishes a max for exactly the sliders marked as following the data, and lays the histogram out to it', () => {
+    expect(DATA_MAX_KEYS.sort()).toEqual(['fundraising_loan_count', 'loans_posted', 'years_on_kiva'])
+    const maxima = partnerSliderMaxima({ years_on_kiva: many(187, (i) => (i / 186) * 20.13), loans_posted: [], fundraising_loan_count: [] })
+    expect(maxima).toEqual({ years_on_kiva: 21, loans_posted: posted.max, fundraising_loan_count: PARTNER_SLIDERS.fundraising_loan_count.max })
+    expect(rangeBinSpecs(maxima).partner.years_on_kiva.max).toBe(21)
+    expect(withDataMax(years, 21)).toEqual({ ...years, max: 21 })
+    expect(withDataMax(years, undefined)).toBe(years)
   })
 })

@@ -36,7 +36,6 @@ export const PARTNER_RANGE_HINTS: Record<string, RangeHint> = {
   portfolio_yield: { kind: 'percent' },
   profit: { kind: 'percent' },
   currency_exchange_loss_rate: { kind: 'percent' },
-  average_loan_size_percent_per_capita_income: { kind: 'percent' },
   years_on_kiva: { kind: 'number', unit: 'hint_years', plural: true },
   loans_posted: { kind: 'number', unit: 'hint_loans_posted' },
   fundraising_loan_count: { kind: 'number', unit: 'hint_fundraising_loans' },

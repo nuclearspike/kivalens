@@ -429,6 +429,12 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           if (c.portfolio.exclude_portfolio_loans === false as unknown) {
             c.portfolio.exclude_portfolio_loans = 'false'
           }
+          // A slider that no longer exists: Kiva sends 0 for every partner, so the
+          // filter engine ignores it. Drop it from loaded criteria so it does not
+          // linger in saved searches and RSS settings.
+          const partnerCriteria = c.partner as Record<string, unknown>
+          delete partnerCriteria.average_loan_size_percent_per_capita_income_min
+          delete partnerCriteria.average_loan_size_percent_per_capita_income_max
           return c
         },
 

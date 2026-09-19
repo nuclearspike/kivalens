@@ -154,8 +154,6 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
             )}
             <dt>{t('charges_fees_interest')}</dt>
             <dd>{t(partner.charges_fees_and_interest ? 'yes' : 'no')}</dd>
-            <dt>{t('avg_loan_cap_income')}</dt>
-            <dd>{percent(partner.average_loan_size_percent_per_capita_income, 2)}</dd>
             <dt>{t('currency_ex_loss')}</dt>
             <dd>{percent(partner.currency_exchange_loss_rate, 3)}</dd>
             {(partner as unknown as { url?: string }).url ? (

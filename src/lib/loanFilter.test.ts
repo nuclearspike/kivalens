@@ -108,6 +108,14 @@ describe('shared loanFilter borrower_count', () => {
   })
 })
 
+describe('shared loanFilter retired criteria', () => {
+  it('ignores a saved average-loan-size range: Kiva sends 0 for every partner, so a minimum used to exclude them all', () => {
+    const before = run({}).length
+    expect(before).toBeGreaterThan(0)
+    expect(run({ partner: { average_loan_size_percent_per_capita_income_min: 50 } }).length).toBe(before)
+  })
+})
+
 describe('shared loanFilter.sortLoans', () => {
   it('sorts newest by kl_newest_sort desc', () => {
     const out = sortLoans(

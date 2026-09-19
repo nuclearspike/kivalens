@@ -12,8 +12,8 @@ import { lsj } from '../lib/localStorage'
 import { LENDER_LOANS_FILTER_DEPENDENCY } from '../lib/filterReadiness'
 import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore } from './criteriaStore'
-import { rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
-import { RANGE_BIN_SPECS } from '../lib/sliderConfig'
+import { partnerRangeValues, rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
+import { DATA_MAX_KEYS, partnerSliderMaxima, rangeBinSpecs } from '../lib/sliderConfig'
 import { afterNextPaint } from '../lib/afterNextPaint'
 
 // ---------------------------------------------------------------------------
@@ -69,6 +69,9 @@ export interface LoanState {
    *  OTHER criterion, binned along its scale. Null until first computed, or
    *  when the lender turned criteria graphs off in Options. */
   rangeDistributions: RangeDistributions | null
+  /** Upper ends of the partner sliders that follow the data (years on Kiva, loans
+   *  posted, fundraising loans), from the loaded partners. Empty until computed. */
+  sliderMaxima: Record<string, number>
   /** Basket items persisted to localStorage */
   basket: BasketItem[]
   /** Total loan count in the Kiva dataset */
@@ -168,6 +171,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       filteredLoans: [],
       filteredSameAsLast: false,
       rangeDistributions: null,
+      sliderMaxima: {},
       basket: lsj.getA<BasketItem>('basket'),
       loanCount: 0,
       downloading: true,
@@ -421,23 +425,23 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         const forCriteria = criteria
         afterNextPaint(() => {
           if (job !== distributionJob) return
+          const ctx = {
+            loans: kl.loansFromKiva,
+            activePartners: kl.activePartners,
+            atheistListProcessed: kl.atheistListProcessed,
+            lenderId: kl.lenderId,
+            lenderLoans: kl.lenderLoans,
+          }
+          // The sliders' data-derived upper ends and the histograms are published
+          // together, so a slider's scale and its bars always describe the same layout.
+          const maxima = partnerSliderMaxima(partnerRangeValues(ctx, DATA_MAX_KEYS))
           const hidden = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
-          const next = hidden
-            ? null
-            : rangeDistributions(
-                forCriteria,
-                {
-                  loans: kl.loansFromKiva,
-                  activePartners: kl.activePartners,
-                  atheistListProcessed: kl.atheistListProcessed,
-                  lenderId: kl.lenderId,
-                  lenderLoans: kl.lenderLoans,
-                },
-                RANGE_BIN_SPECS,
-              )
-          if (sameDistributions(get().rangeDistributions, next)) return
+          const next = hidden ? null : rangeDistributions(forCriteria, ctx, rangeBinSpecs(maxima))
+          const sameMaxima = DATA_MAX_KEYS.every((key) => get().sliderMaxima[key] === maxima[key])
+          if (sameMaxima && sameDistributions(get().rangeDistributions, next)) return
           set((state) => {
             state.rangeDistributions = next as never
+            if (!sameMaxima) state.sliderMaxima = maxima
           })
         })
       },

@@ -15,7 +15,7 @@ import { humanize } from '../lib/utils'
 import { PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadiness'
 import { useI18n } from '../i18n'
 import { localizeSliceName } from '../lib/localizeSliceName'
-import { LOAN_SLIDERS, PARTNER_SLIDERS, binSpecFor, type SliderConfig } from '../lib/sliderConfig'
+import { LOAN_SLIDERS, PARTNER_SLIDERS, binSpecFor, withDataMax, type SliderConfig } from '../lib/sliderConfig'
 import { barCentre } from '../lib/rangeHistogram'
 import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
 import { pluralCategory } from '../lib/pluralCategory'
@@ -1421,6 +1421,12 @@ function PartnerCriteriaPanel({
 }) {
   const partner = criteria.partner as Record<string, unknown>
   const distributions = useLoanStore((s) => s.rangeDistributions)
+  const sliderMaxima = useLoanStore((s) => s.sliderMaxima)
+  // Stable config objects, so a slider's histogram is not rebuilt on every render.
+  const partnerSliders = useMemo(
+    () => Object.entries(PARTNER_SLIDERS).map(([key, config]) => [key, withDataMax(config, sliderMaxima[key])] as const),
+    [sliderMaxima],
+  )
   const partnerOptions = usePartnerOptions()
 
   const partnerSelects: Array<{
@@ -1461,7 +1467,7 @@ function PartnerCriteriaPanel({
         />
       ))}
 
-      {Object.entries(PARTNER_SLIDERS)
+      {partnerSliders
         // The A+ secular/social sliders only filter once A+ data is merged; hide
         // them otherwise (matches the standalone Partners page).
         .filter(

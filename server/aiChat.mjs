@@ -93,7 +93,7 @@ const LOAN_PASS = new Set(['sort', 'name', 'use', 'bonus_credit_eligibility', 'r
 const PARTNER_VOCAB = new Set(['region', 'social_performance', 'religion', 'partners'])
 const PARTNER_RANGE = new Set([
   'partner_risk_rating', 'partner_arrears', 'loans_at_risk_rate', 'partner_default', 'portfolio_yield',
-  'profit', 'currency_exchange_loss_rate', 'average_loan_size_percent_per_capita_income', 'years_on_kiva',
+  'profit', 'currency_exchange_loss_rate', 'years_on_kiva',
   'loans_posted', 'fundraising_loan_count',
 ])
 const PARTNER_PASS = new Set(['direct', 'charges_fees_and_interest'])

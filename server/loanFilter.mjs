@@ -316,7 +316,9 @@ function buildPartnerTester(c, ctx) {
   ct.addRangeTesters('profit', (p) => p.profitability)
   ct.addRangeTesters('loans_at_risk_rate', (p) => p.loans_at_risk_rate)
   ct.addRangeTesters('currency_exchange_loss_rate', (p) => p.currency_exchange_loss_rate)
-  ct.addRangeTesters('average_loan_size_percent_per_capita_income', (p) => p.average_loan_size_percent_per_capita_income)
+  // No range on average_loan_size_percent_per_capita_income: Kiva sends 0 for
+  // every partner (646 of 646, bar one closed in 2007), so a minimum saved in an
+  // old search or feed excluded every partner. Such criteria are ignored.
   ct.addRangeTesters('years_on_kiva', (p) => p.kl_years_on_kiva)
   ct.addRangeTesters('loans_posted', (p) => p.loans_posted)
 
@@ -593,6 +595,27 @@ export function partnerRangeDistributions(c, ctx, specs, accept) {
       const selector = ct.ranges[key]
       const i = selector ? binIndex(selector(partner), spec) : -1
       if (i >= 0) out[key][i] += 1
+    }
+  }
+  return out
+}
+
+// The numbers the partners in the pool have for the given partner ranges, read
+// through the same selectors the filter uses (so "fundraising_loan_count" is the
+// live count of fundraising loans, not a field). A slider whose scale follows
+// the data (years on Kiva keeps growing) derives its upper end from these.
+export function partnerRangeValues(ctx, keys) {
+  const ct = buildPartnerTester(normalizeCriteria({}), ctx)
+  const pool = ctx.partnerPool || ctx.activePartners || []
+  const out = {}
+  for (const key of keys) {
+    const selector = ct.ranges[key]
+    out[key] = []
+    if (!selector) continue
+    for (const partner of pool) {
+      const v = selector(partner)
+      const n = typeof v === 'number' ? v : parseFloat(v)
+      if (Number.isFinite(n)) out[key].push(n)
     }
   }
   return out
