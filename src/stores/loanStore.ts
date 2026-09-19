@@ -12,6 +12,9 @@ import { lsj } from '../lib/localStorage'
 import { LENDER_LOANS_FILTER_DEPENDENCY } from '../lib/filterReadiness'
 import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore } from './criteriaStore'
+import { rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
+import { RANGE_BIN_SPECS } from '../lib/sliderConfig'
+import { afterNextPaint } from '../lib/afterNextPaint'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -62,6 +65,10 @@ export interface LoanState {
   filteredLoans: KivaLoan[]
   /** Whether a filter pass returned the same result as last time */
   filteredSameAsLast: boolean
+  /** Histograms behind the range sliders: per slider, the loans matching every
+   *  OTHER criterion, binned along its scale. Null until first computed, or
+   *  when the lender turned criteria graphs off in Options. */
+  rangeDistributions: RangeDistributions | null
   /** Basket items persisted to localStorage */
   basket: BasketItem[]
   /** Total loan count in the Kiva dataset */
@@ -133,6 +140,26 @@ export interface LoanActions {
 // Store
 // ---------------------------------------------------------------------------
 
+// Newest-wins ticket for the deferred histogram computation in filterLoans.
+let distributionJob = 0
+
+// Unchanged histograms keep their reference, so the sliders do not re-render.
+function sameDistributions(a: RangeDistributions | null, b: RangeDistributions | null): boolean {
+  if (a === b) return true
+  if (!a || !b) return false
+  for (const group of ['loan', 'partner'] as const) {
+    const keys = Object.keys(b[group])
+    if (keys.length !== Object.keys(a[group]).length) return false
+    for (const key of keys) {
+      const x = a[group][key]
+      const y = b[group][key]
+      if (!x || x.length !== y.length) return false
+      for (let i = 0; i < y.length; i++) if (x[i] !== y[i]) return false
+    }
+  }
+  return true
+}
+
 export const useLoanStore = create<LoanState & LoanActions>()(
   persist(
     immer((set, get) => ({
@@ -140,6 +167,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       loans: [],
       filteredLoans: [],
       filteredSameAsLast: false,
+      rangeDistributions: null,
       basket: lsj.getA<BasketItem>('basket'),
       loanCount: 0,
       downloading: true,
@@ -382,6 +410,35 @@ export const useLoanStore = create<LoanState & LoanActions>()(
           if (!same || force) state.filteredLoans = next as never
           state.filteredSameAsLast = same
           state.loanCount = kl.loansFromKiva.length
+        })
+
+        // The slider histograms follow the same criteria, but only after the
+        // result list has been PAINTED: the lender sees the loans first, then
+        // the bars catch up a frame later. Only the newest request is computed.
+        // They depend on the criteria, not on the result list, so they are
+        // refreshed even when the list came back identical.
+        const job = ++distributionJob
+        const forCriteria = criteria
+        afterNextPaint(() => {
+          if (job !== distributionJob) return
+          const hidden = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
+          const next = hidden
+            ? null
+            : rangeDistributions(
+                forCriteria,
+                {
+                  loans: kl.loansFromKiva,
+                  activePartners: kl.activePartners,
+                  atheistListProcessed: kl.atheistListProcessed,
+                  lenderId: kl.lenderId,
+                  lenderLoans: kl.lenderLoans,
+                },
+                RANGE_BIN_SPECS,
+              )
+          if (sameDistributions(get().rangeDistributions, next)) return
+          set((state) => {
+            state.rangeDistributions = next as never
+          })
         })
       },
 

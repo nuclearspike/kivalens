@@ -814,14 +814,6 @@ ul.spacedList li {
 // ============================================================
 // RC-Slider Overrides
 // ============================================================
-.horizontal-slider {
-  width: calc(100% - 10px);
-  max-width: 500px;
-  height: 20px;
-  border: 0;
-  margin: 5px;
-}
-
 // Match the old react-slider rendering: 25x25 square gray handles
 // with 4px corners riding a 5px rail, green selected range.
 .rc-slider {
@@ -833,14 +825,24 @@ ul.spacedList li {
   width: calc(100% - 26px);
   margin: 0 13px;
 
+  // The line runs along the BOTTOM of the handles (the handle spans 1px-26px of
+  // this 27px box, the line 21px-26px), not through their middle: the histogram
+  // stands on the line, and with the line mid-handle the whole control read
+  // top-heavy. Bars and handles now share one band.
   .rc-slider-track {
+    top: 21px;
     background-color: $kl-slider-track;
     height: 5px;
   }
 
   .rc-slider-rail {
+    top: 21px;
     background-color: $kl-slider-rail;
     height: 5px;
+  }
+
+  .rc-slider-step {
+    top: 21px;
   }
 
   .rc-slider-handle {
@@ -1048,6 +1050,28 @@ ul.spacedList li {
   padding: 8px 10px !important;
 }
 
+// Choosing an item must not change the control's height: only a wrap onto a
+// second line of chips may. react-select's defaults break that twice over: a
+// chip (label padding 3px + margin 2px) is taller than the empty control, and
+// the clear "x" that appears with the first value carries 8px of padding. Both
+// are trimmed to fit inside the empty control's height.
+.Select__value-container {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+.Select__clear-indicator {
+  padding: 4px 8px !important;
+}
+
+.Select__multi-value {
+  margin: 2px 4px 2px 0 !important;
+
+  .Select__multi-value__label {
+    padding: 1px 3px 1px 6px !important;
+  }
+}
+
 .Select__multi-value {
   background-color: var(--kl-chip-bg) !important;
   border: 1px solid var(--kl-chip-border) !important;
@@ -1160,6 +1184,61 @@ ul.spacedList li {
   color: var(--kl-text) !important;
 }
 
+// The distribution histogram behind a range slider (RangeHistogram.tsx). It
+// spans the rail exactly — the slider is inset 13px each side, above — and
+// stands on the rail's top edge (the rail starts 21px down a 27px slider), so it
+// fills the same band as the handles and never changes the row's height. The
+// slider follows it in the DOM and so paints over it.
+.kl-range {
+  position: relative;
+}
+
+.kl-range-hist {
+  position: absolute;
+  left: 13px;
+  bottom: 6px;
+  width: calc(100% - 26px);
+  height: 21px;
+  // Nothing is drawn past either end of the slider.
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.kl-range-hist-in {
+  fill: var(--kl-green);
+  opacity: 0.6;
+}
+
+.kl-range-hist-out {
+  fill: var(--kl-slider-rail);
+}
+
+// The bar under the pointer, and the hint that names it. The hint's anchor
+// slides with the pointer (--at is 0 at the rail's start, 1 at its end): at the
+// start it extends right, at the end left, centred in the middle, so it never
+// leaves the slider whatever its width or language.
+.kl-range-hist-hover {
+  fill: var(--kl-green-text);
+}
+
+.kl-range-tip {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(100% + 1px);
+  left: calc(13px + (100% - 26px) * var(--at));
+  transform: translateX(calc(-100% * var(--at)));
+  padding: 2px 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--kl-text);
+  background: var(--kl-surface-raised);
+  border: 1px solid var(--kl-overlay-border);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px var(--kl-shadow);
+  pointer-events: none;
+}
+
 // rc-slider ships light-only mark and tooltip colours.
 .rc-slider-mark-text {
   color: var(--kl-text-muted);
@@ -1174,4 +1253,20 @@ select,
 input,
 textarea {
   color-scheme: inherit;
+}
+
+// The glyph inside a CopyButton sits on the text baseline with a small gap.
+.kl-copy-icon {
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+// The action row at the top of a scrolling filter column (Partners page): it
+// stays pinned while the filters scroll under it, on the page's own background.
+.kl-filter-actions {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding-bottom: 6px;
+  background: var(--kl-bg);
 }

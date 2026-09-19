@@ -89,12 +89,16 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
                 : percent(value, 1)
             }
           />
-          {/* Highcharts default palette, as rendered by the original app */}
+          {/* Bars and area are themed tokens held at 3:1 against each other (themeContrast.test.ts) */}
           {/* no barSize: bars scale with the row band (50% bar, 50% gap) */}
           <Bar
             xAxisId="amount"
             dataKey="amount"
-            fill="#7cb5ec"
+            fill="var(--kl-chart-bar)"
+            // A hairline in the surface colour parts each bar from the area behind
+            // it by shape as well as by tone, which is what a colour-blind reader needs.
+            stroke="var(--kl-surface)"
+            strokeWidth={1}
             name={t('repayment')}
             isAnimationActive={false}
           />
@@ -102,8 +106,8 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
             xAxisId="pct"
             dataKey="percent"
             stroke="var(--kl-chart-ink)"
-            fill="var(--kl-chart-ink)"
-            fillOpacity={0.75}
+            fill="var(--kl-chart-area)"
+            fillOpacity={1}
             name={t('cumulative_percent')}
             isAnimationActive={false}
           />

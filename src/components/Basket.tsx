@@ -143,13 +143,16 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               xAxisId="amount"
               dataKey="amount"
               fill="#e8871a"
+              // Same hairline as the loan repayment chart: bars part from the area by shape too.
+              stroke="var(--kl-surface)"
+              strokeWidth={1}
               name={t('monthly_repayment')}
               isAnimationActive={false}
             />
             <Area
               xAxisId="cumulative"
               dataKey="cumulativeAmount"
-              stroke="#2C8C5E"
+              stroke="var(--kl-green-text)"
               fill="rgba(44, 140, 94, 0.15)"
               name={t('cumulative')}
               isAnimationActive={false}

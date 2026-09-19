@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useId } from 'react'
 import { useLatestRef } from '../lib/useLatestRef'
 import { Row, Col, Tab, Tabs, Form, Dropdown, Card, Alert, OverlayTrigger, Popover, Modal, Button } from '../ui'
 import Select from './KLSelect'
@@ -15,6 +15,13 @@ import { humanize } from '../lib/utils'
 import { PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadiness'
 import { useI18n } from '../i18n'
 import { localizeSliceName } from '../lib/localizeSliceName'
+import { LOAN_SLIDERS, PARTNER_SLIDERS, binSpecFor, type SliderConfig } from '../lib/sliderConfig'
+import { barCentre } from '../lib/rangeHistogram'
+import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
+import { pluralCategory } from '../lib/pluralCategory'
+import { useHistogramHover } from './useHistogramHover'
+import RangeHistogram from './RangeHistogram'
+import CopyButton from './CopyButton'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
 
@@ -328,45 +335,6 @@ const EXCLUDE_PORTFOLIO_OPTIONS: SelectOption[] = [
 ]
 
 // Slider configs
-interface SliderConfig {
-  min: number
-  max: number
-  step?: number
-  label: string
-  helpText?: string
-}
-
-const LOAN_SLIDERS: Record<string, SliderConfig> = {
-  repaid_in: { min: 2, max: 90, label: 'repaid_months', helpText: 'number_months_between_today_final' },
-  borrower_count: { min: 1, max: 20, label: 'borrower_count', helpText: 'number_borrowers_included_loan' },
-  percent_female: { min: 0, max: 100, label: 'percent_female', helpText: 'what_percentage_borrowers_female' },
-  age: { min: 19, max: 100, label: 'age_mentioned', helpText: 'age_found_loan_description_set' },
-  still_needed: { min: 0, max: 5000, step: 25, label: 'still_needed_dollar_2', helpText: 'how_much_still_needed_fully' },
-  loan_amount: { min: 0, max: 10000, step: 25, label: 'loan_amount_dollar_2', helpText: 'how_much_loan' },
-  dollars_per_hour: { min: 0, max: 500, label: 'dollar_hour_2', helpText: 'funded_amounts_time_since_posting' },
-  percent_funded: { min: 0, max: 100, step: 1, label: 'funded_percent', helpText: 'what_percent_loan_has_been' },
-  expiring_in_days: { min: 0, max: 35, label: 'expiring_days_2', helpText: 'days_left_before_loan_expires' },
-  disbursal_in_days: { min: -90, max: 90, label: 'disbursal_days', helpText: 'when_borrower_get_money_relative' },
-}
-
-const PARTNER_SLIDERS: Record<string, SliderConfig> = {
-  partner_risk_rating: { min: 0, max: 5, step: 0.5, label: 'risk_rating_stars', helpText: '5_star_very_low_probability' },
-  partner_arrears: { min: 0, max: 100, step: 0.1, label: 'delinq_rate_percent', helpText: 'amount_late_payments_total_outstanding' },
-  loans_at_risk_rate: { min: 0, max: 100, label: 'loans_risk_percent', helpText: 'percentage_loans_past_due_least' },
-  partner_default: { min: 0, max: 30, step: 0.1, label: 'default_rate_percent', helpText: 'percentage_ended_loans_defaulted' },
-  portfolio_yield: { min: 0, max: 100, step: 0.1, label: 'portfolio_yield_percent', helpText: 'interest_fees_charged_field_partner' },
-  profit: { min: -100, max: 100, step: 0.1, label: 'profit_percent', helpText: 'return_assets_indicator' },
-  currency_exchange_loss_rate: { min: 0, max: 10, step: 0.1, label: 'currency_exchange_loss_percent', helpText: 'currency_exchange_loss_rate' },
-  average_loan_size_percent_per_capita_income: { min: 0, max: 300, label: 'average_loan_capita_income', helpText: 'average_loan_percentage_national_income' },
-  years_on_kiva: { min: 0, max: 12, step: 0.25, label: 'years_kiva', helpText: 'how_long_partner_has_been' },
-  loans_posted: { min: 0, max: 20000, step: 50, label: 'loans_posted', helpText: 'how_many_loans_partner_has' },
-  fundraising_loan_count: { min: 0, max: 200, step: 1, label: 'fundraising_loans', helpText: 'how_many_loans_partner_currently' },
-  // A+ Team research scores (1-4). Only meaningful once the A+ data is merged
-  // (Options > "Merge A+ Team's data"); the panel hides them until then. Dropped
-  // in the rewrite — restored so loan & partner search can filter on them again.
-  secular_rating: { min: 1, max: 4, step: 1, label: 'secular_score_team', helpText: '4_completely_secular_3_secular' },
-  social_rating: { min: 1, max: 4, step: 1, label: 'social_score_team', helpText: '4_excellent_proactive_social_programs' },
-}
 
 // Partner-criteria help text, exported so the standalone Partners page shows
 // the SAME hover hints as this Search > Partner criteria tab (single source —
@@ -529,14 +497,18 @@ function InputRow({
   onChange,
   disabled,
   placeholder,
+  hint,
 }: {
   label: string
   value: string
   onChange: (val: string) => void
   disabled?: boolean
   placeholder?: string
+  /** Standing guidance under the field; unlike a placeholder it stays once the lender types. */
+  hint?: string
 }) {
   const { t } = useI18n()
+  const hintId = useId()
   const [local, setLocal] = useState(value)
   const prevValueRef = useRef(value)
 
@@ -571,7 +543,13 @@ function InputRow({
           onChange={(e) => setLocal(e.target.value)}
           disabled={disabled}
           placeholder={placeholder}
+          aria-describedby={hint ? hintId : undefined}
         />
+        {hint && (
+          <Form.Text id={hintId} className="text-muted">
+            {hint}
+          </Form.Text>
+        )}
       </Col>
     </Row>
   )
@@ -856,13 +834,21 @@ export function SliderRow({
   minVal,
   maxVal,
   onChange,
+  bins,
+  hint,
 }: {
   config: SliderConfig
   minVal: unknown
   maxVal: unknown
   onChange: (minV: number | null, maxV: number | null) => void
+  /** Loans matching every other criterion, binned along this slider (see rangeDistributions). */
+  bins?: readonly number[]
+  /** Unit and context for the hover hint over a bar (see rangeHints.ts). */
+  hint?: RangeHint
 }) {
-  const { t } = useI18n()
+  const { t, number, currency, percent, locale } = useI18n()
+  const spec = useMemo(() => binSpecFor(config), [config])
+  const { hoverBin, trackProps } = useHistogramHover(bins, spec)
   const { min: oMin, max: oMax, step = 1, label, helpText } = config
   const localizedLabel = t(label)
   const localizedHelp = helpText ? t(helpText) : undefined
@@ -887,6 +873,15 @@ export function SliderRow({
     [oMin, oMax, onChange],
   )
 
+  // "200–399: 312 loans" for the bar under the pointer, in place of the caption.
+  const readout =
+    bins && hoverBin !== null
+      ? t(pluralCategory(locale, bins[hoverBin]) === 'one' ? 'range_count_loans_one' : 'range_count_loans', {
+          range: hintRangeText(spec, hoverBin, step, hint, { t, number, currency, percent, pluralOf: (n) => pluralCategory(locale, n) }),
+          count: number(bins[hoverBin]),
+        })
+      : null
+
   const labelEl = localizedHelp ? (
     <OverlayTrigger
       trigger={['hover', 'focus']}
@@ -909,7 +904,13 @@ export function SliderRow({
       </Col>
       <Col md={9} style={{ paddingTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ flex: 1 }}>
+          <div {...trackProps} style={{ flex: 1 }}>
+            <RangeHistogram bins={bins} spec={spec} lo={aMin} hi={aMax} hoverBin={hoverBin} />
+            {readout && hoverBin !== null && (
+              <div className="kl-range-tip" role="status" style={{ '--at': barCentre(spec, hoverBin) } as React.CSSProperties}>
+                {readout}
+              </div>
+            )}
             <Slider
               range
               min={oMin}
@@ -1301,6 +1302,7 @@ function LoanCriteriaPanel({
 }) {
   const { t, locale } = useI18n()
   const loan = criteria.loan as Record<string, unknown>
+  const distributions = useLoanStore((s) => s.rangeDistributions)
   const discovered = useDiscoveredOptions()
 
   const loanSelects: Array<{
@@ -1325,6 +1327,9 @@ function LoanCriteriaPanel({
         value={String(loan['use'] ?? '')}
         onChange={(val) => onUpdate('loan', 'use', val)}
         placeholder={locale !== 'en' ? t('search_english') : undefined}
+        // Kiva's loan text is English whatever language KivaLens is shown in, so
+        // a search word in the lender's own language would silently match nothing.
+        hint={locale !== 'en' ? t('use_english_search_terms') : undefined}
       />
       <InputRow
         label={t('name')}
@@ -1368,6 +1373,8 @@ function LoanCriteriaPanel({
             onUpdate('loan', `${key}_min`, minV)
             onUpdate('loan', `${key}_max`, maxV)
           }}
+          bins={distributions?.loan[key]}
+          hint={LOAN_RANGE_HINTS[key]}
         />
       ))}
     </>
@@ -1413,6 +1420,7 @@ function PartnerCriteriaPanel({
   onSortMode?: (mode: 'abc' | 'count') => void
 }) {
   const partner = criteria.partner as Record<string, unknown>
+  const distributions = useLoanStore((s) => s.rangeDistributions)
   const partnerOptions = usePartnerOptions()
 
   const partnerSelects: Array<{
@@ -1471,6 +1479,8 @@ function PartnerCriteriaPanel({
             onUpdate('partner', `${key}_min`, minV)
             onUpdate('partner', `${key}_max`, maxV)
           }}
+          bins={distributions?.partner[key]}
+          hint={PARTNER_RANGE_HINTS[key]}
         />
       ))}
     </>
@@ -1580,7 +1590,7 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
     }
     return base
   }, [criteria, prepForRSS, rssName, rssLinkTo, includePortfolio, lenderId])
-  const critRSSUrl = encodeURIComponent(JSON.stringify(critRSS))
+  const rssUrl = `https://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(critRSS))}`
 
   return (
     <Row className="ample-padding-top">
@@ -1649,10 +1659,19 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
             <p>
               {tx('rss_url_copy_or_ifttt', { ifttt: <NewTabLink href="http://www.ifttt.com">IFTTT</NewTabLink> })}
             </p>
+            <div className="d-flex justify-content-end mb-1">
+              <CopyButton text={rssUrl} label={t('copy_url')} />
+            </div>
             <textarea
               style={{ width: '100%', height: 150 }}
               readOnly
-              value={`https://www.kivalens.org/rss/${critRSSUrl}`}
+              aria-label={t('rss_link')}
+              value={rssUrl}
+              // Landing in the field selects all of it, for anyone who still copies by
+              // hand: onFocus covers the keyboard, onClick the mouse (whose mouse-up
+              // would otherwise drop the selection made on focus).
+              onFocus={(e) => e.currentTarget.select()}
+              onClick={(e) => e.currentTarget.select()}
             />
           </Card.Body>
         </Card>

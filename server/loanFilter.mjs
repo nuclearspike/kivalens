@@ -63,23 +63,51 @@ export class CritTester {
     this.critGroup = critGroup
     this.testers = []
     this.failAll = false
+    // critName -> selector for EVERY range registered, set or not, so
+    // rangeDistributions can read a value for sliders that are wide open.
+    this.ranges = {}
   }
 
   addRangeTesters(critName, selector, overrideIf, overrideFunc) {
+    this.ranges[critName] = selector
+    const tag = (fn) => {
+      fn.rangeKey = critName
+      this.testers.push(fn)
+    }
     const min = this.critGroup[`${critName}_min`]
     if (min != null) {
-      this.testers.push((entity) => {
+      tag((entity) => {
         if (overrideIf && overrideIf(entity)) return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return min <= selector(entity)
       })
     }
     const max = this.critGroup[`${critName}_max`]
     if (max != null) {
-      this.testers.push((entity) => {
+      tag((entity) => {
         if (overrideIf && overrideIf(entity)) return overrideFunc ? overrideFunc(this.critGroup, entity) : true
         return selector(entity) <= max
       })
     }
+  }
+
+  // Which single range keeps this entity out? '' when it passes everything,
+  // the range's critName when that range alone fails, and null when anything
+  // else fails (a non-range test, or two different ranges). This is what lets
+  // one pass count, for every slider at once, the entities that match all the
+  // OTHER criteria.
+  soleFailingRange(entity) {
+    if (this.failAll) return null
+    let failing = ''
+    try {
+      for (const fn of this.testers) {
+        if (fn(entity)) continue
+        if (!fn.rangeKey || (failing && failing !== fn.rangeKey)) return null
+        failing = fn.rangeKey
+      }
+    } catch {
+      return null
+    }
+    return failing
   }
 
   addAnyAllNoneTester(critName, values, defValue, selector, entityFieldIsArray) {
@@ -243,6 +271,12 @@ export function filterPartnerIds(c, ctx) {
 }
 
 export function filterPartners(c, ctx) {
+  const ct = buildPartnerTester(c, ctx)
+  const pool = ctx.partnerPool || ctx.activePartners || []
+  return pool.filter((p) => ct.allPass(p))
+}
+
+function buildPartnerTester(c, ctx) {
   const partner = c.partner ?? {}
   const portfolio = c.portfolio ?? {}
   const partnerPool = ctx.partnerPool
@@ -310,8 +344,7 @@ export function filterPartners(c, ctx) {
     (crit) => crit.partner_risk_rating_min == null,
   )
 
-  const pool = partnerPool || ctx.activePartners || []
-  return pool.filter((p) => ct.allPass(p))
+  return ct
 }
 
 // ---------------------------------------------------------------------------
@@ -319,12 +352,38 @@ export function filterPartners(c, ctx) {
 // ctx: { loans, activePartners, atheistListProcessed, lenderId, lenderLoans }
 // ---------------------------------------------------------------------------
 export function filterLoans(c, ctx) {
-  const criteria = {
-    loan: { ...(c.loan ?? {}) },
-    partner: { ...(c.partner ?? {}) },
-    portfolio: { ...(c.portfolio ?? {}) },
+  const criteria = normalizeCriteria(c)
+  const ct = buildLoanTester(criteria, ctx, true)
+
+  let filtered = (ctx.loans || []).filter((loan) => ct.allPass(loan))
+
+  const limitTo = criteria.loan.limit_to
+  if (limitTo?.enabled) {
+    const count = Number.isNaN(limitTo.count) ? 1 : limitTo.count
+    let selector
+    switch (limitTo.limit_by) {
+      case 'Partner': selector = (l) => l.partner_id; break
+      case 'Country': selector = (l) => l.location.country_code; break
+      case 'Activity': selector = (l) => l.activity; break
+      case 'Sector': selector = (l) => l.sector; break
+    }
+    if (selector) {
+      const groups = groupBy(filtered, selector)
+      filtered = groups.flatMap((g) => sortLoans(g, criteria.loan.sort).slice(0, count))
+    }
   }
 
+  filtered = sortLoans(filtered, criteria.loan.sort)
+
+  if (criteria.loan.limit_results) filtered = filtered.slice(0, criteria.loan.limit_results)
+
+  return filtered
+}
+
+// Every loan test the criteria imply. `withPartnerMembership` false leaves out
+// the "belongs to a matching partner" test so rangeDistributions can judge the
+// partner side per range instead of as one yes/no.
+function buildLoanTester(criteria, ctx, withPartnerMembership) {
   const ct = new CritTester(criteria.loan)
 
   ct.addAnyAllNoneTester('sector', null, 'any', (l) => l.sector)
@@ -337,7 +396,9 @@ export function filterLoans(c, ctx) {
   ct.addFieldContainsOneOfArrayTester(criteria.loan.currency_exchange_loss_liability, (l) => l.terms.loss_liability?.currency_exchange)
 
   ct.addRangeTesters('repaid_in', (l) => l.kls_repaid_in)
-  ct.addRangeTesters('borrower_count', (l) => l.borrower_count)
+  // Loans from the KivaLens server carry borrower_count; loans read straight
+  // from Kiva's API carry only the borrowers themselves.
+  ct.addRangeTesters('borrower_count', (l) => l.borrower_count ?? l.borrowers?.length)
   ct.addRangeTesters('percent_female', (l) => l.kl_percent_women)
   ct.addRangeTesters('age', (l) => l.kls_age)
   ct.addRangeTesters('still_needed', (l) => l.kl_still_needed)
@@ -351,7 +412,7 @@ export function filterLoans(c, ctx) {
   ct.addArrayAllStartWithTester(criteria.loan.name, (l) => l.kl_name_arr)
 
   if (!criteria.partner.direct || criteria.partner.direct === '') {
-    ct.addFieldContainsOneOfArrayTester(filterPartnerIds(criteria, ctx), (l) => l.partner_id, true)
+    if (withPartnerMembership) ct.addFieldContainsOneOfArrayTester(filterPartnerIds(criteria, ctx), (l) => l.partner_id, true)
   } else if (criteria.partner.direct === 'direct') {
     ct.testers.push((l) => l.partner_id == null)
   }
@@ -382,27 +443,157 @@ export function filterLoans(c, ctx) {
   ct.testers.push((l) => l.status === 'fundraising')
   ct.testers.push((l) => (l.funded_amount ?? 0) < l.loan_amount)
 
-  let filtered = (ctx.loans || []).filter((loan) => ct.allPass(loan))
+  return ct
+}
 
-  const limitTo = criteria.loan.limit_to
-  if (limitTo?.enabled) {
-    const count = Number.isNaN(limitTo.count) ? 1 : limitTo.count
-    let selector
-    switch (limitTo.limit_by) {
-      case 'Partner': selector = (l) => l.partner_id; break
-      case 'Country': selector = (l) => l.location.country_code; break
-      case 'Activity': selector = (l) => l.activity; break
-      case 'Sector': selector = (l) => l.sector; break
-    }
-    if (selector) {
-      const groups = groupBy(filtered, selector)
-      filtered = groups.flatMap((g) => sortLoans(g, criteria.loan.sort).slice(0, count))
-    }
+const normalizeCriteria = (c) => ({
+  loan: { ...(c.loan ?? {}) },
+  partner: { ...(c.partner ?? {}) },
+  portfolio: { ...(c.portfolio ?? {}) },
+})
+
+
+// ---------------------------------------------------------------------------
+// Range distributions — for every range slider at once, how the loans that
+// match ALL THE OTHER criteria are spread along that slider's scale.
+//
+// A slider's own min/max is left out of its own histogram: the histogram shows
+// what widening or narrowing that slider would gain or lose, which a histogram
+// clipped to the current selection could not. One pass does it: a loan that
+// passes everything counts for every slider; a loan kept out by exactly one
+// range counts for that slider only; anything else counts for none. Partner
+// ranges are judged through the loan's partner, and their histograms count
+// LOANS, because loans are what the search returns.
+//
+// specs: { loan: { critName: BinSpec }, partner: { critName: BinSpec } }
+//   BinSpec = { min, max, count, discrete }   (see binIndex)
+// returns: { loan: { critName: number[] }, partner: { critName: number[] } }
+//
+// The result-list steps after the tests (limit-per-group, limit_results, sort)
+// are not part of the population: the histograms describe what matches.
+// ---------------------------------------------------------------------------
+export function rangeDistributions(c, ctx, specs) {
+  const criteria = normalizeCriteria(c)
+  const loanSpecs = Object.entries(specs.loan ?? {})
+  const partnerSpecs = Object.entries(specs.partner ?? {})
+  const out = { loan: {}, partner: {} }
+  for (const [key, spec] of loanSpecs) out.loan[key] = new Array(spec.count).fill(0)
+  for (const [key, spec] of partnerSpecs) out.partner[key] = new Array(spec.count).fill(0)
+
+  const loanCt = buildLoanTester(criteria, ctx, false)
+
+  // '' = the partner side adds no constraint; otherwise partners are judged one by one.
+  const direct = criteria.partner.direct
+  const partnersConstrain = !direct || direct === ''
+  const partnerCt = buildPartnerTester(criteria, ctx)
+  const partnerById = new Map()
+  const partnerFailing = new Map()
+  for (const p of ctx.partnerPool || ctx.activePartners || []) {
+    partnerById.set(p.id, p)
+    if (partnersConstrain) partnerFailing.set(p.id, partnerCt.soleFailingRange(p))
   }
 
-  filtered = sortLoans(filtered, criteria.loan.sort)
+  // Three loan values are computed from dates on every read. The filter reads
+  // them only when their slider is set; the histograms read them for every
+  // loan, every time, and they were two thirds of the cost. They move by the
+  // day (or, for $/hour, by the funding resync), so a minute-old value is exact
+  // enough for a bar chart. The filter itself never uses this cache.
+  const now = Date.now()
+  const loanValue = {}
+  for (const [key] of loanSpecs) {
+    const selector = loanCt.ranges[key]
+    loanValue[key] = selector && SLOW_LOAN_RANGES.has(key) ? briefly(key, selector, now) : selector
+  }
 
-  if (criteria.loan.limit_results) filtered = filtered.slice(0, criteria.loan.limit_results)
+  const loansAtPartner = new Map()
 
-  return filtered
+  for (const loan of ctx.loans || []) {
+    const loanFail = loanCt.soleFailingRange(loan)
+    if (loanFail === null) continue
+    const partner = loan.partner_id == null ? undefined : partnerById.get(loan.partner_id)
+    let partnerFail = ''
+    if (partnersConstrain) {
+      // Mirrors filterLoans: the loan's partner must be one of the matching partners.
+      partnerFail = partner ? partnerFailing.get(loan.partner_id) : null
+      if (partnerFail === null || partnerFail === undefined) continue
+    }
+    if (loanFail && partnerFail) continue // kept out by two different ranges
+
+    for (const [key, spec] of loanSpecs) {
+      if (partnerFail || (loanFail && loanFail !== key)) continue
+      const selector = loanValue[key]
+      const i = selector ? binIndex(selector(loan), spec) : -1
+      if (i >= 0) out.loan[key][i] += 1
+    }
+    // A partner's value is the same for all its loans: tally the loans here and
+    // bin once per partner below, instead of once per loan per partner slider.
+    if (partner && !loanFail) loansAtPartner.set(partner, (loansAtPartner.get(partner) ?? 0) + 1)
+  }
+
+  for (const [partner, loans] of loansAtPartner) {
+    const partnerFail = partnersConstrain ? partnerFailing.get(partner.id) : ''
+    for (const [key, spec] of partnerSpecs) {
+      if (partnerFail && partnerFail !== key) continue
+      const selector = partnerCt.ranges[key]
+      const i = selector ? binIndex(selector(partner), spec) : -1
+      if (i >= 0) out.partner[key][i] += loans
+    }
+  }
+  return out
+}
+
+const SLOW_LOAN_RANGES = new Set(['dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'])
+const BRIEFLY_MS = 60_000
+const brieflyCache = {}
+
+// selector, remembered per loan object for a minute (see rangeDistributions).
+function briefly(key, selector, now) {
+  const cache = (brieflyCache[key] ??= new WeakMap())
+  return (loan) => {
+    const hit = cache.get(loan)
+    if (hit && now - hit.at < BRIEFLY_MS) return hit.value
+    const value = selector(loan)
+    cache.set(loan, { at: now, value })
+    return value
+  }
+}
+
+// Where a value falls among a slider's bins, or -1 when it has no number.
+// discrete: one bin per slider stop (count = stops); a value belongs to the
+//   stop at or below it, so 1.4 years sits in the 1.25 bar, not the 1.5 one
+//   (nearest-stop rounding would show it under a stop its own min would reject).
+// otherwise: `count` equal-width bins across [min, max].
+// A value past either end lands in the end bin, because a handle resting at
+// the end of its slider means "no limit" and still includes that loan.
+export function binIndex(value, spec) {
+  const n = typeof value === 'number' ? value : parseFloat(value)
+  if (Number.isNaN(n)) return -1
+  const at = (n - spec.min) / (spec.max - spec.min)
+  // The nudge keeps a value that sits exactly on a bar's lower edge in that bar:
+  // 5800 / 10000 * 50 is 28.999999999999996 in floating point, not 29.
+  const i = Math.floor(at * (spec.discrete ? spec.count - 1 : spec.count) + 1e-9)
+  return i < 0 ? 0 : i >= spec.count ? spec.count - 1 : i
+}
+
+// The same histograms for the Partners page, where the population is PARTNERS:
+// per slider, the partners in the pool that match every other partner
+// criterion. `accept` carries any test the engine does not own (the page's
+// name search). specs: { critName: BinSpec }; returns { critName: number[] }.
+export function partnerRangeDistributions(c, ctx, specs, accept) {
+  const entries = Object.entries(specs ?? {})
+  const out = {}
+  for (const [key, spec] of entries) out[key] = new Array(spec.count).fill(0)
+  const ct = buildPartnerTester(normalizeCriteria(c), ctx)
+  for (const partner of ctx.partnerPool || ctx.activePartners || []) {
+    if (accept && !accept(partner)) continue
+    const failing = ct.soleFailingRange(partner)
+    if (failing === null) continue
+    for (const [key, spec] of entries) {
+      if (failing && failing !== key) continue
+      const selector = ct.ranges[key]
+      const i = selector ? binIndex(selector(partner), spec) : -1
+      if (i >= 0) out[key][i] += 1
+    }
+  }
+  return out
 }

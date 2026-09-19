@@ -75,6 +75,9 @@ const PAIRS: [string, string, string?][] = [
   ['code-text', 'code-bg'],
 ]
 
+// Graphics that must be told apart by tone alone (WCAG 1.4.11, 3:1): [a, b].
+const GRAPHIC_PAIRS: [string, string][] = [['chart-bar', 'chart-area']]
+
 describe.each([
   ['light', 'kl-light-tokens'],
   ['dark', 'kl-dark-tokens'],
@@ -83,6 +86,11 @@ describe.each([
 
   it('defines the same token names in both themes', () => {
     expect(Object.keys(tokensOf('kl-dark-tokens')).sort()).toEqual(Object.keys(tokensOf('kl-light-tokens')).sort())
+  })
+
+  it.each(GRAPHIC_PAIRS)('%s and %s are 3:1 apart in tone', (a, b) => {
+    const ratio = contrast(parse(tokens[a]), parse(tokens[b]))
+    expect(Math.round(ratio * 100) / 100, `--kl-${a} vs --kl-${b}`).toBeGreaterThanOrEqual(3)
   })
 
   it.each(PAIRS)('%s on %s reaches 4.5:1', (fg, bg, base) => {

@@ -106,6 +106,10 @@
   --kl-chart-text: #555555;
   --kl-chart-grid: #e0e0e0;
   --kl-chart-ink: #434348;
+  // A chart's bars and the area drawn behind them: 3:1 apart in tone, so they
+  // separate without relying on hue.
+  --kl-chart-bar: #7cb5ec;
+  --kl-chart-area: #505056;
 }
 
 @mixin kl-dark-tokens {
@@ -196,6 +200,8 @@
   --kl-chart-text: #b4beb9;
   --kl-chart-grid: #2e3734;
   --kl-chart-ink: #c5ccd3;
+  --kl-chart-bar: #7cb5ec;
+  --kl-chart-area: #3b4642;
 }
 
 :root {

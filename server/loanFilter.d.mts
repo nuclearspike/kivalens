@@ -29,7 +29,40 @@ export declare class CritTester {
   addSimpleContains(crit: string, selector: (e: never) => unknown): void
   addThreeStateTester(crit: unknown, selector: (e: never) => unknown): void
   allPass(entity: unknown): boolean
+  /** critName -> value selector for every range registered, set or not. */
+  ranges: Record<string, (e: never) => unknown>
+  /** '' = passes everything; a critName = only that range fails; null = anything else fails. */
+  soleFailingRange(entity: unknown): string | null
 }
+
+/** One slider's histogram layout. discrete: one bin per stop, holding the values from that stop up to the next; otherwise equal-width bins over [min, max]. */
+export interface BinSpec {
+  min: number
+  max: number
+  count: number
+  discrete: boolean
+}
+
+export interface RangeDistributionSpecs {
+  loan?: Record<string, BinSpec>
+  partner?: Record<string, BinSpec>
+}
+
+export interface RangeDistributions {
+  loan: Record<string, number[]>
+  partner: Record<string, number[]>
+}
+
+/** Per slider: loans matching all the OTHER criteria, binned along that slider's scale. */
+export declare function rangeDistributions(criteria: unknown, ctx: FilterContext, specs: RangeDistributionSpecs): RangeDistributions
+export declare function binIndex(value: unknown, spec: BinSpec): number
+/** Per slider: PARTNERS in the pool matching all the other partner criteria (and `accept`), binned. */
+export declare function partnerRangeDistributions(
+  criteria: unknown,
+  ctx: FilterContext,
+  specs: Record<string, BinSpec>,
+  accept?: (partner: never) => boolean,
+): Record<string, number[]>
 
 export declare function groupBy<T>(arr: T[], keyFn: (item: T) => unknown): T[][]
 export declare function sortBy<T>(arr: T[], ...selectors: Array<{ fn: (item: T) => unknown; desc?: boolean }>): T[]

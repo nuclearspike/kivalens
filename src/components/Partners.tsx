@@ -5,6 +5,15 @@ import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown, OverlayT
 import Select from './KLSelect'
 import { PARTNER_SLIDER_HELP, RELIGION_HELP, RangeExactControl } from './CriteriaTabs'
 import Slider from 'rc-slider'
+import RangeHistogram from './RangeHistogram'
+import { useHistogramHover } from './useHistogramHover'
+import { binSpecFor } from '../lib/sliderConfig'
+import { barCentre } from '../lib/rangeHistogram'
+import { PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
+import { pluralCategory } from '../lib/pluralCategory'
+import { lsj } from '../lib/localStorage'
+import { DEFAULT_PARTNER_FILTERS, partnerFiltersArePristine } from '../lib/partnerFilterDefaults'
+import { partnerRangeDistributions } from '../../server/loanFilter.mjs'
 import type { Partner } from '../types'
 import { useLoanStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
@@ -226,6 +235,8 @@ export function RangeRow({
   maxVal,
   hint,
   onChange,
+  bins,
+  rangeHint,
 }: {
   label: string
   min: number
@@ -235,12 +246,25 @@ export function RangeRow({
   maxVal: unknown
   hint?: string
   onChange: (nextMin: number | null, nextMax: number | null) => void
+  /** Partners matching every other filter, binned along this slider (see partnerRangeDistributions). */
+  bins?: readonly number[]
+  /** Unit and context for the hover hint over a bar (see rangeHints.ts). */
+  rangeHint?: RangeHint
 }) {
   const actualMin = minVal != null && !isNaN(Number(minVal)) ? Number(minVal) : min
   const actualMax = maxVal != null && !isNaN(Number(maxVal)) ? Number(maxVal) : max
-  const { t } = useI18n()
+  const { t, number, currency, percent, locale } = useI18n()
   const displayMin = minVal == null ? t('min') : actualMin
   const displayMax = maxVal == null ? t('max') : actualMax
+  const spec = useMemo(() => binSpecFor({ min, max, step, label }), [min, max, step, label])
+  const { hoverBin, trackProps } = useHistogramHover(bins, spec)
+  const readout =
+    bins && hoverBin !== null
+      ? t(pluralCategory(locale, bins[hoverBin]) === 'one' ? 'range_count_partners_one' : 'range_count_partners', {
+          range: hintRangeText(spec, hoverBin, step ?? 1, rangeHint, { t, number, currency, percent, pluralOf: (n) => pluralCategory(locale, n) }),
+          count: number(bins[hoverBin]),
+        })
+      : null
 
   return (
     <FilterRow
@@ -253,7 +277,13 @@ export function RangeRow({
       }
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8 }}>
-        <div style={{ flex: 1 }}>
+        <div {...trackProps} style={{ flex: 1 }}>
+          <RangeHistogram bins={bins} spec={spec} lo={actualMin} hi={actualMax} hoverBin={hoverBin} />
+          {readout && hoverBin !== null && (
+            <div className="kl-range-tip" role="status" style={{ '--at': barCentre(spec, hoverBin) } as React.CSSProperties}>
+              {readout}
+            </div>
+          )}
           <Slider
             range
             min={min}
@@ -373,7 +403,7 @@ export function Component() {
   // has already moved on.
   const activeRoutePartnerIdRef = useLatestRef(routePartnerId)
   const [partnerTick, setPartnerTick] = useState(0)
-  const [filters, setFilters] = useState<PartnerFilters>({ status: 'active', status_all_any_none: 'any' })
+  const [filters, setFilters] = useState<PartnerFilters>({ ...DEFAULT_PARTNER_FILTERS })
   const localizedOptions = useMemo(() => {
     const localize = (options: SelectOption[]) =>
       options.map((option) => ({ ...option, label: t(option.label) }))
@@ -453,20 +483,47 @@ export function Component() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, nameSearch, downloading, partnerTick])
 
+  // The histograms behind the sliders: per slider, the partners that match every
+  // other filter on this page (the name search included), so each one shows what
+  // moving its own handles would add or drop.
+  const sliderBins = useMemo(() => {
+    const kl = getKivaLoans()
+    if (!kl?.partnersFromKiva?.length) return null
+    if (lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs) return null
+    const terms = nameSearch.toUpperCase().match(/(\w+)/g)
+    const specs = Object.fromEntries(Object.entries(PARTNER_SLIDERS).map(([key, config]) => [key, binSpecFor(config)]))
+    return partnerRangeDistributions(
+      { partner: filters },
+      { loans, activePartners: kl.activePartners, partnerPool: kl.partnersFromKiva, atheistListProcessed: kl.atheistListProcessed },
+      specs,
+      terms ? (p: Partner) => terms.every((term) => (p.kl_name_arr || []).some((w) => w.startsWith(term))) : undefined,
+    )
+    // Same hidden inputs as `filtered` above: the partner data behind getKivaLoans().
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, nameSearch, loans, downloading, partnerTick])
+
   const updateFilter = useCallback((key: string, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }, [])
 
   const clearCriteria = useCallback(() => {
-    setFilters({ status: 'active', status_all_any_none: 'any' })
+    setFilters({ ...DEFAULT_PARTNER_FILTERS })
     setNameSearch('')
   }, [])
+  const nothingToReset = partnerFiltersArePristine(filters, nameSearch)
 
   return (
     <Container fluid className="py-2">
       <div className="row">
         <div className="col-md-4">
           <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 80px)', paddingRight: 8 }}>
+            {/* Reset lives with the filters it resets, top-left as on Search, and stays
+                in reach while the filter column scrolls. */}
+            <div className="kl-filter-actions">
+              <Button size="sm" variant="secondary" onClick={clearCriteria} disabled={nothingToReset}>
+                {t('reset')}
+              </Button>
+            </div>
             <Form.Control
               type="text"
               size="sm"
@@ -607,6 +664,8 @@ export function Component() {
                   minVal={filters[`${key}_min`]}
                   maxVal={filters[`${key}_max`]}
                   hint={PARTNER_SLIDER_HELP[key]}
+                  bins={sliderBins?.[key]}
+                  rangeHint={PARTNER_RANGE_HINTS[key]}
                   onChange={(nextMin, nextMax) => {
                     updateFilter(`${key}_min`, nextMin)
                     updateFilter(`${key}_max`, nextMax)
@@ -617,16 +676,13 @@ export function Component() {
         </div>
 
         <div className="col-md-3">
-          <div className="d-flex justify-content-between align-items-center mb-1">
+          <div className="mb-1">
             <span className="small text-muted">
                {t('showing_shown_total_partners', {
                  shown: number(filtered.length),
                  total: number(totalCount),
                })}
             </span>
-            <Button size="sm" variant="outline-secondary" onClick={clearCriteria}>
-              {t('reset')}
-            </Button>
           </div>
           <div style={{ maxHeight: 'calc(100vh - 110px)', overflowY: 'auto' }}>
             <ListGroup>
