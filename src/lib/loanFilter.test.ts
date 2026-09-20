@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 // The shared filter is plain JS in server/ so the prod server can import it too.
-import { filterLoans, sortLoans } from '../../server/loanFilter.mjs'
+import { filterLoans, filterPartners, sortLoans } from '../../server/loanFilter.mjs'
 
 // Minimal but representative fixtures exercising the criteria the filter reads.
 const mkLoan = (o: Record<string, unknown>) => ({
@@ -239,5 +239,75 @@ describe('shared loanFilter.partnerRangeDistributions', () => {
   it('applies the caller\'s extra test, such as the page\'s name search', () => {
     const d = dist({}, ((p: { name: string }) => p.name.startsWith('B')) as never)
     expect(total(d.partner_default)).toBe(1)
+  })
+})
+
+import { partnerOptionCounts } from '../../server/loanFilter.mjs'
+
+describe('shared loanFilter.partnerOptionCounts', () => {
+  const pool = [
+    { id: 1, status: 'active', kl_regions: ['af'], kl_sp: [1, 3], countries: [{ iso_code: 'KE' }, { iso_code: 'UG' }], normalizedReligions: ['Secular'], charges_fees_and_interest: true, default_rate: 1 },
+    { id: 2, status: 'active', kl_regions: ['af', 'as'], kl_sp: [1], countries: [{ iso_code: 'KE' }], normalizedReligions: ['Christian'], charges_fees_and_interest: false, default_rate: 9 },
+    { id: 3, status: 'closed', kl_regions: ['as'], kl_sp: [], countries: [{ iso_code: 'PH' }], charges_fees_and_interest: true, default_rate: 2 },
+  ]
+  const counts = (partner: Record<string, unknown>, keys: string[], accept?: (p: never) => boolean) =>
+    partnerOptionCounts({ partner }, { loans: [], activePartners: [], partnerPool: pool, atheistListProcessed: false }, keys, accept)
+
+  it('counts partners per option, once per partner even when a partner has several values', () => {
+    const c = counts({}, ['status', 'region', 'country_code', 'social_performance', 'religion', 'charges_fees_and_interest'])
+    expect(c.status).toEqual({ active: 2, closed: 1 })
+    expect(c.region).toEqual({ af: 2, as: 2 })
+    expect(c.country_code).toEqual({ KE: 2, UG: 1, PH: 1 })
+    expect(c.social_performance).toEqual({ '1': 2, '3': 1 })
+    expect(c.religion).toEqual({ Secular: 1, Christian: 1, Unknown: 1 })
+    expect(c.charges_fees_and_interest).toEqual({ true: 2, false: 1 })
+  })
+
+  it("leaves a dropdown's own selection out of its own counts, and applies every other filter", () => {
+    const c = counts({ status: 'active', status_all_any_none: 'any', region: 'as', region_all_any_none: 'any' }, ['status', 'region'])
+    expect(c.status).toEqual({ active: 1, closed: 1 }) // region=as applied; status itself not
+    expect(c.region).toEqual({ af: 2, as: 1 }) // status=active applied; region itself not
+  })
+
+  it('agrees with filterPartners: an option\'s count is what choosing only that option returns', () => {
+    const base = { status: 'active', status_all_any_none: 'any', partner_default_max: 5 }
+    const c = counts(base, ['region'])
+    for (const [value, n] of Object.entries(c.region)) {
+      const chosen = filterPartners({ partner: { ...base, region: value, region_all_any_none: 'any' } }, { loans: [], activePartners: [], partnerPool: pool, atheistListProcessed: false })
+      expect(chosen.length, `region ${value}`).toBe(n)
+    }
+  })
+
+  it('in "all" mode keeps the selection in force, because each added option narrows the current results', () => {
+    const c = counts({ social_performance: '3', social_performance_all_any_none: 'all' }, ['social_performance'])
+    expect(c.social_performance).toEqual({ '1': 1, '3': 1 }) // only partner 1 has strength 3
+  })
+
+  it('treats an untouched mode as the engine does: Social Performance starts in "all"', () => {
+    const c = counts({ social_performance: '3' }, ['social_performance'])
+    expect(c.social_performance).toEqual({ '1': 1, '3': 1 })
+    // …and that is what adding the option really returns.
+    const ctx = { loans: [], activePartners: [], partnerPool: pool, atheistListProcessed: false }
+    expect(filterPartners({ partner: { social_performance: '3,1' } }, ctx).length).toBe(c.social_performance['1'])
+    // A dropdown that starts in "any" still leaves its own selection out.
+    expect(counts({ region: 'as' }, ['region']).region).toEqual({ af: 2, as: 2 })
+  })
+
+  it('survives empty and ragged data: no criteria, no pool, partners missing fields, unknown keys', () => {
+    const ctx = (partnerPool: unknown[]) => ({ loans: [], activePartners: [], partnerPool, atheistListProcessed: false })
+    expect(partnerOptionCounts({}, ctx([]), ['status', 'region'])).toEqual({ status: {}, region: {} })
+    expect(partnerOptionCounts(undefined as never, ctx(pool), [])).toEqual({})
+    expect(partnerOptionCounts({ partner: {} }, ctx(pool), ['no_such_key'])).toEqual({ no_such_key: {} })
+    const ragged = partnerOptionCounts({ partner: {} }, ctx([{ id: 9, status: 'active' }]), ['country_code', 'region', 'social_performance', 'religion', 'charges_fees_and_interest'])
+    expect(ragged).toEqual({ country_code: {}, region: {}, social_performance: {}, religion: { Unknown: 1 }, charges_fees_and_interest: { false: 1 } })
+  })
+
+  it('counts a "none" dropdown by what each option holds, not by what excluding it leaves', () => {
+    const c = counts({ region: 'as', region_all_any_none: 'none' }, ['region'])
+    expect(c.region).toEqual({ af: 2, as: 2 })
+  })
+
+  it('applies the page\'s name search through accept', () => {
+    expect(counts({}, ['status'], ((p: { id: number }) => p.id !== 3) as never).status).toEqual({ active: 2 })
   })
 })

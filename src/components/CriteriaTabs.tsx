@@ -11,7 +11,6 @@ import { PORTFOLIO_BALANCERS, type Criteria, type BalancerConfig, type KivaLoan,
 import type { BalancerResult } from '../stores/criteriaStore'
 import { getKivaLoans } from '../api/kiva'
 import { lsj } from '../lib/localStorage'
-import { humanize } from '../lib/utils'
 import { PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadiness'
 import { useI18n } from '../i18n'
 import { localizeSliceName } from '../lib/localizeSliceName'
@@ -22,6 +21,8 @@ import { pluralCategory } from '../lib/pluralCategory'
 import { useHistogramHover } from './useHistogramHover'
 import RangeHistogram from './RangeHistogram'
 import CopyButton from './CopyButton'
+import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
+import { loanOptionCounts } from '../lib/optionCounts'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
 
@@ -49,16 +50,6 @@ function useDebouncedEffect(fn: () => void, deps: unknown[], delay: number) {
 interface SelectOption {
   value: string
   label: string
-}
-
-interface HelperChartDatum {
-  name: string
-  count: number
-}
-
-interface HelperChart {
-  title: string
-  data: HelperChartDatum[]
 }
 
 interface HelperChartTarget {
@@ -261,7 +252,9 @@ const REPAYMENT_INTERVAL_OPTIONS: SelectOption[] = [
   { value: 'At end of term', label: 'end_term' },
 ]
 
+// Kiva's terms.loss_liability.currency_exchange: who carries a loss from exchange rates.
 const CURRENCY_LOSS_OPTIONS: SelectOption[] = [
+  { value: 'lender', label: 'lender_covers' },
   { value: 'shared', label: 'shared_loss' },
   { value: 'none', label: 'no_currency_exchange_loss' },
   { value: 'partner', label: 'partner_covers' },
@@ -296,11 +289,6 @@ const REGION_OPTIONS: SelectOption[] = [
   { value: 'we', label: 'western_europe' },
 ]
 
-// Region code -> readable label (e.g. 'sa' -> 'South America') for chart axes.
-const REGION_LABELS: Record<string, string> = Object.fromEntries(
-  REGION_OPTIONS.map((o) => [o.value, o.label]),
-)
-
 const SOCIAL_PERFORMANCE_OPTIONS: SelectOption[] = [
   { value: '1', label: 'anti_poverty_focus' },
   { value: '3', label: 'client_voice' },
@@ -310,10 +298,6 @@ const SOCIAL_PERFORMANCE_OPTIONS: SelectOption[] = [
   { value: '7', label: 'innovation' },
   { value: '2', label: 'vulnerable_group_focus' },
 ]
-
-const SOCIAL_PERFORMANCE_LABELS = Object.fromEntries(
-  SOCIAL_PERFORMANCE_OPTIONS.map((option) => [String(option.value), option.label]),
-)
 
 const CHARGES_INTEREST_OPTIONS: SelectOption[] = [
   { value: '', label: 'show_all' },
@@ -328,6 +312,14 @@ const RELIGION_OPTIONS: SelectOption[] = [
   { value: 'Buddhist', label: 'buddhist' }, { value: 'Other', label: 'other' },
   { value: 'Unknown', label: 'unknown_2' },
 ]
+
+// Single-selects that show a graph: their option values, each counted by running
+// the search with it chosen ('' is the option that lifts the filter).
+const SINGLE_SELECT_VALUES: Record<string, string[]> = {
+  bonus_credit_eligibility: BONUS_CREDIT_OPTIONS.map((option) => option.value),
+  direct: DIRECT_OPTIONS.map((option) => option.value),
+  charges_fees_and_interest: CHARGES_INTEREST_OPTIONS.map((option) => option.value),
+}
 
 const EXCLUDE_PORTFOLIO_OPTIONS: SelectOption[] = [
   { value: 'true', label: 'yes_exclude_loans_ive_made' },
@@ -396,95 +388,6 @@ function getPartnerForLoan(loan: KivaLoan, lookup: { getPartner: (id: number) =>
     return null
   }
   return lookup.getPartner(loan.partner_id) ?? null
-}
-
-function groupForHelperChart(
-  loans: KivaLoan[],
-  title: string,
-  extractor: (loan: KivaLoan) => string | string[] | null | undefined,
-): HelperChart | null {
-  const counts = new Map<string, number>()
-
-  for (const loan of loans) {
-    const rawValues = extractor(loan)
-    if (rawValues == null) continue
-    const values = Array.isArray(rawValues) ? rawValues : [rawValues]
-    const uniqueValues = new Set(
-      values
-        .map((value) => String(value).trim())
-        .filter((value) => value.length > 0),
-    )
-
-    for (const value of uniqueValues) {
-      counts.set(value, (counts.get(value) ?? 0) + 1)
-    }
-  }
-
-  const data = Array.from(counts.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .slice(0, 20)
-
-  return data.length ? { title, data } : null
-}
-
-function buildHelperChart(
-  loans: KivaLoan[],
-  key: string,
-  sector: (englishSector: string) => string = (value) => value,
-  t: (key: string) => string = (value) => value,
-): HelperChart | null {
-  const kl = getKivaLoans()
-  if (!kl) return null
-
-  switch (key) {
-    case 'country_code':
-      return groupForHelperChart(loans, t('countries'), (loan) => loan.location.country)
-    case 'sector':
-      return groupForHelperChart(loans, t('sectors'), (loan) => sector(loan.sector))
-    case 'activity':
-      return groupForHelperChart(loans, t('activities'), (loan) => loan.activity)
-    case 'themes':
-      return groupForHelperChart(loans, t('themes'), (loan) => loan.themes ?? [])
-    case 'tags':
-      return groupForHelperChart(loans, t('tags'), (loan) => (loan.kls_tags ?? []).map((tag) => humanize(tag)))
-    case 'repayment_interval':
-      return groupForHelperChart(loans, t('repayment_interval'), (loan) => loan.terms.repayment_interval ?? 'Unknown')
-    case 'currency_exchange_loss_liability':
-      return groupForHelperChart(loans, t('currency_loss_2'), (loan) => humanize(loan.terms.loss_liability?.currency_exchange ?? 'unknown'))
-    case 'bonus_credit_eligibility':
-      return groupForHelperChart(loans, t('bonus_credit_2'), (loan) => t(loan.bonus_credit_eligibility ? 'eligible' : 'not_eligible'))
-    case 'direct':
-      return groupForHelperChart(loans, t('mfi_direct_2'), (loan) => t(loan.partner_id == null ? 'direct' : 'mfi'))
-    case 'region':
-      return groupForHelperChart(loans, t('region_2'), (loan) => {
-        const partner = getPartnerForLoan(loan, kl)
-        const regions =
-          partner?.kl_regions ?? partner?.countries.map((country) => country.region) ?? []
-        // kl_regions are codes (e.g. 'sa'); map to readable labels. Full region
-        // names from the countries fallback pass through unchanged.
-        return regions.map((r) => REGION_LABELS[r] ?? r)
-      })
-    case 'social_performance':
-      return groupForHelperChart(loans, t('social_performance_2'), (loan) => {
-        const partner = getPartnerForLoan(loan, kl)
-        return (partner?.social_performance_strengths ?? []).map((strength) =>
-          SOCIAL_PERFORMANCE_LABELS[String(strength.id)] ?? String(strength.id),
-        )
-      })
-    case 'charges_fees_and_interest':
-      return groupForHelperChart(loans, t('charges_interest'), (loan) => {
-        const partner = getPartnerForLoan(loan, kl)
-        return t(partner?.charges_fees_and_interest ? 'charges_fees_interest_2' : 'not_charge_fees_interest')
-      })
-    case 'religion':
-      return groupForHelperChart(loans, t('religion'), (loan) => {
-        const partner = getPartnerForLoan(loan, kl)
-        return partner?.normalizedReligions?.length ? partner.normalizedReligions : [t('unknown_2')]
-      })
-    default:
-      return null
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -556,44 +459,6 @@ function InputRow({
 }
 
 // ---------------------------------------------------------------------------
-// Sub-component: AllAnyNoneButton
-// ---------------------------------------------------------------------------
-
-function AllAnyNoneButton({
-  value,
-  onChange,
-  canAll,
-}: {
-  value: string
-  onChange: (val: string) => void
-  canAll?: boolean
-}) {
-  const { t } = useI18n()
-  const selected = value || (canAll ? 'all' : 'any')
-  const styles: Record<string, string> = canAll
-    ? { all: 'success', any: 'primary', none: 'danger' }
-    : { any: 'success', none: 'danger' }
-
-  return (
-    <Dropdown>
-      <Dropdown.Toggle
-        size="sm"
-        variant={styles[selected] ?? 'primary'}
-        id="aan-dropdown"
-        style={{ height: 34, padding: '4px 8px', minWidth: 53, width: 'max-content', whiteSpace: 'nowrap' }}
-      >
-        {t(selected)}
-      </Dropdown.Toggle>
-      <Dropdown.Menu>
-        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>{t('all_these')}</Dropdown.Item> : null}
-        <Dropdown.Item onClick={() => onChange('any')}>{t('any_these')}</Dropdown.Item>
-        <Dropdown.Item onClick={() => onChange('none')}>{t('none_these')}</Dropdown.Item>
-      </Dropdown.Menu>
-    </Dropdown>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Sub-component: SelectRow (multi or single select with optional AAN)
 // ---------------------------------------------------------------------------
 
@@ -607,6 +472,7 @@ function SelectRow({
   onAanChange,
   helpText,
   canAll,
+  aanCounts,
   onInspect,
   onInspectEnd,
   fieldKey,
@@ -623,6 +489,8 @@ function SelectRow({
   onAanChange?: (val: string) => void
   helpText?: string
   canAll?: boolean
+  /** what each Any / All / None mode would give; null while no value is chosen */
+  aanCounts?: () => AanCounts | null
   /** focus/menu-open: reports the facet's viewport top for the floating graph */
   onInspect?: (top?: number) => void
   /** blur: lets the parent dismiss the floating graph (with a grace delay) */
@@ -678,7 +546,7 @@ function SelectRow({
       <Col md={9}>
         <div style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
           {onAanChange ? (
-            <AllAnyNoneButton value={aanValue ?? ''} onChange={onAanChange} canAll={canAll} />
+            <AanDropdown value={aanValue ?? ''} onChange={onAanChange} canAll={canAll} getCounts={aanCounts} />
           ) : null}
           <div style={{ flex: 1 }}>
             <Select<SelectOption, boolean>
@@ -1286,6 +1154,7 @@ function LoanCriteriaPanel({
   onUpdate,
   onInspectSelect,
   onInspectEnd,
+  countAanModes,
   distribution,
   distributionKey,
   sortMode,
@@ -1295,6 +1164,7 @@ function LoanCriteriaPanel({
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
   onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
   onInspectEnd: () => void
+  countAanModes: (group: 'loan' | 'partner', key: string, canAll?: boolean) => AanCounts | null
   distribution?: Record<string, number>
   distributionKey?: string
   sortMode?: 'abc' | 'count'
@@ -1350,6 +1220,7 @@ function LoanCriteriaPanel({
           onAanChange={sel.hasAan ? (val) => onUpdate('loan', `${sel.key}_all_any_none`, val) : undefined}
           helpText={sel.helpText}
           canAll={sel.canAll}
+          aanCounts={sel.hasAan ? () => countAanModes('loan', sel.key, sel.canAll) : undefined}
           onInspect={sel.showDistribution ? (top) => onInspectSelect('loan', sel.key, sel.canAll, top) : undefined}
           onInspectEnd={onInspectEnd}
           distribution={sel.showDistribution && distributionKey === sel.key ? distribution : undefined}
@@ -1405,6 +1276,7 @@ function PartnerCriteriaPanel({
   onUpdate,
   onInspectSelect,
   onInspectEnd,
+  countAanModes,
   distribution,
   distributionKey,
   sortMode,
@@ -1414,6 +1286,7 @@ function PartnerCriteriaPanel({
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
   onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
   onInspectEnd: () => void
+  countAanModes: (group: 'loan' | 'partner', key: string, canAll?: boolean) => AanCounts | null
   distribution?: Record<string, number>
   distributionKey?: string
   sortMode?: 'abc' | 'count'
@@ -1435,7 +1308,7 @@ function PartnerCriteriaPanel({
   }> = [
     { key: 'direct', label: 'MFI or Direct', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true,
       helpText: 'Most Kiva loans go through a field partner (an MFI). “Direct” loans are made straight to the borrower with no MFI. The default “MFI Only” hides Direct loans — that’s why the loans shown can be fewer than the total fundraising count.' },
-    { key: 'partners', label: 'Field Partner', options: partnerOptions, isMulti: true, hasAan: true,
+    { key: 'partners', label: 'Field Partner', options: partnerOptions, isMulti: true, hasAan: true, showDistribution: true,
       helpText: 'Pick specific field partners (MFIs). Use the Any/None toggle to require loans from any of the selected partners, or to exclude them. Only applies in MFI mode.' },
     { key: 'region', label: 'Region', options: REGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
     { key: 'social_performance', label: 'Social Performance', options: SOCIAL_PERFORMANCE_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
@@ -1459,6 +1332,7 @@ function PartnerCriteriaPanel({
           onAanChange={sel.hasAan ? (val) => onUpdate('partner', `${sel.key}_all_any_none`, val) : undefined}
           helpText={sel.helpText}
           canAll={sel.canAll}
+          aanCounts={sel.hasAan ? () => countAanModes('partner', sel.key, sel.canAll) : undefined}
           onInspect={sel.showDistribution ? (top) => onInspectSelect('partner', sel.key, sel.canAll, top) : undefined}
           onInspectEnd={onInspectEnd}
           distribution={sel.showDistribution && distributionKey === sel.key ? distribution : undefined}
@@ -1688,7 +1562,7 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
 
 
 export function CriteriaTabs() {
-  const { t, sector } = useI18n()
+  const { t } = useI18n()
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
@@ -1717,12 +1591,10 @@ export function CriteriaTabs() {
   const suppressInspectUntil = useRef(0)
   const hideGraphs = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
 
-  // The focused field's value-distribution chart. Computed here rather than
-  // mirrored through effect+state — every input (loaded criteria, the
-  // already-filtered loans, hideGraphs) is available at render time, and
-  // kl.filter() below runs synchronously over already-loaded data, not a
-  // fetch.
-  const helperChart = useMemo<HelperChart | null>(() => {
+  // What each option of the focused dropdown would give, keyed by option value.
+  // Computed at render from what is already loaded (the criteria, the filtered
+  // loans): kl.filter() runs synchronously over loaded data, it is not a fetch.
+  const helperChart = useMemo<Record<string, number> | null>(() => {
     if (!helperTarget || hideGraphs) return null
 
     const kl = getKivaLoans()
@@ -1734,6 +1606,19 @@ export function CriteriaTabs() {
       portfolio: { ...criteria.portfolio },
     }
     const groupCriteria = nextCriteria[helperTarget.group] as Record<string, unknown>
+
+    // A single-select has a handful of options and no "own selection left out"
+    // question: each option's count is the search run with that option chosen.
+    const singleValues = SINGLE_SELECT_VALUES[helperTarget.key]
+    if (singleValues) {
+      const counts: Record<string, number> = {}
+      for (const value of singleValues) {
+        groupCriteria[helperTarget.key] = value
+        counts[value] = kl.filter(nextCriteria, false).length
+      }
+      return counts
+    }
+
     const aanKey = `${helperTarget.key}_all_any_none`
     const ignoreCurrentValue =
       groupCriteria[aanKey] === 'all' || (!!helperTarget.canAll && !groupCriteria[aanKey])
@@ -1745,8 +1630,8 @@ export function CriteriaTabs() {
       loans = kl.filter(nextCriteria, false)
     }
 
-    return buildHelperChart(loans, helperTarget.key, sector, t)
-  }, [criteria, filteredLoans, helperTarget, hideGraphs, sector, t])
+    return loanOptionCounts(loans, helperTarget.key, (loan) => getPartnerForLoan(loan, kl))
+  }, [criteria, filteredLoans, helperTarget, hideGraphs])
 
   // Applied during render rather than in an effect, so a LATER AI-issued
   // switch lands in the same commit as the store update instead of one
@@ -1811,6 +1696,34 @@ export function CriteriaTabs() {
     [],
   )
 
+  // What each Any / All / None mode of one select would give: the number of loans
+  // the whole search returns with that mode, every other criterion as it stands.
+  // Runs when the mode menu opens (a few ms per mode over the loaded loans). With
+  // no value chosen the mode changes nothing, so there is nothing to show.
+  const criteriaRef = useLatestRef(criteria)
+  const countAanModes = useCallback(
+    (group: 'loan' | 'partner', key: string, canAll = false): AanCounts | null => {
+      if (hideGraphs) return null
+      const kl = getKivaLoans()
+      if (!kl?.isReady()) return null
+      const current = criteriaRef.current
+      if (!(current[group] as Record<string, unknown>)[key]) return null
+      const modes: AanMode[] = canAll ? ['all', 'any', 'none'] : ['any', 'none']
+      const counts: AanCounts = {}
+      for (const mode of modes) {
+        const next: Criteria = {
+          loan: { ...current.loan },
+          partner: { ...current.partner },
+          portfolio: { ...current.portfolio },
+        }
+        ;(next[group] as Record<string, unknown>)[`${key}_all_any_none`] = mode
+        counts[mode] = kl.filter(next, false).length
+      }
+      return counts
+    },
+    [criteriaRef, hideGraphs],
+  )
+
   const handleInspectSelect = useCallback(
     (group: 'loan' | 'partner', key: string, canAll = false) => {
       if (hideGraphs) return
@@ -1848,13 +1761,8 @@ export function CriteriaTabs() {
     return () => document.removeEventListener('mousedown', onDocMouseDown)
   }, [helperChart, handleInspectEnd])
 
-  // The focused field's distribution, fed INTO its own dropdown as in-list bars.
-  const distributionMap = useMemo<Record<string, number> | undefined>(() => {
-    if (!helperChart) return undefined
-    const m: Record<string, number> = {}
-    for (const d of helperChart.data) m[d.name] = d.count
-    return m
-  }, [helperChart])
+  // The focused field's counts, fed INTO its own dropdown as in-list bars.
+  const distributionMap = helperChart ?? undefined
 
   return (
     <div data-aikl="criteria-tabs">
@@ -1872,6 +1780,7 @@ export function CriteriaTabs() {
               criteria={criteria}
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
+              countAanModes={countAanModes}
               onInspectEnd={handleInspectEnd}
               distribution={distributionMap}
               distributionKey={helperTarget?.key}
@@ -1887,6 +1796,7 @@ export function CriteriaTabs() {
               criteria={criteria}
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
+              countAanModes={countAanModes}
               onInspectEnd={handleInspectEnd}
               distribution={distributionMap}
               distributionKey={helperTarget?.key}

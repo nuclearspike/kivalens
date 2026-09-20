@@ -620,3 +620,51 @@ export function partnerRangeValues(ctx, keys) {
   }
   return out
 }
+
+// ---------------------------------------------------------------------------
+// What each option of a partner dropdown would mean for the results: per
+// dropdown, how many partners in the pool carry each option value, counted over
+// the partners that match every OTHER filter. The dropdown's own selection is
+// left out, as a slider's own range is, so the count beside an option is the
+// number of partners choosing it would give. The one exception mirrors the loan
+// search's option graphs: in "all" mode every added option narrows the current
+// results, so the dropdown's selection stays in force.
+//
+// keys: dropdown criteria names (see PARTNER_FACETS). Returns { key: { value: count } }.
+// ---------------------------------------------------------------------------
+const PARTNER_FACETS = {
+  status: (p) => [p.status],
+  country_code: (p) => (p.countries || []).map((c) => c.iso_code),
+  region: (p) => p.kl_regions || [],
+  social_performance: (p) => (p.kl_sp || []).map(String),
+  religion: (p) => p.normalizedReligions || ['Unknown'],
+  charges_fees_and_interest: (p) => [String(!!p.charges_fees_and_interest)],
+}
+
+// The mode a dropdown is in while its Any / All / None switch is untouched. It must
+// match the default buildPartnerTester gives the same key, or the counts would
+// describe a different search from the one the switch shows.
+const PARTNER_FACET_DEFAULT_MODE = { social_performance: 'all' }
+
+export function partnerOptionCounts(c, ctx, keys, accept) {
+  const criteria = normalizeCriteria(c || {})
+  const out = {}
+  for (const key of keys) {
+    const valuesOf = PARTNER_FACETS[key]
+    out[key] = {}
+    if (!valuesOf) continue
+    const partner = { ...criteria.partner }
+    const mode = partner[`${key}_all_any_none`] || PARTNER_FACET_DEFAULT_MODE[key] || 'any'
+    if (mode !== 'all') {
+      delete partner[key]
+      delete partner[`${key}_all_any_none`]
+    }
+    for (const p of filterPartners({ ...criteria, partner }, ctx)) {
+      if (accept && !accept(p)) continue
+      for (const value of new Set(valuesOf(p))) {
+        if (value != null) out[key][value] = (out[key][value] ?? 0) + 1
+      }
+    }
+  }
+  return out
+}

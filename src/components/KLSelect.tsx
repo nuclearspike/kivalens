@@ -1,18 +1,22 @@
 import { useMemo } from 'react'
 import ReactSelect, { components as RSComponents } from 'react-select'
 import type { GroupBase, Props, OptionProps, MenuListProps } from 'react-select'
+import { useI18n } from '../i18n'
 
 type SortMode = 'abc' | 'count'
 
 interface KLDistProps {
-  /** option label -> count; when present, draws an in-list distribution bar +
-   *  count behind each option and shows an ABC/Count sort toggle. */
+  /** option VALUE -> count; when present, draws an in-list distribution bar +
+   *  count behind each option and shows an ABC/Count sort toggle. Keyed by value,
+   *  not label: a label changes with the language, a value does not. */
   distribution?: Record<string, number>
   sortMode?: SortMode
   onSortMode?: (mode: SortMode) => void
 }
 
 const labelOf = (o: unknown): string => String((o as { label?: unknown })?.label ?? '')
+const valueOf = (o: unknown): unknown => (o as { value?: unknown })?.value
+const keyOf = (o: unknown): string => String(valueOf(o) ?? '')
 
 // Extra props smuggled through react-select's `selectProps` so the custom
 // components below can stay MODULE-LEVEL (stable identity). Recreating custom
@@ -32,7 +36,7 @@ type AnyMenuList = MenuListProps<unknown, boolean, GroupBase<unknown>>
 
 function DistOption(op: AnyOption) {
   const sp = op.selectProps as unknown as KLDistExtra
-  const count = sp.klDistribution?.[labelOf(op.data)] ?? 0
+  const count = sp.klDistribution?.[keyOf(op.data)] ?? 0
   const max = sp.klMaxCount ?? 0
   const pct = max > 0 ? Math.min((count / max) * 100, 100) : 0
   // Bar = background gradient (no overlapping element); pointer-events:none on the
@@ -61,6 +65,7 @@ function DistOption(op: AnyOption) {
 }
 
 function DistMenuList(ml: AnyMenuList) {
+  const { t } = useI18n()
   const sp = ml.selectProps as unknown as KLDistExtra
   const sortMode: SortMode = sp.klSortMode ?? 'abc'
   const onSortMode = sp.klOnSortMode
@@ -96,8 +101,8 @@ function DistMenuList(ml: AnyMenuList) {
         onMouseDown={(e) => e.preventDefault()}
         style={{ display: 'flex', gap: 4, padding: '2px 4px 6px', position: 'sticky', top: 0, background: 'var(--kl-surface-raised)', zIndex: 2, borderBottom: '1px solid var(--kl-line)' }}
       >
-        {tab('abc', 'ABC')}
-        {tab('count', 'Count')}
+        {tab('abc', t('sort_abc'))}
+        {tab('count', t('sort_count'))}
       </div>
       {ml.children}
     </RSComponents.MenuList>
@@ -132,8 +137,12 @@ export default function KLSelect<
     if (!hasDist) return options
     const dist = distribution as Record<string, number>
     return [...(options as Option[])].sort((a, b) => {
+      // The option that lifts the filter (empty value, "Show all") leads in either
+      // ordering: it is the way out, not one of the values being compared.
+      const lift = Number(valueOf(b) === '') - Number(valueOf(a) === '')
+      if (lift !== 0) return lift
       if (sortMode === 'count') {
-        const d = (dist[labelOf(b)] ?? 0) - (dist[labelOf(a)] ?? 0)
+        const d = (dist[keyOf(b)] ?? 0) - (dist[keyOf(a)] ?? 0)
         if (d !== 0) return d
       }
       return labelOf(a).localeCompare(labelOf(b))

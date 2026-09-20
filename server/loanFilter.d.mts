@@ -56,6 +56,13 @@ export interface RangeDistributions {
 /** Per slider: loans matching all the OTHER criteria, binned along that slider's scale. */
 export declare function rangeDistributions(criteria: unknown, ctx: FilterContext, specs: RangeDistributionSpecs): RangeDistributions
 export declare function binIndex(value: unknown, spec: BinSpec): number
+/** Per partner dropdown: how many partners (matching every other filter) carry each option value. */
+export declare function partnerOptionCounts(
+  criteria: unknown,
+  ctx: FilterContext,
+  keys: string[],
+  accept?: (partner: never) => boolean,
+): Record<string, Record<string, number>>
 /** The pool's numeric values for the given partner ranges, via the filter's own selectors. */
 export declare function partnerRangeValues(ctx: FilterContext, keys: string[]): Record<string, number[]>
 /** Per slider: PARTNERS in the pool matching all the other partner criteria (and `accept`), binned. */

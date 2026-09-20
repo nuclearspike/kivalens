@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLatestRef } from '../lib/useLatestRef'
-import { Container, Button, Badge, ListGroup, Form, Row, Col, Dropdown, OverlayTrigger, Popover } from '../ui'
+import { Container, Button, Badge, ListGroup, Form, Row, Col, OverlayTrigger, Popover } from '../ui'
 import Select from './KLSelect'
+import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
 import { PARTNER_SLIDER_HELP, RELIGION_HELP, RangeExactControl } from './CriteriaTabs'
 import Slider from 'rc-slider'
 import RangeHistogram from './RangeHistogram'
@@ -13,9 +14,9 @@ import { PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/range
 import { pluralCategory } from '../lib/pluralCategory'
 import { lsj } from '../lib/localStorage'
 import { DEFAULT_PARTNER_FILTERS, partnerFiltersArePristine } from '../lib/partnerFilterDefaults'
-import { partnerRangeDistributions, partnerRangeValues } from '../../server/loanFilter.mjs'
+import { partnerOptionCounts, partnerRangeDistributions, partnerRangeValues } from '../../server/loanFilter.mjs'
 import type { Partner } from '../types'
-import { useLoanStore } from '../stores'
+import { useLoanStore, useUtilsStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
 import PartnerDetail from './PartnerDetail'
 import { useI18n } from '../i18n'
@@ -140,40 +141,6 @@ function optionsToCsv(options: readonly SelectOption[]) {
   return options.map((option) => option.value).join(',')
 }
 
-
-function AanDropdown({
-  value,
-  onChange,
-  canAll,
-}: {
-  value: string
-  onChange: (val: string) => void
-  canAll?: boolean
-}) {
-  const { t } = useI18n()
-  const selected = value || (canAll ? 'all' : 'any')
-  const styles: Record<string, string> = canAll
-    ? { all: 'success', any: 'primary', none: 'danger' }
-    : { any: 'success', none: 'danger' }
-
-  return (
-    <Dropdown>
-      <Dropdown.Toggle
-        size="sm"
-        variant={styles[selected] ?? 'primary'}
-        id="partner-aan-dropdown"
-        style={{ height: 34, padding: '4px 8px', minWidth: 53, width: 'max-content', whiteSpace: 'nowrap' }}
-      >
-        {t(selected)}
-      </Dropdown.Toggle>
-      <Dropdown.Menu>
-        {canAll ? <Dropdown.Item onClick={() => onChange('all')}>{t('all_these')}</Dropdown.Item> : null}
-        <Dropdown.Item onClick={() => onChange('any')}>{t('any_these')}</Dropdown.Item>
-        <Dropdown.Item onClick={() => onChange('none')}>{t('none_these')}</Dropdown.Item>
-      </Dropdown.Menu>
-    </Dropdown>
-  )
-}
 
 function FilterRow({
   label,
@@ -514,6 +481,49 @@ export function Component() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, nameSearch, loans, downloading, partnerTick, sliderMaxima])
 
+  // What every dropdown option would mean for this list: beside each option, the
+  // number of partners choosing it would give, counted over the partners that
+  // match every other filter on the page (name search included). Same graphs,
+  // and the same ABC / Count ordering, as the Search page's dropdowns.
+  const sortMode = useUtilsStore((s) => s.criteriaSortMode)
+  const setSortMode = useUtilsStore((s) => s.setCriteriaSortMode)
+  const optionCounts = useMemo(() => {
+    const kl = getKivaLoans()
+    if (!kl?.partnersFromKiva?.length) return null
+    if (lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs) return null
+    const terms = nameSearch.toUpperCase().match(/(\w+)/g)
+    return partnerOptionCounts(
+      { partner: filters },
+      { loans, activePartners: kl.activePartners, partnerPool: kl.partnersFromKiva, atheistListProcessed: kl.atheistListProcessed },
+      ['status', 'country_code', 'region', 'social_performance', 'religion', 'charges_fees_and_interest'],
+      terms ? (p: Partner) => terms.every((term) => (p.kl_name_arr || []).some((w) => w.startsWith(term))) : undefined,
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, nameSearch, loans, downloading, partnerTick])
+  // Already keyed by option value, which is how KLSelect reads its graph.
+  const graphFor = (key: string) => optionCounts?.[key]
+
+  // "Show all" lifts this filter, so its bar is every partner the other filters leave.
+  const chargesCounts = optionCounts?.charges_fees_and_interest
+  const chargesGraph = chargesCounts
+    ? { ...chargesCounts, '': (chargesCounts.true ?? 0) + (chargesCounts.false ?? 0) }
+    : undefined
+
+  // What each Any / All / None mode of one dropdown would give: the partners the
+  // page lists with that mode, every other filter (name search included) as it
+  // stands. Taken when the mode menu opens; nothing to show while no value is chosen.
+  const countAanModes = (key: string, canAll = false): AanCounts | null => {
+    const kl = getKivaLoans()
+    if (!kl?.partnersFromKiva?.length || !filters[key]) return null
+    if (lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs) return null
+    const modes: AanMode[] = canAll ? ['all', 'any', 'none'] : ['any', 'none']
+    const counts: AanCounts = {}
+    for (const mode of modes) {
+      counts[mode] = kl.filterAllPartners({ ...filters, [`${key}_all_any_none`]: mode, name: nameSearch }).length
+    }
+    return counts
+  }
+
   const updateFilter = useCallback((key: string, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }, [])
@@ -549,6 +559,8 @@ export function Component() {
               label={t('status')}
               aan={
                 <AanDropdown
+                  id="partner-aan-dropdown"
+                  getCounts={() => countAanModes('status')}
                   value={String(filters.status_all_any_none ?? 'any')}
                   onChange={(v) => updateFilter('status_all_any_none', v)}
                 />
@@ -559,6 +571,9 @@ export function Component() {
                 placeholder=""
                 options={localizedOptions.statuses}
                 value={csvToOptions(filters.status, localizedOptions.statuses)}
+                distribution={graphFor('status')}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
                 onChange={(value) => updateFilter('status', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -569,7 +584,8 @@ export function Component() {
               label={t('countries')}
               aan={
                 <AanDropdown
-                  
+                  id="partner-aan-dropdown"
+                  getCounts={() => countAanModes('country_code')}
                   value={String(filters.country_code_all_any_none ?? 'any')}
                   onChange={(v) => updateFilter('country_code_all_any_none', v)}
                 />
@@ -580,6 +596,9 @@ export function Component() {
                 placeholder=""
                 options={localizedOptions.countries}
                 value={csvToOptions(filters.country_code, localizedOptions.countries)}
+                distribution={graphFor('country_code')}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
                 onChange={(value) => updateFilter('country_code', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -590,7 +609,8 @@ export function Component() {
               label={t('region_2')}
               aan={
                 <AanDropdown
-                  
+                  id="partner-aan-dropdown"
+                  getCounts={() => countAanModes('region')}
                   value={String(filters.region_all_any_none ?? 'any')}
                   onChange={(v) => updateFilter('region_all_any_none', v)}
                 />
@@ -601,6 +621,9 @@ export function Component() {
                 placeholder=""
                 options={localizedOptions.regions}
                 value={csvToOptions(filters.region, localizedOptions.regions)}
+                distribution={graphFor('region')}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
                 onChange={(value) => updateFilter('region', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -612,6 +635,8 @@ export function Component() {
               aan={
                 <AanDropdown
                   canAll
+                  id="partner-aan-dropdown"
+                  getCounts={() => countAanModes('social_performance', true)}
                   value={String(filters.social_performance_all_any_none ?? 'all')}
                   onChange={(v) => updateFilter('social_performance_all_any_none', v)}
                 />
@@ -622,6 +647,9 @@ export function Component() {
                 placeholder=""
                 options={localizedOptions.socialPerformance}
                 value={csvToOptions(filters.social_performance, localizedOptions.socialPerformance)}
+                distribution={graphFor('social_performance')}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
                 onChange={(value) => updateFilter('social_performance', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
@@ -629,17 +657,17 @@ export function Component() {
             </FilterRow>
 
             <FilterRow label={t('charges_interest')}>
-              <Form.Select
-                size="sm"
-                value={String(filters.charges_fees_and_interest ?? '')}
-                onChange={(e) => updateFilter('charges_fees_and_interest', e.target.value)}
-              >
-                {localizedOptions.charges.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Form.Select>
+              <Select
+                placeholder=""
+                options={localizedOptions.charges}
+                value={localizedOptions.charges.find((o) => o.value === String(filters.charges_fees_and_interest ?? '')) ?? null}
+                distribution={chargesGraph}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
+                onChange={(value) => updateFilter('charges_fees_and_interest', (value as SelectOption | null)?.value ?? '')}
+                menuPortalTarget={document.body}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
+              />
             </FilterRow>
 
             <FilterRow
@@ -647,7 +675,8 @@ export function Component() {
               hint={RELIGION_HELP}
               aan={
                 <AanDropdown
-                  
+                  id="partner-aan-dropdown"
+                  getCounts={() => countAanModes('religion')}
                   value={String(filters.religion_all_any_none ?? 'any')}
                   onChange={(v) => updateFilter('religion_all_any_none', v)}
                 />
@@ -658,6 +687,9 @@ export function Component() {
                 placeholder=""
                 options={localizedOptions.religions}
                 value={csvToOptions(filters.religion, localizedOptions.religions)}
+                distribution={graphFor('religion')}
+                sortMode={sortMode}
+                onSortMode={setSortMode}
                 onChange={(value) => updateFilter('religion', optionsToCsv(value as readonly SelectOption[]))}
                 menuPortalTarget={document.body}
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }), control: (base) => ({ ...base, minHeight: 34 }) }}
