@@ -12,6 +12,8 @@ export interface KLState {
   partnersGz: Buffer | null
   optionsGz: Buffer | null
   allLoans: unknown[]
+  recentlyFunded: Array<{ id: number; fundedAt: string }>
+  loanDetailRequests: Map<string, Promise<unknown>>
   partners: unknown[]
   activePartners: unknown[]
   atheistListProcessed: boolean

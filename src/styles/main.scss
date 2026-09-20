@@ -504,6 +504,17 @@ body {
     }
   }
 
+  // "Loading…" while a loan's status is re-checked: at the far end of the strip.
+  .kl-loan-checking {
+    flex: none;
+    align-self: center;
+    margin-left: auto;
+    padding: 0 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--kl-text-muted);
+  }
+
   .kl-partner-tab-name {
     min-width: 0;
     overflow: hidden;

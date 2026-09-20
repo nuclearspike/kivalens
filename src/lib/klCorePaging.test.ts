@@ -82,6 +82,34 @@ afterEach(() => {
 })
 
 describe('klCore paging — a live listing that shifts mid-pull', () => {
+  it('checks loans that disappear between refreshes and keeps only their recent funded ID/time', async () => {
+    let listing = [[loan(1), loan(2)]]
+    let closed = false
+    const baseFetch = fakeKiva(() => listing)
+    const fundedAt = new Date().toISOString()
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (closed && /\/loans\/[\d,]+\.json/.test(url))
+        return { ok: true, status: 200, json: async () => ({ loans: [loan(1), loan(2, { status: 'funded', funded_amount: 1000, funded_date: fundedAt })] }) } as Response
+      return baseFetch(url, init)
+    }) as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    listing = [[loan(1)]]
+    closed = true
+    await prepareData(state, silent)
+    expect(ids(state)).toEqual([1])
+    expect(state.recentlyFunded).toEqual([{ id: 2, fundedAt }])
+    expect(state.allLoans.some((item: { id: number }) => item.id === 2)).toBe(false)
+  })
+
+  it('does not keep an expired loan simply because some funding is still needed', async () => {
+    globalThis.fetch = fakeKiva(() => [[loan(1), loan(2, { status: 'expired', funded_amount: 50 })]]) as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    expect(ids(state)).toEqual([1])
+    expect(state.recentlyFunded).toEqual([])
+  })
+
   it('emits each loan ONCE when a shift repeats one across the page boundary', async () => {
     // Loan 3 funds out between page 1 and 2, shifting the window back by one, so
     // loan 4 is served again at the head of page 2.

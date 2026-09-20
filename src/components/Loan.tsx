@@ -138,15 +138,25 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   // Fetch full loan details (including repayment schedule) if not yet loaded.
   // KL server loans arrive without terms.scheduled_payments, so kl_repayments is empty.
   const [detailVersion, setDetailVersion] = useState(0)
+  const [detailAttempt, setDetailAttempt] = useState(0)
+  const [detailResult, setDetailResult] = useState<{ id: number; attempt: number; error: boolean } | null>(null)
+  const detailLoading = detailResult?.id !== loanId || detailResult?.attempt !== detailAttempt
+  const detailError = !detailLoading && detailResult?.error === true
   const loanAvailable = !!loan
   useEffect(() => {
-    if (loan && (!loan.kl_repayments?.length || !loan.description?.texts?.en)) {
+    let current = true
+    if (loan) {
       const kl = getKivaLoans()
       kl.fetchDescrAndRepayments(loan)
-        .then(() => setDetailVersion((v) => v + 1))
-        .catch(() => {})
+        .then(() => {
+          if (!current) return
+          setDetailVersion((v) => v + 1)
+          setDetailResult({ id: loanId, attempt: detailAttempt, error: false })
+        })
+        .catch(() => { if (current) setDetailResult({ id: loanId, attempt: detailAttempt, error: true }) })
     }
-  }, [loanId, loanAvailable]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { current = false }
+  }, [loanId, loanAvailable, detailAttempt]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // AI translation of the English description into the UI language (non-EN only).
   const [translation, setTranslation] = useState<string | null>(null)
@@ -288,7 +298,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             }}
           >
             <select
-              disabled={loan.status !== 'fundraising'}
+              disabled={loan.status !== 'fundraising' || detailLoading || detailError}
               value={lendAmount}
               onChange={handleLendAmountChange}
               style={{
@@ -310,7 +320,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               ))}
             </select>
             <button
-              disabled={loan.status !== 'fundraising'}
+              disabled={loan.status !== 'fundraising' || detailLoading || detailError}
               onClick={handleLend}
               style={{
                 padding: '4px 14px',
@@ -352,9 +362,15 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         {loan.name}
       </h1>
 
-      {inBasket && (loan.kl_still_needed ?? 0) === 0 && (
+      {detailError && (
+        <div className="alert alert-warning" role="alert">
+          <p>{t('loan_status_check_failed')}</p>
+          <button className="btn btn-outline-secondary" onClick={() => setDetailAttempt(v => v + 1)}>{t('retry_loan_details')}</button>
+        </div>
+      )}
+      {['funded', 'expired', 'unavailable'].includes(loan.status) && (
         <div className="alert alert-warning py-1 mb-2">
-           {t('loan_has_been_fully_funded')}
+          {t(loan.status === 'funded' ? 'loan_status_funded' : loan.status === 'expired' ? 'loan_status_expired' : 'loan_status_unavailable')}
         </div>
       )}
 
@@ -391,6 +407,12 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </button>
           </li>
         )}
+        {/* The status check on opening a loan says so here, at the end of the tab strip.
+            The words are always laid out and only their visibility changes, so opening a
+            loan moves nothing on the page. */}
+        <li className="kl-loan-checking" role="status" style={{ visibility: detailLoading ? 'visible' : 'hidden' }}>
+          {t('loading_ellipsis')}
+        </li>
       </ul>
 
       <div className="ample-padding-top" key={detailVersion}>
@@ -425,7 +447,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         {activeTab === 2 && (
           <div>
             {/* Funding progress bar — striped Flatly success + warning */}
-            <div className="progress">
+            {/* Kept in the layout while it has nothing certain to show, so the details below do not jump. */}
+            <div className="progress" style={{ visibility: detailLoading || detailError || loan.status === 'unavailable' ? 'hidden' : undefined }}>
               <div
                 className="progress-bar progress-bar-striped"
                 style={{
@@ -556,8 +579,10 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                       <span className="detail-label">{t('baskets')}</span>{' '}
                       {currency(loan.basket_amount)}{' '}
                       <span style={{ color: 'var(--kl-text-muted)' }}>|</span>{' '}
-                      <span className="detail-label">{t('still_needed')}</span>{' '}
-                      {currency(loan.kl_still_needed ?? 0)}
+                      {loan.status === 'fundraising' && !detailError && !detailLoading && <>
+                        <span className="detail-label">{t('still_needed')}</span>{' '}
+                        {currency(loan.kl_still_needed ?? 0)}
+                      </>}
                     </div>
                   </div>
                 )}
@@ -566,6 +591,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
               {/* Right detail column: repayment graph */}
               <div style={{ flex: '1 1 50%', minWidth: 0 }}>
                 {loan.kl_repayments && <RepaymentGraphs loan={loan} />}
+                {!detailLoading && !detailError && !loan.kl_repayments?.length && <p>{t('repayment_public_unavailable')}</p>}
               </div>
             </div>
 

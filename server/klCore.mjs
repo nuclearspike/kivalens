@@ -28,6 +28,7 @@ import { readCache, writeCache, cleanupCache } from './diskCache.mjs'
 import { filterLoans } from './loanFilter.mjs'
 import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
 import { sendDailyDigest } from './digest.mjs'
+import { recentlyFunded, observeFundedLoans, resolveLoanDetails } from './loanLifecycle.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -81,7 +82,7 @@ const FETCH_HEADERS = {
 }
 
 async function fetchJSON(url) {
-  const res = await fetch(url, { headers: FETCH_HEADERS })
+  const res = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(20_000) })
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`)
   return res.json()
 }
@@ -709,6 +710,8 @@ export function createState() {
     aplusMerged: 0, // count of partners matched to an A+ row last refresh
     optionsGz: null, // gzipped facet taxonomy from Kiva GraphQL
     allLoans: [],
+    recentlyFunded: [], // Only { id, fundedAt }; no closed borrower content.
+    loanDetailRequests: new Map(), // In-flight only; removed on every outcome.
     newestTime: 0,
     building: false,
   }
@@ -770,7 +773,10 @@ export async function prepareData(state, log = console.log) {
     log(`Found ${searchLoans.length} fundraising loans`)
 
     log('Fetching full loan details...')
-    let detailMap = await fetchLoanDetails(searchLoans.map((l) => l.id), log)
+    const listedIds = new Set(searchLoans.map(loan => loan.id))
+    const missingIds = state.allLoans.filter(loan => !listedIds.has(loan.id)).map(loan => loan.id)
+    let detailMap = await fetchLoanDetails([...listedIds, ...missingIds], log)
+    observeFundedLoans(state, [...detailMap.values()])
     log(`Fetched details for ${detailMap.size} loans`)
 
     // Free each heavy intermediate as soon as it is consumed. The refresh used to
@@ -800,8 +806,8 @@ export async function prepareData(state, log = console.log) {
     // funded (funded_amount >= loan_amount). basket_amount is deliberately
     // ignored: Kiva's basket figures are unreliable and sometimes exceed the
     // amount remaining, so only funded vs. total decides fundability.
-    let fundable = processed.filter((p) => p.loan.funded_amount < p.loan.loan_amount)
-    log(`Excluded ${processed.length - fundable.length} fully-funded loans; ${fundable.length} remain`)
+    let fundable = processed.filter((p) => p.loan.status === 'fundraising' && p.loan.funded_amount < p.loan.loan_amount)
+    log(`Excluded ${processed.length - fundable.length} closed or fully-funded loans; ${fundable.length} remain`)
     processed = null
 
     // Stage the live dataset now (releasing the previous batch's loans — holding
@@ -963,6 +969,7 @@ export function startRefresh(state, log = console.log) {
   // Periodic memory breakdown so we can see WHAT holds RSS (heapTotal over-commit
   // that --max-old-space-size can bind, vs. external/buffer memory it can't).
   setInterval(() => {
+    recentlyFunded(state)
     const m = process.memoryUsage()
     const mb = (n) => Math.round(n / 1048576)
     log(
@@ -1192,6 +1199,12 @@ async function serveRssFeed(state, req, res) {
 export function handleApi(state, req, res) {
   const url = req.url || ''
 
+  if (url === '/api/recently-funded' && req.method === 'GET') {
+    res.setHeader('Cache-Control', 'no-store')
+    sendJSON(res, recentlyFunded(state))
+    return true
+  }
+
   if (url === '/api/start') {
     if (!state.ready || !state.klStart) send404(res)
     else sendJSON(res, state.klStart)
@@ -1249,38 +1262,52 @@ export function handleApi(state, req, res) {
   }
 
   if (url === '/graphql' && req.method === 'POST') {
+    res.setHeader('Cache-Control', 'no-store')
     let body = ''
+    let tooLarge = false
     req.on('data', (chunk) => {
+      if (tooLarge) return
       body += chunk.toString()
+      if (Buffer.byteLength(body) > 64 * 1024) {
+        tooLarge = true
+        body = ''
+        res.statusCode = 413
+        sendJSON(res, { errors: [{ message: 'Request too large' }] })
+      }
     })
-    req.on('end', () => {
+    req.on('end', async () => {
+      if (tooLarge) return
       try {
-        const idsMatch = body.match(/ids:\[([^\]]+)\]/)
+        // The web client sends raw query text; Lite sends a JSON query envelope.
+        const query = /^\{\s*"/.test(body.trim()) ? JSON.parse(body).query : body
+        if (typeof query !== 'string') throw new Error('Invalid query')
+        const idsMatch = query.match(/ids\s*:\s*\[([^\]]*)\]/)
         if (!idsMatch) return sendJSON(res, { data: { loans: [] } })
         // Cap how many loan details one request can resolve. Without a bound, a
         // single request could buffer the whole dataset in memory (and the
         // find-per-id below is O(ids × allLoans)). Real clients page in small
         // batches, so 500 is generous; truncation is logged, not silent.
         const GRAPHQL_MAX_IDS = 500
-        let ids = idsMatch[1]
-          .split(',')
-          .map((s) => parseInt(s.trim(), 10))
-          .filter((n) => Number.isFinite(n))
+        const tokens = idsMatch[1].split(',').map(value => value.trim()).filter(Boolean)
+        if (tokens.some(value => !/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1))
+          throw new Error('Invalid loan ID')
+        let ids = [...new Set(tokens.map(Number))]
         if (ids.length > GRAPHQL_MAX_IDS) {
           console.warn(`/graphql: capping ${ids.length} loanIds to ${GRAPHQL_MAX_IDS}`)
           ids = ids.slice(0, GRAPHQL_MAX_IDS)
         }
-        const loans = ids
-          .map((id) => state.allLoans.find((l) => l.id === id))
-          .filter(Boolean)
-          .map((l) => ({
-            id: l.id,
-            description: l.description || { texts: { en: '' } },
-            kl_repayments: l.kl_repayments || [],
-          }))
+        const loans = await resolveLoanDetails(state, ids, raw => processLoan(raw).loan,
+          /refresh\s*:\s*true\b/.test(query))
         sendJSON(res, { data: { loans } })
       } catch {
-        sendJSON(res, { data: { loans: [] } })
+        // This handler is async and the process has no unhandledRejection handler, so
+        // nothing may escape it: a throw here would take the server down, and with it
+        // the in-memory loan catalog.
+        try {
+          if (res.headersSent) return res.end()
+          res.statusCode = 400
+          sendJSON(res, { errors: [{ message: 'Unable to resolve loan details' }] })
+        } catch { /* the connection is gone; there is no one to answer */ }
       }
     })
     return true

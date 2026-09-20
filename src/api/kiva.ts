@@ -27,7 +27,7 @@ import { filterLoans, filterPartners as sharedFilterPartners } from '../../serve
 import { today } from '../lib/dateUtils'
 import { cl, wait } from '../lib/utils'
 import { LOAN_DESCRIPTIONS_FILTER_DEPENDENCY } from '../lib/filterReadiness'
-import { setAPIOptions, getUrl } from './kivajs/kivaBase'
+import { setAPIOptions, getUrl, HttpStatusError } from './kivajs/kivaBase'
 import { ResultProcessors } from './kivajs/ResultProcessors'
 import { req } from './kivajs/req'
 import { LoansSearch } from './kivajs/LoansSearch'
@@ -643,18 +643,45 @@ export class Loans {
   async fetchDescrAndRepayments(loans: KivaLoan | KivaLoan[]): Promise<void> {
     const loanArr = Array.isArray(loans) ? loans : [loans]
     const ids = loanArr.map((l) => l.id).join(',')
-    const data = await (req.kl as any).graph(
-      `{loans(ids:[${ids}]){
-        id
+    let data: { loans?: Array<Partial<KivaLoan> & { id: number; kl_lookup_error?: string }> } | undefined
+    try { data = await req.kl.graph(
+      `{loans(ids:[${ids}],refresh:${!Array.isArray(loans)}){
+        id status loan_amount funded_amount basket_amount planned_expiration_date kl_lookup_error
         description{texts{en}}
         kl_repayments:repayments {date display amount percent}
       }}`,
-    )
-    if (data?.loans) {
-      for (const vd of data.loans) {
-        this.mergeExtraLoanData(vd)
+    ) } catch { /* An unavailable KL cache does not establish Kiva's status. */ }
+    const found = new Map((Array.isArray(data?.loans) ? data.loans : []).map(loan => [loan.id, loan]))
+    const queue = [...loanArr]
+    const failures: unknown[] = []
+    await Promise.all(Array.from({ length: Math.min(4, queue.length) }, async () => {
+      while (queue.length) {
+        const existing = queue.shift()!
+        let detail = found.get(existing.id)
+        try {
+          if (!detail || detail.kl_lookup_error || !['fundraising', 'funded', 'expired', 'unavailable'].includes(detail.status ?? '')) {
+            try { detail = await this.getLoanFromKiva(existing.id) }
+            catch (error) {
+              if (error instanceof HttpStatusError && [404, 410].includes(error.status))
+                detail = { id: existing.id, status: 'unavailable' }
+              else throw error
+            }
+          }
+          if (detail.id !== existing.id || !['fundraising', 'funded', 'expired', 'unavailable'].includes(detail.status ?? ''))
+            throw new Error('Unverified loan details')
+          this.mergeLoanAndNotify(existing, detail, undefined, true)
+        } catch (error) {
+          // An ID/timestamp-only recent-funding marker can still explain why a
+          // loan closed, even if Kiva is temporarily unable to return its story.
+          const known = found.get(existing.id)
+          if (known?.status === 'funded')
+            this.mergeLoanAndNotify(existing, { status: 'funded', funded_amount: existing.loan_amount, basket_amount: 0 })
+          failures.push(error)
+        }
       }
-    }
+    }))
+    if (!Array.isArray(loans)) this.notify({ background_updated: loanArr.length })
+    if (failures.length) throw new Error('Some loan details could not be verified', { cause: failures[0] })
   }
 
   // ---- Hot loans ----
@@ -1091,7 +1118,7 @@ export class Loans {
    * CRITICAL: After merging dynamic fields, recalculate computed fields
    * (fix for stale kl_still_needed after sync).
    */
-  mergeLoanAndNotify(existing: KivaLoan, refreshed: Partial<KivaLoan>, extra?: Partial<KivaLoan>): void {
+  mergeLoanAndNotify(existing: KivaLoan, refreshed: Partial<KivaLoan>, extra?: Partial<KivaLoan>, authoritative = false): void {
     if (existing.status === 'fundraising') {
       if (existing.funded_amount !== refreshed.funded_amount && refreshed.funded_amount !== undefined) {
         this.runningTotals.funded_amount += refreshed.funded_amount - existing.funded_amount
@@ -1101,7 +1128,7 @@ export class Loans {
     const oldStatus = existing.status
 
     // Only merge funded_amount upward to avoid race conditions with data-stream updates
-    if (refreshed.funded_amount !== undefined && refreshed.funded_amount < existing.funded_amount) {
+    if (!authoritative && refreshed.funded_amount !== undefined && refreshed.funded_amount < existing.funded_amount) {
       const { funded_amount: _, ...rest } = refreshed
       Object.assign(existing, rest, extra ?? {})
     } else {

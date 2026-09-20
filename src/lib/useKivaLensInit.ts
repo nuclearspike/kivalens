@@ -98,7 +98,7 @@ export function useKivaLensInit() {
         // Evict now-funded/expired loans so the in-memory dataset stays bounded to
         // the live fundraising set (+ basket loans) instead of growing every
         // resync — the slow client memory leak behind the multi-GB tab.
-        kl.pruneNonFundraising(store.basket.map((b) => b.loan_id))
+        kl.pruneNonFundraising([...store.basket.map((b) => b.loan_id), ...(store.selectedId ? [store.selectedId] : [])])
         store.setLoans(kl.loansFromKiva)
         store.filterLoans()
         // Clear the resync banner after a moment
@@ -127,7 +127,7 @@ export function useKivaLensInit() {
         const gone = msg.loan_not_fundraising as { id: number }
         // T1.5: don't silently drop a basket loan — tell the user why.
         if (store.inBasket(gone.id)) {
-          store.setBasketNotice('A loan in your basket finished funding and was removed.')
+          store.setBasketNotice('A loan in your basket is no longer accepting contributions and was removed.')
         }
         store.removeFromBasket(gone.id)
         store.setLoans(kl.loansFromKiva)

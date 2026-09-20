@@ -19,8 +19,10 @@ export const req = {
     graph: async (query: string): Promise<any> => {
       const response = await postUrl(
         `${location.protocol}//${location.host}/graphql`,
-        query
+        query,
+        { timeoutMs: 22_000 },
       )
+      if (response.errors?.length) throw new Error('Loan detail lookup failed')
       return response.data
     },
   }),
@@ -50,8 +52,10 @@ export const req = {
         },
 
         loan: async (id: number): Promise<any> => {
-          const res = await req.kiva.api.get(`loans/${id}.json`)
-          return ResultProcessors.processLoan(res.loans[0])
+          const res = await getUrl(`https://api.kivaws.org/v1/loans/${id}.json?app_id=org.kiva.kivalens`, { timeoutMs: 10_000 })
+          const loan = Array.isArray(res.loans) ? res.loans.find((item: { id: number }) => item.id === id) : null
+          if (!loan) throw new Error('Kiva did not return the requested loan')
+          return ResultProcessors.processLoan(loan)
         },
 
         similarTo: async (id: number): Promise<any[]> => {
