@@ -14,6 +14,18 @@
   padding-right: $gutter;
 }
 
+// The app's full-width container is tighter than the grid gutter (main.scss gives
+// it $kl-spacing-md of side padding, pages may tighten it further with px-*), so a
+// row inside it reaches past the container, and therefore past the screen, by
+// the difference on each side. That overhang holds nothing but the outer columns'
+// padding. Clipping it keeps every column exactly where it is and stops the page
+// scrolling sideways. It is `clip`, not `hidden`: hidden would make the container
+// a scroll box, which breaks position: sticky inside it. A page's rows must sit in
+// a container; a row in a bare element has nothing to bound it.
+.container-fluid {
+  overflow-x: clip;
+}
+
 // BS3 fixed-container widths (the old app rendered with these)
 @media (min-width: $breakpoint-md) {
   .container { width: 750px; }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
+import { Container, Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
 import { useCriteriaStore, useLoanStore } from '../stores'
 import { showAlert, showConfirm, showPrompt } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
@@ -345,7 +345,9 @@ export function SavedSearches() {
   const isSingle = parsedImport != null && isSingleSearch(parsedImport)
 
   return (
-    <div>
+    // The app's container gives the page its side padding and bounds its rows,
+    // as on Search and Partners.
+    <Container fluid>
       <Row>
         <Col md={4}>
           <h4 style={{ marginTop: 5, marginBottom: 8 }}>{t('saved_searches')} ({searches.length})</h4>
@@ -528,7 +530,7 @@ export function SavedSearches() {
           <Button onClick={() => setShowImportModal(false)}>{t('cancel')}</Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   )
 }
 

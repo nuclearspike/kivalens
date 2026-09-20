@@ -376,7 +376,10 @@ export default function Basket() {
   const callbackUrl = `${location.protocol}//${location.host}${location.pathname}#/clear-basket`
 
   return (
-    <div className="d-flex h-100 w-100">
+    // Three panes side by side from tablet width up. Below that they stack, each the
+    // full width, with the side padding the Search page has there. They are flex
+    // panes rather than a grid row so they keep the page's full height and no gutters.
+    <div className="d-flex flex-column flex-md-row h-100 w-100 px-2 px-md-0">
       {/* Left column: basket list */}
       <div className="col-md-3 d-flex flex-column">
         <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>

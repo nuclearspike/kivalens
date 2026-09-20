@@ -106,6 +106,17 @@ $spacers: (
 .gap-2 { gap: 0.5rem !important; }
 .gap-3 { gap: 1rem !important; }
 
+// Stack below a breakpoint, side by side from it up: "flex-column flex-md-row".
+@media (min-width: $breakpoint-md) {
+  .flex-md-row { flex-direction: row !important; }
+  .flex-md-column { flex-direction: column !important; }
+}
+
+@media (min-width: $breakpoint-lg) {
+  .flex-lg-row { flex-direction: row !important; }
+  .flex-lg-column { flex-direction: column !important; }
+}
+
 // --- sizing ---
 .w-25 { width: 25% !important; }
 .w-50 { width: 50% !important; }
