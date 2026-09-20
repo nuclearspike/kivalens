@@ -475,6 +475,44 @@ body {
   font-size: $kl-font-size-base;
 }
 
+// Loan detail tabs: the Partner tab carries the partner's name. The strip stays on
+// one line and only that tab gives way, its name ending in an ellipsis (the full
+// name is the tab's tooltip). Doubled class so it outranks the small-screen rule
+// below that stops tab items shrinking.
+.nav-tabs.kl-loan-tabs {
+  flex-wrap: nowrap;
+
+  .nav-item {
+    flex: 0 0 auto;
+  }
+
+  .nav-item.kl-partner-tab {
+    flex: 0 1 auto;
+    min-width: 0;
+
+    .nav-link {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4em;
+      // A button sizes to its content even as a flex box, so it is held to the
+      // tab's width (less the 2px gap every tab keeps on its right).
+      max-width: calc(100% - 2px);
+
+      > span:first-child {
+        flex: none;
+      }
+    }
+  }
+
+  .kl-partner-tab-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+}
+
 #about-tabs.about-tabs {
   margin-bottom: 0 !important;
 

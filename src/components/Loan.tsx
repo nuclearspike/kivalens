@@ -245,6 +245,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const timeAgo = (d: Date | string | number) => relativeTime(d)
 
   const loanUrl = `https://www.kiva.org/lend/${loan.id}`
+  // Read at render: the partner list is already loaded by the time a loan can be shown.
+  const partnerName = loan.partner_id ? getKivaLoans()?.getPartner(loan.partner_id)?.name : undefined
   const options = lendAmountOptions(loan.kl_still_needed ?? 0)
   const tags = loan.kls_tags ?? []
   const themes = loan.themes ?? []
@@ -357,7 +359,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
       )}
 
       {/* Tabs */}
-      <ul className="nav nav-tabs">
+      <ul className="nav nav-tabs kl-loan-tabs">
         <li className="nav-item">
           <button
             className={`nav-link${activeTab === 1 ? ' active' : ''}`}
@@ -375,9 +377,17 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
           </button>
         </li>
         {loan.partner_id && (
-          <li className="nav-item">
-            <button className={`nav-link${activeTab === 3 ? ' active' : ''}`} onClick={() => handleTabSelect(3)}>
-              {t('partner_2')}
+          <li className="nav-item kl-partner-tab">
+            {/* The tab names the partner, so who is behind the loan shows without opening
+                it. It is the one tab that may shrink: a long name ends in an ellipsis and
+                the full name is in the tooltip. */}
+            <button
+              className={`nav-link${activeTab === 3 ? ' active' : ''}`}
+              onClick={() => handleTabSelect(3)}
+              title={partnerName}
+            >
+              <span>{t('partner_2')}</span>
+              {partnerName ? <span className="kl-partner-tab-name">{partnerName}</span> : null}
             </button>
           </li>
         )}
