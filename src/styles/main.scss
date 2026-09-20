@@ -852,8 +852,7 @@ ul.spacedList li {
 // ============================================================
 // RC-Slider Overrides
 // ============================================================
-// Match the old react-slider rendering: 25x25 square gray handles
-// with 4px corners riding a 5px rail, green selected range.
+// 25x25 glass handles riding a 5px rail, green selected range.
 .rc-slider {
   height: 27px;
   padding: 11px 0;
@@ -866,7 +865,7 @@ ul.spacedList li {
   // The line runs along the BOTTOM of the handles (the handle spans 1px-26px of
   // this 27px box, the line 21px-26px), not through their middle: the histogram
   // stands on the line, and with the line mid-handle the whole control read
-  // top-heavy. Bars and handles now share one band.
+  // top-heavy. Bars and handles share one band.
   .rc-slider-track {
     top: 21px;
     background-color: $kl-slider-track;
@@ -883,25 +882,66 @@ ul.spacedList li {
     top: 21px;
   }
 
+  // The handle is clear glass, because the histogram runs behind it: a solid handle
+  // hid the bars under it. The fill is a faint top-lit tint, the backdrop is
+  // brightened and only slightly softened (a real blur would smear the very bars
+  // it is meant to show), and the edge, the top highlight and the drop shadow
+  // carry the shape. Browsers without backdrop-filter get the same tinted glass
+  // without the softening.
   .rc-slider-handle {
     width: 25px;
     height: 25px;
     margin-top: -10px;
-    background: $kl-slider-handle-bg;
-    border: 1px solid $kl-slider-handle-border;
-    border-radius: 4px;
+    background: linear-gradient(to bottom, var(--kl-handle-glass-top), var(--kl-handle-glass-bottom));
+    -webkit-backdrop-filter: blur(0.5px) saturate(1.4) brightness(var(--kl-handle-brightness));
+    backdrop-filter: blur(0.5px) saturate(1.4) brightness(var(--kl-handle-brightness));
+    border: 1px solid var(--kl-handle-edge);
+    border-radius: 7px;
+    box-shadow:
+      inset 0 1px 0 var(--kl-handle-highlight),
+      inset 0 0 6px var(--kl-handle-glow),
+      0 1px 3px var(--kl-handle-shadow);
     opacity: 1;
 
+    // Held: clearer still, so the bars under the handle read while it is placed.
+    // rc-slider's own dragging rule is tripled, hence !important.
     &:active,
     &-dragging {
-      background-color: grey;
-      box-shadow: none !important;
-      border-color: $kl-slider-handle-border !important;
+      background: linear-gradient(to bottom, color-mix(in srgb, var(--kl-handle-glass-top) 55%, transparent), transparent);
+      -webkit-backdrop-filter: saturate(1.5) brightness(var(--kl-handle-brightness));
+      backdrop-filter: saturate(1.5) brightness(var(--kl-handle-brightness));
+      border-color: var(--kl-handle-edge) !important;
+      box-shadow:
+        inset 0 1px 0 var(--kl-handle-highlight),
+        0 2px 6px var(--kl-handle-shadow) !important;
     }
 
     &:focus-visible {
-      box-shadow: none;
+      box-shadow:
+        inset 0 1px 0 var(--kl-handle-highlight),
+        0 1px 3px var(--kl-handle-shadow),
+        0 0 0 3px var(--kl-focus-ring);
     }
+  }
+}
+
+// Chromium only: src/lib/glassLens.ts adds the #kl-glass-lens filter and sets
+// data-glass-lens. The rim of a resting handle bends what is behind it, like a
+// bevelled piece of glass; its centre stays true. A held handle drops the lens, so
+// it is placed against the bars as they really are. The filter is sized to the
+// handle (25px): glassLens.test.ts fails if the two drift apart.
+:root[data-glass-lens] .rc-slider .rc-slider-handle:not(:active):not(.rc-slider-handle-dragging) {
+  -webkit-backdrop-filter: url(#kl-glass-lens) blur(0.5px) saturate(1.4) brightness(var(--kl-handle-brightness));
+  backdrop-filter: url(#kl-glass-lens) blur(0.5px) saturate(1.4) brightness(var(--kl-handle-brightness));
+}
+
+// "Reduce transparency" on the device: a solid handle, no glass.
+@media (prefers-reduced-transparency: reduce) {
+  :root .rc-slider .rc-slider-handle,
+  :root[data-glass-lens] .rc-slider .rc-slider-handle:not(:active):not(.rc-slider-handle-dragging) {
+    background: color-mix(in srgb, var(--kl-text) 32%, var(--kl-surface));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 

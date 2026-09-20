@@ -74,8 +74,16 @@
   --kl-select-caret: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232c3e50' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
   --kl-icon-filter: none;
   --kl-slider-rail: #cfcfcf;
-  --kl-slider-handle: #e6e6e6;
-  --kl-slider-handle-border: #d3d3d3;
+  // Slider handle: clear glass over the histogram behind it. The fill is a faint
+  // top-lit tint; the edge carries the shape (3:1 against the page).
+  --kl-handle-glass-top: rgba(255, 255, 255, 0.42);
+  --kl-handle-glass-bottom: rgba(110, 124, 132, 0.22);
+  --kl-handle-edge: rgba(0, 0, 0, 0.42);
+  --kl-handle-highlight: rgba(255, 255, 255, 0.95);
+  --kl-handle-glow: rgba(255, 255, 255, 0.5);
+  --kl-handle-shadow: rgba(0, 0, 0, 0.22);
+  // On a white page glass cannot brighten what is behind it; it deepens it a touch.
+  --kl-handle-brightness: 0.96;
   --kl-chip-bg: rgba(0, 126, 255, 0.08);
   --kl-chip-border: rgba(0, 126, 255, 0.24);
   --kl-chip-text: #005fbf;
@@ -168,8 +176,13 @@
   --kl-select-caret: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e7ece9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
   --kl-icon-filter: invert(1);
   --kl-slider-rail: #3a4541;
-  --kl-slider-handle: #73807b;
-  --kl-slider-handle-border: #95a19c;
+  --kl-handle-glass-top: rgba(255, 255, 255, 0.3);
+  --kl-handle-glass-bottom: rgba(255, 255, 255, 0.1);
+  --kl-handle-edge: rgba(255, 255, 255, 0.5);
+  --kl-handle-highlight: rgba(255, 255, 255, 0.6);
+  --kl-handle-glow: rgba(255, 255, 255, 0.16);
+  --kl-handle-shadow: rgba(0, 0, 0, 0.55);
+  --kl-handle-brightness: 1.18;
   --kl-chip-bg: rgba(80, 160, 255, 0.16);
   --kl-chip-border: rgba(80, 160, 255, 0.4);
   --kl-chip-text: #9accff;
