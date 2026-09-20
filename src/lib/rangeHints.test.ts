@@ -20,6 +20,9 @@ const hint = (group: 'loan' | 'partner', key: string, index: number, f = EN) => 
   return hintRangeText(binSpecFor(config), index, config.step ?? 1, hints[key], f)
 }
 
+const lastHint = (group: 'loan' | 'partner', key: string) =>
+  hint(group, key, binSpecFor((group === 'loan' ? LOAN_SLIDERS : PARTNER_SLIDERS)[key]).count - 1)
+
 describe('hintRangeText', () => {
   it('keeps the decimals a slider moves in: half stars, quarter years, tenths of a percent', () => {
     expect(hint('partner', 'partner_risk_rating', 6)).toBe('3 stars')
@@ -42,10 +45,32 @@ describe('hintRangeText', () => {
     expect(hint('partner', 'secular_rating', 2)).toBe('score 3')
   })
 
-  it('reads the last bar as open-ended, because it also holds everything past the scale', () => {
+  it('reads the last bar of an open scale as open-ended, because it also holds everything past the scale', () => {
     expect(hint('loan', 'loan_amount', 49)).toBe('≥ $9,800')
     expect(hint('loan', 'borrower_count', 19)).toBe('≥ 20 borrowers')
-    expect(hint('partner', 'partner_risk_rating', 10)).toBe('≥ 5 stars')
+    expect(lastHint('partner', 'partner_default')).toBe('≥ 29.4%')
+    expect(lastHint('partner', 'loans_posted')).toBe('≥ 19,600 loans posted')
+  })
+
+  it('reads the last bar of a closed scale as its own values: nothing is past 5 stars or 100%', () => {
+    expect(hint('partner', 'partner_risk_rating', 10)).toBe('5 stars')
+    expect(hint('partner', 'secular_rating', 3)).toBe('score 4')
+    expect(hint('partner', 'social_rating', 3)).toBe('score 4')
+    expect(hint('loan', 'percent_female', 49)).toBe('98–100% female')
+    expect(hint('loan', 'percent_funded', 49)).toBe('98–100% funded')
+    expect(hint('partner', 'partner_arrears', 49)).toBe('98–100%')
+    expect(hint('partner', 'loans_at_risk_rate', 49)).toBe('98–100%')
+    // Years on Kiva ends at the partners' own maximum, so no partner is past it.
+    expect(hint('partner', 'years_on_kiva', 48)).toBe('12 years')
+    const spec = binSpecFor({ ...PARTNER_SLIDERS.years_on_kiva, max: 22 })
+    expect(hintRangeText(spec, spec.count - 1, 0.25, PARTNER_RANGE_HINTS.years_on_kiva, EN)).toBe('21.5–22 years')
+  })
+
+  it('marks no scale closed that a value can outgrow', () => {
+    const open = ['repaid_in', 'borrower_count', 'age', 'still_needed', 'loan_amount', 'dollars_per_hour', 'expiring_in_days', 'disbursal_in_days']
+    for (const key of open) expect(LOAN_RANGE_HINTS[key].closed, key).toBeFalsy()
+    for (const key of ['partner_default', 'portfolio_yield', 'profit', 'currency_exchange_loss_rate', 'loans_posted', 'fundraising_loan_count'])
+      expect(PARTNER_RANGE_HINTS[key].closed, key).toBeFalsy()
   })
 
   it('follows the language: its number format, its plural rule, its words', () => {
