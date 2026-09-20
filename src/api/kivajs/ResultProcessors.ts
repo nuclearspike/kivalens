@@ -1,5 +1,6 @@
 import { formatDate, today, startOfNextMonth, clearTime, monthsBetween } from '../../lib/dateUtils'
 import { groupBy, percentWhere } from '../../lib/arrayUtils'
+import { read as readAge, ageFrom } from '../../../server/borrowerAge.mjs'
 // Types used implicitly via the loan/partner objects passed to processing methods
 // import type { KivaLoan, Partner } from '../../types'
 
@@ -12,16 +13,12 @@ const commonDescr = [
   'BEEN', 'YEARS', 'FROM', 'WITH', 'INCOME', 'WILL', 'HAVE',
 ]
 
-const ageRegEx1 = /([2-9]\d)[ |-]years?[ |-](?:of age|old)/i
-const ageRegEx2 = /(?:aged?|is) ([2-9]\d)/i
-
-export const getAge = (text: string): number | null => {
-  let ageMatch = ageRegEx1.exec(text)
-  ageMatch = ageMatch || ageRegEx2.exec(text)
-  return Array.isArray(ageMatch) && ageMatch.length === 2
-    ? parseInt(ageMatch[1], 10)
-    : null
-}
+// The age the SERVER already read, with the same rules, so a lender filters on the
+// number the server binned. Loans fetched straight from Kiva carry no kls_age, so
+// it is read here too — from the one shared implementation, never a second copy.
+// An age the description cannot settle stays null here; only the server asks a
+// model about those, so the browser never publishes a guess.
+export const getAge = (text: string): number | null => ageFrom(readAge(text))
 
 export class ResultProcessors {
   static processLoans(loans: any[]): any[] {
@@ -90,7 +87,7 @@ export class ResultProcessors {
       }
     }
 
-    if (!loan.kls_age) {
+    if (loan.kls_age == null) {
       loan.kls_age = getAge(descriptionText || '')
     }
   }

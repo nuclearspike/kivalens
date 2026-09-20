@@ -29,6 +29,8 @@ import { filterLoans } from './loanFilter.mjs'
 import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
 import { sendDailyDigest } from './digest.mjs'
 import { recentlyFunded, observeFundedLoans, resolveLoanDetails } from './loanLifecycle.mjs'
+import { read as readAge, ageFrom } from './borrowerAge.mjs'
+import { resolveAmbiguousAges } from './borrowerAgeAI.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -227,8 +229,6 @@ const COMMON_DESCR = new Set([
   ...COMMON_USE, 'THIS', 'ARE', 'SHE', 'THAT', 'HAS', 'LOAN', 'BE', 'OLD',
   'BEEN', 'YEARS', 'FROM', 'WITH', 'INCOME', 'WILL', 'HAVE',
 ])
-const AGE_RE1 = /([2-9]\d)[ -]years?[ -](?:of age|old)/i
-const AGE_RE2 = /(?:aged?|is) ([2-9]\d)/i
 
 function extractWords(text, ignore) {
   if (!text) return []
@@ -243,12 +243,6 @@ function extractWords(text, ignore) {
       seen.add(w)
       return true
     })
-}
-
-function getAge(text) {
-  if (!text) return null
-  const m = AGE_RE1.exec(text) || AGE_RE2.exec(text)
-  return m && m.length === 2 ? parseInt(m[1], 10) : null
 }
 
 function processLoan(raw) {
@@ -283,7 +277,10 @@ function processLoan(raw) {
   const combined = [...useArr, ...descrArr.filter((w) => !seen.has(w))]
   loan.kls_use_or_descr_arr = combined
 
-  loan.kls_age = getAge(descrText)
+  // An age the description cannot settle stays null here; resolveAmbiguousAges()
+  // fills those in after the batch is processed, so a child's age is never published
+  // as the borrower's.
+  loan.kls_age = ageFrom(readAge(descrText))
 
   loan.kl_repayments = []
   const schedPayments = loan.terms?.scheduled_payments
@@ -815,6 +812,15 @@ export async function prepareData(state, log = console.log) {
     // staged window so the warm-cache expand cannot overwrite it mid-gzip.
     state.liveStaged = true
     state.allLoans = fundable.map((p) => p.loan)
+
+    // The handful of descriptions the patterns could not settle. Cached by the text,
+    // so this is free on all but the first sighting of a story, and it never throws:
+    // a loan whose age stays unknown is simply not offered for an age filter.
+    try {
+      await resolveAmbiguousAges(state.allLoans, log)
+    } catch (error) {
+      log(`Ages: resolution skipped (${error?.message || error})`)
+    }
     state.newestTime = Math.max(...state.allLoans.map((l) => new Date(l.kl_processed).getTime()))
 
     let compressed = fundable.map((p) => compressLoan(p.loan))
