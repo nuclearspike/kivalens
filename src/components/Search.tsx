@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
-import { useLoanStore, useUtilsStore } from '../stores'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'
 import LoanListItem from './LoanListItem'
 import Loan from './Loan'
@@ -12,6 +12,7 @@ import BulkAddModal from './BulkAddModal'
 import { NoResultsHelp } from './NoResultsHelp'
 import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
+import { parseSearchPreset, parseSearchPresetTab } from '../lib/searchPreset'
 import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
@@ -32,6 +33,29 @@ export function Search() {
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
   const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
   const aiWidgetDisabled = useUtilsStore((s) => s.aiWidgetDisabled)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const presetHandled = useRef(false)
+
+  // KivaLens Lite help can hand off a bounded, non-personal starting search.
+  // Consume it exactly once, then remove it from the route so returning to Search
+  // does not unexpectedly overwrite criteria the lender changed afterward.
+  useEffect(() => {
+    if (presetHandled.current) return
+    const rawPreset = searchParams.get('preset')
+    const rawTab = searchParams.get('tab')
+    if (rawPreset === null && rawTab === null) return
+
+    presetHandled.current = true
+    const preset = parseSearchPreset(rawPreset)
+    const tab = parseSearchPresetTab(rawTab)
+    if (preset) useCriteriaStore.getState().setCriteria(preset)
+    if (tab) useUtilsStore.getState().setAiCriteriaTab(tab)
+
+    const remaining = new URLSearchParams(searchParams)
+    remaining.delete('preset')
+    remaining.delete('tab')
+    setSearchParams(remaining, { replace: true })
+  }, [searchParams, setSearchParams])
 
   // /search/loan/:id pre-selects the loan; plain /search shows the welcome
   // panel. The URL is the source of truth for the right-hand panel.
