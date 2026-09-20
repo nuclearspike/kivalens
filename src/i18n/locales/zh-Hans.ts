@@ -24,6 +24,7 @@ const catalog: Record<string, string> = {
   'hint_percent_funded': '已资助 {range}',
   'hint_range_to': '{from} 至 {to}',
   'hint_score': '评分 {range}',
+  'hint_span_all': '所有值',
   'hint_stars_one': '{range} 星',
   'hint_stars_other': '{range} 星',
   'hint_years_one': '{range} 年',

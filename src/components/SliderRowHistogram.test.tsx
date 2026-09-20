@@ -29,8 +29,8 @@ describe('SliderRow histogram', () => {
     const rail = container.querySelector('.rc-slider') as HTMLElement
     vi.spyOn(rail, 'getBoundingClientRect').mockReturnValue({ left: 100, width: 400, top: 0, right: 500, bottom: 27, height: 27, x: 100, y: 0, toJSON: () => ({}) })
     fireEvent.mouseMove(range, { clientX: 300 }) // the middle of the rail -> stop 3
-    const tip = screen.getByText('3 borrowers: 9 loans')
-    expect(tip).toHaveClass('kl-range-tip')
+    const tip = screen.getByText('3 borrowers: 9 loans').closest('.kl-range-tip') as HTMLElement
+    expect(tip).not.toBeNull()
     expect(tip.style.getPropertyValue('--at')).toBe('0.5') // the middle bar of five
     expect(container.querySelector('.kl-range-hist-hover')).not.toBeNull()
     expect(screen.getByText(/Min/)).toBeInTheDocument() // the caption stays put

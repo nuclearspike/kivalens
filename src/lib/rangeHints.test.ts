@@ -3,7 +3,7 @@ import en from '../i18n/locales/en'
 import fr from '../i18n/locales/fr'
 import { formatCurrency, formatNumber, formatPercent, translate, type Locale } from '../i18n'
 import { LOAN_SLIDERS, PARTNER_SLIDERS, binSpecFor } from './sliderConfig'
-import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, decimalsOf, hintRangeText, type HintFormatters } from './rangeHints'
+import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, decimalsOf, hintRangeText, hintSpanText, type HintFormatters } from './rangeHints'
 import { pluralCategory } from './pluralCategory'
 
 const formatters = (locale: Locale, catalog: Record<string, string>): HintFormatters => ({
@@ -102,5 +102,42 @@ describe('hint coverage', () => {
         expect(en[key]).toContain('{range}')
       }
     }
+  })
+})
+
+describe('hintSpanText: the range two handles select', () => {
+  const span = (group: 'loan' | 'partner', key: string, lo: number, hi: number, f = EN) => {
+    const config = (group === 'loan' ? LOAN_SLIDERS : PARTNER_SLIDERS)[key]
+    const hints = group === 'loan' ? LOAN_RANGE_HINTS : PARTNER_RANGE_HINTS
+    return hintSpanText(lo, hi, { min: config.min, max: config.max, step: config.step ?? 1 }, hints[key], f)
+  }
+
+  it('names both ends when both are set, in the slider\'s own decimals and unit', () => {
+    expect(span('partner', 'partner_risk_rating', 2, 3.5)).toBe('2–3.5 stars')
+    expect(span('loan', 'loan_amount', 500, 1500)).toBe('$500–$1,500')
+    expect(span('loan', 'percent_female', 50, 75)).toBe('50–75% female')
+    expect(span('loan', 'disbursal_in_days', -30, -10)).toBe('-30 to -10 days')
+  })
+
+  it('a handle resting at the top means no limit: "≥" on an open scale, the real ceiling on a closed one', () => {
+    expect(span('loan', 'loan_amount', 500, 10000)).toBe('≥ $500')
+    expect(span('loan', 'borrower_count', 5, 20)).toBe('≥ 5 borrowers')
+    expect(span('partner', 'partner_risk_rating', 3.5, 5)).toBe('3.5–5 stars')
+    expect(span('loan', 'percent_female', 50, 100)).toBe('50–100% female')
+  })
+
+  it('a handle resting at the bottom means no floor', () => {
+    expect(span('loan', 'repaid_in', 2, 12)).toBe('≤ 12 months')
+    expect(span('partner', 'partner_risk_rating', 0, 2)).toBe('≤ 2 stars')
+  })
+
+  it('both handles on one value reads as that value, singular where the language has one', () => {
+    expect(span('loan', 'borrower_count', 1, 1)).toBe('1 borrower')
+    expect(span('partner', 'partner_risk_rating', 4.5, 4.5)).toBe('4.5 stars')
+  })
+
+  it('nothing restricted is "all values", in the language', () => {
+    expect(span('loan', 'loan_amount', 0, 10000)).toBe('all values')
+    expect(span('loan', 'loan_amount', 0, 10000, formatters('fr', fr))).toBe('toutes les valeurs')
   })
 })

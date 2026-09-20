@@ -15,10 +15,9 @@ import { PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadin
 import { useI18n } from '../i18n'
 import { localizeSliceName } from '../lib/localizeSliceName'
 import { LOAN_SLIDERS, PARTNER_SLIDERS, binSpecFor, withDataMax, type SliderConfig } from '../lib/sliderConfig'
-import { barCentre } from '../lib/rangeHistogram'
-import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
-import { pluralCategory } from '../lib/pluralCategory'
-import { useHistogramHover } from './useHistogramHover'
+import { LOAN_RANGE_HINTS, PARTNER_RANGE_HINTS, type RangeHint } from '../lib/rangeHints'
+import { useRangeReadout } from './useRangeReadout'
+import { useRangeTotals } from '../lib/useRangeTotals'
 import RangeHistogram from './RangeHistogram'
 import CopyButton from './CopyButton'
 import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
@@ -704,6 +703,7 @@ export function SliderRow({
   onChange,
   bins,
   hint,
+  totalFor,
 }: {
   config: SliderConfig
   minVal: unknown
@@ -713,10 +713,11 @@ export function SliderRow({
   bins?: readonly number[]
   /** Unit and context for the hover hint over a bar (see rangeHints.ts). */
   hint?: RangeHint
+  /** Exact number of loans a candidate range would return (see useRangeTotals); shown while a handle moves. */
+  totalFor?: (min: number | null, max: number | null) => number | null
 }) {
-  const { t, number, currency, percent, locale } = useI18n()
+  const { t } = useI18n()
   const spec = useMemo(() => binSpecFor(config), [config])
-  const { hoverBin, trackProps } = useHistogramHover(bins, spec)
   const { min: oMin, max: oMax, step = 1, label, helpText } = config
   const localizedLabel = t(label)
   const localizedHelp = helpText ? t(helpText) : undefined
@@ -741,14 +742,10 @@ export function SliderRow({
     [oMin, oMax, onChange],
   )
 
-  // "200–399: 312 loans" for the bar under the pointer, in place of the caption.
-  const readout =
-    bins && hoverBin !== null
-      ? t(pluralCategory(locale, bins[hoverBin]) === 'one' ? 'range_count_loans_one' : 'range_count_loans', {
-          range: hintRangeText(spec, hoverBin, step, hint, { t, number, currency, percent, pluralOf: (n) => pluralCategory(locale, n) }),
-          count: number(bins[hoverBin]),
-        })
-      : null
+  // One line for the bar under the pointer; two while a handle moves (that bar, then the whole range).
+  const { tip, activeBin, trackProps, noteChange, sliderProps } = useRangeReadout({
+    bins, spec, min: oMin, max: oMax, step, lo: aMin, hi: aMax, hint, unit: 'loans', totalFor,
+  })
 
   const labelEl = localizedHelp ? (
     <OverlayTrigger
@@ -773,10 +770,12 @@ export function SliderRow({
       <Col md={9} style={{ paddingTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div {...trackProps} style={{ flex: 1 }}>
-            <RangeHistogram bins={bins} spec={spec} lo={aMin} hi={aMax} hoverBin={hoverBin} />
-            {readout && hoverBin !== null && (
-              <div className="kl-range-tip" role="status" style={{ '--at': barCentre(spec, hoverBin) } as React.CSSProperties}>
-                {readout}
+            <RangeHistogram bins={bins} spec={spec} lo={aMin} hi={aMax} hoverBin={activeBin} />
+            {tip && (
+              <div className="kl-range-tip" role="status" style={{ '--at': tip.at } as React.CSSProperties}>
+                {tip.lines.map((line, i) => (
+                  <div key={i} className={i > 0 ? 'kl-range-tip-total' : undefined}>{line}</div>
+                ))}
               </div>
             )}
             <Slider
@@ -785,7 +784,11 @@ export function SliderRow({
               max={oMax}
               step={step}
               value={[aMin, aMax]}
-              onChange={handleChange}
+              onChange={(vals) => {
+                if (Array.isArray(vals)) noteChange(vals)
+                handleChange(vals)
+              }}
+              {...sliderProps}
             />
           </div>
           <RangeExactControl
@@ -1173,6 +1176,7 @@ function LoanCriteriaPanel({
   const { t, locale } = useI18n()
   const loan = criteria.loan as Record<string, unknown>
   const distributions = useLoanStore((s) => s.rangeDistributions)
+  const totals = useRangeTotals(criteria, distributions)
   const discovered = useDiscoveredOptions()
 
   const loanSelects: Array<{
@@ -1246,6 +1250,7 @@ function LoanCriteriaPanel({
           }}
           bins={distributions?.loan[key]}
           hint={LOAN_RANGE_HINTS[key]}
+          totalFor={totals('loan', key)}
         />
       ))}
     </>
@@ -1294,6 +1299,7 @@ function PartnerCriteriaPanel({
 }) {
   const partner = criteria.partner as Record<string, unknown>
   const distributions = useLoanStore((s) => s.rangeDistributions)
+  const totals = useRangeTotals(criteria, distributions)
   const sliderMaxima = useLoanStore((s) => s.sliderMaxima)
   // Stable config objects, so a slider's histogram is not rebuilt on every render.
   const partnerSliders = useMemo(
@@ -1361,6 +1367,7 @@ function PartnerCriteriaPanel({
           }}
           bins={distributions?.partner[key]}
           hint={PARTNER_RANGE_HINTS[key]}
+          totalFor={totals('partner', key)}
         />
       ))}
     </>

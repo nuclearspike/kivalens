@@ -1317,6 +1317,11 @@ ul.spacedList li {
   pointer-events: none;
 }
 
+// Second line of the tip while a handle moves: what the whole range would return.
+.kl-range-tip-total {
+  font-weight: 600;
+}
+
 // rc-slider ships light-only mark and tooltip colours.
 .rc-slider-mark-text {
   color: var(--kl-text-muted);

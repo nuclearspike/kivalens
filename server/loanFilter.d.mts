@@ -56,6 +56,15 @@ export interface RangeDistributions {
 /** Per slider: loans matching all the OTHER criteria, binned along that slider's scale. */
 export declare function rangeDistributions(criteria: unknown, ctx: FilterContext, specs: RangeDistributionSpecs): RangeDistributions
 export declare function binIndex(value: unknown, spec: BinSpec): number
+
+/** Counts what one range slider would return at any (min, max); null = no limit at that end. See rangeCounter in loanFilter.mjs. */
+export declare function rangeCounter(
+  c: unknown,
+  ctx: Record<string, unknown>,
+  group: 'loan' | 'partner',
+  key: string,
+  options?: { unit?: 'loans' | 'partners'; accept?: (partner: never) => boolean },
+): (min: number | null, max: number | null) => number
 /** Per partner dropdown: how many partners (matching every other filter) carry each option value. */
 export declare function partnerOptionCounts(
   criteria: unknown,

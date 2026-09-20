@@ -24,6 +24,7 @@ const catalog: Record<string, string> = {
   'hint_percent_funded': '調達済み{range}',
   'hint_range_to': '{from}～{to}',
   'hint_score': 'スコア{range}',
+  'hint_span_all': 'すべての値',
   'hint_stars_one': '星{range}',
   'hint_stars_other': '星{range}',
   'hint_years_one': '{range}年',

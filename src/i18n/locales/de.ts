@@ -24,6 +24,7 @@ const catalog: Record<string, string> = {
   'hint_percent_funded': '{range} finanziert',
   'hint_range_to': '{from} bis {to}',
   'hint_score': 'Wertung {range}',
+  'hint_span_all': 'alle Werte',
   'hint_stars_one': '{range} Stern',
   'hint_stars_other': '{range} Sterne',
   'hint_years_one': '{range} Jahr',

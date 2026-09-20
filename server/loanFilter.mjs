@@ -544,6 +544,68 @@ export function rangeDistributions(c, ctx, specs) {
   return out
 }
 
+// ---------------------------------------------------------------------------
+// Range totals: how many results one range slider would give at ANY position of
+// its handles, answered fast enough to follow a handle while it is dragged.
+//
+// rangeCounter() makes one pass with the slider's own min/max lifted and keeps
+// what matches every other criterion. The function it returns then judges a
+// candidate (min, max) with the engine's OWN tests for that range, built the
+// same way a search builds them, so a total is the number that search returns
+// (before the result-list steps: limit per group, limit_results). null = no limit
+// at that end, as in saved criteria.
+//
+// group: 'loan' | 'partner'. unit 'loans' counts loans (a partner range is judged
+// through each loan's partner, as the histograms count); unit 'partners' counts
+// the partner pool, with `accept` as the Partners page's name search.
+// ---------------------------------------------------------------------------
+export function rangeCounter(c, ctx, group, key, { unit = 'loans', accept } = {}) {
+  const lifted = normalizeCriteria(c || {})
+  delete lifted[group][`${key}_min`]
+  delete lifted[group][`${key}_max`]
+  const withRange = (min, max) => {
+    const next = normalizeCriteria(lifted)
+    if (min != null) next[group][`${key}_min`] = min
+    if (max != null) next[group][`${key}_max`] = max
+    return next
+  }
+  const rangeTests = (tester) => tester.testers.filter((fn) => fn.rangeKey === key)
+  const passes = (tests, entity) => tests.every((fn) => fn(entity))
+
+  if (unit === 'partners') {
+    const population = filterPartners(lifted, ctx).filter((p) => !accept || accept(p))
+    return (min, max) => {
+      const tests = rangeTests(buildPartnerTester(withRange(min, max), ctx))
+      return population.reduce((n, p) => n + (passes(tests, p) ? 1 : 0), 0)
+    }
+  }
+
+  const matcher = buildLoanTester(lifted, ctx, true)
+  const population = (ctx.loans || []).filter((loan) => matcher.allPass(loan))
+  if (group === 'loan') {
+    return (min, max) => {
+      const tests = rangeTests(buildLoanTester(withRange(min, max), ctx, false))
+      return population.reduce((n, loan) => n + (passes(tests, loan) ? 1 : 0), 0)
+    }
+  }
+
+  // A partner range on the loan search. Direct loans have no partner and the partner
+  // criteria do not apply to them, so the range changes nothing.
+  if (lifted.partner.direct) return () => population.length
+  const partnerById = new Map((ctx.partnerPool || ctx.activePartners || []).map((p) => [p.id, p]))
+  const loansAt = new Map()
+  for (const loan of population) {
+    const partner = partnerById.get(loan.partner_id)
+    if (partner) loansAt.set(partner, (loansAt.get(partner) ?? 0) + 1)
+  }
+  return (min, max) => {
+    const tests = rangeTests(buildPartnerTester(withRange(min, max), ctx))
+    let total = 0
+    for (const [partner, loans] of loansAt) if (passes(tests, partner)) total += loans
+    return total
+  }
+}
+
 const SLOW_LOAN_RANGES = new Set(['dollars_per_hour', 'expiring_in_days', 'disbursal_in_days'])
 const BRIEFLY_MS = 60_000
 const brieflyCache = {}

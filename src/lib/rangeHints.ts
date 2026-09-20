@@ -99,3 +99,45 @@ export function hintRangeText(spec: BinSpec, index: number, step: number, hint: 
   const form = single !== null && f.pluralOf(single) === 'one' ? 'one' : 'other'
   return f.t(`${hint.unit}_${form}`, { range })
 }
+
+/**
+ * The span two handles select, for the total shown while one is moved:
+ * "3.5–5 stars", "≥ $500", "≤ 12 months", "all values". A handle resting at an
+ * end of the slider means no limit at that end, so an open scale reads "≥ …"
+ * there; a closed scale (hint.closed) names its real ceiling instead.
+ */
+export function hintSpanText(
+  lo: number,
+  hi: number,
+  scale: { min: number; max: number; step: number },
+  hint: RangeHint | undefined,
+  f: HintFormatters,
+): string {
+  const kind = hint?.kind ?? 'number'
+  const digits = { min: 0, max: decimalsOf(scale.step) }
+  const write = (value: number) => (kind === 'money' ? f.currency(value, digits) : kind === 'percent' ? f.percent(value, digits) : f.number(value, digits))
+  const noFloor = lo <= scale.min
+  const noCeiling = hi >= scale.max
+
+  let range: string
+  let single: number | null = null
+  if (noFloor && noCeiling) {
+    return f.t('hint_span_all')
+  } else if (noCeiling && !hint?.closed) {
+    range = `≥ ${write(lo)}`
+  } else if (lo === hi) {
+    // Both handles on one value, the bottom of the scale included: "1 borrower", not "≤ 1 borrowers".
+    range = write(lo)
+    single = lo
+  } else if (noFloor) {
+    range = `≤ ${write(hi)}`
+  } else {
+    const first = kind === 'percent' ? f.number(lo, digits) : write(lo)
+    range = lo < 0 ? f.t('hint_range_to', { from: first, to: write(hi) }) : `${first}–${write(hi)}`
+  }
+
+  if (!hint?.unit) return range
+  if (!hint.plural) return f.t(hint.unit, { range })
+  const form = single !== null && f.pluralOf(single) === 'one' ? 'one' : 'other'
+  return f.t(`${hint.unit}_${form}`, { range })
+}

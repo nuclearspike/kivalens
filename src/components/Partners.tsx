@@ -7,14 +7,13 @@ import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
 import { PARTNER_SLIDER_HELP, RELIGION_HELP, RangeExactControl } from './CriteriaTabs'
 import Slider from 'rc-slider'
 import RangeHistogram from './RangeHistogram'
-import { useHistogramHover } from './useHistogramHover'
+import { useRangeReadout } from './useRangeReadout'
 import { DATA_MAX_KEYS, PARTNER_SLIDERS as SHARED_PARTNER_SLIDERS, binSpecFor, dataMaxFor } from '../lib/sliderConfig'
-import { barCentre } from '../lib/rangeHistogram'
-import { PARTNER_RANGE_HINTS, hintRangeText, type RangeHint } from '../lib/rangeHints'
-import { pluralCategory } from '../lib/pluralCategory'
+import { PARTNER_RANGE_HINTS, type RangeHint } from '../lib/rangeHints'
 import { lsj } from '../lib/localStorage'
+import { useRangeTotals } from '../lib/useRangeTotals'
 import { DEFAULT_PARTNER_FILTERS, partnerFiltersArePristine } from '../lib/partnerFilterDefaults'
-import { partnerOptionCounts, partnerRangeDistributions, partnerRangeValues } from '../../server/loanFilter.mjs'
+import { partnerOptionCounts, partnerRangeDistributions, partnerRangeValues, rangeCounter } from '../../server/loanFilter.mjs'
 import type { Partner } from '../types'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
@@ -203,6 +202,7 @@ export function RangeRow({
   onChange,
   bins,
   rangeHint,
+  totalFor,
 }: {
   label: string
   min: number
@@ -216,21 +216,18 @@ export function RangeRow({
   bins?: readonly number[]
   /** Unit and context for the hover hint over a bar (see rangeHints.ts). */
   rangeHint?: RangeHint
+  /** Exact number of partners a candidate range would list; shown while a handle moves. */
+  totalFor?: (min: number | null, max: number | null) => number | null
 }) {
   const actualMin = minVal != null && !isNaN(Number(minVal)) ? Number(minVal) : min
   const actualMax = maxVal != null && !isNaN(Number(maxVal)) ? Number(maxVal) : max
-  const { t, number, currency, percent, locale } = useI18n()
+  const { t } = useI18n()
   const displayMin = minVal == null ? t('min') : actualMin
   const displayMax = maxVal == null ? t('max') : actualMax
   const spec = useMemo(() => binSpecFor({ min, max, step, label }), [min, max, step, label])
-  const { hoverBin, trackProps } = useHistogramHover(bins, spec)
-  const readout =
-    bins && hoverBin !== null
-      ? t(pluralCategory(locale, bins[hoverBin]) === 'one' ? 'range_count_partners_one' : 'range_count_partners', {
-          range: hintRangeText(spec, hoverBin, step ?? 1, rangeHint, { t, number, currency, percent, pluralOf: (n) => pluralCategory(locale, n) }),
-          count: number(bins[hoverBin]),
-        })
-      : null
+  const { tip, activeBin, trackProps, noteChange, sliderProps } = useRangeReadout({
+    bins, spec, min, max, step: step ?? 1, lo: actualMin, hi: actualMax, hint: rangeHint, unit: 'partners', totalFor,
+  })
 
   return (
     <FilterRow
@@ -244,10 +241,12 @@ export function RangeRow({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8 }}>
         <div {...trackProps} style={{ flex: 1 }}>
-          <RangeHistogram bins={bins} spec={spec} lo={actualMin} hi={actualMax} hoverBin={hoverBin} />
-          {readout && hoverBin !== null && (
-            <div className="kl-range-tip" role="status" style={{ '--at': barCentre(spec, hoverBin) } as React.CSSProperties}>
-              {readout}
+          <RangeHistogram bins={bins} spec={spec} lo={actualMin} hi={actualMax} hoverBin={activeBin} />
+          {tip && (
+            <div className="kl-range-tip" role="status" style={{ '--at': tip.at } as React.CSSProperties}>
+              {tip.lines.map((line, i) => (
+                <div key={i} className={i > 0 ? 'kl-range-tip-total' : undefined}>{line}</div>
+              ))}
             </div>
           )}
           <Slider
@@ -256,8 +255,10 @@ export function RangeRow({
             max={max}
             step={step ?? 1}
             value={[actualMin, actualMax]}
+            {...sliderProps}
             onChange={(value) => {
               if (!Array.isArray(value)) return
+              noteChange(value)
               onChange(value[0] === min ? null : value[0], value[1] === max ? null : value[1])
             }}
           />
@@ -524,6 +525,20 @@ export function Component() {
     return counts
   }
 
+  // While a slider handle moves: the exact number of partners the page would list with that range.
+  const rangeTotals = useRangeTotals({ partner: filters, name: nameSearch }, sliderBins, (current, _group, key) => {
+    const kl = getKivaLoans()
+    if (!kl?.partnersFromKiva?.length) return null
+    const terms = current.name.toUpperCase().match(/(\w+)/g)
+    return rangeCounter(
+      { partner: current.partner },
+      { loans, activePartners: kl.activePartners, partnerPool: kl.partnersFromKiva, atheistListProcessed: kl.atheistListProcessed },
+      'partner',
+      key,
+      { unit: 'partners', accept: terms ? (((p: Partner) => terms.every((term) => (p.kl_name_arr || []).some((w) => w.startsWith(term)))) as never) : undefined },
+    )
+  })
+
   const updateFilter = useCallback((key: string, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }, [])
@@ -710,6 +725,7 @@ export function Component() {
                   hint={PARTNER_SLIDER_HELP[key]}
                   bins={sliderBins?.[key]}
                   rangeHint={PARTNER_RANGE_HINTS[key]}
+                  totalFor={rangeTotals('partner', key)}
                   onChange={(nextMin, nextMax) => {
                     updateFilter(`${key}_min`, nextMin)
                     updateFilter(`${key}_max`, nextMax)
