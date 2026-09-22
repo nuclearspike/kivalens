@@ -1,16 +1,21 @@
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react'
-import { createContext, useContext, useEffect } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cx } from './types'
 import { useI18n } from '../i18n'
 
 const ModalContext = createContext<{ onHide?: () => void }>({})
 
+// The platforms' default double-click interval (Windows and macOS both ship 500 ms).
+// A modal opened by the first click of a double-click appears under the pointer, so
+// the second click lands on its backdrop: that press belongs to the double-click and
+// is not a request to close. Later presses on the backdrop close it as usual.
+const DOUBLE_CLICK_MS = 500
+
 type ModalProps = {
   show: boolean
   onHide?: () => void
   size?: 'sm' | 'lg'
-  centered?: boolean
   backdrop?: boolean | 'static'
   className?: string
   children?: ReactNode
@@ -20,11 +25,16 @@ function ModalRoot({
   show,
   onHide,
   size,
-  centered,
   backdrop = true,
   className,
   children,
 }: ModalProps) {
+  // When this modal opened: the double-click window runs from here, not from each render.
+  const openedAt = useRef(0)
+  useEffect(() => {
+    if (show) openedAt.current = Date.now()
+  }, [show])
+
   useEffect(() => {
     if (!show) return
     document.body.classList.add('modal-open')
@@ -43,7 +53,15 @@ function ModalRoot({
   if (!show) return null
 
   const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && backdrop !== 'static') onHide?.()
+    if (e.target !== e.currentTarget) return // a press inside the dialog is the dialog's own
+    // A press that does not close the modal also must not move focus out of it or
+    // select text: the rest of the double-click that opened it, or any press on a
+    // static backdrop.
+    if (Date.now() - openedAt.current < DOUBLE_CLICK_MS || backdrop === 'static') {
+      e.preventDefault()
+      return
+    }
+    onHide?.()
   }
 
   return createPortal(
@@ -59,7 +77,6 @@ function ModalRoot({
           className={cx(
             'modal-dialog',
             size && `modal-${size}`,
-            centered && 'modal-dialog-centered',
           )}
         >
           <div className="modal-content">{children}</div>

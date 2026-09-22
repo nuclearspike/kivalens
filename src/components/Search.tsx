@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { Container, Col, Row, Alert, ButtonGroup, Button } from '../ui'
+import { Container, Col, Row, Alert } from '../ui'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'
 import LoanListItem from './LoanListItem'
@@ -8,6 +8,7 @@ import Loan from './Loan'
 import InfiniteList from './InfiniteList'
 import LoadingLoansPanel from './LoadingLoansPanel'
 import FilteringProgress from './FilteringProgress'
+import ResultsHeader from './ResultsHeader'
 import BulkAddModal from './BulkAddModal'
 import { NoResultsHelp } from './NoResultsHelp'
 import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
@@ -15,6 +16,7 @@ import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { parseSearchPreset, parseSearchPresetTab } from '../lib/searchPreset'
 import { useI18n } from '../i18n'
 import { pluralCategory } from '../lib/pluralCategory'
+import { useShowCriteria } from '../lib/criteriaVisibility'
 
 // ---------------------------------------------------------------------------
 // Search page — criteria panel + loan list + detail area
@@ -72,7 +74,7 @@ export function Search() {
     setSelectedId(routeLoanId ? parseInt(routeLoanId, 10) : null)
   }, [routeLoanId, setSelectedId])
 
-  const [showCriteria, setShowCriteria] = useState(true)
+  const [showCriteria, toggleShowCriteria] = useShowCriteria()
   const [hasHadLoans, setHasHadLoans] = useState(false)
   const [showBulkAdd, setShowBulkAdd] = useState(false)
 
@@ -94,21 +96,7 @@ export function Search() {
     setHasHadLoans(true)
   }
 
-  const toggleCriteria = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      setShowCriteria((v) => !v)
-    },
-    [],
-  )
-
-  const openBulkAdd = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      setShowBulkAdd(true)
-    },
-    [],
-  )
+  const openBulkAdd = useCallback(() => setShowBulkAdd(true), [])
 
   // Column widths matching the old app's 4-3-5 grid
   const critCol = showCriteria ? 4 : 0
@@ -134,14 +122,7 @@ export function Search() {
         {/* Loan list */}
         <Col md={listCol} data-aikl="results" className="results-col">
           <FilteringProgress />
-          <ButtonGroup className="top-only d-flex" style={{ marginBottom: 0 }}>
-            <Button onClick={toggleCriteria} className="w-50">
-              {t(showCriteria ? 'hide_criteria' : 'show_criteria')}
-            </Button>
-            <Button onClick={openBulkAdd} className="w-50" data-aikl="bulk-add">
-              {t('bulk_add')}
-            </Button>
-          </ButtonGroup>
+          <ResultsHeader showCriteria={showCriteria} onToggleCriteria={toggleShowCriteria} onBulkAdd={openBulkAdd} />
 
           {secondaryStatus ? (
             <Alert variant="warning" className="not-rounded" style={{ marginBottom: 0 }}>

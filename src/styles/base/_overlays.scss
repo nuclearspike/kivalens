@@ -17,29 +17,25 @@
   }
 }
 
+// Every modal sits in the vertical center of the viewport (Paul's rule 40), so the
+// dialog box is a flex column as tall as the viewport less its own margins, with the
+// content centered in it. A dialog taller than that starts at the top margin and the
+// overlay scrolls, so nothing is cut off. The box spans empty space above and below
+// the content, and presses there belong to the backdrop: only .modal-content takes
+// pointer events.
 .modal-dialog {
   position: relative;
+  display: flex;
+  align-items: center;
   width: auto;
+  min-height: calc(100% - 20px);
   margin: 10px;
+  pointer-events: none;
 
   @media (min-width: $breakpoint-md) {
     width: 600px;
-    margin: 30px auto;
-  }
-}
-
-// Vertical centering for modals whose `centered` prop adds this class. The
-// min-height mirrors .modal-dialog's own vertical margins above so a short
-// dialog doesn't touch the viewport edges. Centering lives here, not on
-// .modal itself, because .modal is shared by every dialog and most keep the
-// default top-anchored position.
-.modal-dialog-centered {
-  display: flex;
-  align-items: center;
-  min-height: calc(100% - 20px);
-
-  @media (min-width: $breakpoint-md) {
     min-height: calc(100% - 60px);
+    margin: 30px auto;
   }
 }
 
@@ -60,6 +56,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  pointer-events: auto;
   background-color: var(--kl-surface-raised);
   border: 1px solid var(--kl-overlay-border);
   border-radius: $radius-lg;
@@ -118,9 +115,10 @@
   animation: kl-modal-slide 300ms ease-out;
 }
 
+// A fixed distance: a percentage would be of the dialog box, which spans the viewport.
 @keyframes kl-modal-slide {
   from {
-    transform: translateY(-25%);
+    transform: translateY(-40px);
     opacity: 0;
   }
   to {

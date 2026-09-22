@@ -40,7 +40,8 @@ describe('Partners > RangeRow', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /set exact/i }))
 
-    expect(screen.getByRole('dialog').querySelector('.modal-dialog')).toHaveClass('modal-dialog-centered')
+    // Centered like every modal, through the shared .modal-dialog (src/styles/modalCentering.test.ts).
+    expect(screen.getByRole('dialog').querySelector('.modal-dialog > .modal-content')).toBeInTheDocument()
     expect(screen.getByText('5 star = very low probability of collapse.')).toBeInTheDocument()
 
     fireEvent.change(screen.getByDisplayValue('2'), { target: { value: '3' } })

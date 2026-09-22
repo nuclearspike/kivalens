@@ -13,20 +13,17 @@ import { RangeExactControl, SliderRow } from './CriteriaTabs'
 describe('RangeExactControl', () => {
   afterEach(cleanup)
 
-  it('requests centered positioning (jsdom does no layout, so this checks wiring, not geometry)', () => {
-    // `centered` already added this class before the fix — the actual bug was
-    // a missing CSS rule for it (src/styles/base/_overlays.scss), which jsdom
-    // cannot execute or lay out. This only proves the class reaches the DOM;
-    // the visual fix itself was confirmed by hand in a real browser (Search
-    // and Partners pages, screenshotted). A real layout/E2E test would close
-    // this gap properly — flagged separately, not solved here.
+  it('opens in the shared modal dialog, which every modal centers through', () => {
+    // Centering is a property of the shared .modal-dialog class, not of this control
+    // (src/styles/modalCentering.test.ts guards the rule; jsdom does no layout, and the
+    // geometry is checked in a real browser). This proves the control renders through it.
     render(
       <RangeExactControl label="Percent Female" min={0} max={100} minVal={null} maxVal={null} onChange={vi.fn()} />,
     )
     fireEvent.click(screen.getByRole('button', { name: /set exact/i }))
 
     const dialog = screen.getByRole('dialog')
-    expect(dialog.querySelector('.modal-dialog')).toHaveClass('modal-dialog-centered')
+    expect(dialog.querySelector('.modal-dialog > .modal-content')).toBeInTheDocument()
   })
 
   it('shows the current bounds and commits typed values on Apply', () => {

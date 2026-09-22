@@ -655,7 +655,7 @@ export function RangeExactControl({
         &hellip;
       </Button>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="sm" centered>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="sm">
         <Modal.Header closeButton>
           <Modal.Title style={{ fontSize: 18 }}>{localizedLabel}</Modal.Title>
         </Modal.Header>

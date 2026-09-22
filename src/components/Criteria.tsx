@@ -1,16 +1,31 @@
 import { useState, useCallback } from 'react'
 import { Button, Dropdown } from '../ui'
-import { useCriteriaStore, useLoanStore } from '../stores'
+import { useCriteriaStore } from '../stores'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
 import { useI18n } from '../i18n'
 
 // ---------------------------------------------------------------------------
-// Criteria sidebar panel — wraps CriteriaTabs + saved-search dropdown
+// Criteria sidebar panel — the search switcher above CriteriaTabs
 // ---------------------------------------------------------------------------
 
 export function Criteria() {
+  return (
+    <div>
+      <SearchSwitcher />
+      <CriteriaTabs />
+    </div>
+  )
+}
+
+/**
+ * Reset and the saved-search dropdown: the controls for which search is running.
+ * They sit at the top of the criteria column, and with the criteria hidden they sit
+ * at the top of the results instead (ResultsHeader), so a lender can flip between
+ * saved searches without the facets. Rendered in one place at a time, never twice.
+ */
+export function SearchSwitcher() {
   const { t } = useI18n()
   const startFresh = useCriteriaStore((s) => s.startFresh)
   const loadSearch = useCriteriaStore((s) => s.loadSearch)
@@ -21,7 +36,6 @@ export function Criteria() {
 
   const [searchNames, setSearchNames] = useState<string[]>(() => getSavedSearchNames())
   const [searchCounts, setSearchCounts] = useState<Record<string, number>>({})
-  const loanCount = useLoanStore((s) => s.loanCount)
 
   const refreshNames = useCallback(() => {
     const names = getSavedSearchNames()
@@ -38,7 +52,7 @@ export function Criteria() {
       }
       setSearchCounts(counts)
     }
-  }, [getSavedSearchNames, loanCount])
+  }, [getSavedSearchNames])
 
   const handleClear = useCallback(() => {
     startFresh()
@@ -79,8 +93,7 @@ export function Criteria() {
   )
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center' }}>
+    <div className="kl-search-switcher">
         <Button size="sm" onClick={handleClear} style={{ whiteSpace: 'nowrap' }} data-aikl="reset">
           {t('reset')}
         </Button>
@@ -115,9 +128,6 @@ export function Criteria() {
             <Dropdown.Item onClick={handleSaveAs}>{t('save_current_criteria_ellipsis')}</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
-      </div>
-
-      <CriteriaTabs />
     </div>
   )
 }

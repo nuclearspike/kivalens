@@ -176,16 +176,16 @@ body {
 }
 
 // Desktop 3-column layout only (below md the columns stack and the page scrolls).
-// The results column used to be unbounded while its neighbours were capped to
-// the viewport, so on short windows a fixed-height list pushed it below them and
-// left dead, unscrollable space beside it. Cap it like the others and let the
-// list flex-fill, so the column never exceeds the viewport and there is exactly
-// one scroll area.
+// The results column is exactly the viewport's height (less the navbar) and the
+// list flex-fills it, so there is one scroll area that reaches the bottom of the
+// window. It is a height, not a max-height: a capped column takes the height of
+// its tallest neighbour, and with the criteria hidden and no loan open that is the
+// short welcome panel, which left room for three loans.
 @media (min-width: 768px) {
   .results-col {
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 60px);
+    height: calc(100vh - 60px);
   }
 
   .results-col .loan_list_container {
@@ -1445,4 +1445,16 @@ textarea {
   padding-bottom: 6px;
   background: var(--kl-bg);
 }
+// Reset and the saved-search dropdown, above the criteria or, with the criteria
+// hidden, above the results.
+.kl-search-switcher {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 8px;
 
+  .dropdown {
+    flex: 1;
+    min-width: 0;
+  }
+}
