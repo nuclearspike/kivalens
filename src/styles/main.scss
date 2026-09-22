@@ -1331,7 +1331,14 @@ ul.spacedList li {
 // Controls that exist but cannot apply right now (see UnavailableSection.tsx):
 // still on screen with their values, visibly inactive. The body is `inert`, so the
 // wrapper is the one tab stop and needs a visible focus ring of its own.
+// Layout-neutral: gives UnavailableSection an element that outlives its wrapper, so
+// it can find the controls again once they apply.
+.kl-unavailable-host {
+  display: contents;
+}
+
 .kl-unavailable {
+  position: relative; // anchors the click layer
   border-radius: 4px;
 
   &:focus-visible {
@@ -1353,6 +1360,15 @@ ul.spacedList li {
   .kl-range-hist {
     opacity: 0.45;
   }
+}
+
+// An invisible layer over greyed controls that have a way out: a click anywhere on
+// them opens the dialog that offers it, so the pointer says it is clickable.
+.kl-unavailable-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
 }
 
 .kl-unavailable-note {
@@ -1429,3 +1445,4 @@ textarea {
   padding-bottom: 6px;
   background: var(--kl-bg);
 }
+

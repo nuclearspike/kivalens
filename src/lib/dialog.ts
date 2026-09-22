@@ -21,6 +21,8 @@ export interface DialogRequest {
   cancelLabel: string
   /** confirm/danger styling for the primary button */
   danger?: boolean
+  /** confirm only: the primary button takes focus, so Enter chooses it */
+  focusConfirm?: boolean
   resolve: (value: string | boolean | null) => void
 }
 
@@ -76,6 +78,11 @@ export interface ConfirmOptions {
   confirmLabel?: string
   cancelLabel?: string
   danger?: boolean
+  /**
+   * Focus the primary button, making it the default choice. Off unless asked:
+   * a confirm that guards a destructive action must not be one keypress away.
+   */
+  focusConfirm?: boolean
 }
 
 export function showConfirm(message: string, options: ConfirmOptions = {}): Promise<boolean> {
@@ -86,6 +93,7 @@ export function showConfirm(message: string, options: ConfirmOptions = {}): Prom
     confirmLabel: options.confirmLabel ?? 'OK',
     cancelLabel: options.cancelLabel ?? 'Cancel',
     danger: options.danger,
+    focusConfirm: options.focusConfirm,
   }).then((v) => v === true)
 }
 

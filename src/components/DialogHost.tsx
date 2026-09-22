@@ -77,7 +77,12 @@ export default function DialogHost() {
             {current.cancelLabel}
           </Button>
         ) : null}
-        <Button variant={current.danger ? 'danger' : 'success'} onClick={confirm}>
+        <Button
+          key={current.id}
+          variant={current.danger ? 'danger' : 'success'}
+          onClick={confirm}
+          autoFocus={current.kind === 'confirm' && !!current.focusConfirm}
+        >
           {current.confirmLabel}
         </Button>
       </Modal.Footer>

@@ -25,6 +25,8 @@ import UnavailableSection from './UnavailableSection'
 import { partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { loanOptionCounts } from '../lib/optionCounts'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
+import { showConfirm } from '../lib/dialog'
+import { mfiOnlyPrompt } from '../lib/mfiOnlyPrompt'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
 
 // ---------------------------------------------------------------------------
@@ -1289,6 +1291,7 @@ function PartnerCriteriaPanel({
   onInspectEnd,
   countAanModes,
   onClearPartnerFilters,
+  onRequestMfiOnly,
   distribution,
   distributionKey,
   sortMode,
@@ -1301,6 +1304,8 @@ function PartnerCriteriaPanel({
   countAanModes: (group: 'loan' | 'partner', key: string, canAll?: boolean) => AanCounts | null
   /** Removes every partner criterion, leaving the MFI/Direct choice as it is. */
   onClearPartnerFilters: () => void
+  /** Asks whether to switch to MFI Only, the one mode where partner filters apply. */
+  onRequestMfiOnly: () => Promise<void>
   distribution?: Record<string, number>
   distributionKey?: string
   sortMode?: 'abc' | 'count'
@@ -1383,7 +1388,7 @@ function PartnerCriteriaPanel({
         </p>
       )}
 
-      <UnavailableSection reason={unavailable} describedBy={noteId}>
+      <UnavailableSection reason={unavailable} describedBy={noteId} onActivate={onRequestMfiOnly}>
       {partnerSelects.filter((sel) => sel.key !== 'direct').map(renderSelect)}
 
       {partnerSliders
@@ -1421,9 +1426,12 @@ function PartnerCriteriaPanel({
 function PortfolioCriteriaPanel({
   criteria,
   onUpdate,
+  onRequestMfiOnly,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
+  /** Asks whether to switch to MFI Only, where balance by partner applies. */
+  onRequestMfiOnly: () => Promise<void>
 }) {
   const { t, tx } = useI18n()
   const portfolio = criteria.portfolio as Record<string, unknown>
@@ -1478,11 +1486,12 @@ function PortfolioCriteriaPanel({
                 onChange={(val) => onUpdate('portfolio', key, val)}
               />
             )
-            if (key !== 'pb_partner' || !partnerUnavailable) return row
+            if (key !== 'pb_partner') return row
+            // One wrapper in every mode, so the row keeps its place when MFI Only is chosen.
             return (
               <div key={key}>
-                <p className="kl-unavailable-note" id={partnerNoteId}>{partnerUnavailable}</p>
-                <UnavailableSection reason={partnerUnavailable} describedBy={partnerNoteId}>
+                {partnerUnavailable && <p className="kl-unavailable-note" id={partnerNoteId}>{partnerUnavailable}</p>}
+                <UnavailableSection reason={partnerUnavailable} describedBy={partnerNoteId} onActivate={onRequestMfiOnly}>
                   {row}
                 </UnavailableSection>
               </div>
@@ -1625,7 +1634,7 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
 
 
 export function CriteriaTabs() {
-  const { t } = useI18n()
+  const { t, locale, number } = useI18n()
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const setCriteria = useCriteriaStore((s) => s.setCriteria)
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
@@ -1800,6 +1809,34 @@ export function CriteriaTabs() {
     [criteriaRef, hideGraphs],
   )
 
+  // Reaching for a partner filter that cannot apply (Both, Direct Only) asks whether to
+  // switch to MFI Only, and says what that search would return: the full search with
+  // MFI Only chosen, kept partner filters included, since switching applies them.
+  // One question at a time: a fast double-click must not queue a second dialog.
+  const askingMfiOnlyRef = useRef(false)
+  const handleRequestMfiOnly = useCallback(async () => {
+    const current = criteriaRef.current
+    const mode = resolvePartnerMode(current)
+    if (mode === 'mfi' || askingMfiOnlyRef.current) return
+    const kl = getKivaLoans()
+    const mfiCount = kl?.isReady()
+      ? kl.filter({ loan: { ...current.loan }, partner: { ...current.partner, direct: 'mfi' }, portfolio: { ...current.portfolio } }, false).length
+      : null
+    const prompt = mfiOnlyPrompt(mode, mfiCount, t, locale, number)
+    askingMfiOnlyRef.current = true
+    try {
+      const ok = await showConfirm(prompt.message, {
+        title: prompt.title,
+        confirmLabel: prompt.confirmLabel,
+        cancelLabel: prompt.cancelLabel,
+        focusConfirm: true,
+      })
+      if (ok) handleUpdate('partner', 'direct', 'mfi')
+    } finally {
+      askingMfiOnlyRef.current = false
+    }
+  }, [criteriaRef, handleUpdate, locale, number, t])
+
   const handleInspectSelect = useCallback(
     (group: 'loan' | 'partner', key: string, canAll = false) => {
       if (hideGraphs) return
@@ -1874,6 +1911,7 @@ export function CriteriaTabs() {
               onInspectSelect={handleInspectSelect}
               countAanModes={countAanModes}
               onClearPartnerFilters={handleClearPartnerFilters}
+              onRequestMfiOnly={handleRequestMfiOnly}
               onInspectEnd={handleInspectEnd}
               distribution={distributionMap}
               distributionKey={helperTarget?.key}
@@ -1885,7 +1923,7 @@ export function CriteriaTabs() {
 
         <Tab eventKey="portfolio" title={t('portfolio_2')}>
           <div className="pt-2">
-            <PortfolioCriteriaPanel criteria={criteria} onUpdate={handleUpdate} />
+            <PortfolioCriteriaPanel criteria={criteria} onUpdate={handleUpdate} onRequestMfiOnly={handleRequestMfiOnly} />
           </div>
         </Tab>
 
