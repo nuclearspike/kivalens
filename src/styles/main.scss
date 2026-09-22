@@ -1328,6 +1328,71 @@ ul.spacedList li {
   pointer-events: none;
 }
 
+// Controls that exist but cannot apply right now (see UnavailableSection.tsx):
+// still on screen with their values, visibly inactive. The body is `inert`, so the
+// wrapper is the one tab stop and needs a visible focus ring of its own.
+.kl-unavailable {
+  border-radius: 4px;
+
+  &:focus-visible {
+    outline: 2px solid var(--kl-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.kl-unavailable-body {
+  // No accent colour anywhere reads as inactive: the green switches, tracks and
+  // bars all turn grey. Text is NOT faded — these are kept values and must stay
+  // readable (a faded body dropped them to 2.3–3.9:1). White text on a greyscale
+  // success button stays about 5.2:1.
+  filter: grayscale(1);
+  cursor: not-allowed;
+
+  // Only the drawn parts of the controls fade.
+  .rc-slider,
+  .kl-range-hist {
+    opacity: 0.45;
+  }
+}
+
+.kl-unavailable-note {
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--kl-text-muted);
+  background: var(--kl-bg-subtle);
+  border-left: 3px solid var(--kl-border-strong);
+  border-radius: 0 4px 4px 0;
+}
+
+// A button that reads as a link inside running text ("… Clear them").
+.kl-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--kl-green-text);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--kl-green-text-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kl-focus-ring);
+    outline-offset: 1px;
+    border-radius: 2px;
+  }
+}
+
+// Under "Showing X of Y": the loans a mode or the already-lent filter keeps out.
+.kl-count-gaps {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--kl-text-muted);
+}
+
 // Second line of the tip while a handle moves: what the whole range would return.
 .kl-range-tip-total {
   font-weight: 600;

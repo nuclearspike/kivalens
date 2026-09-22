@@ -185,3 +185,42 @@ describe('blankCriteria', () => {
     expect(b.loan).toEqual({})
   })
 })
+
+describe('MFI or Direct: the mode is written in as criteria arrive', () => {
+  it('writes the mode an old search implies, and leaves a written one alone', async () => {
+    const { withPartnerMode } = await import('./criteriaStore')
+    expect(withPartnerMode(crit()).partner).toMatchObject({ direct: 'both' })
+    expect(withPartnerMode(crit({ partner: { region: 'af' } })).partner).toMatchObject({ direct: 'mfi', region: 'af' })
+    // Already written: the SAME object back, so the store-to-panel sync settles.
+    const written = crit({ partner: { direct: 'both', region: 'af' } })
+    expect(withPartnerMode(written)).toBe(written)
+  })
+
+  it('Reset shows every loan: MFI and Direct both', () => {
+    store().startFresh()
+    expect(store().lastKnown.partner).toMatchObject({ direct: 'both' })
+  })
+
+  it('an old saved search with a partner filter loads as MFI Only; one without, as Both', () => {
+    expect(store().fixUpgrades(crit({ partner: { partner_risk_rating_min: 4 } })).partner.direct).toBe('mfi')
+    expect(store().fixUpgrades(crit({ loan: { sector: 'Retail' } })).partner.direct).toBe('both')
+  })
+
+  it("keeps 'both' through the cleanup that drops empty values", () => {
+    const c = crit({ partner: { direct: 'both', region: 'af', religion: '' } })
+    store().stripNullValues(c)
+    expect(c.partner).toEqual({ direct: 'both', region: 'af' })
+  })
+
+  it('an RSS link outside MFI Only carries no partner filters, so it cannot become MFI-only', () => {
+    const kept = { region: 'af', partner_risk_rating_min: 4 }
+    // Both: no partner group at all — which reads back as Both.
+    expect(store().prepForRSS(crit({ partner: { direct: 'both', ...kept } })).partner).toBeUndefined()
+    expect(store().prepForRSS(crit({ partner: { direct: 'direct', ...kept } })).partner).toEqual({ direct: 'direct' })
+    // In MFI Only they are the point of the feed, and the mode travels with them.
+    expect(store().prepForRSS(crit({ partner: { direct: 'mfi', ...kept } })).partner).toEqual({ direct: 'mfi', ...kept })
+    // An old search is written as the mode it implies.
+    expect(store().prepForRSS(crit({ partner: kept })).partner).toEqual({ direct: 'mfi', ...kept })
+    expect(store().prepForRSS(crit({ loan: { sector: 'Retail' } })).partner).toBeUndefined()
+  })
+})

@@ -21,6 +21,8 @@ import { useRangeTotals } from '../lib/useRangeTotals'
 import RangeHistogram from './RangeHistogram'
 import CopyButton from './CopyButton'
 import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
+import UnavailableSection from './UnavailableSection'
+import { partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { loanOptionCounts } from '../lib/optionCounts'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
@@ -275,8 +277,12 @@ const SORT_OPTIONS: SelectOption[] = [
 ]
 
 // Partner selects
+// A loan either has a field partner (MFI) or not (Direct); Both is every loan.
+// Partner criteria describe the field partner, so they apply in MFI only — see
+// resolvePartnerMode in server/loanFilter.mjs.
 const DIRECT_OPTIONS: SelectOption[] = [
-  { value: '', label: 'mfi_only_default' },
+  { value: 'both', label: 'mfi_direct_both' },
+  { value: 'mfi', label: 'mfi_only' },
   { value: 'direct', label: 'direct_only' },
 ]
 
@@ -1282,6 +1288,7 @@ function PartnerCriteriaPanel({
   onInspectSelect,
   onInspectEnd,
   countAanModes,
+  onClearPartnerFilters,
   distribution,
   distributionKey,
   sortMode,
@@ -1292,12 +1299,21 @@ function PartnerCriteriaPanel({
   onInspectSelect: (group: 'loan' | 'partner', key: string, canAll?: boolean, top?: number) => void
   onInspectEnd: () => void
   countAanModes: (group: 'loan' | 'partner', key: string, canAll?: boolean) => AanCounts | null
+  /** Removes every partner criterion, leaving the MFI/Direct choice as it is. */
+  onClearPartnerFilters: () => void
   distribution?: Record<string, number>
   distributionKey?: string
   sortMode?: 'abc' | 'count'
   onSortMode?: (mode: 'abc' | 'count') => void
 }) {
+  const { t, tx } = useI18n()
+  const noteId = useId()
   const partner = criteria.partner as Record<string, unknown>
+  // Partner criteria describe the field partner, so they apply only in MFI only.
+  // In Both and Direct they stay on screen with their values, greyed and explained.
+  const mode = resolvePartnerMode(criteria)
+  const unavailable = mode === 'mfi' ? null : t(mode === 'direct' ? 'partner_filters_unavailable_direct' : 'partner_filters_unavailable_both')
+  const kept = !!unavailable && partnerCriteriaSet(criteria)
   const distributions = useLoanStore((s) => s.rangeDistributions)
   const totals = useRangeTotals(criteria, distributions)
   const sliderMaxima = useLoanStore((s) => s.sliderMaxima)
@@ -1312,20 +1328,18 @@ function PartnerCriteriaPanel({
     key: string; label: string; options: SelectOption[]; isMulti: boolean
     hasAan?: boolean; canAll?: boolean; helpText?: string; showDistribution?: boolean
   }> = [
-    { key: 'direct', label: 'MFI or Direct', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true,
-      helpText: 'Most Kiva loans go through a field partner (an MFI). “Direct” loans are made straight to the borrower with no MFI. The default “MFI Only” hides Direct loans — that’s why the loans shown can be fewer than the total fundraising count.' },
-    { key: 'partners', label: 'Field Partner', options: partnerOptions, isMulti: true, hasAan: true, showDistribution: true,
-      helpText: 'Pick specific field partners (MFIs). Use the Any/None toggle to require loans from any of the selected partners, or to exclude them. Only applies in MFI mode.' },
-    { key: 'region', label: 'Region', options: REGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
-    { key: 'social_performance', label: 'Social Performance', options: SOCIAL_PERFORMANCE_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
-    { key: 'charges_fees_and_interest', label: 'Charges Interest', options: CHARGES_INTEREST_OPTIONS, isMulti: false, showDistribution: true },
-    { key: 'religion', label: 'Religion', options: RELIGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true,
+    { key: 'direct', label: 'mfi_direct_2', options: DIRECT_OPTIONS, isMulti: false, showDistribution: true,
+      helpText: 'mfi_direct_help' },
+    { key: 'partners', label: 'field_partner_2', options: partnerOptions, isMulti: true, hasAan: true, showDistribution: true,
+      helpText: 'field_partner_help' },
+    { key: 'region', label: 'region_2', options: REGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true },
+    { key: 'social_performance', label: 'social_performance_2', options: SOCIAL_PERFORMANCE_OPTIONS, isMulti: true, hasAan: true, canAll: true, showDistribution: true },
+    { key: 'charges_fees_and_interest', label: 'charges_interest', options: CHARGES_INTEREST_OPTIONS, isMulti: false, showDistribution: true },
+    { key: 'religion', label: 'religion', options: RELIGION_OPTIONS, isMulti: true, hasAan: true, showDistribution: true,
       helpText: RELIGION_HELP },
   ]
 
-  return (
-    <>
-      {partnerSelects.map((sel) => (
+  const renderSelect = (sel: (typeof partnerSelects)[number]) => (
         <SelectRow
           key={sel.key}
           fieldKey={sel.key}
@@ -1345,7 +1359,32 @@ function PartnerCriteriaPanel({
           sortMode={sortMode}
           onSortMode={onSortMode}
         />
-      ))}
+  )
+
+  return (
+    <>
+      {partnerSelects.filter((sel) => sel.key === 'direct').map(renderSelect)}
+
+      {unavailable && (
+        <p className="kl-unavailable-note">
+          <span id={noteId}>{unavailable}</span>
+          {kept && (
+            <>
+              {' '}
+              {tx('partner_filters_kept', {
+                clear: (
+                  <button type="button" className="kl-link-button" onClick={onClearPartnerFilters}>
+                    {t('clear_them')}
+                  </button>
+                ),
+              })}
+            </>
+          )}
+        </p>
+      )}
+
+      <UnavailableSection reason={unavailable} describedBy={noteId}>
+      {partnerSelects.filter((sel) => sel.key !== 'direct').map(renderSelect)}
 
       {partnerSliders
         // The A+ secular/social sliders only filter once A+ data is merged; hide
@@ -1370,6 +1409,7 @@ function PartnerCriteriaPanel({
           totalFor={totals('partner', key)}
         />
       ))}
+      </UnavailableSection>
     </>
   )
 }
@@ -1388,6 +1428,11 @@ function PortfolioCriteriaPanel({
   const { t, tx } = useI18n()
   const portfolio = criteria.portfolio as Record<string, unknown>
   const lenderId = useUtilsStore((s) => s.lenderId)
+  const partnerNoteId = useId()
+  // Balance by partner is a partner criterion: it applies in MFI Only, and is kept
+  // but greyed in Both and Direct Only, the same as the Partner tab's filters.
+  const mode = resolvePartnerMode(criteria)
+  const partnerUnavailable = mode === 'mfi' ? null : t(mode === 'direct' ? 'partner_filters_unavailable_direct' : 'partner_filters_unavailable_both')
 
   return (
     <>
@@ -1423,15 +1468,26 @@ function PortfolioCriteriaPanel({
         <Card.Body>
           <p style={{ fontSize: 13 }}>{t('balance_lending_across_partners')}</p>
 
-          {PORTFOLIO_BALANCERS.map((key) => (
-            <BalancingRow
-              key={key}
-              name={key}
-              meta={BALANCER_OPTIONS[key]}
-              value={portfolio[key] as BalancerConfig | undefined}
-              onChange={(val) => onUpdate('portfolio', key, val)}
-            />
-          ))}
+          {PORTFOLIO_BALANCERS.map((key) => {
+            const row = (
+              <BalancingRow
+                key={key}
+                name={key}
+                meta={BALANCER_OPTIONS[key]}
+                value={portfolio[key] as BalancerConfig | undefined}
+                onChange={(val) => onUpdate('portfolio', key, val)}
+              />
+            )
+            if (key !== 'pb_partner' || !partnerUnavailable) return row
+            return (
+              <div key={key}>
+                <p className="kl-unavailable-note" id={partnerNoteId}>{partnerUnavailable}</p>
+                <UnavailableSection reason={partnerUnavailable} describedBy={partnerNoteId}>
+                  {row}
+                </UnavailableSection>
+              </div>
+            )
+          })}
         </Card.Body>
       </Card>
     </>
@@ -1703,6 +1759,19 @@ export function CriteriaTabs() {
     [],
   )
 
+  // Removes every partner criterion — the selects, their Any/All/None modes, the
+  // ranges and balance-by-partner — and leaves the MFI/Direct choice where it is.
+  const handleClearPartnerFilters = useCallback(() => {
+    setCriteriaLocal((prev) => {
+      const pbPartner = (prev.portfolio as Record<string, unknown>).pb_partner as Record<string, unknown> | undefined
+      return {
+        ...prev,
+        partner: { direct: (prev.partner as Record<string, unknown>).direct },
+        portfolio: pbPartner ? { ...prev.portfolio, pb_partner: { ...pbPartner, enabled: false } } : prev.portfolio,
+      } as Criteria
+    })
+  }, [])
+
   // What each Any / All / None mode of one select would give: the number of loans
   // the whole search returns with that mode, every other criterion as it stands.
   // Runs when the mode menu opens (a few ms per mode over the loaded loans). With
@@ -1804,6 +1873,7 @@ export function CriteriaTabs() {
               onUpdate={handleUpdate}
               onInspectSelect={handleInspectSelect}
               countAanModes={countAanModes}
+              onClearPartnerFilters={handleClearPartnerFilters}
               onInspectEnd={handleInspectEnd}
               distribution={distributionMap}
               distributionKey={helperTarget?.key}

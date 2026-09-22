@@ -1,5 +1,7 @@
 import type { Criteria, BalancerConfig } from '../types'
 import { humanize } from './utils'
+import en from '../i18n/locales/en'
+import { resolvePartnerMode } from '../../server/loanFilter.mjs'
 
 // `limit_by`'s VALUE ('Partner' / 'Country' / 'Sector' / 'Activity') is persisted
 // criteria data and must stay exactly as-is; this maps it to the catalog key
@@ -69,9 +71,11 @@ const PARTNER_FIELD: Record<string, string> = {
   social_performance: 'social_performance',
   religion: 'religion',
   partners: 'field_partner',
-  direct: 'mfi_direct',
   charges_fees_and_interest: 'charges_fees',
 }
+// The value shown for the MFI/Direct mode is the ENGLISH label text, because the
+// panel translates every value by its English text (translateData).
+const MODE_VALUE: Record<string, string> = { mfi: en.mfi_only, direct: en.direct_only }
 
 function clone(c: Criteria): Criteria {
   return {
@@ -158,8 +162,29 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
     })
   }
 
+  // MFI or Direct. Both is no filter at all. MFI Only and Direct Only are, and
+  // removing either means going back to Both — not deleting the value, which on a
+  // search saved before the modes existed would resolve straight back to MFI Only.
+  const mode = resolvePartnerMode(c)
+  if (mode !== 'both') {
+    out.push({
+      id: 'partner.direct',
+      label: 'mfi_direct',
+      value: MODE_VALUE[mode],
+      without: (cc) => {
+        const n = clone(cc)
+        n.partner = { ...n.partner, direct: 'both' }
+        return n
+      },
+    })
+  }
+  // Partner criteria apply only in MFI Only. In Both and Direct Only they are kept
+  // but change nothing, so offering to remove one would promise results it cannot give.
+  const partnerApplies = mode === 'mfi'
+
   // partner fields
   for (const [k, label] of Object.entries(PARTNER_FIELD)) {
+    if (!partnerApplies) break
     const v = partner[k]
     if (v != null && v !== '' && !(Array.isArray(v) && v.length === 0)) {
       out.push({ id: `partner.${k}`, label, value: fmt(v), modifier: modifierOf(partner[`${k}_all_any_none`]), without: (cc) => { const n = clone(cc); delete n.partner[k]; delete n.partner[`${k}_all_any_none`]; return n } })
@@ -171,7 +196,7 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
     const m = k.match(/^(.+)_(min|max)$/)
     if (m) partnerBases.add(m[1])
   }
-  for (const base of partnerBases) {
+  for (const base of partnerApplies ? partnerBases : []) {
     const min = partner[`${base}_min`]
     const max = partner[`${base}_max`]
     // Match the loan-range guard: a present-but-empty bound is not a filter.
@@ -186,6 +211,8 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
   // portfolio balancers
   for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender'] as const) {
     const b = portfolio[pb] as BalancerConfig | undefined
+    // Balance by partner is partner-side: kept but inert outside MFI Only.
+    if (pb === 'pb_partner' && !partnerApplies) continue
     if (b && b.enabled) {
       out.push({ id: `portfolio.${pb}`, label: `balancer_${pb.replace('pb_', '')}`, value: 'on', without: (cc) => { const n = clone(cc); n.portfolio = { ...n.portfolio, [pb]: { ...b, enabled: false } }; return n } })
     }

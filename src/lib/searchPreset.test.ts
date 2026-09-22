@@ -70,6 +70,23 @@ describe('KivaLens Lite search handoff presets', () => {
     expect(parseSearchPreset('{"partner":{"profit_min":1e99}}')).toBeNull()
   })
 
+  it('accepts the three MFI/Direct modes and nothing else', () => {
+    for (const direct of ['both', 'mfi', 'direct']) {
+      expect(parseSearchPreset(JSON.stringify({ partner: { direct } }))?.partner, direct).toEqual({ direct })
+    }
+    // Keeps the mode alongside the partner criteria it governs.
+    expect(parseSearchPreset(JSON.stringify({ partner: { direct: 'mfi', region: 'af' } }))?.partner).toEqual({ direct: 'mfi', region: 'af' })
+    // The old empty value means "not set": accepted and left for the engine to read.
+    expect(parseSearchPreset(JSON.stringify({ partner: { direct: '' } }))?.partner).toEqual({})
+    expect(parseSearchPreset(JSON.stringify({ partner: { direct: '', region: 'af' } }))?.partner).toEqual({ region: 'af' })
+    // KivaLens Lite's own help link for Direct loans.
+    expect(parseSearchPreset(JSON.stringify({ partner: { direct: 'direct' } }))?.partner).toEqual({ direct: 'direct' })
+    // Anything else fails the whole preset closed, as every other bad value does.
+    for (const direct of ['MFI', 'mfi_only', 'yes', 1, null, true]) {
+      expect(parseSearchPreset(JSON.stringify({ partner: { direct } })), JSON.stringify(direct)).toBeNull()
+    }
+  })
+
   it('accepts only real criteria tabs', () => {
     expect(parseSearchPresetTab('borrower')).toBe('borrower')
     expect(parseSearchPresetTab('partner')).toBe('partner')

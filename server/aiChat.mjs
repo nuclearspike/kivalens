@@ -12,7 +12,7 @@
  */
 import zlib from 'node:zlib'
 import OpenAI from 'openai'
-import { filterLoans, groupBy, filterPartners } from './loanFilter.mjs'
+import { filterLoans, groupBy, filterPartners, partnerCriteriaSet, resolvePartnerMode } from './loanFilter.mjs'
 // Gate every filterLoans call on this, never on state.ready — see its doc comment.
 import { loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from './klCore.mjs'
 import { fetchSuperGraphSlices, fetchLenderProfile } from './lenderData.mjs'
@@ -96,7 +96,9 @@ const PARTNER_RANGE = new Set([
   'profit', 'currency_exchange_loss_rate', 'years_on_kiva',
   'loans_posted', 'fundraising_loan_count',
 ])
-const PARTNER_PASS = new Set(['direct', 'charges_fees_and_interest'])
+const PARTNER_PASS = new Set(['charges_fees_and_interest'])
+// The MFI/Direct mode: anything else from the model is dropped rather than guessed at.
+const PARTNER_MODES = new Set(['both', 'mfi', 'direct'])
 const AAN = new Set(['any', 'all', 'none', ''])
 
 function clampCsv(value, allowed) {
@@ -146,7 +148,8 @@ function validateCriteria(input, vocab) {
     }
   }
   for (const [k, v] of Object.entries(inPartner)) {
-    if (PARTNER_PASS.has(k)) { if (v != null && v !== '') out.partner[k] = String(v) }
+    if (k === 'direct') { if (PARTNER_MODES.has(String(v))) out.partner.direct = String(v) }
+    else if (PARTNER_PASS.has(k)) { if (v != null && v !== '') out.partner[k] = String(v) }
     else if (PARTNER_VOCAB.has(k)) { const s = Array.isArray(v) ? v.join(',') : String(v ?? ''); if (s) out.partner[k] = s }
     else {
       const m = k.match(/^(.+)_(min|max)$/)
@@ -158,17 +161,19 @@ function validateCriteria(input, vocab) {
   if (inPortfolio.exclude_portfolio_loans != null) out.portfolio.exclude_portfolio_loans = String(inPortfolio.exclude_portfolio_loans)
   for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender']) {
     const c = inPortfolio[pb]
-    if (c && typeof c === 'object') {
-      out.portfolio[pb] = {
-        enabled: !!c.enabled,
-        hideshow: c.hideshow === 'show' ? 'show' : 'hide',
-        ltgt: c.ltgt === 'gt' ? 'gt' : 'lt',
-        percent: num(c.percent) ?? 0,
-        allactive: c.allactive === 'active' ? 'active' : 'all',
-      }
-    }
+    if (c && typeof c === 'object') out.portfolio[pb] = normalizeBalancer(c)
   }
   return out
+}
+
+function normalizeBalancer(c) {
+  return {
+    enabled: !!c.enabled,
+    hideshow: c.hideshow === 'show' ? 'show' : 'hide',
+    ltgt: c.ltgt === 'gt' ? 'gt' : 'lt',
+    percent: num(c.percent) ?? 0,
+    allactive: c.allactive === 'active' ? 'active' : 'all',
+  }
 }
 
 // Merge a (validated) delta onto the current criteria so the model can pass just
@@ -186,6 +191,43 @@ function mergeCriteria(base, delta) {
     }
   }
   return out
+}
+
+// Partner criteria apply only in MFI Only (resolvePartnerMode, loanFilter.mjs). A
+// partner filter the MODEL sets or changes is one the lender asked for, so the
+// result gets MFI Only rather than leaving that filter greyed and inert in Both.
+// This compares the model's criteria with the lender's. It does not switch modes
+// just because partner values are present, because values the lender kept in Both
+// are inert by choice: repeating them, or merging a loan-only change onto them,
+// asks for nothing. A mode the model did not choose stays the lender's, and Direct
+// Only is an explicit choice that is left alone.
+function applyModelPartnerIntent(result, fromModel, lender) {
+  const lenderMode = lender?.partner?.direct
+  if (!PARTNER_MODES.has(result.partner.direct) && PARTNER_MODES.has(lenderMode)) result.partner.direct = lenderMode
+  if (!fromModel || fromModel.partner?.direct === 'direct') return result
+
+  const asked = { loan: {}, partner: {}, portfolio: {} }
+  for (const [k, v] of Object.entries(fromModel.partner || {})) {
+    if (k === 'direct' || sameValue(v, lender?.partner?.[k])) continue
+    asked.partner[k] = v
+    // A new Any/All/None mode is a request about that field's values.
+    const aan = k.match(/^(.+)_all_any_none$/)
+    if (aan && result.partner[aan[1]] != null) asked.partner[aan[1]] = result.partner[aan[1]]
+  }
+  // Balance-by-partner gets its partner list from the lender's portfolio in the
+  // browser, so the model's version has none to test; turning it on is the request.
+  const pb = fromModel.portfolio?.pb_partner
+  const lenderPb = lender?.portfolio?.pb_partner
+  const pbAsked = !!pb?.enabled && JSON.stringify(pb) !== JSON.stringify(lenderPb ? normalizeBalancer(lenderPb) : null)
+
+  if (pbAsked || partnerCriteriaSet(asked)) result.partner.direct = 'mfi'
+  return result
+}
+
+// Order-insensitive for comma lists: "af,me" and "me,af" are the same regions.
+function sameValue(a, b) {
+  const norm = (v) => String(v ?? '').split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
+  return norm(a) === norm(b)
 }
 
 // Stable, order/empty-insensitive signature of a criteria object, so
@@ -426,7 +468,8 @@ async function execTool(name, args, sctx, sse) {
       // filters (that bug reported 5198 global women instead of the real 226 in PE/EC).
       const aBase = sctx.criteria && typeof sctx.criteria === 'object' ? sctx.criteria : { loan: {}, partner: {}, portfolio: {} }
       const aArg = criteriaArg(args)
-      const criteria = validateCriteria(Object.keys(aArg).length ? mergeCriteria(aBase, validateCriteria(aArg, vocab)) : aBase, vocab)
+      const aDelta = Object.keys(aArg).length ? validateCriteria(aArg, vocab) : null
+      const criteria = applyModelPartnerIntent(validateCriteria(aDelta ? mergeCriteria(aBase, aDelta) : aBase, vocab), aDelta, aBase)
       const matched = filterLoans(criteria, loanCtx(state))
       const facets = {}
       const want = Array.isArray(args.facets) && args.facets.length ? args.facets : ['sector', 'country_code']
@@ -481,7 +524,9 @@ async function execTool(name, args, sctx, sse) {
       // never moved. (Reported: "countries in the middle east with women who are
       // oppressed" charted 17 loans but left the search untouched, forcing the
       // user to follow up with "set the criteria".)
-      const previewOnly = criteriaSignature(criteria) !== criteriaSignature(aBase)
+      // Both sides go through the same validation, so what it normalises (such as a
+      // balancer's list, which the browser fills from the portfolio) is not a change.
+      const previewOnly = criteriaSignature(criteria) !== criteriaSignature(validateCriteria(aBase, vocab))
       const applyNote = previewOnly
         ? ' IMPORTANT — this analysis did NOT change the user\'s search; the results panel still shows the PREVIOUS filter. If the user described loans they want to FIND or SEE (any request naming the loans they are after, however phrased — "women in the middle east", "farmers in Peru", "oppressed women"), you MUST call set_criteria with these same criteria in THIS SAME TURN so the results actually update. Ending your turn with only a chart, or telling them a count without applying it, leaves their search unchanged and is WRONG. Skip set_criteria ONLY for a pure data question about a search they did not ask you to change (e.g. "how many loans are in Peru?").'
         : ''
@@ -590,7 +635,14 @@ async function execTool(name, args, sctx, sse) {
     }
     case 'generate_rss_feed': {
       const argCrit = criteriaArg(args)
-      const criteria = validateCriteria(Object.keys(argCrit).length ? argCrit : sctx.criteria || {}, getTaxonomy(state).vocab)
+      const lender = sctx.criteria || {}
+      const described = Object.keys(argCrit).length ? validateCriteria(argCrit, getTaxonomy(state).vocab) : null
+      const criteria = described ? applyModelPartnerIntent(described, described, lender) : validateCriteria(lender, getTaxonomy(state).vocab)
+      // Partner criteria apply only in MFI Only, so the feed carries them only then,
+      // as the browser's prepForRSS does. Both is written out here rather than left
+      // out as the browser does, because this feed can include the portfolio, and an
+      // enabled balance-by-partner with no mode would read as MFI Only.
+      const mode = resolvePartnerMode(criteria)
       const linkTo = args.linkTo === 'kivalens' ? 'kivalens' : 'kiva'
       const includePortfolio = !!args.includePortfolio && !!lenderId
       const feed = { name: String(args.name || 'My KivaLens Feed'), link_to: linkTo }
@@ -598,7 +650,7 @@ async function execTool(name, args, sctx, sse) {
       const payload = {
         feed,
         loan: criteria.loan,
-        partner: criteria.partner,
+        partner: mode === 'mfi' ? { ...criteria.partner, direct: 'mfi' } : { direct: mode },
         ...(includePortfolio ? { portfolio: criteria.portfolio } : {}),
       }
       const url = 'https://www.kivalens.org/rss/' + encodeURIComponent(JSON.stringify(payload))
@@ -683,6 +735,7 @@ async function execTool(name, args, sctx, sse) {
           }
         }
       }
+      applyModelPartnerIntent(criteria, delta, base)
       // Count the OUTGOING filter before swapping it in, so we can tell whether
       // this call actually narrowed. replace:true and explicit clears both drop
       // filters silently, so a "refinement" can widen the search without the
@@ -769,7 +822,8 @@ async function execTool(name, args, sctx, sse) {
       if (!(await awaitReady(sctx))) return { ready: false, note: 'Loan data is still loading for the assistant, so a list is not available yet — but the search on the left is live and the results are already visible on the user screen. Do NOT tell them nothing matches and do NOT ask them to come back.' }
       const base = sctx.criteria && typeof sctx.criteria === 'object' ? sctx.criteria : { loan: {}, partner: {}, portfolio: {} }
       const argCrit = criteriaArg(args)
-      const crit = validateCriteria(Object.keys(argCrit).length ? mergeCriteria(base, validateCriteria(argCrit, vocab)) : base, vocab)
+      const delta = Object.keys(argCrit).length ? validateCriteria(argCrit, vocab) : null
+      const crit = applyModelPartnerIntent(validateCriteria(delta ? mergeCriteria(base, delta) : base, vocab), delta, base)
       if (args.sort) crit.loan = { ...crit.loan, sort: String(args.sort) }
       const matched = filterLoans(crit, loanCtx(state))
       const limit = Math.min(Math.max(Number(args.limit) || 8, 1), 20)
@@ -1369,8 +1423,8 @@ export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'COUNTS / "Showing X of Y": Y is every loaded fundraising loan; X is those matching the CURRENT criteria.' +
       (extra.total ? ` Right now the user sees ${extra.shown} of ${extra.total}.` : ''),
     loansFilterable(state)
-      ? `DEFAULT FILTER — the "MFI or Direct" partner setting defaults to "MFI Only", which HIDES Kiva Direct loans (loans with no field partner). There are currently ${directCount} Direct loans and ${mfiCount} MFI loans loaded. So with NO other criteria, the shown count is about ${directCount} below the total purely because Direct loans are hidden. To show Direct loans, set partner.direct="direct" (Direct Only); there is no combined MFI+Direct view. When the user asks why the count is below the total or where loans "went", give THIS concrete reason (hidden Direct loans, plus any active criteria) — never invent a generic explanation, and use analyze_loans if you need exact numbers.`
-      : 'DEFAULT FILTER — the "MFI or Direct" partner setting defaults to "MFI Only", which HIDES Kiva Direct loans (loans with no field partner). Loan data is still loading, so per-mode counts are NOT available yet — never state Direct/MFI counts until a tool returns them.',
+      ? `MFI OR DIRECT — the partner setting partner.direct has three values: "both" (the default: every loan), "mfi" (MFI Only: loans with a field partner) and "direct" (Direct Only: loans with no field partner). There are currently ${directCount} Direct loans and ${mfiCount} MFI loans loaded. PARTNER CRITERIA (star rating, region, religion, social performance, specific partners, charges interest, the other partner sliders, balance-by-partner) describe a loan's FIELD PARTNER, and a Direct loan has none, so they apply ONLY in "mfi". In "both" and "direct" they stay on screen, greyed and not applied, and values the user kept that way are theirs: leave them as they are and never switch the mode because of them. So whenever you set a NEW partner criterion, also set partner.direct="mfi" — the server does this for you if you forget, but say so to the user: their search now shows MFI loans only, and ${directCount} Direct loans drop out. A search saved before these modes existed has no value: with any partner criterion it is read as "mfi", otherwise as "both". When the user asks why the shown count is below the total, the count bar under the results already says it — Direct loans not shown under MFI Only, MFI loans not shown under Direct Only, and loans they already lent to hidden by the exclude-funded filter — plus any criteria they set; never invent a generic reason, and use analyze_loans for exact numbers.`
+      : 'MFI OR DIRECT — the partner setting partner.direct has three values: "both" (the default: every loan), "mfi" (MFI Only: loans with a field partner) and "direct" (Direct Only: loans with no field partner). Partner criteria describe a loan\'s field partner and apply ONLY in "mfi"; values the user kept greyed in "both" or "direct" are theirs, so leave them as they are and never switch the mode because of them; whenever you set a new one, also set partner.direct="mfi" and tell the user their search now shows MFI loans only. Loan data is still loading, so per-mode counts are NOT available yet — never state Direct/MFI counts until a tool returns them.',
     'BUG REPORTS (a QUIET, reactive capability — NEVER advertise, offer, or bring it up on your own): engage this ONLY when the USER initiates — they say something is broken / not working / wrong / "there is a bug" / an error, OR they explicitly ask (e.g. "can I file a bug report?" — answer yes, happily). Do NOT proactively suggest filing a bug report, and do not mention that this capability exists otherwise. When they DO raise an issue: assume they mean KivaLens (this tool), NOT Kiva.org; briefly gather what they did, what they expected, and what actually happened (plus the page or loan involved). Then CALL report_bug with what you have (summary at minimum) — that call is what actually flags it for the maintainer, so a report you only reply to in prose is a report that gets lost. Do not interrogate them for every field; one clarifying question at most, and file it even if partial. Afterwards reassure them briefly and warmly that it is recorded and will be looked at — never promise a fix or a timeline, and never redirect them to Kiva.org support or tell them to file it elsewhere (most users have no GitHub account; this chat IS the channel). They may optionally email contact@kivalens.org.',
     'SEARCH IS LIVE — there is NO search / apply / submit / go button anywhere, and NOTHING the user has to do to make a filter take effect. The results re-filter automatically and CONTINUOUSLY, the instant any criterion changes — whether they change it on the panel or you change it with set_criteria — so the list on the left is always already showing their current matches. When they ask how to run, start, or submit the search, or what they must do to apply their criteria/filters, the answer is NOTHING: say that plainly first, tell them the results on the left already reflect every filter they have set (quote the current match count from CONTEXT when it is present), and if it would help them spot where, call point_at {target:"results"} with a short callout, then offer to refine. NEVER describe an apply step, NEVER tell them to click or press anything to run a search, and NEVER offer to "apply" or "run" criteria that are already set — that offer is a no-op that teaches a step which does not exist. (set_criteria CHANGES filters; it is not an apply step.)',
     'ALREADY-FUNDED LOANS: the "Exclude loans I funded" filter (criteria portfolio.exclude_portfolio_loans, "true"/"false") is ON by default and, like every criterion, is saved in the browser and stays on across visits. With a lender id set it hides every loan the user already funded AUTOMATICALLY — there is nothing to repeat each visit or each search. When they ask whether, how, or how often they must screen out loans they already funded: if a lender id is set and the filter is ON (see CONTEXT), answer directly without tools that it is automatic and stays on; if the filter is OFF, turn it on with set_criteria {"portfolio":{"exclude_portfolio_loans":"true"}} and say it will stay on; if NO lender id is set, the filter is INERT — say clearly that it cannot hide anything until their lender id is set (never imply they are already covered), ask if they want to set it now, and only call prompt_lender_id once they agree. Never tell them to re-filter every time.',

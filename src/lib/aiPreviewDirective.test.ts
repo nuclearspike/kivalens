@@ -347,6 +347,19 @@ describe('analyze_loans preview directive', () => {
     expect(result.note).not.toMatch(/did NOT change/i)
   })
 
+  it('recognises the applied search when a portfolio balancer is on', async () => {
+    // The browser fills a balancer's list from the lender's portfolio and validation
+    // drops that list, so a breakdown of the live search must not read as a preview.
+    const balanced = {
+      loan: {},
+      partner: {},
+      portfolio: { pb_sector: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 10, allactive: 'all', values: ['Retail'] } },
+    }
+    const result = await run({ criteria: {} }, balanced)
+    expect(result.applied_to_search).toBe(true)
+    expect(result.note).not.toMatch(/did NOT change/i)
+  })
+
   it('still counts correctly while previewing (count comes from the merged filter)', async () => {
     const result = await run({ criteria: { loan: { country_code: 'JO' } } })
     expect(result.count).toBe(2)

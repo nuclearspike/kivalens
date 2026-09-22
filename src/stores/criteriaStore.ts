@@ -8,6 +8,22 @@ import { cl, wait } from '../lib/utils'
 import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
+import { resolvePartnerMode } from '../../server/loanFilter.mjs'
+
+/**
+ * The criteria with the MFI/Direct mode written in. A search saved before the
+ * three modes existed has no value, and the engine reads one off what it filters
+ * on (see resolvePartnerMode). Writing it in as criteria enter the store means no
+ * later step can change it by accident: measuring a slider lifts that slider's
+ * range, and on an old search whose only partner filter it is, an unwritten mode
+ * would flip from MFI to Both mid-measurement. Returns the same object when the
+ * mode is already written, so the store-to-panel sync settles instead of looping.
+ */
+export function withPartnerMode(criteria: Criteria): Criteria {
+  const mode = resolvePartnerMode(criteria)
+  if ((criteria.partner as Record<string, unknown> | undefined)?.direct === mode) return criteria
+  return { ...criteria, partner: { ...criteria.partner, direct: mode } }
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -295,7 +311,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         // Criteria actions
         // -------------------------------------------------------------
 
-        setCriteria: (criteria: Criteria) => {
+        setCriteria: (incoming: Criteria) => {
+          const criteria = withPartnerMode(incoming)
           cl('criteriaStore:setCriteria', criteria)
           set((state) => {
             state.lastKnown = criteria as never
@@ -304,7 +321,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           useLoanStore.getState().filterLoans(criteria)
         },
 
-        reloadCriteria: (criteria: Criteria) => {
+        reloadCriteria: (incoming: Criteria) => {
+          const criteria = withPartnerMode(incoming)
           set((state) => {
             state.lastKnown = criteria as never
           })
@@ -313,7 +331,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         startFresh: () => {
           const fresh: Criteria = {
             loan: { name: '', use: '' },
-            partner: {},
+            // Every loan: MFI and Direct both. Partner filters apply once MFI only is chosen.
+            partner: { direct: 'both' },
             portfolio: {
               exclude_portfolio_loans: 'true',
               pb_sector: { enabled: false },
@@ -435,7 +454,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           const partnerCriteria = c.partner as Record<string, unknown>
           delete partnerCriteria.average_loan_size_percent_per_capita_income_min
           delete partnerCriteria.average_loan_size_percent_per_capita_income_max
-          return c
+          return withPartnerMode(c)
         },
 
         stripNullValues: (crit: Criteria | undefined): Criteria | undefined => {
@@ -466,9 +485,13 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             }
             if (Object.keys(loan).length > 0) result.loan = loan
           }
-          if (crit.partner && Object.keys(crit.partner).length > 0) {
-            result.partner = { ...crit.partner }
-          }
+          // Partner criteria apply only in MFI Only. In Both and Direct Only they are
+          // kept on screen but change nothing, so a feed leaves them out. Both is then
+          // written as no partner group at all — a search with no partner criteria reads
+          // as Both, so the link cannot turn into an MFI-only feed however it is carried.
+          const mode = resolvePartnerMode(crit)
+          if (mode === 'mfi') result.partner = { ...crit.partner, direct: 'mfi' }
+          else if (mode === 'direct') result.partner = { direct: 'direct' }
           // portfolio is intentionally excluded from RSS
           delete (result as Record<string, unknown>).notifyOnNew
           return result

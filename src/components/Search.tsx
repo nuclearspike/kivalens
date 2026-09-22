@@ -14,19 +14,28 @@ import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { parseSearchPreset, parseSearchPresetTab } from '../lib/searchPreset'
 import { useI18n } from '../i18n'
+import { pluralCategory } from '../lib/pluralCategory'
 
 // ---------------------------------------------------------------------------
 // Search page — criteria panel + loan list + detail area
 // ---------------------------------------------------------------------------
 
 export function Search() {
-  const { t, tx, number } = useI18n()
+  const { t, tx, number, locale } = useI18n()
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
   const downloading = useLoanStore((s) => s.downloading)
   const secondaryStatus = useLoanStore((s) => s.secondaryStatus)
   const backgroundResyncState = useLoanStore((s) => s.backgroundResyncState)
   const loanCount = filteredLoans.length
   const totalFundraising = useLoanStore((s) => s.loanCount)
+  const countGaps = useLoanStore((s) => s.countGaps)
+  // Loans left out by the MFI/Direct choice or by the already-lent filter, each
+  // counted within every other criterion; only the ones that are not zero.
+  const gapNotes = [
+    countGaps.directNotShown > 0 && t(pluralCategory(locale, countGaps.directNotShown) === 'one' ? 'direct_loans_not_shown_one' : 'direct_loans_not_shown', { count: number(countGaps.directNotShown) }),
+    countGaps.mfiNotShown > 0 && t(pluralCategory(locale, countGaps.mfiNotShown) === 'one' ? 'mfi_loans_not_shown_one' : 'mfi_loans_not_shown', { count: number(countGaps.mfiNotShown) }),
+    countGaps.alreadyLentHidden > 0 && t(pluralCategory(locale, countGaps.alreadyLentHidden) === 'one' ? 'already_lent_hidden_one' : 'already_lent_hidden', { count: number(countGaps.alreadyLentHidden) }),
+  ].filter(Boolean) as string[]
   const selectedId = useLoanStore((s) => s.selectedId)
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
   const { id: routeLoanId } = useParams<{ id: string }>()
@@ -152,6 +161,7 @@ export function Search() {
                 shown: number(loanCount),
                 total: number(totalFundraising),
               })}
+              {gapNotes.length > 0 && <div className="kl-count-gaps">{gapNotes.join(' · ')}</div>}
             </div>
           ) : null}
 

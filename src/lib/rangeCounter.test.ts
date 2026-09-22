@@ -53,15 +53,19 @@ describe('shared loanFilter.rangeCounter', () => {
 
   it("leaves the slider's own saved range out of the population, and no limit means no limit", () => {
     const count = rangeCounter({ loan: { loan_amount_min: 100, loan_amount_max: 400 } }, ctx, 'loan', 'loan_amount')
-    expect(count(null, null)).toBe(6) // every MFI loan, the 12,000 one included
-    expect(count(null, 10000)).toBe(5)
+    // No partner filter, so the search is Both: every loan, the 12,000 one and the Direct one included.
+    expect(count(null, null)).toBe(7)
+    expect(count(null, 10000)).toBe(6)
   })
 
   it('a partner range on the loan search counts loans through their partner', () => {
     const base = { loan: { sector: 'Agriculture,Retail,Food' }, partner: { partner_risk_rating_min: 4 } }
     const count = rangeCounter(base, ctx, 'partner', 'partner_risk_rating')
     for (const [min, max] of [[null, null], [3.5, null], [null, 3.5], [2, 3.5], [5, 5], [4.5, 4.5]] as [number | null, number | null][]) {
-      const partner: Record<string, unknown> = {}
+      // This search has no stored mode and filters on the partner, so it is MFI only, and
+      // stays MFI while its only partner filter is lifted to measure it (the UI stores the
+      // mode explicitly, so lifting a filter can never change it).
+      const partner: Record<string, unknown> = { direct: 'mfi' }
       if (min != null) partner.partner_risk_rating_min = min
       if (max != null) partner.partner_risk_rating_max = max
       expect(count(min, max), `${min}..${max}`).toBe(filterLoans({ loan: base.loan, partner }, ctx).length)
@@ -91,6 +95,6 @@ describe('shared loanFilter.rangeCounter', () => {
 
   it('survives no criteria and no data', () => {
     expect(rangeCounter(undefined, { loans: [], activePartners: [] }, 'loan', 'loan_amount')(1, 2)).toBe(0)
-    expect(rangeCounter({}, ctx, 'loan', 'no_such_range')(1, 2)).toBe(6)
+    expect(rangeCounter({}, ctx, 'loan', 'no_such_range')(1, 2)).toBe(7) // Both: every loan
   })
 })

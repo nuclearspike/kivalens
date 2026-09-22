@@ -24,16 +24,24 @@ export function groupBy(arr, keyFn) {
   return [...map.values()]
 }
 
+// A value that is missing (or an unparseable date, NaN) is unknown, not small.
+const unknown = (v) => v == null || (typeof v === 'number' && Number.isNaN(v))
+
 export function sortBy(arr, ...selectors) {
   return arr.toSorted((a, b) => {
     for (const { fn, desc } of selectors) {
       const aVal = fn(a)
       const bVal = fn(b)
+      const aUnknown = unknown(aVal)
+      const bUnknown = unknown(bVal)
+      if (aUnknown && bUnknown) continue
+      // An unknown value sorts after every known one, whichever the direction. A loan
+      // with no repayment schedule does not "repay soonest"; sorting it first put all
+      // 30 Kiva U.S. loans, which have none, at the top of the default sort.
+      if (aUnknown) return 1
+      if (bUnknown) return -1
       let cmp = 0
-      if (aVal == null && bVal == null) cmp = 0
-      else if (aVal == null) cmp = -1
-      else if (bVal == null) cmp = 1
-      else if (typeof aVal === 'string' && typeof bVal === 'string') cmp = aVal.localeCompare(bVal)
+      if (typeof aVal === 'string' && typeof bVal === 'string') cmp = aVal.localeCompare(bVal)
       else if (aVal < bVal) cmp = -1
       else if (aVal > bVal) cmp = 1
       if (cmp !== 0) return desc ? -cmp : cmp
@@ -350,6 +358,52 @@ function buildPartnerTester(c, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// MFI or Direct.
+//
+// A loan's field partner is what every partner criterion describes (star rating,
+// region, religion, specific partners, balance by partner), and a Direct loan has
+// none. So the three modes partition the loans by partner_id, and partner criteria
+// only ever apply in MFI mode:
+//
+//   both   — every loan; partner criteria are kept but not applied
+//   mfi    — loans that have a partner, narrowed to matching partners when any
+//            partner criterion is set
+//   direct — loans with no partner; partner criteria are kept but not applied
+//
+// The UI always stores one of those three. A search saved before they existed has
+// no value, and its meaning is read off what it filters on: any partner criterion
+// means it was an MFI search (so it behaves exactly as it always did), none means
+// Both. Unknown values are read the same way as a missing one.
+// ---------------------------------------------------------------------------
+const PARTNER_MODES = new Set(['both', 'mfi', 'direct'])
+
+/**
+ * Does this search filter on the field partner? Judged by the engine's own tests,
+ * never a hand-kept list of keys, so it cannot drift from what actually filters.
+ * The context is fixed on purpose: the A+ secular and social ratings only produce
+ * a test once that list has loaded, and a saved search must not change meaning
+ * halfway through loading.
+ */
+export function partnerCriteriaSet(c) {
+  const ct = buildPartnerTester(normalizeCriteria(c || {}), { atheistListProcessed: true })
+  return ct.failAll || ct.testers.length > 0
+}
+
+/** 'both' | 'mfi' | 'direct' for these criteria (see the note above). */
+export function resolvePartnerMode(c) {
+  const stored = c?.partner?.direct
+  if (PARTNER_MODES.has(stored)) return stored
+  return partnerCriteriaSet(c) ? 'mfi' : 'both'
+}
+
+/** The same criteria with the mode written in, so lifting one criterion to measure it cannot change the mode. */
+function withResolvedMode(c) {
+  const criteria = normalizeCriteria(c || {})
+  criteria.partner.direct = resolvePartnerMode(criteria)
+  return criteria
+}
+
+// ---------------------------------------------------------------------------
 // Loan filtering + sort + limit. Returns the matching loans.
 // ctx: { loans, activePartners, atheistListProcessed, lenderId, lenderLoans }
 // ---------------------------------------------------------------------------
@@ -413,11 +467,19 @@ function buildLoanTester(criteria, ctx, withPartnerMembership) {
   ct.addArrayAllStartWithTester(criteria.loan.use, (l) => l.kls_use_or_descr_arr)
   ct.addArrayAllStartWithTester(criteria.loan.name, (l) => l.kl_name_arr)
 
-  if (!criteria.partner.direct || criteria.partner.direct === '') {
-    if (withPartnerMembership) ct.addFieldContainsOneOfArrayTester(filterPartnerIds(criteria, ctx), (l) => l.partner_id, true)
-  } else if (criteria.partner.direct === 'direct') {
+  const mode = resolvePartnerMode(criteria)
+  if (mode === 'direct') {
     ct.testers.push((l) => l.partner_id == null)
+  } else if (mode === 'mfi') {
+    ct.testers.push((l) => l.partner_id != null)
+    // Left out for rangeDistributions, which judges the partner side range by range.
+    if (withPartnerMembership && partnerCriteriaSet(criteria)) {
+      const matching = new Set(filterPartnerIds(criteria, ctx))
+      if (matching.size === 0) ct.failAll = true
+      else ct.testers.push((l) => matching.has(l.partner_id))
+    }
   }
+  // both: no partner-side test — every loan, and partner criteria are not applied.
 
   if (criteria.portfolio.exclude_portfolio_loans === 'true' && ctx.lenderId && ctx.lenderLoans?.[ctx.lenderId]?.length) {
     ct.addFieldNotContainsOneOfArrayTester(ctx.lenderLoans[ctx.lenderId], (l) => l.id)
@@ -442,11 +504,19 @@ function buildLoanTester(criteria, ctx, withPartnerMembership) {
   ct.addBalancer(criteria.portfolio.pb_gender, (l) => ((l.kl_percent_women ?? 0) >= 50 ? 'Female' : 'Male'))
   ct.addThreeStateTester(criteria.loan.bonus_credit_eligibility, (l) => l.bonus_credit_eligibility === true)
 
-  ct.testers.push((l) => l.status === 'fundraising')
-  ct.testers.push((l) => (l.funded_amount ?? 0) < l.loan_amount)
+  ct.testers.push(isFundraising)
 
   return ct
 }
+
+/**
+ * A loan that can still be lent to: Kiva lists it as fundraising and it is not
+ * fully funded. Every search applies it, and the count bar's total counts it too,
+ * so "Showing X of Y" measures both against the same thing. A loan that funds
+ * while the page is open stays loaded (its open detail must survive) but is no
+ * longer counted in either.
+ */
+export const isFundraising = (l) => l.status === 'fundraising' && (l.funded_amount ?? 0) < l.loan_amount
 
 const normalizeCriteria = (c) => ({
   loan: { ...(c.loan ?? {}) },
@@ -475,7 +545,7 @@ const normalizeCriteria = (c) => ({
 // are not part of the population: the histograms describe what matches.
 // ---------------------------------------------------------------------------
 export function rangeDistributions(c, ctx, specs) {
-  const criteria = normalizeCriteria(c)
+  const criteria = withResolvedMode(c)
   const loanSpecs = Object.entries(specs.loan ?? {})
   const partnerSpecs = Object.entries(specs.partner ?? {})
   const out = { loan: {}, partner: {} }
@@ -484,9 +554,10 @@ export function rangeDistributions(c, ctx, specs) {
 
   const loanCt = buildLoanTester(criteria, ctx, false)
 
-  // '' = the partner side adds no constraint; otherwise partners are judged one by one.
-  const direct = criteria.partner.direct
-  const partnersConstrain = !direct || direct === ''
+  // Partners are judged one by one only when partner criteria actually apply: MFI
+  // mode with at least one set. In Both and Direct they are kept but not applied,
+  // and the loan tester's own partner_id test already sorts MFI from Direct.
+  const partnersConstrain = criteria.partner.direct === 'mfi' && partnerCriteriaSet(criteria)
   const partnerCt = buildPartnerTester(criteria, ctx)
   const partnerById = new Map()
   const partnerFailing = new Map()
@@ -560,7 +631,9 @@ export function rangeDistributions(c, ctx, specs) {
 // the partner pool, with `accept` as the Partners page's name search.
 // ---------------------------------------------------------------------------
 export function rangeCounter(c, ctx, group, key, { unit = 'loans', accept } = {}) {
-  const lifted = normalizeCriteria(c || {})
+  // The mode is read before the slider's own range is lifted: lifting the only
+  // partner criterion of an old search must not turn it from MFI into Both.
+  const lifted = unit === 'partners' ? normalizeCriteria(c || {}) : withResolvedMode(c)
   delete lifted[group][`${key}_min`]
   delete lifted[group][`${key}_max`]
   const withRange = (min, max) => {
@@ -589,9 +662,12 @@ export function rangeCounter(c, ctx, group, key, { unit = 'loans', accept } = {}
     }
   }
 
-  // A partner range on the loan search. Direct loans have no partner and the partner
-  // criteria do not apply to them, so the range changes nothing.
-  if (lifted.partner.direct) return () => population.length
+  // A partner range on the loan search. Outside MFI mode partner criteria are kept
+  // but not applied, so moving one changes nothing.
+  if (lifted.partner.direct !== 'mfi') return () => population.length
+  // With no other partner criterion, a range at "no limit" leaves MFI as simply
+  // "has a partner" — which also counts a loan whose partner is not in the pool.
+  const othersSet = partnerCriteriaSet(lifted)
   const partnerById = new Map((ctx.partnerPool || ctx.activePartners || []).map((p) => [p.id, p]))
   const loansAt = new Map()
   for (const loan of population) {
@@ -599,10 +675,43 @@ export function rangeCounter(c, ctx, group, key, { unit = 'loans', accept } = {}
     if (partner) loansAt.set(partner, (loansAt.get(partner) ?? 0) + 1)
   }
   return (min, max) => {
+    if (min == null && max == null && !othersSet) return population.length
     const tests = rangeTests(buildPartnerTester(withRange(min, max), ctx))
     let total = 0
     for (const [partner, loans] of loansAt) if (passes(tests, partner)) total += loans
     return total
+  }
+}
+
+// ---------------------------------------------------------------------------
+// What the count bar explains under "Showing X of Y": loans that match every
+// OTHER current criterion but are not shown because of the MFI/Direct mode or
+// because the lender has already lent to them. Counted with the tests only
+// (before sort and result limits), and each is 0 when it does not apply.
+// ---------------------------------------------------------------------------
+function countMatching(criteria, ctx) {
+  const ct = buildLoanTester(criteria, ctx, true)
+  let n = 0
+  for (const loan of ctx.loans || []) if (ct.allPass(loan)) n += 1
+  return n
+}
+
+export function partnerModeGaps(c, ctx) {
+  const criteria = withResolvedMode(c)
+  const mode = criteria.partner.direct
+  const as = (direct) => ({ ...criteria, partner: { ...criteria.partner, direct } })
+  const shown = countMatching(criteria, ctx)
+
+  let alreadyLentHidden = 0
+  if (criteria.portfolio.exclude_portfolio_loans === 'true') {
+    const withLent = { ...criteria, portfolio: { ...criteria.portfolio, exclude_portfolio_loans: 'false' } }
+    alreadyLentHidden = Math.max(0, countMatching(withLent, ctx) - shown)
+  }
+  return {
+    mode,
+    directNotShown: mode === 'mfi' ? countMatching(as('direct'), ctx) : 0,
+    mfiNotShown: mode === 'direct' ? countMatching(as('mfi'), ctx) : 0,
+    alreadyLentHidden,
   }
 }
 

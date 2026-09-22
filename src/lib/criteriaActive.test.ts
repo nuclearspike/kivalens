@@ -140,7 +140,8 @@ describe('activeCriteria — portfolio', () => {
   it.each(['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender'])(
     'lists the %s balancer when enabled',
     (pb) => {
-      const c = crit({ portfolio: { [pb]: { enabled: true } } })
+      // MFI Only, so balance-by-partner can apply (outside it, it is kept but inert).
+      const c = crit({ partner: { direct: 'mfi' }, portfolio: { [pb]: { enabled: true } } })
       const a = byId(c, `portfolio.${pb}`)
       expect(a).toBeDefined()
       // Disabling must PRESERVE the balancer's other settings.
@@ -174,8 +175,9 @@ describe('activeCriteria — general contract', () => {
     }))
     const ids = items.map((i) => i.id)
     expect(new Set(ids).size).toBe(ids.length)
-    // sector, country, age, name, limit_to, region, risk-rating, exclude, pb_country
-    expect(items.length).toBe(9)
+    // sector, country, age, name, limit_to, MFI Only (an old search that filters on the
+    // partner is read as MFI Only), region, risk-rating, exclude, pb_country
+    expect(items.length).toBe(10)
   })
 
   it('lists free-text filters', () => {
@@ -226,5 +228,43 @@ describe('activeCriteria — chip labels localize with their params', () => {
     expect(text).toContain('#Parent')
     expect(text).not.toContain('{value}')
     expect(text).not.toBe('all_value')
+  })
+})
+
+describe('activeCriteria — MFI or Direct', () => {
+  it('does not list Both: it is no filter at all', () => {
+    expect(byId(crit({ partner: { direct: 'both' } }), 'partner.direct')).toBeUndefined()
+    expect(byId(crit({}), 'partner.direct')).toBeUndefined()
+  })
+
+  it('lists MFI Only and Direct Only by their English label, which the panel translates', () => {
+    expect(byId(crit({ partner: { direct: 'mfi' } }), 'partner.direct')!.value).toBe('MFI Only')
+    expect(byId(crit({ partner: { direct: 'direct' } }), 'partner.direct')!.value).toBe('Direct Only')
+  })
+
+  it('removes a mode by going back to Both, not by deleting the value', () => {
+    // Deleting it from an old-style search that filters on the partner would resolve
+    // straight back to MFI Only, and the suggestion would change nothing.
+    const c = crit({ partner: { direct: 'mfi', region: 'af' } })
+    expect(byId(c, 'partner.direct')!.without(c).partner).toMatchObject({ direct: 'both', region: 'af' })
+  })
+
+  it('reads an old search that filters on the partner as MFI Only', () => {
+    const c = crit({ partner: { partner_risk_rating_min: 4 } })
+    expect(byId(c, 'partner.direct')!.value).toBe('MFI Only')
+    expect(byId(c, 'partner.direct')!.without(c).partner.direct).toBe('both')
+  })
+
+  it('does not offer to remove partner filters that are kept but not applied', () => {
+    const kept = { region: 'af', partner_risk_rating_min: 4 }
+    for (const direct of ['both', 'direct']) {
+      const c = crit({ partner: { direct, ...kept }, portfolio: { pb_partner: { enabled: true, hideshow: 'hide', values: [10] } } })
+      expect(byId(c, 'partner.region'), direct).toBeUndefined()
+      expect(byId(c, 'partner.partner_risk_rating'), direct).toBeUndefined()
+      expect(byId(c, 'portfolio.pb_partner'), direct).toBeUndefined()
+    }
+    const mfi = crit({ partner: { direct: 'mfi', ...kept } })
+    expect(byId(mfi, 'partner.region')).toBeDefined()
+    expect(byId(mfi, 'partner.partner_risk_rating')).toBeDefined()
   })
 })

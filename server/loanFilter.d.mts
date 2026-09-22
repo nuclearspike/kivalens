@@ -98,3 +98,17 @@ export interface FilterContext {
 export declare function filterPartnerIds(c: unknown, ctx: FilterContext): number[]
 export declare function filterPartners<T = unknown>(c: unknown, ctx: FilterContext): T[]
 export declare function filterLoans<T = unknown>(c: unknown, ctx: FilterContext): T[]
+
+export type PartnerMode = 'both' | 'mfi' | 'direct'
+/** True when the search filters on the field partner (judged by the engine's own tests). */
+export declare function partnerCriteriaSet(criteria: unknown): boolean
+/** The MFI/Direct mode: the stored value, or — for a search saved before it existed — MFI when it filters on the partner, else Both. */
+export declare function resolvePartnerMode(criteria: unknown): PartnerMode
+/** Loans matching every other criterion that the mode or the already-lent filter keeps out of view. */
+export declare function partnerModeGaps(
+  criteria: unknown,
+  ctx: Record<string, unknown>,
+): { mode: PartnerMode; directNotShown: number; mfiNotShown: number; alreadyLentHidden: number }
+
+/** A loan that can still be lent to: listed as fundraising and not fully funded. */
+export declare function isFundraising(loan: unknown): boolean

@@ -38,7 +38,6 @@ const LOAN_RANGE_NAMES = [
 ] as const
 
 const PARTNER_STRING_KEYS = new Set([
-  'direct',
   'partners',
   'partners_all_any_none',
   'region',
@@ -77,6 +76,7 @@ const PORTFOLIO_BALANCER_KEYS = new Set([
 ])
 
 const SEARCH_PRESET_TABS = new Set(['borrower', 'partner', 'portfolio', 'rss'])
+const PARTNER_MODES = new Set(['both', 'mfi', 'direct'])
 
 type PlainRecord = Record<string, unknown>
 
@@ -239,11 +239,26 @@ export function parseSearchPreset(raw: string | null): Criteria | null {
     'limit_to',
     sanitizeLimitTo,
   )
-  const partner = sanitizeFlatGroup(
-    parsed.partner ?? {},
+  // The MFI/Direct mode is one of three values, never free text.
+  const rawPartner = isPlainRecord(parsed.partner) ? { ...parsed.partner } : parsed.partner ?? {}
+  let direct: string | undefined
+  if (isPlainRecord(rawPartner) && 'direct' in rawPartner) {
+    const value = rawPartner.direct
+    delete rawPartner.direct
+    // '' is how the mode was written before it had three values: it means "not set",
+    // and the engine reads an unset mode from the partner criteria. Anything else
+    // that is not one of the three fails the whole preset closed.
+    if (value !== '') {
+      if (!PARTNER_MODES.has(String(value))) return null
+      direct = String(value)
+    }
+  }
+  const sanitizedPartner = sanitizeFlatGroup(
+    rawPartner,
     PARTNER_STRING_KEYS,
     PARTNER_NUMBER_KEYS,
   )
+  const partner = sanitizedPartner && direct ? { ...sanitizedPartner, direct } : sanitizedPartner
   const portfolio = sanitizePortfolio(parsed.portfolio ?? {})
   if (!loan || !partner || !portfolio) return null
 

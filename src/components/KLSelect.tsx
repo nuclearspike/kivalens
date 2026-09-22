@@ -17,6 +17,7 @@ interface KLDistProps {
 const labelOf = (o: unknown): string => String((o as { label?: unknown })?.label ?? '')
 const valueOf = (o: unknown): unknown => (o as { value?: unknown })?.value
 const keyOf = (o: unknown): string => String(valueOf(o) ?? '')
+const LIFTS_FILTER = new Set<unknown>(['', 'both'])
 
 // Extra props smuggled through react-select's `selectProps` so the custom
 // components below can stay MODULE-LEVEL (stable identity). Recreating custom
@@ -137,9 +138,9 @@ export default function KLSelect<
     if (!hasDist) return options
     const dist = distribution as Record<string, number>
     return [...(options as Option[])].sort((a, b) => {
-      // The option that lifts the filter (empty value, "Show all") leads in either
-      // ordering: it is the way out, not one of the values being compared.
-      const lift = Number(valueOf(b) === '') - Number(valueOf(a) === '')
+      // The option that lifts the filter ("Show all", or "Both" for MFI or Direct)
+      // leads in either ordering: it is the way out, not one of the values compared.
+      const lift = Number(LIFTS_FILTER.has(valueOf(b))) - Number(LIFTS_FILTER.has(valueOf(a)))
       if (lift !== 0) return lift
       if (sortMode === 'count') {
         const d = (dist[keyOf(b)] ?? 0) - (dist[keyOf(a)] ?? 0)

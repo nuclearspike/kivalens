@@ -12,7 +12,7 @@ import { lsj } from '../lib/localStorage'
 import { LENDER_LOANS_FILTER_DEPENDENCY } from '../lib/filterReadiness'
 import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore } from './criteriaStore'
-import { partnerRangeValues, rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
+import { isFundraising, partnerModeGaps, partnerRangeValues, rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
 import { DATA_MAX_KEYS, partnerSliderMaxima, rangeBinSpecs } from '../lib/sliderConfig'
 import { afterNextPaint } from '../lib/afterNextPaint'
 
@@ -72,9 +72,13 @@ export interface LoanState {
   /** Upper ends of the partner sliders that follow the data (years on Kiva, loans
    *  posted, fundraising loans), from the loaded partners. Empty until computed. */
   sliderMaxima: Record<string, number>
+  /** Loans matching every other criterion that the MFI/Direct mode or the
+   *  already-lent filter keeps out of view — what the count bar explains. */
+  countGaps: { directNotShown: number; mfiNotShown: number; alreadyLentHidden: number }
   /** Basket items persisted to localStorage */
   basket: BasketItem[]
-  /** Total loan count in the Kiva dataset */
+  /** Loans that can still be lent to (fundraising, not fully funded): the total in
+   *  "Showing X of Y". Also a recompute trigger for option lists. */
   loanCount: number
   /** Download / initial-load progress */
   downloading: boolean
@@ -147,6 +151,14 @@ export interface LoanActions {
 let distributionJob = 0
 
 // Unchanged histograms keep their reference, so the sliders do not re-render.
+// The total in "Showing X of Y": loans a search could show. Loans that funded while
+// the page was open stay loaded for their open detail, but are not counted.
+function countFundraising(loans: readonly KivaLoan[]): number {
+  let n = 0
+  for (const loan of loans) if (isFundraising(loan)) n += 1
+  return n
+}
+
 function sameDistributions(a: RangeDistributions | null, b: RangeDistributions | null): boolean {
   if (a === b) return true
   if (!a || !b) return false
@@ -172,6 +184,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       filteredSameAsLast: false,
       rangeDistributions: null,
       sliderMaxima: {},
+      countGaps: { directNotShown: 0, mfiNotShown: 0, alreadyLentHidden: 0 },
       basket: lsj.getA<BasketItem>('basket'),
       loanCount: 0,
       downloading: true,
@@ -351,7 +364,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
             // Sync the store's reactive loan array with the singleton so basket
             // entries recompute and the newly hydrated loans show.
             s.loans = kl.loansFromKiva as never
-            s.loanCount = kl.loansFromKiva.length
+            s.loanCount = countFundraising(kl.loansFromKiva)
           }
           if (removeIds.length) {
             s.basket = s.basket.filter((bi) => !removeIds.includes(bi.loan_id))
@@ -369,7 +382,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       setLoans: (loans: KivaLoan[]) => {
         set((state) => {
           state.loans = loans as never
-          state.loanCount = loans.length
+          state.loanCount = countFundraising(loans)
           state.downloading = false
         })
       },
@@ -413,7 +426,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
           // idle-render cost. (filteredLoans is not persisted, so no extra write.)
           if (!same || force) state.filteredLoans = next as never
           state.filteredSameAsLast = same
-          state.loanCount = kl.loansFromKiva.length
+          state.loanCount = countFundraising(kl.loansFromKiva)
         })
 
         // The slider histograms follow the same criteria, but only after the
@@ -438,10 +451,16 @@ export const useLoanStore = create<LoanState & LoanActions>()(
           const hidden = !!lsj.get<{ hide_criteria_graphs?: boolean }>('Options').hide_criteria_graphs
           const next = hidden ? null : rangeDistributions(forCriteria, ctx, rangeBinSpecs(maxima))
           const sameMaxima = DATA_MAX_KEYS.every((key) => get().sliderMaxima[key] === maxima[key])
-          if (sameMaxima && sameDistributions(get().rangeDistributions, next)) return
+          // What the count bar explains, from the same criteria and the same pass: the
+          // explanation arrives with the bars, a frame after the results.
+          const { directNotShown, mfiNotShown, alreadyLentHidden } = partnerModeGaps(forCriteria, ctx)
+          const gaps = get().countGaps
+          const sameGaps = gaps.directNotShown === directNotShown && gaps.mfiNotShown === mfiNotShown && gaps.alreadyLentHidden === alreadyLentHidden
+          if (sameMaxima && sameGaps && sameDistributions(get().rangeDistributions, next)) return
           set((state) => {
             state.rangeDistributions = next as never
             if (!sameMaxima) state.sliderMaxima = maxima
+            if (!sameGaps) state.countGaps = { directNotShown, mfiNotShown, alreadyLentHidden }
           })
         })
       },
