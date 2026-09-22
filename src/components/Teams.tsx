@@ -13,7 +13,7 @@ import {
 import { req } from '../api/kivajs/req'
 import { LenderTeams } from '../api/kivajs/LenderTeams'
 import { useUtilsStore } from '../stores'
-import { showLenderIDModal } from '../lib/showLenderIdModal'
+import LenderIdPitch from './LenderIdPitch'
 import { useI18n, type Locale } from '../i18n'
 
 interface Team {
@@ -52,7 +52,7 @@ function formatTooltipLabel(value: number, locale: Locale) {
  * Lets lenders compare Kiva lending teams via membership and loan count charts.
  */
 export default function Teams() {
-  const { t, tx, locale, number } = useI18n()
+  const { t, locale, number } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
   // When the user sets their Lender ID via the in-page modal link below, reload
   // once it lands so this tab (and the nav) re-initialize with portfolio data.
@@ -192,23 +192,14 @@ export default function Teams() {
   if (!lenderId) {
     return (
       <Container className="py-3">
-        <Alert variant="danger">
-          {tx('please_set_lender_id_to_use', {
-            link: (
-              <a
-                href="#"
-                className="alert-link"
-                onClick={(e) => {
-                  e.preventDefault()
-                  reloadAfterLenderSet.current = true
-                  showLenderIDModal()
-                }}
-              >
-                {t('set_kiva_lender_id_2')}
-              </a>
-            ),
-          })}
-        </Alert>
+        <LenderIdPitch
+          title={t('pitch_teams_title')}
+          onBeforeOpen={() => {
+            reloadAfterLenderSet.current = true
+          }}
+        >
+          {t('pitch_teams_body')}
+        </LenderIdPitch>
       </Container>
     )
   }

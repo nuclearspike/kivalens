@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router-dom'
 import { Navbar, Nav, Badge, Container } from '../ui'
-import { useLoanStore, useUtilsStore } from '../stores'
+import { useLoanStore } from '../stores'
 import { browserLanguageTags, matchLocale, useI18n, type Locale } from '../i18n'
 import LanguageMenu from './LanguageMenu'
 
@@ -25,7 +25,6 @@ export default function KLNav() {
   const location = useLocation()
   const { locale, setLocale, t } = useI18n()
   const basketCount = useLoanStore((s) => s.basket.length)
-  const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
 
   const isActive = (path: string) => location.pathname.startsWith(path)
 
@@ -50,11 +49,9 @@ export default function KLNav() {
             <Nav.Link as={Link} to="/live" active={isActive('/live')} data-aikl="nav-stats">
               {t('stats')}
             </Nav.Link>
-            {hasLenderId && (
-              <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')} data-aikl="nav-wall">
-                {t('wall')}
-              </Nav.Link>
-            )}
+            <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')} data-aikl="nav-wall">
+              {t('wall')}
+            </Nav.Link>
             <Nav.Link as={Link} to="/teams" active={isActive('/teams')} data-aikl="nav-teams">
               {t('teams')}
             </Nav.Link>

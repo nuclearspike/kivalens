@@ -1521,7 +1521,7 @@ function NewTabLink({ href, children }: { href: string; children: React.ReactNod
   )
 }
 
-function RSSPanel({ criteria }: { criteria: Criteria }) {
+export function RSSPanel({ criteria }: { criteria: Criteria }) {
   const { t, tx } = useI18n()
   const prepForRSS = useCriteriaStore((s) => s.prepForRSS)
   const lenderId = useUtilsStore((s) => s.lenderId)
@@ -1587,7 +1587,13 @@ function RSSPanel({ criteria }: { criteria: Criteria }) {
               />
               {!lenderId && (
                 <Form.Text className="text-muted">
-                  {t('set_kiva_lender_id_enable')}
+                  {tx('set_lender_id_enable_feeds', {
+                    link: (
+                      <button type="button" className="kl-link-button" onClick={showLenderIDModal}>
+                        {t('set_lender_id_2')}
+                      </button>
+                    ),
+                  })}
                 </Form.Text>
               )}
             </Form.Group>

@@ -5,6 +5,7 @@ import { useCriteriaStore, useUtilsStore } from '../stores'
 import { useI18n } from '../i18n'
 import { useLatestRef } from '../lib/useLatestRef'
 import { localizeSliceName } from '../lib/localizeSliceName'
+import LenderIdPitch from './LenderIdPitch'
 
 // "Your Lending" — charts of how the signed-in lender's past loans break down,
 // from Kiva's SuperGraph data (the same source the portfolio balancers use).
@@ -113,7 +114,10 @@ export function SliceChart({ sliceBy, label }: { sliceBy: string; label: string 
 export default function YourLending() {
   const { t } = useI18n()
   const lenderId = useUtilsStore((s) => s.lenderId)
-  if (!lenderId) return null
+  // Without an ID the charts cannot load, so the space says what they would show.
+  if (!lenderId) {
+    return <LenderIdPitch title={t('pitch_your_lending_title')}>{t('pitch_your_lending_body')}</LenderIdPitch>
+  }
   // Literal keys, so the catalog check can see each title is translated.
   const titles = { sector: t('by_sector'), country: t('by_country'), activity: t('by_activity') }
   return (

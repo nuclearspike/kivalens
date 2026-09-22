@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useLoanStore, useUtilsStore } from '../stores'
 import { LenderLoans } from '../api/kivajs/LenderLoans'
 import { useI18n } from '../i18n'
+import { showLenderIDModal } from '../lib/showLenderIdModal'
 
 // ---------------------------------------------------------------------------
 // SnowStack — the 3D CSS portfolio wall.
@@ -68,7 +69,7 @@ function fitImage(img: HTMLImageElement, dims: WallDims) {
 }
 
 export function Component() {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const [searchParams] = useSearchParams()
   const savedLenderId = useUtilsStore((s) => s.lenderId)
   const lenderDataVersion = useUtilsStore((s) => s.lenderDataVersion)
@@ -367,6 +368,20 @@ export function Component() {
         }}
       >
         {message}
+        {/* Without a lender (none saved, no ?kivaid) the wall shows loans raising money now;
+            it could show every borrower this lender has funded. */}
+        {!lenderId && !loading ? (
+          <>
+            {' '}
+            {tx('pitch_wall', {
+              link: (
+                <button type="button" className="kl-wall-pitch-link" onClick={showLenderIDModal}>
+                  {t('set_lender_id_2')}
+                </button>
+              ),
+            })}
+          </>
+        ) : null}
       </div>
     </div>
   )

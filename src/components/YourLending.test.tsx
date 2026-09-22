@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, screen } from '@testing-library/react'
-import { SliceChart } from './YourLending'
+import YourLending, { SliceChart } from './YourLending'
 import { useCriteriaStore, useUtilsStore } from '../stores'
+import en from '../i18n/locales/en'
 
 // Sibling of the race fixed in BalancingRow (CriteriaTabs.tsx, commit
 // 73e4728d): a fetch resolving in the gap between a render-time reset and
@@ -127,5 +128,30 @@ describe('YourLending > SliceChart', () => {
       await second.promise
     })
     expect(screen.getByText('No data.')).toBeInTheDocument()
+  })
+})
+
+describe('YourLending on the Stats page', () => {
+  beforeEach(() => {
+    // No network here: with an ID the charts wait instead of fetching.
+    useCriteriaStore.setState({ fetchBalancerData: () => new Promise(() => {}) } as never)
+    useUtilsStore.setState({ lenderId: '' })
+  })
+  afterEach(cleanup)
+
+  it('without a lender ID: a pitch naming the three charts, not a gap', () => {
+    render(<YourLending />)
+    expect(screen.getByRole('heading', { name: en.pitch_your_lending_title })).toBeInTheDocument()
+    expect(screen.getByText(/by sector, by country and by activity/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: en.set_lender_id_2 })).toBeInTheDocument()
+  })
+
+  it('the pitch gives way to the charts when an ID is set, and comes back when it is cleared', () => {
+    render(<YourLending />)
+    act(() => useUtilsStore.setState({ lenderId: 'examplelender' }))
+    expect(screen.queryByRole('heading', { name: en.pitch_your_lending_title })).toBeNull()
+    expect(screen.getByRole('heading', { name: en.lending })).toBeInTheDocument()
+    act(() => useUtilsStore.setState({ lenderId: '' }))
+    expect(screen.getByRole('heading', { name: en.pitch_your_lending_title })).toBeInTheDocument()
   })
 })

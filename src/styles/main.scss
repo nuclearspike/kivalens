@@ -1445,6 +1445,7 @@ textarea {
   padding-bottom: 6px;
   background: var(--kl-bg);
 }
+
 // Reset and the saved-search dropdown, above the criteria or, with the criteria
 // hidden, above the results.
 .kl-search-switcher {
@@ -1456,5 +1457,56 @@ textarea {
   .dropdown {
     flex: 1;
     min-width: 0;
+  }
+}
+
+// Stands in for a feature that needs the lender's Kiva lender ID: what it would show,
+// and a button to add the ID (LenderIdPitch).
+.kl-lender-pitch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--kl-green-light);
+  border: 1px solid var(--kl-green-border);
+  border-radius: 6px;
+
+  .kl-lender-pitch-text {
+    flex: 1 1 320px;
+    min-width: 0;
+  }
+
+  .kl-lender-pitch-title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: var(--kl-green-text);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .kl-lender-pitch-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--kl-text-muted);
+  }
+}
+
+// The Wall is dark by design, so its lender-ID link keeps fixed colours.
+.kl-wall-pitch-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #8fd694;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: #b8f0bb;
   }
 }
