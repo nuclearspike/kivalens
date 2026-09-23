@@ -207,7 +207,7 @@ describe('handleRss — click redirects', () => {
   it('sends a KivaLens click to the in-app loan route', () => {
     const res = fakeRes()
     handleRss(state, req('/rss_click/kivalens/12345'), res)
-    expect(String(res.headers.location)).toBe('https://www.kivalens.org/#/search/loan/12345')
+    expect(String(res.headers.location)).toBe('https://www.kivalens.org/loans/12345')
   })
 
   it('escapes the id rather than letting it alter the destination', () => {

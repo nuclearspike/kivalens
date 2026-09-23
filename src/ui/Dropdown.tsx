@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Button, type ButtonProps } from './Button'
-import { cx } from './types'
+import { cx, type PolymorphicProps } from './types'
 
 type DropdownContextValue = {
   open: boolean
@@ -182,14 +182,19 @@ function DropdownMenu({
   )
 }
 
-type DropdownItemProps = ComponentPropsWithoutRef<'button'> & {
-  as?: ElementType
-  active?: boolean
-  eventKey?: string
-  href?: string
-}
+// Polymorphic like ListGroup.Item: a menu entry that navigates renders as a
+// router Link, which takes `to` rather than `href`.
+type DropdownItemProps<T extends ElementType = 'button'> = PolymorphicProps<
+  T,
+  {
+    active?: boolean
+    disabled?: boolean
+    eventKey?: string
+    href?: string
+  }
+>
 
-function DropdownItem({
+function DropdownItem<T extends ElementType = 'button'>({
   as,
   active,
   disabled,
@@ -198,7 +203,7 @@ function DropdownItem({
   onClick,
   href,
   ...rest
-}: DropdownItemProps) {
+}: DropdownItemProps<T>) {
   const { closeToToggle } = useContext(DropdownContext)
   const Component: ElementType = as ?? (href ? 'a' : 'button')
   const extra: Record<string, unknown> = {}

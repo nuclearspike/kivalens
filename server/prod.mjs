@@ -16,6 +16,7 @@ import { createState, startRefresh, handleApi, handleProxy, handleRss } from './
 import { handleChat } from './aiChat.mjs'
 import { closeCache } from './klCache.mjs'
 import { canonicalRedirect } from './canonicalUrl.mjs'
+import { legacyRedirect } from './legacyRedirect.mjs'
 
 const PORT = process.env.PORT || 3000
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
@@ -64,9 +65,9 @@ function setSecurityHeaders(res) {
 }
 
 // ---------------------------------------------------------------------------
-// Static file serving (the app uses hash routing, so the server only serves
-// real files plus "/" -> index.html; unknown extension-less paths fall back
-// to index.html, missing asset files 404).
+// Static file serving. The app's routes are real paths, so a request for a page
+// is served the shell (the router takes it from there) and only a request that
+// looks like a file it does not have is a 404.
 // ---------------------------------------------------------------------------
 
 const MIME = {
@@ -91,6 +92,12 @@ const MIME = {
 }
 
 const COMPRESSIBLE = new Set(['.css', '.html', '.js', '.json', '.mjs', '.svg', '.txt', '.webmanifest'])
+
+// What a missing path has to look like to be answered 404 rather than the app
+// shell. The list is the file kinds this site actually serves, so a path
+// segment that merely contains a dot stays a page.
+const ASSET_EXTENSION =
+  /\.(js|mjs|css|map|json|webmanifest|html|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|txt|xml)$/i
 
 function acceptedEncoding(req, filePath) {
   const ext = path.extname(filePath).toLowerCase()
@@ -156,13 +163,18 @@ function serveStatic(req, res) {
 
   fs.stat(resolved, (err, stat) => {
     if (!err && stat.isFile()) return sendFile(req, res, resolved)
-    // No file: an extension-less path is a client route -> SPA shell;
-    // a missing asset (has an extension) is a genuine 404.
-    if (path.extname(pathname)) {
+    // No file. A request a browser makes for a page is a client route and gets
+    // the app shell; anything else is a genuine 404. Asking whether the request
+    // accepts HTML rather than whether the path has a file extension keeps a
+    // path segment containing a dot — a loan or partner id one day — from being
+    // mistaken for a file.
+    const accept = String(req.headers.accept || '')
+    const wantsPage = accept.includes('text/html') || accept.includes('*/*') || accept === ''
+    if (wantsPage && !ASSET_EXTENSION.test(pathname)) {
+      sendFile(req, res, indexFile)
+    } else {
       res.statusCode = 404
       res.end('Not found')
-    } else {
-      sendFile(req, res, indexFile)
     }
   })
 }
@@ -191,6 +203,17 @@ const server = http.createServer((req, res) => {
   if (handleRss(state, req, res)) return
   if (handleChat(state, req, res)) return
   if (handleApi(state, req, res)) return
+
+  // A page that moved answers with one permanent redirect, after the data and
+  // proxy endpoints have claimed their own paths and before the shell is served.
+  const moved = legacyRedirect(req)
+  if (moved) {
+    res.statusCode = 301
+    res.setHeader('Location', moved)
+    res.end()
+    return
+  }
+
   serveStatic(req, res)
 })
 

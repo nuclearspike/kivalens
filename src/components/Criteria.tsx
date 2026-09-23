@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { Button, Dropdown } from '../ui'
 import { useCriteriaStore } from '../stores'
 import { showPrompt, showConfirm } from '../lib/dialog'
@@ -123,7 +124,7 @@ export function SearchSwitcher() {
                 <Dropdown.Item onClick={() => handleDelete(lastSwitch)}>{t('delete_name', { name: t(lastSwitch) })}</Dropdown.Item>
               </>
             ) : null}
-            <Dropdown.Item href="#/saved">{t('manage_saved_searches')}</Dropdown.Item>
+            <Dropdown.Item as={Link} to="/saved">{t('manage_saved_searches')}</Dropdown.Item>
             <Dropdown.Divider />
             <Dropdown.Item onClick={handleSaveAs}>{t('save_current_criteria_ellipsis')}</Dropdown.Item>
           </Dropdown.Menu>

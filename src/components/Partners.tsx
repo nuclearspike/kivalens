@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useLatestRef } from '../lib/useLatestRef'
 import { Container, Button, Badge, ListGroup, Form, Row, Col, OverlayTrigger, Popover } from '../ui'
 import Select from './KLSelect'
@@ -292,8 +293,8 @@ function PartnerListItem({
   return (
     <ListGroup.Item
       action
-      as="a"
-      href={`#/partners/${partner.id}`}
+      as={Link}
+      to={`/partners/${partner.id}`}
       active={selected}
       style={bg ? { backgroundColor: bg, position: 'relative' } : { position: 'relative' }}
     >

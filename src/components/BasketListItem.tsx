@@ -38,8 +38,19 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
     <div
       className={`list-group-item loan_list_item${selected ? ' selected' : ''}`}
       onClick={() => onSelect(entry.id)}
+      // A row is not a link: it holds the amount select and the remove button,
+      // and an anchor may not contain those. Since it says it is a button, Enter
+      // and Space have to open it like one.
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect(entry.id)
+        }
+      }}
       role="button"
       tabIndex={0}
+      aria-current={selected || undefined}
     >
       <KivaImage type="square" loan={loan} image_width={113} width={90} height={90} />
       <div className="details">
@@ -47,7 +58,7 @@ export default function BasketListItem({ entry, onSelect, selected }: BasketList
         <div className="loan-meta">
           <span className="loan-tag">{data(loan.location.country)}</span>
           <span className="loan-tag">{sector(loan.sector)}</span>
-          <span className="loan-tag d-none d-lg-inline">{data(loan.activity)}</span>
+          <span className="loan-tag d-none d-lg-inline-block">{data(loan.activity)}</span>
         </div>
         {options.length > 0 ? (
           <select

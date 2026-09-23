@@ -1,6 +1,13 @@
 /* eslint-disable react-refresh/only-export-components -- this route module intentionally exports the router alongside route components. */
 import { lazy, Suspense } from 'react'
-import { createHashRouter, Outlet, Navigate, ScrollRestoration } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Outlet,
+  Navigate,
+  ScrollRestoration,
+  useLocation,
+} from 'react-router-dom'
+import { ROUTES, HOME, resolveLegacyUrl, formatUrl, type RouteId } from '../server/routeMap.mjs'
 import { useKivaLensInit } from './lib/useKivaLensInit'
 import KLNav from './components/KLNav'
 import KLFooter from './components/KLFooter'
@@ -44,7 +51,53 @@ function AppLayout() {
   )
 }
 
-export const router = createHashRouter([
+/**
+ * Anything the router does not recognise. A retired address is rewritten to
+ * where it belongs — `/live` to `/stats`, `/search/loan/42` to `/loans/42` —
+ * which catches a link followed after the app has already started, where
+ * public/boot.js and the server's redirects no longer get a say. An address
+ * naming nothing lands on Search.
+ */
+function LegacyRedirect() {
+  const location = useLocation()
+  const resolved = resolveLegacyUrl(location)
+  return <Navigate to={resolved ? formatUrl(resolved) : HOME} replace />
+}
+
+type Loader = () => Promise<{ Component: React.ComponentType }>
+
+const fromDefault = (load: () => Promise<{ default: React.ComponentType }>): Loader => () =>
+  load().then((m) => ({ Component: m.default }))
+
+/**
+ * The page behind each route id. ROUTES (server/routeMap.mjs) owns the URLs;
+ * this owns what renders at them, and src/App.test.tsx fails if the two ever
+ * name a different set of pages.
+ *
+ * Search renders `loan` as well: a loan shows in the right-hand panel beside the
+ * results, and the path is what selects it. Partners and the Basket pair with
+ * `partner` and `basketLoan` the same way.
+ */
+export const PAGES: Record<RouteId, Loader> = {
+  search: fromDefault(() => import('./components/Search')),
+  loan: fromDefault(() => import('./components/Search')),
+  partners: () => import('./components/Partners'),
+  partner: () => import('./components/Partners'),
+  basket: fromDefault(() => import('./components/Basket')),
+  basketLoan: fromDefault(() => import('./components/Basket')),
+  saved: fromDefault(() => import('./components/SavedSearches')),
+  stats: fromDefault(() => import('./components/Stats')),
+  wall: () => import('./components/SnowStack'),
+  teams: fromDefault(() => import('./components/Teams')),
+  options: fromDefault(() => import('./components/Options')),
+  about: fromDefault(() => import('./components/About')),
+  privacy: fromDefault(() => import('./components/Privacy')),
+  autolend: () => import('./components/AutoLendSettings'),
+  donate: fromDefault(() => import('./components/Donate')),
+  outdated: fromDefault(() => import('./components/Outdated')),
+}
+
+export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
@@ -54,52 +107,12 @@ export const router = createHashRouter([
     // Router logs a (non-dev-gated) "No HydrateFallback" warning even in prod.
     hydrateFallbackElement: <RouteLoading />,
     children: [
-      { index: true, element: <Navigate to="/search" replace /> },
-      {
-        path: 'search',
-        lazy: () => import('./components/Search').then(m => ({ Component: m.default })),
-      },
-      {
-        // Deep link renders the Search page with the loan pre-selected in
-        // the right panel, like the old app's nested route.
-        path: 'search/loan/:id',
-        lazy: () => import('./components/Search').then(m => ({ Component: m.default })),
-      },
-      {
-        path: 'basket',
-        lazy: () => import('./components/Basket').then(m => ({ Component: m.default })),
-      },
-      {
-        path: 'partners',
-        lazy: () => import('./components/Partners'),
-      },
-      {
-        // Deep link renders the Partners page with the partner pre-selected
-        path: 'partners/:id',
-        lazy: () => import('./components/Partners'),
-      },
-      {
-        path: 'saved',
-        lazy: () => import('./components/SavedSearches').then(m => ({ Component: m.default })),
-      },
-      {
-        path: 'portfolio',
-        lazy: () => import('./components/SnowStack'),
-      },
-      {
-        path: 'autolend',
-        lazy: () => import('./components/AutoLendSettings'),
-      },
-      { path: 'options', lazy: () => import('./components/Options').then(m => ({ Component: m.default })) },
-      { path: 'about', lazy: () => import('./components/About').then(m => ({ Component: m.default })) },
-      { path: 'privacy', lazy: () => import('./components/Privacy').then(m => ({ Component: m.default })) },
-      { path: 'live', lazy: () => import('./components/Live').then(m => ({ Component: m.default })) },
-      { path: 'on', lazy: () => import('./components/OnNow').then(m => ({ Component: m.default })) },
-      { path: 'donate', lazy: () => import('./components/Donate').then(m => ({ Component: m.default })) },
-      { path: 'teams', lazy: () => import('./components/Teams').then(m => ({ Component: m.default })) },
-      { path: 'clear-basket', lazy: () => import('./components/ClearBasket').then(m => ({ Component: m.default })) },
-      { path: 'outdated', lazy: () => import('./components/Outdated').then(m => ({ Component: m.default })) },
-      { path: '*', element: <Navigate to="/search" replace /> },
+      { index: true, element: <Navigate to={HOME} replace /> },
+      ...ROUTES.map((route) => ({
+        path: route.path.replace(/^\//, ''),
+        lazy: PAGES[route.id],
+      })),
+      { path: '*', element: <LegacyRedirect /> },
     ],
   },
 ])

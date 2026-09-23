@@ -186,6 +186,8 @@ body {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 60px);
+    // Contains the filtering status, which lies over the list instead of pushing it.
+    position: relative;
   }
 
   .results-col .loan_list_container {
@@ -1544,4 +1546,76 @@ textarea {
   &:focus-visible {
     color: #b8f0bb;
   }
+}
+
+// A status that comes and goes in a second lies over the results instead of
+// taking a row of its own: a banner that pushes the list down and lets it spring
+// back is jarring, and it moves the row under the lender's cursor. Paul's rule 43.
+.kl-filter-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  pointer-events: none;
+
+  .alert {
+    pointer-events: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+// The loading box says the filters are still settling beside its own progress,
+// on the left so the downloaded count keeps its place on the right.
+.kl-still-filtering {
+  margin-right: auto;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+// The repayment chart's per-loan breakdown: a checkbox beside the heading, a
+// one-line explanation of what a band does, and the hint that names the band
+// under the pointer.
+.kl-inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.kl-chart-hint {
+  font-size: 12px;
+  color: var(--kl-text-muted);
+  margin: 2px 0 4px;
+}
+
+.kl-stack-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--kl-surface);
+  border: 1px solid var(--kl-line);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.kl-stack-hint-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+}
+
+// Off a band, the hint carries the month's own figures instead of a borrower.
+.kl-stack-hint-month {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useCriteriaInUrl } from '../lib/useCriteriaInUrl'
 import { Container, Col, Row, Alert } from '../ui'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'
@@ -68,8 +69,15 @@ export function Search() {
     setSearchParams(remaining, { replace: true })
   }, [searchParams, setSearchParams])
 
-  // /search/loan/:id pre-selects the loan; plain /search shows the welcome
-  // panel. The URL is the source of truth for the right-hand panel.
+  // The address carries the search itself: an address that names criteria is the
+  // search, and from then on the bar follows what is on screen. It waits for the
+  // one-shot preset above, which replaces criteria wholesale.
+  // Waits for the one-shot preset above, which replaces criteria wholesale and
+  // then takes itself out of the address, so this turns on by that same render.
+  useCriteriaInUrl(!searchParams.has('preset') && !searchParams.has('tab'))
+
+  // /loans/:id pre-selects the loan; plain /search shows the welcome panel.
+  // The URL is the source of truth for the right-hand panel.
   useEffect(() => {
     setSelectedId(routeLoanId ? parseInt(routeLoanId, 10) : null)
   }, [routeLoanId, setSelectedId])
@@ -221,7 +229,7 @@ export function Search() {
                 </div>
               ) : null}
               <div style={{ marginTop: 16 }}>
-                <a href="#/about">{t('learn_more')}</a>
+                <Link to="/about">{t('learn_more')}</Link>
               </div>
             </div>
           )}

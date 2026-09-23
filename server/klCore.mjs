@@ -29,6 +29,7 @@ import { filterLoans } from './loanFilter.mjs'
 import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
 import { sendDailyDigest } from './digest.mjs'
 import { recentlyFunded, observeFundedLoans, resolveLoanDetails } from './loanLifecycle.mjs'
+import { criteriaFromParams } from './criteriaUrl.mjs'
 import { read as readAge, ageFrom } from './borrowerAge.mjs'
 import { resolveAmbiguousAges } from './borrowerAgeAI.mjs'
 
@@ -1080,7 +1081,7 @@ export function handleRss(state, req, res) {
     const dest =
       goTo === 'kiva'
         ? `https://www.kiva.org/lend/${id}?app_id=${APP_ID}`
-        : `https://www.kivalens.org/#/search/loan/${id}`
+        : `https://www.kivalens.org/loans/${id}`
     res.statusCode = 302
     res.setHeader('Location', dest)
     res.end()
@@ -1090,7 +1091,7 @@ export function handleRss(state, req, res) {
   // Feed: /rss/<uriComponent-encoded JSON criteria>. We own it as soon as the
   // path matches; the actual work is async (lender portfolio data may need
   // fetching), but the routing contract stays a synchronous boolean.
-  if (!/^\/rss\//.test(url)) return false
+  if (!/^\/rss(\/|\?|$)/.test(url)) return false
   serveRssFeed(state, req, res).catch((e) => {
     console.error('RSS feed error:', e)
     try {
@@ -1130,15 +1131,29 @@ function sendRssUnavailable(res, message) {
 
 async function serveRssFeed(state, req, res) {
   const url = req.url || ''
-  const m = url.match(/^\/rss\/(.+)$/)
   let crit
-  try {
-    crit = JSON.parse(decodeURIComponent(m[1].split('?')[0]))
-  } catch {
-    res.statusCode = 400
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end('Invalid RSS criteria')
-    return
+  const m = url.match(/^\/rss\/(.+)$/)
+  if (m) {
+    // The original shape: the whole search as JSON inside the path. Feeds
+    // subscribed years ago are still this, and always will be.
+    try {
+      crit = JSON.parse(decodeURIComponent(m[1].split('?')[0]))
+    } catch {
+      res.statusCode = 400
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+      res.end('Invalid RSS criteria')
+      return
+    }
+  } else {
+    // /rss?<the same parameters a Search address uses>, so a feed reads like the
+    // page it came from. `feed` names it, because `name` is a search field.
+    const params = new URL(url, 'http://request.invalid').searchParams
+    crit = criteriaFromParams(params) || { loan: {}, partner: {}, portfolio: {} }
+    crit.feed = {
+      name: params.get('feed') || '',
+      link_to: params.get('link_to') || 'kiva',
+      ...(params.get('lender') ? { lender_id: params.get('lender') } : {}),
+    }
   }
 
   const feed = crit.feed || {}

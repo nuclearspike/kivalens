@@ -17,6 +17,9 @@ const resetReadiness = () => {
   useLoanStore.setState({
     lenderLoansLoading: false,
     pendingFilterDependencies: [],
+    // Not mid-download: while the loading panel is up it carries this line
+    // itself, and the overlay stays out of its way.
+    downloading: false,
   })
 }
 
@@ -52,7 +55,35 @@ describe('FilteringProgress', () => {
     render(<FilteringProgress />)
 
     expect(screen.getByRole('status')).toHaveTextContent('your existing loans')
-    expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Finishing your loan filters')
+    // It lies over the results rather than taking a row from them.
+    expect(document.querySelector('.kl-filter-status')).toBeInTheDocument()
+  })
+
+  it('keeps its live region in the DOM before it has anything to say', () => {
+    // A live region inserted together with its message is often not announced:
+    // the reader was not yet watching it. It takes no layout either way.
+    render(<FilteringProgress />)
+    expect(document.querySelector('.kl-filter-status[aria-live="polite"]')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('stays out of the way while the loading panel is saying it instead', () => {
+    useCriteriaStore.setState({
+      lastKnown: { loan: {}, partner: {}, portfolio: { exclude_portfolio_loans: 'true' } },
+    })
+    useLoanStore.setState({
+      pendingFilterDependencies: [LENDER_LOANS_FILTER_DEPENDENCY],
+      downloading: true,
+      downloadProgress: null,
+      filteredLoans: [],
+    })
+
+    render(<FilteringProgress />)
+
+    // Two notices for one wait, one of them pushing the page around, is the
+    // thing being fixed.
+    expect(screen.queryByRole('status')).toBeNull()
   })
 
   it('identifies description and portfolio-balancer dependencies', () => {

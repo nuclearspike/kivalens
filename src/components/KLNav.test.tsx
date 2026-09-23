@@ -16,7 +16,7 @@ describe('KLNav: the Wall is never hidden', () => {
     it(`shows the Wall link ${lenderId ? 'with' : 'without'} a lender ID`, () => {
       useUtilsStore.setState({ lenderId })
       render(<MemoryRouter><KLNav /></MemoryRouter>)
-      expect(screen.getByRole('link', { name: en.wall })).toHaveAttribute('href', '/portfolio')
+      expect(screen.getByRole('link', { name: en.wall })).toHaveAttribute('href', '/wall')
     })
   }
 })

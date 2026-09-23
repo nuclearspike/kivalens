@@ -46,10 +46,10 @@ export default function KLNav() {
             <Nav.Link as={Link} to="/partners" active={isActive('/partners')} data-aikl="nav-partners">
               {t('partners')}
             </Nav.Link>
-            <Nav.Link as={Link} to="/live" active={isActive('/live')} data-aikl="nav-stats">
+            <Nav.Link as={Link} to="/stats" active={isActive('/stats')} data-aikl="nav-stats">
               {t('stats')}
             </Nav.Link>
-            <Nav.Link as={Link} to="/portfolio" active={isActive('/portfolio')} data-aikl="nav-wall">
+            <Nav.Link as={Link} to="/wall" active={isActive('/wall')} data-aikl="nav-wall">
               {t('wall')}
             </Nav.Link>
             <Nav.Link as={Link} to="/teams" active={isActive('/teams')} data-aikl="nav-teams">

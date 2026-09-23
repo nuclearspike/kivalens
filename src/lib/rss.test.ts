@@ -171,6 +171,6 @@ describe('handleRss click redirect', () => {
 
   it('redirects to the KivaLens loan view otherwise', () => {
     const { res } = call('/rss_click/kivalens/777')
-    expect(res.headers['location']).toBe('https://www.kivalens.org/#/search/loan/777')
+    expect(res.headers['location']).toBe('https://www.kivalens.org/loans/777')
   })
 })

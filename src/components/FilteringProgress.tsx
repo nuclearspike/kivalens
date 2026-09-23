@@ -1,56 +1,35 @@
-import { Alert, ProgressBar } from '../ui'
-import { useCriteriaStore, useLoanStore } from '../stores'
+import { Alert } from '../ui'
+import { useLoanStore } from '../stores'
 import { useI18n } from '../i18n'
-import {
-  getPendingFilterReasons,
-  type FilterReadinessReason,
-} from '../lib/filterReadiness'
-
-const REASON_LABELS: Record<FilterReadinessReason, string> = {
-  'existing-loans': 'existing_loans',
-  'loan-descriptions': 'loan_descriptions',
-  'portfolio-balancing': 'portfolio_balancing_data',
-}
+import { useFilteringStatus, useLoadingPanelShowing } from '../lib/loadingStatus'
 
 /**
- * Global warning shown above the result list while an active criterion still
- * depends on asynchronously-loaded data. The current results remain usable for
- * review, but the notice makes their partial status explicit before basket work.
+ * Says that the results are still settling, without moving them.
+ *
+ * This appears and disappears in a second or two, so it lays over the top of the
+ * result list rather than taking a row of its own: a banner that pushes the list
+ * down and lets it spring back is jarring, and it moves the row under the
+ * lender's cursor. While the loading panel is up, that panel carries the same
+ * line in its footer and this stays out of the way.
  */
 export default function FilteringProgress() {
-  const { t } = useI18n()
-  const criteria = useCriteriaStore((s) => s.lastKnown)
-  const pendingDependencies = useLoanStore((s) => s.pendingFilterDependencies)
-  const reasons = getPendingFilterReasons(criteria, pendingDependencies)
+  const status = useFilteringStatus()
+  const loadingPanelShowing = useLoadingPanelShowing()
 
-  if (reasons.length === 0) return null
+  const say = status && !loadingPanelShowing
 
-  const dependencies = reasons.map((reason) => t(REASON_LABELS[reason])).join(', ')
-
+  // The region is always in the DOM, empty until there is something to say: a
+  // live region inserted together with its message is often not announced,
+  // because the reader was not yet watching it. It takes no layout either way.
   return (
-    <Alert
-      variant="warning"
-      role="status"
-      aria-live="polite"
-      className="not-rounded"
-      style={{ marginBottom: 0 }}
-    >
-      <strong>{t('finishing_loan_filters_ellipsis')}</strong>
-      <div style={{ fontSize: 13 }}>
-        {t(
-          'results_may_change_while_dependencies',
-          { dependencies },
-        )}
-      </div>
-      <ProgressBar
-        now={100}
-        variant="warning"
-        striped
-        animated
-        label={t('filtering_ellipsis')}
-        className="mt-2"
-      />
-    </Alert>
+    <div className="kl-filter-status" aria-live="polite">
+      {say ? (
+        <Alert variant="warning" role="status" className="not-rounded mb-0 py-2">
+          <strong>{status.title}</strong>
+          <div style={{ fontSize: 13 }}>{status.detail}</div>
+        </Alert>
+      ) : null}
+    </div>
   )
 }
 

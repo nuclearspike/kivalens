@@ -23,6 +23,7 @@ import CopyButton from './CopyButton'
 import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
 import UnavailableSection from './UnavailableSection'
 import { partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { criteriaToParams, readableSearch } from '../../server/criteriaUrl.mjs'
 import { loanOptionCounts } from '../lib/optionCounts'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { showConfirm } from '../lib/dialog'
@@ -1542,7 +1543,15 @@ export function RSSPanel({ criteria }: { criteria: Criteria }) {
     }
     return base
   }, [criteria, prepForRSS, rssName, rssLinkTo, includePortfolio, lenderId])
-  const rssUrl = `https://www.kivalens.org/rss/${encodeURIComponent(JSON.stringify(critRSS))}`
+  // The feed reads like the Search address it came from. `feed` names it, because
+  // `name` is already a search field.
+  const rssUrl = useMemo(() => {
+    const params = criteriaToParams(critRSS as unknown as Criteria)
+    if (rssName.trim()) params.set('feed', rssName.trim())
+    params.set('link_to', rssLinkTo)
+    if (includePortfolio && lenderId) params.set('lender', lenderId)
+    return `https://www.kivalens.org/rss${readableSearch(params)}`
+  }, [critRSS, rssName, rssLinkTo, includePortfolio, lenderId])
 
   return (
     <Row className="ample-padding-top">

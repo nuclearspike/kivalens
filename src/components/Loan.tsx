@@ -121,6 +121,12 @@ function RepaymentGraphs({ loan }: { loan: KivaLoan }) {
 // Loan detail component
 // ---------------------------------------------------------------------------
 
+// The loan panel's three tabs. Details is where a loan always has something to
+// show, so it is both the default and the stand-in.
+const IMAGE_TAB = 1
+const DETAILS_TAB = 2
+const PARTNER_TAB = 3
+
 export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const { t, data, sector, date, relativeTime, locale, number, currency } = useI18n()
   const { id } = useParams<{ id: string }>()
@@ -171,7 +177,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
 
   const [activeTab, setActiveTab] = useState<number>(() => {
     const stored = localStorage.getItem('loan_active_tab')
-    return stored ? parseInt(stored, 10) : 2
+    return stored ? parseInt(stored, 10) : DETAILS_TAB
   })
 
   const defaultLendAmount = useCallback(
@@ -217,6 +223,11 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
       </div>
     )
   }
+
+  // A Direct loan has no field partner, so the remembered Partner tab would leave
+  // the panel showing nothing but its own tab headers. Details stands in. What is
+  // remembered is left alone, so Partner comes back on the next loan that has one.
+  const shownTab = activeTab === PARTNER_TAB && !loan.partner_id ? DETAILS_TAB : activeTab
 
   const fundedPerc = (loan.funded_amount * 100) / loan.loan_amount
   const basketPerc = (loan.basket_amount * 100) / loan.loan_amount
@@ -378,16 +389,16 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
       <ul className="nav nav-tabs kl-loan-tabs">
         <li className="nav-item">
           <button
-            className={`nav-link${activeTab === 1 ? ' active' : ''}`}
-            onClick={() => handleTabSelect(1)}
+            className={`nav-link${shownTab === IMAGE_TAB ? ' active' : ''}`}
+            onClick={() => handleTabSelect(IMAGE_TAB)}
           >
              {t('image')}
           </button>
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link${activeTab === 2 ? ' active' : ''}`}
-            onClick={() => handleTabSelect(2)}
+            className={`nav-link${shownTab === DETAILS_TAB ? ' active' : ''}`}
+            onClick={() => handleTabSelect(DETAILS_TAB)}
           >
             {t('details_2')}
           </button>
@@ -398,8 +409,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 it. It is the one tab that may shrink: a long name ends in an ellipsis and
                 the full name is in the tooltip. */}
             <button
-              className={`nav-link${activeTab === 3 ? ' active' : ''}`}
-              onClick={() => handleTabSelect(3)}
+              className={`nav-link${shownTab === PARTNER_TAB ? ' active' : ''}`}
+              onClick={() => handleTabSelect(PARTNER_TAB)}
               title={partnerName}
             >
               <span>{t('partner_2')}</span>
@@ -417,7 +428,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
 
       <div className="ample-padding-top" key={detailVersion}>
         {/* Image tab */}
-        {activeTab === 1 && (
+        {shownTab === IMAGE_TAB && (
           <div className="fullsizeImage">
             <KivaImage
               loan={loan}
@@ -444,7 +455,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         )}
 
         {/* Details tab */}
-        {activeTab === 2 && (
+        {shownTab === DETAILS_TAB && (
           <div>
             {/* Funding progress bar — striped Flatly success + warning */}
             {/* Kept in the layout while it has nothing certain to show, so the details below do not jump. */}
@@ -629,7 +640,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
         )}
 
         {/* Partner tab */}
-        {activeTab === 3 && loan.partner_id && (() => {
+        {shownTab === PARTNER_TAB && loan.partner_id && (() => {
           const kl = getKivaLoans()
           const partner = kl?.getPartner(loan.partner_id)
           return partner ? <PartnerDetail partner={partner} /> : <p>{t('partner_data_not_available')}</p>

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Card, ProgressBar } from '../ui'
 import { useLoanStore } from '../stores'
 import DidYouKnow from './DidYouKnow'
+import { useFilteringStatus, useLoadingPanelShowing } from '../lib/loadingStatus'
 import { useI18n } from '../i18n'
 
 /**
@@ -10,12 +11,9 @@ import { useI18n } from '../i18n'
  */
 export default function LoadingLoansPanel() {
   const { t } = useI18n()
-  const downloading = useLoanStore((s) => s.downloading)
+  const filtering = useFilteringStatus()
+  const showing = useLoadingPanelShowing()
   const progress = useLoanStore((s) => s.downloadProgress)
-  // Gate on the SAME array the list renders (filteredLoans), so the
-  // panel disappears the instant any loan is visible — regardless of
-  // download progress.
-  const haveVisibleLoans = useLoanStore((s) => s.filteredLoans.length > 0)
 
   const state = useMemo(() => {
     const idsProgress = progress?.task === 'ids' && progress.done != null && progress.total
@@ -28,17 +26,17 @@ export default function LoadingLoansPanel() {
       : 0
 
     return {
-      show: downloading && !progress?.complete,
       title: progress?.title ?? t('loading_fundraising_loans_kiva_org'),
       progressLabel: progress?.label ?? t('please_wait_ellipsis'),
       idsProgress,
       detailsProgress,
     }
-  }, [downloading, progress, t])
+  }, [progress, t])
 
-  // Either the loading panel or the loan list — never both. If any loan
-  // is visible in the list, hide the panel even if progress isn't 100%.
-  if (haveVisibleLoans || !state.show) return null
+  // Either the loading panel or the loan list — never both. useLoadingPanelShowing
+  // gates on the SAME array the list renders, so the panel goes the instant any
+  // loan is visible, whatever the download progress says.
+  if (!showing) return null
 
   // Mirrors the old app's Panel-with-Modal.Header/Body/Footer structure
   // (white header with large title, tip text under the progress bar).
@@ -66,6 +64,9 @@ export default function LoadingLoansPanel() {
         <DidYouKnow />
       </div>
       <div className="modal-footer">
+        {/* The filters settling is part of this same wait, so it is said here
+            rather than in a banner that would push the page around. */}
+        {filtering ? <span className="kl-still-filtering">{filtering.title}</span> : null}
         <span>{state.progressLabel}</span>
       </div>
     </Card>

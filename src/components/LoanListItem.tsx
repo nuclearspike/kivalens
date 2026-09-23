@@ -1,5 +1,6 @@
 import cx from 'classnames'
 import { ListGroup } from '../ui'
+import { Link, useLocation } from 'react-router-dom'
 import { useLoanStore } from '../stores'
 import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
@@ -15,6 +16,7 @@ interface LoanListItemProps {
  * Compact card for a single loan in the search results list.
  */
 export default function LoanListItem({ loan }: LoanListItemProps) {
+  const location = useLocation()
   const { data, sector } = useI18n()
   const inBasket = useLoanStore((s) => s.inBasket(loan.id))
   const addToBasket = useLoanStore((s) => s.addToBasket)
@@ -33,8 +35,10 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
   return (
     <ListGroup.Item
       action
-      as="a"
-      href={`#/search/loan/${loan.id}`}
+      as={Link}
+      // The loan is shown beside these results, so the address keeps the search
+      // that found it: copying it from the loan view still hands over the search.
+      to={{ pathname: `/loans/${loan.id}`, search: location.search }}
       className={cx('loan_list_item', {
         selected: isSelected,
         in_basket: inBasket,
@@ -48,7 +52,7 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
         <div className="loan-meta">
           <span className="loan-tag">{data(loan.location.country)}</span>
           <span className="loan-tag">{sector(loan.sector)}</span>
-          <span className="loan-tag d-none d-lg-inline">{data(loan.activity)}</span>
+          <span className="loan-tag d-none d-lg-inline-block">{data(loan.activity)}</span>
         </div>
         <div className="loan-use d-none d-lg-block">{loan.use}</div>
       </div>

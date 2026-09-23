@@ -73,7 +73,10 @@ export function Component() {
   const [searchParams] = useSearchParams()
   const savedLenderId = useUtilsStore((s) => s.lenderId)
   const lenderDataVersion = useUtilsStore((s) => s.lenderDataVersion)
-  const lenderId = searchParams.get('kivaid') || savedLenderId
+  // `kivaid` is the spelling this parameter had for years; boot.js and the
+  // server rename it, and it is read here as well for a link that reaches the
+  // app without passing either.
+  const lenderId = searchParams.get('lender') || searchParams.get('kivaid') || savedLenderId
 
   const storeLoans = useLoanStore((s) => s.loans)
 
@@ -368,7 +371,7 @@ export function Component() {
         }}
       >
         {message}
-        {/* Without a lender (none saved, no ?kivaid) the wall shows loans raising money now;
+        {/* Without a lender (none saved, no ?lender) the wall shows loans raising money now;
             it could show every borrower this lender has funded. */}
         {!lenderId && !loading ? (
           <>

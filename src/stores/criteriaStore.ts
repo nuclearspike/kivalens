@@ -82,6 +82,8 @@ export interface CriteriaActions {
 
   // ---- Saved searches ---------------------------------------------------
   saveSearch: (name: string) => void
+  importSearches: (searches: Record<string, SavedSearch>) => string[]
+  clearLastSwitch: () => void
   deleteSearch: (name: string) => void
   renameSearch: (oldName: string, newName: string) => void
   loadSearch: (name: string) => void
@@ -377,6 +379,29 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             const stripped = get().stripNullValues({ ...get().lastKnown })
             state.savedSearches[name] = (stripped ?? get().lastKnown) as never
             state.lastSwitch = name
+          })
+        },
+
+        // Takes in searches from a file, a pasted document or a shared link, and
+        // returns the names it stored. It goes through set(), which is what makes
+        // the searches outlive the tab: writing into savedSearches directly leaves
+        // the browser's copy untouched until some unrelated action happens to save.
+        importSearches: (searches: Record<string, SavedSearch>) => {
+          const names = Object.keys(searches).filter((name) => name && searches[name])
+          if (names.length === 0) return []
+          set((state) => {
+            for (const name of names) state.savedSearches[name] = searches[name] as never
+          })
+          return names
+        },
+
+        // The saved-search button names the search the criteria came from. When
+        // they came from somewhere else — a link — it must stop claiming them,
+        // or its Re-save and Delete act on a search the lender never chose.
+        clearLastSwitch: () => {
+          if (get().lastSwitch === null) return
+          set((state) => {
+            state.lastSwitch = null
           })
         },
 

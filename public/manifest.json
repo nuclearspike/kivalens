@@ -3,7 +3,7 @@
   "short_name": "KivaLens",
   "description": "Advanced search and portfolio balancing for Kiva.org lenders",
   "id": "/",
-  "start_url": ".",
+  "start_url": "/search",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",

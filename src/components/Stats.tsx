@@ -11,10 +11,10 @@ function AnimInt({ value }: { value: number }) {
 }
 
 /**
- * Live Kiva lending statistics page.
+ * The Stats page: live Kiva lending totals.
  * Shows running totals since session start and current fundraising snapshot.
  */
-export default function Live() {
+export default function Stats() {
   const { t, relativeTime } = useI18n()
   const loans = useLoanStore((s) => s.loans)
   const runningTotals = useLoanStore((s) => s.runningTotals)

@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../../server/routeMap.mjs'
+import { describePage } from './describePage'
 import { useUtilsStore } from '../../stores/utilsStore'
 import { useCriteriaStore } from '../../stores/criteriaStore'
 import { useLoanStore } from '../../stores/loanStore'
@@ -35,22 +38,6 @@ type SavedChat = { messages?: Bubble[]; open?: boolean; savedAt?: number }
 // Restore the persisted chat only on a genuine browser refresh (saved within this
 // window), not when returning to a stale session.
 const CHAT_RESTORE_TTL_MS = 2 * 60 * 1000
-
-// A short label for the page the user is on, from the hash route.
-function describePage(): string {
-  const h = (typeof window !== 'undefined' ? window.location.hash : '').replace(/^#\/?/, '')
-  if (h.startsWith('search/loan/')) return 'a loan detail page'
-  if (h.startsWith('basket')) return 'the Basket'
-  if (h.startsWith('partners/')) return 'a field-partner page'
-  if (h.startsWith('partners')) return 'the Partners page'
-  if (h.startsWith('portfolio')) return 'their Portfolio page'
-  if (h.startsWith('saved')) return 'the Saved Searches page'
-  if (h.startsWith('stats')) return 'the Stats page'
-  if (h.startsWith('options')) return 'the Options page'
-  if (h.startsWith('about')) return 'the About page'
-  if (h.startsWith('teams')) return 'the Teams page'
-  return 'the Search page'
-}
 
 function Eyes() {
   return (
@@ -141,6 +128,7 @@ export default function AskKivaLens() {
   const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const streamRef = useRef('')
+  const navigate = useNavigate()
   const rafRef = useRef<number | null>(null)
   // Snapshot the persisted chat ONCE so the mount effects don't race the save
   // effect. Only RESTORE it on a genuine browser refresh — i.e. saved within the
@@ -332,12 +320,10 @@ export default function AskKivaLens() {
             useUtilsStore.getState().showCallout(e.target, e.message)
             break
           case 'navigate': {
-            const routes: Record<string, string> = {
-              search: '/search', basket: '/basket', partners: '/partners', stats: '/live',
-              saved: '/saved', options: '/options', about: '/about', teams: '/teams', wall: '/portfolio',
-            }
-            const r = routes[e.page]
-            if (r) window.location.hash = `#${r}`
+            // The page the assistant names IS the route id, so there is no
+            // second table to keep in step; a page it cannot name is ignored.
+            const route = ROUTES.find((r) => !r.param && r.id === e.page)
+            if (route) navigate(route.path)
             break
           }
           case 'switch_tab':
@@ -416,7 +402,7 @@ export default function AskKivaLens() {
         { onEvent, signal: ac.signal },
       )
     },
-    [loading, messages, flushStreaming, commitStreaming, clientId, t, locale],
+    [loading, messages, flushStreaming, commitStreaming, clientId, t, locale, navigate],
   )
 
   // Auto-send a seed prompt (the no-results "Ask KivaLens for a suggestion"
@@ -579,7 +565,7 @@ export default function AskKivaLens() {
               ↺ {t('reset_chat')}
             </button>
             <span>
-              {t('chats_logged')} · <a href="#/privacy">{t('privacy')}</a>
+              {t('chats_logged')} · <Link to="/privacy">{t('privacy')}</Link>
             </span>
           </div>
         </div>

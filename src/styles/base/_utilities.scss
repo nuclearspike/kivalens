@@ -78,6 +78,7 @@ $spacers: (
   .d-md-block { display: block !important; }
   .d-md-flex { display: flex !important; }
   .d-md-inline { display: inline !important; }
+  .d-md-inline-block { display: inline-block !important; }
 }
 
 @media (min-width: $breakpoint-lg) {
@@ -85,6 +86,7 @@ $spacers: (
   .d-lg-block { display: block !important; }
   .d-lg-flex { display: flex !important; }
   .d-lg-inline { display: inline !important; }
+  .d-lg-inline-block { display: inline-block !important; }
 }
 
 // --- flex ---

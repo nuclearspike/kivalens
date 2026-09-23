@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ComposedChart,
   Bar,
@@ -17,59 +18,101 @@ import BasketListItem from './BasketListItem'
 import Loan from './Loan'
 import { getKivaLoans } from '../api/kiva'
 import { useI18n } from '../i18n'
+import {
+  buildBasketRepayments,
+  type BasketRepaymentMonth,
+  type BasketRepaymentSeries,
+} from '../lib/basketRepayments'
 
 // ---------------------------------------------------------------------------
 // BasketRepaymentChart - combined repayment forecast across all basket items
 // ---------------------------------------------------------------------------
 
-interface BasketRepaymentDatum {
-  label: string
-  amount: number
-  cumulativeAmount: number
+function useBreakDownByLoan(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(BREAK_DOWN_KEY) === 'true'
+    } catch {
+      return false
+    }
+  })
+  const set = useCallback((next: boolean) => {
+    setOn(next)
+    try {
+      localStorage.setItem(BREAK_DOWN_KEY, String(next))
+    } catch {
+      // not remembered; the checkbox still works
+    }
+  }, [])
+  return [on, set]
 }
 
+const BREAK_DOWN_KEY = 'kl_basket_repay_by_loan'
 
+/**
+ * Which loan the pointer is over, so the hint names that one rather than listing
+ * the whole month. Recharts' own tooltip reports every series at the hovered
+ * category, which in a stack of twenty loans is not a hint.
+ */
+function StackHint({
+  series,
+  amount,
+  month,
+  row,
+  labels,
+  currency,
+}: {
+  series: BasketRepaymentSeries | null
+  amount: number | null
+  month: string | null
+  row?: BasketRepaymentMonth
+  labels: { month: string; cumulative: string }
+  currency: (v: number, o: number) => string
+}) {
+  if (series && amount !== null) {
+    return (
+      <div className="kl-stack-hint">
+        <span className="kl-stack-hint-swatch" style={{ background: series.color }} />
+        <strong>{series.name}</strong>
+        <span>
+          {month} · {currency(amount, 2)}
+        </span>
+      </div>
+    )
+  }
+  // Off a band but still on the chart: the month's own figures, which reading
+  // the cumulative line depends on and which the breakdown must not cost.
+  if (!row) return null
+  return (
+    <div className="kl-stack-hint kl-stack-hint-month">
+      <strong>{row.label}</strong>
+      <span>
+        {labels.month} {currency(row.amount, 2)} · {labels.cumulative}{' '}
+        {currency(row.cumulativeAmount, 2)}
+      </span>
+    </div>
+  )
+}
 
-function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
+function BasketRepaymentChart({
+  entries,
+  onSelectLoan,
+}: {
+  entries: BasketEntry[]
+  onSelectLoan: (loanId: number) => void
+}) {
   const { t, date, currency } = useI18n()
-  const { data, skippedCount } = useMemo(() => {
-    const monthMap = new Map<string, { amount: number; date: number }>()
-    let skipped = 0
+  const [byLoan, setByLoan] = useBreakDownByLoan()
+  const [hovered, setHovered] = useState<{ key: string; month: string; amount: number } | null>(null)
 
-    for (const entry of entries) {
-      const loan = entry.loan
-      if (!loan?.kl_still_needed || !loan.kl_repayments?.length || !loan.loan_amount) {
-        skipped += 1
-        continue
-      }
-      const share = entry.amount / loan.loan_amount
-      for (const rep of loan.kl_repayments) {
-        const key = rep.display
-        const existing = monthMap.get(key)
-        monthMap.set(key, {
-          amount: (existing?.amount ?? 0) + rep.amount * share,
-          date: new Date(rep.date).getTime(),
-        })
-      }
-    }
-
-    if (monthMap.size === 0) {
-      return { data: [] as BasketRepaymentDatum[], skippedCount: skipped }
-    }
-
-    const sorted = Array.from(monthMap.entries()).sort(([, a], [, b]) => a.date - b.date)
-    let cumulative = 0
-    const chartData = sorted.map(([, month]) => {
-      cumulative += month.amount
-      return {
-        label: date(month.date, { month: 'short', year: 'numeric' }),
-        amount: Math.round(month.amount * 100) / 100,
-        cumulativeAmount: Math.round(cumulative * 100) / 100,
-      }
-    })
-
-    return { data: chartData, skippedCount: skipped }
-  }, [entries, date])
+  const formatMonth = useCallback(
+    (when: number) => date(when, { month: 'short', year: 'numeric' }),
+    [date],
+  )
+  const { months: data, series, skippedCount } = useMemo(
+    () => buildBasketRepayments(entries, formatMonth),
+    [entries, formatMonth],
+  )
 
   if (!data.length) {
     if (skippedCount > 0) {
@@ -87,13 +130,31 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
   }
 
   const chartHeight = Math.max(300, Math.min(data.length * 22, 900))
-
   const dollar = (v: number | string) => currency(v, { min: 0, max: 2 })
+  const hoveredSeries = hovered ? series.find((s) => s.key === hovered.key) ?? null : null
 
   return (
     <div className="card mb-3">
       <div className="card-body p-2">
-        <h4>{t('repayments')}: {t('count_months', { count: data.length })}</h4>
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <h4 className="mb-0">{t('repayments')}: {t('count_months', { count: data.length })}</h4>
+          {/* The breakdown is off by default: one bar per month is the question
+              most lenders are asking. The choice is remembered. */}
+          <label className="kl-inline-check">
+            <input
+              type="checkbox"
+              checked={byLoan}
+              onChange={(e) => {
+                setByLoan(e.target.checked)
+                setHovered(null)
+              }}
+            />
+            <span>{t('break_down_by_loan')}</span>
+          </label>
+        </div>
+        {byLoan ? (
+          <div className="kl-chart-hint">{t('pick_a_band_to_open_that_loan')}</div>
+        ) : null}
         {skippedCount > 0 ? (
           <div className="alert alert-warning py-1 mb-2">
             {t('repayment_data_unavailable_skipped_total', {
@@ -108,6 +169,7 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
             layout="vertical"
             margin={{ left: 10, right: 10, top: 5, bottom: 12 }}
             barCategoryGap="25%"
+            onMouseLeave={() => setHovered(null)}
           >
             {/* Two $ scales: monthly (bottom axis / bars) and cumulative
                 (top axis / line). The legend names each series, so the axes
@@ -131,24 +193,70 @@ function BasketRepaymentChart({ entries }: { entries: BasketEntry[] }) {
               height={20}
             />
             <YAxis dataKey="label" type="category" tick={{ fontSize: 9 }} width={60} interval={0} />
-            <Tooltip formatter={(value) => currency(value, 2)} />
+            {byLoan ? (
+              <Tooltip
+                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                content={({ payload }) => (
+                  <StackHint
+                    series={hoveredSeries}
+                    amount={hovered?.amount ?? null}
+                    month={hovered?.month ?? null}
+                    row={payload?.[0]?.payload as BasketRepaymentMonth | undefined}
+                    labels={{ month: t('monthly_repayment'), cumulative: t('cumulative') }}
+                    currency={(v, digits) => currency(v, digits)}
+                  />
+                )}
+              />
+            ) : (
+              <Tooltip formatter={(value) => currency(value, 2)} />
+            )}
             <Legend
               verticalAlign="bottom"
               height={28}
               iconSize={12}
               wrapperStyle={{ fontSize: 12, paddingTop: 10 }}
             />
-            {/* no barSize: bars scale with the row band (50% bar, 50% gap) */}
-            <Bar
-              xAxisId="amount"
-              dataKey="amount"
-              fill="#e8871a"
-              // Same hairline as the loan repayment chart: bars part from the area by shape too.
-              stroke="var(--kl-surface)"
-              strokeWidth={1}
-              name={t('monthly_repayment')}
-              isAnimationActive={false}
-            />
+            {byLoan ? (
+              series.map((s) => (
+                <Bar
+                  key={s.key}
+                  xAxisId="amount"
+                  dataKey={`byLoan.${s.key}`}
+                  stackId="loans"
+                  fill={s.color}
+                  stroke="var(--kl-surface)"
+                  strokeWidth={1}
+                  name={s.name}
+                  isAnimationActive={false}
+                  cursor="pointer"
+                  // A basket of thirty loans would bury the chart under thirty
+                  // legend entries. The hint under the pointer names them one at
+                  // a time instead, which is what a lender is asking anyway.
+                  legendType="none"
+                  onMouseEnter={(entry: { payload?: BasketRepaymentMonth }) =>
+                    setHovered({
+                      key: s.key,
+                      month: entry?.payload?.label ?? '',
+                      amount: entry?.payload?.byLoan?.[s.key] ?? 0,
+                    })
+                  }
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => onSelectLoan(s.id)}
+                />
+              ))
+            ) : (
+              /* no barSize: bars scale with the row band (50% bar, 50% gap) */
+              <Bar
+                xAxisId="amount"
+                dataKey="amount"
+                fill="#e8871a"
+                // Same hairline as the loan repayment chart: bars part from the area by shape too.
+                stroke="var(--kl-surface)"
+                strokeWidth={1}
+                name={t('monthly_repayment')}
+                isAnimationActive={false}
+              />
+            )}
             <Area
               xAxisId="cumulative"
               dataKey="cumulativeAmount"
@@ -187,8 +295,40 @@ export default function Basket() {
   const reconcileBasketOrphans = useLoanStore((s) => s.reconcileBasketOrphans)
   const lenderId = useUtilsStore((s) => s.lenderId)
 
-  const [selectedId, setSelectedId] = useState<number | null>(null)
   const [showTransfer, setShowTransfer] = useState(false)
+  const navigate = useNavigate()
+  // The address says which loan is open, the way it does beside the search
+  // results: /basket/:id is a place the lender can return to or hand to someone.
+  const { id: routeLoanId } = useParams<{ id: string }>()
+  const selectedId = routeLoanId ? parseInt(routeLoanId, 10) : null
+  const showBasket = useCallback(
+    (id: number | null) => navigate(id === null ? '/basket' : `/basket/${id}`, { replace: id === null }),
+    [navigate],
+  )
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Kiva's checkout callback lands on /basket?clear=1. Any other open tab is
+  // told the hand-off is over; this tab reconciles on mount like any visit. The
+  // basket is never emptied on the callback alone, because the callback fires
+  // when the basket is SET, not when payment completes — the outcome is
+  // reconciled against Kiva, or asked about, per T1.1.
+  const checkoutReturnHandled = useRef(false)
+  useEffect(() => {
+    if (checkoutReturnHandled.current || !searchParams.has('clear')) return
+    checkoutReturnHandled.current = true
+    try {
+      if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('kivalens')
+        bc.postMessage({ type: 'checkout-returned' })
+        bc.close()
+      }
+    } catch {
+      /* BroadcastChannel unavailable - other tabs reconcile when focused */
+    }
+    const rest = new URLSearchParams(searchParams)
+    rest.delete('clear')
+    setSearchParams(rest, { replace: true })
+  }, [searchParams, setSearchParams])
 
   // Fetch full details for basket loans missing repayment data
   const [repayVersion, setRepayVersion] = useState(0)
@@ -206,11 +346,14 @@ export default function Basket() {
     }
   }, [basketEntries.map((e) => e.id).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Judged against the basket ITSELF, which is stored in the browser and is there
+  // on the first render — not against the hydrated rows, which wait on the loan
+  // set. Against the rows, an address opened cold closed itself before its loan
+  // ever arrived, which is precisely the case a link has to survive.
+  const inBasketIds = useLoanStore((s) => s.basket.some((item) => item.loan_id === selectedId))
   useEffect(() => {
-    if (selectedId != null && !basketEntries.some((entry) => entry.id === selectedId)) {
-      setSelectedId(null)
-    }
-  }, [basketEntries, selectedId])
+    if (selectedId != null && !inBasketIds) showBasket(null)
+  }, [selectedId, inBasketIds, showBasket])
 
   // T1.1 outcome closure: after a checkout, reconcile the basket with reality on
   // return instead of blind-clearing. If the lender id is set, confirm which
@@ -332,7 +475,7 @@ export default function Basket() {
     })
     if (ok) {
       clearBasket()
-      setSelectedId(null)
+      showBasket(null)
     }
   }
 
@@ -369,11 +512,12 @@ export default function Basket() {
   }
 
   const handleSelect = (id: number) => {
-    setSelectedId(id)
+    showBasket(id)
   }
 
-  // Hash-router route is /clear-basket, so the callback hash needs the leading slash.
-  const callbackUrl = `${location.protocol}//${location.host}${location.pathname}#/clear-basket`
+  // Kiva sends the checkout tab back here when the basket is set. The address is
+  // fixed rather than built from the current path, which is a page of this app.
+  const callbackUrl = `${location.protocol}//${location.host}/basket?clear=1`
 
   return (
     // Three panes side by side from tablet width up. Below that they stack, each the
@@ -392,7 +536,7 @@ export default function Basket() {
             onClick={() => {
               if (selectedId != null) {
                 removeFromBasket(selectedId)
-                setSelectedId(null)
+                showBasket(null)
               }
             }}
           >
@@ -471,7 +615,9 @@ export default function Basket() {
           </div>
         </div>
 
-        {basketCount > 0 && <BasketRepaymentChart entries={basketEntries} />}
+        {basketCount > 0 && (
+          <BasketRepaymentChart entries={basketEntries} onSelectLoan={showBasket} />
+        )}
       </div>
 
       {/* Right column: loan detail */}

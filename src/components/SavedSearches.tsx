@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Container, Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
 import { useCriteriaStore, useLoanStore } from '../stores'
 import { showAlert, showConfirm, showPrompt } from '../lib/dialog'
@@ -7,6 +8,8 @@ import type { Criteria } from '../types'
 import type { SavedSearch } from '../stores/criteriaStore'
 import { useI18n } from '../i18n'
 import { summarizeCriteria, type Translate } from '../lib/summarizeCriteria'
+import { pluralCategory } from '../lib/pluralCategory'
+import { criteriaToSearch } from '../../server/criteriaUrl.mjs'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -53,18 +56,49 @@ function stripName(obj: Record<string, unknown>): Record<string, unknown> {
   return copy
 }
 
+/**
+ * The named searches in an imported document, whichever of the three shapes it
+ * has: a list of named searches, one search, or an object keyed by name. A file,
+ * a pasted document and a shared link all arrive here, so they cannot drift.
+ */
+function collectSearches(
+  obj: unknown,
+  fallbackName: string,
+): Record<string, SavedSearch> {
+  const out: Record<string, SavedSearch> = {}
+  if (Array.isArray(obj)) {
+    obj.forEach((item: Record<string, unknown>, i) => {
+      const name = String(item?.name ?? (i === 0 ? fallbackName : `${fallbackName} ${i + 1}`))
+      out[name] = stripName(item) as unknown as SavedSearch
+    })
+    return out
+  }
+  if (isSingleSearch(obj)) {
+    const o = obj as Record<string, unknown>
+    out[String(o.name ?? fallbackName)] = stripName(o) as unknown as SavedSearch
+    return out
+  }
+  for (const [name, value] of Object.entries((obj ?? {}) as Record<string, unknown>)) {
+    out[name] = value as unknown as SavedSearch
+  }
+  return out
+}
+
 
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
 export function SavedSearches() {
-  const { t, sector, number } = useI18n()
+  const { t, sector, number, locale } = useI18n()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
   const getSavedSearch = useCriteriaStore((s) => s.getSavedSearch)
   const renameSearch = useCriteriaStore((s) => s.renameSearch)
   const deleteSearch = useCriteriaStore((s) => s.deleteSearch)
   const loadSearch = useCriteriaStore((s) => s.loadSearch)
+  const importSearches = useCriteriaStore((s) => s.importSearches)
   const savedSearches = useCriteriaStore((s) => s.savedSearches)
 
   const [searches, setSearches] = useState<string[]>(() => getSavedSearchNames())
@@ -117,6 +151,60 @@ export function SavedSearches() {
     return counts
   }, [searches, savedSearches, loanCount])
 
+  // A shared link (?import=) carries other lenders' searches. It asks first,
+  // names what it would add, and is taken out of the address either way, so a
+  // reload cannot ask twice. Sharing has produced these links for years with
+  // nothing on this side to read them.
+  const importFromUrlHandled = useRef(false)
+  useEffect(() => {
+    if (importFromUrlHandled.current) return
+    const raw = searchParams.get('import')
+    if (raw === null) return
+    importFromUrlHandled.current = true
+
+    // Taken out of the address now, not after the dialog: the lender may have
+    // moved on by the time they answer, and clearing it then would write this
+    // page's query over that one.
+    const rest = new URLSearchParams(searchParams)
+    rest.delete('import')
+    setSearchParams(rest, { replace: true })
+
+    let incoming: Record<string, SavedSearch> = {}
+    try {
+      const obj = JSON.parse(raw) as unknown
+      if (validateCriteria(obj, t)) throw new Error('shape')
+      incoming = collectSearches(obj, t('shared_search'))
+    } catch {
+      void showAlert(t('shared_link_not_readable'))
+      return
+    }
+
+    const names = Object.keys(incoming)
+    if (names.length === 0) {
+      void showAlert(t('shared_link_not_readable'))
+      return
+    }
+    const clashes = names.filter((name) => savedSearches[name])
+    void (async () => {
+      const one = pluralCategory(locale, names.length) === 'one'
+      const key = clashes.length
+        ? (one ? 'add_shared_searches_replacing_one' : 'add_shared_searches_replacing')
+        : (one ? 'add_shared_searches_one' : 'add_shared_searches')
+      const ok = await showConfirm(
+        t(key, {
+          count: number(names.length),
+          names: (clashes.length ? clashes : names).join(', '),
+        }),
+        { title: t('shared_searches'), confirmLabel: t('add_them'), cancelLabel: t('cancel') },
+      )
+      if (ok) {
+        const added = importSearches(incoming)
+        refreshList()
+        if (added.length) setSelected(added[0])
+      }
+    })()
+  }, [searchParams, setSearchParams, savedSearches, importSearches, refreshList, t, locale, number])
+
   const handleSelect = useCallback((name: string) => {
     setSelected(name)
     setRenaming(false)
@@ -125,9 +213,9 @@ export function SavedSearches() {
   const handleShowLoans = useCallback(
     (name: string) => {
       loadSearch(name)
-      window.location.hash = '#/search'
+      navigate('/search')
     },
-    [loadSearch],
+    [loadSearch, navigate],
   )
 
   const handleDelete = useCallback(
@@ -227,8 +315,12 @@ export function SavedSearches() {
       }
       return { name, loan: {}, partner: {}, portfolio: {} }
     })
-    const encoded = encodeURIComponent(JSON.stringify(arr))
-    const shareUrl = `${window.location.origin}/#/saved?importSS=${encoded}`
+    // One search shares as the search itself — a link that opens Search already
+    // filtered, with nothing to accept. Several can only be a bundle to add.
+    const shareUrl =
+      arr.length === 1
+        ? `${window.location.origin}/search${criteriaToSearch(arr[0] as Criteria)}`
+        : `${window.location.origin}/saved?import=${encodeURIComponent(JSON.stringify(arr))}`
     if (navigator.clipboard) {
       void navigator.clipboard.writeText(shareUrl)
       void showAlert(t('share_link_copied_clipboard_send'), {
@@ -262,21 +354,7 @@ export function SavedSearches() {
           const obj = JSON.parse(ev.target?.result as string) as unknown
           const err = validateCriteria(obj, t)
           if (err) { void showAlert(err); return }
-          if (Array.isArray(obj)) {
-            obj.forEach((item: Record<string, unknown>) => {
-              const name = String(item.name ?? 'Imported')
-              useCriteriaStore.getState().savedSearches[name] = stripName(item) as unknown as SavedSearch
-            })
-          } else if (isSingleSearch(obj)) {
-            const o = obj as Record<string, unknown>
-            const name = String(o.name ?? file.name.replace('.json', ''))
-            useCriteriaStore.getState().savedSearches[name] = stripName(o) as unknown as SavedSearch
-          } else {
-            const o = obj as Record<string, unknown>
-            Object.keys(o).forEach((name) => {
-              useCriteriaStore.getState().savedSearches[name] = o[name] as unknown as SavedSearch
-            })
-          }
+          importSearches(collectSearches(obj, file.name.replace('.json', '')))
           refreshList()
            void showAlert(t('import_successful'))
         } catch (ex) {
@@ -286,7 +364,7 @@ export function SavedSearches() {
       reader.readAsText(file)
       e.target.value = ''
     },
-    [refreshList, t],
+    [importSearches, refreshList, t],
   )
 
   const handleImportJSONChange = useCallback((text: string) => {
@@ -317,27 +395,17 @@ export function SavedSearches() {
   const handleDoImportJSON = useCallback(() => {
     try {
       const obj = JSON.parse(importJSON) as unknown
-      if (Array.isArray(obj)) {
-        obj.forEach((item: Record<string, unknown>) => {
-          const name = String(item.name ?? 'Imported')
-          useCriteriaStore.getState().savedSearches[name] = stripName(item) as unknown as SavedSearch
-        })
-      } else if (isSingleSearch(obj)) {
-        const name = importName.trim()
-        if (!name) { void showAlert(t('please_enter_name_search')); return }
-        useCriteriaStore.getState().savedSearches[name] = stripName(obj as Record<string, unknown>) as unknown as SavedSearch
-      } else {
-        const o = obj as Record<string, unknown>
-        Object.keys(o).forEach((name) => {
-          useCriteriaStore.getState().savedSearches[name] = o[name] as unknown as SavedSearch
-        })
+      if (isSingleSearch(obj) && !importName.trim()) {
+        void showAlert(t('please_enter_name_search'))
+        return
       }
+      importSearches(collectSearches(obj, importName.trim() || 'Imported'))
       refreshList()
       setShowImportModal(false)
     } catch (ex) {
       void showAlert(t('error_message', { message: ex instanceof Error ? ex.message : String(ex) }))
     }
-  }, [importJSON, importName, refreshList, t])
+  }, [importJSON, importName, importSearches, refreshList, t])
 
   // Parse import for preview
   let parsedImport: unknown = null

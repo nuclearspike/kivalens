@@ -9,6 +9,7 @@ import type { Plugin, ViteDevServer } from 'vite'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createState, startRefresh, handleApi, handleProxy, handleRss } from './klCore.mjs'
 import { handleChat } from './aiChat.mjs'
+import { legacyRedirect } from './legacyRedirect.mjs'
 
 export function klDevServer(): Plugin {
   const state = createState()
@@ -27,6 +28,15 @@ export function klDevServer(): Plugin {
           if (handleRss(state, req, res)) return
           if (handleChat(state, req, res)) return
           if (handleApi(state, req, res)) return
+          // The same permanent redirect production serves, so a retired address
+          // behaves here exactly as it will there.
+          const moved = legacyRedirect(req)
+          if (moved) {
+            res.statusCode = 301
+            res.setHeader('Location', moved)
+            res.end()
+            return
+          }
           next()
         },
       )
