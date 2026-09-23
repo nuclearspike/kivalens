@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { Dropdown } from '../ui'
 import { useI18n } from '../i18n'
 
@@ -54,17 +55,17 @@ export default function AanDropdown({
           return (
             <Dropdown.Item key={mode} onClick={() => onChange(mode)} data-aan-mode={mode}>
               <span
+                className="kl-opt-bar"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 12,
-                  borderRadius: 3,
-                  background: pct > 0 ? `linear-gradient(to right, rgba(44, 140, 94, 0.20) ${pct}%, transparent ${pct}%)` : undefined,
-                }}
+                  '--kl-opt-bar-pct': `${pct}%`,
+                } as CSSProperties}
               >
                 <span style={{ flex: 1 }}>{label(mode)}</span>
                 {count !== undefined ? (
-                  <span className="kl-aan-count" style={{ fontSize: 11, color: 'var(--kl-text-muted)' }}>{number(count)}</span>
+                  <span className="kl-aan-count kl-opt-count">{number(count)}</span>
                 ) : null}
               </span>
             </Dropdown.Item>

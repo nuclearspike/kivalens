@@ -21,11 +21,15 @@ describe('KLSelect option graphs', () => {
   it('draws a count and a bar behind each option, scaled to the largest', () => {
     render(<KLSelect options={OPTIONS} distribution={GRAPH} menuIsOpen />)
     expect(rows()).toEqual(['Show All187', 'Alpha', 'Charges174', 'Does not charge13'])
-    const bar = (text: string) =>
-      ([...document.querySelectorAll('.Select__option')].find((el) => el.textContent?.startsWith(text))?.firstElementChild as HTMLElement).style.background
-    expect(bar('Show All')).toContain('100%')
-    expect(bar('Does not charge')).toContain(`${(13 / 187) * 100}%`)
-    expect(bar('Alpha')).toBe('')
+    // The bar's width is an inline custom property; its colours live in CSS, which
+    // dims or darkens it per row state (src/styles/optionRowContrast.test.ts).
+    const row = (text: string) =>
+      [...document.querySelectorAll('.Select__option')].find((el) => el.textContent?.startsWith(text))?.firstElementChild as HTMLElement
+    const bar = (text: string) => row(text).style.getPropertyValue('--kl-opt-bar-pct')
+    expect(bar('Show All')).toBe('100%')
+    expect(bar('Does not charge')).toBe(`${(13 / 187) * 100}%`)
+    expect(bar('Alpha')).toBe('0%') // no count, no bar
+    expect(row('Show All').querySelector('.kl-opt-count')).toHaveTextContent('187')
   })
 
   it('orders by count on request, keeping the option that lifts the filter first', () => {

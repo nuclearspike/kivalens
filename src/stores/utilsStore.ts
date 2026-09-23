@@ -134,7 +134,8 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
           }
           useCriteriaStore.getState().updateBalancers()
         } else {
-          useLoanStore.getState().filterLoans()
+          // Let go of what this lender's portfolio put into the balancers.
+          useCriteriaStore.getState().releasePortfolioBalancers()
         }
       },
 

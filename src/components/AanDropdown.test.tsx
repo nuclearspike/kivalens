@@ -31,8 +31,10 @@ describe('AanDropdown', () => {
   it('draws each bar against the largest mode, and none for a mode that gives nothing', () => {
     render(<AanDropdown value="any" onChange={() => {}} getCounts={() => ({ any: 50, none: 0 })} />)
     open()
-    expect((item('any').firstElementChild as HTMLElement).style.background).toContain('100%')
-    expect((item('none').firstElementChild as HTMLElement).style.background).toBe('')
+    const pct = (mode: string) => (item(mode).firstElementChild as HTMLElement).style.getPropertyValue('--kl-opt-bar-pct')
+    expect(pct('any')).toBe('100%')
+    expect(pct('none')).toBe('0%') // gives nothing, so no bar
+    expect(item('any').querySelector('.kl-opt-count')).toHaveTextContent('50')
     expect(within(item('none')).getByText('0')).toBeInTheDocument()
   })
 

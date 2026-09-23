@@ -6,6 +6,8 @@ const catalog: Record<string, string> = {
   'biogas_systems': 'Systèmes de biogaz',
   'celebrations': 'Célébrations',
   'clean_cooking': 'Cuisson propre',
+  'clear': 'Effacer',
+  'clear_lender_id': 'Effacer votre identifiant de prêteur',
   'clear_them': 'Les effacer',
   'community_energy_grids': 'Réseaux énergétiques communautaires',
   'copied': 'Copié',

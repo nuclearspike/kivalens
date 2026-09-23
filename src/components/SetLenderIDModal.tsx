@@ -175,6 +175,20 @@ export default function SetLenderIDModal() {
       </Modal.Body>
 
       <Modal.Footer>
+        {/* The other way out: take the saved ID back off, from where it was set. */}
+        {lenderId ? (
+          <Button
+            variant="outline-secondary"
+            className="me-auto"
+            aria-label={t('clear_lender_id')}
+            onClick={() => {
+              setLenderId('')
+              closeModal()
+            }}
+          >
+            {t('clear')}
+          </Button>
+        ) : null}
         <Button onClick={() => void handleSave()} disabled={badRegEx || !trimmed || checking}>
            {t('set_lender_id')}
         </Button>

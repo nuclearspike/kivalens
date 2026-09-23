@@ -1403,9 +1403,10 @@ ul.spacedList li {
 }
 
 // Under "Showing X of Y": the loans a mode or the already-lent filter keeps out.
+// The second line of the count bar: what a setting leaves out. No font-size of its
+// own, so it can never come out bigger than the count above it — it inherits the bar.
 .kl-count-gaps {
   margin-top: 2px;
-  font-size: 12px;
   color: var(--kl-text-muted);
 }
 
@@ -1457,6 +1458,40 @@ textarea {
   .dropdown {
     flex: 1;
     min-width: 0;
+  }
+}
+
+// Option counts and their distribution bars ride on rows whose background changes
+// with state: on a selected or hovered row (dark, white text) a fixed muted grey is
+// unreadable (measured 2.1:1) and a translucent green bar invisible. The count takes
+// the row's own colour — at full strength on those rows — and the bar darkens the row
+// instead of tinting it green, which would wash out the row's own white text.
+.kl-opt-count {
+  font-size: 11px;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.kl-opt-bar {
+  --kl-opt-bar-color: rgba(44, 140, 94, 0.2);
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    var(--kl-opt-bar-color) var(--kl-opt-bar-pct, 0%),
+    transparent var(--kl-opt-bar-pct, 0%)
+  );
+}
+
+.Select__option--is-selected,
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item.active {
+  .kl-opt-count {
+    opacity: 1;
+  }
+
+  .kl-opt-bar {
+    --kl-opt-bar-color: rgba(0, 0, 0, 0.18);
   }
 }
 

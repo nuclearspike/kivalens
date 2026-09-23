@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { PORTFOLIO_BALANCERS } from '../types'
 import type { KivaLoan, BalancerConfig } from '../types'
 import type { Criteria } from '../types'
 import { lsj } from '../lib/localStorage'
@@ -96,6 +97,8 @@ export interface CriteriaActions {
 
   // ---- Portfolio balancing ----------------------------------------------
   updateBalancers: () => void
+  /** Drops what a lender's portfolio put into the balancers, when that lender goes. */
+  releasePortfolioBalancers: () => void
   fetchBalancerData: (
     sliceBy: string,
     config: BalancerConfig,
@@ -535,6 +538,32 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         // -------------------------------------------------------------
         // Portfolio balancing
         // -------------------------------------------------------------
+
+        // A balancer holds partner ids, countries, sectors … worked out from ONE lender's
+        // portfolio. With the lender gone those values would keep filtering, invisibly and
+        // wrongly, so clearing the lender ID switches the balancers off and drops the
+        // values — in the live criteria and in every saved search. Setting an ID again
+        // refreshes them once they are switched back on (updateBalancers).
+        releasePortfolioBalancers: () => {
+          const release = (crit: { portfolio: Record<string, unknown> }) => {
+            for (const key of PORTFOLIO_BALANCERS) {
+              const bal = crit.portfolio[key] as
+                | (BalancerConfig & { values?: unknown[] })
+                | undefined
+              if (!bal) continue
+              bal.enabled = false
+              delete bal.values
+            }
+          }
+          set((state) => {
+            release(state.lastKnown as unknown as { portfolio: Record<string, unknown> })
+            for (const name of Object.keys(state.savedSearches)) {
+              const saved = state.savedSearches[name]
+              if (saved) release(saved as unknown as { portfolio: Record<string, unknown> })
+            }
+          })
+          useLoanStore.getState().filterLoans(get().lastKnown)
+        },
 
         updateBalancers: () => {
           const lenderId = useUtilsStore.getState().lenderId

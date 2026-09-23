@@ -9,6 +9,8 @@ const catalog: Record<string, string> = {
   'biogas_systems': 'Biogas Systems',
   'celebrations': 'Celebrations',
   'clean_cooking': 'Clean Cooking',
+  'clear': 'Clear',
+  'clear_lender_id': 'Clear your Lender ID',
   'clear_them': 'Clear them',
   'community_energy_grids': 'Community Energy Grids',
   'copied': 'Copied',

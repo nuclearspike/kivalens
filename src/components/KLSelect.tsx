@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { CSSProperties } from 'react'
 import ReactSelect, { components as RSComponents } from 'react-select'
 import type { GroupBase, Props, OptionProps, MenuListProps } from 'react-select'
 import { useI18n } from '../i18n'
@@ -46,20 +47,17 @@ function DistOption(op: AnyOption) {
   return (
     <RSComponents.Option {...op}>
       <span
+        className="kl-opt-bar"
         style={{
           display: 'flex',
           alignItems: 'center',
           minHeight: 18,
-          borderRadius: 3,
           pointerEvents: 'none',
-          background:
-            pct > 0
-              ? `linear-gradient(to right, rgba(44, 140, 94, 0.20) ${pct}%, transparent ${pct}%)`
-              : undefined,
-        }}
+          '--kl-opt-bar-pct': `${pct}%`,
+        } as CSSProperties}
       >
         <span style={{ flex: 1 }}>{op.children}</span>
-        {count > 0 && <span style={{ fontSize: 11, color: 'var(--kl-text-muted)', marginLeft: 8 }}>{count}</span>}
+        {count > 0 && <span className="kl-opt-count" style={{ marginLeft: 8 }}>{count}</span>}
       </span>
     </RSComponents.Option>
   )

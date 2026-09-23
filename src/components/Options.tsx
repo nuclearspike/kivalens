@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Container, Card, Form, Button, Col, Row } from '../ui'
 import { lsj } from '../lib/localStorage'
 import { useUtilsStore } from '../stores'
@@ -59,6 +59,16 @@ export default function Options() {
   const lenderId = useUtilsStore((s) => s.lenderId)
   const fetchLenderObj = useUtilsStore((s) => s.fetchLenderObj)
   const openLenderIdModal = useUtilsStore((s) => s.openLenderIdModal)
+  const setLenderId = useUtilsStore((s) => s.setLenderId)
+  // Clearing unmounts the button that did it, which would drop focus to the top of the
+  // page; send it to what takes its place. Covers clearing from the dialog too.
+  const hadLenderId = useRef(Boolean(lenderId))
+  useEffect(() => {
+    const had = hadLenderId.current
+    hadLenderId.current = Boolean(lenderId)
+    if (!had || lenderId) return
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-kl-set-lender-id]')?.focus())
+  }, [lenderId])
   const aiWidgetDisabled = useUtilsStore((s) => s.aiWidgetDisabled)
   const setAiWidgetDisabled = useUtilsStore((s) => s.setAiWidgetDisabled)
 
@@ -83,9 +93,13 @@ export default function Options() {
                   <Button variant="link" size="sm" onClick={openLenderIdModal}>
                     {t('change')}
                   </Button>
+                  {/* Setting an ID was a one-way door: nothing in the app took it back. */}
+                  <Button variant="link" size="sm" onClick={() => setLenderId('')} aria-label={t('clear_lender_id')}>
+                    {t('clear')}
+                  </Button>
                 </p>
               ) : (
-                <Button onClick={openLenderIdModal}>{t('set_kiva_lender_id')}</Button>
+                <Button data-kl-set-lender-id onClick={openLenderIdModal}>{t('set_kiva_lender_id')}</Button>
               )}
 
               <p className="ample-padding-top">{t('lender_id_enables')}</p>

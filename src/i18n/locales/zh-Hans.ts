@@ -6,6 +6,8 @@ const catalog: Record<string, string> = {
   'biogas_systems': '沼气系统',
   'celebrations': '庆典',
   'clean_cooking': '清洁烹饪',
+  'clear': '清除',
+  'clear_lender_id': '清除您的出借人 ID',
   'clear_them': '清除',
   'community_energy_grids': '社区能源网',
   'copied': '已复制',
