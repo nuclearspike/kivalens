@@ -162,7 +162,7 @@ describe('the breakdown hint', () => {
     // Clearing only on the chart's own mouse leave left the hint naming a band
     // the pointer had already moved off, with that band's month and amount.
     const bar = basket.slice(basket.indexOf('series.map((s) => ('), basket.indexOf('onClick={() => onSelectLoan'))
-    expect(bar).toContain('onMouseLeave={() => setHovered(null)}')
+    expect(bar).toContain('onMouseLeave={() => hoverStore.set(null)}')
   })
 
   it('still shows the month and the running total when no band is under the pointer', () => {
@@ -177,5 +177,40 @@ describe('the breakdown hint', () => {
     expect(afterBand).toContain('kl-stack-hint-month')
     expect(afterBand).toContain('currency(row.amount, 2)')
     expect(afterBand).toContain('currency(row.cumulativeAmount, 2)')
+  })
+})
+
+describe('pressing a band opens its loan, however the pointer got there', () => {
+  // Paul: "clicking it doesn't select the loan." The band under the pointer was
+  // kept in React state, so entering one re-rendered the chart, and Recharts
+  // replaces its bar elements when it re-renders (measured: 13 of 17). The
+  // pointer came onto the chart and pressed in one motion, the bar was swapped
+  // between mousedown and mouseup, and the browser — which only delivers a
+  // click when both land on the same element — delivered nothing. Measured in
+  // a real browser, pointer coming from elsewhere on the page: before 5 of 5
+  // presses dropped, after 5 of 5 opened the right loan.
+  const chart = basket.slice(
+    basket.indexOf('function BasketRepaymentChart'),
+    basket.indexOf('export default function Basket'),
+  )
+
+  it('keeps the band under the pointer out of the chart’s own state', () => {
+    expect(chart).not.toMatch(/useState<[^>]*(key|month|amount)[^>]*>\(null\)/)
+    expect(chart).not.toContain('setHovered')
+    expect(chart).toContain('createPointerStore<HoveredBand>')
+    // Compared on the amount too, so a refresh under a still pointer shows.
+    expect(chart).toContain('a.amount === b.amount')
+  })
+
+  it('writes the band from the bars to the store, never to state', () => {
+    const bar = chart.slice(chart.indexOf('series.map((s) => ('), chart.indexOf('onClick={() => onSelectLoan'))
+    expect(bar).toContain('hoverStore.set({')
+    expect(bar).toContain('onMouseLeave={() => hoverStore.set(null)}')
+  })
+
+  it('lets only the hint read the band, so only the hint re-renders', () => {
+    const hint = basket.slice(basket.indexOf('function StackHint'), basket.indexOf('function BasketRepaymentChart'))
+    expect(hint).toContain('usePointerValue(store)')
+    expect(chart).toContain('store={hoverStore}')
   })
 })

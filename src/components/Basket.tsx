@@ -17,6 +17,7 @@ import type { BasketEntry } from '../stores'
 import BasketListItem from './BasketListItem'
 import Loan from './Loan'
 import { getKivaLoans } from '../api/kiva'
+import { createPointerStore, usePointerValue, type PointerStore } from '../lib/pointerStore'
 import { useI18n } from '../i18n'
 import {
   buildBasketRepayments,
@@ -54,21 +55,25 @@ const BREAK_DOWN_KEY = 'kl_basket_repay_by_loan'
  * the whole month. Recharts' own tooltip reports every series at the hovered
  * category, which in a stack of twenty loans is not a hint.
  */
+type HoveredBand = { key: string; month: string; amount: number }
+
 function StackHint({
-  series,
-  amount,
-  month,
+  store,
+  allSeries,
   row,
   labels,
   currency,
 }: {
-  series: BasketRepaymentSeries | null
-  amount: number | null
-  month: string | null
+  store: PointerStore<HoveredBand>
+  allSeries: BasketRepaymentSeries[]
   row?: BasketRepaymentMonth
   labels: { month: string; cumulative: string }
   currency: (v: number, o: number) => string
 }) {
+  const hovered = usePointerValue(store)
+  const series = hovered ? allSeries.find((s) => s.key === hovered.key) ?? null : null
+  const amount = hovered?.amount ?? null
+  const month = hovered?.month ?? null
   if (series && amount !== null) {
     return (
       <div className="kl-stack-hint">
@@ -103,7 +108,13 @@ function BasketRepaymentChart({
 }) {
   const { t, date, currency } = useI18n()
   const [byLoan, setByLoan] = useBreakDownByLoan()
-  const [hovered, setHovered] = useState<{ key: string; month: string; amount: number } | null>(null)
+  // Not state: see src/lib/pointerStore.ts. Pointing at a band must not
+  // re-render the chart, or the band being pressed is replaced mid-click.
+  const [hoverStore] = useState(() =>
+    // The amount too: data refreshing under a still pointer must not leave the
+    // hint showing what the band used to be worth.
+    createPointerStore<HoveredBand>((a, b) => a.key === b.key && a.month === b.month && a.amount === b.amount),
+  )
 
   const formatMonth = useCallback(
     (when: number) => date(when, { month: 'short', year: 'numeric' }),
@@ -131,7 +142,6 @@ function BasketRepaymentChart({
 
   const chartHeight = Math.max(300, Math.min(data.length * 22, 900))
   const dollar = (v: number | string) => currency(v, { min: 0, max: 2 })
-  const hoveredSeries = hovered ? series.find((s) => s.key === hovered.key) ?? null : null
 
   return (
     <div className="card mb-3">
@@ -146,7 +156,7 @@ function BasketRepaymentChart({
               checked={byLoan}
               onChange={(e) => {
                 setByLoan(e.target.checked)
-                setHovered(null)
+                hoverStore.set(null)
               }}
             />
             <span>{t('break_down_by_loan')}</span>
@@ -169,7 +179,7 @@ function BasketRepaymentChart({
             layout="vertical"
             margin={{ left: 10, right: 10, top: 5, bottom: 12 }}
             barCategoryGap="25%"
-            onMouseLeave={() => setHovered(null)}
+            onMouseLeave={() => hoverStore.set(null)}
           >
             {/* Two $ scales: monthly (bottom axis / bars) and cumulative
                 (top axis / line). The legend names each series, so the axes
@@ -198,9 +208,8 @@ function BasketRepaymentChart({
                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                 content={({ payload }) => (
                   <StackHint
-                    series={hoveredSeries}
-                    amount={hovered?.amount ?? null}
-                    month={hovered?.month ?? null}
+                    store={hoverStore}
+                    allSeries={series}
                     row={payload?.[0]?.payload as BasketRepaymentMonth | undefined}
                     labels={{ month: t('monthly_repayment'), cumulative: t('cumulative') }}
                     currency={(v, digits) => currency(v, digits)}
@@ -234,13 +243,13 @@ function BasketRepaymentChart({
                   // a time instead, which is what a lender is asking anyway.
                   legendType="none"
                   onMouseEnter={(entry: { payload?: BasketRepaymentMonth }) =>
-                    setHovered({
+                    hoverStore.set({
                       key: s.key,
                       month: entry?.payload?.label ?? '',
                       amount: entry?.payload?.byLoan?.[s.key] ?? 0,
                     })
                   }
-                  onMouseLeave={() => setHovered(null)}
+                  onMouseLeave={() => hoverStore.set(null)}
                   onClick={() => onSelectLoan(s.id)}
                 />
               ))
