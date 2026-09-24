@@ -9,6 +9,7 @@
  */
 
 import http from 'node:http'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -17,6 +18,8 @@ import { handleChat } from './aiChat.mjs'
 import { closeCache } from './klCache.mjs'
 import { canonicalRedirect } from './canonicalUrl.mjs'
 import { legacyRedirect } from './legacyRedirect.mjs'
+import { applyPageMeta, pageMeta, shellLookup } from './pageMeta.mjs'
+import { buildSitemap } from './sitemap.mjs'
 
 const PORT = process.env.PORT || 3000
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
@@ -146,12 +149,66 @@ function sendFile(req, res, filePath, status = 200) {
   })
 }
 
-function serveStatic(req, res) {
-  const indexFile = path.join(DIST, 'index.html')
+/**
+ * The app shell, with this page's own title, description, canonical address and
+ * share card written into it.
+ *
+ * The site is one page driven by the History API, so the shell is the only HTML
+ * there is: a crawler or a link preview reads whatever this writes, and the app
+ * writes the same fields again in the lender's language as they move around.
+ * The file is read from disk each time (the OS caches it) and sent
+ * uncompressed — it is a few kilobytes, already no-cache, and the precompressed
+ * copies on disk are of the untouched file.
+ */
+function serveShell(state, req, res, pathname, search) {
+  fs.readFile(path.join(DIST, 'index.html'), 'utf8', (err, html) => {
+    if (err) {
+      res.statusCode = 500
+      res.end('Shell unavailable')
+      return
+    }
+    const body = applyPageMeta(html, pageMeta({ pathname, search, lookup: shellLookup(state, pathname) }))
+    // no-cache means "ask me first", which needs something to ask WITH: without
+    // a validator the browser re-downloads the whole shell on every move. The
+    // tag is over the finished body, so it changes when the page's own head
+    // does — a partner renamed, a loan that has since expired.
+    const etag = `W/"${crypto.createHash('sha1').update(body).digest('base64url').slice(0, 20)}"`
+    res.setHeader('Content-Type', MIME['.html'])
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('ETag', etag)
+    if (req.headers['if-none-match'] === etag) {
+      res.statusCode = 304
+      res.end()
+      return
+    }
+    res.statusCode = 200
+    res.setHeader('Content-Length', Buffer.byteLength(body))
+    if (req.method === 'HEAD') res.end()
+    else res.end(body)
+  })
+}
+
+/**
+ * A path, decoded where it can be. `decodeURIComponent` throws on a half-written
+ * escape — `/%FF` — which anyone can send, so a throw here would take the whole
+ * process with it. The raw path stands in; it will match no file and no route,
+ * and the visitor gets the app.
+ */
+function safeDecode(pathname) {
+  try {
+    return decodeURIComponent(pathname)
+  } catch {
+    return pathname
+  }
+}
+
+function serveStatic(state, req, res) {
+  const [rawPath, rawQuery] = (req.url || '/').split('?')
+  const search = rawQuery ? `?${rawQuery}` : ''
 
   // Strip query, decode, normalize
-  let pathname = decodeURIComponent((req.url || '/').split('?')[0])
-  if (pathname === '/') return sendFile(req, res, indexFile)
+  let pathname = safeDecode(rawPath)
+  if (pathname === '/') return serveShell(state, req, res, '/', search)
 
   // Resolve against DIST and guard against path traversal
   const resolved = path.normalize(path.join(DIST, pathname))
@@ -171,7 +228,7 @@ function serveStatic(req, res) {
     const accept = String(req.headers.accept || '')
     const wantsPage = accept.includes('text/html') || accept.includes('*/*') || accept === ''
     if (wantsPage && !ASSET_EXTENSION.test(pathname)) {
-      sendFile(req, res, indexFile)
+      serveShell(state, req, res, pathname, search)
     } else {
       res.statusCode = 404
       res.end('Not found')
@@ -187,6 +244,20 @@ const state = createState()
 const refreshTimer = startRefresh(state, log)
 
 const server = http.createServer((req, res) => {
+  try {
+    handleRequest(req, res)
+  } catch (e) {
+    // One bad request is not a reason for every other lender to lose the site.
+    console.error('Request failed:', req.method, req.url, e)
+    if (!res.headersSent) {
+      res.statusCode = 500
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    }
+    res.end('Server error')
+  }
+})
+
+function handleRequest(req, res) {
   setSecurityHeaders(res)
 
   // One permanent redirect to the canonical origin (https://www.kivalens.org)
@@ -196,6 +267,18 @@ const server = http.createServer((req, res) => {
     res.statusCode = 301
     res.setHeader('Location', location)
     res.end()
+    return
+  }
+
+  // The pages worth finding, listed from the partners already in memory.
+  if ((req.url || '').split('?')[0] === '/sitemap.xml') {
+    const body = buildSitemap(state.partners ?? [])
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+    res.setHeader('Cache-Control', 'public, max-age=3600')
+    res.setHeader('Content-Length', Buffer.byteLength(body))
+    if (req.method === 'HEAD') res.end()
+    else res.end(body)
     return
   }
 
@@ -214,8 +297,8 @@ const server = http.createServer((req, res) => {
     return
   }
 
-  serveStatic(req, res)
-})
+  serveStatic(state, req, res)
+}
 
 server.listen(PORT, () => log(`KivaLens server listening on :${PORT} (serving ${DIST})`))
 

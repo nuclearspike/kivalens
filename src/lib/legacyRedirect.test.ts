@@ -46,6 +46,17 @@ describe('the server redirects nothing else', () => {
     expect(to('/?utm_source=news')).toBeNull()
   })
 
+  it('serves a readable search link as it stands, rather than redirecting it to its own escapes', () => {
+    // A query may carry `:` and `,` unescaped, and a search address is written
+    // that way on purpose. If the server wrote them back escaped, every shared
+    // search link would earn a permanent redirect to a less readable copy of
+    // itself — cached by the browser for good.
+    expect(to('/search?country_code=KE,UG')).toBeNull()
+    expect(to('/search?country_code=all:KE,UG&sector=Agriculture')).toBeNull()
+    expect(to('/search?pb_country=show:gt:15:active')).toBeNull()
+    expect(to('/search?age=18..40&direct=mfi')).toBeNull()
+  })
+
   it('never answers an unrecognised address with a permanent redirect', () => {
     // A 301 is cached by the browser for good. An address naming nothing today
     // may name a page tomorrow, so it is served the app, which sends it to

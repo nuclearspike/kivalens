@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom'
 import { ROUTES, HOME, resolveLegacyUrl, formatUrl, type RouteId } from '../server/routeMap.mjs'
 import { useKivaLensInit } from './lib/useKivaLensInit'
+import { usePageMeta } from './lib/usePageMeta'
 import KLNav from './components/KLNav'
 import KLFooter from './components/KLFooter'
 import RouteErrorBoundary from './components/RouteErrorBoundary'
@@ -32,6 +33,7 @@ function RouteLoading() {
 
 function AppLayout() {
   useKivaLensInit()
+  usePageMeta()
 
   return (
     <div>

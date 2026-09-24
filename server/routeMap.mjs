@@ -140,8 +140,18 @@ function applyAliases(params) {
   return params
 }
 
-function formatSearch(params) {
-  const s = params.toString()
+/**
+ * A query string, with `:` and `,` written as themselves.
+ *
+ * Both are legal in a query (RFC 3986 allows sub-delims there) and every parser
+ * reads them back unchanged, so escaping them would only make an address harder
+ * for a person to read. It matters here as well as in criteriaUrl.mjs, which
+ * writes searches: if this escaped them, an address that was already canonical
+ * would look different from itself and earn a permanent redirect to its own
+ * escaped form — on every shared search link.
+ */
+export function formatSearch(params) {
+  const s = params.toString().replace(/%3A/g, ':').replace(/%2C/g, ',')
   return s ? `?${s}` : ''
 }
 
@@ -202,7 +212,11 @@ export function resolveLegacyUrl({ pathname = '/', search = '', hash = '' } = {}
   // A fragment address always has to be rewritten, whatever it named.
   const reason = fromHash && kind === 'tidy' ? 'hash' : kind
   const nextSearch = formatSearch(params)
-  if (!fromHash && kind === 'tidy' && nextSearch === normalizeSearch(search) && nextPath === pathname) {
+  // A canonical address is left alone unless its PATH changed or a query key was
+  // renamed. Comparing the query as text would redirect an address merely
+  // because URLSearchParams writes a space as + where the sender wrote %20 — a
+  // permanent redirect earned by spelling, on somebody's working link.
+  if (!fromHash && kind === 'tidy' && nextPath === pathname && sameKeys(search, params)) {
     return null
   }
   const resolved = { pathname: nextPath, search: nextSearch, reason }
@@ -210,9 +224,11 @@ export function resolveLegacyUrl({ pathname = '/', search = '', hash = '' } = {}
   return resolved
 }
 
-function normalizeSearch(search) {
-  const s = String(search || '').replace(/^\?/, '')
-  return s ? `?${s}` : ''
+/** Whether the query still names the same things, whatever it looks like. */
+function sameKeys(search, params) {
+  const before = [...new URLSearchParams(String(search || '').replace(/^\?/, '')).keys()]
+  const after = [...params.keys()]
+  return before.length === after.length && before.every((key, i) => key === after[i])
 }
 
 /**

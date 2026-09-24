@@ -1,0 +1,23 @@
+# KivaLens is a search tool over Kiva.org's fundraising loans. What is worth
+# finding here is the field-partner detail, which is durable; a loan expires
+# within weeks and a search is one of a million filter combinations, so those
+# pages say noindex for themselves and are not listed in the sitemap.
+User-agent: *
+Allow: /
+
+# A lender's own things. Nothing secret — they are kept in the browser, not on
+# the server — but there is nothing here for anyone else.
+Disallow: /basket
+Disallow: /saved
+Disallow: /options
+Disallow: /autolend
+Disallow: /outdated
+
+# Data, not pages.
+Disallow: /api/
+Disallow: /proxy/
+Disallow: /rss/
+Disallow: /rss_click/
+Disallow: /graphql
+
+Sitemap: https://www.kivalens.org/sitemap.xml

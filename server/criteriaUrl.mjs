@@ -38,6 +38,7 @@ import {
   STRING_FIELDS,
 } from './criteriaFields.mjs'
 import { resolvePartnerMode } from './loanFilter.mjs'
+import { formatSearch } from './routeMap.mjs'
 
 const MODES = new Set(['all', 'any', 'none'])
 const PARTNER_MODE_SET = new Set(PARTNER_MODES)
@@ -138,8 +139,7 @@ export function criteriaToParams(criteria) {
  * to read, which is most of the point of naming the fields at all.
  */
 export function readableSearch(params) {
-  const s = params.toString().replace(/%3A/g, ':').replace(/%2C/g, ',')
-  return s ? `?${s}` : ''
+  return formatSearch(params)
 }
 
 /** The address for a search, ready to hand to a router or put in a link. */
