@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import Options from './Options'
 import { useUtilsStore } from '../stores'
 import en from '../i18n/locales/en'
+
+// The Auto-Lending card links to /autolend, so the page needs a router.
+const render = (ui: React.ReactElement) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
 
 beforeEach(() => useUtilsStore.setState({ lenderId: '', lenderObj: null, lenderModalOpen: false }))
 afterEach(cleanup)

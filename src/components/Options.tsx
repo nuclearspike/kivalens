@@ -5,6 +5,7 @@ import { useUtilsStore } from '../stores'
 import KivaImage from './KivaImage'
 import CompanionCard from './CompanionCard'
 import { companionEnabled } from '../api/companion'
+import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { applyThemeChoice, readThemeChoice, saveThemeChoice, type ThemeChoice } from '../lib/theme'
 
@@ -244,6 +245,15 @@ export default function Options() {
                 })}{' '}
                 {t('adds_secular_social_score_sliders')}
               </p>
+            </Card.Body>
+          </Card>
+
+          {/* --- Auto-Lending --- */}
+          <Card className="mb-3">
+            <Card.Header>{t('auto_lending')}</Card.Header>
+            <Card.Body>
+              <p className="mb-2">{t('use_page_set_kiva_preferences')}</p>
+              <Link to="/autolend">{t('set_auto_lending_options_kiva')}</Link>
             </Card.Body>
           </Card>
 
