@@ -10,6 +10,7 @@
  */
 
 import type { ReportedError } from './payload'
+import { scrubAddresses, scrubMessage } from './scrub'
 
 export type { ReportedError }
 
@@ -28,38 +29,17 @@ const pending = new Map<string, ReportedError>()
 const everSeen = new Set<string>()
 
 /**
- * Addresses without their query or fragment, which can carry a search or a lender
- * id. A stack frame's :line:col after the address is kept.
- */
-function withoutQuery(text: string): string {
-  return text.replace(/[?#][^\s)]*?(?=(?::\d+){1,2}(?=[\s)]|$)|[\s)]|$)/g, '')
-}
-
-/**
  * Keep an error. Returns true when its message is new to this page, the moment
- * the caller schedules a report.
- *
- * `origin` is this site's. Code run on a page itself rather than from a script
- * file is reported against the page's address, which can hold a loan or partner
- * id, and an error can surface after the lender has moved to another page, so
- * every address on this site outside /assets/ becomes "[page]", whichever page
- * it was. Script files keep their address: that is where the bug is. A message
- * can quote a Kiva address (with a lender id in it) or a response body, so every
- * other address is cut to its origin and every run of four or more digits (a
- * loan or partner id) becomes "#".
+ * the caller schedules a report. `origin` is this site's; what is taken out of
+ * the error, and why, is in scrub.ts.
  */
 export function recordError(
   e: { message?: unknown; stack?: unknown; source?: unknown; line?: unknown; col?: unknown },
   route: string,
   origin = '',
 ): boolean {
-  const pages = origin ? new RegExp(`${origin.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}/(?!assets/)[^\\s):]*`, 'g') : null
-  const scrub = (text: string) => {
-    const bare = withoutQuery(text)
-    return pages ? bare.replace(pages, '[page]') : bare
-  }
-  const message = scrubMessage(String(e.message ?? '').trim(), pages).slice(0, MAX_MESSAGE) || 'Unknown error'
-  const source = typeof e.source === 'string' ? scrub(e.source) : undefined
+  const message = scrubMessage(String(e.message ?? '').trim(), origin).slice(0, MAX_MESSAGE) || 'Unknown error'
+  const source = typeof e.source === 'string' ? scrubAddresses(e.source, origin) : undefined
   if (IGNORED.some((re) => re.test(message))) return false
   if (source && FOREIGN_SOURCE.test(source)) return false
   const key = `${route}\u0000${message}`
@@ -71,7 +51,7 @@ export function recordError(
   if (pending.size >= MAX_DISTINCT_ERRORS) return false
   pending.set(key, {
     message,
-    stack: typeof e.stack === 'string' ? scrub(e.stack).slice(0, MAX_STACK) : undefined,
+    stack: typeof e.stack === 'string' ? scrubAddresses(e.stack, origin).slice(0, MAX_STACK) : undefined,
     source,
     line: typeof e.line === 'number' ? e.line : undefined,
     col: typeof e.col === 'number' ? e.col : undefined,
@@ -81,15 +61,6 @@ export function recordError(
   const isNew = !everSeen.has(key)
   everSeen.add(key)
   return isNew
-}
-
-/** A message with its addresses and long numbers taken out (see recordError). */
-function scrubMessage(message: string, pages: RegExp | null): string {
-  let m = withoutQuery(message)
-  if (pages) m = m.replace(pages, '[page]')
-  return m
-    .replace(/\b(https?:\/\/[^/\s)'"]+)(?!\/assets\/)\/[^\s)'"]*/g, (_all, host: string) => `${host}/…`)
-    .replace(/\d{4,}/g, '#')
 }
 
 /** The errors kept since the last report, handed over once. */

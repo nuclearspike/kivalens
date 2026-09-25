@@ -73,6 +73,31 @@ describe('what the collector accepts', () => {
     expect(parseBeacon(report({ final: false }), 'www.kivalens.org', HOSTS)).toEqual({ refused: 'nothing to keep' })
   })
 
+  it('scrubs an error again, so a page from an older build cannot store an address or id', () => {
+    const page = 'https://www.kivalens.org'
+    const b = ok(
+      parseBeacon(
+        report({
+          final: false,
+          errors: [
+            {
+              message: 'HTTP 404: https://api.kivaws.org/v1/lenders/jane1987/loans.json for loan 2931233',
+              source: `${page}/loans/2931233?lender=jane`,
+              stack: `Error\n at ${page}/partners/246:1:2\n at f (${page}/assets/index-Ab.js:3:4)`,
+            },
+          ],
+        }),
+        'www.kivalens.org',
+        HOSTS,
+      ),
+    )
+    expect(b.errors[0]).toMatchObject({
+      message: 'HTTP 404: https://api.kivaws.org/… for loan #',
+      source: '[page]',
+      stack: `Error\n at [page]:1:2\n at f (${page}/assets/index-Ab.js:3:4)`,
+    })
+  })
+
   it('keeps only known, sane numbers', () => {
     const b = ok(parseBeacon(report({ m: { lcp: 1200, cls: 0.12, inp: -5, fcp: 'fast', bogus: 3, ttfb: 10 * 60_000 + 1, results: Number.NaN } }), 'www.kivalens.org', HOSTS))
     expect(b.view!.metrics).toEqual({ lcp: 1200, cls: 0.12 })

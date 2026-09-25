@@ -1,4 +1,5 @@
 import { METRICS, type MetricName } from '../../../src/lib/rum/payload'
+import { scrubAddresses, scrubMessage } from '../../../src/lib/rum/scrub'
 
 /**
  * A report from a page, checked and reduced to what the collector stores.
@@ -110,20 +111,25 @@ export function parseBeacon(body: string, originHost: string, allowedHosts: Read
     }
   }
 
+  // Scrubbed again here, as the page does (src/lib/rum/scrub.ts), so a page from an
+  // older build cannot store an address or id a newer one would have removed.
+  const origin = `https://${host}`
   const errors: ErrorRecord[] = []
   for (const e of Array.isArray(raw.errors) ? raw.errors.slice(0, MAX_ERRORS) : []) {
     if (!e || typeof e !== 'object') continue
     const r = e as Record<string, unknown>
-    const message = str(r.message, 500)
-    if (!message) continue
-    const source = str(r.source, 300)
+    const rawMessage = str(r.message, 500)
+    if (!rawMessage) continue
+    const message = scrubMessage(rawMessage, origin)
+    const rawSource = str(r.source, 300)
+    const source = rawSource === null ? null : scrubAddresses(rawSource, origin)
     const line = int(r.line, 0, 10_000_000)
     const errorRoute = match(r.route, WORD) ?? route
     errors.push({
       // The page is part of an error's identity: the same message on two pages is two rows.
       fingerprint: fingerprint([errorRoute, message, source, line]),
       message,
-      stack: str(r.stack, 2000),
+      stack: typeof r.stack === 'string' && r.stack ? scrubAddresses(r.stack, origin).slice(0, 2000) : null,
       source,
       line,
       col: int(r.col, 0, 10_000_000),
