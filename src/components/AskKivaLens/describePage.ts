@@ -13,6 +13,7 @@ const PAGE_LABELS: Partial<Record<RouteId, string>> = {
   stats: 'the Stats page',
   options: 'the Options page',
   about: 'the About page',
+  aboutAdvanced: 'the About page (Advanced tab: contact details, the API, reporting problems)',
   teams: 'the Teams page',
 }
 

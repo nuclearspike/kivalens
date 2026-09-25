@@ -35,6 +35,7 @@
     '/teams',
     '/options',
     '/about',
+    '/about/advanced',
     '/privacy',
     '/autolend',
     '/donate',

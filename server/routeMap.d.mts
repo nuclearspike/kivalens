@@ -13,6 +13,7 @@ export type RouteId =
   | 'teams'
   | 'options'
   | 'about'
+  | 'aboutAdvanced'
   | 'privacy'
   | 'autolend'
   | 'donate'

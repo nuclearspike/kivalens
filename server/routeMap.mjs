@@ -41,6 +41,9 @@ export const ROUTES = [
   { id: 'teams', path: '/teams' },
   { id: 'options', path: '/options' },
   { id: 'about', path: '/about' },
+  // The About page's second tab, where the contact details are, so a link that
+  // promises them can land on them.
+  { id: 'aboutAdvanced', path: '/about/advanced', page: 'about' },
   { id: 'privacy', path: '/privacy' },
   { id: 'autolend', path: '/autolend' },
   { id: 'donate', path: '/donate' },

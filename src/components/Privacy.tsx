@@ -103,7 +103,7 @@ export default function Privacy() {
 
       <h3>{t('contact')}</h3>
       <p>
-        {tx('privacy_questions_see_about', { about: <Link to="/about">{t('about')}</Link> })}
+        {tx('privacy_questions_see_about', { about: <Link to="/about/advanced">{t('about')}</Link> })}
       </p>
     </Container>
   )

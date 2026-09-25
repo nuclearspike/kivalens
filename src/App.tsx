@@ -105,6 +105,7 @@ export const PAGES: Record<RouteId, Loader> = {
   teams: fromDefault(() => import('./components/Teams')),
   options: fromDefault(() => import('./components/Options')),
   about: fromDefault(() => import('./components/About')),
+  aboutAdvanced: fromDefault(() => import('./components/About')),
   privacy: fromDefault(() => import('./components/Privacy')),
   autolend: () => import('./components/AutoLendSettings'),
   donate: fromDefault(() => import('./components/Donate')),

@@ -8,7 +8,7 @@ export default function KLFooter() {
     <Container>
       <Row style={{ paddingTop: 20, paddingBottom: 50 }}>
         <Col md={12} className="pt-4 text-center">
-          &copy;{new Date().getFullYear()} {tx('footer_not_supported_see_about', { about: <Link to="/about">{t('about')}</Link> })} ·{' '}
+          &copy;{new Date().getFullYear()} {tx('footer_not_supported_see_about', { about: <Link to="/about/advanced">{t('about')}</Link> })} ·{' '}
           <Link to="/privacy">{t('privacy')}</Link> ·{' '}
           <Link to="/donate">{t('donate')}</Link>
         </Col>

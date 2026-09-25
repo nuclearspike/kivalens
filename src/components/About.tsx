@@ -1,5 +1,5 @@
 import { Container, Tabs, Tab } from '../ui'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'
 import { useI18n } from '../i18n'
@@ -33,15 +33,36 @@ function EmailLink({
   return <a href={href}>{children}</a>
 }
 
+/**
+ * Each tab has its own address, so a link can land on the one it means: the
+ * footer's "see About for contact information" goes to /about/advanced, where
+ * the contact details are, rather than to Getting Started.
+ */
+const TAB_PATHS: Record<string, string> = {
+  'getting-started': '/about',
+  advanced: '/about/advanced',
+}
+
 export default function About() {
   const { t, tx } = useI18n()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  // The router matches paths without regard to case, so /About/Advanced opens
+  // this page too and has to open it on the tab it names.
+  const activeTab =
+    pathname.toLowerCase().replace(/\/+$/, '') === TAB_PATHS.advanced ? 'advanced' : 'getting-started'
 
   return (
     <Container className="py-3">
       <h1>{t('about_kivalens')}</h1>
 
-      <Tabs defaultActiveKey="getting-started" id="about-tabs" className="mb-0 about-tabs">
+      <Tabs
+        activeKey={activeTab}
+        onSelect={(key) => key && key !== activeTab && navigate(TAB_PATHS[key])}
+        id="about-tabs"
+        className="mb-0 about-tabs"
+      >
         <Tab eventKey="getting-started" title={t('getting_started')}>
           <h3>{t('what_kivalens')}</h3>
           <p>

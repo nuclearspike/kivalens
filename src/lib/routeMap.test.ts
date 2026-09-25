@@ -112,7 +112,9 @@ describe('every address the app has ever had', () => {
   it('covers every route the app can reach today', () => {
     const reached = new Set(nineteen.map(([, to]) => to.split('?')[0]))
     for (const r of ROUTES) {
-      if (r.param) continue
+      // A view within another page (a loan beside the results, the About
+      // page's Advanced tab) is newer than the 2015 table; its page is covered.
+      if (r.param || r.page) continue
       // The page that was removed has no legacy address pointing at it.
       expect(reached.has(r.path)).toBe(true)
     }

@@ -43,6 +43,7 @@ export const PAGE_NAMES = {
   teams: { key: 'teams', name: 'Teams' },
   options: { key: 'options', name: 'Options' },
   about: { key: 'about', name: 'About' },
+  aboutAdvanced: { key: 'advanced', name: 'Advanced' },
   privacy: { key: 'privacy', name: 'Privacy' },
   autolend: { key: 'auto_lending', name: 'Auto-Lending' },
   donate: { key: 'donate', name: 'Donate' },
@@ -55,7 +56,7 @@ export const PAGE_NAMES = {
  * is secret, but because an expired loan or one of a million filter
  * combinations is a bad result for whoever finds it.
  */
-export const INDEXABLE = new Set(['search', 'partners', 'partner', 'about', 'privacy', 'donate'])
+export const INDEXABLE = new Set(['search', 'partners', 'partner', 'about', 'aboutAdvanced', 'privacy', 'donate'])
 
 const clip = (text, max) => {
   const s = String(text ?? '').replace(/\s+/g, ' ').trim()
@@ -144,6 +145,8 @@ export function pageMeta({ pathname = '/', search = '', lookup = {} } = {}) {
   const matching = lookup.strings?.matching ?? 'Kiva loans matching {what}, on {site}.'
 
   let title = names[route.id] ?? page.name
+  // A tab is named with its page, or "Advanced" would say nothing on its own.
+  if (route.id === 'aboutAdvanced') title = `${title} · ${names.about ?? PAGE_NAMES.about.name}`
   let description = tagline
   let image = SITE_IMAGE
   let indexable = INDEXABLE.has(route.id)
