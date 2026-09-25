@@ -118,14 +118,16 @@ export function parseBeacon(body: string, originHost: string, allowedHosts: Read
     if (!message) continue
     const source = str(r.source, 300)
     const line = int(r.line, 0, 10_000_000)
+    const errorRoute = match(r.route, WORD) ?? route
     errors.push({
-      fingerprint: fingerprint([message, source, line]),
+      // The page is part of an error's identity: the same message on two pages is two rows.
+      fingerprint: fingerprint([errorRoute, message, source, line]),
       message,
       stack: str(r.stack, 2000),
       source,
       line,
       col: int(r.col, 0, 10_000_000),
-      route: match(r.route, WORD) ?? route,
+      route: errorRoute,
       count: int(r.count, 1, 100_000) ?? 1,
     })
   }

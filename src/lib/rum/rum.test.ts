@@ -74,6 +74,26 @@ describe('browser errors', () => {
     expect(takeErrors()[0]).toMatchObject({ source: `${origin}/assets/index-Ab12.js`, stack: `at f (${origin}/assets/index-Ab12.js:1:9)` })
   })
 
+  it("takes addresses and long numbers out of a message, which can quote a response or a lender's address", () => {
+    const origin = 'https://www.kivalens.org'
+    recordError(
+      { message: 'HTTP 404: https://api.kivaws.org/v1/lenders/jane1987/loans.json?page=2 for loan 2931233 on https://www.kivalens.org/partners/246' },
+      'loan',
+      origin,
+    )
+    expect(takeErrors()[0].message).toBe('HTTP 404: https://api.kivaws.org/… for loan # on [page]')
+  })
+
+  it('counts the same error on two pages separately', () => {
+    recordError({ message: 'x is undefined' }, 'search')
+    recordError({ message: 'x is undefined' }, 'loan')
+    recordError({ message: 'x is undefined' }, 'loan')
+    expect(takeErrors().map((e) => [e.route, e.count])).toEqual([
+      ['search', 1],
+      ['loan', 2],
+    ])
+  })
+
   it('ignores noise that says nothing about KivaLens', () => {
     expect(recordError({ message: 'Script error.' }, 'search')).toBe(false)
     expect(recordError({ message: 'ResizeObserver loop completed with undelivered notifications.' }, 'search')).toBe(false)

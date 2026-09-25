@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
+
+# Wrangler's local state (local D1 databases, dev caches) for the Workers under cloudflare/
+.wrangler/

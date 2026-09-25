@@ -43,7 +43,10 @@ function withoutQuery(text: string): string {
  * file is reported against the page's address, which can hold a loan or partner
  * id, and an error can surface after the lender has moved to another page, so
  * every address on this site outside /assets/ becomes "[page]", whichever page
- * it was. Script files keep their address: that is where the bug is.
+ * it was. Script files keep their address: that is where the bug is. A message
+ * can quote a Kiva address (with a lender id in it) or a response body, so every
+ * other address is cut to its origin and every run of four or more digits (a
+ * loan or partner id) becomes "#".
  */
 export function recordError(
   e: { message?: unknown; stack?: unknown; source?: unknown; line?: unknown; col?: unknown },
@@ -55,17 +58,18 @@ export function recordError(
     const bare = withoutQuery(text)
     return pages ? bare.replace(pages, '[page]') : bare
   }
-  const message = String(e.message ?? '').trim().slice(0, MAX_MESSAGE) || 'Unknown error'
+  const message = scrubMessage(String(e.message ?? '').trim(), pages).slice(0, MAX_MESSAGE) || 'Unknown error'
   const source = typeof e.source === 'string' ? scrub(e.source) : undefined
   if (IGNORED.some((re) => re.test(message))) return false
   if (source && FOREIGN_SOURCE.test(source)) return false
-  const existing = pending.get(message)
+  const key = `${route}\u0000${message}`
+  const existing = pending.get(key)
   if (existing) {
     existing.count++
     return false
   }
   if (pending.size >= MAX_DISTINCT_ERRORS) return false
-  pending.set(message, {
+  pending.set(key, {
     message,
     stack: typeof e.stack === 'string' ? scrub(e.stack).slice(0, MAX_STACK) : undefined,
     source,
@@ -74,9 +78,18 @@ export function recordError(
     route,
     count: 1,
   })
-  const isNew = !everSeen.has(message)
-  everSeen.add(message)
+  const isNew = !everSeen.has(key)
+  everSeen.add(key)
   return isNew
+}
+
+/** A message with its addresses and long numbers taken out (see recordError). */
+function scrubMessage(message: string, pages: RegExp | null): string {
+  let m = withoutQuery(message)
+  if (pages) m = m.replace(pages, '[page]')
+  return m
+    .replace(/\b(https?:\/\/[^/\s)'"]+)(?!\/assets\/)\/[^\s)'"]*/g, (_all, host: string) => `${host}/…`)
+    .replace(/\d{4,}/g, '#')
 }
 
 /** The errors kept since the last report, handed over once. */

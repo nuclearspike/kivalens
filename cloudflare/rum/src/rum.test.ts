@@ -4,7 +4,7 @@ import path from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { METRICS } from '../../../src/lib/rum/payload'
 import { MAX_BODY_BYTES, fingerprint, parseBeacon, type Beacon } from './beacon'
-import { DAILY_DAYS, RAW_DAYS, beaconStatements, dayOf, nightly, rollupStatements, retentionStatements, type SqlDatabase, type SqlStatement } from './store'
+import { DAILY_DAYS, RAW_DAYS, ROLLUP_DAYS, beaconStatements, dayOf, nightly, nightlyStatements, rollupStatements, retentionStatements, type SqlDatabase, type SqlStatement } from './store'
 
 /**
  * The collector's rules, and its SQL run for real: D1 is SQLite, so node:sqlite
@@ -83,7 +83,7 @@ describe('what the collector accepts', () => {
     const b = ok(parseBeacon(report({ final: false, errors }), 'www.kivalens.org', HOSTS))
     expect(b.view).toBeNull()
     expect(b.errors).toHaveLength(20)
-    expect(b.errors[3]).toMatchObject({ message: 'boom 3', count: 2, route: 'loan', fingerprint: fingerprint(['boom 3', 'https://www.kivalens.org/assets/index.js', 3]) })
+    expect(b.errors[3]).toMatchObject({ message: 'boom 3', count: 2, route: 'loan', fingerprint: fingerprint(['loan', 'boom 3', 'https://www.kivalens.org/assets/index.js', 3]) })
     expect(ok(parseBeacon(report({ errors: [{ message: 'm'.repeat(900) }] }), 'www.kivalens.org', HOSTS)).errors[0].message).toHaveLength(500)
   })
 })
@@ -118,6 +118,15 @@ describe('what the collector stores', () => {
     ])
   })
 
+  it('keeps the same error on two pages as two rows', async () => {
+    const err = { message: 'x is undefined', source: 'https://www.kivalens.org/assets/a.js', line: 3 }
+    await store(report({ view: 'view-0001', errors: [{ ...err, route: 'search' }, { ...err, route: 'loan' }] }))
+    expect(rows('SELECT route, count FROM errors ORDER BY route')).toEqual([
+      { route: 'loan', count: 1 },
+      { route: 'search', count: 1 },
+    ])
+  })
+
   it('summarises a day as percentiles per host and page, and across pages', async () => {
     for (let i = 1; i <= 100; i++) {
       await store(report({ view: `view-${String(i).padStart(4, '0')}`, route: i % 2 ? 'search' : 'loan', m: { lcp: i } }))
@@ -148,9 +157,20 @@ describe('what the collector stores', () => {
     expect(rows('SELECT day FROM daily')).toEqual([{ day: dayOf(day(DAILY_DAYS - 1)) }])
   })
 
-  it('runs the nightly job end to end', async () => {
+  it('runs the nightly job end to end, catching up on nights it missed', async () => {
     await store(report({ view: 'view-y001', m: { lcp: 700 } }), NOW - 86_400_000)
+    await store(report({ view: 'view-y005', m: { lcp: 300 } }), NOW - 5 * 86_400_000)
     await nightly(db, NOW)
-    expect(rows("SELECT day, n, p50 FROM daily WHERE metric = 'lcp' AND route = '*'")).toEqual([{ day: '2026-09-24', n: 1, p50: 700 }])
+    expect(rows("SELECT day, n, p50 FROM daily WHERE metric = 'lcp' AND route = '*' ORDER BY day")).toEqual([
+      { day: '2026-09-20', n: 1, p50: 300 },
+      { day: '2026-09-24', n: 1, p50: 700 },
+    ])
+  })
+
+  it('stays within the free plan: at most 50 D1 queries a night, and a report is one batch of 21 or fewer', () => {
+    expect(nightlyStatements(db, NOW).length).toBeLessThanOrEqual(50)
+    expect(ROLLUP_DAYS).toBeGreaterThanOrEqual(2)
+    const errors = Array.from({ length: 20 }, (_, i) => ({ message: `e${i}` }))
+    expect(beaconStatements(db, ok(parseBeacon(report({ errors }), 'www.kivalens.org', HOSTS)), NOW, null).length).toBe(21)
   })
 })

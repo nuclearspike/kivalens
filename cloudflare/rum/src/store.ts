@@ -56,44 +56,41 @@ export function beaconStatements(db: SqlDatabase, b: Beacon, now: number, countr
 /**
  * One day's percentiles per host and page, and across pages ('*'), computed by
  * SQLite itself so the Worker does almost no work (a free-plan cron has 10 ms of
- * CPU). Re-running a day replaces its rows.
+ * CPU). Two statements a day, one per grouping: a free-plan invocation may run 50
+ * D1 queries, so a statement per metric (thirty a day) would not fit. The metrics
+ * are turned into rows with json_each rather than a UNION of one SELECT per
+ * metric, because D1 caps the terms in a compound SELECT. 'views' is the day's
+ * page-view count, with no percentiles. Re-running a day replaces its rows.
  */
 export function rollupStatements(db: SqlDatabase, day: string): SqlStatement[] {
-  const out: SqlStatement[] = []
-  for (const byRoute of [true, false]) {
-    const route = byRoute ? 'route' : "'*'"
-    const partition = byRoute ? 'host, route' : 'host'
-    out.push(
-      db
-        .prepare(
-          `INSERT OR REPLACE INTO daily (day, host, route, metric, n, p50, p75, p95)
-           SELECT ?, host, ${route}, 'views', COUNT(*), NULL, NULL, NULL FROM views WHERE day = ? GROUP BY ${partition}`,
-        )
-        .bind(day, day),
-    )
-    for (const metric of METRICS) {
-      out.push(
-        db
-          .prepare(
-            `INSERT OR REPLACE INTO daily (day, host, route, metric, n, p50, p75, p95)
-             SELECT ?, host, r, '${metric}', n,
-               MIN(CASE WHEN rn >= 0.50 * n THEN x END),
-               MIN(CASE WHEN rn >= 0.75 * n THEN x END),
-               MIN(CASE WHEN rn >= 0.95 * n THEN x END)
-             FROM (
-               SELECT host, ${route} AS r, ${metric} AS x,
-                 ROW_NUMBER() OVER (PARTITION BY ${partition} ORDER BY ${metric}) AS rn,
-                 COUNT(*) OVER (PARTITION BY ${partition}) AS n
-               FROM views WHERE day = ? AND ${metric} IS NOT NULL
-             )
-             GROUP BY host, r`,
-          )
-          .bind(day, day),
+  const pick = `CASE m.value WHEN 'views' THEN 0 ${METRICS.map((metric) => `WHEN '${metric}' THEN v.${metric}`).join(' ')} END`
+  return [true, false].map((byRoute) =>
+    db
+      .prepare(
+        `INSERT OR REPLACE INTO daily (day, host, route, metric, n, p50, p75, p95)
+         SELECT ?1, host, r, metric, n,
+           CASE WHEN metric = 'views' THEN NULL ELSE MIN(CASE WHEN rn >= 0.50 * n THEN x END) END,
+           CASE WHEN metric = 'views' THEN NULL ELSE MIN(CASE WHEN rn >= 0.75 * n THEN x END) END,
+           CASE WHEN metric = 'views' THEN NULL ELSE MIN(CASE WHEN rn >= 0.95 * n THEN x END) END
+         FROM (
+           SELECT host, r, metric, x,
+             ROW_NUMBER() OVER (PARTITION BY host, r, metric ORDER BY x) AS rn,
+             COUNT(*) OVER (PARTITION BY host, r, metric) AS n
+           FROM (
+             SELECT v.host, ${byRoute ? 'v.route' : "'*'"} AS r, m.value AS metric, ${pick} AS x
+             FROM views v, json_each(?2) m
+             WHERE v.day = ?1
+           )
+           WHERE x IS NOT NULL
+         )
+         GROUP BY host, r, metric`,
       )
-    }
-  }
-  return out
+      .bind(day, JSON.stringify(['views', ...METRICS])),
+  )
 }
+
+/** Days the nightly job summarises again, so a missed night heals itself. */
+export const ROLLUP_DAYS = 7
 
 /** Raw rows go after RAW_DAYS, daily summaries after DAILY_DAYS. */
 export function retentionStatements(db: SqlDatabase, now: number): SqlStatement[] {
@@ -105,11 +102,16 @@ export function retentionStatements(db: SqlDatabase, now: number): SqlStatement[
   ]
 }
 
-/** The nightly job: yesterday's summary (and the day before, for reports that arrived late), then expiry. */
+/**
+ * The nightly job: the last ROLLUP_DAYS days summarised again (late reports and a
+ * missed night included), then expiry. Every statement counts against the free
+ * plan's 50 D1 queries per invocation (nightlyStatements is tested against it).
+ */
+export function nightlyStatements(db: SqlDatabase, now: number): SqlStatement[] {
+  const days = Array.from({ length: ROLLUP_DAYS }, (_, i) => daysBefore(now, ROLLUP_DAYS - i))
+  return [...days.flatMap((day) => rollupStatements(db, day)), ...retentionStatements(db, now)]
+}
+
 export async function nightly(db: SqlDatabase, now: number): Promise<void> {
-  await db.batch([
-    ...rollupStatements(db, daysBefore(now, 2)),
-    ...rollupStatements(db, daysBefore(now, 1)),
-    ...retentionStatements(db, now),
-  ])
+  await db.batch(nightlyStatements(db, now))
 }

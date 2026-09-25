@@ -16,6 +16,13 @@ import './styles/main.scss'
 // Real-user measurement (src/lib/rum): errors are caught from the very start, and
 // the timing module loads once the page has painted. Only the public hosts report.
 if (shouldMeasure()) {
+  // Room for this site's own API requests among the loan photos until the timing
+  // module starts observing (the browser's default holds 250 entries).
+  try {
+    performance.setResourceTimingBufferSize(1000)
+  } catch {
+    // not supported: some API timings may be missing
+  }
   const view = makeViewId()
   const landing = routeLabel(location.pathname)
   installErrorReporting({
