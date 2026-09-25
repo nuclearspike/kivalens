@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useCriteriaInUrl } from '../lib/useCriteriaInUrl'
+import { useRevealOnOpen } from '../lib/useRevealOnOpen'
 import { Container, Col, Row, Alert } from '../ui'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { Criteria } from './Criteria'
@@ -40,6 +41,8 @@ export function Search() {
     countGaps.alreadyLentHidden > 0 && t(pluralCategory(locale, countGaps.alreadyLentHidden) === 'one' ? 'already_lent_hidden_one' : 'already_lent_hidden', { count: number(countGaps.alreadyLentHidden) }),
   ].filter(Boolean) as string[]
   const selectedId = useLoanStore((s) => s.selectedId)
+  // A loan opened from the list opens below it on a phone; see useRevealOnOpen.
+  const detailRef = useRevealOnOpen<HTMLDivElement>()
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
   const { id: routeLoanId } = useParams<{ id: string }>()
   const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
@@ -168,7 +171,7 @@ export function Search() {
         </Col>
 
         {/* Loan detail panel / Welcome panel */}
-        <Col md={detailCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)', borderLeft: '1px solid var(--kl-border)' }}>
+        <Col ref={detailRef} md={detailCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)', borderLeft: '1px solid var(--kl-border)' }}>
           {selectedId ? (
             <Loan loanId={selectedId} />
           ) : (

@@ -22,6 +22,8 @@ export interface Route {
   id: RouteId
   path: string
   param?: string
+  /** The page a parameterised route is shown on, when that is another route's page. */
+  page?: RouteId
 }
 
 export type ResolveReason = 'hash' | 'legacy' | 'gone' | 'unknown' | 'home' | 'tidy'
@@ -39,6 +41,7 @@ export declare const ROUTES: Route[]
 export declare const QUERY_ALIASES: Record<string, string>
 
 export declare function matchRoute(pathname: string): { id: RouteId; param: string | null } | null
+export declare function pageOf(pathname: string): RouteId | null
 export declare function mergeQuery(outer: string, inner: string): URLSearchParams
 export declare function resolveLegacyUrl(location?: {
   pathname?: string

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useLatestRef } from '../lib/useLatestRef'
+import { markOpenIntent, useRevealOnOpen } from '../lib/useRevealOnOpen'
 import { Container, Button, Badge, ListGroup, Form, Row, Col, OverlayTrigger, Popover } from '../ui'
 import Select from './KLSelect'
 import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
@@ -295,6 +296,7 @@ function PartnerListItem({
       action
       as={Link}
       to={`/partners/${partner.id}`}
+      onClick={() => markOpenIntent()}
       active={selected}
       style={bg ? { backgroundColor: bg, position: 'relative' } : { position: 'relative' }}
     >
@@ -349,6 +351,8 @@ export function Component() {
 
   const [nameSearch, setNameSearch] = useState('')
   const { id: routePartnerId } = useParams<{ id: string }>()
+  // A partner chosen from the list opens below it on a phone; see useRevealOnOpen.
+  const detailRef = useRevealOnOpen<HTMLDivElement>()
   const [resolvedPartner, setResolvedPartner] = useState<Partner | null>(null)
   // Cleared the moment routePartnerId changes to ANYTHING different — to no
   // id, or to a different one — so a still-loading /partners/2 can't show
@@ -759,7 +763,7 @@ export function Component() {
           </div>
         </div>
 
-        <div className="col-md-5">
+        <div ref={detailRef} className="col-md-5">
           {selectedPartner ? (
             <div style={{ maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
               <PartnerDetail partner={selectedPartner} showStatus />

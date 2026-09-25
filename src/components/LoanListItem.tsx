@@ -7,6 +7,7 @@ import KivaImage from './KivaImage'
 import { lendAmountOptions } from '../lib/lendAmountOptions'
 import { lsj } from '../lib/localStorage'
 import { useI18n } from '../i18n'
+import { markOpenIntent } from '../lib/useRevealOnOpen'
 
 interface LoanListItemProps {
   loan: KivaLoan
@@ -44,6 +45,7 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
         in_basket: inBasket,
         funded: loan.status !== 'fundraising',
       })}
+      onClick={() => markOpenIntent()}
       onDoubleClick={handleDoubleClick}
     >
       <KivaImage type="square" loan={loan} image_width={113} width={90} height={90} />

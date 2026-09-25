@@ -18,6 +18,7 @@ import BasketListItem from './BasketListItem'
 import Loan from './Loan'
 import { getKivaLoans } from '../api/kiva'
 import { createPointerStore, usePointerValue, type PointerStore } from '../lib/pointerStore'
+import { markOpenIntent, useRevealOnOpen } from '../lib/useRevealOnOpen'
 import { useI18n } from '../i18n'
 import {
   buildBasketRepayments,
@@ -520,8 +521,22 @@ export default function Basket() {
     }
   }
 
+  // A loan the lender opens — from a row or from a band of the repayment chart —
+  // is brought into view if it opened out of sight. In the narrow layout the
+  // panel sits below the list and the chart, so the click worked while nothing
+  // on screen changed, which reads as a click that did nothing. Only their own
+  // opens scroll: arriving at /basket/:id by a link or a reload does not.
+  const panelRef = useRevealOnOpen<HTMLDivElement>()
+  const openLoan = useCallback(
+    (id: number) => {
+      markOpenIntent()
+      showBasket(id)
+    },
+    [showBasket],
+  )
+
   const handleSelect = (id: number) => {
-    showBasket(id)
+    openLoan(id)
   }
 
   // Kiva sends the checkout tab back here when the basket is set. The address is
@@ -625,12 +640,16 @@ export default function Basket() {
         </div>
 
         {basketCount > 0 && (
-          <BasketRepaymentChart entries={basketEntries} onSelectLoan={showBasket} />
+          <BasketRepaymentChart entries={basketEntries} onSelectLoan={openLoan} />
         )}
       </div>
 
       {/* Right column: loan detail */}
-      <div className="col-md-6 overflow-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+      <div
+        ref={panelRef}
+        className="col-md-6 overflow-auto"
+        style={{ maxHeight: 'calc(100vh - 60px)' }}
+      >
         {selectedId ? <Loan loanId={selectedId} /> : null}
       </div>
 

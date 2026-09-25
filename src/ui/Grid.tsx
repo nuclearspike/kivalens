@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from 'react'
 import { cx } from './types'
 
 type ContainerProps = ComponentPropsWithoutRef<'div'> & {
@@ -22,7 +22,8 @@ export function Row({
 }
 
 type ColSize = number | 'auto' | true
-type ColProps = ComponentPropsWithoutRef<'div'> & {
+// With a ref, so a page can bring a column into view (see useRevealOnOpen).
+type ColProps = ComponentPropsWithRef<'div'> & {
   xs?: ColSize
   sm?: ColSize
   md?: ColSize

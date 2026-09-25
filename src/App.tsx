@@ -7,7 +7,7 @@ import {
   ScrollRestoration,
   useLocation,
 } from 'react-router-dom'
-import { ROUTES, HOME, resolveLegacyUrl, formatUrl, type RouteId } from '../server/routeMap.mjs'
+import { ROUTES, HOME, resolveLegacyUrl, formatUrl, pageOf, type RouteId } from '../server/routeMap.mjs'
 import { useKivaLensInit } from './lib/useKivaLensInit'
 import { usePageMeta } from './lib/usePageMeta'
 import KLNav from './components/KLNav'
@@ -31,6 +31,18 @@ function RouteLoading() {
   )
 }
 
+/**
+ * Scroll position belongs to a page, not to an address. Opening a loan beside
+ * the results, choosing a partner or editing a criterion changes the address but
+ * not the page, so the window stays where the lender was reading; only a move to
+ * another page starts at its top, or where the lender left it last time. Keyed
+ * by address — the router's default — every one of those in-page changes threw
+ * the window back to the top, which on a phone put the loan just opened off
+ * screen. An address no route claims keys on its history entry, as before.
+ */
+export const scrollKeyFor = (location: { pathname: string; key: string }) =>
+  pageOf(location.pathname) ?? location.key
+
 function AppLayout() {
   useKivaLensInit()
   usePageMeta()
@@ -48,7 +60,7 @@ function AppLayout() {
         <Outlet />
       </main>
       <KLFooter />
-      <ScrollRestoration />
+      <ScrollRestoration getKey={scrollKeyFor} />
     </div>
   )
 }

@@ -24,15 +24,17 @@ export const HOME = '/search'
 
 /**
  * The canonical routes. `id` is the product's word for the page; `path` is the
- * URL; `param` names the single path parameter where a route takes one.
+ * URL; `param` names the single path parameter where a route takes one; `page`
+ * names the page a parameterised route is shown on, where that is another
+ * route's page — a loan opens beside the Search results, not on a page of its own.
  */
 export const ROUTES = [
   { id: 'search', path: '/search' },
-  { id: 'loan', path: '/loans/:id', param: 'id' },
+  { id: 'loan', path: '/loans/:id', param: 'id', page: 'search' },
   { id: 'partners', path: '/partners' },
-  { id: 'partner', path: '/partners/:id', param: 'id' },
+  { id: 'partner', path: '/partners/:id', param: 'id', page: 'partners' },
   { id: 'basket', path: '/basket' },
-  { id: 'basketLoan', path: '/basket/:id', param: 'id' },
+  { id: 'basketLoan', path: '/basket/:id', param: 'id', page: 'basket' },
   { id: 'saved', path: '/saved' },
   { id: 'stats', path: '/stats' },
   { id: 'wall', path: '/wall' },
@@ -108,6 +110,16 @@ export function matchRoute(pathname) {
     return { id: r.id, param }
   }
   return null
+}
+
+/**
+ * The page an address shows: `/loans/42` and `/search` are both the Search page,
+ * one with a loan open beside the results. Null for an address no route claims.
+ */
+export function pageOf(pathname) {
+  const route = matchRoute(pathname)
+  if (!route) return null
+  return ROUTES.find((r) => r.id === route.id)?.page ?? route.id
 }
 
 /**

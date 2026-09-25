@@ -26,6 +26,7 @@ describe('a loan open in the basket has an address', () => {
       id: 'basketLoan',
       path: '/basket/:id',
       param: 'id',
+      page: 'basket',
     })
     expect(matchRoute('/basket/2549812')).toEqual({ id: 'basketLoan', param: '2549812' })
     expect(matchRoute('/basket')).toEqual({ id: 'basket', param: null })
@@ -137,7 +138,9 @@ describe('the repayment breakdown', () => {
   })
 
   it('opens the loan at its own address, so the band is a link in every way but shape', () => {
-    expect(basket).toContain('onSelectLoan={showBasket}')
+    // Through openLoan, which is showBasket plus bringing the loan into view.
+    expect(basket).toContain('onSelectLoan={openLoan}')
+    expect(basket).toMatch(/const openLoan = useCallback\(\s*\(id: number\) => \{\s*markOpenIntent\(\)\s*showBasket\(id\)/)
   })
 
   it('is off until asked for, and then remembered', () => {
