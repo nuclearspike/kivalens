@@ -8,7 +8,12 @@ import path from 'node:path'
  * rather than throw — a cache miss is normal, not an error.
  */
 
-const key = (n: string) => `vitest-diskcache-${n}`
+// The cache directory is the machine's shared temp folder, so two test runs at
+// once (a deploy gate in a clean clone beside a local run) see the same files.
+// Each run's names are its own, or one run's cleanup deletes the other's entries
+// mid-test.
+const RUN = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`
+const key = (n: string) => `vitest-diskcache-${RUN}-${n}`
 const keys: string[] = []
 const k = (n: string) => { const key_ = key(n); keys.push(key_); return key_ }
 
@@ -61,7 +66,7 @@ describe('diskCache', () => {
     await writeCache(other, 'b')
 
     // Age-based eviction: -1ms means "everything is already too old".
-    const removed = await cleanupCache({ prefix: 'vitest-diskcache-prefixed', maxAgeMs: -1 })
+    const removed = await cleanupCache({ prefix: `vitest-diskcache-${RUN}-prefixed`, maxAgeMs: -1 })
 
     expect(removed).toContain(mine)
     expect(await readCache(mine)).toBeNull()
@@ -75,7 +80,7 @@ describe('diskCache', () => {
     await new Promise((r) => setTimeout(r, 12)) // distinct mtimes
     await writeCache(b, 'newer')
 
-    await cleanupCache({ prefix: 'vitest-diskcache-cap', maxFiles: 1 })
+    await cleanupCache({ prefix: `vitest-diskcache-${RUN}-cap`, maxFiles: 1 })
 
     expect(await readCache(b)).toBe('newer')
     expect(await readCache(a)).toBeNull()

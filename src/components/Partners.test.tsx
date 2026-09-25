@@ -51,7 +51,14 @@ describe('Partners > RangeRow', () => {
 })
 
 describe('Partners route: routePartnerId -> id -> id2 (council finding: stale partner survives the transition)', () => {
-  afterEach(cleanup)
+  // Undone here rather than at the end of the test, so a failure part-way
+  // through cannot leave fake timers or this test's partners behind for the
+  // next one — which would report a second, misleading failure.
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+    getKivaLoans().partnersFromKiva = []
+  })
 
   // Exposes react-router's navigate on window so the test can drive REAL
   // client-side transitions between /partners and /partners/:id — both
@@ -118,7 +125,6 @@ describe('Partners route: routePartnerId -> id -> id2 (council finding: stale pa
       vi.advanceTimersByTime(500)
     })
     expect(screen.getByRole('heading', { level: 2, name: /Second Partner/ })).toBeInTheDocument()
-    vi.useRealTimers()
   })
 })
 
