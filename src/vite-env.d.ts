@@ -8,3 +8,7 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** The deployed version (build date, YYYY.M.D) and build (commit), stamped by vite.config.ts. */
+declare const __KL_VERSION__: string
+declare const __KL_BUILD__: string

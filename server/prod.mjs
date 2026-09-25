@@ -34,7 +34,8 @@ const log = (msg) => console.log(`[KL] ${msg}`)
 //     recharts inline style attributes) and Google Fonts CSS
 //   - img-src covers Kiva's image CDN + data: (CSS SVG backgrounds, favicons)
 //   - connect-src covers the same-origin /api & /proxy plus the client's
-//     direct Kiva-API and Google-Docs fallbacks
+//     direct Kiva-API and Google-Docs fallbacks, and the real-user
+//     measurement collector (src/lib/rum, cloudflare/rum)
 //   - form-action allows the basket checkout POST to Kiva (the POST and its
 //     redirects can land on www/apex/other kiva.org subdomains, so allow the
 //     whole kiva.org family or the browser blocks the submission)
@@ -46,7 +47,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
-  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com",
+  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com https://rum.kivalens.org",
   "form-action 'self' https://www.kiva.org https://kiva.org https://*.kiva.org",
   "frame-ancestors 'none'",
   "frame-src 'none'",

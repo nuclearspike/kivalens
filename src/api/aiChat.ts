@@ -3,6 +3,7 @@
 // hand each event to onEvent. All AI calls happen server-side; this just relays.
 
 import type { Locale } from '../i18n'
+import { mark } from '../lib/rum/marks'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -97,6 +98,7 @@ export async function streamChat(
   opts: { onEvent: (e: ChatEvent) => void; signal?: AbortSignal },
 ): Promise<void> {
   const trimmed: StreamChatBody = { ...body, messages: body.messages.slice(-MAX_SENT_MESSAGES) }
+  mark('kl:chat:send')
   let res: Response
   try {
     res = await fetch('/api/chat', {
@@ -120,6 +122,7 @@ export async function streamChat(
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buf = ''
+  let first = true
   try {
     for (;;) {
       const { value, done } = await reader.read()
@@ -129,9 +132,14 @@ export async function streamChat(
       while ((idx = buf.indexOf('\n\n')) !== -1) {
         const evt = parseSseFrame(buf.slice(0, idx))
         buf = buf.slice(idx + 2)
-        if (evt) opts.onEvent(evt)
+        if (evt) {
+          if (first) mark('kl:chat:first')
+          first = false
+          opts.onEvent(evt)
+        }
       }
     }
+    mark('kl:chat:done')
   } catch (e) {
     if ((e as Error)?.name !== 'AbortError') {
       opts.onEvent({ type: 'error', message: 'The connection was interrupted.' })

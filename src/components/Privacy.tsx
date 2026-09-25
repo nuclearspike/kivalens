@@ -1,6 +1,7 @@
 import { Container } from '../ui'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
+import { RAW_DAYS } from '../lib/rum/retention'
 
 // Privacy policy. KivaLens is an independent tool (not Kiva); it has no accounts
 // of its own. The notable data flow is the "Ask KivaLens" assistant, whose
@@ -10,7 +11,7 @@ export default function Privacy() {
   return (
     <Container className="py-3" style={{ maxWidth: 820 }}>
       <h1>{t('kivalens_privacy_policy')}</h1>
-      <p className="text-muted">{t('last_updated_date', { date: date('2026-06-22T12:00:00Z', { dateStyle: 'long' }) })}</p>
+      <p className="text-muted">{t('last_updated_date', { date: date('2026-09-25T12:00:00Z', { dateStyle: 'long' }) })}</p>
 
       <h3>{t('about_kivalens')}</h3>
       <p>
@@ -52,6 +53,9 @@ export default function Privacy() {
 
       <h4>{t('anonymous_diagnostics')}</h4>
       <p>
+        {t('anonymous_visit_reports')}
+      </p>
+      <p>
         {t('kivalens_may_send_occasional_anonymous')}
       </p>
 
@@ -84,7 +88,7 @@ export default function Privacy() {
 
       <h3>{t('data_retention')}</h3>
       <p>
-        {t('browser_stored_data_persists_until_clear')}
+        {t('browser_stored_data_persists_until_clear')} {t('visit_reports_retention', { days: RAW_DAYS })}
       </p>
 
       <h3>{t('choices')}</h3>

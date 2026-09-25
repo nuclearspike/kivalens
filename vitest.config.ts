@@ -6,6 +6,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // cloudflare/: the Workers' own logic, tested in Node (D1 is SQLite; node:sqlite stands in).
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'cloudflare/**/*.test.ts'],
   },
 })

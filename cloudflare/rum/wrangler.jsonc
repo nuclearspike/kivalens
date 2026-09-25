@@ -1,0 +1,26 @@
+// rum.kivalens.org — the first-party collector for real-user measurement and
+// browser errors (src/lib/rum). Deploy: npx wrangler deploy -c cloudflare/rum/wrangler.jsonc
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "kivalens-rum",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "routes": [{ "pattern": "rum.kivalens.org", "custom_domain": true }],
+  "workers_dev": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kivalens-rum",
+      "database_id": "11ad3f8e-5722-4f65-862c-805a1d171860",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // At most 60 reports a minute from one address: a page sends one or two.
+  "ratelimits": [{ "name": "BEACON_LIMIT", "namespace_id": "2001", "simple": { "limit": 60, "period": 60 } }],
+  // 00:20 UTC: yesterday's percentiles, then expiry of old rows.
+  "triggers": { "crons": ["20 0 * * *"] },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://www.kivalens.org,https://kivalens.org,https://beta.kivalens.org"
+  },
+  "observability": { "enabled": true }
+}

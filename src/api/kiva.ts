@@ -35,6 +35,7 @@ import { LoanBatch } from './kivajs/LoanBatch'
 import { Partners } from './kivajs/Partners'
 import { LenderFundraisingLoans } from './kivajs/LenderFundraisingLoans'
 import { processPartnerReligions } from './kivajs/normalizeReligion'
+import { mark } from '../lib/rum/marks'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -459,6 +460,7 @@ export class Loans {
         })
         this.setKivaLoans(loans)
         this.notify({ loans_loaded: true })
+        mark('kl:catalog:done', { source: 'kiva' })
         this.allDescriptionsLoaded = true
         this.notify({ all_descriptions_loaded: true })
 
@@ -537,6 +539,7 @@ export class Loans {
         await partnersPromise
 
         this.notify({ loans_loaded: true, loan_load_progress: { complete: true } })
+        mark('kl:catalog:done', { source: 'kl' })
 
         // Start background resync after 5 minutes (KL loads are already fresh)
         wait(5 * 60_000).then(() => this.backgroundResync())
@@ -608,6 +611,7 @@ export class Loans {
 
     // ---- Start loading: decide source ----
     this.startDownload = new Date()
+    mark('kl:catalog:start')
     let hasStarted = false
 
     const startGettingLoans = async () => {
@@ -1264,6 +1268,7 @@ export class Loans {
     const resyncNum = this.backgroundResyncCount
 
     if (shouldNotify) this.notify({ backgroundResync: { state: 'started' } })
+    mark('kl:resync:start')
 
     try {
       const searchInstance = new LoansSearch(this.baseKivaParams, false)
@@ -1301,6 +1306,7 @@ export class Loans {
 
       // Fetch full details for newly discovered loans
       this.newLoanNotice(loansAdded)
+      mark('kl:resync:done')
 
       if (shouldNotify) this.notify({ backgroundResync: { state: 'done' } })
     } catch (e) {
