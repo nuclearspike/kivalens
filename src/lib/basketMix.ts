@@ -36,10 +36,10 @@ export interface ConcentrationLimits {
 }
 
 /**
- * Nobody chose these numbers for the lender, so they are the lender's to change
- * (Options, Basket warnings). At $25 a loan, more than 5 is more than $125 riding
- * on one institution; a country holds many partners, so its limit is five times
- * the partner's.
+ * Paul's defaults (2026-09-26: "5 and 25 are fine, keep them"); each lender can
+ * change them under Options, Basket warnings. At $25 a loan, more than 5 is more
+ * than $125 riding on one institution; a country holds many partners, so its
+ * limit is five times the partner's.
  */
 export const DEFAULT_LIMITS: ConcentrationLimits = { partner: 5, country: 25 }
 
