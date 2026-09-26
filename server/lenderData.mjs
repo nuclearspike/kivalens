@@ -8,6 +8,7 @@
  * fetchBalancerData + updateBalancers (balancing) in src.
  */
 import { cache } from './runtime.mjs'
+import { BALANCER_SLICES, resolveBalancerValues } from './loanFilter.mjs'
 
 const KIVA_API = 'https://api.kivaws.org/v1'
 const KIVA_WWW = 'https://www.kiva.org'
@@ -30,7 +31,9 @@ const AJAX_HEADERS = {
 const LENDER_LOANS_TTL_MS = 60 * 60_000 // 1h — fundraising set shifts as loans fund/expire
 const SUPERGRAPH_TTL_MS = 6 * 60 * 60_000 // 6h — portfolio distribution moves slowly
 const LENDER_PROFILE_TTL_MS = 24 * 60 * 60_000 // 24h — profile (loan count, member-since) moves slowly
-export const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country', 'region', 'gender']
+// The balancer rules are the filter engine's own, so a feed resolves a balancer
+// exactly as the site does.
+export { BALANCER_SLICES, resolveBalancerValues }
 
 // Stop paging a lender's loans once no fundraising loan remains AND the newest
 // loan on the page predates the fundraising window (ported verbatim from
@@ -199,20 +202,6 @@ export async function fetchSuperGraphSlices(lenderId, sliceBy, include = 'all', 
     if (options.required) throw e
     return []
   }
-}
-
-// Resolve a balancer config's `values` (the show/hide list) from the lender's
-// distribution — ported from updateBalancers: gt keeps slices above the percent
-// threshold, lt keeps those below; partner slices use numeric ids, others names.
-export function resolveBalancerValues(config, slices, sliceBy) {
-  const threshold = config.percent ?? 0
-  const filtered =
-    config.ltgt === 'gt'
-      ? slices.filter((s) => s.percent > threshold)
-      : slices.filter((s) => s.percent < threshold)
-  return sliceBy === 'partner'
-    ? filtered.map((s) => parseInt(String(s.id), 10)).filter((v) => !Number.isNaN(v))
-    : filtered.map((s) => s.name).filter((v) => v != null)
 }
 
 /**

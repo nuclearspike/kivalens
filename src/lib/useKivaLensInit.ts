@@ -5,6 +5,7 @@ import { useLoanStore } from '../stores/loanStore'
 import { useCriteriaStore } from '../stores/criteriaStore'
 import { useUtilsStore } from '../stores/utilsStore'
 import { lsj } from './localStorage'
+import { applyBalancerData } from './balancerEvents'
 
 /**
  * Bootstrap hook — creates the KivaLoans singleton, starts the download,
@@ -164,6 +165,8 @@ export function useKivaLensInit() {
         useCriteriaStore.getState().updateBalancers()
         store.filterLoans()
       }
+
+      if (msg.balancer_data_event) applyBalancerData(kl)
     })
 
     // If the singleton already has data (strict-mode re-mount race), sync now

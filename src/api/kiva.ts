@@ -26,7 +26,9 @@ import { distinct } from '../lib/arrayUtils'
 import { filterLoans, filterPartners as sharedFilterPartners } from '../../server/loanFilter.mjs'
 import { today } from '../lib/dateUtils'
 import { cl, wait } from '../lib/utils'
-import { LOAN_DESCRIPTIONS_FILTER_DEPENDENCY } from '../lib/filterReadiness'
+import { LOAN_DESCRIPTIONS_FILTER_DEPENDENCY, PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX } from '../lib/filterReadiness'
+import type { BalancerResult } from '../stores/criteriaStore'
+import type { BalancerSlice, FilterContext } from '../../server/loanFilter.mjs'
 import { setAPIOptions, getUrl, HttpStatusError } from './kivajs/kivaBase'
 import { ResultProcessors } from './kivajs/ResultProcessors'
 import { req } from './kivajs/req'
@@ -42,6 +44,11 @@ import { catchUpDelayMs } from '../lib/catchUp'
 // Types
 // ---------------------------------------------------------------------------
 
+/** How long the lender's portfolio distribution is trusted before it is read again. */
+const BALANCER_TTL_MS = 60 * 60 * 1000
+/** Distinct slice readings kept (lenders x slices x all/active). */
+const BALANCER_CACHE_MAX = 50
+
 export type NotifyMessage = {
   loan_load_progress?: ProgressEvent
   loans_loaded?: boolean
@@ -52,6 +59,8 @@ export type NotifyMessage = {
   running_totals_change?: RunningTotals
   lender_loans_event?: string
   filter_dependency_event?: { key: string; state: 'started' | 'done' }
+  /** The lender's portfolio distribution for one balancer slice was read, or could not be. */
+  balancer_data_event?: { sliceBy: string; include: string; failed: boolean }
   new_loans?: KivaLoan[]
   atheist_list_loaded?: boolean
   backgroundResync?: { state: string }
@@ -850,13 +859,7 @@ export class Loans {
 
     // Delegates to the shared engine (server/loanFilter.mjs) so RSS feeds
     // generated on the server match this search exactly.
-    const filtered = filterLoans(c, {
-      loans: loansToFilter || this.loansFromKiva,
-      activePartners: this.activePartners,
-      atheistListProcessed: this.atheistListProcessed,
-      lenderId: this.lenderId,
-      lenderLoans: this.lenderLoans,
-    }) as KivaLoan[]
+    const filtered = filterLoans(c, this.filterContext(loansToFilter)) as KivaLoan[]
 
     if (cacheResults) {
       this.lastFiltered = filtered
@@ -989,6 +992,142 @@ export class Loans {
     } catch {
       // Heartbeat failures are non-critical
     }
+  }
+
+  /**
+   * What every filter of this lender's search is given (the shared engine's ctx):
+   * the loans and partners, the lender's own loans for "exclude loans I've made",
+   * and their portfolio distribution for the balancers.
+   */
+  filterContext(loans?: KivaLoan[]): FilterContext {
+    return {
+      loans: loans || this.loansFromKiva,
+      activePartners: this.activePartners,
+      atheistListProcessed: this.atheistListProcessed,
+      lenderId: this.lenderId,
+      lenderLoans: this.lenderLoans,
+      balancerSlices: this.balancerSlices,
+    }
+  }
+
+  // ---- The lender's portfolio distribution (portfolio balancers) ----
+  //
+  // One copy, kept an hour, serves the filter, the Portfolio tab, Stats and the
+  // basket. Each entry can hold ~1000 slices, so the COUNT of entries is bounded
+  // too; a Map keeps insertion order, so the first key is the least recently used.
+  private balancerData = new Map<string, { at: number; value: BalancerResult }>()
+  private balancerLoads = new Map<string, Promise<BalancerResult>>()
+  private balancerFailed = new Set<string>()
+
+  private balancerKey(sliceBy: string, include: string): string {
+    return `${this.lenderId}|${sliceBy}|${include}`
+  }
+
+  /**
+   * One slice's distribution for the filter: the copy on hand when it is fresh.
+   * Otherwise it is read, once, after the filter that asked has finished (never
+   * inside it, which may be a render), and the search is filtered again when it
+   * arrives (balancer_data_event). A stale copy stands in while it is re-read.
+   * A slice Kiva would not return is not asked for again until retryBalancerData.
+   */
+  balancerSlices = (sliceBy: string, include: string): BalancerSlice[] | null => {
+    if (!this.lenderId) return null
+    const key = this.balancerKey(sliceBy, include)
+    const held = this.balancerData.get(key)
+    if (held && Date.now() - held.at < BALANCER_TTL_MS) return held.value.slices
+    if (!this.balancerFailed.has(key) && !this.balancerLoads.has(key)) {
+      queueMicrotask(() => void this.loadBalancerData(sliceBy, include).catch(() => {}))
+    }
+    return held?.value.slices ?? null
+  }
+
+  /** The lender's distribution by one slice, read from Kiva once an hour at most, one request at a time. */
+  loadBalancerData(sliceBy: string, include: string): Promise<BalancerResult> {
+    const lenderId = this.lenderId
+    if (!lenderId) return Promise.resolve({ slices: [], total_sum: 0 })
+    const key = this.balancerKey(sliceBy, include)
+    const held = this.balancerData.get(key)
+    if (held && Date.now() - held.at < BALANCER_TTL_MS) {
+      // Most recently used: move it to the end.
+      this.balancerData.delete(key)
+      this.balancerData.set(key, held)
+      return Promise.resolve(held.value)
+    }
+    const pending = this.balancerLoads.get(key)
+    if (pending) return pending
+
+    const dependency = `${PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX}read:${sliceBy}:${include}`
+    this.notify({ filter_dependency_event: { key: dependency, state: 'started' } })
+    const load = this.fetchSuperGraphData({
+      sliceBy,
+      include,
+      measure: 'count',
+      subject_id: lenderId,
+      type: 'lender',
+      granularity: 'cumulative',
+    })
+      .then((raw: { data?: Array<{ name: string; value: string }>; lookup?: Record<string, string>; last_updated?: string }) => {
+        const data = raw?.data ?? []
+        const total = data.reduce((sum, d) => sum + parseInt(d.value, 10), 0)
+        const value: BalancerResult = {
+          slices: data.map((d) => ({
+            id: d.name,
+            name: raw.lookup?.[d.name] ?? d.name,
+            value: parseInt(d.value, 10),
+            percent: total ? (parseInt(d.value, 10) * 100) / total : 0,
+          })),
+          total_sum: total,
+          last_updated: raw?.last_updated,
+        }
+        this.balancerData.delete(key)
+        this.balancerData.set(key, { at: Date.now(), value })
+        while (this.balancerData.size > BALANCER_CACHE_MAX) {
+          const oldest = this.balancerData.keys().next().value
+          if (oldest === undefined) break
+          this.balancerData.delete(oldest)
+        }
+        this.balancerFailed.delete(key)
+        return value
+      })
+      .catch((e) => {
+        this.balancerFailed.add(key)
+        throw e
+      })
+      .finally(() => {
+        this.balancerLoads.delete(key)
+        this.notify({ filter_dependency_event: { key: dependency, state: 'done' } })
+        // What was filtered while this was missing is filtered again; a read for a
+        // lender who has since been replaced changes nothing.
+        if (lenderId === this.lenderId) {
+          this.notify({ balancer_data_event: { sliceBy, include, failed: this.balancerFailed.has(key) } })
+        }
+      })
+    this.balancerLoads.set(key, load)
+    return load
+  }
+
+  /**
+   * Slices of the current lender's portfolio that Kiva would not return and that
+   * have no earlier copy standing in: a balancer on one of them is not applied.
+   */
+  balancerFailures(): Array<{ sliceBy: string; include: string }> {
+    const prefix = `${this.lenderId}|`
+    return [...this.balancerFailed]
+      .filter((key) => key.startsWith(prefix) && !this.balancerData.has(key))
+      .map((key) => {
+        const [, sliceBy, include] = key.split('|')
+        return { sliceBy, include }
+      })
+  }
+
+  /** Whether a copy of this slice is on hand, fresh or not; asks Kiva for nothing. */
+  hasBalancerData(sliceBy: string, include: string): boolean {
+    return !!this.lenderId && this.balancerData.has(this.balancerKey(sliceBy, include))
+  }
+
+  /** Try Kiva again for every slice it would not return; the next filter asks for them. */
+  retryBalancerData(): void {
+    this.balancerFailed.clear()
   }
 
   async fetchSuperGraphData(params: Record<string, string>): Promise<any> {

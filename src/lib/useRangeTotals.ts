@@ -47,11 +47,5 @@ export function useRangeTotals<C = Criteria>(
 function searchCounter(criteria: Criteria, group: 'loan' | 'partner', key: string): Counter | null {
   const kl = getKivaLoans()
   if (!kl?.isReady()) return null
-  return rangeCounter(criteria, {
-    loans: kl.loansFromKiva,
-    activePartners: kl.activePartners,
-    atheistListProcessed: kl.atheistListProcessed,
-    lenderId: kl.lenderId,
-    lenderLoans: kl.lenderLoans,
-  }, group, key)
+  return rangeCounter(criteria, kl.filterContext(), group, key)
 }

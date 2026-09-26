@@ -1427,6 +1427,13 @@ ul.spacedList li {
   color: var(--kl-text-muted);
 }
 
+// A criterion that is on but cannot apply (a portfolio balancer without the lender's
+// portfolio), so the count does not pass for a filtered one.
+.kl-count-gaps.kl-count-problem {
+  color: var(--kl-pill-warn-text);
+  font-weight: 600;
+}
+
 // Second line of the tip while a handle moves: what the whole range would return.
 .kl-range-tip-total {
   font-weight: 600;

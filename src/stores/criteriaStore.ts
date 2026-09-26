@@ -9,7 +9,7 @@ import { cl, wait } from '../lib/utils'
 import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
-import { balancesByPartner, partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { freshCriteria } from '../lib/freshCriteria'
 
 /**
@@ -277,41 +277,6 @@ function renameLegacyDefaultNamesWithLog(
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/**
- * LRU + TTL cache for balancer API results. Each BalancerResult can hold up to
- * ~1000 slices, so we bound the entry COUNT (not just age): the TTL only evicts
- * on a read of an already-expired key, which left cold entries resident for the
- * whole tab session. CACHE_MAX caps distinct entries; a Map preserves insertion
- * order, so the oldest key is the least-recently-used.
- */
-const balancerCache = new Map<string, { value: BalancerResult; time: number }>()
-const CACHE_TTL = 60 * 60 * 1000
-const CACHE_MAX = 50
-
-function getCached(key: string): BalancerResult | null {
-  const entry = balancerCache.get(key)
-  if (!entry) return null
-  if (Date.now() - entry.time > CACHE_TTL) {
-    balancerCache.delete(key)
-    return null
-  }
-  // Mark most-recently-used: re-insert moves the key to the end of the Map.
-  balancerCache.delete(key)
-  balancerCache.set(key, entry)
-  return entry.value
-}
-
-function setCache(key: string, value: BalancerResult): void {
-  balancerCache.delete(key) // re-insert at the end (most-recently-used)
-  balancerCache.set(key, { value, time: Date.now() })
-  // Evict least-recently-used entries (oldest insertion order) beyond the cap.
-  while (balancerCache.size > CACHE_MAX) {
-    const lru = balancerCache.keys().next().value
-    if (lru === undefined) break
-    balancerCache.delete(lru)
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Store
@@ -644,15 +609,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
               void wait(1000).then(async () => {
                 try {
                   const result = await get().fetchBalancerData(slice, bal)
-                  const filteredSlices =
-                    bal.ltgt === 'gt'
-                      ? result.slices.filter((s) => s.percent > (bal.percent ?? 0))
-                      : result.slices.filter((s) => s.percent < (bal.percent ?? 0))
-
-                  const values =
-                    slice === 'partner'
-                      ? filteredSlices.map((s) => parseInt(String(s.id))).filter((v) => v != null)
-                      : filteredSlices.map((s) => s.name).filter((v) => v != null)
+                  // The same rule the filter applies (resolveBalancerValues).
+                  const values = resolveBalancerValues(bal, result.slices, slice)
 
                   set((draft) => {
                     const draftBal = draft.savedSearches[name]?.portfolio[
@@ -670,49 +628,16 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           }
         },
 
+        // The one copy of the lender's portfolio distribution lives with the loans
+        // (KivaLoans.loadBalancerData), where the filter reads it too.
         fetchBalancerData: async (
           sliceBy: string,
           config: BalancerConfig,
         ): Promise<BalancerResult> => {
           const lenderId = useUtilsStore.getState().lenderId
-          if (!lenderId) return { slices: [], total_sum: 0 }
-
-          const cacheKey = `balancer_lender_${lenderId}_${sliceBy}_${config.allactive ?? 'all'}`
-          const cached = getCached(cacheKey)
-          if (cached) return cached
-
           const kl = getKivaLoans()
-          if (!kl) return { slices: [], total_sum: 0 }
-
-          const raw = await kl.fetchSuperGraphData({
-            sliceBy,
-            include: config.allactive ?? 'all',
-            measure: 'count',
-            subject_id: lenderId,
-            type: 'lender',
-            granularity: 'cumulative',
-          }) as {
-            data?: Array<{ name: string; value: string }>
-            lookup?: Record<string, string>
-            last_updated?: string
-          }
-
-          const dataArr = raw.data ?? []
-          const totalSum = dataArr.reduce((sum: number, d: { value: string }) => sum + parseInt(d.value), 0)
-          const slices: BalancerSlice[] = dataArr.map((d: { name: string; value: string }) => ({
-            id: d.name,
-            name: raw.lookup?.[d.name] ?? d.name,
-            value: parseInt(d.value),
-            percent: (parseInt(d.value) * 100) / totalSum,
-          }))
-
-          const result: BalancerResult = {
-            slices,
-            total_sum: totalSum,
-            last_updated: raw.last_updated,
-          }
-          setCache(cacheKey, result)
-          return result
+          if (!lenderId || !kl) return { slices: [], total_sum: 0 }
+          return kl.loadBalancerData(sliceBy, config.allactive ?? 'all')
         },
 
         // -------------------------------------------------------------

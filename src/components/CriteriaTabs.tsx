@@ -22,7 +22,7 @@ import RangeHistogram from './RangeHistogram'
 import CopyButton from './CopyButton'
 import AanDropdown, { type AanCounts, type AanMode } from './AanDropdown'
 import UnavailableSection from './UnavailableSection'
-import { partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { criteriaToParams, readableSearch } from '../../server/criteriaUrl.mjs'
 import { loanOptionCounts } from '../lib/optionCounts'
 import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
@@ -711,10 +711,8 @@ function BalancingRow({
 
         // Propagate values upward before declaring the dependency complete so
         // the warning and the partial result list disappear in the same update.
-        const values = meta.key === 'id'
-          ? filtered.map((s) => parseInt(String(s.id))).filter((x) => !isNaN(x))
-          : filtered.map((s) => s.name).filter((x): x is string => x != null)
-        onChange({ ...v, values })
+        // The same rule the filter applies (resolveBalancerValues).
+        onChange({ ...v, values: resolveBalancerValues(v, result.slices, meta.sliceBy) as BalancerConfig['values'] })
         setLoading(false)
         setFilterDependencyLoading(dependencyKey, false)
       })

@@ -60,7 +60,7 @@ export declare function binIndex(value: unknown, spec: BinSpec): number
 /** Counts what one range slider would return at any (min, max); null = no limit at that end. See rangeCounter in loanFilter.mjs. */
 export declare function rangeCounter(
   c: unknown,
-  ctx: Record<string, unknown>,
+  ctx: FilterContext,
   group: 'loan' | 'partner',
   key: string,
   options?: { unit?: 'loans' | 'partners'; accept?: (partner: never) => boolean },
@@ -93,7 +93,36 @@ export interface FilterContext {
   atheistListProcessed?: boolean
   lenderId?: string | null
   lenderLoans?: Record<string, number[]>
+  /**
+   * The lender's portfolio distribution for one balancer slice (Kiva's SuperGraph),
+   * or null while it has not been read. An enabled portfolio balancer takes its
+   * list from here; see portfolioBalancer in loanFilter.mjs.
+   */
+  balancerSlices?: (sliceBy: string, include: string) => BalancerSlice[] | null | undefined
 }
+
+/** One slice of a lender's portfolio: a partner (id), country, sector… and its share of their loans. */
+export interface BalancerSlice {
+  id: string | number
+  name: string | null
+  value: number
+  percent: number
+}
+
+/** The slices a portfolio balancer can be set on, as Kiva's SuperGraph names them. */
+export declare const BALANCER_SLICES: readonly string[]
+/** A balancer's show/hide list from the lender's distribution: gt keeps slices above the percent, lt below; partner ids are numbers. */
+export declare function resolveBalancerValues(
+  config: { ltgt?: string; percent?: number },
+  slices: readonly BalancerSlice[],
+  sliceBy: string,
+): Array<string | number>
+/** The balancer as the filter applies it: its list from ctx.balancerSlices when that has the lender's distribution. */
+export declare function portfolioBalancer<T extends { enabled?: boolean; allactive?: string } | undefined>(
+  config: T,
+  sliceBy: string,
+  ctx: FilterContext | undefined,
+): T
 
 export declare function filterPartnerIds(c: unknown, ctx: FilterContext): number[]
 export declare function filterPartners<T = unknown>(c: unknown, ctx: FilterContext): T[]
@@ -108,7 +137,7 @@ export declare function resolvePartnerMode(criteria: unknown): PartnerMode
 /** Loans matching every other criterion that the mode or the already-lent filter keeps out of view. */
 export declare function partnerModeGaps(
   criteria: unknown,
-  ctx: Record<string, unknown>,
+  ctx: FilterContext,
 ): { mode: PartnerMode; directNotShown: number; mfiNotShown: number; alreadyLentHidden: number }
 
 /** A loan that can still be lent to: listed as fundraising and not fully funded. */

@@ -97,6 +97,8 @@ export interface LoanState {
   lenderLoansLoading: boolean
   /** Async dependencies that can still change an active filtering result. */
   pendingFilterDependencies: string[]
+  /** Slices of the lender's portfolio Kiva would not return, so a balancer on them is not applied. */
+  balancerFailures: Array<{ sliceBy: string; include: string }>
   /** Snapshot of loan ids sent to Kiva at checkout, awaiting outcome confirmation (T1.1) */
   pendingCheckout: { ids: number[]; at: number } | null
 }
@@ -196,6 +198,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       basketNotice: null,
       lenderLoansLoading: false,
       pendingFilterDependencies: [],
+      balancerFailures: [],
       pendingCheckout: null,
 
       // ---------------------------------------------------------------
@@ -438,13 +441,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         const forCriteria = criteria
         afterNextPaint(() => {
           if (job !== distributionJob) return
-          const ctx = {
-            loans: kl.loansFromKiva,
-            activePartners: kl.activePartners,
-            atheistListProcessed: kl.atheistListProcessed,
-            lenderId: kl.lenderId,
-            lenderLoans: kl.lenderLoans,
-          }
+          const ctx = kl.filterContext()
           // The sliders' data-derived upper ends and the histograms are published
           // together, so a slider's scale and its bars always describe the same layout.
           const maxima = partnerSliderMaxima(partnerRangeValues(ctx, DATA_MAX_KEYS))

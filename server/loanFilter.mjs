@@ -284,6 +284,43 @@ export function filterPartners(c, ctx) {
   return pool.filter((p) => ct.allPass(p))
 }
 
+// ---------------------------------------------------------------------------
+// Portfolio balancers: hide or show what the lender already has.
+//
+// A balancer's list (config.values) is derived from the lender's portfolio, so it
+// is not part of what a search says: an address, a feed, a link or Back carries
+// only the settings. The list is therefore worked out here, when the filter runs,
+// from the lender's distribution in ctx.balancerSlices(sliceBy, include) (the
+// browser: KivaLoans.filterContext; RSS resolves it itself, lenderData.mjs). A
+// stored list is only a stand-in until that distribution has been read. It does
+// not trust the stored list alone, because a search that arrives without one
+// would filter nothing and still look applied.
+// ---------------------------------------------------------------------------
+
+export const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country', 'region', 'gender']
+
+/**
+ * A balancer's show/hide list from the lender's distribution: gt keeps the slices
+ * above the percent, lt those below; partner slices are numeric ids, the rest names.
+ */
+export function resolveBalancerValues(config, slices, sliceBy) {
+  const threshold = config.percent ?? 0
+  const filtered =
+    config.ltgt === 'gt'
+      ? slices.filter((s) => s.percent > threshold)
+      : slices.filter((s) => s.percent < threshold)
+  return sliceBy === 'partner'
+    ? filtered.map((s) => parseInt(String(s.id), 10)).filter((v) => !Number.isNaN(v))
+    : filtered.map((s) => s.name).filter((v) => v != null)
+}
+
+/** The balancer as the filter applies it: its list from the lender's portfolio when ctx has it. */
+export function portfolioBalancer(config, sliceBy, ctx) {
+  if (!config?.enabled) return config
+  const slices = ctx?.balancerSlices?.(sliceBy, config.allactive ?? 'all')
+  return Array.isArray(slices) ? { ...config, values: resolveBalancerValues(config, slices, sliceBy) } : config
+}
+
 function buildPartnerTester(c, ctx) {
   const partner = c.partner ?? {}
   const portfolio = c.portfolio ?? {}
@@ -346,7 +383,7 @@ function buildPartnerTester(c, ctx) {
   }
 
   ct.addAnyAllNoneTester('religion', null, 'any', (p) => p.normalizedReligions || ['Unknown'], true)
-  ct.addBalancer(portfolio.pb_partner, (p) => p.id)
+  ct.addBalancer(portfolioBalancer(portfolio.pb_partner, 'partner', ctx), (p) => p.id)
   ct.addRangeTesters(
     'partner_risk_rating',
     (p) => p.rating,
@@ -419,7 +456,7 @@ function withResolvedMode(c) {
 
 // ---------------------------------------------------------------------------
 // Loan filtering + sort + limit. Returns the matching loans.
-// ctx: { loans, activePartners, atheistListProcessed, lenderId, lenderLoans }
+// ctx: { loans, activePartners, atheistListProcessed, lenderId, lenderLoans, balancerSlices }
 // ---------------------------------------------------------------------------
 export function filterLoans(c, ctx) {
   const criteria = normalizeCriteria(c)
@@ -487,7 +524,12 @@ function buildLoanTester(criteria, ctx, withPartnerMembership) {
   } else if (mode === 'mfi') {
     ct.testers.push((l) => l.partner_id != null)
     // Left out for rangeDistributions, which judges the partner side range by range.
-    if (withPartnerMembership && partnerCriteriaSet(criteria)) {
+    // partnerCriteriaSet judges with a fixed context, so it cannot see a balance-by-
+    // partner list that comes from the lender's portfolio (ctx) rather than from the
+    // criteria; that list counts as soon as it is known.
+    const balancedByPartner =
+      balancesByPartner(criteria) && Array.isArray(portfolioBalancer(criteria.portfolio.pb_partner, 'partner', ctx)?.values)
+    if (withPartnerMembership && (partnerCriteriaSet(criteria) || balancedByPartner)) {
       const matching = new Set(filterPartnerIds(criteria, ctx))
       if (matching.size === 0) ct.failAll = true
       else ct.testers.push((l) => matching.has(l.partner_id))
@@ -499,9 +541,9 @@ function buildLoanTester(criteria, ctx, withPartnerMembership) {
     ct.addFieldNotContainsOneOfArrayTester(ctx.lenderLoans[ctx.lenderId], (l) => l.id)
   }
 
-  ct.addBalancer(criteria.portfolio.pb_sector, (l) => l.sector)
-  ct.addBalancer(criteria.portfolio.pb_country, (l) => l.location.country)
-  ct.addBalancer(criteria.portfolio.pb_activity, (l) => l.activity)
+  ct.addBalancer(portfolioBalancer(criteria.portfolio.pb_sector, 'sector', ctx), (l) => l.sector)
+  ct.addBalancer(portfolioBalancer(criteria.portfolio.pb_country, 'country', ctx), (l) => l.location.country)
+  ct.addBalancer(portfolioBalancer(criteria.portfolio.pb_activity, 'activity', ctx), (l) => l.activity)
   // pb_region: derive each loan's region NAME from its country via partner country
   // data (partner.countries[].region are names like "South America", matching the
   // supergraph region slices). Built only when the region balancer is enabled.
@@ -512,10 +554,10 @@ function buildLoanTester(criteria, ctx, withPartnerMembership) {
         if (c?.iso_code && c.region) regionByCode[c.iso_code] = c.region
       }
     }
-    ct.addBalancer(criteria.portfolio.pb_region, (l) => regionByCode[l.location?.country_code])
+    ct.addBalancer(portfolioBalancer(criteria.portfolio.pb_region, 'region', ctx), (l) => regionByCode[l.location?.country_code])
   }
   // pb_gender: bucket by majority-women share to match the supergraph Female/Male slices.
-  ct.addBalancer(criteria.portfolio.pb_gender, (l) => ((l.kl_percent_women ?? 0) >= 50 ? 'Female' : 'Male'))
+  ct.addBalancer(portfolioBalancer(criteria.portfolio.pb_gender, 'gender', ctx), (l) => ((l.kl_percent_women ?? 0) >= 50 ? 'Female' : 'Male'))
   ct.addThreeStateTester(criteria.loan.bonus_credit_eligibility, (l) => l.bonus_credit_eligibility === true)
 
   ct.testers.push(isFundraising)

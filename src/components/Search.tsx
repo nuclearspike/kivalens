@@ -19,6 +19,7 @@ import { parseSearchPreset, parseSearchPresetTab } from '../lib/searchPreset'
 import { useI18n } from '../i18n'
 import { pluralCategory } from '../lib/pluralCategory'
 import { useShowCriteria } from '../lib/criteriaVisibility'
+import BalancingNote from './BalancingNote'
 
 // ---------------------------------------------------------------------------
 // Search page — criteria panel + loan list + detail area
@@ -154,6 +155,7 @@ export function Search() {
                 total: number(totalFundraising),
               })}
               {gapNotes.length > 0 && <div className="kl-count-gaps">{gapNotes.join(' · ')}</div>}
+              <BalancingNote />
             </div>
           ) : null}
 
