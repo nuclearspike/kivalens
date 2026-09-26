@@ -9,7 +9,8 @@ import { cl, wait } from '../lib/utils'
 import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
-import { resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { balancesByPartner, partnerCriteriaSet, resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { freshCriteria } from '../lib/freshCriteria'
 
 /**
  * The criteria with the MFI/Direct mode written in. A search saved before the
@@ -24,6 +25,34 @@ export function withPartnerMode(criteria: Criteria): Criteria {
   const mode = resolvePartnerMode(criteria)
   if ((criteria.partner as Record<string, unknown> | undefined)?.direct === mode) return criteria
   return { ...criteria, partner: { ...criteria.partner, direct: mode } }
+}
+
+/**
+ * A saved search with partner criteria runs in MFI Only, whatever mode was stored
+ * with it. Its partner filters, or its balance by partner, apply only to loans
+ * with a field partner: in Both they would be kept and do nothing, and "Balance
+ * Partner Risk" would balance nothing (Paul, 2026-09-25). Both is the default, so
+ * it is usually what happened to be in force when the search was saved, not a
+ * choice. This does not replace a stored Direct Only: that is the other side,
+ * chosen on purpose.
+ */
+export function inSavedSearchMode(criteria: Criteria): Criteria {
+  const direct = (criteria.partner as Record<string, unknown> | undefined)?.direct
+  if (direct === 'mfi' || direct === 'direct') return criteria
+  if (!partnerCriteriaSet(criteria) && !balancesByPartner(criteria)) return criteria
+  return { ...criteria, partner: { ...criteria.partner, direct: 'mfi' } }
+}
+
+/** How many loans a saved search finds, in the mode it runs in; 0 when it cannot be run. */
+export function countSavedSearch(
+  kl: { filter: (criteria: Partial<Criteria>, cacheResults?: boolean) => unknown[] },
+  criteria: Criteria,
+): number {
+  try {
+    return kl.filter(inSavedSearchMode(criteria), false).length
+  } catch {
+    return 0
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +105,11 @@ export interface CriteriaActions {
   // ---- Criteria ---------------------------------------------------------
   setCriteria: (criteria: Criteria) => void
   reloadCriteria: (criteria: Criteria) => void
-  startFresh: () => void
+  /**
+   * Reset: the fresh defaults, plus `then` when given — one change, so a caller
+   * that means "reset, then show this partner" leaves one step in history.
+   */
+  startFresh: (then?: Criteria) => void
   getLastCriteria: () => Criteria
   blankCriteria: () => Criteria
 
@@ -333,24 +366,21 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           })
         },
 
-        startFresh: () => {
-          const fresh: Criteria = {
-            loan: { name: '', use: '' },
-            // Every loan: MFI and Direct both. Partner filters apply once MFI only is chosen.
-            partner: { direct: 'both' },
-            portfolio: {
-              exclude_portfolio_loans: 'true',
-              pb_sector: { enabled: false },
-              pb_country: { enabled: false },
-              pb_activity: { enabled: false },
-              pb_partner: { enabled: false },
-            },
-          }
+        startFresh: (then?: Criteria) => {
+          const fresh = freshCriteria()
+          const next: Criteria = then
+            ? {
+                loan: { ...fresh.loan, ...then.loan },
+                partner: { ...fresh.partner, ...then.partner },
+                portfolio: { ...fresh.portfolio, ...then.portfolio },
+              }
+            : fresh
+          // A reset is no longer the saved search it replaced: the switcher stops
+          // naming it, or its Re-save would overwrite that search with this one.
           set((state) => {
             state.lastSwitch = null
-            state.lastKnown = fresh as never
           })
-          get().setCriteria(fresh)
+          get().setCriteria(next)
         },
 
         getLastCriteria: (): Criteria => {
@@ -431,7 +461,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         loadSearch: (name: string) => {
           const crit = get().savedSearches[name]
           if (!crit) return
-          const fixed = get().fixUpgrades({ ...crit })
+          const fixed = inSavedSearchMode(get().fixUpgrades({ ...crit }))
           set((state) => {
             state.lastSwitch = name
             state.lastKnown = fixed as never
@@ -456,9 +486,11 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           return Object.keys(get().savedSearches)
         },
 
+        // The search as it runs (inSavedSearchMode), so its summary, count, share link
+        // and export say what loading it does.
         getSavedSearch: (name: string): SavedSearch | undefined => {
           const s = get().savedSearches[name]
-          return s ? (get().stripNullValues({ ...s }) as SavedSearch) : undefined
+          return s ? (inSavedSearchMode(get().stripNullValues({ ...s }) as SavedSearch) as SavedSearch) : undefined
         },
 
         // -------------------------------------------------------------
@@ -542,7 +574,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
             try {
               const crit = state.savedSearches[name]
               if (!crit) continue
-              if (kl.filter(crit, false, [loan]).length) {
+              // Matched in the mode it loads in, so a saved search means one thing.
+              if (kl.filter(inSavedSearchMode(crit), false, [loan]).length) {
                 const BALANCER_SLICES = ['sector', 'activity', 'partner', 'country'] as const
                 const hasBalancer = BALANCER_SLICES.some(
                   (slice) =>

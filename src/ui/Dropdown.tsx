@@ -191,6 +191,8 @@ type DropdownItemProps<T extends ElementType = 'button'> = PolymorphicProps<
     disabled?: boolean
     eventKey?: string
     href?: string
+    /** Leave the menu open after the click, for an entry whose effect shows in the menu itself. */
+    keepOpen?: boolean
   }
 >
 
@@ -202,6 +204,7 @@ function DropdownItem<T extends ElementType = 'button'>({
   className,
   onClick,
   href,
+  keepOpen,
   ...rest
 }: DropdownItemProps<T>) {
   const { closeToToggle } = useContext(DropdownContext)
@@ -223,7 +226,7 @@ function DropdownItem<T extends ElementType = 'button'>({
       )}
       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
         onClick?.(e)
-        closeToToggle()
+        if (!keepOpen) closeToToggle()
       }}
       {...extra}
       {...rest}

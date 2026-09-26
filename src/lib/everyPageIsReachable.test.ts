@@ -6,8 +6,8 @@ import { ROUTES } from '../../server/routeMap.mjs'
 /**
  * A page nobody can get to is a page nobody uses.
  *
- * /autolend, /donate and /on all sat unlinked — /on for a decade, as a stub that
- * called nothing, until this work found it. Rule 39 says what a feature needs is
+ * /autolend and /on sat unlinked — /on for a decade, as a stub that called
+ * nothing, until this work found it (as did /donate, since removed). Rule 39 says what a feature needs is
  * shown and explained, never hidden; a route with no link is the extreme case.
  */
 
@@ -87,12 +87,17 @@ describe('every page can be reached without typing its address', () => {
     },
   )
 
-  it('links the two pages that were reachable only by typing them', () => {
+  it('links the page that was reachable only by typing it', () => {
     // /autolend turns the lender's current search into Kiva's own auto-lending
-    // settings; /donate is how the project is supported. Both existed, working,
-    // with nothing anywhere pointing at them.
+    // settings; it existed, working, with nothing anywhere pointing at it.
     expect(linksTo('/autolend').map((s) => s.name)).toContain('src/components/Options.tsx')
-    expect(linksTo('/donate').map((s) => s.name)).toContain('src/components/KLFooter.tsx')
+  })
+
+  it('has no Donate page, and nothing pointing at one', () => {
+    // Paul, 2026-09-25: donations are no longer asked for. /donate is a removed
+    // page now, redirected to Search (server/routeMap.mjs).
+    expect(ROUTES.some((r) => r.path === '/donate')).toBe(false)
+    expect(linksTo('/donate')).toEqual([])
   })
 
   it('names why each unlinked route is unlinked, rather than leaving it unexplained', () => {

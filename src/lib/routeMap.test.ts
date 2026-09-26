@@ -92,7 +92,8 @@ describe('every address the app has ever had', () => {
     ['#/about', '/about'],
     ['#/live', '/stats'],
     ['#/on', '/search'],
-    ['#/donate', '/donate'],
+    // Removed 2026-09-25: donations are no longer asked for.
+    ['#/donate', '/search'],
     ['#/teams', '/teams'],
     ['#/clear-basket', '/basket?clear=1'],
     ['#/outdated', '/outdated'],
@@ -149,6 +150,8 @@ describe('the renames, once the app is on paths', () => {
 
   it('says a removed page is gone rather than merely unknown', () => {
     expect(fromPath('/on')!.reason).toBe('gone')
+    expect(fromPath('/donate')!.reason).toBe('gone')
+    expect(url(fromPath('/donate'))).toBe('/search')
     expect(fromPath('/nothing-here')!.reason).toBe('unknown')
   })
 

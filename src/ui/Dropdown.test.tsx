@@ -44,6 +44,27 @@ describe('Dropdown focus management', () => {
     expect(document.activeElement).toBe(toggle)
   })
 
+  it('an item marked keepOpen leaves the menu open and focus where it was', () => {
+    let clicked = 0
+    render(
+      <Dropdown>
+        <Dropdown.Toggle>Open</Dropdown.Toggle>
+        <Dropdown.Menu>
+          <Dropdown.Item keepOpen onClick={() => clicked++}>
+            Stay
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
+    const stay = screen.getByRole('button', { name: 'Stay' })
+    stay.focus()
+    fireEvent.click(stay)
+    expect(clicked).toBe(1)
+    expect(screen.getByRole('button', { name: 'Stay' })).toBe(stay)
+    expect(document.activeElement).toBe(stay)
+  })
+
   it('clicking elsewhere closes the menu and leaves focus where the click went', () => {
     const { toggle, elsewhere } = renderDropdown()
     elsewhere.focus()

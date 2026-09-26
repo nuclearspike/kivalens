@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useUtilsStore } from '../stores'
 import { useI18n } from '../i18n'
+import SupportEntries from '../support/SupportEntries'
 
 function KivaLink({ path, children }: { path: string; children: React.ReactNode }) {
   return (
@@ -173,6 +174,9 @@ export default function About() {
           </ul>
 
           <h3>{t('questions_problems')}</h3>
+          <p>
+            <SupportEntries look="buttons" />
+          </p>
           <p>
             {tx('data_sources_and_contact', {
               api: <NewTabLink href="https://build.kiva.org/api">{t('kivas_public_api')}</NewTabLink>,

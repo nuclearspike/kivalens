@@ -4,6 +4,7 @@ import { useCriteriaStore } from '../stores/criteriaStore'
 import { useUtilsStore } from '../stores/utilsStore'
 import { getKivaLoans } from '../api/kiva'
 import { activeCriteria } from '../lib/criteriaActive'
+import { labelOf as criteriaLabel, valueOf as criteriaValue } from '../lib/describeCriteria'
 import { useI18n } from '../i18n'
 
 // Shown in place of the plain "no matching loans" alert: lists the active filters
@@ -36,26 +37,11 @@ export function NoResultsHelp() {
       .sort((x, y) => y.count - x.count)
   }, [lastKnown, lenderId])
 
-  // A label may be a parameterized key ("Limit to {count} per {group}"); its
-  // string params are themselves translation keys, so translate those too.
-  const labelOf = (it: { label: string; labelParams?: Record<string, string | number> }) =>
-    t(it.label, it.labelParams
-      ? Object.fromEntries(
-          Object.entries(it.labelParams).map(([k, v]) => [k, typeof v === 'string' ? t(v) : v]),
-        )
-      : undefined)
-
-  // 'none' EXCLUDES the listed values and 'all' requires every one of them — show
-  // that, or an exclude filter reads exactly like an include filter.
-  const valueOf = (it: { value: string; modifier?: 'all' | 'none' }) => {
-    // Values are Kiva data vocabulary (sector / activity / tag names, or a
-    // comma-joined list of them), translated by their canonical English name;
-    // anything else (a range like "20 – 40", a country code) passes through.
-    const v = it.value.split(', ').map((part) => data(part)).join(', ')
-    if (it.modifier === 'none') return t('not_value', { value: v })
-    if (it.modifier === 'all') return t('all_value', { value: v })
-    return v
-  }
+  // Said the way the criteria history says it (src/lib/describeCriteria.ts):
+  // countries and field partners by name, exclusions as exclusions.
+  const labelOf = (it: Parameters<typeof criteriaLabel>[0]) => criteriaLabel(it, t)
+  const valueOf = (it: Parameters<typeof criteriaValue>[0]) =>
+    criteriaValue(it, { t, data, partnerName: (id) => getKivaLoans().getPartner(Number(id))?.name }) ?? t('on')
 
   const chipBase: React.CSSProperties = {
     display: 'inline-flex',

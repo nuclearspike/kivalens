@@ -5,7 +5,7 @@ import { useCriteriaStore, useLoanStore } from '../stores'
 import { showAlert, showConfirm, showPrompt } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import type { Criteria } from '../types'
-import type { SavedSearch } from '../stores/criteriaStore'
+import { countSavedSearch, type SavedSearch } from '../stores/criteriaStore'
 import { useI18n } from '../i18n'
 import { summarizeCriteria, type Translate } from '../lib/summarizeCriteria'
 import { pluralCategory } from '../lib/pluralCategory'
@@ -135,7 +135,7 @@ export function SavedSearches() {
     if (!kl?.isReady()) return 0
     const crit = getSavedSearch(selected)
     if (!crit) return 0
-    try { return kl.filter(crit, false).length } catch { return 0 }
+    return countSavedSearch(kl, crit)
   }, [selected, getSavedSearch, loanCount])
 
   const searchCounts = useMemo(() => {
@@ -145,7 +145,7 @@ export function SavedSearches() {
     for (const name of searches) {
       const crit = savedSearches[name]
       if (crit) {
-        try { counts[name] = kl.filter(crit, false).length } catch { counts[name] = 0 }
+        counts[name] = countSavedSearch(kl, crit)
       }
     }
     return counts

@@ -25,7 +25,7 @@ export const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
-  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com https://rum.kivalens.org",
+  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com https://api.humansareuseful.ai https://rum.kivalens.org",
   "form-action 'self' https://www.kiva.org https://kiva.org https://*.kiva.org",
   "frame-ancestors 'none'",
   "frame-src 'none'",

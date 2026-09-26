@@ -1,0 +1,1975 @@
+{
+  "version": "1.1.22",
+  "fingerprint": "sha256:8797cbdb3463853d37eedbcd31a0adf29eda50216ab525e9a4b1541ef661c59e",
+  "locales": [
+    "en",
+    "de",
+    "fr",
+    "es",
+    "pt-BR",
+    "ja",
+    "zh-Hans"
+  ],
+  "entryPoints": {
+    "web_app": {
+      "footer": [
+        {
+          "id": "sendFeedback",
+          "label": "menu.sendFeedback",
+          "opens": "feedback"
+        },
+        {
+          "id": "myReports",
+          "label": "menu.myReports",
+          "opens": "myReports"
+        }
+      ],
+      "languageMenu": {
+        "rule": "The page's language menu always ends with a divider and this item, in place of entryPoints.languageSwitcher's conditional Request item: it opens Feedback with the Language kind chosen, pre-filled with the browser's language when the product lacks it (owner direction 2026-09-25).",
+        "item": {
+          "id": "suggestLanguage",
+          "label": "menu.suggestLanguage",
+          "opens": "feedback",
+          "preselect": "language"
+        }
+      },
+      "supportRoute": {
+        "rule": "The product's own About or contact page carries the same two entries beside its contact details: the web counterpart of rules.oneAboutSupportRoute.",
+        "items": [
+          {
+            "id": "sendFeedback",
+            "label": "menu.sendFeedback",
+            "opens": "feedback"
+          },
+          {
+            "id": "myReports",
+            "label": "menu.myReports",
+            "opens": "myReports"
+          }
+        ]
+      },
+      "presentation": "Each screen opens as a dialog over the page, centered and content-fitting, never a separate window or tab; one shared dialog at a time. Entries never carry an ellipsis. Escape and the backdrop close the dialog like Close: an unsent Feedback draft and its kind are kept for the next ordinary entry (rules.feedbackReentry); only Cancel discards it.",
+      "facts": "The transmitted facts are the page's own: its registered app identity, the deployed version and build, platform web, distribution web (development when served locally), the browser family and major version with its operating system as os, architecture unknown, and the page's language. screens.feedback willSend shows exactly these, with facts.distribution.web.",
+      "copyVariants": {
+        "reports.subtitle": "reports.subtitle.web",
+        "reports.empty.body": "reports.empty.body.web",
+        "reports.check.firstTime.body": "reports.check.firstTime.body.web",
+        "feedback.upgradeRequired": "feedback.upgradeRequired.web"
+      }
+    },
+    "languageSwitcher": {
+      "rule": "When the system language is not one of the seven supported app languages, the product's language menu ends with menu.requestLanguage for that language; choosing it opens Feedback with the Language kind selected and the language pre-filled.",
+      "item": {
+        "id": "requestLanguage",
+        "label": "menu.requestLanguage",
+        "opens": "feedback",
+        "preselect": "language",
+        "opensWindow": true
+      }
+    }
+  },
+  "variation": "uses entryPoints.web_app (its footer, the product's support page, and entryPoints.web_app.languageMenu on its language menu, which replaces entryPoints.languageSwitcher's conditional item); screens open as page dialogs, not windows. The installation key is a non-extractable browser key held in the site's storage; when the browser keeps no data for the site the key lives for the page's lifetime, Feedback still sends, and My Reports shows reports.storageUnavailable. A host whose languages go beyond the seven carries its own translations of every key it renders, held to parity by the host's check; they never replace the canonical seven.",
+  "feedback": {
+    "kinds": [
+      {
+        "id": "idea",
+        "label": "feedback.kind.idea"
+      },
+      {
+        "id": "bug",
+        "label": "feedback.kind.bug"
+      },
+      {
+        "id": "language",
+        "label": "feedback.kind.language"
+      }
+    ],
+    "defaultKind": "idea",
+    "send": {
+      "idea": "feedback.send.idea",
+      "bug": "feedback.send.bug",
+      "language": "feedback.send.language",
+      "languageUnselected": "feedback.send.languageUnselected"
+    },
+    "minimumCharacters": 3,
+    "thankYouSeconds": 4
+  },
+  "reports": {
+    "statuses": {
+      "received": {
+        "label": "reports.status.received",
+        "help": "reports.status.received.help"
+      },
+      "beingLookedAt": {
+        "label": "reports.status.beingLookedAt",
+        "help": "reports.status.beingLookedAt.help"
+      },
+      "needsInformation": {
+        "label": "reports.status.needsInformation",
+        "help": "reports.status.needsInformation.help"
+      },
+      "waitingForReply": {
+        "label": "reports.status.waitingForReply",
+        "help": "reports.status.waitingForReply.help"
+      },
+      "fixPrepared": {
+        "label": "reports.status.fixPrepared",
+        "help": "reports.status.fixPrepared.help"
+      },
+      "fixedIn": {
+        "label": "reports.status.fixedIn",
+        "help": "reports.status.fixedIn.help"
+      },
+      "availableIn": {
+        "label": "reports.status.availableIn",
+        "help": "reports.status.availableIn.help"
+      },
+      "cantReproduce": {
+        "label": "reports.status.cantReproduce",
+        "help": "reports.status.cantReproduce.help"
+      },
+      "completed": {
+        "label": "reports.status.completed",
+        "help": "reports.status.completed.help"
+      },
+      "relatedReport": {
+        "label": "reports.status.relatedReport",
+        "help": "reports.status.relatedReport.help"
+      },
+      "unavailable": {
+        "label": "reports.status.unavailable",
+        "help": "reports.status.unavailable.help"
+      }
+    },
+    "headlineCharacters": 160
+  },
+  "strings": {
+    "feedback.thankYou": {
+      "en": "Thank you for submitting feedback.",
+      "de": "Vielen Dank für Ihr Feedback.",
+      "fr": "Merci pour votre retour.",
+      "es": "Gracias por enviar tus comentarios.",
+      "pt-BR": "Obrigado por enviar seu feedback.",
+      "ja": "フィードバックをお送りいただき、ありがとうございます。",
+      "zh-Hans": "感谢您提交反馈。"
+    },
+    "menu.help": {
+      "en": "{app} Help",
+      "de": "{app}-Hilfe",
+      "fr": "Aide de {app}",
+      "es": "Ayuda de {app}",
+      "pt-BR": "Ajuda do {app}",
+      "ja": "{app}ヘルプ",
+      "zh-Hans": "{app} 帮助"
+    },
+    "menu.sendFeedback": {
+      "en": "Send Feedback",
+      "de": "Feedback senden",
+      "fr": "Envoyer des commentaires",
+      "es": "Enviar comentarios",
+      "pt-BR": "Enviar feedback",
+      "ja": "フィードバックを送信",
+      "zh-Hans": "发送反馈"
+    },
+    "menu.myReports": {
+      "en": "My Reports",
+      "de": "Meine Meldungen",
+      "fr": "Mes rapports",
+      "es": "Mis informes",
+      "pt-BR": "Meus relatos",
+      "ja": "マイレポート",
+      "zh-Hans": "我的报告"
+    },
+    "menu.moreApps": {
+      "en": "More from HumansAreUseful",
+      "de": "Mehr von HumansAreUseful",
+      "fr": "D’autres apps de HumansAreUseful",
+      "es": "Más de HumansAreUseful",
+      "pt-BR": "Mais da HumansAreUseful",
+      "ja": "HumansAreUsefulのほかのアプリ",
+      "zh-Hans": "HumansAreUseful 的更多应用"
+    },
+    "menu.about": {
+      "en": "About {app}",
+      "de": "Über {app}",
+      "fr": "À propos de {app}",
+      "es": "Acerca de {app}",
+      "pt-BR": "Sobre o {app}",
+      "ja": "{app}について",
+      "zh-Hans": "关于 {app}"
+    },
+    "menu.suggestLanguage": {
+      "en": "Suggest Language",
+      "de": "Sprache vorschlagen",
+      "fr": "Suggérer une langue",
+      "es": "Sugerir un idioma",
+      "pt-BR": "Sugerir idioma",
+      "ja": "言語を提案",
+      "zh-Hans": "建议语言"
+    },
+    "menu.requestLanguage": {
+      "en": "Request {language}",
+      "de": "{language} anfragen",
+      "fr": "Demander la langue {language}",
+      "es": "Solicitar {language}",
+      "pt-BR": "Solicitar {language}",
+      "ja": "{language}の追加をリクエスト",
+      "zh-Hans": "请求支持{language}"
+    },
+    "feedback.title": {
+      "en": "Send Feedback",
+      "de": "Feedback senden",
+      "fr": "Envoyer des commentaires",
+      "es": "Enviar comentarios",
+      "pt-BR": "Enviar feedback",
+      "ja": "フィードバックを送信",
+      "zh-Hans": "发送反馈"
+    },
+    "feedback.kind.idea": {
+      "en": "Idea",
+      "de": "Idee",
+      "fr": "Idée",
+      "es": "Idea",
+      "pt-BR": "Ideia",
+      "ja": "アイデア",
+      "zh-Hans": "建议"
+    },
+    "feedback.kind.bug": {
+      "en": "Bug",
+      "de": "Fehler",
+      "fr": "Anomalie",
+      "es": "Error",
+      "pt-BR": "Erro",
+      "ja": "バグ",
+      "zh-Hans": "错误"
+    },
+    "feedback.kind.language": {
+      "en": "Language",
+      "de": "Sprache",
+      "fr": "Langue",
+      "es": "Idioma",
+      "pt-BR": "Idioma",
+      "ja": "言語",
+      "zh-Hans": "语言"
+    },
+    "feedback.prompt.idea": {
+      "en": "What would you like to suggest?",
+      "de": "Was möchten Sie vorschlagen?",
+      "fr": "Que souhaitez-vous suggérer ?",
+      "es": "¿Qué te gustaría sugerir?",
+      "pt-BR": "O que você gostaria de sugerir?",
+      "ja": "どのような提案がありますか？",
+      "zh-Hans": "您想提出什么建议？"
+    },
+    "feedback.prompt.bug": {
+      "en": "What happened?",
+      "de": "Was ist passiert?",
+      "fr": "Que s’est-il passé ?",
+      "es": "¿Qué ocurrió?",
+      "pt-BR": "O que aconteceu?",
+      "ja": "何が起きましたか？",
+      "zh-Hans": "发生了什么？"
+    },
+    "feedback.placeholder.idea": {
+      "en": "Tell us what you would like to see improved.",
+      "de": "Sagen Sie uns, was Sie gerne verbessert sehen würden.",
+      "fr": "Dites-nous ce que vous aimeriez voir améliorer.",
+      "es": "Cuéntanos qué te gustaría que mejoráramos.",
+      "pt-BR": "Conte o que você gostaria que fosse melhorado.",
+      "ja": "改善してほしい点を教えてください。",
+      "zh-Hans": "请告诉我们您希望改进什么。"
+    },
+    "feedback.placeholder.bug": {
+      "en": "Describe what happened, what you expected, and any steps that might help us reproduce the issue.",
+      "de": "Beschreiben Sie, was passiert ist, was Sie erwartet haben und welche Schritte uns helfen könnten, das Problem nachzustellen.",
+      "fr": "Décrivez ce qui s’est passé, ce que vous attendiez et les étapes qui pourraient nous aider à reproduire le problème.",
+      "es": "Describe qué ocurrió, qué esperabas que pasara y cualquier paso que pueda ayudarnos a reproducir el problema.",
+      "pt-BR": "Descreva o que aconteceu, o que você esperava e quaisquer etapas que possam nos ajudar a reproduzir o problema.",
+      "ja": "何が起きたか、期待していた結果、問題の再現に役立つ手順を入力してください。",
+      "zh-Hans": "请说明发生了什么、您原本期望的结果，以及可能帮助我们重现问题的步骤。"
+    },
+    "feedback.language.field": {
+      "en": "Which language would you like?",
+      "de": "Welche Sprache wünschen Sie?",
+      "fr": "Quelle langue souhaitez-vous ?",
+      "es": "¿Qué idioma te gustaría?",
+      "pt-BR": "Qual idioma você gostaria?",
+      "ja": "どの言語をご希望ですか？",
+      "zh-Hans": "您希望支持哪种语言？"
+    },
+    "feedback.language.note": {
+      "en": "Anything else? (optional)",
+      "de": "Sonst noch etwas? (optional)",
+      "fr": "Autre chose ? (facultatif)",
+      "es": "¿Algo más? (opcional)",
+      "pt-BR": "Algo mais? (opcional)",
+      "ja": "ほかに何かありますか？（任意）",
+      "zh-Hans": "还有其他想说的吗？（可选）"
+    },
+    "feedback.language.system": {
+      "en": "System",
+      "de": "System",
+      "fr": "Système",
+      "es": "Sistema",
+      "pt-BR": "Sistema",
+      "ja": "システム",
+      "zh-Hans": "系统"
+    },
+    "feedback.language.other": {
+      "en": "Choose another language",
+      "de": "Andere Sprache auswählen",
+      "fr": "Choisir une autre langue",
+      "es": "Elegir otro idioma",
+      "pt-BR": "Escolher outro idioma",
+      "ja": "別の言語を選択",
+      "zh-Hans": "选择其他语言"
+    },
+    "feedback.language.useTyped": {
+      "en": "Use \"{typed}\"",
+      "de": "„{typed}“ verwenden",
+      "fr": "Utiliser « {typed} »",
+      "es": "Usar «{typed}»",
+      "pt-BR": "Usar “{typed}”",
+      "ja": "「{typed}」を使用",
+      "zh-Hans": "使用“{typed}”"
+    },
+    "feedback.language.sent": {
+      "en": "Sent. If {language} is added, it will appear in the app's language list.",
+      "de": "Gesendet. Falls {language} hinzugefügt wird, erscheint es in der Sprachenliste der App.",
+      "fr": "Envoyé. Si l’app devient disponible en {language}, cette langue apparaîtra dans sa liste de langues.",
+      "es": "Enviado. Si se añade el idioma {language}, aparecerá en la lista de idiomas de la aplicación.",
+      "pt-BR": "Enviado. Se adicionarmos o idioma {language}, ele aparecerá na lista de idiomas do app.",
+      "ja": "送信しました。{language}が追加されると、アプリの言語リストに表示されます。",
+      "zh-Hans": "已发送。如果之后支持{language}，它会出现在应用的语言列表中。"
+    },
+    "feedback.email.placeholder": {
+      "en": "you@example.com",
+      "de": "you@example.com",
+      "fr": "you@example.com",
+      "es": "you@example.com",
+      "pt-BR": "you@example.com",
+      "ja": "you@example.com",
+      "zh-Hans": "you@example.com"
+    },
+    "feedback.privacyWarning": {
+      "en": "Please don’t include passwords, payment details, or other personal or confidential information.",
+      "de": "Bitte geben Sie keine Passwörter, Zahlungsdaten oder andere persönliche oder vertrauliche Informationen an.",
+      "fr": "N’incluez pas de mots de passe, de données de paiement ni d’autres informations personnelles ou confidentielles.",
+      "es": "No incluyas contraseñas, datos de pago ni otra información personal o confidencial.",
+      "pt-BR": "Não inclua senhas, dados de pagamento ou outras informações pessoais ou confidenciais.",
+      "ja": "パスワード、支払い情報、その他の個人情報や機密情報を含めないでください。",
+      "zh-Hans": "请勿包含密码、付款信息或其他个人或机密信息。"
+    },
+    "feedback.willSend": {
+      "en": "Sending: your message, {app} {version}, {os}. No other data.",
+      "de": "Wir senden: deine Nachricht, {app} {version}, {os}. Keine weiteren Daten.",
+      "fr": "Nous enverrons votre message, {app} {version} et {os}. Aucune autre donnée.",
+      "es": "Enviando: tu mensaje, {app} {version}, {os}. Ningún otro dato.",
+      "pt-BR": "Enviando: sua mensagem, {app} {version}, {os}. Nenhum outro dado.",
+      "ja": "送信内容：メッセージ、{app} {version}、{os}。その他のデータは送信しません。",
+      "zh-Hans": "将发送：你的消息、{app} {version}、{os}。不会发送其他数据。"
+    },
+    "feedback.willSend.withEmail": {
+      "en": "Sending: your message, your email, {app} {version}, {os}. No other data.",
+      "de": "Wir senden: deine Nachricht, deine E-Mail-Adresse, {app} {version}, {os}. Keine weiteren Daten.",
+      "fr": "Nous enverrons votre message, votre adresse e-mail, {app} {version} et {os}. Aucune autre donnée.",
+      "es": "Enviando: tu mensaje, tu correo, {app} {version}, {os}. Ningún otro dato.",
+      "pt-BR": "Enviando: sua mensagem, seu e-mail, {app} {version}, {os}. Nenhum outro dado.",
+      "ja": "送信内容：メッセージ、メールアドレス、{app} {version}、{os}。その他のデータは送信しません。",
+      "zh-Hans": "将发送：你的消息、电子邮箱、{app} {version}、{os}。不会发送其他数据。"
+    },
+    "feedback.willSend.details": {
+      "en": "Show details",
+      "de": "Details anzeigen",
+      "fr": "Afficher les détails",
+      "es": "Mostrar detalles",
+      "pt-BR": "Mostrar detalhes",
+      "ja": "詳細を表示",
+      "zh-Hans": "显示详情"
+    },
+    "feedback.processingNote": {
+      "en": "We may use automated systems and service providers to review your feedback, investigate the issue, develop a fix, and respond.",
+      "de": "Wir können automatisierte Systeme und Dienstleister einsetzen, um Ihr Feedback zu prüfen, das Problem zu untersuchen, eine Lösung zu entwickeln und zu antworten.",
+      "fr": "Nous pouvons utiliser des systèmes automatisés et des prestataires pour examiner vos commentaires, analyser le problème, élaborer un correctif et vous répondre.",
+      "es": "Podemos usar sistemas automatizados y proveedores de servicios para revisar tus comentarios, investigar el problema, desarrollar una solución y responder.",
+      "pt-BR": "Podemos usar sistemas automatizados e prestadores de serviço para analisar seu feedback, investigar o problema, desenvolver uma correção e responder.",
+      "ja": "フィードバックの確認、問題の調査、修正の開発、返信のために、自動システムおよびサービス提供者を利用する場合があります。",
+      "zh-Hans": "我们可能会使用自动化系统和服务提供商来审核您的反馈、调查问题、制定修复方案并作出回复。"
+    },
+    "feedback.validation.minimum": {
+      "en": "Enter at least three characters.",
+      "de": "Geben Sie mindestens drei Zeichen ein.",
+      "fr": "Saisissez au moins trois caractères.",
+      "es": "Introduce al menos tres caracteres.",
+      "pt-BR": "Digite pelo menos três caracteres.",
+      "ja": "3文字以上入力してください。",
+      "zh-Hans": "请至少输入三个字符。"
+    },
+    "feedback.send.idea": {
+      "en": "Send suggestion",
+      "de": "Vorschlag senden",
+      "fr": "Envoyer la suggestion",
+      "es": "Enviar sugerencia",
+      "pt-BR": "Enviar sugestão",
+      "ja": "提案を送信",
+      "zh-Hans": "发送建议"
+    },
+    "feedback.send.bug": {
+      "en": "Send report",
+      "de": "Meldung senden",
+      "fr": "Envoyer le signalement",
+      "es": "Enviar informe",
+      "pt-BR": "Enviar relato",
+      "ja": "報告を送信",
+      "zh-Hans": "发送报告"
+    },
+    "feedback.send.language": {
+      "en": "Request {language}",
+      "de": "{language} anfordern",
+      "fr": "Demander la langue {language}",
+      "es": "Solicitar {language}",
+      "pt-BR": "Solicitar {language}",
+      "ja": "{language}の追加をリクエスト",
+      "zh-Hans": "请求支持 {language}"
+    },
+    "feedback.send.languageUnselected": {
+      "en": "Send language request",
+      "de": "Sprachanfrage senden",
+      "fr": "Envoyer la demande de langue",
+      "es": "Enviar solicitud de idioma",
+      "pt-BR": "Enviar solicitação de idioma",
+      "ja": "言語リクエストを送信",
+      "zh-Hans": "发送语言请求"
+    },
+    "feedback.sent": {
+      "en": "Sent. A real person will read this.",
+      "de": "Gesendet. Ein echter Mensch wird deine Nachricht lesen.",
+      "fr": "Envoyé. Une vraie personne le lira.",
+      "es": "Enviado. Lo leerá una persona de verdad.",
+      "pt-BR": "Enviado. Uma pessoa de verdade vai ler.",
+      "ja": "送信しました。担当者が目を通します。",
+      "zh-Hans": "已发送。会有专人阅读。"
+    },
+    "feedback.sent.withEmail": {
+      "en": "Sent. A real person will read this — replies go to {email}.",
+      "de": "Gesendet. Ein echter Mensch wird deine Nachricht lesen — Antworten gehen an {email}.",
+      "fr": "Envoyé. Une vraie personne le lira — les réponses seront envoyées à {email}.",
+      "es": "Enviado. Lo leerá una persona de verdad — las respuestas se enviarán a {email}.",
+      "pt-BR": "Enviado. Uma pessoa de verdade vai ler — a resposta será enviada para {email}.",
+      "ja": "送信しました。担当者が目を通します — 返信は{email}に届きます。",
+      "zh-Hans": "已发送。会有专人阅读 — 回复将发送至 {email}。"
+    },
+    "feedback.failed": {
+      "en": "Couldn’t submit",
+      "de": "Senden nicht möglich",
+      "fr": "Échec de l’envoi",
+      "es": "No se pudo enviar",
+      "pt-BR": "Não foi possível enviar",
+      "ja": "送信できませんでした",
+      "zh-Hans": "无法提交"
+    },
+    "feedback.crash.title": {
+      "en": "{app} closed unexpectedly.",
+      "de": "{app} wurde unerwartet beendet.",
+      "fr": "{app} s’est fermée de manière inattendue.",
+      "es": "{app} se cerró inesperadamente.",
+      "pt-BR": "{app} fechou inesperadamente.",
+      "ja": "{app}が予期せず終了しました。",
+      "zh-Hans": "{app} 意外关闭。"
+    },
+    "feedback.crash.report": {
+      "en": "Report it",
+      "de": "Absturz melden",
+      "fr": "Le signaler",
+      "es": "Informar",
+      "pt-BR": "Relatar",
+      "ja": "報告する",
+      "zh-Hans": "报告此问题"
+    },
+    "feedback.crash.notNow": {
+      "en": "Not now",
+      "de": "Jetzt nicht",
+      "fr": "Pas maintenant",
+      "es": "Ahora no",
+      "pt-BR": "Agora não",
+      "ja": "今はしない",
+      "zh-Hans": "暂不"
+    },
+    "feedback.crash.prefill": {
+      "en": "The app closed unexpectedly.",
+      "de": "Die App wurde unerwartet beendet.",
+      "fr": "L’app s’est fermée de manière inattendue.",
+      "es": "La aplicación se cerró inesperadamente.",
+      "pt-BR": "O app fechou inesperadamente.",
+      "ja": "アプリが予期せず終了しました。",
+      "zh-Hans": "应用意外关闭。"
+    },
+    "feedback.invalidEmail": {
+      "en": "Enter a valid email address.",
+      "de": "Gib eine gültige E-Mail-Adresse ein.",
+      "fr": "Saisissez une adresse e-mail valide.",
+      "es": "Introduce una dirección de correo válida.",
+      "pt-BR": "Digite um endereço de e-mail válido.",
+      "ja": "有効なメールアドレスを入力してください。",
+      "zh-Hans": "请输入有效的邮箱地址。"
+    },
+    "reports.verify.failed.title": {
+      "en": "Could not verify email",
+      "de": "E-Mail-Adresse konnte nicht bestätigt werden",
+      "fr": "Impossible de vérifier l’adresse e-mail",
+      "es": "No se pudo verificar el correo",
+      "pt-BR": "Não foi possível verificar o e-mail",
+      "ja": "メールを確認できませんでした",
+      "zh-Hans": "无法验证邮箱"
+    },
+    "reports.verify.failed.body": {
+      "en": "We could not verify your email right now. Try this link again in a moment.",
+      "de": "Deine E-Mail-Adresse konnte gerade nicht bestätigt werden. Versuche diesen Link gleich noch einmal.",
+      "fr": "Nous n’avons pas pu vérifier votre adresse e-mail pour le moment. Réessayez ce lien dans un instant.",
+      "es": "No hemos podido verificar tu correo ahora. Vuelve a probar este enlace en un momento.",
+      "pt-BR": "Não foi possível verificar seu e-mail agora. Tente este link novamente em instantes.",
+      "ja": "現在、メールアドレスを確認できません。少し待ってから、このリンクをもう一度お試しください。",
+      "zh-Hans": "暂时无法验证你的邮箱。请稍后重试此链接。"
+    },
+    "reports.email.pending": {
+      "en": "Awaiting verification: {email}",
+      "de": "Bestätigung ausstehend: {email}",
+      "fr": "Vérification en attente : {email}",
+      "es": "Pendiente de verificación: {email}",
+      "pt-BR": "Aguardando verificação: {email}",
+      "ja": "確認待ち：{email}",
+      "zh-Hans": "等待验证：{email}"
+    },
+    "reports.email.verified": {
+      "en": "Verified reply email: {email}",
+      "de": "Bestätigte Antwortadresse: {email}",
+      "fr": "Adresse de réponse vérifiée : {email}",
+      "es": "Correo de respuesta verificado: {email}",
+      "pt-BR": "E-mail de resposta verificado: {email}",
+      "ja": "確認済みの返信先メール：{email}",
+      "zh-Hans": "已验证的回复邮箱：{email}"
+    },
+    "reports.email.unknown": {
+      "en": "Check for status to see this report’s reply email.",
+      "de": "Prüfe den Status, um die Antwortadresse dieser Meldung zu sehen.",
+      "fr": "Consultez le statut pour voir l’adresse e-mail de réponse de ce signalement.",
+      "es": "Consulta el estado para ver el correo de respuesta de este informe.",
+      "pt-BR": "Consulte o status para ver o e-mail de resposta deste relato.",
+      "ja": "状況を確認すると、このレポートの返信先メールを表示できます。",
+      "zh-Hans": "检查状态以查看此报告的回复邮箱。"
+    },
+    "reports.email.undo": {
+      "en": "Undo",
+      "de": "Rückgängig",
+      "fr": "Annuler",
+      "es": "Deshacer",
+      "pt-BR": "Desfazer",
+      "ja": "取り消す",
+      "zh-Hans": "撤销"
+    },
+    "reports.email.restored": {
+      "en": "Reply email restored on this report.",
+      "de": "Antwortadresse für diese Meldung wiederhergestellt.",
+      "fr": "Adresse e-mail de réponse rétablie pour ce signalement.",
+      "es": "Se restauró el correo de respuesta de este informe.",
+      "pt-BR": "E-mail de resposta restaurado neste relato.",
+      "ja": "このレポートの返信先メールを復元しました。",
+      "zh-Hans": "已恢复此报告的回复邮箱。"
+    },
+    "reports.email.failed": {
+      "en": "We couldn’t update this report’s reply email. Try again.",
+      "de": "Die Antwortadresse dieser Meldung konnte nicht aktualisiert werden. Versuche es erneut.",
+      "fr": "L’adresse e-mail de réponse de ce signalement n’a pas pu être mise à jour. Réessayez.",
+      "es": "No pudimos actualizar el correo de respuesta de este informe. Inténtalo de nuevo.",
+      "pt-BR": "Não foi possível atualizar o e-mail de resposta deste relato. Tente novamente.",
+      "ja": "このレポートの返信先メールを更新できませんでした。もう一度お試しください。",
+      "zh-Hans": "无法更新此报告的回复邮箱。请重试。"
+    },
+    "reports.email.undoFailed": {
+      "en": "We couldn’t restore this report’s reply email. You can add it again.",
+      "de": "Die Antwortadresse dieser Meldung konnte nicht wiederhergestellt werden. Du kannst sie erneut hinzufügen.",
+      "fr": "L’adresse e-mail de réponse de ce signalement n’a pas pu être rétablie. Vous pouvez l’ajouter à nouveau.",
+      "es": "No pudimos restaurar el correo de respuesta de este informe. Puedes volver a añadirlo.",
+      "pt-BR": "Não foi possível restaurar o e-mail de resposta deste relato. Você pode adicioná-lo novamente.",
+      "ja": "このレポートの返信先メールを復元できませんでした。再度追加できます。",
+      "zh-Hans": "无法恢复此报告的回复邮箱。你可以重新添加。"
+    },
+    "reports.email.conflict": {
+      "en": "This report changed. Check for status, then try again.",
+      "de": "Diese Meldung wurde geändert. Prüfe den Status und versuche es dann erneut.",
+      "fr": "Ce signalement a changé. Consultez son statut, puis réessayez.",
+      "es": "Este informe ha cambiado. Consulta su estado e inténtalo de nuevo.",
+      "pt-BR": "Este relato mudou. Consulte o status e tente novamente.",
+      "ja": "このレポートは変更されました。状況を確認してから、もう一度お試しください。",
+      "zh-Hans": "此报告已更改。请检查状态后重试。"
+    },
+    "reports.email.saving": {
+      "en": "Saving…",
+      "de": "Wird gespeichert…",
+      "fr": "Enregistrement…",
+      "es": "Guardando…",
+      "pt-BR": "Salvando…",
+      "ja": "保存中…",
+      "zh-Hans": "正在保存…"
+    },
+    "reports.addEmail.changeTitle": {
+      "en": "Change reply email",
+      "de": "Antwortadresse ändern",
+      "fr": "Modifier l’adresse e-mail de réponse",
+      "es": "Cambiar correo de respuesta",
+      "pt-BR": "Alterar e-mail de resposta",
+      "ja": "返信先メールを変更",
+      "zh-Hans": "更改回复邮箱"
+    },
+    "reports.addEmail.changeBody": {
+      "en": "We’ll verify the new address by email. Your current verified address stays on this report until the new one is confirmed.",
+      "de": "Wir bestätigen die neue Adresse per E-Mail. Deine bisherige bestätigte Adresse bleibt bei dieser Meldung, bis die neue bestätigt ist.",
+      "fr": "Nous vérifierons la nouvelle adresse par e-mail. Votre adresse vérifiée actuelle reste associée à ce signalement jusqu’à la vérification de la nouvelle.",
+      "es": "Verificaremos la nueva dirección por correo. La dirección verificada actual seguirá en este informe hasta que confirmes la nueva.",
+      "pt-BR": "Verificaremos o novo endereço por e-mail. O endereço verificado atual permanecerá neste relato até a confirmação do novo.",
+      "ja": "新しいアドレスをメールで確認します。確認が完了するまで、このレポートには現在の確認済みアドレスが引き続き使用されます。",
+      "zh-Hans": "我们会通过邮件验证新邮箱。在新邮箱确认之前，此报告将继续使用当前已验证的邮箱。"
+    },
+    "reports.status.needsInformation": {
+      "en": "More information needed",
+      "de": "Weitere Informationen benötigt",
+      "fr": "Informations complémentaires nécessaires",
+      "es": "Se necesita más información",
+      "pt-BR": "Mais informações necessárias",
+      "ja": "追加情報が必要",
+      "zh-Hans": "需要更多信息"
+    },
+    "reports.status.needsInformation.help": {
+      "en": "More details are needed to continue with this report.",
+      "de": "Für die weitere Bearbeitung dieser Meldung sind zusätzliche Angaben erforderlich.",
+      "fr": "Des précisions sont nécessaires pour poursuivre le traitement de ce signalement.",
+      "es": "Se necesitan más detalles para continuar con este informe.",
+      "pt-BR": "Precisamos de mais detalhes para continuar com este relato.",
+      "ja": "このレポートへの対応を続けるには、さらに詳しい情報が必要です。",
+      "zh-Hans": "需要更多详细信息才能继续处理此报告。"
+    },
+    "reports.status.waitingForReply": {
+      "en": "Waiting for your reply",
+      "de": "Warten auf deine Antwort",
+      "fr": "En attente de votre réponse",
+      "es": "Esperando tu respuesta",
+      "pt-BR": "Aguardando sua resposta",
+      "ja": "返信待ち",
+      "zh-Hans": "等待你的回复"
+    },
+    "reports.status.waitingForReply.help": {
+      "en": "A reply was requested and is still needed to continue.",
+      "de": "Eine Antwort wurde angefordert und wird weiterhin benötigt, um fortzufahren.",
+      "fr": "Une réponse a été demandée et reste nécessaire pour continuer.",
+      "es": "Se solicitó una respuesta y aún se necesita para continuar.",
+      "pt-BR": "Foi solicitada uma resposta, que ainda é necessária para continuar.",
+      "ja": "対応を続けるためにお願いした返信をお待ちしています。",
+      "zh-Hans": "已请求你的回复，仍需收到回复才能继续。"
+    },
+    "reports.storageUnavailable": {
+      "en": "This browser isn’t keeping data for this site, so reports you send can’t be listed here. They are still sent.",
+      "de": "Dieser Browser speichert keine Daten für diese Website, daher können gesendete Meldungen hier nicht aufgelistet werden. Sie werden trotzdem gesendet.",
+      "fr": "Ce navigateur ne conserve pas de données pour ce site : les signalements envoyés ne peuvent donc pas être listés ici. Ils sont tout de même envoyés.",
+      "es": "Este navegador no guarda datos de este sitio, así que los informes que envíes no se pueden mostrar aquí. Aun así, se envían.",
+      "pt-BR": "Este navegador não está guardando dados deste site, então os relatos enviados não podem ser listados aqui. Eles ainda são enviados.",
+      "ja": "このブラウザーはこのサイトのデータを保存していないため、送信したレポートをここに一覧表示できません。レポート自体は送信されます。",
+      "zh-Hans": "此浏览器不会为本网站保存数据，因此无法在这里列出你发送的报告。报告仍会发送。"
+    },
+    "reports.status.fixPrepared": {
+      "en": "Fix prepared",
+      "de": "Korrektur vorbereitet",
+      "fr": "Correctif préparé",
+      "es": "Corrección preparada",
+      "pt-BR": "Correção preparada",
+      "ja": "修正準備済み",
+      "zh-Hans": "修复已准备好"
+    },
+    "reports.status.fixPrepared.help": {
+      "en": "A change for this report is prepared. It is not yet confirmed in a compatible release.",
+      "de": "Eine Änderung für diese Meldung ist vorbereitet. Sie ist noch nicht in einer kompatiblen Veröffentlichung bestätigt.",
+      "fr": "Une modification pour ce signalement est prête. Sa disponibilité dans une version compatible n’est pas encore confirmée.",
+      "es": "Hay un cambio preparado para este informe. Aún no se ha confirmado en una versión compatible.",
+      "pt-BR": "Uma alteração para este relato está preparada. Ela ainda não foi confirmada em uma versão compatível.",
+      "ja": "このレポートへの変更は準備できています。互換性のある公開版への反映は、まだ確認されていません。",
+      "zh-Hans": "此报告的修改已准备好，但尚未确认包含在兼容的已发布版本中。"
+    },
+    "reports.status.availableIn": {
+      "en": "Available in {version}",
+      "de": "In {version} verfügbar",
+      "fr": "Disponible dans la version {version}",
+      "es": "Disponible en {version}",
+      "pt-BR": "Disponível na versão {version}",
+      "ja": "{version}で利用可能",
+      "zh-Hans": "可在 {version} 版中使用"
+    },
+    "reports.status.availableIn.help": {
+      "en": "The requested change is available in version {version}.",
+      "de": "Die gewünschte Änderung ist in Version {version} verfügbar.",
+      "fr": "La modification demandée est disponible dans la version {version}.",
+      "es": "El cambio solicitado está disponible en la versión {version}.",
+      "pt-BR": "A alteração solicitada está disponível na versão {version}.",
+      "ja": "ご要望の変更はバージョン{version}で利用できます。",
+      "zh-Hans": "所请求的更改已在 {version} 版中提供。"
+    },
+    "reports.status.cantReproduce.help": {
+      "en": "We tried to reproduce this problem and could not.",
+      "de": "Wir haben versucht, dieses Problem nachzustellen, konnten es aber nicht reproduzieren.",
+      "fr": "Nous avons essayé de reproduire ce problème, sans y parvenir.",
+      "es": "Intentamos reproducir este problema, pero no lo conseguimos.",
+      "pt-BR": "Tentamos reproduzir este problema, mas não conseguimos.",
+      "ja": "この問題の再現を試みましたが、再現できませんでした。",
+      "zh-Hans": "我们尝试复现此问题，但未能复现。"
+    },
+    "reports.status.completed": {
+      "en": "Completed",
+      "de": "Abgeschlossen",
+      "fr": "Terminé",
+      "es": "Completado",
+      "pt-BR": "Concluído",
+      "ja": "完了",
+      "zh-Hans": "已完成"
+    },
+    "reports.status.completed.help": {
+      "en": "This report is complete. No released fix is confirmed.",
+      "de": "Diese Meldung ist abgeschlossen. Eine veröffentlichte Korrektur ist nicht bestätigt.",
+      "fr": "Ce signalement est terminé. Aucun correctif publié n’est confirmé.",
+      "es": "Este informe está completo. No se ha confirmado una corrección publicada.",
+      "pt-BR": "Este relato foi concluído. Nenhuma correção publicada foi confirmada.",
+      "ja": "このレポートは完了しています。公開された修正は確認されていません。",
+      "zh-Hans": "此报告已完成，但尚未确认有已发布的修复。"
+    },
+    "reports.status.relatedReport": {
+      "en": "Related report",
+      "de": "Verknüpfte Meldung",
+      "fr": "Signalement associé",
+      "es": "Informe relacionado",
+      "pt-BR": "Relato relacionado",
+      "ja": "関連レポートあり",
+      "zh-Hans": "相关报告"
+    },
+    "reports.status.relatedReport.help": {
+      "en": "This report is linked to a related report.",
+      "de": "Diese Meldung ist mit einer zugehörigen Meldung verknüpft.",
+      "fr": "Ce signalement est lié à un autre signalement associé.",
+      "es": "Este informe está vinculado a otro informe relacionado.",
+      "pt-BR": "Este relato está vinculado a outro relato relacionado.",
+      "ja": "このレポートは関連する別のレポートに紐付けられています。",
+      "zh-Hans": "此报告已关联到另一份相关报告。"
+    },
+    "reports.status.unavailable.help": {
+      "en": "No confirmed update is available for this report. You can check for status again.",
+      "de": "Für diese Meldung liegt keine bestätigte Aktualisierung vor. Du kannst den Status erneut prüfen.",
+      "fr": "Aucune mise à jour confirmée n’est disponible pour ce signalement. Vous pouvez consulter son statut à nouveau.",
+      "es": "No hay una actualización confirmada para este informe. Puedes volver a consultar su estado.",
+      "pt-BR": "Não há uma atualização confirmada para este relato. Você pode consultar o status novamente.",
+      "ja": "このレポートについて確認済みの更新はありません。もう一度状況を確認できます。",
+      "zh-Hans": "此报告暂无已确认的更新。你可以再次检查状态。"
+    },
+    "reports.verify.email.subject": {
+      "en": "Confirm email replies",
+      "de": "E-Mail-Antworten bestätigen",
+      "fr": "Confirmez les réponses par e-mail",
+      "es": "Confirma las respuestas por correo",
+      "pt-BR": "Confirme as respostas por e-mail",
+      "ja": "メールでの返信を確認",
+      "zh-Hans": "确认通过邮件接收回复"
+    },
+    "reports.verify.email.body": {
+      "en": "You asked to receive email replies about feedback you sent from {app}.\n\nConfirm this email address:\n{url}\n\nYour report is already saved in the app. If you did not request this, ignore this email.",
+      "de": "Du hast darum gebeten, Antworten auf dein über {app} gesendetes Feedback per E-Mail zu erhalten.\n\nBestätige diese E-Mail-Adresse:\n{url}\n\nDeine Meldung ist bereits in der App gespeichert. Wenn du dies nicht angefordert hast, ignoriere diese E-Mail.",
+      "fr": "Vous avez demandé à recevoir par e-mail les réponses aux commentaires envoyés depuis {app}.\n\nConfirmez cette adresse e-mail :\n{url}\n\nVotre signalement est déjà enregistré dans l’application. Si vous n’avez pas fait cette demande, ignorez cet e-mail.",
+      "es": "Has solicitado recibir por correo respuestas a los comentarios que enviaste desde {app}.\n\nConfirma esta dirección de correo:\n{url}\n\nTu informe ya está guardado en la app. Si no solicitaste esto, ignora este correo.",
+      "pt-BR": "Você pediu para receber por e-mail respostas ao feedback enviado pelo {app}.\n\nConfirme este endereço de e-mail:\n{url}\n\nSeu relato já está salvo no app. Se você não fez esta solicitação, ignore este e-mail.",
+      "ja": "{app}から送信したフィードバックについて、メールでの返信を希望しました。\n\nこのメールアドレスを確認してください：\n{url}\n\nレポートはすでにアプリに保存されています。この操作を行っていない場合は、このメールを無視してください。",
+      "zh-Hans": "你请求通过邮件接收有关从 {app} 发送的反馈的回复。\n\n请确认此邮箱地址：\n{url}\n\n你的报告已保存在应用中。如果你未发起此请求，请忽略此邮件。"
+    },
+    "reports.verify.success.title": {
+      "en": "Email verified",
+      "de": "E-Mail-Adresse bestätigt",
+      "fr": "Adresse e-mail vérifiée",
+      "es": "Correo verificado",
+      "pt-BR": "E-mail verificado",
+      "ja": "メール確認済み",
+      "zh-Hans": "邮箱已验证"
+    },
+    "reports.verify.success.body": {
+      "en": "This email can now receive replies about this report. You can return to the app.",
+      "de": "Diese Adresse kann jetzt Antworten auf diese Meldung empfangen. Du kannst zur App zurückkehren.",
+      "fr": "Cette adresse peut désormais recevoir des réponses à ce signalement. Vous pouvez retourner dans l’application.",
+      "es": "Este correo ya puede recibir respuestas sobre este informe. Puedes volver a la app.",
+      "pt-BR": "Este e-mail já pode receber respostas sobre este relato. Você pode voltar ao app.",
+      "ja": "このメールで、このレポートへの返信を受け取れるようになりました。アプリに戻れます。",
+      "zh-Hans": "此邮箱现在可以接收有关此报告的回复。你可以返回应用。"
+    },
+    "reports.verify.expired.title": {
+      "en": "Link no longer valid",
+      "de": "Link nicht mehr gültig",
+      "fr": "Lien non valide",
+      "es": "El enlace ya no es válido",
+      "pt-BR": "Link não é mais válido",
+      "ja": "リンクは無効です",
+      "zh-Hans": "链接已失效"
+    },
+    "reports.verify.expired.body": {
+      "en": "This link expired or was replaced. Open My Reports in the app to request another verification email.",
+      "de": "Dieser Link ist abgelaufen oder wurde ersetzt. Öffne Meine Meldungen in der App, um eine weitere Bestätigungs-E-Mail anzufordern.",
+      "fr": "Ce lien a expiré ou a été remplacé. Ouvrez Mes rapports dans l’application pour demander un nouvel e-mail de vérification.",
+      "es": "Este enlace ha caducado o ha sido reemplazado. Abre Mis informes en la app para solicitar otro correo de verificación.",
+      "pt-BR": "Este link expirou ou foi substituído. Abra Meus relatos no app para solicitar outro e-mail de verificação.",
+      "ja": "このリンクは期限切れか、別のリンクに置き換えられています。アプリで「マイレポート」を開き、確認メールを再度リクエストしてください。",
+      "zh-Hans": "此链接已过期或已被替换。请在应用中打开“我的报告”，请求新的验证邮件。"
+    },
+    "reports.title": {
+      "en": "My Reports",
+      "de": "Meine Meldungen",
+      "fr": "Mes rapports",
+      "es": "Mis informes",
+      "pt-BR": "Meus relatos",
+      "ja": "マイレポート",
+      "zh-Hans": "我的报告"
+    },
+    "reports.subtitle": {
+      "en": "Only reports sent from this device.",
+      "de": "Nur von diesem Gerät gesendete Meldungen.",
+      "fr": "Uniquement les signalements envoyés depuis cet appareil.",
+      "es": "Solo informes enviados desde este dispositivo.",
+      "pt-BR": "Apenas os relatos enviados deste dispositivo.",
+      "ja": "このデバイスから送信したレポートのみです。",
+      "zh-Hans": "仅显示从此设备发送的报告。"
+    },
+    "reports.subtitle.web": {
+      "en": "Only reports sent from this browser.",
+      "de": "Nur von diesem Browser gesendete Meldungen.",
+      "fr": "Uniquement les signalements envoyés depuis ce navigateur.",
+      "es": "Solo informes enviados desde este navegador.",
+      "pt-BR": "Apenas os relatos enviados deste navegador.",
+      "ja": "このブラウザーから送信したレポートのみです。",
+      "zh-Hans": "仅显示从此浏览器发送的报告。"
+    },
+    "reports.check": {
+      "en": "Check for status",
+      "de": "Status prüfen",
+      "fr": "Vérifier le statut",
+      "es": "Consultar estado",
+      "pt-BR": "Verificar status",
+      "ja": "ステータスを確認",
+      "zh-Hans": "检查状态"
+    },
+    "reports.checking": {
+      "en": "Checking…",
+      "de": "Wird geprüft…",
+      "fr": "Vérification…",
+      "es": "Consultando…",
+      "pt-BR": "Verificando…",
+      "ja": "確認中…",
+      "zh-Hans": "正在检查…"
+    },
+    "reports.lastChecked": {
+      "en": "Last checked: {when}",
+      "de": "Zuletzt geprüft: {when}",
+      "fr": "Dernière vérification : {when}",
+      "es": "Última consulta: {when}",
+      "pt-BR": "Última verificação: {when}",
+      "ja": "最終確認：{when}",
+      "zh-Hans": "上次检查：{when}"
+    },
+    "reports.neverChecked": {
+      "en": "Last checked: never",
+      "de": "Zuletzt geprüft: noch nie",
+      "fr": "Dernière vérification : jamais",
+      "es": "Última consulta: nunca",
+      "pt-BR": "Última verificação: nunca",
+      "ja": "最終確認：なし",
+      "zh-Hans": "上次检查：从未检查"
+    },
+    "reports.offline": {
+      "en": "Offline — showing the last check",
+      "de": "Offline — wir zeigen den Stand der letzten Prüfung.",
+      "fr": "Hors ligne — affichage de la dernière vérification",
+      "es": "Sin conexión — se muestra el estado de la última consulta",
+      "pt-BR": "Sem conexão — mostrando a última verificação",
+      "ja": "オフライン — 前回の確認結果を表示しています",
+      "zh-Hans": "离线 — 显示上次检查结果"
+    },
+    "reports.check.firstTime.title": {
+      "en": "Check for status?",
+      "de": "Status prüfen?",
+      "fr": "Vérifier le statut ?",
+      "es": "¿Consultar el estado?",
+      "pt-BR": "Verificar o status?",
+      "ja": "ステータスを確認しますか？",
+      "zh-Hans": "检查报告状态？"
+    },
+    "reports.check.firstTime.body": {
+      "en": "The app will check the status of reports sent from this device ({count}). It won’t send your report text or files.",
+      "de": "Die App fragt nach dem Status deiner Meldungen von diesem Gerät ({count}). Dabei werden weder deine Meldungstexte noch Dateien gesendet.",
+      "fr": "L’app vérifiera le statut des signalements envoyés depuis cet appareil ({count}). Elle n’enverra ni leur texte ni vos fichiers.",
+      "es": "La aplicación consultará el estado de los informes enviados desde este dispositivo ({count}). No enviará el texto ni los archivos de esos informes.",
+      "pt-BR": "O app consultará o status dos relatos enviados deste dispositivo ({count}). O texto e os arquivos dos relatos não serão enviados.",
+      "ja": "アプリが、このデバイスから送信した{count}件のレポートの状況を問い合わせます。レポートの本文やファイルは送信しません。",
+      "zh-Hans": "应用会查询从此设备发送的 {count} 份报告的状态。不会发送报告内容或文件。"
+    },
+    "reports.check.firstTime.body.web": {
+      "en": "The site will check the status of reports sent from this browser ({count}). It won’t send your report text or files.",
+      "de": "Die Website fragt nach dem Status deiner Meldungen aus diesem Browser ({count}). Dabei werden weder deine Meldungstexte noch Dateien gesendet.",
+      "fr": "Le site vérifiera le statut des signalements envoyés depuis ce navigateur ({count}). Il n’enverra ni leur texte ni vos fichiers.",
+      "es": "El sitio consultará el estado de los informes enviados desde este navegador ({count}). No enviará el texto ni los archivos de esos informes.",
+      "pt-BR": "O site consultará o status dos relatos enviados deste navegador ({count}). O texto e os arquivos dos relatos não serão enviados.",
+      "ja": "サイトが、このブラウザーから送信した{count}件のレポートの状況を問い合わせます。レポートの本文やファイルは送信しません。",
+      "zh-Hans": "网站会查询从此浏览器发送的 {count} 份报告的状态。不会发送报告内容或文件。"
+    },
+    "reports.check.confirm": {
+      "en": "Check",
+      "de": "Prüfen",
+      "fr": "Vérifier",
+      "es": "Consultar",
+      "pt-BR": "Verificar",
+      "ja": "確認",
+      "zh-Hans": "检查"
+    },
+    "reports.email.row": {
+      "en": "Reply email on this report: {email}",
+      "de": "E-Mail-Adresse für Antworten auf diese Meldung: {email}",
+      "fr": "E-mail de réponse pour ce signalement : {email}",
+      "es": "Correo de respuesta de este informe: {email}",
+      "pt-BR": "E-mail para resposta neste relato: {email}",
+      "ja": "このレポートの返信先メール：{email}",
+      "zh-Hans": "此报告的回复邮箱：{email}"
+    },
+    "reports.email.none": {
+      "en": "No reply email on this report.",
+      "de": "Für diese Meldung ist keine E-Mail-Adresse für Antworten hinterlegt.",
+      "fr": "Aucune adresse e-mail de réponse pour ce signalement.",
+      "es": "Este informe no tiene un correo de respuesta.",
+      "pt-BR": "Este relato não tem e-mail para resposta.",
+      "ja": "このレポートに返信先メールはありません。",
+      "zh-Hans": "此报告没有回复邮箱。"
+    },
+    "reports.email.add": {
+      "en": "Add email",
+      "de": "E-Mail-Adresse hinzufügen",
+      "fr": "Ajouter une adresse e-mail",
+      "es": "Añadir correo",
+      "pt-BR": "Adicionar e-mail",
+      "ja": "メールを追加",
+      "zh-Hans": "添加邮箱"
+    },
+    "reports.email.change": {
+      "en": "Change",
+      "de": "Ändern",
+      "fr": "Modifier",
+      "es": "Cambiar",
+      "pt-BR": "Alterar",
+      "ja": "変更",
+      "zh-Hans": "更改"
+    },
+    "reports.email.remove": {
+      "en": "Remove",
+      "de": "Entfernen",
+      "fr": "Supprimer",
+      "es": "Eliminar",
+      "pt-BR": "Remover",
+      "ja": "削除",
+      "zh-Hans": "移除"
+    },
+    "reports.email.removed": {
+      "en": "Reply email removed from this report.",
+      "de": "E-Mail-Adresse für Antworten wurde aus dieser Meldung entfernt.",
+      "fr": "Adresse e-mail supprimée de ce signalement.",
+      "es": "Se eliminó el correo de respuesta de este informe.",
+      "pt-BR": "E-mail para resposta removido deste relato.",
+      "ja": "このレポートの返信先メールを削除しました。",
+      "zh-Hans": "已从此报告中移除回复邮箱。"
+    },
+    "reports.email.removedFromReport": {
+      "en": "Reply email removed from this report.",
+      "de": "E-Mail-Adresse für Antworten wurde aus dieser Meldung entfernt.",
+      "fr": "Adresse e-mail supprimée de ce signalement.",
+      "es": "Se eliminó el correo de respuesta de este informe.",
+      "pt-BR": "E-mail para resposta removido deste relato.",
+      "ja": "このレポートの返信先メールを削除しました。",
+      "zh-Hans": "已从此报告中移除回复邮箱。"
+    },
+    "reports.status.received": {
+      "en": "Received",
+      "de": "Eingegangen",
+      "fr": "Reçu",
+      "es": "Recibido",
+      "pt-BR": "Recebido",
+      "ja": "受信済み",
+      "zh-Hans": "已收到"
+    },
+    "reports.status.received.help": {
+      "en": "Your report has been received.",
+      "de": "Deine Meldung ist eingegangen.",
+      "fr": "Votre signalement a bien été reçu.",
+      "es": "Hemos recibido tu informe.",
+      "pt-BR": "Seu relato foi recebido.",
+      "ja": "レポートを受信しました。",
+      "zh-Hans": "已收到你的报告。"
+    },
+    "reports.status.beingLookedAt": {
+      "en": "Being looked at",
+      "de": "Wird geprüft",
+      "fr": "En cours d’examen",
+      "es": "En revisión",
+      "pt-BR": "Em análise",
+      "ja": "確認中",
+      "zh-Hans": "正在查看"
+    },
+    "reports.status.beingLookedAt.help": {
+      "en": "Work on this report is in progress.",
+      "de": "Diese Meldung wird bearbeitet.",
+      "fr": "Ce signalement est en cours de traitement.",
+      "es": "Estamos trabajando en este informe.",
+      "pt-BR": "Estamos trabalhando neste relato.",
+      "ja": "このレポートへの対応を進めています。",
+      "zh-Hans": "此报告的处理工作正在进行。"
+    },
+    "reports.status.fixedIn": {
+      "en": "Fixed in {version}",
+      "de": "In {version} behoben",
+      "fr": "Corrigé dans la version {version}",
+      "es": "Corregido en {version}",
+      "pt-BR": "Corrigido na versão {version}",
+      "ja": "{version}で修正済み",
+      "zh-Hans": "已在 {version} 版修复"
+    },
+    "reports.status.fixedIn.help": {
+      "en": "A fix shipped in version {version}.",
+      "de": "Eine Korrektur wurde mit Version {version} veröffentlicht.",
+      "fr": "Un correctif a été publié avec la version {version}.",
+      "es": "La corrección se publicó en la versión {version}.",
+      "pt-BR": "A correção foi lançada na versão {version}.",
+      "ja": "修正はバージョン{version}で公開されました。",
+      "zh-Hans": "修复已随 {version} 版发布。"
+    },
+    "reports.status.cantReproduce": {
+      "en": "Can’t reproduce",
+      "de": "Nicht reproduzierbar",
+      "fr": "Impossible à reproduire",
+      "es": "No pudimos reproducirlo",
+      "pt-BR": "Não foi possível reproduzir",
+      "ja": "再現できません",
+      "zh-Hans": "无法复现"
+    },
+    "reports.status.noReplyPossible": {
+      "en": "No reply email",
+      "de": "Keine E-Mail-Adresse für Antworten",
+      "fr": "Aucune adresse e-mail de réponse",
+      "es": "Sin correo de respuesta",
+      "pt-BR": "Sem e-mail para resposta",
+      "ja": "返信先メールなし",
+      "zh-Hans": "没有回复邮箱"
+    },
+    "reports.status.noReplyPossible.help": {
+      "en": "This report has no verified reply email. You can still check its status here.",
+      "de": "Für diese Meldung ist keine bestätigte E-Mail-Adresse hinterlegt. Du kannst ihren Status weiterhin hier prüfen.",
+      "fr": "Ce signalement n’a pas d’adresse e-mail vérifiée pour les réponses. Vous pouvez toujours consulter son statut ici.",
+      "es": "Este informe no tiene un correo de respuesta verificado. Puedes seguir consultando su estado aquí.",
+      "pt-BR": "Este relato não tem um e-mail verificado para resposta. Você ainda pode consultar o status aqui.",
+      "ja": "このレポートには確認済みの返信先メールがありません。状況は引き続きここで確認できます。",
+      "zh-Hans": "此报告没有已验证的回复邮箱。你仍可在此查看其状态。"
+    },
+    "reports.status.needsYourEmail": {
+      "en": "Add an email for replies",
+      "de": "E-Mail-Adresse für Antworten hinzufügen",
+      "fr": "Ajouter une adresse e-mail pour les réponses",
+      "es": "Añade un correo para las respuestas",
+      "pt-BR": "Adicione um e-mail para respostas",
+      "ja": "返信用のメールを追加",
+      "zh-Hans": "添加邮箱以接收回复"
+    },
+    "reports.status.unavailable": {
+      "en": "Status unavailable",
+      "de": "Status nicht verfügbar",
+      "fr": "État indisponible",
+      "es": "Estado no disponible",
+      "pt-BR": "Status indisponível",
+      "ja": "ステータスを確認できません",
+      "zh-Hans": "状态不可用"
+    },
+    "reports.get": {
+      "en": "Get {version}",
+      "de": "{version} laden",
+      "fr": "Obtenir {version}",
+      "es": "Obtener {version}",
+      "pt-BR": "Baixar {version}",
+      "ja": "{version}を入手",
+      "zh-Hans": "获取 {version}"
+    },
+    "reports.detail.unavailable": {
+      "en": "The original text of this older report isn’t available on this device.",
+      "de": "Der ursprüngliche Text dieser älteren Meldung ist auf diesem Gerät nicht verfügbar.",
+      "fr": "Le texte original de cet ancien signalement n’est pas disponible sur cet appareil.",
+      "es": "El texto original de este informe anterior no está disponible en este dispositivo.",
+      "pt-BR": "O texto original deste relato antigo não está disponível neste dispositivo.",
+      "ja": "この古いレポートの元の文章は、このデバイスでは利用できません。",
+      "zh-Hans": "此设备上没有这份较早报告的原文。"
+    },
+    "reports.detail.yourReport": {
+      "en": "Your report",
+      "de": "Deine Meldung",
+      "fr": "Votre signalement",
+      "es": "Tu informe",
+      "pt-BR": "Seu relato",
+      "ja": "送信したレポート",
+      "zh-Hans": "你的报告"
+    },
+    "reports.detail.status": {
+      "en": "Status",
+      "de": "Status",
+      "fr": "Statut",
+      "es": "Estado",
+      "pt-BR": "Status",
+      "ja": "ステータス",
+      "zh-Hans": "状态"
+    },
+    "reports.detail.email": {
+      "en": "Reply email on this report",
+      "de": "E-Mail-Adresse für Antworten auf diese Meldung",
+      "fr": "Adresse e-mail de réponse pour ce signalement",
+      "es": "Correo de respuesta de este informe",
+      "pt-BR": "E-mail para resposta neste relato",
+      "ja": "このレポートの返信先メール",
+      "zh-Hans": "此报告的回复邮箱"
+    },
+    "reports.detail.emailNone": {
+      "en": "None",
+      "de": "Keine",
+      "fr": "Aucune",
+      "es": "Ninguno",
+      "pt-BR": "Nenhum",
+      "ja": "なし",
+      "zh-Hans": "无"
+    },
+    "reports.detail.addEmailToReport": {
+      "en": "Add {email} to this report",
+      "de": "{email} zu dieser Meldung hinzufügen",
+      "fr": "Ajouter {email} à ce signalement",
+      "es": "Añadir {email} a este informe",
+      "pt-BR": "Adicionar {email} a este relato",
+      "ja": "{email}をこのレポートに追加",
+      "zh-Hans": "将 {email} 添加到此报告"
+    },
+    "reports.addEmail.title": {
+      "en": "Add reply email",
+      "de": "E-Mail-Adresse hinzufügen",
+      "fr": "Ajouter une adresse e-mail",
+      "es": "Añadir correo de respuesta",
+      "pt-BR": "Adicionar e-mail para resposta",
+      "ja": "返信先メールを追加",
+      "zh-Hans": "添加回复邮箱"
+    },
+    "reports.addEmail.body": {
+      "en": "We’ll verify this address by email, then use it only for replies about this report.",
+      "de": "Wir bestätigen diese Adresse per E-Mail und verwenden sie anschließend nur für Antworten auf diese Meldung.",
+      "fr": "Nous vérifierons cette adresse par e-mail, puis nous l’utiliserons uniquement pour répondre à ce signalement.",
+      "es": "Verificaremos esta dirección por correo y la usaremos solo para responder a este informe.",
+      "pt-BR": "Verificaremos este endereço por e-mail e o usaremos apenas para responder a este relato.",
+      "ja": "メールでこのアドレスを確認し、このレポートへの返信にのみ使用します。",
+      "zh-Hans": "我们会通过邮件验证此邮箱，然后仅用它回复此报告。"
+    },
+    "reports.addEmail.bodyForReport": {
+      "en": "We’ll verify this address by email, then use it only for replies about this report.",
+      "de": "Wir bestätigen diese Adresse per E-Mail und verwenden sie anschließend nur für Antworten auf diese Meldung.",
+      "fr": "Nous vérifierons cette adresse par e-mail, puis nous l’utiliserons uniquement pour répondre à ce signalement.",
+      "es": "Verificaremos esta dirección por correo y la usaremos solo para responder a este informe.",
+      "pt-BR": "Verificaremos este endereço por e-mail e o usaremos apenas para responder a este relato.",
+      "ja": "メールでこのアドレスを確認し、このレポートへの返信にのみ使用します。",
+      "zh-Hans": "我们会通过邮件验证此邮箱，然后仅用它回复此报告。"
+    },
+    "reports.addEmail.field": {
+      "en": "Email address",
+      "de": "E-Mail-Adresse",
+      "fr": "Adresse e-mail",
+      "es": "Correo electrónico",
+      "pt-BR": "Endereço de e-mail",
+      "ja": "メールアドレス",
+      "zh-Hans": "电子邮箱地址"
+    },
+    "reports.empty.title": {
+      "en": "No reports yet",
+      "de": "Noch keine Meldungen",
+      "fr": "Aucun signalement",
+      "es": "Aún no hay informes",
+      "pt-BR": "Nenhum relato ainda",
+      "ja": "レポートはまだありません",
+      "zh-Hans": "还没有报告"
+    },
+    "reports.empty.body": {
+      "en": "You haven’t sent any feedback from this device.",
+      "de": "Du hast von diesem Gerät noch kein Feedback gesendet.",
+      "fr": "Vous n’avez encore envoyé aucun signalement depuis cet appareil.",
+      "es": "No has enviado ningún comentario desde este dispositivo.",
+      "pt-BR": "Você ainda não enviou feedback deste dispositivo.",
+      "ja": "このデバイスから送信したフィードバックはまだありません。",
+      "zh-Hans": "你尚未从此设备发送任何反馈。"
+    },
+    "reports.empty.body.web": {
+      "en": "You haven’t sent any feedback from this browser.",
+      "de": "Du hast von diesem Browser noch kein Feedback gesendet.",
+      "fr": "Vous n’avez encore envoyé aucun signalement depuis ce navigateur.",
+      "es": "No has enviado ningún comentario desde este navegador.",
+      "pt-BR": "Você ainda não enviou feedback deste navegador.",
+      "ja": "このブラウザーから送信したフィードバックはまだありません。",
+      "zh-Hans": "你尚未从此浏览器发送任何反馈。"
+    },
+    "reports.empty.action": {
+      "en": "Send feedback",
+      "de": "Feedback senden",
+      "fr": "Envoyer des commentaires",
+      "es": "Enviar comentarios",
+      "pt-BR": "Enviar feedback",
+      "ja": "フィードバックを送信",
+      "zh-Hans": "发送反馈"
+    },
+    "reports.partialError": {
+      "en": "Some reports couldn’t be checked. Check your connection and try again.",
+      "de": "Einige Meldungen konnten nicht geprüft werden. Prüfe deine Verbindung und versuche es noch einmal.",
+      "fr": "Le statut de certains signalements n’a pas pu être vérifié. Vérifiez votre connexion et réessayez.",
+      "es": "No se pudo consultar el estado de algunos informes. Revisa tu conexión e inténtalo de nuevo.",
+      "pt-BR": "Não foi possível verificar alguns relatos. Confira sua conexão e tente novamente.",
+      "ja": "一部のレポートを確認できませんでした。接続を確認して、もう一度お試しください。",
+      "zh-Hans": "部分报告无法检查。请检查网络连接后重试。"
+    },
+    "reports.kind.bug": {
+      "en": "Bug",
+      "de": "Fehler",
+      "fr": "Anomalie",
+      "es": "Error",
+      "pt-BR": "Erro",
+      "ja": "バグ",
+      "zh-Hans": "错误"
+    },
+    "reports.kind.suggestion": {
+      "en": "Suggestion",
+      "de": "Vorschlag",
+      "fr": "Suggestion",
+      "es": "Sugerencia",
+      "pt-BR": "Sugestão",
+      "ja": "提案",
+      "zh-Hans": "建议"
+    },
+    "reports.kind.language": {
+      "en": "Language request",
+      "de": "Sprachanfrage",
+      "fr": "Demande de langue",
+      "es": "Solicitud de idioma",
+      "pt-BR": "Solicitação de idioma",
+      "ja": "言語リクエスト",
+      "zh-Hans": "语言请求"
+    },
+    "catalog.title": {
+      "en": "More from HumansAreUseful",
+      "de": "Mehr von HumansAreUseful",
+      "fr": "D’autres apps de HumansAreUseful",
+      "es": "Más de HumansAreUseful",
+      "pt-BR": "Mais da HumansAreUseful",
+      "ja": "HumansAreUsefulのほかのアプリ",
+      "zh-Hans": "HumansAreUseful 的更多应用"
+    },
+    "catalog.subtitle": {
+      "en": "Only apps that run on this {device}.",
+      "de": "Nur Apps, die auf diesem {device} laufen.",
+      "fr": "Uniquement les apps compatibles avec votre {device}.",
+      "es": "Solo aplicaciones que funcionan en este {device}.",
+      "pt-BR": "Somente apps que funcionam neste {device}.",
+      "ja": "この{device}で動作するアプリのみです。",
+      "zh-Hans": "仅显示适用于此 {device} 的应用。"
+    },
+    "catalog.check": {
+      "en": "Check for new apps",
+      "de": "Nach neuen Apps suchen",
+      "fr": "Rechercher de nouvelles apps",
+      "es": "Buscar nuevas aplicaciones",
+      "pt-BR": "Verificar novos apps",
+      "ja": "新しいアプリを確認",
+      "zh-Hans": "检查新应用"
+    },
+    "catalog.checking": {
+      "en": "Checking…",
+      "de": "Wird gesucht…",
+      "fr": "Vérification…",
+      "es": "Buscando…",
+      "pt-BR": "Verificando…",
+      "ja": "確認中…",
+      "zh-Hans": "正在检查…"
+    },
+    "catalog.offline": {
+      "en": "You’re offline. Showing the list shipped with this app.",
+      "de": "Du bist offline. Die mit dieser App gelieferte Liste wird angezeigt.",
+      "fr": "Vous êtes hors ligne. Voici la liste fournie avec l’app.",
+      "es": "No tienes conexión. Mostramos la lista incluida en esta aplicación.",
+      "pt-BR": "Você está sem conexão. Mostrando a lista incluída neste app.",
+      "ja": "オフラインです。このアプリに含まれているリストを表示しています。",
+      "zh-Hans": "你已离线。正在显示应用内置列表。"
+    },
+    "catalog.unreachable": {
+      "en": "Can’t reach the catalog. Showing the list shipped with this app.",
+      "de": "Der Katalog ist nicht erreichbar. Die mit dieser App gelieferte Liste wird angezeigt.",
+      "fr": "Impossible d’accéder au catalogue. Voici la liste fournie avec l’app.",
+      "es": "No podemos acceder al catálogo. Mostramos la lista incluida en esta aplicación.",
+      "pt-BR": "Não foi possível acessar o catálogo. Mostrando a lista incluída neste app.",
+      "ja": "カタログに接続できません。このアプリに含まれているリストを表示しています。",
+      "zh-Hans": "无法连接到应用目录。正在显示应用内置列表。"
+    },
+    "catalog.runsOn": {
+      "en": "Runs on: {platforms}",
+      "de": "Läuft auf: {platforms}",
+      "fr": "Fonctionne sur : {platforms}",
+      "es": "Funciona en: {platforms}",
+      "pt-BR": "Funciona em: {platforms}",
+      "ja": "対応プラットフォーム：{platforms}",
+      "zh-Hans": "支持平台：{platforms}"
+    },
+    "catalog.action.view": {
+      "en": "Learn more",
+      "de": "Mehr erfahren",
+      "fr": "En savoir plus",
+      "es": "Más información",
+      "pt-BR": "Saiba mais",
+      "ja": "詳しく見る",
+      "zh-Hans": "了解更多"
+    },
+    "catalog.action.open": {
+      "en": "Open",
+      "de": "Öffnen",
+      "fr": "Ouvrir",
+      "es": "Abrir",
+      "pt-BR": "Abrir",
+      "ja": "開く",
+      "zh-Hans": "打开"
+    },
+    "catalog.opensSite": {
+      "en": "Opens humansareuseful.ai in your browser",
+      "de": "Öffnet humansareuseful.ai in deinem Browser",
+      "fr": "Ouvre humansareuseful.ai dans votre navigateur",
+      "es": "Abre humansareuseful.ai en el navegador",
+      "pt-BR": "Abre humansareuseful.ai no navegador",
+      "ja": "ブラウザでhumansareuseful.aiを開きます",
+      "zh-Hans": "将在浏览器中打开 humansareuseful.ai"
+    },
+    "catalog.empty": {
+      "en": "Nothing else from us runs on this {device} yet.",
+      "de": "Noch läuft keine weitere App von uns auf diesem {device}.",
+      "fr": "Aucune autre de nos apps n’est encore compatible avec votre {device}.",
+      "es": "Aún no hay otras aplicaciones nuestras para este {device}.",
+      "pt-BR": "Nenhum outro app nosso funciona neste {device} por enquanto.",
+      "ja": "この{device}で使える私たちのアプリは、ほかにはまだありません。",
+      "zh-Hans": "目前还没有适用于此{device}的其他应用。"
+    },
+    "catalog.empty.detail": {
+      "en": "This list ships with the app and grows when the app updates.",
+      "de": "Diese Liste wird mit der App geliefert und durch App-Updates erweitert.",
+      "fr": "Cette liste est fournie avec l’app et s’enrichit à chaque mise à jour.",
+      "es": "Esta lista viene incluida en la aplicación y se amplía con cada actualización.",
+      "pt-BR": "Esta lista vem com o app e cresce a cada atualização.",
+      "ja": "このリストはアプリに含まれており、アプリのアップデートに合わせて増えていきます。",
+      "zh-Hans": "此列表内置于应用中，并会随应用更新而扩充。"
+    },
+    "device.mac": {
+      "en": "Mac",
+      "de": "Mac",
+      "fr": "Mac",
+      "es": "Mac",
+      "pt-BR": "Mac",
+      "ja": "Mac",
+      "zh-Hans": "Mac"
+    },
+    "device.windows": {
+      "en": "PC",
+      "de": "PC",
+      "fr": "PC",
+      "es": "PC",
+      "pt-BR": "PC",
+      "ja": "PC",
+      "zh-Hans": "PC"
+    },
+    "device.linux": {
+      "en": "computer",
+      "de": "Computer",
+      "fr": "ordinateur",
+      "es": "equipo",
+      "pt-BR": "computador",
+      "ja": "コンピューター",
+      "zh-Hans": "电脑"
+    },
+    "device.ios": {
+      "en": "iPhone",
+      "de": "iPhone",
+      "fr": "iPhone",
+      "es": "iPhone",
+      "pt-BR": "iPhone",
+      "ja": "iPhone",
+      "zh-Hans": "iPhone"
+    },
+    "device.ipad": {
+      "en": "iPad",
+      "de": "iPad",
+      "fr": "iPad",
+      "es": "iPad",
+      "pt-BR": "iPad",
+      "ja": "iPad",
+      "zh-Hans": "iPad"
+    },
+    "about.version": {
+      "en": "Version {version} (Build {build})",
+      "de": "Version {version} (Build {build})",
+      "fr": "Version {version} (build {build})",
+      "es": "Versión {version} (compilación {build})",
+      "pt-BR": "Versão {version} (Compilação {build})",
+      "ja": "バージョン {version}（ビルド {build}）",
+      "zh-Hans": "版本 {version}（构建 {build}）"
+    },
+    "about.copy": {
+      "en": "Copy",
+      "de": "Kopieren",
+      "fr": "Copier",
+      "es": "Copiar",
+      "pt-BR": "Copiar",
+      "ja": "コピー",
+      "zh-Hans": "复制"
+    },
+    "about.copied": {
+      "en": "Copied",
+      "de": "Kopiert",
+      "fr": "Copié",
+      "es": "Copiado",
+      "pt-BR": "Copiado",
+      "ja": "コピーしました",
+      "zh-Hans": "已复制"
+    },
+    "about.copyFormat": {
+      "en": "{app} {version} (Build {build})",
+      "de": "{app} {version} (Build {build})",
+      "fr": "{app} {version} (Build {build})",
+      "es": "{app} {version} (Build {build})",
+      "pt-BR": "{app} {version} (Build {build})",
+      "ja": "{app} {version} (Build {build})",
+      "zh-Hans": "{app} {version} (Build {build})"
+    },
+    "about.publisher": {
+      "en": "By HumansAreUseful.ai",
+      "de": "Von HumansAreUseful.ai",
+      "fr": "Par HumansAreUseful.ai",
+      "es": "De HumansAreUseful.ai",
+      "pt-BR": "Por HumansAreUseful.ai",
+      "ja": "HumansAreUseful.ai 提供",
+      "zh-Hans": "由 HumansAreUseful.ai 提供"
+    },
+    "about.promise": {
+      "en": "Your images and files stay on this device. If you send feedback, only your feedback, optional contact email, and the technical details shown before sending are shared. Status checks, app-list checks and reply email changes contact our service only when you choose them.",
+      "de": "Deine Bilder und Dateien bleiben auf diesem Gerät. Wenn du Feedback sendest, werden nur dein Feedback, deine optionale Kontakt-E-Mail-Adresse und die vor dem Senden angezeigten technischen Angaben geteilt. Statusabfragen, App-Listen-Abfragen und Änderungen der Antwortadresse kontaktieren unseren Dienst nur, wenn du sie auswählst.",
+      "fr": "Vos images et fichiers restent sur cet appareil. Si vous envoyez des commentaires, seuls vos commentaires, votre adresse e-mail facultative et les détails techniques affichés avant l’envoi sont partagés. Les vérifications de statut, de la liste des apps et les modifications de l’adresse de réponse contactent notre service uniquement lorsque vous les choisissez.",
+      "es": "Tus imágenes y archivos permanecen en este dispositivo. Si envías comentarios, solo se comparten estos, tu correo de contacto opcional y los datos técnicos que se muestran antes del envío. Las consultas de estado, las comprobaciones de la lista de aplicaciones y los cambios del correo de respuesta contactan con nuestro servicio solo cuando tú lo eliges.",
+      "pt-BR": "Suas imagens e arquivos ficam neste dispositivo. Se você enviar feedback, somente ele, seu e-mail de contato opcional e os detalhes técnicos exibidos antes do envio serão compartilhados. As consultas de status, as verificações da lista de aplicativos e as alterações do e-mail de resposta contatam nosso serviço somente quando você escolhe fazê-las.",
+      "ja": "画像とファイルはこのデバイスに保存されたままです。フィードバックを送信する場合、共有されるのはフィードバック、任意の連絡先メールアドレス、送信前に表示される技術情報のみです。状況やアプリ一覧の確認、返信先メールの変更は、あなたが選択した場合にのみ当社のサービスに接続します。",
+      "zh-Hans": "您的图片和文件会保留在此设备上。提交反馈时，只会共享反馈、可选的联系邮箱以及发送前显示的技术详情。只有当您主动选择时，状态检查、应用列表检查和回复邮箱更改才会联系我们的服务。"
+    },
+    "about.privacy": {
+      "en": "Privacy",
+      "de": "Datenschutz",
+      "fr": "Confidentialité",
+      "es": "Privacidad",
+      "pt-BR": "Privacidade",
+      "ja": "プライバシー",
+      "zh-Hans": "隐私"
+    },
+    "about.sendFeedback": {
+      "en": "Send Feedback",
+      "de": "Feedback senden",
+      "fr": "Envoyer des commentaires",
+      "es": "Enviar comentarios",
+      "pt-BR": "Enviar feedback",
+      "ja": "フィードバックを送信",
+      "zh-Hans": "发送反馈"
+    },
+    "about.moreApps": {
+      "en": "More from HumansAreUseful",
+      "de": "Mehr von HumansAreUseful",
+      "fr": "D’autres apps de HumansAreUseful",
+      "es": "Más de HumansAreUseful",
+      "pt-BR": "Mais da HumansAreUseful",
+      "ja": "HumansAreUsefulのほかのアプリ",
+      "zh-Hans": "HumansAreUseful 的更多应用"
+    },
+    "common.cancel": {
+      "en": "Cancel",
+      "de": "Abbrechen",
+      "fr": "Annuler",
+      "es": "Cancelar",
+      "pt-BR": "Cancelar",
+      "ja": "キャンセル",
+      "zh-Hans": "取消"
+    },
+    "common.done": {
+      "en": "Done",
+      "de": "Fertig",
+      "fr": "Terminé",
+      "es": "Listo",
+      "pt-BR": "Concluído",
+      "ja": "完了",
+      "zh-Hans": "完成"
+    },
+    "common.undo": {
+      "en": "Undo",
+      "de": "Rückgängig",
+      "fr": "Annuler",
+      "es": "Deshacer",
+      "pt-BR": "Desfazer",
+      "ja": "元に戻す",
+      "zh-Hans": "撤销"
+    },
+    "common.close": {
+      "en": "Close",
+      "de": "Schließen",
+      "fr": "Fermer",
+      "es": "Cerrar",
+      "pt-BR": "Fechar",
+      "ja": "閉じる",
+      "zh-Hans": "关闭"
+    },
+    "common.copy": {
+      "en": "Copy",
+      "de": "Kopieren",
+      "fr": "Copier",
+      "es": "Copiar",
+      "pt-BR": "Copiar",
+      "ja": "コピー",
+      "zh-Hans": "复制"
+    },
+    "common.retry": {
+      "en": "Retry",
+      "de": "Erneut versuchen",
+      "fr": "Réessayer",
+      "es": "Reintentar",
+      "pt-BR": "Tentar novamente",
+      "ja": "再試行",
+      "zh-Hans": "重试"
+    },
+    "facts.app": {
+      "en": "App",
+      "de": "App",
+      "fr": "App",
+      "es": "App",
+      "pt-BR": "App",
+      "ja": "アプリ",
+      "zh-Hans": "应用"
+    },
+    "facts.build": {
+      "en": "build",
+      "de": "Build",
+      "fr": "build",
+      "es": "compilación",
+      "pt-BR": "compilação",
+      "ja": "ビルド",
+      "zh-Hans": "内部版本"
+    },
+    "facts.distribution": {
+      "en": "Installed from",
+      "de": "Installiert über",
+      "fr": "Installée depuis",
+      "es": "Instalado desde",
+      "pt-BR": "Instalado por meio de",
+      "ja": "入手元",
+      "zh-Hans": "安装来源"
+    },
+    "facts.feedbackSoftware": {
+      "en": "Feedback software",
+      "de": "Feedback-Software",
+      "fr": "Logiciel de commentaires",
+      "es": "Software de comentarios",
+      "pt-BR": "Software de comentários",
+      "ja": "フィードバック用ソフトウェア",
+      "zh-Hans": "反馈软件"
+    },
+    "facts.platform": {
+      "en": "System",
+      "de": "System",
+      "fr": "Système",
+      "es": "Sistema",
+      "pt-BR": "Sistema",
+      "ja": "システム",
+      "zh-Hans": "系统"
+    },
+    "facts.architecture": {
+      "en": "Processor",
+      "de": "Prozessor",
+      "fr": "Processeur",
+      "es": "Procesador",
+      "pt-BR": "Processador",
+      "ja": "プロセッサ",
+      "zh-Hans": "处理器"
+    },
+    "facts.locale": {
+      "en": "App language",
+      "de": "App-Sprache",
+      "fr": "Langue de l’app",
+      "es": "Idioma de la app",
+      "pt-BR": "Idioma do app",
+      "ja": "アプリの言語",
+      "zh-Hans": "应用语言"
+    },
+    "facts.systemLanguage": {
+      "en": "System language",
+      "de": "Systemsprache",
+      "fr": "Langue du système",
+      "es": "Idioma del sistema",
+      "pt-BR": "Idioma do sistema",
+      "ja": "システム言語",
+      "zh-Hans": "系统语言"
+    },
+    "facts.capabilities": {
+      "en": "Capabilities",
+      "de": "Funktionen",
+      "fr": "Capacités",
+      "es": "Capacidades",
+      "pt-BR": "Recursos",
+      "ja": "機能",
+      "zh-Hans": "功能"
+    },
+    "facts.distribution.appleAppStore": {
+      "en": "Mac App Store",
+      "de": "Mac App Store",
+      "fr": "Mac App Store",
+      "es": "Mac App Store",
+      "pt-BR": "Mac App Store",
+      "ja": "Mac App Store",
+      "zh-Hans": "Mac App Store"
+    },
+    "facts.distribution.microsoftStore": {
+      "en": "Microsoft Store",
+      "de": "Microsoft Store",
+      "fr": "Microsoft Store",
+      "es": "Microsoft Store",
+      "pt-BR": "Microsoft Store",
+      "ja": "Microsoft Store",
+      "zh-Hans": "Microsoft Store"
+    },
+    "facts.distribution.direct": {
+      "en": "Direct download",
+      "de": "Direkter Download",
+      "fr": "Téléchargement direct",
+      "es": "Descarga directa",
+      "pt-BR": "Download direto",
+      "ja": "直接ダウンロード",
+      "zh-Hans": "直接下载"
+    },
+    "facts.distribution.testFlight": {
+      "en": "TestFlight",
+      "de": "TestFlight",
+      "fr": "TestFlight",
+      "es": "TestFlight",
+      "pt-BR": "TestFlight",
+      "ja": "TestFlight",
+      "zh-Hans": "TestFlight"
+    },
+    "facts.distribution.web": {
+      "en": "Website",
+      "de": "Website",
+      "fr": "Site web",
+      "es": "Sitio web",
+      "pt-BR": "Site",
+      "ja": "ウェブサイト",
+      "zh-Hans": "网站"
+    },
+    "facts.distribution.development": {
+      "en": "Development build",
+      "de": "Entwicklungsversion",
+      "fr": "Version de développement",
+      "es": "Compilación de desarrollo",
+      "pt-BR": "Versão de desenvolvimento",
+      "ja": "開発ビルド",
+      "zh-Hans": "开发版本"
+    },
+    "facts.architecture.unknown": {
+      "en": "Unknown",
+      "de": "Unbekannt",
+      "fr": "Inconnue",
+      "es": "Desconocida",
+      "pt-BR": "Desconhecida",
+      "ja": "不明",
+      "zh-Hans": "未知"
+    },
+    "facts.value.yes": {
+      "en": "Yes",
+      "de": "Ja",
+      "fr": "Oui",
+      "es": "Sí",
+      "pt-BR": "Sim",
+      "ja": "はい",
+      "zh-Hans": "是"
+    },
+    "facts.value.no": {
+      "en": "No",
+      "de": "Nein",
+      "fr": "Non",
+      "es": "No",
+      "pt-BR": "Não",
+      "ja": "いいえ",
+      "zh-Hans": "否"
+    },
+    "feedback.consent": {
+      "en": "You may contact me about this report",
+      "de": "Sie dürfen mich zu dieser Meldung kontaktieren",
+      "fr": "Vous pouvez me contacter au sujet de ce signalement",
+      "es": "Pueden contactarme sobre este informe",
+      "pt-BR": "Vocês podem entrar em contato comigo sobre este relato",
+      "ja": "この報告について連絡してもかまいません",
+      "zh-Hans": "你们可以就此报告联系我"
+    },
+    "feedback.optionalEmail": {
+      "en": "Email address (optional)",
+      "de": "E-Mail-Adresse (optional)",
+      "fr": "Adresse e-mail (facultatif)",
+      "es": "Correo electrónico (opcional)",
+      "pt-BR": "Endereço de e-mail (opcional)",
+      "ja": "メールアドレス（任意）",
+      "zh-Hans": "电子邮件地址（可选）"
+    },
+    "feedback.emailDetail": {
+      "en": "We’ll send a verification email before linking this address to your report. You can remove it later in My Reports.",
+      "de": "Wir senden eine Bestätigungs-E-Mail, bevor wir diese Adresse mit Ihrer Meldung verknüpfen. Sie können sie später unter Meine Meldungen entfernen.",
+      "fr": "Nous enverrons un e-mail de vérification avant d’associer cette adresse à votre signalement. Vous pourrez la supprimer plus tard dans Mes rapports.",
+      "es": "Enviaremos un correo de verificación antes de vincular esta dirección con tu informe. Puedes eliminarla más adelante en Mis informes.",
+      "pt-BR": "Enviaremos um e-mail de verificação antes de vincular este endereço ao seu relato. Você poderá removê-lo depois em Meus relatos.",
+      "ja": "このアドレスを報告に関連付ける前に確認メールを送信します。後で「マイレポート」から削除できます。",
+      "zh-Hans": "在将此地址与您的报告关联之前，我们会发送验证邮件。您之后可以在“我的报告”中移除该地址。"
+    },
+    "feedback.verifyEmail": {
+      "en": "Check your email to confirm that we can contact you about this report.",
+      "de": "Prüfen Sie Ihre E-Mail, um zu bestätigen, dass wir Sie zu dieser Meldung kontaktieren dürfen.",
+      "fr": "Consultez votre messagerie pour confirmer que nous pouvons vous contacter au sujet de ce rapport.",
+      "es": "Revisa tu correo para confirmar que podemos contactarte sobre este informe.",
+      "pt-BR": "Confira seu e-mail para confirmar que podemos entrar em contato sobre este relato.",
+      "ja": "メールを確認し、この報告について連絡してよいことを確認してください。",
+      "zh-Hans": "请检查电子邮件，确认我们可以就此报告与您联系。"
+    },
+    "feedback.failedDetail": {
+      "en": "Your feedback wasn’t submitted. Check your connection and try again.",
+      "de": "Ihr Feedback wurde nicht gesendet. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "fr": "Votre commentaire n’a pas été envoyé. Vérifiez votre connexion et réessayez.",
+      "es": "No se enviaron tus comentarios. Comprueba tu conexión e inténtalo de nuevo.",
+      "pt-BR": "Seu feedback não foi enviado. Verifique sua conexão e tente novamente.",
+      "ja": "フィードバックを送信できませんでした。接続を確認して、もう一度お試しください。",
+      "zh-Hans": "您的反馈未能提交。请检查网络连接后重试。"
+    },
+    "feedback.upgradeRequired": {
+      "en": "This version of the app can no longer send feedback. Update the app to send it. Your unsent draft is kept here; you can close this window safely.",
+      "de": "Diese App-Version kann kein Feedback mehr senden. Aktualisieren Sie die App, um es zu senden. Ihr ungesendeter Entwurf bleibt hier erhalten; Sie können dieses Fenster bedenkenlos schließen.",
+      "fr": "Cette version de l’app ne peut plus envoyer de commentaires. Mettez l’app à jour pour les envoyer. Votre brouillon non envoyé est conservé ici ; vous pouvez fermer cette fenêtre sans le perdre.",
+      "es": "Esta versión de la app ya no puede enviar comentarios. Actualiza la app para enviarlos. Tu borrador sin enviar se conserva aquí; puedes cerrar esta ventana sin perderlo.",
+      "pt-BR": "Esta versão do app não pode mais enviar comentários. Atualize o app para enviá-los. Seu rascunho não enviado fica guardado aqui; você pode fechar esta janela sem perdê-lo.",
+      "ja": "このバージョンのアプリではフィードバックを送信できなくなりました。送信するにはアプリを更新してください。未送信の下書きはここに保存されるため、このウインドウを閉じても失われません。",
+      "zh-Hans": "此版本的应用已无法发送反馈。请更新应用后再发送。未发送的草稿会保留在这里，关闭此窗口不会丢失草稿。"
+    },
+    "feedback.upgradeRequired.web": {
+      "en": "This version of the page can no longer send feedback. Reload the page to send it. Your unsent draft is kept here until you close the page.",
+      "de": "Diese Version der Seite kann kein Feedback mehr senden. Laden Sie die Seite neu, um es zu senden. Ihr ungesendeter Entwurf bleibt hier erhalten, bis Sie die Seite schließen.",
+      "fr": "Cette version de la page ne peut plus envoyer de commentaires. Rechargez la page pour les envoyer. Votre brouillon non envoyé est conservé ici jusqu’à ce que vous fermiez la page.",
+      "es": "Esta versión de la página ya no puede enviar comentarios. Vuelve a cargar la página para enviarlos. Tu borrador sin enviar se conserva aquí hasta que cierres la página.",
+      "pt-BR": "Esta versão da página não pode mais enviar comentários. Recarregue a página para enviá-los. Seu rascunho não enviado fica guardado aqui até você fechar a página.",
+      "ja": "このバージョンのページではフィードバックを送信できなくなりました。送信するにはページを再読み込みしてください。未送信の下書きは、ページを閉じるまでここに保存されます。",
+      "zh-Hans": "此版本的页面已无法发送反馈。请重新加载页面后再发送。未发送的草稿会保留在这里，直到你关闭页面。"
+    },
+    "feedback.serviceUnavailable": {
+      "en": "Feedback is temporarily unavailable. Copy this draft so you can try again after the app or service is updated.",
+      "de": "Feedback ist vorübergehend nicht verfügbar. Kopieren Sie diesen Entwurf, damit Sie es nach einem Update der App oder des Dienstes erneut versuchen können.",
+      "fr": "L’envoi de commentaires est temporairement indisponible. Copiez ce brouillon pour réessayer après la mise à jour de l’app ou du service.",
+      "es": "Los comentarios no están disponibles temporalmente. Copia este borrador para intentarlo de nuevo después de actualizar la app o el servicio.",
+      "pt-BR": "O envio de feedback está temporariamente indisponível. Copie este rascunho para tentar novamente após a atualização do app ou do serviço.",
+      "ja": "フィードバックは一時的に利用できません。アプリまたはサービスの更新後に再試行できるよう、この下書きをコピーしてください。",
+      "zh-Hans": "反馈暂时不可用。请复制此草稿，以便在应用或服务更新后重试。"
+    },
+    "feedback.keyringUnavailable": {
+      "en": "Your feedback wasn’t submitted. Enable and unlock your desktop keyring, then retry. On Linux, install libsecret and a Secret Service keyring if needed. You can also copy or discard this draft.",
+      "de": "Ihr Feedback wurde nicht gesendet. Aktivieren und entsperren Sie Ihren Desktop-Schlüsselbund und versuchen Sie es erneut. Installieren Sie unter Linux bei Bedarf libsecret und einen Secret-Service-Schlüsselbund. Sie können den Entwurf auch kopieren oder verwerfen.",
+      "fr": "Votre commentaire n’a pas été envoyé. Activez et déverrouillez le trousseau du bureau, puis réessayez. Sous Linux, installez libsecret et un trousseau compatible avec Secret Service si nécessaire. Vous pouvez aussi copier ou abandonner ce brouillon.",
+      "es": "No se enviaron tus comentarios. Activa y desbloquea el llavero del escritorio y vuelve a intentarlo. En Linux, instala libsecret y un llavero compatible con Secret Service si es necesario. También puedes copiar o descartar el borrador.",
+      "pt-BR": "Seu feedback não foi enviado. Ative e desbloqueie o chaveiro da área de trabalho e tente novamente. No Linux, instale libsecret e um chaveiro compatível com Secret Service, se necessário. Você também pode copiar ou descartar este rascunho.",
+      "ja": "フィードバックを送信できませんでした。デスクトップのキーリングを有効にしてロックを解除し、再試行してください。Linux では、必要に応じて libsecret と Secret Service 対応のキーリングをインストールしてください。下書きのコピーや破棄もできます。",
+      "zh-Hans": "您的反馈未能提交。请启用并解锁桌面密钥环，然后重试。在 Linux 上，请根据需要安装 libsecret 和兼容 Secret Service 的密钥环。您也可以复制或放弃此草稿。"
+    },
+    "support.title": {
+      "en": "Support & More Apps",
+      "de": "Support & weitere Apps",
+      "fr": "Assistance et plus d’apps",
+      "es": "Soporte y más apps",
+      "pt-BR": "Suporte e mais apps",
+      "ja": "サポートとその他のアプリ",
+      "zh-Hans": "支持和更多应用"
+    },
+    "support.unavailable": {
+      "en": "Support could not read its saved data. Retry, or close this window and keep using the app.",
+      "de": "Der Support konnte seine gespeicherten Daten nicht lesen. Versuchen Sie es erneut oder schließen Sie dieses Fenster und nutzen Sie die App weiter.",
+      "fr": "L’assistance n’a pas pu lire ses données enregistrées. Réessayez ou fermez cette fenêtre pour continuer à utiliser l’app.",
+      "es": "No se pudieron leer los datos guardados de soporte. Reintenta o cierra esta ventana para seguir usando la app.",
+      "pt-BR": "Não foi possível ler os dados salvos do suporte. Tente novamente ou feche esta janela e continue usando o app.",
+      "ja": "サポートの保存データを読み込めませんでした。再試行するか、このウィンドウを閉じてアプリを引き続きお使いください。",
+      "zh-Hans": "无法读取支持功能的已保存数据。请重试，或关闭此窗口继续使用应用。"
+    },
+    "common.discard": {
+      "en": "Discard",
+      "de": "Verwerfen",
+      "fr": "Abandonner",
+      "es": "Descartar",
+      "pt-BR": "Descartar",
+      "ja": "破棄",
+      "zh-Hans": "丢弃"
+    },
+    "common.submitting": {
+      "en": "Submitting…",
+      "de": "Wird gesendet…",
+      "fr": "Envoi…",
+      "es": "Enviando…",
+      "pt-BR": "Enviando…",
+      "ja": "送信中…",
+      "zh-Hans": "正在提交…"
+    },
+    "feedback.copyReceipt": {
+      "en": "Copy receipt",
+      "de": "Beleg kopieren",
+      "fr": "Copier le reçu",
+      "es": "Copiar recibo",
+      "pt-BR": "Copiar recibo",
+      "ja": "控えをコピー",
+      "zh-Hans": "复制回执"
+    },
+    "reports.addEmail.send": {
+      "en": "Send verification email",
+      "de": "Bestätigungs-E-Mail senden",
+      "fr": "Envoyer l’e-mail de vérification",
+      "es": "Enviar correo de verificación",
+      "pt-BR": "Enviar e-mail de verificação",
+      "ja": "確認メールを送信",
+      "zh-Hans": "发送验证邮件"
+    },
+    "reports.verifyPending": {
+      "en": "Check your email to verify this report’s reply address.",
+      "de": "Prüfe deine E-Mails, um die Antwortadresse für diese Meldung zu bestätigen.",
+      "fr": "Consultez votre boîte mail pour vérifier l’adresse de réponse de ce signalement.",
+      "es": "Revisa tu correo para verificar la dirección de respuesta de este informe.",
+      "pt-BR": "Confira seu e-mail para verificar o endereço de resposta deste relato.",
+      "ja": "メールを確認して、このレポートの返信先アドレスを認証してください。",
+      "zh-Hans": "请查看邮件，验证此报告的回复邮箱。"
+    },
+    "about.title": {
+      "en": "About",
+      "de": "Über",
+      "fr": "À propos",
+      "es": "Acerca de",
+      "pt-BR": "Sobre",
+      "ja": "このアプリについて",
+      "zh-Hans": "关于"
+    },
+    "site.support.kicker": {
+      "en": "Help with our apps",
+      "de": "Hilfe zu unseren Apps",
+      "fr": "Aide pour nos applications",
+      "es": "Ayuda con nuestras apps",
+      "pt-BR": "Ajuda com nossos apps",
+      "ja": "アプリのサポート",
+      "zh-Hans": "应用使用帮助"
+    },
+    "site.support.title": {
+      "en": "How can we help?",
+      "de": "Wie können wir helfen?",
+      "fr": "Comment pouvons-nous vous aider ?",
+      "es": "¿Cómo podemos ayudarte?",
+      "pt-BR": "Como podemos ajudar?",
+      "ja": "お困りのことはありますか？",
+      "zh-Hans": "有什么可以帮您？"
+    },
+    "site.support.inApp.title": {
+      "en": "Send feedback from the app",
+      "de": "Feedback in der App senden",
+      "fr": "Envoyer des commentaires depuis l’application",
+      "es": "Envía comentarios desde la app",
+      "pt-BR": "Envie feedback pelo app",
+      "ja": "アプリからフィードバックを送る",
+      "zh-Hans": "在应用内发送反馈"
+    },
+    "site.support.banner.title": {
+      "en": "Need a hand? Have an idea?",
+      "de": "Brauchen Sie Hilfe? Haben Sie eine Idee?",
+      "fr": "Besoin d’aide ? Une idée à partager ?",
+      "es": "¿Necesitas ayuda? ¿Tienes una idea?",
+      "pt-BR": "Precisa de ajuda? Tem uma ideia?",
+      "ja": "お困りごとやアイデアをお聞かせください。",
+      "zh-Hans": "需要帮助，或有新想法？"
+    },
+    "site.support.go": {
+      "en": "Get help",
+      "de": "Hilfe erhalten",
+      "fr": "Obtenir de l’aide",
+      "es": "Obtener ayuda",
+      "pt-BR": "Obter ajuda",
+      "ja": "サポートを見る",
+      "zh-Hans": "获取帮助"
+    },
+    "site.support.metaDescription": {
+      "en": "Get help with a HumansAreUseful.ai app, report a problem, suggest an improvement, or request another language.",
+      "de": "Hilfe zu den Apps von HumansAreUseful.ai: Probleme melden, Verbesserungen vorschlagen oder weitere Sprachen wünschen.",
+      "fr": "Obtenez de l’aide pour une application HumansAreUseful.ai, signalez un problème, proposez une amélioration ou demandez une autre langue.",
+      "es": "Obtén ayuda con una app de HumansAreUseful.ai, informa de un problema, sugiere mejoras o solicita otro idioma.",
+      "pt-BR": "Obtenha ajuda com um app da HumansAreUseful.ai, relate um problema, sugira melhorias ou peça outro idioma.",
+      "ja": "HumansAreUseful.ai のアプリについて、使い方のご相談、不具合の報告、改善のご提案、対応言語のリクエストを受け付けています。",
+      "zh-Hans": "获取 HumansAreUseful.ai 应用的使用帮助、报告问题、提出改进建议，或请求支持其他语言。"
+    },
+    "site.support.intro": {
+      "en": "Report a problem, suggest an improvement, or ask for another language. Send feedback from the app or email us.",
+      "de": "Melden Sie ein Problem, schlagen Sie eine Verbesserung vor oder wünschen Sie sich eine weitere Sprache. Nutzen Sie die Feedback-Funktion der App oder schreiben Sie uns eine E-Mail.",
+      "fr": "Signalez un problème, proposez une amélioration ou demandez une autre langue. Envoyez vos commentaires depuis l’application ou écrivez-nous par e-mail.",
+      "es": "Informa de un problema, sugiere una mejora o solicita otro idioma. Envía tus comentarios desde la app o escríbenos por correo.",
+      "pt-BR": "Relate um problema, sugira uma melhoria ou peça outro idioma. Envie seu feedback pelo app ou fale conosco por e-mail.",
+      "ja": "不具合の報告、改善のご提案、対応言語のリクエストは、アプリのフィードバック機能またはメールからお送りください。",
+      "zh-Hans": "无论是报告问题、提出建议，还是请求支持其他语言，都可以在应用内发送反馈，或给我们发邮件。"
+    },
+    "site.support.kinds": {
+      "en": "Idea · Bug · Language",
+      "de": "Idee · Fehler · Sprache",
+      "fr": "Idée · Anomalie · Langue",
+      "es": "Idea · Error · Idioma",
+      "pt-BR": "Ideia · Erro · Idioma",
+      "ja": "アイデア · バグ · 言語",
+      "zh-Hans": "建议 · 错误 · 语言"
+    },
+    "site.support.inApp.body": {
+      "en": "Choose Send Feedback… in the Help menu, or in the app’s menu if it lives in your menu bar. Select Idea, Bug, or Language, write your message, and review the details before sending. If it fails, your draft stays in the app so you can try again or copy it into an email.",
+      "de": "Wählen Sie Feedback senden… im Menü Hilfe oder, bei einer Menüleisten-App, direkt im App-Menü. Wählen Sie Idee, Fehler oder Sprache, schreiben Sie Ihre Nachricht und prüfen Sie die Angaben vor dem Senden. Schlägt das Senden fehl, bleibt der Entwurf erhalten. Sie können es erneut versuchen oder den Text in eine E-Mail kopieren.",
+      "fr": "Choisissez Envoyer des commentaires… dans le menu Aide, ou dans le menu de l’application si elle se trouve dans la barre des menus. Sélectionnez Idée, Anomalie ou Langue, rédigez votre message et vérifiez les informations avant l’envoi. En cas d’échec, votre brouillon reste dans l’application : vous pouvez réessayer ou le copier dans un e-mail.",
+      "es": "Elige Enviar comentarios… en el menú Ayuda o, si la app está en la barra de menús, en su propio menú. Selecciona Idea, Error o Idioma, escribe tu mensaje y revisa los datos antes de enviarlo. Si falla el envío, la app conserva el borrador para que puedas reintentarlo o copiarlo en un correo.",
+      "pt-BR": "Escolha Enviar feedback… no menu Ajuda ou, se o app fica na barra de menus, no próprio menu do app. Selecione Ideia, Erro ou Idioma, escreva sua mensagem e confira os dados antes de enviar. Se o envio falhar, o rascunho fica no app para você tentar novamente ou copiar o texto para um e-mail.",
+      "ja": "「ヘルプ」メニューから「フィードバックを送信…」を選びます。メニューバーに常駐するアプリでは、アプリのメニューから選べます。「アイデア」「バグ」「言語」を選び、本文を入力して、送信内容を確認してください。送信に失敗しても下書きは残るので、再試行するか、メールにコピーできます。",
+      "zh-Hans": "在“帮助”菜单中选择“发送反馈…”。如果应用常驻菜单栏，请从应用菜单中选择此项。选择“建议”“错误”或“语言”，填写内容，并在发送前检查相关信息。如果发送失败，草稿会保留在应用中，您可以重试或将内容复制到邮件中。"
+    },
+    "site.support.receipt.title": {
+      "en": "Check on feedback you’ve sent",
+      "de": "Gesendetes Feedback nachverfolgen",
+      "fr": "Retrouver vos commentaires envoyés",
+      "es": "Consulta los comentarios que enviaste",
+      "pt-BR": "Acompanhe o feedback enviado",
+      "ja": "送信したフィードバックを確認する",
+      "zh-Hans": "查看已发送的反馈"
+    },
+    "site.support.receipt.body": {
+      "en": "Open My Reports in the same app on the same device to find your previous messages and check for updates. You can also manage the email address you provided for replies.",
+      "de": "Öffnen Sie Meine Meldungen in derselben App auf demselben Gerät. Dort finden Sie Ihre bisherigen Nachrichten, können den aktuellen Stand prüfen und Ihre E-Mail-Adresse für Antworten verwalten.",
+      "fr": "Ouvrez Mes rapports dans la même application, sur le même appareil, pour retrouver vos messages et consulter leur suivi. Vous pouvez aussi gérer l’adresse e-mail fournie pour les réponses.",
+      "es": "Abre Mis informes en la misma app y en el mismo dispositivo para encontrar tus mensajes anteriores y consultar novedades. También puedes gestionar el correo que facilitaste para recibir respuestas.",
+      "pt-BR": "Abra Meus relatos no mesmo app e no mesmo dispositivo para encontrar suas mensagens e verificar atualizações. Você também pode gerenciar o e-mail informado para receber respostas.",
+      "ja": "同じ端末の同じアプリで「マイレポート」を開くと、これまでに送った内容や対応状況を確認できます。返信用に登録したメールアドレスの管理もできます。",
+      "zh-Hans": "在同一设备上的同一应用中打开“我的报告”，即可找到之前发送的内容并查看进展。您也可以管理用于接收回复的邮箱地址。"
+    },
+    "site.support.banner.body": {
+      "en": "Tell us what’s getting in your way or what would make an app more useful. You can send feedback from the app or contact us by email.",
+      "de": "Sagen Sie uns, was nicht funktioniert oder was eine App noch nützlicher machen würde. Senden Sie Feedback direkt in der App oder schreiben Sie uns eine E-Mail.",
+      "fr": "Dites-nous ce qui vous bloque ou ce qui rendrait une application plus utile. Envoyez vos commentaires depuis l’application ou contactez-nous par e-mail.",
+      "es": "Cuéntanos qué te está dando problemas o qué haría una app más útil. Envía tus comentarios desde la app o contáctanos por correo.",
+      "pt-BR": "Conte o que está atrapalhando ou o que tornaria um app mais útil. Envie seu feedback pelo app ou entre em contato por e-mail.",
+      "ja": "使いにくいところや、あったら便利な機能を教えてください。アプリのフィードバック機能またはメールでご連絡いただけます。",
+      "zh-Hans": "告诉我们您遇到了什么问题，或怎样能让应用更好用。您可以在应用内发送反馈，也可以通过邮件联系我们。"
+    }
+  }
+}

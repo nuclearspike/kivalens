@@ -173,6 +173,18 @@ body {
   height: 500px;
   width: 100%;
   overflow-y: scroll;
+  // The rows' z-index (10, the selected one 12) orders them among themselves and
+  // stays inside the list, so anything laid over the results — the filtering
+  // status — lies above every row. This does not raise the status's z-index past
+  // the rows' instead: every overlay would then have to outbid the rows' numbers.
+  isolation: isolate;
+}
+
+// Anything laid over the results (the filtering status) is placed against this
+// column at every width. Below md the columns stack and the page scrolls, so the
+// page's top is the criteria, not the results.
+.results-col {
+  position: relative;
 }
 
 // Desktop 3-column layout only (below md the columns stack and the page scrolls).
@@ -186,8 +198,6 @@ body {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 60px);
-    // Contains the filtering status, which lies over the list instead of pushing it.
-    position: relative;
   }
 
   .results-col .loan_list_container {
@@ -1461,6 +1471,12 @@ textarea {
     flex: 1;
     min-width: 0;
   }
+
+  // History is a button the width of its word, like Reset; Saved Searches,
+  // which names the search in force, takes the rest of the row.
+  .dropdown.kl-history-dropdown {
+    flex: none;
+  }
 }
 
 // Option counts and their distribution bars ride on rows whose background changes
@@ -1618,4 +1634,164 @@ textarea {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+}
+
+// ============================================================
+// Shared support (Send Feedback, My Reports) — src/support/
+// ============================================================
+
+// The footer's entries read as text links but are buttons: they open a dialog
+// over the page instead of going anywhere.
+.btn.kl-support-entry {
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+// The dialog fits its content, and never outgrows the window: the body scrolls
+// while the header and the action bar stay put, so Send is always in reach
+// (definition screens.feedback invariants).
+.kl-support-dialog {
+  .modal-content {
+    max-height: calc(100vh - 20px);
+
+    // The same step at which .modal-dialog widens and takes 30px margins.
+    @media (min-width: 768px) {
+      max-height: calc(100vh - 60px);
+    }
+  }
+
+  .modal-body {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+.kl-support-frame {
+  display: contents;
+}
+
+.kl-support-kinds .btn {
+  min-width: 96px;
+}
+
+.kl-support-text {
+  resize: vertical;
+}
+
+.kl-support-languages {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.kl-support-contact,
+.kl-support-email,
+.kl-support-willsend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.kl-support-email {
+  align-self: stretch;
+
+  .form-control {
+    align-self: stretch;
+  }
+}
+
+.kl-support-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  margin: 0;
+
+  dt {
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.kl-support-status {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.kl-support-report-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  color: inherit;
+  // A headline is up to 160 characters: it wraps inside the row. .btn sets
+  // nowrap, which would push a long first line past the dialog's edge.
+  white-space: normal;
+  min-width: 0;
+}
+
+.kl-support-report-line {
+  overflow-wrap: anywhere;
+}
+
+.kl-support-report-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+// The thanks after sending: the page's usual notification bar, without the
+// slide-in — the shared definition asks for no animation here.
+.notification-bar.kl-support-thanks {
+  animation: none;
+  font-size: 16px;
+}
+
+// ============================================================
+// Criteria history (src/components/CriteriaHistoryMenu.tsx)
+// ============================================================
+
+.kl-criteria-history {
+  max-height: 400px;
+  overflow-y: auto;
+  width: min(460px, calc(100vw - 32px));
+  font-size: 12px;
+}
+
+// One line per search: when, then what — the what cut with "…" where it runs
+// out, the whole of it in the hover.
+.kl-criteria-history .kl-criteria-history-item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.kl-criteria-history-when {
+  flex: none;
+  color: var(--kl-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dropdown-item.active .kl-criteria-history-when {
+  color: inherit;
+}
+
+.kl-criteria-history-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -21,74 +21,9 @@ import { useLoanStore, useUtilsStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
 import PartnerDetail from './PartnerDetail'
 import { useI18n } from '../i18n'
-
-interface SelectOption {
-  value: string
-  label: string
-}
+import { COUNTRY_OPTIONS, REGION_OPTIONS, RELIGION_OPTIONS, SOCIAL_PERFORMANCE_OPTIONS, type SelectOption } from '../lib/criteriaOptions'
 
 type PartnerFilters = Record<string, unknown>
-
-const COUNTRY_OPTIONS: SelectOption[] = [
-  { value: 'AF', label: 'afghanistan' }, { value: 'AL', label: 'albania' }, { value: 'AM', label: 'armenia' },
-  { value: 'AZ', label: 'azerbaijan' }, { value: 'BJ', label: 'benin' }, { value: 'BO', label: 'bolivia' },
-  { value: 'BA', label: 'bosnia_herzegovina' }, { value: 'BR', label: 'brazil' },
-  { value: 'BF', label: 'burkina_faso' }, { value: 'BI', label: 'burundi' }, { value: 'KH', label: 'cambodia' },
-  { value: 'CM', label: 'cameroon' }, { value: 'TD', label: 'chad' }, { value: 'CL', label: 'chile' },
-  { value: 'CN', label: 'china' }, { value: 'CO', label: 'colombia' }, { value: 'CG', label: 'congo' },
-  { value: 'CD', label: 'congo_dem_rep' }, { value: 'CR', label: 'costa_rica' },
-  { value: 'CI', label: 'cote_divoire' }, { value: 'DO', label: 'dominican_republic' },
-  { value: 'EC', label: 'ecuador' }, { value: 'EG', label: 'egypt' }, { value: 'SV', label: 'el_salvador' },
-  { value: 'GE', label: 'georgia' }, { value: 'GH', label: 'ghana' }, { value: 'GT', label: 'guatemala' },
-  { value: 'GN', label: 'guinea' }, { value: 'HT', label: 'haiti' }, { value: 'HN', label: 'honduras' },
-  { value: 'IN', label: 'india' }, { value: 'ID', label: 'indonesia' }, { value: 'IQ', label: 'iraq' },
-  { value: 'IL', label: 'israel' }, { value: 'JO', label: 'jordan' }, { value: 'KE', label: 'kenya' },
-  { value: 'XK', label: 'kosovo' }, { value: 'KG', label: 'kyrgyzstan' }, { value: 'LA', label: 'laos' },
-  { value: 'LB', label: 'lebanon' }, { value: 'LR', label: 'liberia' }, { value: 'MG', label: 'madagascar' },
-  { value: 'MW', label: 'malawi' }, { value: 'ML', label: 'mali' }, { value: 'MX', label: 'mexico' },
-  { value: 'MD', label: 'moldova' }, { value: 'MN', label: 'mongolia' }, { value: 'MZ', label: 'mozambique' },
-  { value: 'MM', label: 'myanmar_burma' }, { value: 'NA', label: 'namibia' }, { value: 'NP', label: 'nepal' },
-  { value: 'NI', label: 'nicaragua' }, { value: 'NE', label: 'niger' }, { value: 'NG', label: 'nigeria' },
-  { value: 'PK', label: 'pakistan' }, { value: 'PS', label: 'palestine' }, { value: 'PA', label: 'panama' },
-  { value: 'PG', label: 'papua_new_guinea' }, { value: 'PY', label: 'paraguay' }, { value: 'PE', label: 'peru' },
-  { value: 'PH', label: 'philippines' }, { value: 'PR', label: 'puerto_rico' }, { value: 'RW', label: 'rwanda' },
-  { value: 'WS', label: 'samoa' }, { value: 'SN', label: 'senegal' }, { value: 'SL', label: 'sierra_leone' },
-  { value: 'SB', label: 'solomon_islands' }, { value: 'SO', label: 'somalia' },
-  { value: 'ZA', label: 'south_africa' }, { value: 'SS', label: 'south_sudan' },
-  { value: 'LK', label: 'sri_lanka' }, { value: 'SR', label: 'suriname' }, { value: 'TJ', label: 'tajikistan' },
-  { value: 'TZ', label: 'tanzania' }, { value: 'TH', label: 'thailand' },
-  { value: 'TL', label: 'timor_leste' }, { value: 'TG', label: 'togo' }, { value: 'TO', label: 'tonga' },
-  { value: 'TR', label: 'turkey' }, { value: 'UG', label: 'uganda' }, { value: 'UA', label: 'ukraine' },
-  { value: 'US', label: 'united_states' }, { value: 'VN', label: 'vietnam' },
-  { value: 'VU', label: 'vanuatu' }, { value: 'YE', label: 'yemen' }, { value: 'ZM', label: 'zambia' },
-  { value: 'ZW', label: 'zimbabwe' },
-]
-
-const REGION_OPTIONS: SelectOption[] = [
-  { value: 'na', label: 'north_america' }, { value: 'ca', label: 'central_america' },
-  { value: 'sa', label: 'south_america' }, { value: 'af', label: 'africa' },
-  { value: 'as', label: 'asia' }, { value: 'me', label: 'middle_east' },
-  { value: 'ee', label: 'eastern_europe' }, { value: 'oc', label: 'oceania' },
-  { value: 'we', label: 'western_europe' },
-]
-
-const SOCIAL_PERFORMANCE_OPTIONS: SelectOption[] = [
-  { value: '1', label: 'anti_poverty_focus' },
-  { value: '3', label: 'client_voice' },
-  { value: '5', label: 'entrepreneurial_support' },
-  { value: '6', label: 'facilitation_savings' },
-  { value: '4', label: 'family_community_empowerment' },
-  { value: '7', label: 'innovation' },
-  { value: '2', label: 'vulnerable_group_focus' },
-]
-
-const RELIGION_OPTIONS: SelectOption[] = [
-  { value: 'Secular', label: 'secular' }, { value: 'Christian', label: 'christian' },
-  { value: 'Christian Influence', label: 'christian_influence' }, { value: 'Muslim', label: 'muslim' },
-  { value: 'Hindu', label: 'hindu' }, { value: 'Jewish', label: 'jewish' },
-  { value: 'Buddhist', label: 'buddhist' }, { value: 'Other', label: 'other' },
-  { value: 'Unknown', label: 'unknown_2' },
-]
 
 const STATUS_MULTI_OPTIONS: SelectOption[] = [
   { value: 'active', label: 'active' },

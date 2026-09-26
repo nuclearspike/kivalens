@@ -373,7 +373,8 @@ function buildPartnerTester(c, ctx) {
 // The UI always stores one of those three. A search saved before they existed has
 // no value, and its meaning is read off what it filters on: any partner criterion
 // means it was an MFI search (so it behaves exactly as it always did), none means
-// Both. Unknown values are read the same way as a missing one.
+// Both. Balance by partner counts as soon as it is on (balancesByPartner). Unknown
+// values are read the same way as a missing one.
 // ---------------------------------------------------------------------------
 const PARTNER_MODES = new Set(['both', 'mfi', 'direct'])
 
@@ -389,11 +390,24 @@ export function partnerCriteriaSet(c) {
   return ct.failAll || ct.testers.length > 0
 }
 
+/**
+ * Balance by partner is on. Its partner list is worked out from the lender's
+ * portfolio in the browser and arrives after the search does; until then it tests
+ * nothing. It means MFI Only from the moment it is on, not only once it tests
+ * something: judged by its tests alone, a search that balances by partner reads as
+ * Both while the list loads, has Both written into it as it enters the store, and
+ * never balances. The assistant reads it the same way (applyModelPartnerIntent in
+ * aiChat.mjs).
+ */
+export function balancesByPartner(c) {
+  return !!c?.portfolio?.pb_partner?.enabled
+}
+
 /** 'both' | 'mfi' | 'direct' for these criteria (see the note above). */
 export function resolvePartnerMode(c) {
   const stored = c?.partner?.direct
   if (PARTNER_MODES.has(stored)) return stored
-  return partnerCriteriaSet(c) ? 'mfi' : 'both'
+  return partnerCriteriaSet(c) || balancesByPartner(c) ? 'mfi' : 'both'
 }
 
 /** The same criteria with the mode written in, so lifting one criterion to measure it cannot change the mode. */

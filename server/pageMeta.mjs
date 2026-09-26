@@ -46,7 +46,6 @@ export const PAGE_NAMES = {
   aboutAdvanced: { key: 'advanced', name: 'Advanced' },
   privacy: { key: 'privacy', name: 'Privacy' },
   autolend: { key: 'auto_lending', name: 'Auto-Lending' },
-  donate: { key: 'donate', name: 'Donate' },
   outdated: { key: 'outdated_link_ellipsis', name: 'Outdated Link…' },
 }
 
@@ -56,7 +55,7 @@ export const PAGE_NAMES = {
  * is secret, but because an expired loan or one of a million filter
  * combinations is a bad result for whoever finds it.
  */
-export const INDEXABLE = new Set(['search', 'partners', 'partner', 'about', 'aboutAdvanced', 'privacy', 'donate'])
+export const INDEXABLE = new Set(['search', 'partners', 'partner', 'about', 'aboutAdvanced', 'privacy'])
 
 const clip = (text, max) => {
   const s = String(text ?? '').replace(/\s+/g, ' ').trim()

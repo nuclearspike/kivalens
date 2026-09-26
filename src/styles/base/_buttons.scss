@@ -94,6 +94,27 @@
 }
 
 .btn-outline-primary { @include btn-outline-variant(var(--kl-primary-outline), var(--kl-primary-outline), $flatly-primary); }
+
+// Pick-one button rows (src/ui/Segmented.tsx). The chosen option is filled; an
+// option pointed at or focused is only tinted, never given the chosen fill, or
+// the row reads as two choices at once (UX rule 44). A standalone outline button
+// keeps filling on hover: with nothing chosen beside it, a fill cannot mislead.
+.kl-segmented .btn[aria-checked='false'] {
+  &:hover,
+  &:focus {
+    color: var(--kl-primary-outline);
+    background-color: color-mix(in srgb, var(--kl-primary-outline) 14%, transparent);
+    border-color: var(--kl-primary-outline);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kl-focus-ring);
+    outline-offset: 1px;
+    // Above its neighbours, so the ring is not cut off by the next button.
+    position: relative;
+    z-index: 1;
+  }
+}
 .btn-outline-secondary { @include btn-outline-variant($flatly-default, var(--kl-secondary-text)); }
 .btn-outline-success { @include btn-outline-variant($kiva-green, var(--kl-green-text)); }
 .btn-outline-danger { @include btn-outline-variant($flatly-danger, var(--kl-danger-text)); }

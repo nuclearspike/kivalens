@@ -4,9 +4,10 @@
  * real set), so the round-trips and the mutation boundaries are worth pinning.
  * @vitest-environment jsdom
  */
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { useCriteriaStore } from './criteriaStore'
-import type { Criteria } from '../types'
+import { getKivaLoans } from '../api/kiva'
+import type { Criteria, KivaLoan } from '../types'
 
 const store = () => useCriteriaStore.getState()
 
@@ -206,6 +207,79 @@ describe('MFI or Direct: the mode is written in as criteria arrive', () => {
     expect(store().fixUpgrades(crit({ loan: { sector: 'Retail' } })).partner.direct).toBe('both')
   })
 
+  // Paul, 2026-09-25: "when loading a saved search that requires MFI only, just
+  // switch to only MFI … if you select 'balance partner risk' it won't set the MFI
+  // only which prevents it from balancing partner risk".
+  it('Balance Partner Risk loads in MFI Only, from whatever mode was in force', () => {
+    for (const mode of ['both', 'direct', 'mfi']) {
+      store().setCriteria(crit({ partner: { direct: mode } }))
+      store().loadSearch('balance_partner_risk')
+      expect(store().lastKnown.partner.direct, `from ${mode}`).toBe('mfi')
+      expect(store().lastKnown.portfolio.pb_partner).toMatchObject({ enabled: true })
+    }
+  })
+
+  it('a saved search with partner criteria loads in MFI Only even when Both was saved with it', () => {
+    store().setCriteria(crit({ partner: { direct: 'both', partners: '246' } }))
+    store().saveSearch('test-both-with-a-partner')
+    store().setCriteria(crit({ partner: { direct: 'both' }, portfolio: { pb_partner: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, values: [] } } }))
+    store().saveSearch('test-both-balancing-partners')
+    for (const name of ['test-both-with-a-partner', 'test-both-balancing-partners']) {
+      store().startFresh()
+      store().loadSearch(name)
+      expect(store().lastKnown.partner.direct, name).toBe('mfi')
+      expect(store().lastSwitch).toBe(name)
+    }
+  })
+
+  it('leaves a saved Direct Only alone, and a saved Both with no partner criteria in Both', () => {
+    store().setCriteria(crit({ partner: { direct: 'direct', partners: '246' } }))
+    store().saveSearch('test-direct-with-a-partner')
+    store().setCriteria(crit({ loan: { sector: 'Retail' }, partner: { direct: 'both' } }))
+    store().saveSearch('test-both-no-partner')
+    store().startFresh()
+    store().loadSearch('test-direct-with-a-partner')
+    expect(store().lastKnown.partner.direct).toBe('direct')
+    store().loadSearch('test-both-no-partner')
+    expect(store().lastKnown.partner.direct).toBe('both')
+  })
+
+  it('reads a saved search as it runs wherever it is shown, counted, shared or exported', () => {
+    store().setCriteria(crit({ partner: { direct: 'both', partners: '246' } }))
+    store().saveSearch('test-both-with-a-partner')
+    expect(store().getSavedSearch('test-both-with-a-partner')?.partner).toMatchObject({ direct: 'mfi', partners: '246' })
+    // What was saved is kept as it was; only the reading follows the rule.
+    expect(store().savedSearches['test-both-with-a-partner'].partner).toMatchObject({ direct: 'both' })
+  })
+
+  it('counts a saved search in the mode it runs in, and counts one that cannot run as none', async () => {
+    const { countSavedSearch } = await import('./criteriaStore')
+    const seen: unknown[] = []
+    const kl = { filter: (c: unknown) => (seen.push(c), [1, 2, 3]) }
+    expect(countSavedSearch(kl, crit({ partner: { direct: 'both', partners: '246' } }))).toBe(3)
+    expect(seen[0]).toMatchObject({ partner: { direct: 'mfi', partners: '246' } })
+    expect(countSavedSearch({ filter: () => { throw new Error('not loaded') } }, crit())).toBe(0)
+  })
+
+  it('matches new loans for a saved search in the mode it loads in', () => {
+    store().setCriteria(crit({ partner: { direct: 'both', partners: '246' } }))
+    store().saveSearch('test-both-with-a-partner')
+    const kl = getKivaLoans()
+    const ready = vi.spyOn(kl, 'isReady').mockReturnValue(true)
+    try {
+      const direct = {
+        id: 9001, partner_id: null, status: 'fundraising', funded_amount: 0, loan_amount: 1000,
+        location: { country_code: 'US', country: 'United States' }, terms: { repayment_interval: 'Monthly' },
+        kls_tags: [], themes: [], borrower_count: 1, kl_percent_women: 100, kl_still_needed: 500,
+        kl_percent_funded: 50, kl_name_arr: [], kls_use_or_descr_arr: [], sector: 'Retail', posted_date: '2026-06-01',
+      } as unknown as KivaLoan
+      // A Direct loan has no field partner, so a partner search cannot be about it.
+      expect(store().getMatchingCriteria(direct)).not.toContain('test-both-with-a-partner')
+    } finally {
+      ready.mockRestore()
+    }
+  })
+
   it("keeps 'both' through the cleanup that drops empty values", () => {
     const c = crit({ partner: { direct: 'both', region: 'af', religion: '' } })
     store().stripNullValues(c)
@@ -222,5 +296,31 @@ describe('MFI or Direct: the mode is written in as criteria arrive', () => {
     // An old search is written as the mode it implies.
     expect(store().prepForRSS(crit({ partner: kept })).partner).toEqual({ direct: 'mfi', ...kept })
     expect(store().prepForRSS(crit({ loan: { sector: 'Retail' } })).partner).toBeUndefined()
+  })
+})
+
+describe('Reset, then one thing (a partner’s Show loans)', () => {
+  it('is what Reset sets plus that thing, in one change the history sees once', () => {
+    const changes: Criteria[] = []
+    const unsubscribe = useCriteriaStore.subscribe((s, prev) => {
+      if (s.lastKnown !== prev.lastKnown) changes.push(s.lastKnown)
+    })
+    store().setCriteria(crit({ loan: { sector: 'Retail', country_code: 'KE' }, portfolio: { exclude_portfolio_loans: 'false' } }))
+    changes.length = 0
+    store().startFresh(crit({ partner: { direct: 'mfi', partners: '246' } }))
+    unsubscribe()
+    expect(changes).toHaveLength(1)
+    expect(store().lastKnown.loan).toEqual({ name: '', use: '' })
+    expect(store().lastKnown.partner).toEqual({ direct: 'mfi', partners: '246' })
+    expect(store().lastKnown.portfolio).toMatchObject({ exclude_portfolio_loans: 'true' })
+  })
+
+  it('stops the switcher naming the saved search it replaced, so Re-save cannot overwrite it', () => {
+    store().setCriteria(crit({ loan: { sector: 'Retail' } }))
+    store().saveSearch('test-reset-switch')
+    expect(store().lastSwitch).toBe('test-reset-switch')
+    store().startFresh(crit({ partner: { direct: 'mfi', partners: '246' } }))
+    expect(store().lastSwitch).toBeNull()
+    expect(store().savedSearches['test-reset-switch'].loan).toMatchObject({ sector: 'Retail' })
   })
 })

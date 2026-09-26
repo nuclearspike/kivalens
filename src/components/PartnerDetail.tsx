@@ -31,8 +31,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
   const { t, sector, date, number, currency, percent } = useI18n()
   const navigate = useNavigate()
   const loans = useLoanStore((s) => s.loans)
-  const setCriteria = useCriteriaStore((s) => s.setCriteria)
-  const blankCriteria = useCriteriaStore((s) => s.blankCriteria)
+  const startFresh = useCriteriaStore((s) => s.startFresh)
 
   const fundraisingLoans = useMemo(
     () =>
@@ -56,10 +55,13 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
       .sort((a, b) => b.value - a.value)
   }, [fundraisingLoans, sector])
 
+  // This partner's loans and nothing else: what Reset sets, then the partner —
+  // one change, so it is one step in the criteria history and no filter left
+  // over from an earlier search hides any of them. MFI Only, because partner
+  // filters apply only there (Reset's Both would leave this one inert) and a
+  // field partner's loans are MFI loans by definition.
   const searchLoans = () => {
-    const crit = blankCriteria()
-    ;(crit.partner as Record<string, unknown>).partners = partner.id.toString()
-    setCriteria(crit)
+    startFresh({ loan: {}, partner: { direct: 'mfi', partners: partner.id.toString() }, portfolio: {} })
     navigate('/search')
   }
 

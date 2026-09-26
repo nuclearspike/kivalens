@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- this route module intentionally exports the router alongside route components. */
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import {
   createBrowserRouter,
   Outlet,
@@ -16,6 +16,8 @@ import RouteErrorBoundary from './components/RouteErrorBoundary'
 import SetLenderIDModal from './components/SetLenderIDModal'
 import DialogHost from './components/DialogHost'
 import AICallout from './components/AICallout'
+import SupportHost from './support/SupportHost'
+import { startCriteriaHistory } from './stores/criteriaHistoryStore'
 import { useI18n } from './i18n'
 
 // The assistant pulls in markdown and charting libraries. Load that feature only
@@ -46,6 +48,8 @@ export const scrollKeyFor = (location: { pathname: string; key: string }) =>
 function AppLayout() {
   useKivaLensInit()
   usePageMeta()
+  // Every change to the search, wherever it is made, goes into the criteria history.
+  useEffect(() => startCriteriaHistory(), [])
 
   return (
     <div>
@@ -56,6 +60,7 @@ function AppLayout() {
         <AskKivaLens />
       </Suspense>
       <AICallout />
+      <SupportHost />
       <main className="kl-main">
         <Outlet />
       </main>
@@ -108,7 +113,6 @@ export const PAGES: Record<RouteId, Loader> = {
   aboutAdvanced: fromDefault(() => import('./components/About')),
   privacy: fromDefault(() => import('./components/Privacy')),
   autolend: () => import('./components/AutoLendSettings'),
-  donate: fromDefault(() => import('./components/Donate')),
   outdated: fromDefault(() => import('./components/Outdated')),
 }
 

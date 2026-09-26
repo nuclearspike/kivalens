@@ -101,7 +101,6 @@ describe('what is worth finding in a search engine', () => {
     ['/partners/15', 'index,follow'],
     ['/about', 'index,follow'],
     ['/privacy', 'index,follow'],
-    ['/donate', 'index,follow'],
   ])('%s is worth indexing', (pathname, robots) => {
     expect(meta(pathname).robots).toBe(robots)
   })

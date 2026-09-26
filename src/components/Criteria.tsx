@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Dropdown } from '../ui'
 import { useCriteriaStore } from '../stores'
+import { countSavedSearch } from '../stores/criteriaStore'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
 import { useI18n } from '../i18n'
+import CriteriaHistoryMenu from './CriteriaHistoryMenu'
 
 // ---------------------------------------------------------------------------
 // Criteria sidebar panel — the search switcher above CriteriaTabs
@@ -48,7 +50,7 @@ export function SearchSwitcher() {
       for (const name of names) {
         const crit = savedSearches[name]
         if (crit) {
-          try { counts[name] = kl.filter(crit, false).length } catch { counts[name] = 0 }
+          counts[name] = countSavedSearch(kl, crit)
         }
       }
       setSearchCounts(counts)
@@ -98,6 +100,8 @@ export function SearchSwitcher() {
         <Button size="sm" onClick={handleClear} style={{ whiteSpace: 'nowrap' }} data-aikl="reset">
           {t('reset')}
         </Button>
+
+        <CriteriaHistoryMenu />
 
         <Dropdown onToggle={(isOpen) => { if (isOpen) refreshNames() }}>
           <Dropdown.Toggle size="sm" id="saved-search-dropdown" style={{ flex: 1 }} data-aikl="saved-searches">

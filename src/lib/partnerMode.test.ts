@@ -90,6 +90,19 @@ describe('an old search, saved before the modes existed', () => {
     expect(resolvePartnerMode({ partner: { social_rating_max: 2 } })).toBe('mfi')
   })
 
+  // Paul, 2026-09-25: "Balance Partner Risk" loaded as Both, and so balanced nothing.
+  it('reads balance by partner as MFI Only from the moment it is on, before its partner list arrives', () => {
+    const waiting = { portfolio: { pb_partner: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active', values: [] } } }
+    // It tests nothing until the lender's portfolio gives it partners to hide…
+    expect(partnerCriteriaSet(waiting)).toBe(false)
+    // …but it already means MFI Only: the Direct loans are not part of it.
+    expect(resolvePartnerMode(waiting)).toBe('mfi')
+    expect(ids(waiting)).toEqual([1, 2, 3])
+    expect(resolvePartnerMode({ portfolio: { pb_partner: { enabled: false, values: [] } } })).toBe('both')
+    // A mode chosen while balancing is still the lender's.
+    expect(resolvePartnerMode({ partner: { direct: 'both' }, ...waiting })).toBe('both')
+  })
+
   it('treats an empty or unknown stored value like a missing one', () => {
     expect(resolvePartnerMode({ partner: { direct: '' } })).toBe('both')
     expect(resolvePartnerMode({ partner: { direct: '', region: 'af' } })).toBe('mfi')

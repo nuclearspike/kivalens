@@ -46,7 +46,6 @@ export const ROUTES = [
   { id: 'aboutAdvanced', path: '/about/advanced', page: 'about' },
   { id: 'privacy', path: '/privacy' },
   { id: 'autolend', path: '/autolend' },
-  { id: 'donate', path: '/donate' },
   { id: 'outdated', path: '/outdated' },
 ]
 
@@ -76,6 +75,8 @@ const LEGACY = [
   { from: /^\/portfolio$/, to: () => '/wall', kind: 'legacy' },
   // "Who is on KivaLens right now" was never wired to a data source.
   { from: /^\/on$/, to: () => HOME, kind: 'gone' },
+  // Donations to KivaLens are no longer asked for (Paul, 2026-09-25).
+  { from: /^\/donate$/, to: () => HOME, kind: 'gone' },
   // The root is a destination, not a retired address: the app navigates on from
   // it. The server leaves it alone so the most-typed URL costs no redirect.
   { from: /^\/?$/, to: () => HOME, kind: 'home' },

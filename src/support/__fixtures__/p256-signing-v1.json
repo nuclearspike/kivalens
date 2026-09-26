@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "algorithm": "ECDSA_P256_SHA256",
+  "signatureFormat": "raw-r-and-s-64-byte-base64url",
+  "method": "POST",
+  "path": "/v1/feedback",
+  "sentAt": "2026-08-15T12:00:00.000Z",
+  "messageId": "018f5f36-7b89-7abc-8def-1234567890ab",
+  "exactBodyUtf8": "{\"envelopeVersion\":\"1.0\",\"messageType\":\"feedback.submit\",\"messageVersion\":\"1.0\",\"messageId\":\"018f5f36-7b89-7abc-8def-1234567890ab\",\"sentAt\":\"2026-08-15T12:00:00.000Z\",\"client\":{\"schemaVersion\":\"1.0\",\"appId\":\"spacelens\",\"appVersion\":\"1.0.0\",\"appBuild\":\"1\",\"distribution\":\"development\",\"platform\":\"macos\",\"osVersion\":\"15.0\",\"architecture\":\"arm64\",\"locale\":\"en-US\",\"capabilities\":{}},\"payload\":{\"schemaVersion\":\"1.0\",\"kind\":\"bug\",\"message\":\"Vector only\",\"disclosureReviewed\":true}}",
+  "bodySha256Base64Url": "Erz3fzJ5-Dqk1pKUpMn-5eygKL6Yi78LgDvTsXtht0g",
+  "canonicalSigningInput": "LSS1\nPOST\n/v1/feedback\n2026-08-15T12:00:00.000Z\n018f5f36-7b89-7abc-8def-1234567890ab\nErz3fzJ5-Dqk1pKUpMn-5eygKL6Yi78LgDvTsXtht0g",
+  "publicJwk": {
+    "key_ops": ["verify"],
+    "ext": true,
+    "kty": "EC",
+    "x": "YAj5FuhDgUlymQxQPk9GiO1ONVkVPpu5jiMrIDP1aus",
+    "y": "266-znS_tPEEzMFW6bM1iWXth5_ft22oMp_f9L62ZtQ",
+    "crv": "P-256"
+  },
+  "privateJwkForTestsOnly": {
+    "key_ops": ["sign"],
+    "ext": true,
+    "kty": "EC",
+    "x": "YAj5FuhDgUlymQxQPk9GiO1ONVkVPpu5jiMrIDP1aus",
+    "y": "266-znS_tPEEzMFW6bM1iWXth5_ft22oMp_f9L62ZtQ",
+    "crv": "P-256",
+    "d": "AAasE0ttHrO-_fHrkrVSWVMF61-JovF836pItYJLH2g"
+  },
+  "signatureBase64Url": "L2lHwhj4Os-NlJqi-RKOb7P5rJUXlef6vdrd6MY_1BMegVL5CuDATaIRN8nUbs5kpC896gx-Fkobd0QzVsC83g"
+}
+
