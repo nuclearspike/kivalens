@@ -14,6 +14,13 @@ export const CACHE_DIR = path.join(os.tmpdir(), 'kivalens-cache')
 const filePath = (key) => path.join(CACHE_DIR, key)
 const ensureDir = () => fs.mkdir(CACHE_DIR, { recursive: true })
 
+/** The file cache as runtime.mjs expects it, for the Node server. */
+export const diskCache = {
+  get: (key, maxAgeMs) => readCache(key, maxAgeMs),
+  set: (key, data) => writeCache(key, data),
+  cleanup: (options) => cleanupCache(options),
+}
+
 /** Read a cached entry, or null if missing / older than maxAgeMs. */
 export async function readCache(key, maxAgeMs) {
   try {

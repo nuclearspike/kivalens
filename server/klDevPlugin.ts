@@ -10,6 +10,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createState, startRefresh, handleApi, handleProxy, handleRss } from './klCore.mjs'
 import { handleChat } from './aiChat.mjs'
 import { legacyRedirect } from './legacyRedirect.mjs'
+import { configureNodeRuntime } from './nodeRuntime.mjs'
+import { sendResponse, toRequest } from './nodeAdapter.mjs'
 
 export function klDevServer(): Plugin {
   const state = createState()
@@ -19,15 +21,35 @@ export function klDevServer(): Plugin {
     name: 'kl-dev-server',
 
     configureServer(server: ViteDevServer) {
-      const refreshTimer = startRefresh(state, log)
-      server.httpServer?.once('close', () => clearInterval(refreshTimer))
+      configureNodeRuntime()
+      const refresh = startRefresh(state, log)
+      // Vite restarts the server on config changes; the old refresh must stop with
+      // it, or each restart leaves another loan dataset running in the process.
+      server.httpServer?.once('close', () => refresh.stop())
 
       server.middlewares.use(
-        (req: IncomingMessage, res: ServerResponse, next: () => void) => {
-          if (handleProxy(req, res)) return
-          if (handleRss(state, req, res)) return
-          if (handleChat(state, req, res)) return
-          if (handleApi(state, req, res)) return
+        async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+          // Only this server's own paths become Fetch requests; everything else goes
+          // straight on to Vite untouched (its body is never read here).
+          const url = req.url || ''
+          if (/^\/(api\/|graphql|proxy\/|rss)/.test(url)) {
+            try {
+              const request = toRequest(req, res)
+              const response =
+                (await handleProxy(request)) ??
+                (await handleRss(state, request)) ??
+                (await handleChat(state, request)) ??
+                (await handleApi(state, request))
+              if (response) return await sendResponse(res, response)
+            } catch (e) {
+              // As on the production server: one bad request answers 500 and the
+              // dev server keeps running.
+              console.error('[KL Dev] request failed:', req.method, url, e)
+              if (!res.headersSent) res.statusCode = 500
+              res.end('Server error')
+              return
+            }
+          }
           // The same permanent redirect production serves, so a retired address
           // behaves here exactly as it will there.
           const moved = legacyRedirect(req)

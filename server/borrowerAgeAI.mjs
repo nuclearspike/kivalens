@@ -16,7 +16,7 @@
 
 import OpenAI from 'openai'
 import { createHash } from 'node:crypto'
-import { readCache, writeCache } from './diskCache.mjs'
+import { cache } from './runtime.mjs'
 import { budgetExceeded, addSpend, costOf } from './aiUsage.mjs'
 import { read } from './borrowerAge.mjs'
 
@@ -76,7 +76,7 @@ async function askOne(text) {
 
 /** The cached answer for this text, or undefined when it has never been asked. */
 async function cached(text) {
-  const raw = await readCache(keyFor(text))
+  const raw = await cache.get(keyFor(text))
   if (raw === null) return undefined
   try {
     const value = JSON.parse(raw)
@@ -143,7 +143,7 @@ export async function resolveAmbiguousAges(loans, log = () => {}) {
         const { age, asked } = await askOne(item.text)
         if (!asked) return
         stats.asked += 1
-        await writeCache(keyFor(item.text), JSON.stringify(age))
+        await cache.set(keyFor(item.text), JSON.stringify(age))
         if (age != null) { item.loan.kls_age = age; stats.resolved += 1 }
       } catch (error) {
         // One failed lookup must not take down a refresh, and must not be cached:

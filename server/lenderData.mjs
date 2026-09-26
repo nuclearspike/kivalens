@@ -1,14 +1,13 @@
 /**
- * lenderData.mjs — per-lender data the prod server needs to apply portfolio
- * features (exclude-my-loans + portfolio balancing) to RSS feeds. The original
- * app refused to do these server-side; we now fetch + disk-cache them per lender
- * (the disk is ephemeral, so it just avoids re-fetching until the dyno recycles;
- * cleanupCache evicts stale/space-hogging entries since restarts can be rare).
+ * lenderData.mjs — per-lender data the server needs to apply portfolio features
+ * (exclude-my-loans + portfolio balancing) to RSS feeds, fetched from Kiva and
+ * kept in the host's cache (runtime.mjs: files on Node, where klCore's cleanup
+ * evicts stale and space-hogging entries; SQLite on Cloudflare).
  *
  * Mirrors the client: LenderFundraisingLoans (exclusion) and
  * fetchBalancerData + updateBalancers (balancing) in src.
  */
-import { readCache, writeCache } from './diskCache.mjs'
+import { cache } from './runtime.mjs'
 
 const KIVA_API = 'https://api.kivaws.org/v1'
 const KIVA_WWW = 'https://www.kiva.org'
@@ -73,7 +72,7 @@ async function fetchLenderLoansPage(lenderId, page, tries = 5) {
 
 export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}, options = {}) {
   const key = `lender-loans-${lenderId}`
-  const cached = await readCache(key, LENDER_LOANS_TTL_MS)
+  const cached = await cache.get(key, LENDER_LOANS_TTL_MS)
   if (cached) {
     try {
       return JSON.parse(cached)
@@ -93,12 +92,12 @@ export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}, op
       if (!continuePaging(loans)) break
       page++
     } while (page <= pages)
-    await writeCache(key, JSON.stringify(ids))
+    await cache.set(key, JSON.stringify(ids))
     log(`lender ${lenderId}: ${ids.length} fundraising loans`)
     return ids
   } catch (e) {
     log(`lender ${lenderId} loans fetch failed: ${e}`)
-    const stale = await readCache(key)
+    const stale = await cache.get(key)
     if (stale) {
       try {
         return JSON.parse(stale)
@@ -115,7 +114,7 @@ export async function fetchLenderFundraisingLoanIds(lenderId, log = () => {}, op
 // gauge how experienced the lender is). Kiva v1: lenders/<id>.json -> {lenders:[..]}.
 export async function fetchLenderProfile(lenderId, log = () => {}) {
   const key = `lender-profile-${lenderId}`
-  const cached = await readCache(key, LENDER_PROFILE_TTL_MS)
+  const cached = await cache.get(key, LENDER_PROFILE_TTL_MS)
   if (cached) {
     try {
       return JSON.parse(cached)
@@ -138,12 +137,12 @@ export async function fetchLenderProfile(lenderId, log = () => {}) {
       occupation: l.occupation,
       loan_because: l.loan_because,
     }
-    await writeCache(key, JSON.stringify(profile))
+    await cache.set(key, JSON.stringify(profile))
     log(`lender ${lenderId}: profile loan_count=${profile.loan_count}`)
     return profile
   } catch (e) {
     log(`lender ${lenderId} profile fetch failed: ${e}`)
-    const stale = await readCache(key)
+    const stale = await cache.get(key)
     if (stale) {
       try {
         return JSON.parse(stale)
@@ -157,7 +156,7 @@ export async function fetchLenderProfile(lenderId, log = () => {}) {
 
 export async function fetchSuperGraphSlices(lenderId, sliceBy, include = 'all', log = () => {}, options = {}) {
   const key = `lender-sg-${lenderId}-${sliceBy}-${include}`
-  const cached = await readCache(key, SUPERGRAPH_TTL_MS)
+  const cached = await cache.get(key, SUPERGRAPH_TTL_MS)
   if (cached) {
     try {
       return JSON.parse(cached)
@@ -185,11 +184,11 @@ export async function fetchSuperGraphSlices(lenderId, sliceBy, include = 'all', 
       value: parseInt(d.value, 10),
       percent: total ? (parseInt(d.value, 10) * 100) / total : 0,
     }))
-    await writeCache(key, JSON.stringify(slices))
+    await cache.set(key, JSON.stringify(slices))
     return slices
   } catch (e) {
     log(`lender ${lenderId} supergraph ${sliceBy} failed: ${e}`)
-    const stale = await readCache(key)
+    const stale = await cache.get(key)
     if (stale) {
       try {
         return JSON.parse(stale)

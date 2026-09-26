@@ -36,6 +36,7 @@ import { Partners } from './kivajs/Partners'
 import { LenderFundraisingLoans } from './kivajs/LenderFundraisingLoans'
 import { processPartnerReligions } from './kivajs/normalizeReligion'
 import { mark } from '../lib/rum/marks'
+import { catchUpDelayMs } from '../lib/catchUp'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,6 +68,8 @@ interface KLApiStart {
   pages: number
   loanLengths: number[]
   descrLengths: number[]
+  /** When the server built this batch (ms since epoch); older servers omit it. */
+  builtAt?: number
 }
 
 const LenderLoansState = {
@@ -541,8 +544,9 @@ export class Loans {
         this.notify({ loans_loaded: true, loan_load_progress: { complete: true } })
         mark('kl:catalog:done', { source: 'kl' })
 
-        // Start background resync after 5 minutes (KL loads are already fresh)
-        wait(5 * 60_000).then(() => this.backgroundResync())
+        // Catch up from Kiva once the snapshot is five minutes old: at once for
+        // one built long ago, later for a fresh one (src/lib/catchUp.ts).
+        wait(catchUpDelayMs(klStart.builtAt)).then(() => this.backgroundResync())
       } catch (e) {
         cl('KL loan load failed, falling back to Kiva', e)
         return loadFromKiva()

@@ -5,14 +5,13 @@
  * - A capped log of interactions (what users asked + how the AI responded +
  *   which tools it called + token usage) for review/refinement.
  *
- * Persisted in Redis (shared connection from klCache) so it survives dyno
- * restarts; falls back to in-memory (per-process) when Redis isn't configured.
+ * Stored by the host (runtime.mjs `usage`): Redis on the Node server
+ * (redisUsage.mjs, so it survives dyno restarts), SQLite on Cloudflare, and
+ * memory when nothing is configured.
  */
-import { getRedisClient } from './klCache.mjs'
+import { usage } from './runtime.mjs'
 
 export const BUDGET_USD = Number(process.env.OPENAI_MONTHLY_BUDGET_USD) || 20
-const LOG_CAP = 500
-const COST_TTL_SECONDS = 70 * 24 * 60 * 60 // keep a month's counter ~70 days
 
 // Per-1,000,000-token prices (USD). Keep in sync with the model you run
 // (OPENAI_CHAT_MODEL). Falls back to gpt-4o-mini pricing for unknown models.
@@ -33,20 +32,15 @@ export function costOf(model, promptTokens = 0, completionTokens = 0) {
 export function monthKey() {
   return new Date().toISOString().slice(0, 7) // YYYY-MM (UTC)
 }
-const costKey = () => `kl:ai:cost:${monthKey()}`
-const LOG_KEY = 'kl:ai:log'
-
-// In-memory fallback (dev / Redis down). Per-process only.
-const mem = { cost: {}, log: [] }
-
+/**
+ * The month's spend so far, in USD. Stored by the host (runtime.mjs `usage`):
+ * Redis on the Node server, SQLite on Cloudflare, memory in tests.
+ */
 export async function getMonthlySpend() {
-  const client = await getRedisClient()
-  if (!client) return mem.cost[monthKey()] || 0
   try {
-    const v = await client.get(costKey())
-    return v ? parseFloat(v) : 0
+    return (await usage.getSpend(monthKey())) || 0
   } catch {
-    return mem.cost[monthKey()] || 0
+    return 0
   }
 }
 
@@ -56,16 +50,10 @@ export async function budgetExceeded() {
 
 export async function addSpend(usd) {
   if (!(usd > 0)) return
-  const client = await getRedisClient()
-  if (!client) {
-    mem.cost[monthKey()] = (mem.cost[monthKey()] || 0) + usd
-    return
-  }
   try {
-    await client.incrByFloat(costKey(), usd)
-    await client.expire(costKey(), COST_TTL_SECONDS)
+    await usage.addSpend(monthKey(), usd)
   } catch {
-    mem.cost[monthKey()] = (mem.cost[monthKey()] || 0) + usd
+    // A lost increment under-counts one call; it never breaks the chat.
   }
 }
 
@@ -76,97 +64,44 @@ export async function addSpend(usd) {
 export async function logInteraction(entry) {
   const line = JSON.stringify(entry)
   console.log('[ai-chat]', line.length > 2000 ? line.slice(0, 2000) + '…' : line)
-  const client = await getRedisClient()
-  if (!client) {
-    mem.log.unshift(entry)
-    if (mem.log.length > LOG_CAP) mem.log.length = LOG_CAP
-    return
-  }
   try {
-    await client.lPush(LOG_KEY, line)
-    await client.lTrim(LOG_KEY, 0, LOG_CAP - 1)
-    // Per-day list for the daily digest (kept ~4 days).
-    const day = (entry.at || new Date().toISOString()).slice(0, 10)
-    await client.lPush(`kl:ai:log:${day}`, line)
-    await client.expire(`kl:ai:log:${day}`, 4 * 24 * 60 * 60)
+    await usage.pushLog(entry)
   } catch {
-    mem.log.unshift(entry)
-    if (mem.log.length > LOG_CAP) mem.log.length = LOG_CAP
+    // best-effort
   }
 }
 
-// All interactions for one UTC day (YYYY-MM-DD), oldest-first not guaranteed.
+/** All interactions for one UTC day (YYYY-MM-DD), oldest-first not guaranteed. */
 export async function getDayLogs(day) {
-  const client = await getRedisClient()
-  if (!client) return mem.log.filter((e) => (e.at || '').slice(0, 10) === day)
   try {
-    const rows = await client.lRange(`kl:ai:log:${day}`, 0, -1)
-    return rows.map((r) => {
-      try {
-        return JSON.parse(r)
-      } catch {
-        return { raw: r }
-      }
-    })
+    return await usage.dayLogs(day)
   } catch {
     return []
   }
 }
 
-// Idempotent, multi-dyno-safe claim so the daily digest is sent exactly once.
-// Returns true only for the process that wins the SET NX. No Redis -> false.
+/** True only for the one process that claims the day's digest, so it is sent once. */
 export async function claimDigest(day) {
-  const client = await getRedisClient()
-  if (!client) return false
   try {
-    const ok = await client.set(`kl:ai:digest:${day}`, '1', { NX: true, EX: 4 * 24 * 60 * 60 })
-    return ok === 'OK' || ok === true
+    return await usage.claimDigest(day)
   } catch {
     return false
   }
 }
 
-// After a day's digest is emailed, wipe the chats it covered: delete that day's
-// per-day list and drop entries on/before `day` from the rolling log (keep newer).
-// Keeps Redis small — the emailed digest is the archive.
+/** After a day's digest is emailed, the chats it covered are removed. */
 export async function clearLogsThrough(day) {
-  const client = await getRedisClient()
-  if (!client) {
-    mem.log = mem.log.filter((e) => (e.at || '').slice(0, 10) > day)
-    return
-  }
   try {
-    await client.del(`kl:ai:log:${day}`)
-    const rows = await client.lRange(LOG_KEY, 0, -1)
-    const keep = rows.filter((r) => {
-      try {
-        return ((JSON.parse(r).at) || '').slice(0, 10) > day
-      } catch {
-        return true
-      }
-    })
-    const multi = client.multi()
-    multi.del(LOG_KEY)
-    if (keep.length) multi.rPush(LOG_KEY, keep)
-    await multi.exec()
+    await usage.clearThrough(day)
   } catch {
-    // best-effort; the per-day key TTLs out on its own
+    // best-effort
   }
 }
 
 export async function getRecentLogs(n = 100) {
-  const client = await getRedisClient()
-  if (!client) return mem.log.slice(0, n)
   try {
-    const rows = await client.lRange(LOG_KEY, 0, n - 1)
-    return rows.map((r) => {
-      try {
-        return JSON.parse(r)
-      } catch {
-        return { raw: r }
-      }
-    })
+    return await usage.recent(n)
   } catch {
-    return mem.log.slice(0, n)
+    return []
   }
 }

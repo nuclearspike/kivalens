@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createState, prepareData, loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from '../../server/klCore.mjs'
+import { createState, prepareData, startRefresh, loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from '../../server/klCore.mjs'
+import { configureRuntime, memoryCache, resetRuntime } from '../../server/runtime.mjs'
 import { filterLoans } from '../../server/loanFilter.mjs'
 import zlib from 'node:zlib'
 
@@ -501,5 +502,338 @@ describe('klCore paging — listing mechanics', () => {
 
     expect(ids(state)).toEqual(before)
     expect(state.batch).toBe(batchBefore)
+  })
+})
+
+describe('stopping the refresh', () => {
+  // The Vite dev server starts a new refresh on every restart; the old one must
+  // not keep downloading the catalog (and holding a whole dataset) behind it.
+  it('ends a refresh in flight at its next step, before it publishes, and never starts another', async () => {
+    const listing = Array.from({ length: 10 }, (_, p) => Array.from({ length: 50 }, (_, i) => loan(p * 50 + i + 1)))
+    const base = fakeKiva(() => listing)
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let detailCalls = 0
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/[\d,]+\.json/.test(url)) {
+        detailCalls++
+        await gate
+      }
+      return base(url, init)
+    }) as unknown as typeof fetch
+
+    const state = createState()
+    const refresh = startRefresh(state, silent)
+    await vi.waitFor(() => expect(detailCalls).toBe(4)) // four of ten batches in flight
+    refresh.stop()
+    release()
+    await vi.waitFor(() => expect(state.building).toBe(false))
+
+    expect(detailCalls).toBe(4) // no worker took another batch
+    expect(state.batch).toBe(0)
+    expect(state.ready).toBe(false)
+
+    const calls = vi.mocked(globalThis.fetch).mock.calls.length
+    await prepareData(state, silent)
+    expect(vi.mocked(globalThis.fetch).mock.calls.length).toBe(calls)
+  })
+
+  it('does not apply a warm start that arrives after stop()', async () => {
+    let deliver!: (snapshot: unknown) => void
+    const loading = new Promise((resolve) => (deliver = resolve))
+    configureRuntime({ snapshots: { save: async () => {}, load: () => loading } })
+    try {
+      globalThis.fetch = vi.fn(async () => ({ ok: false, status: 503, statusText: 'Unavailable', json: async () => ({}) })) as unknown as typeof fetch
+      const state = createState()
+      const refresh = startRefresh(state, silent)
+      refresh.stop()
+      deliver({
+        batch: 7, newestTime: 1, klStart: { batch: 7, pages: 1, loanLengths: [1], descrLengths: [1] },
+        partnersGz: Buffer.from('p'), optionsGz: Buffer.from('o'), loanPages: [Buffer.from('l')], keywordPages: [Buffer.from('k')], details: [],
+      })
+      for (let i = 0; i < 20; i++) await Promise.resolve()
+      expect(state.batch).toBe(0)
+      expect(state.ready).toBe(false)
+    } finally {
+      resetRuntime()
+    }
+  })
+
+  it('cancels the snapshot a publish just scheduled', async () => {
+    const save = vi.fn(async () => {})
+    configureRuntime({ snapshots: { save, load: async () => null } })
+    try {
+      globalThis.fetch = fakeKiva(() => [[loan(1)]]) as unknown as typeof fetch
+      // Control: a publish saves its snapshot about eight seconds later.
+      const running = createState()
+      const kept = startRefresh(running, silent)
+      await vi.waitFor(() => expect(running.batch).toBe(1))
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(save).toHaveBeenCalledTimes(1)
+      kept.stop()
+
+      save.mockClear()
+      const state = createState()
+      const refresh = startRefresh(state, silent)
+      await vi.waitFor(() => expect(state.batch).toBe(1))
+      refresh.stop()
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(save).not.toHaveBeenCalled()
+    } finally {
+      resetRuntime()
+    }
+  })
+})
+
+describe('a refresh that fails', () => {
+  it('drops only a malformed detail entry: the batch publishes and its other loans keep their details', async () => {
+    const listing = [[loan(1), loan(2)], [loan(3)]]
+    const base = fakeKiva(() => listing)
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      // Kiva answers the detail batch with a null entry among real loans.
+      if (/\/loans\/1,2,3\.json/.test(url))
+        return { ok: true, status: 200, json: async () => ({ loans: [null, loan(2, { description: { texts: { en: 'From the detail call.' } } }), loan(3)] }) } as unknown as Response
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+
+    expect(state.batch).toBe(1)
+    expect(ids(state)).toEqual([1, 2, 3])
+    const byId = new Map(state.allLoans.map((l: { id: number; description?: { texts?: { en?: string } } }) => [l.id, l]))
+    expect(byId.get(2)?.description?.texts?.en).toBe('From the detail call.')
+    expect(byId.get(1)?.description?.texts?.en).toBe('A farmer.') // the listing's own data
+  })
+
+  it('lets a malformed detail cost only its own loan: the others\' funding truth survives', async () => {
+    // A funded_date no string can be made of (valid JSON) beside a null and a loan that funded.
+    const recent = new Date(Date.now() - 60_000).toISOString()
+    const base = fakeKiva(() => [[loan(1), loan(2)]])
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/1,2\.json/.test(url))
+        return { ok: true, status: 200, json: async () => ({ loans: [
+          loan(1, { status: 'funded', funded_amount: 1000, funded_date: recent }),
+          null,
+          loan(2, { funded_date: { toString: null } }),
+        ] }) } as unknown as Response
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    expect(state.batch).toBe(1)
+    expect(ids(state)).toEqual([2]) // loan 1 funded, per its own detail
+    expect(state.recentlyFunded.map((e: { id: number }) => e.id)).toEqual([1])
+  })
+
+  it('serves a loan from the listing when its detail cannot be processed', async () => {
+    const base = fakeKiva(() => [[loan(1), loan(2), loan(3)]])
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/1,2,3\.json/.test(url))
+        return { ok: true, status: 200, json: async () => ({ loans: [loan(1), { ...loan(2), posted_date: { toString: null } }, loan(3)] }) } as unknown as Response
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    expect(state.batch).toBe(1)
+    expect(ids(state)).toEqual([1, 2, 3])
+  })
+
+  it('believes a detail that says the loan closed, even when the rest of it cannot be processed', async () => {
+    const recent = new Date(Date.now() - 60_000).toISOString()
+    // A detail as JSON carries it: a field it does not mention is absent, not undefined.
+    const { status: _status, ...fullyFundedNoStatus } = loan(1, { funded_amount: 1000, loan_amount: 1000, posted_date: { toString: null } })
+    void _status
+    for (const detail1 of [
+      loan(1, { status: 'funded', funded_amount: 1000, funded_date: recent, posted_date: { toString: null } }),
+      loan(1, { status: 'expired', name: 17 }),
+      // Still called fundraising, or not saying, but its amounts show it fully funded.
+      loan(1, { status: 'fundraising', funded_amount: 1000, loan_amount: 1000, posted_date: { toString: null } }),
+      fullyFundedNoStatus,
+      // Amounts it cannot vouch for as numbers: left out, as before, rather than put back.
+      loan(1, { status: 'fundraising', funded_amount: '1000', loan_amount: 1000, posted_date: { toString: null } }),
+    ]) {
+      const base = fakeKiva(() => [[loan(1), loan(2)]])
+      globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+        if (/\/loans\/1,2\.json/.test(url))
+          return { ok: true, status: 200, json: async () => ({ loans: [detail1, loan(2)] }) } as unknown as Response
+        return base(url, init)
+      }) as unknown as typeof fetch
+      const state = createState()
+      await prepareData(state, silent)
+      expect(state.batch).toBe(1)
+      expect(ids(state)).toEqual([2])
+    }
+  })
+
+  it('skips a loan whose detail cannot even be read, and publishes the rest', async () => {
+    // Only an injected object can do this (JSON has no getters); the detail is read once.
+    const unreadable = loan(1)
+    Object.defineProperty(unreadable, 'name', { enumerable: true, get() { throw new Error('broken') } })
+    const base = fakeKiva(() => [[loan(1), loan(2)]])
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/1,2\.json/.test(url))
+        return { ok: true, status: 200, json: async () => ({ loans: [unreadable, loan(2)] }) } as unknown as Response
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    expect(state.batch).toBe(1)
+    expect(ids(state)).toEqual([2])
+  })
+
+  it('reports the failures inside a refresh that still publishes, whatever the logger returns', async () => {
+    // The taxonomy call throws and the A+ sheet answers 404: two failure lines, and
+    // a logger that rejects every one of them.
+    const base = fakeKiva(() => [[loan(1)]])
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes('graphql')) throw new Error('graphql down')
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const reported: string[] = []
+    const state = createState()
+    await prepareData(state, (m: string) => {
+      if (!/failed|skipped/.test(m)) return
+      reported.push(m)
+      return Promise.reject(new Error('async sink')) as unknown as void
+    })
+    for (let i = 0; i < 20; i++) await Promise.resolve()
+    expect(state.batch).toBe(1)
+    expect(reported).toContain('Taxonomy fetch failed (keeping previous): Error: graphql down')
+    expect(reported.some((m) => m.startsWith('A+ data: fetch failed (Error: HTTP 404)'))).toBe(true)
+  })
+
+  it('keeps going past a batch with bad details: every batch is fetched and every loan published', async () => {
+    const listing = Array.from({ length: 10 }, (_, p) => Array.from({ length: 50 }, (_, i) => loan(p * 50 + i + 1)))
+    const base = fakeKiva(() => listing)
+    let detailCalls = 0
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/[\d,]+\.json/.test(url) && ++detailCalls === 1) {
+        const wanted = url.split('/loans/')[1].split('.json')[0].split(',').map(Number)
+        const odd = (id: number) =>
+          id === 1 ? { ...loan(1), funded_date: { toString: null } } : id === 2 ? { ...loan(2), posted_date: { toString: null } } : loan(id)
+        return { ok: true, status: 200, json: async () => ({ loans: [null, ...wanted.map(odd)] }) } as unknown as Response
+      }
+      return base(url, init)
+    }) as unknown as typeof fetch
+    const state = createState()
+    await prepareData(state, silent)
+    expect(detailCalls).toBe(10)
+    expect(state.batch).toBe(1)
+    expect(state.allLoans).toHaveLength(500)
+  })
+
+  it.each([
+    ['an Error', new Error('log sink broke')],
+    ['null', null],
+    ['0', 0],
+    ['an empty string', ''],
+  ])('returns only after every detail worker has stopped, even when one throws %s', async (_what, thrown) => {
+    const listing = Array.from({ length: 25 }, (_, p) => Array.from({ length: 50 }, (_, i) => loan(p * 50 + i + 1)))
+    const base = fakeKiva(() => listing)
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let detailCalls = 0
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (/\/loans\/[\d,]+\.json/.test(url) && ++detailCalls > 10) await gate
+      return base(url, init)
+    }) as unknown as typeof fetch
+    // The progress line after ten batches throws; nothing in a batch is expected to.
+    const log = (m: string) => {
+      if (m.startsWith('  loan details:')) throw thrown
+    }
+    const state = createState()
+    let returned = false
+    const run = prepareData(state, log).then(() => (returned = true))
+    await vi.waitFor(() => expect(detailCalls).toBeGreaterThan(10))
+    for (let i = 0; i < 50; i++) await Promise.resolve()
+    const started = detailCalls
+    expect(returned).toBe(false) // workers are still waiting on Kiva
+    expect(state.building).toBe(true)
+    release()
+    await run
+    expect(detailCalls).toBe(started) // none took another batch after the failure
+    expect(state.batch).toBe(0)
+  })
+
+  it('reports a failure whatever was thrown, and whatever the logger does with the report', async () => {
+    const { proxy, revoke } = Proxy.revocable({}, {})
+    revoke() // instanceof, String() and property reads all throw on it
+    for (const [thrown, log, expected] of [
+      [proxy, (m: string) => void m, 'Data preparation failed: an error that cannot be printed'],
+      [new Error('Kiva down'), (m: string) => (m.startsWith('Data preparation failed') ? Promise.reject(new Error('async sink')) : undefined), null],
+    ] as Array<[unknown, (m: string) => unknown, string | null]>) {
+      globalThis.fetch = vi.fn(async () => { throw thrown }) as unknown as typeof fetch
+      const logs: string[] = []
+      const state = createState()
+      await prepareData(state, (m: string) => {
+        logs.push(m)
+        return log(m) as void
+      })
+      for (let i = 0; i < 20; i++) await Promise.resolve()
+      expect(state.building).toBe(false)
+      expect(state.batch).toBe(0)
+      if (expected) expect(logs).toContain(expected)
+    }
+  })
+
+  it('survives a store that rejects with something unprintable, and a logger that breaks while reporting it', async () => {
+    const cases: Array<[() => Promise<never>, (m: string) => void, string | null]> = [
+      [async () => { throw { toString: null } }, () => {}, 'Snapshot save failed: an error that cannot be printed'],
+      [async () => { throw new Error('store down') }, (m) => { if (m.startsWith('Snapshot save failed')) throw new Error('log sink broke') }, null],
+    ]
+    for (const [save, breakLog, expected] of cases) {
+      configureRuntime({ snapshots: { save, load: async () => null } })
+      try {
+        globalThis.fetch = fakeKiva(() => [[loan(1)]]) as unknown as typeof fetch
+        const logs: string[] = []
+        const state = createState()
+        const refresh = startRefresh(state, (m: string) => {
+          breakLog(m)
+          logs.push(m)
+        })
+        await vi.waitFor(() => expect(state.batch).toBe(1))
+        await vi.advanceTimersByTimeAsync(10_000)
+        if (expected) expect(logs).toContain(expected)
+        refresh.stop()
+      } finally {
+        resetRuntime()
+      }
+    }
+  })
+
+  it('logs a snapshot save that fails instead of leaving it to reject unhandled', async () => {
+    for (const save of [async () => { throw new Error('store down') }, () => { throw new Error('store down') }]) {
+      configureRuntime({ snapshots: { save, load: async () => null } })
+      try {
+        globalThis.fetch = fakeKiva(() => [[loan(1)]]) as unknown as typeof fetch
+        const logs: string[] = []
+        const state = createState()
+        const refresh = startRefresh(state, (m: string) => logs.push(m))
+        await vi.waitFor(() => expect(state.batch).toBe(1))
+        await vi.advanceTimersByTimeAsync(10_000) // the save runs about 8 s after publishing
+        expect(logs).toContain('Snapshot save failed: Error: store down')
+        refresh.stop()
+      } finally {
+        resetRuntime()
+      }
+    }
+  })
+
+  it('logs a failed upkeep job rather than leaving it to reject unhandled, at start and on its timer', async () => {
+    configureRuntime({ cache: { ...memoryCache(), cleanup: async () => { throw new Error('disk gone') } } })
+    try {
+      globalThis.fetch = fakeKiva(() => [[loan(1)]]) as unknown as typeof fetch
+      const logs: string[] = []
+      const failures = () => logs.filter((m) => m === 'Lender cache cleanup failed: Error: disk gone').length
+      const state = createState()
+      const refresh = startRefresh(state, (m: string) => logs.push(m))
+      await vi.waitFor(() => expect(failures()).toBe(1)) // the run at start
+      await vi.advanceTimersByTimeAsync(6 * 60 * 60_000) // one cleanup interval
+      expect(failures()).toBe(2)
+      refresh.stop()
+      await vi.waitFor(() => expect(state.building).toBe(false))
+    } finally {
+      resetRuntime()
+    }
   })
 })

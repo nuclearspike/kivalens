@@ -2,27 +2,15 @@ import { afterEach, describe, it, expect, vi } from 'vitest'
 // handleRss is plain JS in klCore; createState gives a baseline server state.
 import { handleRss, createState } from '../../server/klCore.mjs'
 
-function mockRes() {
-  let finish!: () => void
-  const done = new Promise<void>((resolve) => {
-    finish = resolve
-  })
+/** A handler's Response read out: status, lower-cased headers, body text. */
+async function read(response: Response) {
   return {
-    statusCode: 0,
-    headers: {} as Record<string, string>,
-    body: '',
-    ended: false,
-    done,
-    setHeader(k: string, v: string) {
-      this.headers[k.toLowerCase()] = v
-    },
-    end(b?: string) {
-      this.body = b ?? ''
-      this.ended = true
-      finish()
-    },
+    statusCode: response.status,
+    headers: Object.fromEntries([...response.headers].map(([k, v]) => [k.toLowerCase(), v])) as Record<string, string>,
+    body: await response.text(),
   }
 }
+const request = (url: string) => new Request(`http://www.kivalens.org${url}`)
 
 const mkLoan = (o: Record<string, unknown>) => ({
   status: 'fundraising',
@@ -59,10 +47,9 @@ const state = {
   atheistListProcessed: false,
 }
 
-const call = (url: string) => {
-  const res = mockRes()
-  const handled = handleRss(state, { url, headers: { host: 'www.kivalens.org' } }, res)
-  return { handled, res }
+const call = async (url: string) => {
+  const response = await handleRss(state, request(url))
+  return { handled: response !== null, res: response ? await read(response) : (null as never) }
 }
 const feedUrl = (crit: object) => '/rss/' + encodeURIComponent(JSON.stringify(crit))
 
@@ -71,8 +58,8 @@ afterEach(() => {
 })
 
 describe('handleRss feed', () => {
-  it('returns valid RSS 2.0 with the right content-type and items', () => {
-    const { handled, res } = call(feedUrl({ feed: { name: 'My Feed', link_to: 'kiva' } }))
+  it('returns valid RSS 2.0 with the right content-type and items', async () => {
+    const { handled, res } = await call(feedUrl({ feed: { name: 'My Feed', link_to: 'kiva' } }))
     expect(handled).toBe(true)
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toMatch(/application\/rss\+xml/)
@@ -84,13 +71,13 @@ describe('handleRss feed', () => {
     expect((res.body.match(/<item>/g) || []).length).toBe(2)
   })
 
-  it('XML-escapes titles/descriptions', () => {
-    const { res } = call(feedUrl({ feed: { name: 'F', link_to: 'kiva' } }))
+  it('XML-escapes titles/descriptions', async () => {
+    const { res } = await call(feedUrl({ feed: { name: 'F', link_to: 'kiva' } }))
     expect(res.body).toContain('Bao &amp; Co &lt;Ltd&gt;')
   })
 
-  it('applies loan criteria to the feed (sector) and link_to=kivalens', () => {
-    const { res } = call(feedUrl({ feed: { name: 'Ag', link_to: 'kivalens' }, loan: { sector: 'Agriculture' } }))
+  it('applies loan criteria to the feed (sector) and link_to=kivalens', async () => {
+    const { res } = await call(feedUrl({ feed: { name: 'Ag', link_to: 'kivalens' }, loan: { sector: 'Agriculture' } }))
     expect((res.body.match(/<item>/g) || []).length).toBe(1)
     expect(res.body).toContain('<title>Aisha</title>')
     expect(res.body).not.toContain('Bao')
@@ -106,27 +93,25 @@ describe('handleRss feed', () => {
         release = resolve
       }),
     }
-    const res = mockRes()
-
-    expect(
-      handleRss(
-        waitingState,
-        { url: feedUrl({ feed: { name: 'Waiting' } }), headers: { host: 'www.kivalens.org' } },
-        res,
-      ),
-    ).toBe(true)
-    await Promise.resolve()
-    expect(res.ended).toBe(false)
+    let settled = false
+    const pending = handleRss(waitingState, request(feedUrl({ feed: { name: 'Waiting' } }))).then((r) => {
+      settled = true
+      return r
+    })
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    expect(settled).toBe(false) // no answer while the live dataset is still coming
 
     waitingState.rssReady = true
     release()
-    await res.done
+    const response = await pending
+    expect(response).toBeInstanceOf(Response)
+    const res = await read(response!)
     expect(res.statusCode).toBe(200)
     expect(res.body).toContain('<title>Waiting</title>')
   })
 
-  it('rejects active portfolio filters without a lender id', () => {
-    const { res } = call(
+  it('rejects active portfolio filters without a lender id', async () => {
+    const { res } = await call(
       feedUrl({
         feed: { name: 'Portfolio' },
         portfolio: { pb_sector: { enabled: true, percent: 10, ltgt: 'lt' } },
@@ -138,39 +123,47 @@ describe('handleRss feed', () => {
 
   it('fails closed when a required portfolio download is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }))
-    const { res } = call(
+    const { res } = await call(
       feedUrl({
         feed: { name: 'Portfolio', lender_id: `rss-readiness-${Date.now()}` },
         portfolio: { pb_sector: { enabled: true, percent: 10, ltgt: 'lt' } },
       }),
     )
 
-    await res.done
     expect(res.statusCode).toBe(503)
     expect(res.headers['retry-after']).toBe('30')
     expect(res.body).not.toContain('<rss')
   })
 
-  it('returns 400 on malformed criteria', () => {
-    const { res } = call('/rss/not-valid-json')
+  it('returns 400 on malformed criteria', async () => {
+    const { res } = await call('/rss/not-valid-json')
     expect(res.statusCode).toBe(400)
   })
 
-  it('does not handle unrelated urls', () => {
-    expect(call('/api/whatever').handled).toBe(false)
+  it('does not handle unrelated urls', async () => {
+    expect((await call('/api/whatever')).handled).toBe(false)
   })
 })
 
 describe('handleRss click redirect', () => {
-  it('redirects to the Kiva lend page for link_to=kiva', () => {
-    const { handled, res } = call('/rss_click/kiva/12345')
+  it('redirects to the Kiva lend page for link_to=kiva', async () => {
+    const { handled, res } = await call('/rss_click/kiva/12345')
     expect(handled).toBe(true)
     expect(res.statusCode).toBe(302)
     expect(res.headers['location']).toBe('https://www.kiva.org/lend/12345?app_id=org.kiva.kivalens')
   })
 
-  it('redirects to the KivaLens loan view otherwise', () => {
-    const { res } = call('/rss_click/kivalens/777')
+  it('redirects to the KivaLens loan view otherwise', async () => {
+    const { res } = await call('/rss_click/kivalens/777')
     expect(res.headers['location']).toBe('https://www.kivalens.org/loans/777')
+  })
+
+  it('answers a half-written escape with 400 instead of throwing', async () => {
+    for (const path of ['/rss_click/%FF/1', '/rss_click/kiva/%E0%A4%A']) {
+      const { handled, res } = await call(path)
+      expect(handled).toBe(true)
+      expect(res.statusCode).toBe(400)
+      expect(res.headers['location']).toBeUndefined()
+    }
   })
 })

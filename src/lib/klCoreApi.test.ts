@@ -4,10 +4,11 @@ import zlib from 'node:zlib'
 
 /**
  * handleApi/handleRss are the server's whole public surface. Both follow a
- * routing contract the callers (Vite middleware and the raw Node server) depend
- * on: return TRUE only when the request was handled, so anything else falls
- * through to the static/SPA handler. Answering a request that is not ours — or
- * declining one that is — breaks the site rather than one endpoint.
+ * routing contract every host depends on (the Node server, the Vite dev plugin,
+ * the Cloudflare Worker): a Response only when the request is theirs, null for
+ * anything else so it falls through to the static/SPA handler. Answering a
+ * request that is not ours — or declining one that is — breaks the site rather
+ * than one endpoint.
  */
 
 const loan = (id: number, extra: Record<string, unknown> = {}) => ({
@@ -48,22 +49,19 @@ function fakeKiva(pages: Array<Array<ReturnType<typeof loan>>>) {
   })
 }
 
-/** Minimal stand-in for a Node ServerResponse that records what was sent. */
-function fakeRes() {
-  const headers: Record<string, unknown> = {}
-  const out = {
-    statusCode: 200,
-    headers,
-    body: undefined as unknown,
-    ended: false,
-    setHeader(k: string, v: unknown) { headers[k.toLowerCase()] = v },
-    end(b?: unknown) { out.body = b; out.ended = true },
-  }
-  return out
+/** What a handler answered, read out of its Response: status, lower-cased headers, body. */
+type Answer = { statusCode: number; headers: Record<string, string>; body: Buffer | string }
+async function read(response: Response | null): Promise<Answer> {
+  if (!response) throw new Error('declined a request it should have answered')
+  const headers = Object.fromEntries([...response.headers].map(([k, v]) => [k.toLowerCase(), v]))
+  const bytes = Buffer.from(await response.arrayBuffer())
+  return { statusCode: response.status, headers, body: headers['content-encoding'] === 'gzip' ? bytes : bytes.toString('utf8') }
 }
-const req = (url: string, method = 'GET') => ({ url, method, on: () => {} })
-const json = (res: ReturnType<typeof fakeRes>) => JSON.parse(String(res.body))
-const gunzip = (res: ReturnType<typeof fakeRes>) => JSON.parse(zlib.gunzipSync(res.body as Buffer).toString())
+const req = (url: string, method = 'GET') => new Request(`http://www.kivalens.org${url}`, { method })
+const api = async (s: ReturnType<typeof createState>, url: string) => read(await handleApi(s, req(url)))
+const rssAt = async (s: ReturnType<typeof createState>, url: string) => read(await handleRss(s, req(url)))
+const json = (res: Answer) => JSON.parse(String(res.body))
+const gunzip = (res: Answer) => JSON.parse(zlib.gunzipSync(res.body as Buffer).toString())
 
 let state: ReturnType<typeof createState>
 let originalFetch: typeof globalThis.fetch
@@ -81,84 +79,79 @@ afterAll(() => {
 })
 
 describe('handleApi — routing contract', () => {
-  it('declines requests that are not its own', () => {
-    const res = fakeRes()
-    expect(handleApi(state, req('/index.html'), res)).toBe(false)
-    expect(res.ended).toBe(false) // must not consume the response
+  it('declines requests that are not its own, leaving them unread', async () => {
+    // null: nothing answered, so the host's next handler (or the app) serves it
+    expect(await handleApi(state, req('/index.html'))).toBeNull()
+    const post = new Request('http://www.kivalens.org/some/form', { method: 'POST', body: 'x=1' })
+    expect(await handleApi(state, post)).toBeNull()
+    expect(post.bodyUsed).toBe(false) // must not consume what the next handler needs
   })
 
-  it.each(['/api/start', '/api/partners', '/api/options'])('claims %s', (url) => {
-    expect(handleApi(state, req(url), fakeRes())).toBe(true)
+  it.each(['/api/start', '/api/partners', '/api/options'])('claims %s', async (url) => {
+    expect(await handleApi(state, req(url))).toBeInstanceOf(Response)
   })
 })
 
 describe('handleApi — /api/start', () => {
-  it('describes the published batch', () => {
-    const res = fakeRes()
-    handleApi(state, req('/api/start'), res)
+  it('describes the published batch', async () => {
+    const res = await api(state, '/api/start')
     const body = json(res)
     expect(body.batch).toBe(state.batch)
     expect(body.pages).toBeGreaterThan(0)
     expect(body.loanLengths).toHaveLength(body.pages)
+    // When it was built, so a browser that loads it late catches up at once.
+    expect(body.builtAt).toBeGreaterThan(0)
   })
 
-  it('404s before any data is ready, rather than serving an empty dataset', () => {
-    const res = fakeRes()
-    handleApi(createState(), req('/api/start'), res)
+  it('404s before any data is ready, rather than serving an empty dataset', async () => {
+    const res = await api(createState(), '/api/start')
     expect(res.statusCode).toBe(404)
   })
 })
 
 describe('handleApi — gzipped payloads', () => {
-  it('serves loan pages gzipped, with the headers clients need', () => {
-    const res = fakeRes()
-    handleApi(state, req(`/api/loans/${state.batch}/1`), res)
+  it('serves loan pages gzipped, with the headers clients need', async () => {
+    const res = await api(state, `/api/loans/${state.batch}/1`)
 
     expect(res.headers['content-encoding']).toBe('gzip')
-    expect(res.headers['content-length']).toBe((res.body as Buffer).length)
+    expect(Number(res.headers['content-length'])).toBe((res.body as Buffer).length)
     expect(Array.isArray(gunzip(res))).toBe(true)
   })
 
-  it('serves the keyword pages for the same batch', () => {
-    const res = fakeRes()
-    handleApi(state, req(`/api/loans/${state.batch}/keywords/1`), res)
+  it('serves the keyword pages for the same batch', async () => {
+    const res = await api(state, `/api/loans/${state.batch}/keywords/1`)
     expect(res.headers['content-encoding']).toBe('gzip')
     expect(Array.isArray(gunzip(res))).toBe(true)
   })
 
-  it('404s a page index beyond the batch', () => {
-    const res = fakeRes()
-    handleApi(state, req(`/api/loans/${state.batch}/99`), res)
+  it('404s a page index beyond the batch', async () => {
+    const res = await api(state, `/api/loans/${state.batch}/99`)
     expect(res.statusCode).toBe(404)
   })
 
-  it('404s an evicted/unknown batch instead of serving another one', () => {
-    const res = fakeRes()
-    handleApi(state, req('/api/loans/999999/1'), res)
+  it('404s an evicted/unknown batch instead of serving another one', async () => {
+    const res = await api(state, '/api/loans/999999/1')
     expect(res.statusCode).toBe(404)
   })
 
-  it('404s page 0 (pages are 1-indexed)', () => {
-    const res = fakeRes()
-    handleApi(state, req(`/api/loans/${state.batch}/0`), res)
+  it('404s page 0 (pages are 1-indexed)', async () => {
+    const res = await api(state, `/api/loans/${state.batch}/0`)
     expect(res.statusCode).toBe(404)
   })
 })
 
 describe('handleApi — /api/since (incremental catch-up)', () => {
-  it('404s for a batch the server no longer retains', () => {
-    const res = fakeRes()
-    handleApi(state, req('/api/since/999999'), res)
+  it('404s for a batch the server no longer retains', async () => {
+    const res = await api(state, '/api/since/999999')
     expect(res.statusCode).toBe(404)
   })
 
-  it('returns nothing changed when the client is on the current batch', () => {
-    const res = fakeRes()
-    handleApi(state, req(`/api/since/${state.batch}`), res)
+  it('returns nothing changed when the client is on the current batch', async () => {
+    const res = await api(state, `/api/since/${state.batch}`)
     expect(json(res)).toEqual([])
   })
 
-  it('returns loans reprocessed after the client’s batch was built', () => {
+  it('returns loans reprocessed after the client’s batch was built', async () => {
     const s = createState()
     s.ready = true
     s.batches.set(1, { loanPages: [], keywordPages: [], klStart: {}, newestTime: 1000 })
@@ -167,13 +160,12 @@ describe('handleApi — /api/since (incremental catch-up)', () => {
       { ...loan(2), kl_processed: new Date(500), kls_tags: [], kl_repayments: [] },
     ] as never
 
-    const res = fakeRes()
-    handleApi(s, req('/api/since/1'), res)
+    const res = await api(s, '/api/since/1')
     const changed = json(res)
     expect(changed).toHaveLength(1) // only the one processed after newestTime
   })
 
-  it('sends [] rather than a huge payload when too much changed', () => {
+  it('sends [] rather than a huge payload when too much changed', async () => {
     // Past 500 the client is better off re-downloading the batch wholesale.
     const s = createState()
     s.ready = true
@@ -182,51 +174,47 @@ describe('handleApi — /api/since (incremental catch-up)', () => {
       ...loan(i + 1), kl_processed: new Date(9999), kls_tags: [], kl_repayments: [],
     })) as never
 
-    const res = fakeRes()
-    handleApi(s, req('/api/since/1'), res)
+    const res = await api(s, '/api/since/1')
     expect(json(res)).toEqual([])
   })
 })
 
 describe('handleApi — heartbeat', () => {
-  it('always answers 200 so the client’s liveness ping cannot fail', () => {
-    const res = fakeRes()
-    expect(handleApi(state, req('/api/heartbeat/anything?install_id=x'), res)).toBe(true)
+  it('always answers 200 so the client’s liveness ping cannot fail', async () => {
+    const res = await api(state, '/api/heartbeat/anything?install_id=x')
+    expect(res.statusCode).toBe(200)
     expect(json(res)).toEqual({ status: 200 })
   })
 })
 
 describe('handleRss — click redirects', () => {
-  it('sends a Kiva click to the loan page with the app id', () => {
-    const res = fakeRes()
-    expect(handleRss(state, req('/rss_click/kiva/12345'), res)).toBe(true)
+  it('sends a Kiva click to the loan page with the app id', async () => {
+    const res = await rssAt(state, '/rss_click/kiva/12345')
     expect(res.statusCode).toBe(302)
     expect(String(res.headers.location)).toBe('https://www.kiva.org/lend/12345?app_id=org.kiva.kivalens')
   })
 
-  it('sends a KivaLens click to the in-app loan route', () => {
-    const res = fakeRes()
-    handleRss(state, req('/rss_click/kivalens/12345'), res)
+  it('sends a KivaLens click to the in-app loan route', async () => {
+    const res = await rssAt(state, '/rss_click/kivalens/12345')
     expect(String(res.headers.location)).toBe('https://www.kivalens.org/loans/12345')
   })
 
-  it('escapes the id rather than letting it alter the destination', () => {
-    const res = fakeRes()
-    handleRss(state, req('/rss_click/kiva/12%2F..%2Fevil'), res)
+  it('escapes the id rather than letting it alter the destination', async () => {
+    const res = await rssAt(state, '/rss_click/kiva/12%2F..%2Fevil')
     const dest = String(res.headers.location)
     expect(dest.startsWith('https://www.kiva.org/lend/')).toBe(true)
     expect(dest).not.toContain('/../')
   })
 
-  it('declines URLs that are not RSS', () => {
-    const res = fakeRes()
-    expect(handleRss(state, req('/index.html'), res)).toBe(false)
-    expect(res.ended).toBe(false)
+  it('declines URLs that are not RSS, leaving them unread', async () => {
+    expect(await handleRss(state, req('/index.html'))).toBeNull()
+    const post = new Request('http://www.kivalens.org/some/form', { method: 'POST', body: 'x=1' })
+    expect(await handleRss(state, post)).toBeNull()
+    expect(post.bodyUsed).toBe(false)
   })
 
-  it('claims /rss/ paths (the feed itself is served asynchronously)', () => {
-    const res = fakeRes()
-    expect(handleRss(state, req('/rss/%7B%7D'), res)).toBe(true)
+  it('claims /rss/ paths', async () => {
+    expect(await handleRss(state, req('/rss/%7B%7D'))).toBeInstanceOf(Response)
   })
 })
 
@@ -255,19 +243,13 @@ function rssState(loans: Array<Record<string, unknown>>) {
   return s
 }
 
-/** handleRss returns synchronously; the feed is written later. */
 async function rssFeed(s: ReturnType<typeof createState>, criteria: unknown) {
-  const res = fakeRes()
-  handleRss(s, req(`/rss/${encodeURIComponent(JSON.stringify(criteria))}`), res)
-  for (let i = 0; i < 200 && !res.ended; i++) await Promise.resolve()
-  return res
+  return rssAt(s, `/rss/${encodeURIComponent(JSON.stringify(criteria))}`)
 }
 
 describe('handleRss — feed generation', () => {
   it('rejects criteria that are not valid JSON', async () => {
-    const res = fakeRes()
-    handleRss(state, req('/rss/not-json%7B'), res)
-    for (let i = 0; i < 50 && !res.ended; i++) await Promise.resolve()
+    const res = await rssAt(state, '/rss/not-json%7B')
     expect(res.statusCode).toBe(400)
   })
 

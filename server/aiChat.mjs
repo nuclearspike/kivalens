@@ -18,7 +18,8 @@ import { loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from './klC
 import { fetchSuperGraphSlices, fetchLenderProfile } from './lenderData.mjs'
 import { budgetExceeded, addSpend, costOf, logInteraction, getRecentLogs, getMonthlySpend, monthKey, BUDGET_USD } from './aiUsage.mjs'
 import { sendDigestNow } from './digest.mjs'
-import { readCache, writeCache } from './diskCache.mjs'
+import { cache } from './runtime.mjs'
+import { eventStream, json, pathOf, readBody, text } from './http.mjs'
 import crypto from 'node:crypto'
 
 const MODEL = process.env.OPENAI_RESPONSES_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
@@ -1458,32 +1459,6 @@ export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
   return lines.join('\n')
 }
 
-// --- SSE helpers ------------------------------------------------------------
-function startSse(res) {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
-  res.setHeader('Cache-Control', 'no-cache, no-transform')
-  res.setHeader('Connection', 'keep-alive')
-  res.setHeader('X-Accel-Buffering', 'no')
-  if (typeof res.flushHeaders === 'function') res.flushHeaders()
-}
-const sseWriter = (res) => (evt) => {
-  if (res.writableEnded) return
-  try {
-    res.write(`data: ${JSON.stringify(evt)}\n\n`)
-  } catch {
-    /* client socket already closed mid-write */
-  }
-}
-
-function endSafely(res) {
-  try {
-    if (!res.writableEnded) res.end()
-  } catch {
-    /* socket already closed */
-  }
-}
-
 // Only allow user/assistant text turns from the client; never let it inject
 // system or tool roles. Window to the most recent messages.
 function sanitizeHistory(messages) {
@@ -1527,8 +1502,12 @@ export function buildResponsesRequest({ instructions, input, lastRound = false, 
   }
 }
 
-async function runChat(state, payload, res, signal) {
-  const sse = sseWriter(res)
+/**
+ * One chat turn, streamed to `stream` (http.mjs eventStream). Resolves once the
+ * reply is sent and the turn is logged; the host keeps the work alive until then.
+ */
+async function runChat(state, payload, stream, signal) {
+  const sse = stream.send
   const client = getClient()
   const lenderId = payload.lenderId ? String(payload.lenderId) : null
   const criteria = payload.criteria || null
@@ -1630,13 +1609,13 @@ async function runChat(state, payload, res, signal) {
     break
   }
   sse({ type: 'done' })
-  endSafely(res)
+  stream.close()
 
-  // Cost tracking + interaction log (fire-and-forget; never blocks the reply).
+  // Cost tracking + interaction log, after the reply has ended.
   const costUsd = costOf(MODEL, promptTokens, completionTokens)
-  void addSpend(costUsd)
+  await addSpend(costUsd)
   const userMessage = [...sanitizeHistory(payload.messages)].reverse().find((m) => m.role === 'user')?.content ?? ''
-  void logInteraction({
+  await logInteraction({
     at: new Date().toISOString(),
     clientId: typeof payload.clientId === 'string' ? payload.clientId : null,
     lenderId,
@@ -1656,50 +1635,33 @@ async function runChat(state, payload, res, signal) {
 
 // Admin-only view of recent interactions + this month's spend. Gated by the
 // AI_LOGS_KEY env var: GET /api/ai-logs?key=<AI_LOGS_KEY>&n=100
-function handleAiLogs(req, res) {
+async function handleAiLogs(request) {
   const adminKey = process.env.AI_LOGS_KEY
-  const url = new URL(req.url, 'http://localhost')
-  if (!adminKey || url.searchParams.get('key') !== adminKey) {
-    res.statusCode = 403
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end('Forbidden')
-    return true
-  }
+  const url = new URL(request.url)
+  if (!adminKey || url.searchParams.get('key') !== adminKey) return text('Forbidden', { status: 403 })
   const n = Math.min(Number(url.searchParams.get('n')) || 100, 500)
-  Promise.all([getMonthlySpend(), getRecentLogs(n)])
-    .then(([spent, logs]) => {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8')
-      res.end(JSON.stringify({ month: monthKey(), budgetUsd: BUDGET_USD, spentUsd: Number(spent.toFixed(4)), count: logs.length, logs }, null, 2))
+  try {
+    const [spent, logs] = await Promise.all([getMonthlySpend(), getRecentLogs(n)])
+    return new Response(JSON.stringify({ month: monthKey(), budgetUsd: BUDGET_USD, spentUsd: Number(spent.toFixed(4)), count: logs.length, logs }, null, 2), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
     })
-    .catch(() => {
-      res.statusCode = 500
-      res.end('error')
-    })
-  return true
+  } catch {
+    return new Response('error', { status: 500 })
+  }
 }
 
 // Admin-only: send the digest for a day right now (default today), gated by
 // AI_LOGS_KEY. GET /api/ai-digest-test?key=<AI_LOGS_KEY>&day=YYYY-MM-DD
-function handleDigestTest(req, res) {
+async function handleDigestTest(request) {
   const adminKey = process.env.AI_LOGS_KEY
-  const url = new URL(req.url, 'http://localhost')
-  if (!adminKey || url.searchParams.get('key') !== adminKey) {
-    res.statusCode = 403
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end('Forbidden')
-    return true
-  }
+  const url = new URL(request.url)
+  if (!adminKey || url.searchParams.get('key') !== adminKey) return text('Forbidden', { status: 403 })
   const day = url.searchParams.get('day') || new Date().toISOString().slice(0, 10)
-  sendDigestNow(day)
-    .then((r) => {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8')
-      res.end(JSON.stringify(r))
-    })
-    .catch((e) => {
-      res.statusCode = 500
-      res.end(String(e))
-    })
-  return true
+  try {
+    return json(await sendDigestNow(day))
+  } catch (e) {
+    return new Response(String(e), { status: 500 })
+  }
 }
 
 // --- translate endpoint -----------------------------------------------------
@@ -1710,147 +1672,107 @@ function handleDigestTest(req, res) {
 const LANG_NAMES = Object.fromEntries(Object.entries(LOCALE_LANGUAGE).filter(([code]) => code !== 'en'))
 const TRANSLATE_TTL_MS = 365 * 24 * 60 * 60 * 1000
 
-function handleTranslate(req, res) {
-  const respond = (code, obj) => {
-    res.statusCode = code
-    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-    res.setHeader('Cache-Control', 'no-store')
-    res.end(JSON.stringify(obj))
-    return true
+async function handleTranslate(request, waitUntil) {
+  const respond = (code, obj) => json(obj, { status: code, headers: { 'Cache-Control': 'no-store' } })
+  if (request.method !== 'POST') return respond(405, { error: 'method_not_allowed' })
+  const body = await readBody(request, MAX_BODY_BYTES)
+  if (body.tooLarge) return respond(413, { error: 'too_large' })
+  let payload
+  try { payload = JSON.parse(body.text || '{}') } catch { return respond(400, { error: 'bad_json' }) }
+  const textIn = typeof payload.text === 'string' ? payload.text.trim() : ''
+  const lang = String(payload.lang || '')
+  // hasOwn, not a bare index: a request for lang '__proto__' must 400, not
+  // resolve to Object.prototype and reach the model as "[object Object]".
+  const langName = Object.hasOwn(LANG_NAMES, lang) ? LANG_NAMES[lang] : undefined
+  if (!textIn || !langName) return respond(400, { error: 'bad_request' })
+  if (textIn.length > 8000) return respond(413, { error: 'text_too_long' })
+  const client = getClient()
+  if (!client) return respond(503, { error: 'not_configured' })
+  const key = `xlate-${lang}-${crypto.createHash('sha1').update(textIn).digest('hex')}`
+  try {
+    const cached = await cache.get(key, TRANSLATE_TTL_MS)
+    if (cached != null) return respond(200, { translation: cached, cached: true })
+  } catch { /* ignore cache-read errors */ }
+  if (await budgetExceeded()) return respond(429, { error: 'budget_exceeded' })
+  try {
+    const xmodel = process.env.OPENAI_TRANSLATE_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    const completion = await client.chat.completions.create({
+      model: xmodel,
+      temperature: 0.2,
+      max_tokens: 1500,
+      messages: [
+        { role: 'system', content: `You are a professional translator. Translate the user's text into ${langName}. The text may contain simple HTML tags and line breaks — preserve them exactly. Output ONLY the translated text, with no quotes, notes, or commentary.` },
+        { role: 'user', content: textIn },
+      ],
+    })
+    const translation = (completion.choices?.[0]?.message?.content || '').trim()
+    if (!translation) return respond(502, { error: 'empty_translation' })
+    const usage = completion.usage || {}
+    // Not awaited: a slow spend write must not hold a finished translation. It
+    // never rejects (aiUsage), and waitUntil keeps it going on a host that ends
+    // work with the response.
+    const spent = addSpend(costOf(process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini', usage.prompt_tokens || 0, usage.completion_tokens || 0))
+    waitUntil?.(spent)
+    try { await cache.set(key, translation) } catch { /* ignore cache-write errors */ }
+    return respond(200, { translation })
+  } catch (e) {
+    console.error('translate error:', e?.message || e)
+    return respond(500, { error: 'translate_failed' })
   }
-  if (req.method !== 'POST') return respond(405, { error: 'method_not_allowed' })
-  let body = ''
-  let tooBig = false
-  req.on('data', (chunk) => {
-    body += chunk
-    if (body.length > MAX_BODY_BYTES) { tooBig = true; req.destroy() }
-  })
-  req.on('end', async () => {
-    if (tooBig) return respond(413, { error: 'too_large' })
-    let payload
-    try { payload = JSON.parse(body || '{}') } catch { return respond(400, { error: 'bad_json' }) }
-    const text = typeof payload.text === 'string' ? payload.text.trim() : ''
-    const lang = String(payload.lang || '')
-    // hasOwn, not a bare index: a request for lang '__proto__' must 400, not
-    // resolve to Object.prototype and reach the model as "[object Object]".
-    const langName = Object.hasOwn(LANG_NAMES, lang) ? LANG_NAMES[lang] : undefined
-    if (!text || !langName) return respond(400, { error: 'bad_request' })
-    if (text.length > 8000) return respond(413, { error: 'text_too_long' })
-    const client = getClient()
-    if (!client) return respond(503, { error: 'not_configured' })
-    const key = `xlate-${lang}-${crypto.createHash('sha1').update(text).digest('hex')}`
-    try {
-      const cached = await readCache(key, TRANSLATE_TTL_MS)
-      if (cached != null) return respond(200, { translation: cached, cached: true })
-    } catch { /* ignore cache-read errors */ }
-    if (await budgetExceeded()) return respond(429, { error: 'budget_exceeded' })
-    try {
-      const xmodel = process.env.OPENAI_TRANSLATE_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
-      const completion = await client.chat.completions.create({
-        model: xmodel,
-        temperature: 0.2,
-        max_tokens: 1500,
-        messages: [
-          { role: 'system', content: `You are a professional translator. Translate the user's text into ${langName}. The text may contain simple HTML tags and line breaks — preserve them exactly. Output ONLY the translated text, with no quotes, notes, or commentary.` },
-          { role: 'user', content: text },
-        ],
-      })
-      const translation = (completion.choices?.[0]?.message?.content || '').trim()
-      if (!translation) return respond(502, { error: 'empty_translation' })
-      const usage = completion.usage || {}
-      void addSpend(costOf(process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini', usage.prompt_tokens || 0, usage.completion_tokens || 0))
-      try { await writeCache(key, translation) } catch { /* ignore cache-write errors */ }
-      return respond(200, { translation })
-    } catch (e) {
-      console.error('translate error:', e?.message || e)
-      return respond(500, { error: 'translate_failed' })
-    }
-  })
-  return true
 }
 
 // --- request entry point ----------------------------------------------------
-export function handleChat(state, req, res) {
-  const url = req.url || ''
+/**
+ * The assistant's routes. `waitUntil` (a Cloudflare host's) keeps the turn
+ * running after its streamed response has been returned; the Node server needs
+ * none, since its process keeps running anyway.
+ */
+export async function handleChat(state, request, { waitUntil } = {}) {
+  const url = pathOf(request)
   if (url.startsWith('/api/ai-enabled')) {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-    res.setHeader('Cache-Control', 'no-store')
-    res.end(JSON.stringify({ enabled: askEnabled() && !!getClient() }))
-    return true
+    return json({ enabled: askEnabled() && !!getClient() }, { headers: { 'Cache-Control': 'no-store' } })
   }
-  if (url.startsWith('/api/ai-digest-test')) return handleDigestTest(req, res)
-  if (url.startsWith('/api/ai-logs')) return handleAiLogs(req, res)
-  if (url.startsWith('/api/translate')) return handleTranslate(req, res)
-  if (!url.startsWith('/api/chat')) return false
-  if (req.method !== 'POST') {
-    res.statusCode = 405
-    res.end('Method Not Allowed')
-    return true
+  if (url.startsWith('/api/ai-digest-test')) return handleDigestTest(request)
+  if (url.startsWith('/api/ai-logs')) return handleAiLogs(request)
+  if (url.startsWith('/api/translate')) return handleTranslate(request, waitUntil)
+  if (!url.startsWith('/api/chat')) return null
+  if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
+  const body = await readBody(request, MAX_BODY_BYTES)
+  if (body.tooLarge) return new Response('Payload too large', { status: 413 })
+  let payload
+  try {
+    payload = JSON.parse(body.text || '{}')
+  } catch {
+    return new Response('Bad JSON', { status: 400 })
   }
-  let body = ''
-  let tooBig = false
-  req.on('data', (chunk) => {
-    body += chunk
-    if (body.length > MAX_BODY_BYTES) {
-      tooBig = true
-      req.destroy()
-    }
-  })
-  req.on('end', async () => {
-    if (tooBig) {
-      res.statusCode = 413
-      res.end('Payload too large')
-      return
-    }
-    let payload
-    try {
-      payload = JSON.parse(body || '{}')
-    } catch {
-      res.statusCode = 400
-      res.end('Bad JSON')
-      return
-    }
-    startSse(res)
-    const sse = sseWriter(res)
-    if (!askEnabled()) {
-      sse({ type: 'error', message: 'The KivaLens assistant is currently turned off.' })
-      sse({ type: 'done' })
-      res.end()
-      return
-    }
-    if (!getClient()) {
-      sse({ type: 'error', message: 'The AI assistant is not configured on this server.' })
-      sse({ type: 'done' })
-      res.end()
-      return
-    }
+  const stream = eventStream()
+  const refuse = (message) => {
+    stream.send({ type: 'error', message })
+    stream.send({ type: 'done' })
+    stream.close()
+    return stream.response
+  }
+  if (!askEnabled()) return refuse('The KivaLens assistant is currently turned off.')
+  if (!getClient()) return refuse('The AI assistant is not configured on this server.')
+  // The response goes back before the budget is read: that read can reach Redis,
+  // and a slow one must not hold the stream's headers.
+  const turn = (async () => {
     if (await budgetExceeded()) {
-      sse({ type: 'error', message: `Ask KivaLens has reached its monthly budget of $${BUDGET_USD}. Please try again next month.` })
-      sse({ type: 'done' })
-      res.end()
+      refuse(`Ask KivaLens has reached its monthly budget of $${BUDGET_USD}. Please try again next month.`)
       return
     }
-    const ac = new AbortController()
-    // Abort the upstream OpenAI call only on a real mid-stream client disconnect.
-    // (req 'close' fires as soon as the request BODY is fully read — normal for a
-    // POST — so using it here would abort every request immediately.)
-    res.on('close', () => {
-      if (!res.writableEnded) ac.abort()
-    })
-    runChat(state, payload, res, ac.signal).catch((e) => {
-      if (e?.name === 'AbortError') {
-        if (!res.writableEnded) res.end()
-        return
-      }
-      console.error('Ask KivaLens chat error:', e)
-      try {
-        sse({ type: 'error', message: 'Sorry — something went wrong. Please try again.' })
-        sse({ type: 'done' })
-        if (!res.writableEnded) res.end()
-      } catch {
-        /* socket already gone */
-      }
-    })
+    // The upstream OpenAI call stops when the lender's browser goes away mid-reply.
+    await runChat(state, payload, stream, request.signal)
+  })().catch((e) => {
+    if (e?.name === 'AbortError') {
+      stream.close()
+      return
+    }
+    console.error('Ask KivaLens chat error:', e)
+    stream.send({ type: 'error', message: 'Sorry — something went wrong. Please try again.' })
+    stream.send({ type: 'done' })
+    stream.close()
   })
-  return true
+  if (waitUntil) waitUntil(turn)
+  return stream.response
 }

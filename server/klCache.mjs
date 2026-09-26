@@ -84,44 +84,31 @@ const gunzipAsync = (buf) =>
   new Promise((resolve, reject) => zlib.gunzip(buf, (e, r) => (e ? reject(e) : resolve(r))))
 
 /**
- * Persist the currently-published served dataset. Fire-and-forget: callers do
- * not await it, and it never throws into the caller.
+ * Persist a published batch (klCore.snapshotOf builds it): { batch, newestTime,
+ * klStart, partnersGz, optionsGz, loanPages, keywordPages, details }. Fire-and-
+ * forget: callers do not await it, and it never throws into the caller.
  */
-export async function saveSnapshot(state, log = () => {}) {
+export async function saveSnapshot(snapshot, log = () => {}) {
   try {
     const client = await getClient()
-    if (!client) return
-    const served = state.batches.get(state.batch)
-    if (!served || !state.klStart) return // nothing published yet
+    if (!client || !snapshot) return
     const snap = {
       v: CACHE_VERSION,
       savedAt: Date.now(),
-      batch: state.batch,
-      newestTime: state.newestTime,
-      klStart: state.klStart,
-      partners: b64(state.partnersGz),
-      options: b64(state.optionsGz),
-      loanPages: served.loanPages.map(b64),
-      keywordPages: served.keywordPages.map(b64),
+      batch: snapshot.batch,
+      newestTime: snapshot.newestTime,
+      klStart: snapshot.klStart,
+      partners: b64(snapshot.partnersGz),
+      options: b64(snapshot.optionsGz),
+      loanPages: snapshot.loanPages.map(b64),
+      keywordPages: snapshot.keywordPages.map(b64),
       // Per-loan descriptions + repayment schedules — the dataset /graphql serves.
       // gzip'd here because, unlike the page buffers, these are raw objects.
-      details: b64(
-        await gzipAsync(
-          Buffer.from(
-            JSON.stringify(
-              (state.allLoans || []).map((l) => ({
-                id: l.id,
-                description: l.description,
-                kl_repayments: l.kl_repayments,
-              })),
-            ),
-          ),
-        ),
-      ),
+      details: b64(await gzipAsync(Buffer.from(JSON.stringify(snapshot.details || [])))),
     }
     const payload = JSON.stringify(snap)
     await client.set(KEY, payload, { EX: TTL_SECONDS })
-    log(`[cache] saved snapshot (batch ${state.batch}, ${(payload.length / 1048576).toFixed(2)}MB)`)
+    log(`[cache] saved snapshot (batch ${snapshot.batch}, ${(payload.length / 1048576).toFixed(2)}MB)`)
   } catch (e) {
     log(`[cache] save failed (non-fatal): ${e}`)
   }
@@ -174,6 +161,9 @@ export async function loadSnapshot(log = () => {}) {
     return null
   }
 }
+
+/** The Redis snapshot store, for runtime.mjs on the Node server. */
+export const redisSnapshots = { save: saveSnapshot, load: loadSnapshot }
 
 /** Best-effort close, called on shutdown. */
 export async function closeCache() {

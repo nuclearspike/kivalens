@@ -11,6 +11,7 @@ import path from 'node:path'
  */
 
 const prod = readFileSync(path.join(process.cwd(), 'server/prod.mjs'), 'utf8')
+const shell = readFileSync(path.join(process.cwd(), 'server/shell.mjs'), 'utf8')
 
 describe('one bad request never takes the server down', () => {
   it('decodes a path where it can and keeps the raw one where it cannot', () => {
@@ -27,7 +28,10 @@ describe('one bad request never takes the server down', () => {
   })
 
   it('answers a request that throws instead of letting it end the process', () => {
-    expect(prod).toMatch(/http\.createServer\(\(req, res\) => \{\s*try \{\s*handleRequest\(req, res\)\s*\} catch/)
+    // handleRequest is async: a throw anywhere in it, synchronous or not, arrives
+    // here as a rejection and is answered with a 500.
+    expect(prod).toMatch(/http\.createServer\(\(req, res\) => \{\s*handleRequest\(req, res\)\.catch\(/)
+    expect(prod).toMatch(/async function handleRequest\(req, res\)/)
     expect(prod).toContain("res.statusCode = 500")
     expect(prod).toContain('if (!res.headersSent)')
   })
@@ -39,7 +43,9 @@ describe('the shell can be revalidated rather than re-sent', () => {
     expect(prod).toContain("res.setHeader('ETag', etag)")
     expect(prod).toContain("if (req.headers['if-none-match'] === etag)")
     expect(prod).toContain('res.statusCode = 304')
-    // Over the BODY, so a partner renamed or a loan expired changes the tag.
-    expect(prod).toMatch(/createHash\('sha1'\)\.update\(body\)/)
+    // Over the BODY, so a partner renamed or a loan expired changes the tag
+    // (shell.mjs, shared with the Cloudflare Worker).
+    expect(shell).toMatch(/createHash\('sha1'\)\.update\(body\)/)
+    expect(prod).toContain('renderShell(html,')
   })
 })

@@ -9,14 +9,16 @@ import { saveSnapshot, loadSnapshot, closeCache } from '../../server/klCache.mjs
  * would take the whole server down with it.
  */
 
+// What klCore.snapshotOf hands the store for a published batch.
 const state = () => ({
   batch: 3,
   klStart: { batch: 3, pages: 1, loanLengths: [10], descrLengths: [5] },
   partnersGz: Buffer.from('partners'),
   optionsGz: Buffer.from('options'),
   newestTime: Date.now(),
-  allLoans: [{ id: 1, description: { texts: { en: 'hi' } }, kl_repayments: [] }],
-  batches: new Map([[3, { loanPages: [Buffer.from('x')], keywordPages: [Buffer.from('y')], klStart: {}, newestTime: 0 }]]),
+  loanPages: [Buffer.from('x')],
+  keywordPages: [Buffer.from('y')],
+  details: [{ id: 1, description: { texts: { en: 'hi' } }, kl_repayments: [] }],
 })
 
 describe('klCache with no Redis configured', () => {
@@ -28,8 +30,9 @@ describe('klCache with no Redis configured', () => {
     await expect(saveSnapshot(state(), () => {})).resolves.not.toThrow()
   })
 
-  it('survives a state that is not yet ready to snapshot', async () => {
-    await expect(saveSnapshot({ batch: 0, batches: new Map() }, () => {})).resolves.not.toThrow()
+  it('survives having nothing to save yet', async () => {
+    await expect(saveSnapshot(null as never, () => {})).resolves.not.toThrow()
+    await expect(saveSnapshot({ batch: 0, batches: new Map() } as never, () => {})).resolves.not.toThrow()
   })
 
   it('closeCache is safe to call even though nothing was opened', async () => {

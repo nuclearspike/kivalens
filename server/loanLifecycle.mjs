@@ -24,7 +24,8 @@ export function observeFundedLoans(state, loans, now = Date.now()) {
   const entries = new Map(recentlyFunded(state, now).map(entry => [entry.id, entry]))
   for (const loan of loans) {
     // Do not invent a funding time, infer funding from absence, or use baskets.
-    const funded = Date.parse(loan.funded_date)
+    // Only a string is a time; anything else Kiva might send is no time at all.
+    const funded = typeof loan.funded_date === 'string' ? Date.parse(loan.funded_date) : NaN
     if (loan.status === 'funded' && Number.isSafeInteger(loan.id) && loan.id > 0 &&
         funded > now - RECENTLY_FUNDED_TTL_MS && funded <= now)
       entries.set(loan.id, { id: loan.id, fundedAt: new Date(funded).toISOString() })

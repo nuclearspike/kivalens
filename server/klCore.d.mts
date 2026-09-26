@@ -1,5 +1,3 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
-
 /** Mutable server state holding the prepared, batched loan dataset. */
 export interface KLState {
   ready: boolean
@@ -20,6 +18,8 @@ export interface KLState {
   aplusMerged: number
   newestTime: number
   building: boolean
+  stopped: boolean
+  snapshotTimer: ReturnType<typeof setTimeout> | null
 }
 
 export const REFRESH_INTERVAL_MS: number
@@ -28,22 +28,29 @@ export function createState(): KLState
 
 export function prepareData(state: KLState, log?: (msg: string) => void): Promise<void>
 
-/** Kick off the initial download and a refresh timer. Returns the timer id. */
-export function startRefresh(state: KLState, log?: (msg: string) => void): NodeJS.Timeout
+/** Starts the refresh and upkeep timers; stop() clears every one of them. */
+export function startRefresh(state: KLState, log?: (msg: string) => void): { stop(): void }
 
-/** Handle /api/* and /graphql. Returns true if it handled the request. */
-export function handleApi(
-  state: KLState,
-  req: IncomingMessage,
-  res: ServerResponse,
-): boolean
+/** /api/* and /graphql: a Response, or null when the request is not theirs. */
+export function handleApi(state: KLState, request: Request): Promise<Response | null>
 
-/** Handle /proxy/kiva and /proxy/gdocs. Returns true if it handled the request. */
-export function handleProxy(req: IncomingMessage, res: ServerResponse): boolean
+/** /proxy/kiva and /proxy/gdocs: a Response, or null when the request is not theirs. */
+export function handleProxy(request: Request): Promise<Response | null>
 
-/** Handle /rss/<criteria> and /rss_click/<go_to>/<id>. Returns true if handled. */
-export function handleRss(
-  state: KLState,
-  req: IncomingMessage,
-  res: ServerResponse,
-): boolean
+/** /rss/<criteria>, /rss?<search> and /rss_click/<go_to>/<id>: a Response, or null. */
+export function handleRss(state: KLState, request: Request): Promise<Response | null>
+
+/** One page of Kiva's fundraising listing, and how many pages there are. */
+export function fetchSearchPage(page: number): Promise<{ loans: Array<Record<string, unknown>>; pages: number }>
+
+/** Full details for up to 50 loans. */
+export function fetchDetailBatch(ids: number[]): Promise<Array<Record<string, unknown>>>
+
+/** Listing loans merged with their details and processed; keeps those still raising money. */
+export function processListed(
+  searchLoans: Array<Record<string, unknown>>,
+  details: Array<Record<string, unknown>>,
+): { kept: Array<{ loan: Record<string, unknown>; keywords: unknown }>; processed: number }
+
+/** The published batch as the snapshot store keeps it, or null before anything is published. */
+export function snapshotOf(state: KLState): unknown | null

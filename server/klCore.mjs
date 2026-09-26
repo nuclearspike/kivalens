@@ -15,16 +15,16 @@
  *   GET  /proxy/kiva/ajax/...               (Kiva-WAF header recipe)
  *   GET  /proxy/gdocs/spreadsheets/...
  *
- * Plain JavaScript, Node builtins only in the hot path, so it runs directly on
- * Heroku; klCore.d.ts gives the TS dev plugin its types. The optional Redis
- * warm-start cache (server/klCache.mjs) lazily imports the `redis` dependency
- * only when a connection URL is configured.
+ * Plain JavaScript that runs on Node (Heroku) and in Cloudflare Workers with
+ * nodejs_compat; klCore.d.ts gives the TS dev plugin its types. Storage (the
+ * cache and the warm-start snapshot) is whatever the host configured in
+ * runtime.mjs: files and Redis on Node, SQLite and R2 on Cloudflare.
  */
 
 import zlib from 'node:zlib'
-import { loadSnapshot, saveSnapshot } from './klCache.mjs'
+import { cache, snapshots } from './runtime.mjs'
+import { gzipped, json, pathOf, readBody, redirect, text } from './http.mjs'
 import { applyAtheistData } from './aplus.mjs'
-import { readCache, writeCache, cleanupCache } from './diskCache.mjs'
 import { filterLoans } from './loanFilter.mjs'
 import { loadLenderRssData, BALANCER_SLICES } from './lenderData.mjs'
 import { sendDailyDigest } from './digest.mjs'
@@ -84,13 +84,95 @@ const FETCH_HEADERS = {
   Referer: 'https://www.kiva.org/',
 }
 
+/**
+ * What failed, for a log line ("TypeError: ..."; with messageOnly, the message
+ * alone), whatever was thrown; never throws itself.
+ */
+function describeError(e, { messageOnly = false } = {}) {
+  try {
+    return messageOnly ? String(e?.message || e) : String(e)
+  } catch {
+    return 'an error that cannot be printed'
+  }
+}
+
+/**
+ * A failure path's log line: a logger that throws, or returns a promise that
+ * rejects, must not turn the failure being reported into a new one.
+ */
+function logSafely(log, line) {
+  try {
+    const written = log(line)
+    if (written && typeof written.then === 'function') written.then(undefined, () => {})
+  } catch {
+    // nothing left to tell
+  }
+}
+
 async function fetchJSON(url) {
   const res = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(20_000) })
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`)
   return res.json()
 }
 
-async function fetchAllSearchLoans(log) {
+/** One page of Kiva's fundraising listing, and how many pages there are (capped at 100). */
+export async function fetchSearchPage(page) {
+  const data = await fetchJSON(
+    `${KIVA_API}/loans/search.json?status=fundraising&page=${page}&per_page=100&app_id=${APP_ID}`,
+  )
+  return { loans: data.loans || [], pages: Math.min(data.paging.pages, 100) }
+}
+
+/**
+ * Full details (description, repayment schedule, borrowers) for up to 50 loans.
+ * An entry that is not a loan is dropped; that loan is served from the listing.
+ */
+export async function fetchDetailBatch(ids) {
+  const data = await fetchJSON(`${KIVA_API}/loans/${ids.join(',')}.json?app_id=${APP_ID}`)
+  return (data.loans || []).filter((d) => d && typeof d === 'object' && d.id != null)
+}
+
+/**
+ * Listing loans merged with their details and processed, keeping those still
+ * raising money: Kiva lists some loans as fundraising that are already fully
+ * funded (funded_amount >= loan_amount). basket_amount is deliberately ignored:
+ * Kiva's basket figures are unreliable and sometimes exceed the amount remaining.
+ * A detail that cannot be processed costs only itself: that loan is served from
+ * the listing's own data, and a loan whose listing data fails too is skipped.
+ * Returns the kept { loan, keywords } and how many were processed at all.
+ */
+export function processListed(searchLoans, details) {
+  const byId = new Map(details.map((d) => [d.id, d]))
+  const kept = []
+  let processed = 0
+  for (const searchLoan of searchLoans) {
+    const detail = byId.get(searchLoan.id)
+    let merged
+    let p
+    try {
+      merged = detail ? { ...searchLoan, ...detail } : searchLoan
+      p = processLoan(merged)
+    } catch {
+      // The listing stands in only for a loan the detail itself shows still
+      // raising money (status fundraising, amounts that are numbers and short of
+      // the loan); a detail that says it closed, or cannot say, is believed or
+      // left alone as before, so the listing never puts a funded loan back.
+      if (!detail || !merged || merged.status !== 'fundraising') continue
+      const { funded_amount: funded, loan_amount: amount } = merged
+      if (!(typeof funded === 'number' && typeof amount === 'number' && funded < amount)) continue
+      try {
+        p = processLoan(searchLoan)
+      } catch {
+        continue
+      }
+    }
+    processed++
+    if (p.loan.status === 'fundraising' && p.loan.funded_amount < p.loan.loan_amount) kept.push(p)
+  }
+  return { kept, processed }
+}
+
+async function fetchAllSearchLoans(state, log) {
   const all = []
   // Kiva's listing is live and paging is offset-based, so a loan funding out
   // mid-pull shifts the window and can serve the same loan on two consecutive
@@ -103,18 +185,14 @@ async function fetchAllSearchLoans(log) {
   let page = 1
   let totalPages = 1
   while (page <= totalPages) {
-    const url =
-      `${KIVA_API}/loans/search.json?status=fundraising&page=${page}` +
-      `&per_page=100&app_id=${APP_ID}`
-    const data = await fetchJSON(url)
-    totalPages = Math.min(data.paging.pages, 100) // safety cap
-    if (data.loans) {
-      for (const loan of data.loans) {
-        if (!loan || loan.id == null) continue
-        if (seen.has(loan.id)) { duplicates++; continue }
-        seen.add(loan.id)
-        all.push(loan)
-      }
+    checkStopped(state)
+    const data = await fetchSearchPage(page)
+    totalPages = data.pages
+    for (const loan of data.loans) {
+      if (!loan || loan.id == null) continue
+      if (seen.has(loan.id)) { duplicates++; continue }
+      seen.add(loan.id)
+      all.push(loan)
     }
     log(`  search loans: page ${page}/${totalPages} (${all.length} loans)`)
     page++
@@ -172,42 +250,73 @@ async function fetchTaxonomy() {
   }
 }
 
-async function fetchLoanDetails(ids, log) {
-  const details = new Map()
+/**
+ * Details for every listed loan, fetched 50 at a time with four requests in
+ * flight, each batch processed as it arrives so its raw details can be released
+ * at once rather than held for the whole catalog; the result keeps the listing's
+ * order. Loans that left the listing since the last refresh are looked up too,
+ * only to learn whether they funded (observeFundedLoans).
+ */
+async function fetchAndProcess(state, listing, missingIds, log) {
   const batchSize = 50
-  const concurrency = 4
-  let completed = 0
-
   const batches = []
-  for (let i = 0; i < ids.length; i += batchSize) batches.push(ids.slice(i, i + batchSize))
-
-  const queue = [...batches]
-  const workers = Array.from({ length: concurrency }, async () => {
-    while (queue.length > 0) {
-      const batch = queue.shift()
-      const url = `${KIVA_API}/loans/${batch.join(',')}.json?app_id=${APP_ID}`
+  for (let i = 0; i < listing.length; i += batchSize) batches.push({ loans: listing.slice(i, i + batchSize) })
+  for (let i = 0; i < missingIds.length; i += batchSize) batches.push({ ids: missingIds.slice(i, i + batchSize) })
+  const total = listing.length + missingIds.length
+  const results = new Array(batches.length)
+  let next = 0
+  let completed = 0
+  let processed = 0
+  let detailed = 0
+  // A bad entry from Kiva costs only its own loan (fetchDetailBatch,
+  // observeFundedLoans, processListed), so nothing here is expected to throw.
+  // If something does, the other workers stop taking batches and the refresh
+  // fails only once all four have stopped: it never returns with a worker
+  // still writing to the state.
+  let failed = false // not the error's own truthiness: anything can be thrown
+  let failure
+  const workers = Array.from({ length: 4 }, async () => {
+    while (next < batches.length && !state.stopped && !failed) {
+      const i = next++
+      const batch = batches[i]
       try {
-        const data = await fetchJSON(url)
-        if (data.loans) for (const loan of data.loans) details.set(loan.id, loan)
-      } catch {
-        // Non-fatal: we'll still have search data for these loans
-      }
-      completed++
-      if (completed % 10 === 0 || completed === batches.length) {
-        log(`  loan details: ${Math.min(completed * batchSize, ids.length)}/${ids.length}`)
+        let details = []
+        try {
+          details = await fetchDetailBatch(batch.loans ? batch.loans.map((l) => l.id) : batch.ids)
+        } catch {
+          // Non-fatal: the listing's own data still serves these loans
+        }
+        detailed += details.length
+        observeFundedLoans(state, details)
+        if (batch.loans) {
+          const r = processListed(batch.loans, details)
+          results[i] = r.kept
+          processed += r.processed
+        }
+        completed++
+        if (completed % 10 === 0 || completed === batches.length) {
+          log(`  loan details: ${Math.min(completed * batchSize, total)}/${total}`)
+        }
+      } catch (e) {
+        if (!failed) {
+          failed = true
+          failure = e
+        }
       }
     }
   })
-
   await Promise.all(workers)
-  return details
+  if (failed) throw failure
+  checkStopped(state)
+  return { kept: results.filter(Boolean).flat(), processed, detailed }
 }
 
-async function fetchAllPartners(log) {
+async function fetchAllPartners(state, log) {
   const all = []
   let page = 1
   let totalPages = 1
   while (page <= totalPages) {
+    checkStopped(state)
     const url = `${KIVA_API}/partners.json?page=${page}&app_id=${APP_ID}`
     const data = await fetchJSON(url)
     totalPages = data.paging.pages
@@ -246,7 +355,7 @@ function extractWords(text, ignore) {
     })
 }
 
-function processLoan(raw) {
+export function processLoan(raw) {
   const loan = { ...raw }
   const now = Date.now()
 
@@ -376,7 +485,7 @@ function processLoan(raw) {
   return { loan, keywords: { id: loan.id, t: combined } }
 }
 
-function compressLoan(loan) {
+export function compressLoan(loan) {
   // Shallow copy + targeted field stripping, instead of a full
   // JSON.parse(JSON.stringify(loan)) deep clone. The round-trip allocated a
   // SECOND full copy of every loan during the refresh peak (~7000 loans) on top
@@ -429,7 +538,7 @@ function compressLoan(loan) {
   return l
 }
 
-function processPartners(partners) {
+export function processPartners(partners) {
   const regionsLu = {
     'North America': 'na', 'Central America': 'ca', 'South America': 'sa',
     Africa: 'af', Asia: 'as', 'Middle East': 'me',
@@ -460,7 +569,7 @@ function processPartners(partners) {
  * and across restarts until the dyno is recycled.)
  */
 async function loadAplusCsv(log) {
-  const cached = await readCache(APLUS_CACHE_KEY, APLUS_TTL_MS)
+  const cached = await cache.get(APLUS_CACHE_KEY, APLUS_TTL_MS)
   if (cached) {
     log(`A+ data: using cached copy (${cached.length} bytes)`)
     return cached
@@ -473,15 +582,15 @@ async function loadAplusCsv(log) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const csv = await res.text()
     if (csv && csv.length > 100) {
-      await writeCache(APLUS_CACHE_KEY, csv)
+      await cache.set(APLUS_CACHE_KEY, csv)
       log(`A+ data: fetched + cached (${csv.length} bytes)`)
       return csv
     }
-    log(`A+ data: fetch returned empty/short body (${csv?.length ?? 0} bytes)`)
+    logSafely(log, `A+ data: fetch returned empty/short body (${csv?.length ?? 0} bytes)`)
   } catch (e) {
-    log(`A+ data: fetch failed (${e})`)
+    logSafely(log, `A+ data: fetch failed (${describeError(e)})`)
   }
-  const stale = await readCache(APLUS_CACHE_KEY)
+  const stale = await cache.get(APLUS_CACHE_KEY)
   if (stale) {
     log('A+ data: using stale cached copy')
     return stale
@@ -639,7 +748,7 @@ export function rehydrateWarmCache(state, log = () => {}) {
     log(`Warm cache expanded: ${loans.length} loans filterable without waiting for the refresh`)
     return true
   } catch (e) {
-    log(`Warm cache expand skipped (non-fatal): ${e}`)
+    logSafely(log, `Warm cache expand skipped (non-fatal): ${describeError(e)}`)
     return false
   }
 }
@@ -712,7 +821,19 @@ export function createState() {
     loanDetailRequests: new Map(), // In-flight only; removed on every outcome.
     newestTime: 0,
     building: false,
+    stopped: false, // set by startRefresh's stop(); a stopped state never refreshes again
+    snapshotTimer: null, // the deferred snapshot save after a publish
   }
+}
+
+/**
+ * Thrown inside a refresh once startRefresh's stop() has been called: the run
+ * ends at its next step, before it publishes anything. It is recognised by
+ * identity, never instanceof: instanceof runs code on whatever was thrown.
+ */
+const REFRESH_STOPPED = new Error('refresh stopped')
+function checkStopped(state) {
+  if (state.stopped) throw REFRESH_STOPPED
 }
 
 /**
@@ -722,7 +843,7 @@ export function createState() {
  * longer fundraising (the search is status=fundraising).
  */
 export async function prepareData(state, log = console.log) {
-  if (state.building) return
+  if (state.building || state.stopped) return
   state.building = true
   try {
     log(
@@ -733,7 +854,7 @@ export async function prepareData(state, log = console.log) {
     const startTime = Date.now()
 
     log('Fetching partners...')
-    const rawPartners = await fetchAllPartners(log)
+    const rawPartners = await fetchAllPartners(state, log)
     const partners = processPartners(rawPartners)
     state.partnersGz = await gzipAsync(JSON.stringify(partners))
     log(`Partners ready: ${partners.length}`)
@@ -749,7 +870,7 @@ export async function prepareData(state, log = console.log) {
       state.atheistListProcessed = !!aplusCsv
       log(`A+ merged into ${state.aplusMerged}/${state.partners.length} partners`)
     } catch (e) {
-      log(`A+ merge failed (continuing without it): ${e}`)
+      logSafely(log, `A+ merge failed (continuing without it): ${describeError(e)}`)
     }
 
     // Facet taxonomy (sectors/activities/themes/tags) from GraphQL — keep the
@@ -762,51 +883,22 @@ export async function prepareData(state, log = console.log) {
           `${options.themes.length} themes, ${options.tags.length} tags`,
       )
     } catch (e) {
-      log(`Taxonomy fetch failed (keeping previous): ${e}`)
+      logSafely(log, `Taxonomy fetch failed (keeping previous): ${describeError(e)}`)
     }
 
     log(`[mem] refresh start rss=${memMB()}MB heapUsed=${heapMB()}MB`)
     log('Fetching loans from search...')
-    let searchLoans = await fetchAllSearchLoans(log)
+    let searchLoans = await fetchAllSearchLoans(state, log)
     log(`Found ${searchLoans.length} fundraising loans`)
 
-    log('Fetching full loan details...')
-    const listedIds = new Set(searchLoans.map(loan => loan.id))
-    const missingIds = state.allLoans.filter(loan => !listedIds.has(loan.id)).map(loan => loan.id)
-    let detailMap = await fetchLoanDetails([...listedIds, ...missingIds], log)
-    observeFundedLoans(state, [...detailMap.values()])
-    log(`Fetched details for ${detailMap.size} loans`)
-
-    // Free each heavy intermediate as soon as it is consumed. The refresh used to
-    // hold 6-8 full copies of the ~7000-loan dataset live at once (search +
-    // detail + merged + processed + fundable + compressed), which is what spiked
-    // the 512MB dyno into R14. Nulling lets GC reclaim mid-cycle.
-    let rawLoans = searchLoans.map((searchLoan) => {
-      const detail = detailMap.get(searchLoan.id)
-      return detail ? { ...searchLoan, ...detail } : searchLoan
-    })
+    log('Fetching and processing full loan details...')
+    const listedIds = new Set(searchLoans.map((loan) => loan.id))
+    const missingIds = state.allLoans.filter((loan) => !listedIds.has(loan.id)).map((loan) => loan.id)
+    let { kept: fundable, processed, detailed } = await fetchAndProcess(state, searchLoans, missingIds, log)
     searchLoans = null
-    detailMap = null
-
-    log('Processing loans...')
-    let processed = []
-    for (const raw of rawLoans) {
-      try {
-        processed.push(processLoan(raw))
-      } catch {
-        // Skip bad loans
-      }
-    }
-    rawLoans = null
-    log(`Processed ${processed.length} loans`)
-
-    // Drop loans Kiva still reports as fundraising but that are already fully
-    // funded (funded_amount >= loan_amount). basket_amount is deliberately
-    // ignored: Kiva's basket figures are unreliable and sometimes exceed the
-    // amount remaining, so only funded vs. total decides fundability.
-    let fundable = processed.filter((p) => p.loan.status === 'fundraising' && p.loan.funded_amount < p.loan.loan_amount)
-    log(`Excluded ${processed.length - fundable.length} closed or fully-funded loans; ${fundable.length} remain`)
-    processed = null
+    log(`Fetched details for ${detailed} loans`)
+    log(`Processed ${processed} loans`)
+    log(`Excluded ${processed - fundable.length} closed or fully-funded loans; ${fundable.length} remain`)
 
     // Stage the live dataset now (releasing the previous batch's loans — holding
     // both through the gzip awaits cost ~29MB on the 512MB dyno), and flag the
@@ -820,7 +912,7 @@ export async function prepareData(state, log = console.log) {
     try {
       await resolveAmbiguousAges(state.allLoans, log)
     } catch (error) {
-      log(`Ages: resolution skipped (${error?.message || error})`)
+      logSafely(log, `Ages: resolution skipped (${describeError(error, { messageOnly: true })})`)
     }
     state.newestTime = Math.max(...state.allLoans.map((l) => new Date(l.kl_processed).getTime()))
 
@@ -851,8 +943,11 @@ export async function prepareData(state, log = console.log) {
     }
 
     // Atomic publish: bump the batch, retain the last RETAINED_BATCHES
+    checkStopped(state)
     const batch = state.batch + 1
-    const klStart = { batch, pages: loanChunks.length, loanLengths, descrLengths }
+    // builtAt lets a browser that downloads this batch late catch up from Kiva at
+    // once instead of after the usual five minutes (src/api/kiva.ts).
+    const klStart = { batch, pages: loanChunks.length, loanLengths, descrLengths, builtAt: Date.now() }
     state.batches.set(batch, { loanPages, keywordPages, klStart, newestTime: state.newestTime })
     for (const old of state.batches.keys()) {
       if (old <= batch - RETAINED_BATCHES) state.batches.delete(old)
@@ -880,14 +975,38 @@ export async function prepareData(state, log = console.log) {
     // Fire-and-forget, and DEFERRED off the refresh peak: the snapshot builds a
     // multi-MB transient JSON+gzip+base64 string; running it ~8s after publish
     // lets the rebuild's garbage GC first so the two peaks don't stack.
-    setTimeout(() => void saveSnapshot(state, log), 8000)
+    state.snapshotTimer = setTimeout(() => {
+      snapshots.save(snapshotOf(state), log).catch((e) => logSafely(log, `Snapshot save failed: ${describeError(e)}`))
+    }, 8000)
   } catch (e) {
-    log(`Data preparation failed: ${e}`)
+    if (e === REFRESH_STOPPED) logSafely(log, 'Refresh stopped before publishing')
+    else logSafely(log, `Data preparation failed: ${describeError(e)}`)
   } finally {
     state.building = false
     // A failed refresh must not leave the staged flag latched, or the warm
     // expand would be refused until the next successful publication.
     state.liveStaged = false
+  }
+}
+
+/**
+ * The published batch as the snapshot store keeps it (runtime.mjs `snapshots`),
+ * or null before anything is published: the pages the browser downloads, the
+ * partners and options, and each loan's description and repayment schedule,
+ * which /graphql serves.
+ */
+export function snapshotOf(state) {
+  const served = state.batches.get(state.batch)
+  if (!served || !state.klStart) return null
+  return {
+    batch: state.batch,
+    newestTime: state.newestTime,
+    klStart: state.klStart,
+    partnersGz: state.partnersGz,
+    optionsGz: state.optionsGz,
+    loanPages: served.loanPages,
+    keywordPages: served.keywordPages,
+    details: (state.allLoans || []).map((l) => ({ id: l.id, description: l.description, kl_repayments: l.kl_repayments })),
   }
 }
 
@@ -900,8 +1019,8 @@ export async function prepareData(state, log = console.log) {
  */
 async function hydrateFromCache(state, log) {
   try {
-    const snap = await loadSnapshot(log)
-    if (!snap) return
+    const snap = await snapshots.load(log)
+    if (!snap || state.stopped) return
     // The live fetch already published while Redis was being read — keep it.
     if (state.batch > 0) return
     // A pathologically slow Redis read can land after the live refresh already
@@ -933,17 +1052,16 @@ async function hydrateFromCache(state, log) {
     const age = snap.savedAt ? `${Math.round((Date.now() - snap.savedAt) / 1000)}s old` : 'age unknown'
     log(`Warm start from cache: batch ${snap.batch}, ${snap.klStart.pages} pages (${age})`)
   } catch (e) {
-    log(`Warm start skipped (non-fatal): ${e}`)
+    logSafely(log, `Warm start skipped (non-fatal): ${describeError(e)}`)
   }
 }
 
-/** Kick off the initial download and a refresh timer. Returns the timer id. */
 // Per-lender RSS cache hygiene: the disk is ephemeral but restarts can be rare,
 // so evict entries older than a day and cap the namespace's count/size so a
 // burst of distinct lender feeds can't fill the dyno disk.
 const LENDER_CLEANUP_INTERVAL_MS = 6 * 60 * 60_000
 async function cleanupLenderCache(log = console.log) {
-  const removed = await cleanupCache({
+  const removed = await cache.cleanup({
     prefix: 'lender-',
     maxAgeMs: 24 * 60 * 60_000,
     maxFiles: 1000,
@@ -961,6 +1079,12 @@ async function maybeSendDigest(log = console.log) {
   await sendDailyDigest(yesterday, log)
 }
 
+/**
+ * Starts the Node server's refresh and upkeep timers. Returns stop(), which
+ * clears every one of them and ends a refresh in flight at its next step: a
+ * timer or run left going keeps its state (a whole loan dataset) alive and
+ * keeps calling Kiva, and the Vite dev server starts a fresh one on each restart.
+ */
 export function startRefresh(state, log = console.log) {
   // Retain the logger for paths that run outside this call chain (e.g. the
   // on-demand warm-cache expand triggered by an AI request).
@@ -968,14 +1092,29 @@ export function startRefresh(state, log = console.log) {
   // Serve cached data ASAP (non-blocking) and fetch live data in parallel.
   void hydrateFromCache(state, log)
   prepareData(state, log)
-  setInterval(() => void maybeSendDigest(log), 60 * 60_000).unref()
-  // Periodically prune the per-lender RSS disk cache. unref() so this timer
-  // never keeps the process alive on its own.
-  void cleanupLenderCache(log)
-  setInterval(() => void cleanupLenderCache(log), LENDER_CLEANUP_INTERVAL_MS).unref()
+  const timers = []
+  const every = (ms, fn) => {
+    const t = setInterval(fn, ms)
+    t.unref?.() // never keeps the process alive on its own
+    timers.push(t)
+  }
+  // Upkeep is logged when it fails, never left to reject unhandled, which would
+  // end the Node process.
+  const upkeep = (what, work) => async () => {
+    try {
+      await work()
+    } catch (e) {
+      logSafely(log, `${what} failed: ${describeError(e)}`)
+    }
+  }
+  every(60 * 60_000, upkeep('Daily digest', () => maybeSendDigest(log)))
+  // Periodically prune the per-lender RSS cache.
+  const cleanup = upkeep('Lender cache cleanup', () => cleanupLenderCache(log))
+  cleanup()
+  every(LENDER_CLEANUP_INTERVAL_MS, cleanup)
   // Periodic memory breakdown so we can see WHAT holds RSS (heapTotal over-commit
   // that --max-old-space-size can bind, vs. external/buffer memory it can't).
-  setInterval(() => {
+  every(60_000, () => {
     recentlyFunded(state)
     const m = process.memoryUsage()
     const mb = (n) => Math.round(n / 1048576)
@@ -983,36 +1122,26 @@ export function startRefresh(state, log = console.log) {
       `[mem] rss=${mb(m.rss)} heapTotal=${mb(m.heapTotal)} heapUsed=${mb(m.heapUsed)} ` +
         `external=${mb(m.external)} arrayBuffers=${mb(m.arrayBuffers)}`,
     )
-  }, 60_000).unref()
-  return setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS)
+  })
+  // The refresh itself keeps the process alive (it is the server's work).
+  timers.push(setInterval(() => prepareData(state, log), REFRESH_INTERVAL_MS))
+  return {
+    stop() {
+      state.stopped = true
+      for (const t of timers) clearInterval(t)
+      timers.length = 0
+      clearTimeout(state.snapshotTimer)
+    },
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Response helpers
+// Responses. Handlers take a Fetch API Request and return a Response, or null
+// when the request is not theirs (http.mjs); the Node server converts at its
+// edge (nodeAdapter.mjs) and a Cloudflare Worker needs no conversion.
 // ---------------------------------------------------------------------------
 
-function sendGzip(res, data) {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  res.setHeader('Content-Encoding', 'gzip')
-  res.setHeader('Content-Length', data.length)
-  res.setHeader('Cache-Control', 'public, max-age=600')
-  res.end(data)
-}
-
-function sendJSON(res, data) {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  res.end(JSON.stringify(data))
-}
-
-function send404(res) {
-  res.statusCode = 404
-  res.end('Not ready')
-}
-
-// ---------------------------------------------------------------------------
-// API request handler — returns true if it handled the request.
-// Works with both Vite's connect middleware and a raw Node http server.
-// ---------------------------------------------------------------------------
+const notReady = () => new Response('Not ready', { status: 404 })
 
 // ---------------------------------------------------------------------------
 // RSS feeds
@@ -1070,39 +1199,31 @@ function buildRssXml(feedName, linkTo, loans, selfUrl) {
  * the SAME shared engine the on-site search uses) and /rss_click/<go_to>/<id>
  * (the per-item redirect). Returns true if it handled the request.
  */
-export function handleRss(state, req, res) {
-  const url = req.url || ''
+export async function handleRss(state, request) {
+  const url = pathOf(request)
 
   // Per-item click redirect: /rss_click/<kiva|kivalens>/<loanId>
-  let m = url.match(/^\/rss_click\/([^/]+)\/([^/?#]+)/)
+  const m = url.match(/^\/rss_click\/([^/]+)\/([^/?#]+)/)
   if (m) {
-    const goTo = decodeURIComponent(m[1])
-    const id = encodeURIComponent(decodeURIComponent(m[2]))
-    const dest =
-      goTo === 'kiva'
-        ? `https://www.kiva.org/lend/${id}?app_id=${APP_ID}`
-        : `https://www.kivalens.org/loans/${id}`
-    res.statusCode = 302
-    res.setHeader('Location', dest)
-    res.end()
-    return true
+    // A half-written escape (%FF) is anyone's to send: answer it, don't throw.
+    let goTo, id
+    try {
+      goTo = decodeURIComponent(m[1])
+      id = encodeURIComponent(decodeURIComponent(m[2]))
+    } catch {
+      return text('Bad request', { status: 400 })
+    }
+    return redirect(goTo === 'kiva' ? `https://www.kiva.org/lend/${id}?app_id=${APP_ID}` : `https://www.kivalens.org/loans/${id}`)
   }
 
-  // Feed: /rss/<uriComponent-encoded JSON criteria>. We own it as soon as the
-  // path matches; the actual work is async (lender portfolio data may need
-  // fetching), but the routing contract stays a synchronous boolean.
-  if (!/^\/rss(\/|\?|$)/.test(url)) return false
-  serveRssFeed(state, req, res).catch((e) => {
+  // Feed: /rss/<uriComponent-encoded JSON criteria>, or /rss?<search parameters>.
+  if (!/^\/rss(\/|\?|$)/.test(url)) return null
+  try {
+    return await serveRssFeed(state, request, url)
+  } catch (e) {
     console.error('RSS feed error:', e)
-    try {
-      res.statusCode = 500
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-      res.end('RSS feed error')
-    } catch {
-      /* response already started */
-    }
-  })
-  return true
+    return text('RSS feed error', { status: 500 })
+  }
 }
 
 async function waitForRssData(state) {
@@ -1121,16 +1242,9 @@ async function waitForRssData(state) {
   }
 }
 
-function sendRssUnavailable(res, message) {
-  res.statusCode = 503
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  res.setHeader('Cache-Control', 'no-store')
-  res.setHeader('Retry-After', '30')
-  res.end(message)
-}
+const rssUnavailable = (message) => text(message, { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '30' } })
 
-async function serveRssFeed(state, req, res) {
-  const url = req.url || ''
+async function serveRssFeed(state, request, url) {
   let crit
   const m = url.match(/^\/rss\/(.+)$/)
   if (m) {
@@ -1139,10 +1253,7 @@ async function serveRssFeed(state, req, res) {
     try {
       crit = JSON.parse(decodeURIComponent(m[1].split('?')[0]))
     } catch {
-      res.statusCode = 400
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-      res.end('Invalid RSS criteria')
-      return
+      return text('Invalid RSS criteria', { status: 400 })
     }
   } else {
     // /rss?<the same parameters a Search address uses>, so a feed reads like the
@@ -1174,18 +1285,13 @@ async function serveRssFeed(state, req, res) {
     criteria.portfolio.exclude_portfolio_loans === 'true' ||
     BALANCER_SLICES.some((s) => criteria.portfolio[`pb_${s}`]?.enabled)
   if (needsLenderData && !lenderId) {
-    res.statusCode = 400
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.setHeader('Cache-Control', 'no-store')
-    res.end('RSS portfolio filters require a lender id')
-    return
+    return text('RSS portfolio filters require a lender id', { status: 400, headers: { 'Cache-Control': 'no-store' } })
   }
 
-  // General API readiness may come from the compressed Redis warm start. RSS
-  // filtering needs the separately-published live loan and partner objects.
+  // General API readiness may come from the compressed warm start. RSS filtering
+  // needs the separately-published live loan and partner objects.
   if (!state.rssReady && !(await waitForRssData(state))) {
-    sendRssUnavailable(res, 'RSS filter data is still loading; retry shortly')
-    return
+    return rssUnavailable('RSS filter data is still loading; retry shortly')
   }
 
   const ctx = {
@@ -1204,62 +1310,52 @@ async function serveRssFeed(state, req, res) {
       }
     } catch (e) {
       console.error(`RSS required lender data failed: ${e}`)
-      sendRssUnavailable(res, 'RSS portfolio filter data is unavailable; retry shortly')
-      return
+      return rssUnavailable('RSS portfolio filter data is unavailable; retry shortly')
     }
   }
 
   const loans = filterLoans(criteria, ctx)
-  const selfUrl = req.headers?.host ? `https://${req.headers.host}${url}` : ''
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
-  res.setHeader('Cache-Control', 'public, max-age=300')
-  res.end(buildRssXml(feedName, linkTo, loans, selfUrl))
+  const host = new URL(request.url).host
+  const selfUrl = host ? `https://${host}${url}` : ''
+  return new Response(buildRssXml(feedName, linkTo, loans, selfUrl), {
+    headers: { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
+  })
 }
 
-export function handleApi(state, req, res) {
-  const url = req.url || ''
+export async function handleApi(state, request) {
+  const url = pathOf(request)
+  const method = request.method
 
-  if (url === '/api/recently-funded' && req.method === 'GET') {
-    res.setHeader('Cache-Control', 'no-store')
-    sendJSON(res, recentlyFunded(state))
-    return true
+  if (url === '/api/recently-funded' && method === 'GET') {
+    return json(recentlyFunded(state), { headers: { 'Cache-Control': 'no-store' } })
   }
 
   if (url === '/api/start') {
-    if (!state.ready || !state.klStart) send404(res)
-    else sendJSON(res, state.klStart)
-    return true
+    return !state.ready || !state.klStart ? notReady() : json(state.klStart)
   }
 
   if (url === '/api/partners') {
-    if (!state.partnersGz) send404(res)
-    else sendGzip(res, state.partnersGz)
-    return true
+    return state.partnersGz ? gzipped(state.partnersGz) : notReady()
   }
 
   if (url === '/api/options') {
-    if (!state.optionsGz) send404(res)
-    else sendGzip(res, state.optionsGz)
-    return true
+    return state.optionsGz ? gzipped(state.optionsGz) : notReady()
   }
 
   const loanMatch = url.match(/^\/api\/loans\/(\d+)\/(\d+)$/)
   if (loanMatch) {
     const served = state.batches.get(parseInt(loanMatch[1], 10))
     const idx = parseInt(loanMatch[2], 10) - 1
-    if (!state.ready || !served || idx < 0 || idx >= served.loanPages.length) send404(res)
-    else sendGzip(res, served.loanPages[idx])
-    return true
+    if (!state.ready || !served || idx < 0 || idx >= served.loanPages.length) return notReady()
+    return gzipped(served.loanPages[idx])
   }
 
   const kwMatch = url.match(/^\/api\/loans\/(\d+)\/keywords\/(\d+)$/)
   if (kwMatch) {
     const served = state.batches.get(parseInt(kwMatch[1], 10))
     const idx = parseInt(kwMatch[2], 10) - 1
-    if (!state.ready || !served || idx < 0 || idx >= served.keywordPages.length) send404(res)
-    else sendGzip(res, served.keywordPages[idx])
-    return true
+    if (!state.ready || !served || idx < 0 || idx >= served.keywordPages.length) return notReady()
+    return gzipped(served.keywordPages[idx])
   }
 
   // Loans (re)processed after the requested batch was built, in the same KLS
@@ -1267,81 +1363,49 @@ export function handleApi(state, req, res) {
   const sinceMatch = url.match(/^\/api\/since\/(\d+)$/)
   if (sinceMatch) {
     const served = state.batches.get(parseInt(sinceMatch[1], 10))
-    if (!served) send404(res)
-    else {
-      const changed = state.allLoans.filter(
-        (l) => new Date(l.kl_processed).getTime() > served.newestTime,
-      )
-      sendJSON(res, changed.length > 500 ? [] : changed.map((l) => compressLoan(l)))
+    if (!served) return notReady()
+    const changed = state.allLoans.filter((l) => new Date(l.kl_processed).getTime() > served.newestTime)
+    return json(changed.length > 500 ? [] : changed.map((l) => compressLoan(l)))
+  }
+
+  if (url.startsWith('/api/heartbeat/')) return json({ status: 200 })
+
+  if (url === '/graphql' && method === 'POST') {
+    const body = await readBody(request, 64 * 1024)
+    if (body.tooLarge) return json({ errors: [{ message: 'Request too large' }] }, { status: 413, headers: { 'Cache-Control': 'no-store' } })
+    try {
+      // The web client sends raw query text; Lite sends a JSON query envelope.
+      const query = /^\{\s*"/.test(body.text.trim()) ? JSON.parse(body.text).query : body.text
+      if (typeof query !== 'string') throw new Error('Invalid query')
+      const idsMatch = query.match(/ids\s*:\s*\[([^\]]*)\]/)
+      if (!idsMatch) return json({ data: { loans: [] } }, { headers: { 'Cache-Control': 'no-store' } })
+      // Cap how many loan details one request can resolve. Without a bound, a
+      // single request could buffer the whole dataset in memory (and the
+      // find-per-id below is O(ids × allLoans)). Real clients page in small
+      // batches, so 500 is generous; truncation is logged, not silent.
+      const GRAPHQL_MAX_IDS = 500
+      const tokens = idsMatch[1].split(',').map((value) => value.trim()).filter(Boolean)
+      if (tokens.some((value) => !/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1))
+        throw new Error('Invalid loan ID')
+      let ids = [...new Set(tokens.map(Number))]
+      if (ids.length > GRAPHQL_MAX_IDS) {
+        console.warn(`/graphql: capping ${ids.length} loanIds to ${GRAPHQL_MAX_IDS}`)
+        ids = ids.slice(0, GRAPHQL_MAX_IDS)
+      }
+      const loans = await resolveLoanDetails(state, ids, (raw) => processLoan(raw).loan, /refresh\s*:\s*true\b/.test(query))
+      return json({ data: { loans } }, { headers: { 'Cache-Control': 'no-store' } })
+    } catch {
+      return json({ errors: [{ message: 'Unable to resolve loan details' }] }, { status: 400, headers: { 'Cache-Control': 'no-store' } })
     }
-    return true
   }
 
-  if (url.startsWith('/api/heartbeat/')) {
-    sendJSON(res, { status: 200 })
-    return true
-  }
-
-  if (url === '/graphql' && req.method === 'POST') {
-    res.setHeader('Cache-Control', 'no-store')
-    let body = ''
-    let tooLarge = false
-    req.on('data', (chunk) => {
-      if (tooLarge) return
-      body += chunk.toString()
-      if (Buffer.byteLength(body) > 64 * 1024) {
-        tooLarge = true
-        body = ''
-        res.statusCode = 413
-        sendJSON(res, { errors: [{ message: 'Request too large' }] })
-      }
-    })
-    req.on('end', async () => {
-      if (tooLarge) return
-      try {
-        // The web client sends raw query text; Lite sends a JSON query envelope.
-        const query = /^\{\s*"/.test(body.trim()) ? JSON.parse(body).query : body
-        if (typeof query !== 'string') throw new Error('Invalid query')
-        const idsMatch = query.match(/ids\s*:\s*\[([^\]]*)\]/)
-        if (!idsMatch) return sendJSON(res, { data: { loans: [] } })
-        // Cap how many loan details one request can resolve. Without a bound, a
-        // single request could buffer the whole dataset in memory (and the
-        // find-per-id below is O(ids × allLoans)). Real clients page in small
-        // batches, so 500 is generous; truncation is logged, not silent.
-        const GRAPHQL_MAX_IDS = 500
-        const tokens = idsMatch[1].split(',').map(value => value.trim()).filter(Boolean)
-        if (tokens.some(value => !/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1))
-          throw new Error('Invalid loan ID')
-        let ids = [...new Set(tokens.map(Number))]
-        if (ids.length > GRAPHQL_MAX_IDS) {
-          console.warn(`/graphql: capping ${ids.length} loanIds to ${GRAPHQL_MAX_IDS}`)
-          ids = ids.slice(0, GRAPHQL_MAX_IDS)
-        }
-        const loans = await resolveLoanDetails(state, ids, raw => processLoan(raw).loan,
-          /refresh\s*:\s*true\b/.test(query))
-        sendJSON(res, { data: { loans } })
-      } catch {
-        // This handler is async and the process has no unhandledRejection handler, so
-        // nothing may escape it: a throw here would take the server down, and with it
-        // the in-memory loan catalog.
-        try {
-          if (res.headersSent) return res.end()
-          res.statusCode = 400
-          sendJSON(res, { errors: [{ message: 'Unable to resolve loan details' }] })
-        } catch { /* the connection is gone; there is no one to answer */ }
-      }
-    })
-    return true
-  }
-
-  return false
+  return null
 }
 
 // ---------------------------------------------------------------------------
-// Proxy handler — anonymizing GET proxy to two fixed hosts, returns true if
-// it handled the request. Kiva's WAF answers 406 to a browser User-Agent
-// without a full fingerprint, so requests carry only the cluster.js recipe
-// (X-Requested-With / Accept / Referer, and NO User-Agent).
+// Proxy handler — anonymizing GET proxy to two fixed hosts. Kiva's WAF answers
+// 406 to a browser User-Agent without a full fingerprint, so requests carry only
+// the cluster.js recipe (X-Requested-With / Accept / Referer, and NO User-Agent).
 // ---------------------------------------------------------------------------
 
 const PROXY_TARGETS = [
@@ -1349,25 +1413,17 @@ const PROXY_TARGETS = [
   { prefix: '/proxy/gdocs/', host: 'https://docs.google.com/', allow: /^spreadsheets\//, kiva: false },
 ]
 
-export function handleProxy(req, res) {
-  const url = req.url || ''
-  const target = PROXY_TARGETS.find((t) => url.startsWith(t.prefix))
-  if (!target) return false
+const NULL_BODY_STATUSES = new Set([204, 205, 304])
 
-  if (req.method !== 'GET') {
-    res.statusCode = 405
-    res.end('Method Not Allowed')
-    return true
-  }
+export async function handleProxy(request) {
+  const url = pathOf(request)
+  const target = PROXY_TARGETS.find((t) => url.startsWith(t.prefix))
+  if (!target) return null
+  if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 })
 
   const rest = url.slice(target.prefix.length) // path + query, no leading slash
-  if (!target.allow.test(rest)) {
-    res.statusCode = 403
-    res.end('Forbidden')
-    return true
-  }
+  if (!target.allow.test(rest)) return new Response('Forbidden', { status: 403 })
 
-  const upstreamUrl = target.host + rest
   const headers = target.kiva
     ? {
         'X-Requested-With': 'XMLHttpRequest',
@@ -1376,27 +1432,21 @@ export function handleProxy(req, res) {
       }
     : { Accept: '*/*' }
 
-  // Node's fetch sends no User-Agent unless set — exactly what we want for Kiva.
-  fetch(upstreamUrl, { headers })
-    .then(async (upstream) => {
-      res.statusCode = upstream.status
-      res.setHeader('Access-Control-Allow-Origin', '*')
-      res.setHeader(
-        'Content-Type',
-        upstream.headers.get('content-type') || 'application/json',
-      )
-      const buf = Buffer.from(await upstream.arrayBuffer())
-      res.end(buf)
+  try {
+    const upstream = await fetch(target.host + rest, { headers })
+    // The body is read whole rather than streamed: the answers are small, and a
+    // stream that fails halfway would reach the browser as a truncated 200. A
+    // status that has no body (204, 304...) cannot be given one, even empty.
+    const body = NULL_BODY_STATUSES.has(upstream.status) ? null : await upstream.arrayBuffer()
+    return new Response(body, {
+      status: upstream.status,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': upstream.headers.get('content-type') || 'application/json',
+      },
     })
-    .catch((err) => {
-      if (!res.headersSent) {
-        res.statusCode = 502
-        res.end('Proxy error')
-      } else {
-        res.end()
-      }
-      console.error('[proxy] error:', err?.message || err)
-    })
-
-  return true
+  } catch (err) {
+    console.error('[proxy] error:', err?.message || err)
+    return new Response('Proxy error', { status: 502 })
+  }
 }

@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // .claude holds other sessions' worktrees: whole copies of this repo, not this checkout's code.
+  // analysis holds local working records (throwaway experiments among them), never shipped.
+  globalIgnores(['dist', '.claude', 'analysis']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

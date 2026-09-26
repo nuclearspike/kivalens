@@ -16,56 +16,25 @@ import { fileURLToPath } from 'node:url'
 import { createState, startRefresh, handleApi, handleProxy, handleRss } from './klCore.mjs'
 import { handleChat } from './aiChat.mjs'
 import { closeCache } from './klCache.mjs'
+import { configureNodeRuntime } from './nodeRuntime.mjs'
+import { sendResponse, toRequest } from './nodeAdapter.mjs'
 import { canonicalRedirect } from './canonicalUrl.mjs'
 import { legacyRedirect } from './legacyRedirect.mjs'
-import { applyPageMeta, pageMeta, shellLookup } from './pageMeta.mjs'
+import { shellLookup } from './pageMeta.mjs'
+import { renderShell } from './shell.mjs'
 import { buildSitemap } from './sitemap.mjs'
+import { SECURITY_HEADERS } from './securityHeaders.mjs'
 
 const PORT = process.env.PORT || 3000
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const log = (msg) => console.log(`[KL] ${msg}`)
 
 // ---------------------------------------------------------------------------
-// Security headers — the same A+ posture the original cluster.js shipped,
-// retuned for this app:
-//   - script-src 'self' only (the build emits no inline scripts and the app
-//     uses no GA/analytics — stricter than the old config)
-//   - style-src allows 'unsafe-inline' (index.html's inline <style> + React/
-//     recharts inline style attributes) and Google Fonts CSS
-//   - img-src covers Kiva's image CDN + data: (CSS SVG backgrounds, favicons)
-//   - connect-src covers the same-origin /api & /proxy plus the client's
-//     direct Kiva-API and Google-Docs fallbacks, and the real-user
-//     measurement collector (src/lib/rum, cloudflare/rum)
-//   - form-action allows the basket checkout POST to Kiva (the POST and its
-//     redirects can land on www/apex/other kiva.org subdomains, so allow the
-//     whole kiva.org family or the browser blocks the submission)
+// Security headers: the shared set (securityHeaders.mjs), on every response.
 // ---------------------------------------------------------------------------
 
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
-  "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com https://rum.kivalens.org",
-  "form-action 'self' https://www.kiva.org https://kiva.org https://*.kiva.org",
-  "frame-ancestors 'none'",
-  "frame-src 'none'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "worker-src 'self'",
-].join('; ')
-
 function setSecurityHeaders(res) {
-  res.setHeader('Content-Security-Policy', CSP)
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.setHeader('X-Frame-Options', 'DENY')
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-  res.setHeader(
-    'Permissions-Policy',
-    'geolocation=(), microphone=(), camera=(), payment=(), usb=()',
-  )
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) res.setHeader(name, value)
 }
 
 // ---------------------------------------------------------------------------
@@ -168,12 +137,8 @@ function serveShell(state, req, res, pathname, search) {
       res.end('Shell unavailable')
       return
     }
-    const body = applyPageMeta(html, pageMeta({ pathname, search, lookup: shellLookup(state, pathname) }))
-    // no-cache means "ask me first", which needs something to ask WITH: without
-    // a validator the browser re-downloads the whole shell on every move. The
-    // tag is over the finished body, so it changes when the page's own head
-    // does — a partner renamed, a loan that has since expired.
-    const etag = `W/"${crypto.createHash('sha1').update(body).digest('base64url').slice(0, 20)}"`
+    // The page's own head, and an ETag over the finished body (shell.mjs).
+    const { body, etag } = renderShell(html, { pathname, search, lookup: shellLookup(state, pathname) })
     res.setHeader('Content-Type', MIME['.html'])
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('ETag', etag)
@@ -241,13 +206,12 @@ function serveStatic(state, req, res) {
 // Server
 // ---------------------------------------------------------------------------
 
+configureNodeRuntime()
 const state = createState()
-const refreshTimer = startRefresh(state, log)
+const refresh = startRefresh(state, log)
 
 const server = http.createServer((req, res) => {
-  try {
-    handleRequest(req, res)
-  } catch (e) {
+  handleRequest(req, res).catch((e) => {
     // One bad request is not a reason for every other lender to lose the site.
     console.error('Request failed:', req.method, req.url, e)
     if (!res.headersSent) {
@@ -255,10 +219,10 @@ const server = http.createServer((req, res) => {
       res.setHeader('Content-Type', 'text/plain; charset=utf-8')
     }
     res.end('Server error')
-  }
+  })
 })
 
-function handleRequest(req, res) {
+async function handleRequest(req, res) {
   setSecurityHeaders(res)
 
   // One permanent redirect to the canonical origin (https://www.kivalens.org)
@@ -283,10 +247,14 @@ function handleRequest(req, res) {
     return
   }
 
-  if (handleProxy(req, res)) return
-  if (handleRss(state, req, res)) return
-  if (handleChat(state, req, res)) return
-  if (handleApi(state, req, res)) return
+  // The shared handlers speak Fetch (http.mjs); each answers only its own paths.
+  const request = toRequest(req, res)
+  const response =
+    (await handleProxy(request)) ??
+    (await handleRss(state, request)) ??
+    (await handleChat(state, request)) ??
+    (await handleApi(state, request))
+  if (response) return sendResponse(res, response)
 
   // A page that moved answers with one permanent redirect, after the data and
   // proxy endpoints have claimed their own paths and before the shell is served.
@@ -304,7 +272,7 @@ function handleRequest(req, res) {
 server.listen(PORT, () => log(`KivaLens server listening on :${PORT} (serving ${DIST})`))
 
 process.on('SIGTERM', () => {
-  clearInterval(refreshTimer)
+  refresh.stop()
   closeCache()
   server.close(() => process.exit(0))
 })

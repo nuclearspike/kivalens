@@ -4,10 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const create = vi.fn()
 vi.mock('openai', () => ({ default: class { chat = { completions: { create } } } }))
 const store = new Map<string, string>()
-vi.mock('../../server/diskCache.mjs', () => ({
-  readCache: vi.fn(async (k: string) => (store.has(k) ? store.get(k)! : null)),
-  writeCache: vi.fn(async (k: string, v: string) => { store.set(k, v); return true }),
-}))
+const { configureRuntime } = await import('../../server/runtime.mjs')
+configureRuntime({
+  cache: {
+    get: vi.fn(async (k: string) => (store.has(k) ? store.get(k)! : null)),
+    set: vi.fn(async (k: string, v: string) => { store.set(k, v); return true }),
+    cleanup: vi.fn(async () => []),
+  },
+})
 const budgetExceeded = vi.fn(async () => false)
 vi.mock('../../server/aiUsage.mjs', () => ({ budgetExceeded, addSpend: vi.fn(), costOf: () => 0.0001 }))
 

@@ -1,16 +1,13 @@
-import { EventEmitter } from 'node:events'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createState, handleApi } from '../../server/klCore.mjs'
 import { observeFundedLoans, recentlyFunded, RECENTLY_FUNDED_TTL_MS } from '../../server/loanLifecycle.mjs'
 
-function graph(state: ReturnType<typeof createState>, ids: number[], refresh = false) {
-  return new Promise<any>((resolve) => {
-    const request = Object.assign(new EventEmitter(), { url: '/graphql', method: 'POST' })
-    const response = { statusCode: 200, setHeader() {}, end(body: unknown) { resolve(JSON.parse(String(body))) } }
-    handleApi(state, request, response)
-    request.emit('data', JSON.stringify({ query: `{loans(ids:[${ids.join(',')}],refresh:${refresh}){id status description{texts{en}}}}` }))
-    request.emit('end')
-  })
+async function graph(state: ReturnType<typeof createState>, ids: number[], refresh = false): Promise<any> {
+  const response = await handleApi(state, new Request('http://www.kivalens.org/graphql', {
+    method: 'POST',
+    body: JSON.stringify({ query: `{loans(ids:[${ids.join(',')}],refresh:${refresh}){id status description{texts{en}}}}` }),
+  }))
+  return response!.json()
 }
 
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers() })
@@ -92,6 +89,10 @@ describe('selected loan lifecycle', () => {
     const state = createState()
     const a = graph(state, [1])
     const b = graph(state, [1])
+    // Both requests read their bodies, then reach the lookup, before Kiva answers.
+    await vi.waitFor(() => expect(upstream).toHaveBeenCalled())
+    for (let i = 0; i < 20; i++) await Promise.resolve()
+    expect(state.loanDetailRequests.size).toBe(1)
     expect(upstream).toHaveBeenCalledTimes(1)
     finish(Response.json({ loans: [{ id: 1, status: 'funded' }] }))
     await Promise.all([a, b])
@@ -133,15 +134,13 @@ describe('three-hour ID/timestamp-only funding record', () => {
     expect(state.recentlyFunded).toEqual([{ id: 1, fundedAt: records[0].funded_date }])
   })
 
-  it('serves a detached pruned array over the shared endpoint with no HTTP cache', () => {
+  it('serves a detached pruned array over the shared endpoint with no HTTP cache', async () => {
     const state = createState()
     state.recentlyFunded = [{ id: 1, fundedAt: new Date().toISOString() }, { id: 2, fundedAt: '2000-01-01' }]
-    let body = ''
-    const headers = new Map<string, unknown>()
-    expect(handleApi(state, { url: '/api/recently-funded', method: 'GET' } as never,
-      { setHeader: (key: string, value: unknown) => headers.set(key, value), end: (value: string) => { body = value } } as never)).toBe(true)
-    expect(JSON.parse(body)).toEqual([state.recentlyFunded[0]])
-    expect(headers.get('Cache-Control')).toBe('no-store')
+    const response = await handleApi(state, new Request('http://www.kivalens.org/api/recently-funded'))
+    expect(response).toBeInstanceOf(Response)
+    expect(await response!.json()).toEqual([state.recentlyFunded[0]])
+    expect(response!.headers.get('Cache-Control')).toBe('no-store')
     const detached = recentlyFunded(state)
     detached[0].id = 99
     expect(state.recentlyFunded[0].id).toBe(1)
