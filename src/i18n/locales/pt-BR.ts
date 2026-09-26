@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Outras energias renováveis',
   'partner_filters_kept': 'Seus filtros de parceiro ficam guardados e voltam a valer quando você escolher Apenas MFI. {clear}',
   'partner_filters_unavailable_both': 'Os filtros de parceiro descrevem o parceiro de campo de um empréstimo. Empréstimos diretos não têm, então esses filtros valem quando Apenas MFI está escolhido acima.',
+  'balance_partner_switches_mfi': 'Empréstimos diretos não têm parceiro de campo, então ativar isto muda a busca para Apenas MFI.',
   'partner_filters_unavailable_direct': 'Empréstimos diretos não têm parceiro de campo, então os filtros de parceiro não se aplicam.',
   'personal_care_products': 'Produtos de cuidados pessoais',
   'pick_a_band_to_open_that_loan': 'Aponte para uma faixa para ver o nome do tomador; selecione-a para abrir esse empréstimo.',

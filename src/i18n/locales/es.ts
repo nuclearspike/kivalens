@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Otras energías renovables',
   'partner_filters_kept': 'Tus filtros de socio se conservan y vuelven a aplicarse al elegir Sólo IMF. {clear}',
   'partner_filters_unavailable_both': 'Los filtros de socio describen al socio local de un préstamo. Los préstamos directos no tienen, así que se aplican al elegir Sólo IMF arriba.',
+  'balance_partner_switches_mfi': 'Los préstamos directos no tienen socio local, así que activarlo cambia la búsqueda a Sólo IMF.',
   'partner_filters_unavailable_direct': 'Los préstamos directos no tienen socio local, así que los filtros de socio no se aplican.',
   'personal_care_products': 'Productos de cuidado personal',
   'pick_a_band_to_open_that_loan': 'Apunta a una banda para ver el nombre del prestatario; selecciónala para abrir ese préstamo.',

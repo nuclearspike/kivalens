@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': '其他可再生能源',
   'partner_filters_kept': '你的合作伙伴筛选已保留，选择“仅 MFI”时会重新生效。{clear}',
   'partner_filters_unavailable_both': '合作伙伴筛选针对贷款的现场合作伙伴。直接贷款没有合作伙伴，因此在上方选择“仅 MFI”时这些筛选才生效。',
+  'balance_partner_switches_mfi': '直接贷款没有现场合作伙伴，因此开启此项会将搜索切换为“仅 MFI”。',
   'partner_filters_unavailable_direct': '直接贷款没有现场合作伙伴，因此合作伙伴筛选不适用。',
   'personal_care_products': '个人护理用品',
   'pick_a_band_to_open_that_loan': '指向色带可看到借款人姓名，选中即可打开该笔贷款。',

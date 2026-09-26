@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'その他の再生可能エネルギー',
   'partner_filters_kept': 'パートナー条件は保持されており、「MFIのみ」を選ぶと再び適用されます。{clear}',
   'partner_filters_unavailable_both': 'パートナー条件は融資のフィールドパートナーについての条件です。ダイレクト融資にはパートナーがないため、上で「MFIのみ」を選ぶと適用されます。',
+  'balance_partner_switches_mfi': 'ダイレクト融資にはフィールドパートナーがないため、これをオンにすると検索が「MFIのみ」に切り替わります。',
   'partner_filters_unavailable_direct': 'ダイレクト融資にはフィールドパートナーがないため、パートナー条件は適用されません。',
   'personal_care_products': 'パーソナルケア用品',
   'pick_a_band_to_open_that_loan': '帯にポインタを合わせると借り手の名前が表示され、選ぶとそのローンが開きます。',

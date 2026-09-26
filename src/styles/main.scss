@@ -1393,6 +1393,11 @@ ul.spacedList li {
   border-radius: 0 4px 4px 0;
 }
 
+// The same note, as a hint under a switch it belongs to (the switch keeps its mb-1).
+.kl-unavailable-note.kl-balance-hint {
+  margin: 0;
+}
+
 // A button that reads as a link inside running text ("… Clear them").
 .kl-link-button {
   padding: 0;

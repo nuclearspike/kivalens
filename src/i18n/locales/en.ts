@@ -79,6 +79,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Other Renewable Energy',
   'partner_filters_kept': 'Your partner filters are kept and apply again when you choose MFI Only. {clear}',
   'partner_filters_unavailable_both': 'Partner filters describe a loan’s field partner. Direct loans have none, so these apply when MFI Only is chosen above.',
+  'balance_partner_switches_mfi': 'Direct loans have no field partner, so turning this on switches the search to MFI Only.',
   'partner_filters_unavailable_direct': 'Direct loans have no field partner, so partner filters don’t apply.',
   'personal_care_products': 'Personal Care Products',
   'pick_a_band_to_open_that_loan': 'Point at a band for the borrower’s name; choose it to open that loan.',

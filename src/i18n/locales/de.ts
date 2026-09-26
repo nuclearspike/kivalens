@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Sonstige erneuerbare Energien',
   'partner_filters_kept': 'Ihre Partnerfilter bleiben erhalten und gelten wieder, sobald Sie Nur MFI wählen. {clear}',
   'partner_filters_unavailable_both': 'Partnerfilter beschreiben die Partnerorganisation eines Kredits. Direktkredite haben keine, daher gelten diese Filter, wenn oben Nur MFI gewählt ist.',
+  'balance_partner_switches_mfi': 'Direktkredite haben keine Partnerorganisation, daher stellt das Einschalten die Suche auf Nur MFI um.',
   'partner_filters_unavailable_direct': 'Direktkredite haben keine Partnerorganisation, daher gelten Partnerfilter nicht.',
   'personal_care_products': 'Körperpflegeprodukte',
   'pick_a_band_to_open_that_loan': 'Zeigen Sie auf ein Band, um den Namen der Kreditnehmerin zu sehen; wählen Sie es, um den Kredit zu öffnen.',

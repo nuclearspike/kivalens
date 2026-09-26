@@ -616,30 +616,31 @@ function LimitResultRow({
 // Sub-component: BalancingRow
 // ---------------------------------------------------------------------------
 
+// A balancer's starting settings: hide whatever makes up less than 10% of the lender's whole portfolio.
+const BALANCER_DEFAULTS: BalancerConfig = { enabled: false, hideshow: 'hide', ltgt: 'lt', percent: 10, allactive: 'all' }
+
 function BalancingRow({
   name,
   meta,
   value,
   onChange,
+  hint,
+  hintId,
 }: {
   name: string
   meta: BalancerMeta
   value: BalancerConfig | undefined
   onChange: (val: BalancerConfig) => void
+  /** What turning the switch on will also do. It sits on its own line under the switch, so when it goes the switch stays put. */
+  hint?: string
+  hintId?: string
 }) {
   const { t, sector, date, percent } = useI18n()
   const fetchBalancerData = useCriteriaStore((s) => s.fetchBalancerData)
   const setFilterDependencyLoading = useLoanStore((s) => s.setFilterDependencyLoading)
   const dependencyKey = `${PORTFOLIO_BALANCER_FILTER_DEPENDENCY_PREFIX}${name}`
 
-  const v: BalancerConfig & { values?: unknown[] } = {
-    enabled: false,
-    hideshow: 'hide',
-    ltgt: 'lt',
-    percent: 10,
-    allactive: 'all',
-    ...value,
-  }
+  const v: BalancerConfig = { ...BALANCER_DEFAULTS, ...value }
 
   const [slices, setSlices] = useState<BalancerResult['slices']>([])
   // Seeded from v.enabled: mount already-enabled means the effect below fires
@@ -748,6 +749,7 @@ function BalancingRow({
           label={t('enable_filter')}
           checked={!!v.enabled}
           onChange={(e) => onChange({ ...v, enabled: e.target.checked })}
+          aria-describedby={hint ? hintId : undefined}
           className="mb-1"
         />
         {v.enabled ? (
@@ -823,6 +825,13 @@ function BalancingRow({
           </>
         ) : null}
       </Col>
+      {hint && (
+        <Col xs={12}>
+          <p className="kl-unavailable-note kl-balance-hint" id={hintId}>
+            {hint}
+          </p>
+        </Col>
+      )}
     </Row>
   )
 }
@@ -1041,8 +1050,8 @@ function PartnerCriteriaPanel({
   countAanModes: (group: 'loan' | 'partner', key: string, canAll?: boolean) => AanCounts | null
   /** Removes every partner criterion, leaving the MFI/Direct choice as it is. */
   onClearPartnerFilters: () => void
-  /** Asks whether to switch to MFI Only, the one mode where partner filters apply. */
-  onRequestMfiOnly: () => Promise<void>
+  /** Asks whether to switch to MFI Only, the one mode where partner filters apply; true once it is. */
+  onRequestMfiOnly: () => Promise<boolean>
   distribution?: Record<string, number>
   distributionKey?: string
   sortMode?: 'abc' | 'count'
@@ -1160,24 +1169,42 @@ function PartnerCriteriaPanel({
 // Sub-component: PortfolioCriteriaPanel
 // ---------------------------------------------------------------------------
 
-function PortfolioCriteriaPanel({
+export function PortfolioCriteriaPanel({
   criteria,
   onUpdate,
   onRequestMfiOnly,
 }: {
   criteria: Criteria
   onUpdate: (group: 'loan' | 'partner' | 'portfolio', key: string, value: unknown) => void
-  /** Asks whether to switch to MFI Only, where balance by partner applies. */
-  onRequestMfiOnly: () => Promise<void>
+  /** Asks whether to switch to MFI Only, where balance by partner applies; true once it is. */
+  onRequestMfiOnly: () => Promise<boolean>
 }) {
   const { t, tx } = useI18n()
   const portfolio = criteria.portfolio as Record<string, unknown>
   const lenderId = useUtilsStore((s) => s.lenderId)
   const partnerNoteId = useId()
-  // Balance by partner is a partner criterion: it applies in MFI Only, and is kept
-  // but greyed in Both and Direct Only, the same as the Partner tab's filters.
+  const partnerHintId = useId()
+  // Balance by partner is a partner criterion: it applies only in MFI Only. From Both,
+  // using it switches the search to MFI Only in the same step, without asking (Paul,
+  // 2026-09-26: choosing to balance partner risk must not leave it doing nothing).
+  // Direct Only was chosen on purpose, so there it stays greyed and asks, like the
+  // Partner tab's filters.
+  // Balancing already on while the lender chose Both is kept and greyed, like any
+  // partner filter left in place when leaving MFI Only.
   const mode = resolvePartnerMode(criteria)
-  const partnerUnavailable = mode === 'mfi' ? null : t(mode === 'direct' ? 'partner_filters_unavailable_direct' : 'partner_filters_unavailable_both')
+  const pbPartner = portfolio.pb_partner as BalancerConfig | undefined
+  const keptInBoth = mode === 'both' && !!pbPartner?.enabled
+  const partnerUnavailable =
+    mode === 'direct' ? t('partner_filters_unavailable_direct') : keptInBoth ? t('partner_filters_unavailable_both') : null
+  // Said under the switch rather than above the row: the note goes once the search is
+  // MFI Only, and above the row its going would pull the switch out from under the click.
+  const partnerHint = mode === 'both' && !pbPartner?.enabled ? t('balance_partner_switches_mfi') : undefined
+  // A click on the greyed row while balancing is off asks to turn it on: yes to MFI
+  // Only turns it on too, so the one answer does what the click was for.
+  const askForPartnerBalancing = async () => {
+    if ((await onRequestMfiOnly()) && !pbPartner?.enabled)
+      onUpdate('portfolio', 'pb_partner', { ...BALANCER_DEFAULTS, ...pbPartner, enabled: true })
+  }
 
   return (
     <>
@@ -1220,7 +1247,16 @@ function PortfolioCriteriaPanel({
                 name={key}
                 meta={BALANCER_OPTIONS[key]}
                 value={portfolio[key] as BalancerConfig | undefined}
-                onChange={(val) => onUpdate('portfolio', key, val)}
+                hint={key === 'pb_partner' ? partnerHint : undefined}
+                hintId={partnerHintId}
+                onChange={(val) => {
+                  onUpdate('portfolio', key, val)
+                  // Only the switch going on. A balancer that is already on also reports
+                  // here when its data refreshes; that must not change the mode behind a
+                  // lender who kept it while choosing Both.
+                  if (key === 'pb_partner' && mode === 'both' && !pbPartner?.enabled && val.enabled)
+                    onUpdate('partner', 'direct', 'mfi')
+                }}
               />
             )
             if (key !== 'pb_partner') return row
@@ -1228,7 +1264,7 @@ function PortfolioCriteriaPanel({
             return (
               <div key={key}>
                 {partnerUnavailable && <p className="kl-unavailable-note" id={partnerNoteId}>{partnerUnavailable}</p>}
-                <UnavailableSection reason={partnerUnavailable} describedBy={partnerNoteId} onActivate={onRequestMfiOnly}>
+                <UnavailableSection reason={partnerUnavailable} describedBy={partnerNoteId} onActivate={askForPartnerBalancing}>
                   {row}
                 </UnavailableSection>
               </div>
@@ -1565,10 +1601,11 @@ export function CriteriaTabs() {
   // MFI Only chosen, kept partner filters included, since switching applies them.
   // One question at a time: a fast double-click must not queue a second dialog.
   const askingMfiOnlyRef = useRef(false)
-  const handleRequestMfiOnly = useCallback(async () => {
+  const handleRequestMfiOnly = useCallback(async (): Promise<boolean> => {
     const current = criteriaRef.current
     const mode = resolvePartnerMode(current)
-    if (mode === 'mfi' || askingMfiOnlyRef.current) return
+    if (mode === 'mfi') return true
+    if (askingMfiOnlyRef.current) return false
     const kl = getKivaLoans()
     const mfiCount = kl?.isReady()
       ? kl.filter({ loan: { ...current.loan }, partner: { ...current.partner, direct: 'mfi' }, portfolio: { ...current.portfolio } }, false).length
@@ -1583,6 +1620,7 @@ export function CriteriaTabs() {
         focusConfirm: true,
       })
       if (ok) handleUpdate('partner', 'direct', 'mfi')
+      return ok
     } finally {
       askingMfiOnlyRef.current = false
     }

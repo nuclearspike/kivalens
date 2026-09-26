@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Overige hernieuwbare energie',
   'partner_filters_kept': 'Je partnerfilters blijven bewaard en gelden weer zodra je Alleen MFI kiest. {clear}',
   'partner_filters_unavailable_both': 'Partnerfilters beschrijven de lokale partner van een lening. Rechtstreekse leningen hebben er geen, dus deze gelden als hierboven Alleen MFI gekozen is.',
+  'balance_partner_switches_mfi': 'Rechtstreekse leningen hebben geen lokale partner, dus dit inschakelen zet de zoekopdracht op Alleen MFI.',
   'partner_filters_unavailable_direct': 'Rechtstreekse leningen hebben geen lokale partner, dus partnerfilters gelden niet.',
   'personal_care_products': 'Persoonlijke verzorgingsproducten',
   'pick_a_band_to_open_that_loan': 'Wijs een band aan voor de naam van de lener; kies hem om die lening te openen.',

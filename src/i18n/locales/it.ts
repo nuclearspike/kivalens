@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Altre energie rinnovabili',
   'partner_filters_kept': 'I tuoi filtri sul partner restano salvati e tornano a valere quando scegli Solo IFM. {clear}',
   'partner_filters_unavailable_both': 'I filtri sul partner descrivono il partner locale di un prestito. I prestiti diretti non ne hanno, quindi valgono quando sopra è scelto Solo IFM.',
+  'balance_partner_switches_mfi': 'I prestiti diretti non hanno un partner locale, quindi attivarlo porta la ricerca su Solo IFM.',
   'partner_filters_unavailable_direct': 'I prestiti diretti non hanno un partner locale, quindi i filtri sul partner non si applicano.',
   'personal_care_products': 'Prodotti per la cura personale',
   'pick_a_band_to_open_that_loan': 'Punta una banda per il nome del beneficiario; selezionala per aprire quel prestito.',

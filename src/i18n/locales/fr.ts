@@ -76,6 +76,7 @@ const catalog: Record<string, string> = {
   'other_renewable_energy': 'Autres énergies renouvelables',
   'partner_filters_kept': 'Vos filtres de partenaire sont conservés et s’appliquent de nouveau quand vous choisissez IMF uniquement. {clear}',
   'partner_filters_unavailable_both': 'Les filtres de partenaire décrivent le partenaire local d’un prêt. Les prêts directs n’en ont pas : ils s’appliquent quand IMF uniquement est choisi ci-dessus.',
+  'balance_partner_switches_mfi': 'Les prêts directs n’ont pas de partenaire local : l’activer passe la recherche en IMF uniquement.',
   'partner_filters_unavailable_direct': 'Les prêts directs n’ont pas de partenaire local : les filtres de partenaire ne s’appliquent pas.',
   'personal_care_products': 'Produits de soins personnels',
   'pick_a_band_to_open_that_loan': 'Pointez une bande pour voir le nom de l’emprunteur ; choisissez-la pour ouvrir ce prêt.',
