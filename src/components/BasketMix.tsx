@@ -13,6 +13,7 @@ import {
 } from '../lib/basketMix'
 import type { ExposureState } from '../lib/useActiveExposure'
 import { groupName, listNames, starsText, warningName } from '../lib/basketMixNames'
+import { pluralCategory } from '../lib/pluralCategory'
 
 /** Rows shown before Show N more: enough for most baskets, short enough for the narrow column. */
 const ROWS_SHOWN = 8
@@ -49,12 +50,13 @@ export function BasketSpreadLine({
     )
   }
   const { partners, countries } = spreadCounts(mix)
-  const countriesText = t(countries === 1 ? 'spread_countries_one' : 'spread_countries', { count: number(countries) })
+  const one = (n: number) => pluralCategory(locale, n) === 'one'
+  const countriesText = t(one(countries) ? 'spread_countries_one' : 'spread_countries', { count: number(countries) })
   return (
     <p className="kl-spread-line">
       {partners > 0
         ? t('basket_spread_summary', {
-            partners: t(partners === 1 ? 'spread_partners_one' : 'spread_partners', { count: number(partners) }),
+            partners: t(one(partners) ? 'spread_partners_one' : 'spread_partners', { count: number(partners) }),
             countries: countriesText,
           })
         : t('basket_spread_summary_direct', { countries: countriesText })}
@@ -70,7 +72,7 @@ function Warning({
   onShow: (filter: MixFilter) => void
 }) {
   const i18n = useI18n()
-  const { t, tx, number } = i18n
+  const { t, tx, number, locale } = i18n
   const partner = warning.dimension === 'partner'
   const name = warningName(i18n, warning)
   // The partner's own page is a click away, for a lender who wants to know why Kiva
@@ -113,7 +115,9 @@ function Warning({
         onClick={() => onShow({ dimension: warning.dimension, key: warning.key })}
       >
         {/* The count says which loans: these, not the whole basket. */}
-        {warning.inBasket === 1 ? t('show_this_loan') : t('show_these_loans', { count: number(warning.inBasket) })}
+        {pluralCategory(locale, warning.inBasket) === 'one'
+          ? t('show_this_loan')
+          : t('show_these_loans', { count: number(warning.inBasket) })}
       </button>
     </div>
   )
@@ -150,7 +154,7 @@ function Dimension({
   onFilter: (filter: MixFilter | null) => void
 }) {
   const i18n = useI18n()
-  const { t, number, percent, currency } = i18n
+  const { t, number, percent, currency, locale } = i18n
   const [expanded, setExpanded] = useState(false)
   const titleId = useId()
   const groups = mix.dimensions[dimension]
@@ -179,7 +183,7 @@ function Dimension({
       {shown.map((group) => {
         const name = groupName(i18n, dimension, group)
         const share = percent(group.share, 0)
-        const one = group.count === 1
+        const one = pluralCategory(locale, group.count) === 'one'
         const pressed = filter?.dimension === dimension && filter.key === group.key
         const warned = flagged.get(`${dimension}:${group.key}`)
         return (

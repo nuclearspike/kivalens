@@ -2,13 +2,15 @@
 // (src/components/BasketMix.tsx and the narrowed basket list).
 import type { useI18n } from '../i18n'
 import type { ConcentrationWarning, MixDimension, MixGroup } from './basketMix'
+import { pluralCategory } from './pluralCategory'
+export { listNames } from './listNames'
 
 type Translate = ReturnType<typeof useI18n>
 
 /** A rating as the lender reads it: "3.5 stars", "1 star". */
 export function starsText(i18n: Translate, rating: number): string {
-  const { t, number } = i18n
-  return t(rating === 1 ? 'count_stars_one' : 'count_stars', { count: number(rating, { min: 0, max: 1 }) })
+  const { t, number, locale } = i18n
+  return t(pluralCategory(locale, rating) === 'one' ? 'count_stars_one' : 'count_stars', { count: number(rating, { min: 0, max: 1 }) })
 }
 
 /** What a group is called in the lender's language. A partner's name is a proper noun and stays as Kiva gives it. */
@@ -25,13 +27,3 @@ export function warningName(i18n: Translate, warning: ConcentrationWarning): str
   if (warning.dimension === 'partner') return warning.name || t('partner_number', { id: warning.partnerId ?? '' })
   return data(warning.name)
 }
-
-/** "Te Creemos and Kenya", in the lender's language. */
-export function listNames(locale: string, names: string[]): string {
-  try {
-    return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names)
-  } catch {
-    return names.join(', ')
-  }
-}
-

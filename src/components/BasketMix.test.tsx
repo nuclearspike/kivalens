@@ -269,3 +269,17 @@ describe('the line under Checkout at Kiva', () => {
     expect(document.querySelector('.kl-spread-line')).toBeNull()
   })
 })
+
+describe('in French', () => {
+  it('follows French plural rules, singular below 2: 1,5 étoile, 5 étoiles, 1 prêt', async () => {
+    window.localStorage.setItem('KivaLensLocale', 'fr')
+    try {
+      show([entry(20, 'Kenya'), entry(40, 'Uganda')])
+      const ratings = await screen.findByRole('group', { name: 'Par cote de risque du partenaire' })
+      expect([...ratings.querySelectorAll('.kl-mix-name')].map((n) => n.textContent)).toEqual(['5 étoiles', '1,5 étoile'])
+      expect(ratings.querySelector('.kl-mix-figures')?.textContent).toMatch(/^1 prêt · 50/)
+    } finally {
+      window.localStorage.removeItem('KivaLensLocale')
+    }
+  })
+})

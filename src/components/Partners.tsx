@@ -21,6 +21,7 @@ import { useLoanStore, useUtilsStore } from '../stores'
 import { getKivaLoans } from '../api/kiva'
 import PartnerDetail from './PartnerDetail'
 import { useI18n } from '../i18n'
+import { pluralCategory } from '../lib/pluralCategory'
 import { COUNTRY_OPTIONS, REGION_OPTIONS, RELIGION_OPTIONS, SOCIAL_PERFORMANCE_OPTIONS, type SelectOption } from '../lib/criteriaOptions'
 
 type PartnerFilters = Record<string, unknown>
@@ -224,7 +225,7 @@ function PartnerListItem({
   loanCount: number | null
   selected: boolean
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const bg = !selected ? statusBg[partner.status] : undefined
   return (
     <ListGroup.Item
@@ -259,7 +260,7 @@ function PartnerListItem({
             ) : null}
             {partner.rating ? (
               <span className="partner-pill partner-pill-good">
-                {t(parseFloat(String(partner.rating)) === 1 ? 'count_stars_one' : 'count_stars', { count: partner.rating })}
+                {t(pluralCategory(locale, parseFloat(String(partner.rating))) === 'one' ? 'count_stars_one' : 'count_stars', { count: partner.rating })}
               </span>
             ) : null}
           </div>
