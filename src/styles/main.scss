@@ -1614,6 +1614,173 @@ textarea {
   margin: 2px 0 4px;
 }
 
+// ---------------------------------------------------------------------------
+// Basket: how it is spread, and where it leans too hard (BasketMix.tsx)
+// ---------------------------------------------------------------------------
+
+// Under Checkout at Kiva, always present while the basket has loans: its words
+// change when a warning arrives, and nothing moves.
+.kl-spread-line {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--kl-text-muted);
+
+  &.kl-spread-line-caution {
+    color: var(--kl-pill-warn-text);
+    font-weight: 600;
+  }
+
+  &.kl-spread-line-danger {
+    color: var(--kl-danger-text);
+    font-weight: 600;
+  }
+}
+
+.kl-mix-warnings:empty {
+  display: none;
+}
+
+.kl-mix-warnings:focus {
+  outline: none;
+}
+
+.kl-mix-warning {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+
+  .kl-mix-warning-title {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.kl-mix-note {
+  font-size: 12px;
+  color: var(--kl-text-muted);
+  margin: 0 0 8px;
+}
+
+.kl-mix-limits {
+  margin-top: 10px;
+}
+
+// A dimension with one value: one thin line instead of a graph of a single bar.
+.kl-mix-single {
+  font-size: 13px;
+  margin: 0 0 6px;
+  padding: 2px 0 2px 8px;
+  border-left: 2px solid var(--kl-border-strong);
+}
+
+.kl-mix-dimension {
+  margin: 0 0 10px;
+}
+
+.kl-mix-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+}
+
+// A row is a button that narrows the basket list to its loans. The bar behind it
+// is its share of the basket's dollars (.kl-opt-bar, as in the criteria menus).
+.kl-mix-row {
+  appearance: none;
+  // The bar (.kl-opt-bar) is sized to the border box: sized to the padding box, it
+  // tiles into the 1px border and draws a sliver of bar at the row's right edge.
+  background-origin: border-box;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 24px;
+  padding: 2px 6px;
+  margin: 0 0 1px;
+  border: 1px solid transparent;
+  color: var(--kl-text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--kl-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kl-focus-ring);
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    border-color: var(--kl-green);
+  }
+
+  &.is-warned .kl-mix-name {
+    color: var(--kl-pill-warn-text);
+    font-weight: 600;
+  }
+
+  &.is-danger .kl-mix-name {
+    color: var(--kl-danger-text);
+  }
+}
+
+.kl-mix-name {
+  display: flex;
+  align-items: baseline;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.kl-mix-flag {
+  flex: none;
+  margin-right: 3px;
+}
+
+.kl-mix-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kl-mix-rating {
+  flex: none;
+  margin-left: 5px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--kl-text-muted);
+}
+
+.kl-mix-figures {
+  flex: none;
+  font-size: 12px;
+  color: var(--kl-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kl-mix-more {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+// Over the basket list while a breakdown row or warning has narrowed it.
+.kl-basket-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 8px;
+  margin: 6px 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: var(--kl-bg-subtle);
+  border-left: 3px solid var(--kl-green);
+  border-radius: 0 4px 4px 0;
+}
+
 .kl-stack-hint {
   display: flex;
   align-items: center;

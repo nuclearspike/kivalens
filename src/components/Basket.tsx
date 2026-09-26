@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ComposedChart,
   Bar,
@@ -20,6 +20,19 @@ import { getKivaLoans } from '../api/kiva'
 import { createPointerStore, usePointerValue, type PointerStore } from '../lib/pointerStore'
 import { markOpenIntent, useRevealOnOpen } from '../lib/useRevealOnOpen'
 import { useI18n } from '../i18n'
+import { lsj } from '../lib/localStorage'
+import BasketMix, { BasketSpreadLine } from './BasketMix'
+import { groupName } from '../lib/basketMixNames'
+import {
+  buildBasketMix,
+  concentrationWarnings,
+  findGroup,
+  formatMixFilter,
+  parseMixFilter,
+  sanitizeLimits,
+  type MixFilter,
+} from '../lib/basketMix'
+import { useActiveExposure } from '../lib/useActiveExposure'
 import {
   buildBasketRepayments,
   type BasketRepaymentMonth,
@@ -287,7 +300,8 @@ function BasketRepaymentChart({
  * Checkout builds a Kiva URL and submits the basket via a hidden form POST.
  */
 export default function Basket() {
-  const { t, number, currency } = useI18n()
+  const i18n = useI18n()
+  const { t, number, currency } = i18n
   const getBasket = useLoanStore((s) => s.getBasket)
   const clearBasket = useLoanStore((s) => s.clearBasket)
   const removeFromBasket = useLoanStore((s) => s.removeFromBasket)
@@ -311,9 +325,15 @@ export default function Basket() {
   // results: /basket/:id is a place the lender can return to or hand to someone.
   const { id: routeLoanId } = useParams<{ id: string }>()
   const selectedId = routeLoanId ? parseInt(routeLoanId, 10) : null
+  // The list's narrowing (?show=) is part of the view, so opening or closing a loan keeps it.
+  const { search } = useLocation()
+  const keepView = useMemo(() => {
+    const show = new URLSearchParams(search).get('show')
+    return show ? `?${new URLSearchParams({ show })}` : ''
+  }, [search])
   const showBasket = useCallback(
-    (id: number | null) => navigate(id === null ? '/basket' : `/basket/${id}`, { replace: id === null }),
-    [navigate],
+    (id: number | null) => navigate(`${id === null ? '/basket' : `/basket/${id}`}${keepView}`, { replace: id === null }),
+    [navigate, keepView],
   )
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -454,6 +474,76 @@ export default function Basket() {
 
   const basketCount = basketEntries.length
 
+  // What goes to Kiva at checkout: the loans still raising money.
+  const lendable = useMemo(
+    () => basketEntries.filter((e) => e.loan && (e.loan.kl_still_needed ?? 0) > 0),
+    [basketEntries],
+  )
+  const mix = useMemo(
+    () => buildBasketMix(lendable, (id) => getKivaLoans()?.getPartner(id)),
+    [lendable],
+  )
+  // Read when the page opens; Options is another page, so a change there is seen on return.
+  const [limits] = useState(() => sanitizeLimits(lsj.get('Options')))
+  const exposure = useActiveExposure(mix.count > 0)
+  const warnings = useMemo(
+    () => concentrationWarnings(mix, exposure.status === 'ready' ? exposure.exposure : null, limits),
+    [mix, exposure, limits],
+  )
+
+  // A breakdown row or a warning narrows the list to its loans. The narrowing is in
+  // the address (/basket?show=partner.p20), so Back steps out of it and a reload
+  // keeps it.
+  const mixFilter = parseMixFilter(searchParams.get('show'))
+  const filterGroup = findGroup(mix, mixFilter)
+  const setMixFilter = useCallback(
+    (filter: MixFilter | null) =>
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        if (filter) next.set('show', formatMixFilter(filter))
+        else next.delete('show')
+        return next
+      }),
+    [setSearchParams],
+  )
+  // Removing the last of the group's loans lifts it, since there is nothing left to
+  // show. While the basket's loans are still arriving there is nothing to judge it
+  // by, so an address opened cold keeps its narrowing.
+  const staleFilter = !!mixFilter && !filterGroup && (mix.count > 0 || rawBasketCount === 0)
+  useEffect(() => {
+    if (!staleFilter) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('show')
+        return next
+      },
+      { replace: true },
+    )
+  }, [staleFilter, setSearchParams])
+  const filterIds = filterGroup ? new Set(filterGroup.loanIds) : null
+  const listedEntries = filterIds ? basketEntries.filter((e) => filterIds.has(e.id)) : basketEntries
+  const listRef = useRef<HTMLDivElement>(null)
+  const narrowList = useCallback((filter: MixFilter | null) => {
+    setMixFilter(filter)
+    if (!filter) return
+    // Stacked on a phone, the list is above this column; bring it into view.
+    requestAnimationFrame(() => {
+      const list = listRef.current
+      if (!list) return
+      const box = list.getBoundingClientRect()
+      if (box.top < 0 || box.top > window.innerHeight) list.scrollIntoView({ block: 'start' })
+    })
+  }, [setMixFilter])
+  const warningsRef = useRef<HTMLDivElement>(null)
+  const seeWhy = useCallback(() => {
+    const target = warningsRef.current ?? document.getElementById('kl-basket-mix')
+    if (!target) return
+    const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    target.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' })
+    target.focus({ preventScroll: true })
+  }, [])
+
   // Prune basket ids whose loan has left the fundraising set. The nav badge
   // counts raw basket ids while the list only shows hydrated ones, so a
   // raw > hydrated gap means there are orphan ids to verify against Kiva.
@@ -585,8 +675,23 @@ export default function Basket() {
           </div>
         ) : null}
 
-        <div className="list-group flex-grow-1 overflow-auto">
-          {basketEntries.map((entry) => (
+        {filterGroup && mixFilter ? (
+          <div className="kl-basket-filter" role="status">
+            <span>
+              {t('basket_filter_showing', {
+                count: number(listedEntries.length),
+                total: number(basketCount),
+                name: groupName(i18n, mixFilter.dimension, filterGroup),
+              })}
+            </span>
+            <button type="button" className="kl-link-button" onClick={() => setMixFilter(null)}>
+              {t('show_all')}
+            </button>
+          </div>
+        ) : null}
+
+        <div className="list-group flex-grow-1 overflow-auto" ref={listRef}>
+          {listedEntries.map((entry) => (
             <BasketListItem
               key={entry.id}
               entry={entry}
@@ -636,12 +741,25 @@ export default function Basket() {
             >
               {t('checkout_kiva')}
             </button>
+            <BasketSpreadLine mix={mix} warnings={warnings} onSeeWhy={seeWhy} />
           </div>
         </div>
 
         {basketCount > 0 && (
           <BasketRepaymentChart entries={basketEntries} onSelectLoan={openLoan} />
         )}
+
+        <div id="kl-basket-mix" tabIndex={-1}>
+          <BasketMix
+            mix={mix}
+            warnings={warnings}
+            exposure={exposure}
+            limits={limits}
+            filter={filterGroup ? mixFilter : null}
+            onFilter={narrowList}
+            warningsRef={warningsRef}
+          />
+        </div>
       </div>
 
       {/* Right column: loan detail */}

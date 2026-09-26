@@ -5,9 +5,10 @@ import { useUtilsStore } from '../stores'
 import KivaImage from './KivaImage'
 import CompanionCard from './CompanionCard'
 import { companionEnabled } from '../api/companion'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { applyThemeChoice, readThemeChoice, saveThemeChoice, type ThemeChoice } from '../lib/theme'
+import { DEFAULT_LIMITS, sanitizeLimits } from '../lib/basketMix'
 
 interface OptionsState {
   default_lend_amount: number
@@ -18,9 +19,61 @@ interface OptionsState {
   loansFromKiva: boolean
   maxRepaymentTerms: number
   maxRepaymentTerms_on: boolean
+  basket_partner_limit: number
+  basket_country_limit: number
 }
 
 const LEND_AMOUNTS = [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000]
+
+function basketLimitsOf(saved: Partial<OptionsState>) {
+  const limits = sanitizeLimits(saved)
+  return { basket_partner_limit: limits.partner, basket_country_limit: limits.country }
+}
+
+/**
+ * A whole number of at least 1. The field keeps what the lender typed while it is
+ * not one yet (an emptied box on the way to a new number); only a valid number is
+ * saved, and leaving the field puts back the saved one.
+ */
+function LimitField({
+  id,
+  label,
+  value,
+  fallback,
+  onSave,
+}: {
+  id: string
+  label: string
+  value: number
+  fallback: number
+  onSave: (value: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  return (
+    <Form.Group className="mb-3">
+      <Form.Label htmlFor={id}>{label}</Form.Label>
+      <div>
+        <Form.Control
+          id={id}
+          type="number"
+          inputMode="numeric"
+          min={1}
+          step={1}
+          placeholder={String(fallback)}
+          style={{ width: 110 }}
+          value={draft ?? String(value)}
+          onChange={(e) => {
+            const text = e.target.value
+            setDraft(text)
+            const n = Number(text)
+            if (text.trim() !== '' && Number.isInteger(n) && n >= 1) onSave(n)
+          }}
+          onBlur={() => setDraft(null)}
+        />
+      </div>
+    </Form.Group>
+  )
+}
 
 function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) => void] {
   const [state, setState] = useState<OptionsState>(() => {
@@ -34,6 +87,7 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
       loansFromKiva: saved.loansFromKiva ?? false,
       maxRepaymentTerms: saved.maxRepaymentTerms ?? 8,
       maxRepaymentTerms_on: saved.maxRepaymentTerms_on ?? false,
+      ...basketLimitsOf(saved),
     }
   })
 
@@ -78,6 +132,18 @@ export default function Options() {
       void fetchLenderObj(lenderId, false)
     }
   }, [fetchLenderObj, lenderId, lenderObj])
+
+  // The basket's "Change this in Options" lands on its card (/options#basket-warnings).
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (!hash) return
+    const target = document.getElementById(decodeURIComponent(hash.slice(1)))
+    if (!target) return
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ block: 'start' })
+      target.focus({ preventScroll: true })
+    })
+  }, [hash])
 
   return (
     <Container className="py-3">
@@ -215,6 +281,28 @@ export default function Options() {
                 checked={!opts.hide_criteria_graphs}
                 onChange={(e) => setOpts({ hide_criteria_graphs: !e.target.checked })}
               />
+            </Card.Body>
+          </Card>
+
+          {/* --- Basket warnings (the basket page's concentration checks) --- */}
+          <Card className="mb-3" id="basket-warnings" tabIndex={-1}>
+            <Card.Header>{t('basket_warnings')}</Card.Header>
+            <Card.Body>
+              <LimitField
+                id="kl-basket-partner-limit"
+                label={t('basket_partner_limit_label')}
+                value={opts.basket_partner_limit}
+                fallback={DEFAULT_LIMITS.partner}
+                onSave={(n) => setOpts({ basket_partner_limit: n })}
+              />
+              <LimitField
+                id="kl-basket-country-limit"
+                label={t('basket_country_limit_label')}
+                value={opts.basket_country_limit}
+                fallback={DEFAULT_LIMITS.country}
+                onSave={(n) => setOpts({ basket_country_limit: n })}
+              />
+              <Form.Text className="text-muted">{t('basket_warnings_help')}</Form.Text>
             </Card.Body>
           </Card>
 

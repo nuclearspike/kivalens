@@ -259,7 +259,7 @@ function PartnerListItem({
             ) : null}
             {partner.rating ? (
               <span className="partner-pill partner-pill-good">
-                {t('count_stars', { count: partner.rating })}
+                {t(parseFloat(String(partner.rating)) === 1 ? 'count_stars_one' : 'count_stars', { count: partner.rating })}
               </span>
             ) : null}
           </div>

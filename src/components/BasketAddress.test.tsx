@@ -45,7 +45,8 @@ describe('a loan open in the basket has an address', () => {
   })
 
   it('opens a row by going to its address, and closes without stacking history', () => {
-    expect(basket).toMatch(/navigate\(id === null \? '\/basket' : `\/basket\/\$\{id\}`, \{ replace: id === null \}\)/)
+    // Keeping the list's narrowing (?show=), which is part of the same view.
+    expect(basket).toMatch(/navigate\(`\$\{id === null \? '\/basket' : `\/basket\/\$\{id\}`\}\$\{keepView\}`, \{ replace: id === null \}\)/)
     // Opening a loan is a place to come back to; closing one is not.
     for (const close of ['clearBasket()', 'removeFromBasket(selectedId)']) {
       const after = basket.slice(basket.indexOf(close), basket.indexOf(close) + 120)

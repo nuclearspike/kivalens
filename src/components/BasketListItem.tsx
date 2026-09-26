@@ -12,8 +12,8 @@ interface BasketListItemProps {
 }
 
 /**
- * Individual basket row showing loan image, borrower name, country/sector,
- * amount dropdown (via lendAmountOptions), and a remove button.
+ * Individual basket row showing loan image, borrower name, country/sector and
+ * the amount dropdown (via lendAmountOptions). Removing is Remove selected, above the list.
  */
 export default function BasketListItem({ entry, onSelect, selected }: BasketListItemProps) {
   const { data, sector, t } = useI18n()
