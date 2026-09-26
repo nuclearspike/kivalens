@@ -149,6 +149,21 @@ function bugSection(reports) {
   return `${html}</div>`
 }
 
+// How a turn ended, when it did not simply complete (aiUsage.logInteraction).
+const OUTCOME_NOTES = {
+  abandoned: 'left before the reply finished',
+  cut: 'reply cut by KivaLens',
+  failed: 'failed',
+}
+const INCOMPLETE_NOTES = {
+  max_output_tokens: 'reply reached its length limit',
+  content_filter: "reply stopped by OpenAI's content filter",
+}
+function outcomeNote(turn) {
+  if (turn.outcome === 'incomplete') return INCOMPLETE_NOTES[turn.incompleteReason] || 'reply stopped early by OpenAI'
+  return OUTCOME_NOTES[turn.outcome]
+}
+
 export function buildDigestHtml(day, logs) {
   const groups = new Map()
   for (const e of logs) {
@@ -158,11 +173,13 @@ export function buildDigestHtml(day, logs) {
   }
   let totalCost = 0
   for (const e of logs) totalCost += Number(e.costUsd) || 0
+  const left = logs.filter((e) => e.outcome === 'abandoned').length
 
   let html =
     `<div style="font-family:system-ui,Arial,sans-serif;max-width:760px">` +
     `<h2 style="color:#2C8C5E">Ask KivaLens — ${esc(day)}</h2>` +
-    `<p>${logs.length} interactions · ${groups.size} users · est. cost $${totalCost.toFixed(4)}</p>` +
+    `<p>${logs.length} interactions · ${groups.size} users · est. cost $${totalCost.toFixed(4)}` +
+    `${left ? ` · ${left} abandoned before the reply finished` : ''}</p>` +
     bugSection(bugReports(logs))
 
   // Oldest-active user first; turns within a user chronological.
@@ -183,9 +200,11 @@ export function buildDigestHtml(day, logs) {
       if (idx > 0) html += manualLine(items[idx - 1], it)
       const time = fmtTime(it.at)
       const tools = (it.tools || []).map((t) => t.name).join(', ')
+      const ended = outcomeNote(it)
+      const endedNote = ended ? ` · ${ended}${it.estimated ? ' (cost estimated)' : ''}` : ''
       html +=
         `<div style="margin:0 0 12px;padding:8px 10px;border-left:3px solid #2C8C5E;background:#f7faf8">` +
-        `<div style="color:#888;font-size:12px">${esc(time)}${it.page ? ` · ${esc(it.page)}` : ''}${tools ? ` · tools: ${esc(tools)}` : ''}</div>` +
+        `<div style="color:#888;font-size:12px">${esc(time)}${it.page ? ` · ${esc(it.page)}` : ''}${tools ? ` · tools: ${esc(tools)}` : ''}${esc(endedNote)}</div>` +
         `<div style="margin-top:4px"><b>User:</b> ${esc(it.userMessage)}</div>` +
         `<div style="margin-top:2px"><b>KivaLens:</b> ${esc(it.response)}</div>` +
         criteriaLine(it) +

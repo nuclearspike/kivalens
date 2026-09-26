@@ -75,6 +75,37 @@ describe('buildDigestHtml', () => {
     expect(html).toContain('set_criteria')
     expect(html).toContain('analyze_loans')
   })
+
+  it('says how a turn ended when it did not simply complete, and counts the turns abandoned', () => {
+    const html = buildDigestHtml('2026-08-13', [
+      turn({ outcome: 'completed', estimated: false }),
+      turn({ outcome: 'abandoned', estimated: true }),
+      turn({ outcome: 'abandoned', estimated: false }),
+      turn({ outcome: 'cut', estimated: true }),
+      turn({ outcome: 'incomplete', incompleteReason: 'max_output_tokens', estimated: false }),
+      turn({ outcome: 'incomplete', incompleteReason: 'content_filter', estimated: false }),
+      turn({ outcome: 'incomplete', estimated: false }),
+      turn({ outcome: 'failed', estimated: false }),
+    ])
+    // Two turns, one client: the count is of turns, beside "N interactions", never of users.
+    expect(html).toContain('8 interactions · 1 users')
+    expect(html).toContain('2 abandoned before the reply finished</p>')
+    expect(html).toContain(' · left before the reply finished (cost estimated)</div>')
+    expect(html).toContain(' · left before the reply finished</div>')
+    expect(html).toContain(' · reply cut by KivaLens (cost estimated)</div>')
+    expect(html).toContain(' · reply reached its length limit</div>')
+    expect(html).toContain(" · reply stopped by OpenAI's content filter</div>")
+    expect(html).toContain(' · reply stopped early by OpenAI</div>')
+    expect(html).toContain(' · failed</div>')
+    expect(html.match(/ · (left before|reply cut|reply reached|reply stopped|failed)/g)).toHaveLength(7) // not the completed turn
+  })
+
+  it('adds no count when every lender stayed, and no note to turns logged before outcomes were', () => {
+    const html = buildDigestHtml('2026-08-13', [turn(), turn({ outcome: 'completed' })])
+    expect(html).not.toContain('abandoned before the reply finished')
+    expect(html).not.toContain('left before the reply finished')
+    expect(html).not.toContain('cost estimated')
+  })
 })
 
 /**

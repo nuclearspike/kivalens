@@ -16,11 +16,15 @@ import { filterLoans, groupBy, filterPartners, partnerCriteriaSet, resolvePartne
 // Gate every filterLoans call on this, never on state.ready — see its doc comment.
 import { loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from './klCore.mjs'
 import { fetchSuperGraphSlices, fetchLenderProfile } from './lenderData.mjs'
-import { budgetExceeded, addSpend, costOf, logInteraction, getRecentLogs, getMonthlySpend, monthKey, BUDGET_USD } from './aiUsage.mjs'
+import {
+  budgetExceeded, addSpend, costOf, estimateInputTokens, estimateOutputTokens, logInteraction, getRecentLogs,
+  getMonthlySpend, monthKey, utf8Length, BUDGET_USD,
+} from './aiUsage.mjs'
 import { sendDigestNow } from './digest.mjs'
 import { cache } from './runtime.mjs'
 import { eventStream, json, pathOf, readBody, text } from './http.mjs'
 import crypto from 'node:crypto'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 const MODEL = process.env.OPENAI_RESPONSES_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
 // Global kill switch: the assistant is available ONLY when this is exactly 'true'.
@@ -37,8 +41,28 @@ function getClient() {
   if (_client) return _client
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) return null
-  _client = new OpenAI({ apiKey })
+  _client = new OpenAI({ apiKey, fetch: recordingFetch })
   return _client
+}
+
+/**
+ * Every attempt the OpenAI client makes for a chat round, its own retries included,
+ * lands in that round's list (runChat): answered (a success status), refused (an
+ * error status: OpenAI declined it, so it is not charged) or unanswered (no response
+ * at all: a lost connection, or the lender leaving, which OpenAI may already have
+ * read, so it is charged its input). Outside a chat round nothing is recorded.
+ */
+const roundAttempts = new AsyncLocalStorage()
+async function recordingFetch(url, init) {
+  const attempts = roundAttempts.getStore()
+  try {
+    const response = await fetch(url, init)
+    attempts?.push(response.ok ? 'answered' : 'refused')
+    return response
+  } catch (e) {
+    attempts?.push('unanswered')
+    throw e
+  }
 }
 
 // --- taxonomy / vocabulary (derived on demand from existing state, memoized) -
@@ -1503,8 +1527,22 @@ export function buildResponsesRequest({ instructions, input, lastRound = false, 
 }
 
 /**
+ * How many bytes of these instructions came from the lender: the prompt as built,
+ * less the prompt built with nothing from the lender (in the same language). It is
+ * measured on the prompt itself, not on what the lender sent, because the prompt can
+ * copy a field longer than it arrived (a number written 1e20 comes out as twenty-one
+ * digits). An estimate counts this share at a token per byte (estimateInputTokens).
+ */
+export function lenderPromptShare(state, instructions, locale) {
+  const without = buildSystemPrompt(state, null, null, { locale })
+  return Math.max(0, utf8Length(instructions) - utf8Length(without))
+}
+
+/**
  * One chat turn, streamed to `stream` (http.mjs eventStream). Resolves once the
- * reply is sent and the turn is logged; the host keeps the work alive until then.
+ * reply is sent and the turn is charged and logged; the host keeps the work alive
+ * until then. A turn that fails, or that the lender leaves, still ends that way:
+ * the lender (if still there) gets the error, and every round sent is counted.
  */
 async function runChat(state, payload, stream, signal) {
   const sse = stream.send
@@ -1516,6 +1554,7 @@ async function runChat(state, payload, stream, signal) {
   // warm allLoans are partial stubs with no partner_id or location — which read
   // as "every loan is Direct" and an empty country list. Latched + cheap.
   rehydrateWarmCache(state, state.log || (() => {}))
+  const locale = isKnownLocale(payload.locale) ? payload.locale : 'en'
   const instructions = buildSystemPrompt(state, lenderId, criteria, {
     shown: payload.shownCount,
     total: payload.totalCount,
@@ -1523,7 +1562,7 @@ async function runChat(state, payload, stream, signal) {
     selectedLoanId: payload.selectedLoanId,
     basket: Array.isArray(payload.basket) ? payload.basket : [],
     savedSearches: Array.isArray(payload.savedSearches) ? payload.savedSearches : [],
-    locale: isKnownLocale(payload.locale) ? payload.locale : 'en',
+    locale,
   })
   const input = sanitizeHistory(payload.messages)
   const sctx = {
@@ -1537,81 +1576,155 @@ async function runChat(state, payload, stream, signal) {
     // Shared readiness-wait budget for every tool call in this request.
     readyDeadline: Date.now() + 20_000,
   }
+  // What the turn cost and how it ended, written down however it ends (below).
+  const lenderBytes = lenderPromptShare(state, instructions, locale)
   let promptTokens = 0
   let completionTokens = 0
+  let estimated = false
+  let rounds = 0
+  let outcome = 'completed'
+  let incompleteReason = null
   const toolsCalled = []
   let responseText = ''
 
-  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const lastRound = round === MAX_TOOL_ROUNDS - 1
-    const stream = await client.responses.create(
-      buildResponsesRequest({ instructions, input, lastRound, clientId: payload.clientId }),
-      { signal },
-    )
-    let textBuf = ''
-    let completed = null
-    let imageCutoff = false
-    for await (const event of stream) {
-      if (event.type === 'response.output_text.delta' && event.delta) {
-        const before = textBuf.length
-        textBuf += event.delta
-        // Guard: the model occasionally ignores OUTPUT RULES and emits an image /
-        // base64 data URI, then loops on it (huge token burn + garbled on-screen
-        // text). Forward the clean text up to the marker, drop the rest, and stop.
-        const mi = badImageIndex(textBuf)
-        if (mi >= 0) {
-          if (mi > before) sse({ type: 'token', text: textBuf.slice(before, mi) })
-          textBuf = textBuf.slice(0, mi).trimEnd()
-          imageCutoff = true
-          break
-        }
-        sse({ type: 'token', text: event.delta })
-      } else if (event.type === 'response.completed') {
-        completed = event.response
-      } else if (event.type === 'response.failed') {
-        throw new Error(event.response?.error?.message || 'OpenAI response failed')
-      } else if (event.type === 'error') {
-        throw new Error(event.message || 'OpenAI stream failed')
+  try {
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      // Nobody is left to answer: no further round is sent, or charged.
+      if (signal?.aborted) {
+        outcome = 'abandoned'
+        break
       }
-    }
-
-    if (completed?.usage) {
-      promptTokens += completed.usage.input_tokens || 0
-      completionTokens += completed.usage.output_tokens || 0
-    }
-    if (textBuf) responseText += (responseText ? '\n' : '') + textBuf
-    if (imageCutoff) break
-
-    const outputItems = completed?.output || []
-    const toolCalls = outputItems.filter((item) => item.type === 'function_call')
-    if (toolCalls.length && !lastRound) {
-      // With store:false we keep conversation state locally: replay every output
-      // item, then append one function_call_output item for each call_id.
-      input.push(...outputItems)
-      for (const call of toolCalls) {
-        let result
-        try {
-          const parsed = call.arguments ? JSON.parse(call.arguments) : {}
-          result = await execTool(call.name, parsed, sctx, sse)
-        } catch (e) {
-          result = { error: 'tool_failed', message: String(e && e.message ? e.message : e) }
+      const lastRound = round === MAX_TOOL_ROUNDS - 1
+      const request = buildResponsesRequest({ instructions, input, lastRound, clientId: payload.clientId })
+      const attempts = []
+      let events
+      try {
+        events = await roundAttempts.run(attempts, () => client.responses.create(request, { signal }))
+      } catch (e) {
+        if (!signal?.aborted) throw e
+        outcome = 'abandoned'
+        break
+      } finally {
+        // Each attempt OpenAI never answered (recordingFetch) may still have been read,
+        // so it is charged its input; one it refused is not.
+        if (attempts.length) rounds++
+        const unanswered = attempts.filter((a) => a === 'unanswered').length
+        if (unanswered) {
+          promptTokens += unanswered * estimateInputTokens(request, lenderBytes)
+          estimated = true
         }
-        const output = (() => { try { return JSON.stringify(result) } catch { return JSON.stringify({ error: 'unserializable_tool_result' }) } })()
-        toolsCalled.push({
-          name: call.name,
-          args: (call.arguments || '').slice(0, 300),
-          result: output.slice(0, 400),
-        })
-        input.push({ type: 'function_call_output', call_id: call.call_id, output })
       }
-      continue
+      let textBuf = ''
+      let finished = null // response.completed, or response.incomplete at the length limit
+      let completed = null
+      let imageCutoff = false
+      let deltas = 0
+      let deltaBytes = 0
+      try {
+        for await (const event of events) {
+          if (event.type === 'response.output_text.delta' && event.delta) {
+            deltas++
+            deltaBytes += utf8Length(event.delta)
+            const before = textBuf.length
+            textBuf += event.delta
+            // Guard: the model occasionally ignores OUTPUT RULES and emits an image /
+            // base64 data URI, then loops on it (huge token burn + garbled on-screen
+            // text). Forward the clean text up to the marker, drop the rest, and stop.
+            const mi = badImageIndex(textBuf)
+            if (mi >= 0) {
+              if (mi > before) sse({ type: 'token', text: textBuf.slice(before, mi) })
+              textBuf = textBuf.slice(0, mi).trimEnd()
+              imageCutoff = true
+              break
+            }
+            sse({ type: 'token', text: event.delta })
+          } else if (event.type === 'response.function_call_arguments.delta' && event.delta) {
+            deltas++
+            deltaBytes += utf8Length(event.delta)
+          } else if (event.type === 'response.completed') {
+            finished = completed = event.response
+          } else if (event.type === 'response.incomplete') {
+            finished = event.response
+          } else if (event.type === 'response.failed') {
+            throw new Error(event.response?.error?.message || 'OpenAI response failed')
+          } else if (event.type === 'error') {
+            throw new Error(event.message || 'OpenAI stream failed')
+          }
+        }
+      } finally {
+        // OpenAI reports usage only with a finished response, and keeps no copy of one
+        // abandoned mid-stream (with store:false, and not even when stored), so a round
+        // that stopped early (the lender left, the reply was cut, or it failed) is
+        // charged an estimate: the request as sent, and the output that arrived.
+        if (finished?.usage) {
+          promptTokens += finished.usage.input_tokens || 0
+          completionTokens += finished.usage.output_tokens || 0
+        } else {
+          promptTokens += estimateInputTokens(request, lenderBytes)
+          completionTokens += estimateOutputTokens(deltas, deltaBytes)
+          estimated = true
+        }
+        // What the lender was shown is kept, however the round ended.
+        if (textBuf) responseText += (responseText ? '\n' : '') + textBuf
+      }
+
+      if (imageCutoff) {
+        outcome = 'cut'
+        break
+      }
+      if (!finished) {
+        // The stream ended with no result: the lender left (the SDK ends quietly on an
+        // abort), or it simply stopped.
+        outcome = signal?.aborted ? 'abandoned' : 'failed'
+        break
+      }
+      if (!completed) {
+        // OpenAI stopped the reply (its length limit, its content filter); a tool call
+        // it may hold is cut off, so none runs.
+        outcome = 'incomplete'
+        incompleteReason = finished.incomplete_details?.reason ?? null
+        break
+      }
+
+      const outputItems = completed.output || []
+      const toolCalls = outputItems.filter((item) => item.type === 'function_call')
+      if (toolCalls.length && !lastRound) {
+        // With store:false we keep conversation state locally: replay every output
+        // item, then append one function_call_output item for each call_id.
+        input.push(...outputItems)
+        for (const call of toolCalls) {
+          let result
+          try {
+            const parsed = call.arguments ? JSON.parse(call.arguments) : {}
+            result = await execTool(call.name, parsed, sctx, sse)
+          } catch (e) {
+            result = { error: 'tool_failed', message: String(e && e.message ? e.message : e) }
+          }
+          const output = (() => { try { return JSON.stringify(result) } catch { return JSON.stringify({ error: 'unserializable_tool_result' }) } })()
+          toolsCalled.push({
+            name: call.name,
+            args: (call.arguments || '').slice(0, 300),
+            result: output.slice(0, 400),
+          })
+          input.push({ type: 'function_call_output', call_id: call.call_id, output })
+        }
+        continue
+      }
+      break
     }
-    break
+  } catch (e) {
+    if (signal?.aborted) outcome = 'abandoned'
+    else {
+      outcome = 'failed'
+      console.error('Ask KivaLens chat error:', e)
+      sse({ type: 'error', message: 'Sorry — something went wrong. Please try again.' })
+    }
   }
   sse({ type: 'done' })
   stream.close()
 
-  // Cost tracking + interaction log, after the reply has ended.
+  // Cost and the interaction log, after the reply has ended, however it ended: every
+  // round that reached OpenAI counts against the month's budget.
   const costUsd = costOf(MODEL, promptTokens, completionTokens)
   await addSpend(costUsd)
   const userMessage = [...sanitizeHistory(payload.messages)].reverse().find((m) => m.role === 'user')?.content ?? ''
@@ -1630,6 +1743,10 @@ async function runChat(state, payload, stream, signal) {
     promptTokens,
     completionTokens,
     costUsd: Number(costUsd.toFixed(6)),
+    outcome,
+    estimated,
+    rounds,
+    ...(incompleteReason ? { incompleteReason } : {}),
   })
 }
 
@@ -1761,9 +1878,12 @@ export async function handleChat(state, request, { waitUntil } = {}) {
       refuse(`Ask KivaLens has reached its monthly budget of $${BUDGET_USD}. Please try again next month.`)
       return
     }
-    // The upstream OpenAI call stops when the lender's browser goes away mid-reply.
+    // The upstream OpenAI call stops when the lender's browser goes away mid-reply;
+    // runChat still charges and logs what was sent.
     await runChat(state, payload, stream, request.signal)
   })().catch((e) => {
+    // Failures outside the rounds (the budget read, building the prompt); runChat
+    // answers for its own.
     if (e?.name === 'AbortError') {
       stream.close()
       return
