@@ -18,6 +18,9 @@ import DialogHost from './components/DialogHost'
 import AICallout from './components/AICallout'
 import SupportHost from './support/SupportHost'
 import { startCriteriaHistory } from './stores/criteriaHistoryStore'
+import { routeLabel, shouldMeasure } from './lib/rum/config'
+import { startUsageTracking } from './lib/rum/usage'
+import { noteRoute } from './lib/rum/usageEvents'
 import { useI18n } from './i18n'
 
 // The assistant pulls in markdown and charting libraries. Load that feature only
@@ -50,6 +53,11 @@ function AppLayout() {
   usePageMeta()
   // Every change to the search, wherever it is made, goes into the criteria history.
   useEffect(() => startCriteriaHistory(), [])
+  // Usage statistics count searches from that history, so they start after it,
+  // and only where visits are measured at all (src/lib/rum/usage.ts).
+  useEffect(() => (shouldMeasure() ? startUsageTracking() : undefined), [])
+  const { pathname } = useLocation()
+  useEffect(() => noteRoute(routeLabel(pathname)), [pathname])
 
   return (
     <div>

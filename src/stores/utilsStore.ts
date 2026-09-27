@@ -49,10 +49,6 @@ export interface UtilsState {
   aiCallout: { target: string; message: string; nonce: number } | null
   /** AI request to switch the Search criteria tab (borrower/partner/portfolio/rss). */
   aiCriteriaTab: { tab: string; nonce: number } | null
-  /** Whether the heartbeat interval is active */
-  heartbeatActive: boolean
-  /** Timestamp of last heartbeat */
-  lastHeartbeat: number | null
   /** Shared variables (legacy compat for var.get / var.set pattern) */
   sharedVars: Record<string, unknown>
 }
@@ -72,18 +68,9 @@ export interface UtilsActions {
   showCallout: (target: string, message: string) => void
   clearCallout: () => void
   setAiCriteriaTab: (tab: string) => void
-  doHeartbeat: () => Promise<void>
-  startHeartbeat: () => void
-  stopHeartbeat: () => void
   getVar: (name: string) => unknown
   setVar: (name: string, value: unknown) => void
 }
-
-// ---------------------------------------------------------------------------
-// Internal
-// ---------------------------------------------------------------------------
-
-let heartbeatIntervalId: ReturnType<typeof setInterval> | null = null
 
 // ---------------------------------------------------------------------------
 // Store
@@ -106,8 +93,6 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       aiServerEnabled: null,
       aiCallout: null,
       aiCriteriaTab: null,
-      heartbeatActive: false,
-      lastHeartbeat: null,
       sharedVars: {},
 
       // ---------------------------------------------------------------
@@ -251,54 +236,6 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
             useLoanStore.getState().filterLoans()
           }
         }
-      },
-
-      doHeartbeat: async () => {
-        const lenderId = get().lenderObj?.lender_id ?? get().lenderId ?? 'unknown'
-        const extras = lsj.get<{ install_id?: string }>('Extras')
-
-        // Ensure install_id exists
-        let installId = extras.install_id
-        if (!installId) {
-          installId = 'i_' + Math.round(Math.random() * 1000000)
-          lsj.setMerge('Extras', { install_id: installId })
-        }
-
-        const pageStarted = (window as unknown as { pageStarted?: number }).pageStarted ?? Date.now()
-        const uptime = Math.floor((Date.now() - pageStarted) / 60000)
-
-        try {
-          await getKivaLoans()?.heartbeat(installId, lenderId, uptime)
-        } catch (err: unknown) {
-          const error = err as { status?: number }
-          if (error.status === 205) {
-            window.location.reload()
-          }
-        }
-
-        set((state) => {
-          state.lastHeartbeat = Date.now()
-        })
-      },
-
-      startHeartbeat: () => {
-        if (heartbeatIntervalId) return
-        // Initial heartbeat after 10 seconds, then every 5 minutes
-        setTimeout(() => void get().doHeartbeat(), 10_000)
-        heartbeatIntervalId = setInterval(() => void get().doHeartbeat(), 5 * 60_000)
-        set((state) => {
-          state.heartbeatActive = true
-        })
-      },
-
-      stopHeartbeat: () => {
-        if (heartbeatIntervalId) {
-          clearInterval(heartbeatIntervalId)
-          heartbeatIntervalId = null
-        }
-        set((state) => {
-          state.heartbeatActive = false
-        })
       },
 
       getVar: (name: string): unknown => {

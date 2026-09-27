@@ -104,3 +104,27 @@ describe('Options: the basket’s link lands on its card', () => {
     expect(card).toHaveFocus()
   })
 })
+
+describe('Options: usage statistics can be turned off', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('offers the switch on its own card, linked from the Privacy page, with a link back to what it sends', async () => {
+    const scrolled: Element[] = []
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this)
+    }
+    rtlRender(
+      <MemoryRouter initialEntries={['/options#privacy']}>
+        <Options />
+      </MemoryRouter>,
+    )
+    const card = document.getElementById('privacy')!
+    await waitFor(() => expect(scrolled).toContain(card))
+    const box = screen.getByLabelText(en.usage_stats_switch) as HTMLInputElement
+    expect(card).toContainElement(box)
+    expect(box.checked).toBe(true)
+    fireEvent.click(box)
+    expect(localStorage.getItem('kl_usage')).toBe('off')
+    expect(screen.getByRole('link', { name: en.privacy })).toHaveAttribute('href', '/privacy#usage-statistics')
+  })
+})

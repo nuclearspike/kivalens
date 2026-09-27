@@ -19,6 +19,26 @@ export interface ViewRecord {
   source: string | null
   chats: number | null
   metrics: Partial<Record<MetricName, number>>
+  /** Usage statistics, when the browser shares them (src/lib/rum/usage.ts). */
+  usage: UsageRecord | null
+}
+
+export interface UsageCounts {
+  /** Criterion name -> searches that used it. */
+  c: Record<string, number>
+  /** Route id -> times the lender went to that page. */
+  p: Record<string, number>
+  /** Action -> times. */
+  e: Record<string, number>
+}
+
+export interface UsageRecord {
+  browser: string
+  born: string
+  lender: 0 | 1
+  saved: number
+  searches: number
+  counts: UsageCounts
 }
 
 export interface ErrorRecord {
@@ -47,6 +67,11 @@ const WORD = /^[A-Za-z][A-Za-z0-9]{0,31}$/
 const VIEW_ID = /^[A-Za-z0-9-]{8,64}$/
 const VERSION = /^[\w.+-]{1,32}$/
 const SHORT = /^[\w-]{1,16}$/
+const BROWSER_ID = /^[A-Za-z0-9_-]{16,40}$/
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+const NAME = /^[a-z][a-z0-9_]{0,39}(:[a-z0-9_]{1,40})?$/
+const MAX_NAMES = 150
+const MAX_COUNT = 100_000
 const DEVICES = new Set(['mobile', 'tablet', 'desktop'])
 const SOURCES = new Set(['kl', 'kiva'])
 
@@ -65,11 +90,51 @@ export function fingerprint(parts: Array<string | number | null>): string {
   return h.toString(16).padStart(16, '0')
 }
 
+/** Name -> count, keeping only names of the given shape and whole counts in range, at most MAX_NAMES of them. */
+function counts(v: unknown, name: RegExp): Record<string, number> {
+  const out: Record<string, number> = {}
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out
+  let kept = 0
+  for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
+    if (kept >= MAX_NAMES) break
+    if (!name.test(k) || typeof n !== 'number' || !Number.isInteger(n) || n < 1 || n > MAX_COUNT) continue
+    out[k] = n
+    kept++
+  }
+  return out
+}
+
+/**
+ * The usage part of a report, or null. A malformed part is dropped and the page's
+ * timings kept. A browser number's birthday outside the range a real one can have
+ * (before usage statistics existed, or later than today by a wrong clock) is read
+ * as today, so the browser is still counted.
+ */
+export function parseUsage(v: unknown, today: string): UsageRecord | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null
+  const u = v as Record<string, unknown>
+  const browser = match(u.id, BROWSER_ID)
+  if (!browser) return null
+  const bornRaw = match(u.born, DAY)
+  const born = bornRaw && bornRaw >= USAGE_SINCE && bornRaw <= today ? bornRaw : today
+  return {
+    browser,
+    born,
+    lender: u.lender === 1 ? 1 : 0,
+    saved: int(u.saved, 0, 1000) ?? 0,
+    searches: int(u.searches, 0, 10_000) ?? 0,
+    counts: { c: counts(u.c, NAME), p: counts(u.p, WORD), e: counts(u.e, NAME) },
+  }
+}
+
+/** The first day a browser number could have been made. */
+export const USAGE_SINCE = '2026-09-26'
+
 /**
  * The report, or a reason it was refused. `originHost` is the host of the page
  * that sent it (the Origin header), which the report's own host must equal.
  */
-export function parseBeacon(body: string, originHost: string, allowedHosts: ReadonlySet<string>): Beacon | { refused: string } {
+export function parseBeacon(body: string, originHost: string, allowedHosts: ReadonlySet<string>, now: number = Date.now()): Beacon | { refused: string } {
   if (body.length > MAX_BODY_BYTES) return { refused: 'too large' }
   let raw: Record<string, unknown>
   try {
@@ -108,6 +173,7 @@ export function parseBeacon(body: string, originHost: string, allowedHosts: Read
       source: typeof raw.source === 'string' && SOURCES.has(raw.source) ? raw.source : null,
       chats: int(raw.chats, 0, 1000),
       metrics,
+      usage: parseUsage(raw.u, new Date(now).toISOString().slice(0, 10)),
     }
   }
 

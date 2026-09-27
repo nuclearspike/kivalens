@@ -981,19 +981,6 @@ export class Loans {
     return req.kiva.api.lender(lenderId)
   }
 
-  async heartbeat(installId: string, lenderId: string, uptime: number): Promise<void> {
-    try {
-      await req.kl.get('/heartbeat', {
-        install_id: installId,
-        lender_id: lenderId,
-        uptime: String(uptime),
-        version: '2.0',
-      })
-    } catch {
-      // Heartbeat failures are non-critical
-    }
-  }
-
   /**
    * What every filter of this lender's search is given (the shared engine's ctx):
    * the loans and partners, the lender's own loans for "exclude loans I've made",

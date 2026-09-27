@@ -30,6 +30,29 @@ export const METRICS = [
 export type MetricName = (typeof METRICS)[number]
 export type Metrics = Partial<Record<MetricName, number>>
 
+/**
+ * Usage statistics, present only when this browser shares them (src/lib/rum/identity.ts).
+ * Counts and names from KivaLens's own vocabulary; see src/lib/rum/usage.ts.
+ */
+export interface UsagePayload {
+  /** This browser's random number (128 bits), replaced after 13 months. */
+  id: string
+  /** The day that number was made: a browser is new on that day and returning after. */
+  born: string
+  /** 1 when a Kiva lender ID is set in this browser. Never the ID. */
+  lender: 0 | 1
+  /** How many saved searches of their own the lender keeps (the built-in ones excluded). */
+  saved: number
+  /** Searches during this page load. */
+  searches: number
+  /** Criterion name -> how many of those searches used it. */
+  c: Record<string, number>
+  /** Route id -> how many times the lender went to that page. */
+  p: Record<string, number>
+  /** Action -> how many times: basket_add, checkout, checkout_loans, saved_load, preset:<name>, history_restore, rss_copy. */
+  e: Record<string, number>
+}
+
 export interface RumPayload {
   v: 1
   view: string
@@ -45,9 +68,10 @@ export interface RumPayload {
   m?: Metrics
   chats?: number
   errors?: ReportedError[]
+  u?: UsagePayload
 }
 
-/** A random id for this page view only: never stored in the browser, never tied to a person. */
+/** A random id for this page view only: never stored in the browser. The browser's own number, when it shares usage, is `u.id`. */
 export function makeViewId(): string {
   try {
     if (typeof crypto?.randomUUID === 'function') return crypto.randomUUID()

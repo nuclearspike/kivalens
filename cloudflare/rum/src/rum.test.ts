@@ -1,10 +1,12 @@
 import { describe, expect, it, beforeEach } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { METRICS } from '../../../src/lib/rum/payload'
-import { MAX_BODY_BYTES, fingerprint, parseBeacon, type Beacon } from './beacon'
-import { DAILY_DAYS, RAW_DAYS, ROLLUP_DAYS, beaconStatements, dayOf, nightly, nightlyStatements, rollupStatements, retentionStatements, type SqlDatabase, type SqlStatement } from './store'
+import { MAX_BODY_BYTES, USAGE_SINCE, fingerprint, parseBeacon, parseUsage, type Beacon } from './beacon'
+import { DAILY_DAYS, RAW_DAYS, ROLLUP_DAYS, beaconStatements, dayOf, monthlyStatements, monthsToRoll, nightly, nightlyStatements, rollupStatements, retentionStatements, type SqlDatabase, type SqlStatement } from './store'
+import { authorized, parseStatsQuery, stats } from './stats'
+import worker from './index'
 
 /**
  * The collector's rules, and its SQL run for real: D1 is SQLite, so node:sqlite
@@ -25,7 +27,9 @@ class Stmt implements SqlStatement {
 }
 function memoryD1(): SqlDatabase & { raw: DatabaseSync } {
   const raw = new DatabaseSync(':memory:')
-  raw.exec(readFileSync(path.join(__dirname, '../migrations/0001_init.sql'), 'utf8'))
+  // Every migration, in order, as D1 applies them.
+  const dir = path.join(__dirname, '../migrations')
+  for (const file of readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) raw.exec(readFileSync(path.join(dir, file), 'utf8'))
   return {
     raw,
     prepare: (sql) => new Stmt(raw, sql),
@@ -197,5 +201,185 @@ describe('what the collector stores', () => {
     expect(ROLLUP_DAYS).toBeGreaterThanOrEqual(2)
     const errors = Array.from({ length: 20 }, (_, i) => ({ message: `e${i}` }))
     expect(beaconStatements(db, ok(parseBeacon(report({ errors }), 'www.kivalens.org', HOSTS)), NOW, null).length).toBe(21)
+  })
+})
+
+describe('usage statistics', () => {
+  // A day after usage statistics existed, so a browser number's birthday is real.
+  const T = Date.UTC(2026, 9, 10, 12)
+  const DAY_MS = 86_400_000
+  const ID_A = 'AAAAAAAAAAAAAAAAAAAAAA'
+  const ID_B = 'BBBBBBBBBBBBBBBBBBBBBB'
+  const usage = (over: Record<string, unknown> = {}) => ({
+    id: ID_A, born: '2026-10-01', lender: 1, saved: 2, searches: 3,
+    c: { sector: 2, 'sector:none': 1, age: 1, 'mode:both': 3 }, p: { search: 2, loan: 4 }, e: { basket_add: 2, 'preset:popular': 1 },
+    ...over,
+  })
+  let db: ReturnType<typeof memoryD1>
+  beforeEach(() => {
+    db = memoryD1()
+  })
+  const store = (body: string, at = T, host = 'www.kivalens.org') => db.batch(beaconStatements(db, ok(parseBeacon(body, host, HOSTS, at)), at, 'US'))
+  const rows = (sql: string) => db.raw.prepare(sql).all() as Array<Record<string, unknown>>
+
+  it('accepts the usage part, keeping only names of the right shape and whole counts', () => {
+    const today = '2026-10-10'
+    const u = parseUsage(usage({ c: { sector: 2, 'Sector!': 1, age: -1, tags: 1.5, ['x'.repeat(41)]: 1, 'sort:newest': 1 }, lender: 'yes', saved: 5000 }), today)
+    expect(u).toMatchObject({ browser: ID_A, born: '2026-10-01', lender: 0, saved: 0, searches: 3 })
+    expect(u!.counts.c).toEqual({ sector: 2, 'sort:newest': 1 })
+    // A page is a route id, as the page's report names it.
+    expect(parseUsage(usage({ p: { basketLoan: 1, '/loans/1': 1 } }), today)!.counts.p).toEqual({ basketLoan: 1 })
+    // At most 150 names of a kind.
+    const many = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`k${i}`, 1]))
+    expect(Object.keys(parseUsage(usage({ c: many }), today)!.counts.c)).toHaveLength(150)
+  })
+
+  it('drops a malformed usage part but keeps the page timings, and reads an impossible birthday as today', () => {
+    const b = ok(parseBeacon(report({ u: usage({ id: 'short' }) }), 'www.kivalens.org', HOSTS, T))
+    expect(b.view).toMatchObject({ metrics: { lcp: 900 }, usage: null })
+    expect(parseUsage(usage({ born: '2019-01-01' }), '2026-10-10')!.born).toBe('2026-10-10')
+    expect(parseUsage(usage({ born: '2030-01-01' }), '2026-10-10')!.born).toBe('2026-10-10')
+    expect(parseUsage(usage({ born: USAGE_SINCE }), '2026-10-10')!.born).toBe(USAGE_SINCE)
+    expect(parseUsage('nope', '2026-10-10')).toBeNull()
+  })
+
+  it('stores it with the page view, and nothing for a browser that does not share it', async () => {
+    await store(report({ view: 'view-u001', u: usage() }))
+    await store(report({ view: 'view-u002' }))
+    expect(rows('SELECT view, browser, born, lender, saved, searches, usage FROM views ORDER BY view')).toEqual([
+      { view: 'view-u001', browser: ID_A, born: '2026-10-01', lender: 1, saved: 2, searches: 3, usage: JSON.stringify({ c: { sector: 2, 'sector:none': 1, age: 1, 'mode:both': 3 }, p: { search: 2, loan: 4 }, e: { basket_add: 2, 'preset:popular': 1 } }) },
+      { view: 'view-u002', browser: null, born: null, lender: null, saved: null, searches: null, usage: null },
+    ])
+  })
+
+  async function seed() {
+    // Browser A: two page loads on two days, a lender ID, number made on Oct 1.
+    await store(report({ view: 'view-a001', u: usage() }), T - DAY_MS)
+    await store(report({ view: 'view-a002', u: usage({ searches: 1, c: { sector: 1, 'mode:mfi': 1, partner_risk_rating: 1 }, p: { search: 1 }, e: {} }) }), T)
+    // Browser B: new on Oct 10, no lender ID, one search with no criteria.
+    await store(report({ view: 'view-b001', u: usage({ id: ID_B, born: '2026-10-10', lender: 0, searches: 1, c: { 'mode:both': 1 }, p: { search: 1 }, e: {} }) }), T)
+    // A page load that shares nothing, and one on beta.
+    await store(report({ view: 'view-x001' }), T)
+    await store(report({ view: 'view-beta', host: 'beta.kivalens.org', u: usage({ id: 'CCCCCCCCCCCCCCCCCCCCCC', born: '2026-10-10' }) }), T, 'beta.kivalens.org')
+  }
+
+  it('counts each browser once, new on the day its number was made, with its lender ID and searches', async () => {
+    await seed()
+    const r = await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'www.kivalens.org' }, T)
+    // A's number was made on Oct 1, before this window: A is returning, B is new.
+    expect(r.totals).toEqual({ pages: 4, shared: 3, browsers: 2, new_browsers: 1, lender_browsers: 1, searches: 5 })
+    expect(r.daily).toEqual([
+      { day: '2026-10-09', pages: 1, shared: 1, browsers: 1, new_browsers: 0, lender_browsers: 1, searches: 3 },
+      { day: '2026-10-10', pages: 3, shared: 2, browsers: 2, new_browsers: 1, lender_browsers: 1, searches: 2 },
+    ])
+    // A window that includes Oct 1 counts A as new too.
+    const wider = await stats(db, { from: '2026-10-01', to: '2026-10-10', host: 'www.kivalens.org' }, T)
+    expect(wider.totals.new_browsers).toBe(2)
+    // Every site: beta's browser is its own (a site's numbers are its own origin's).
+    expect((await stats(db, { from: '2026-10-04', to: '2026-10-10', host: '*' }, T)).totals.browsers).toBe(3)
+  })
+
+  it('says how many browsers used each criterion, page and action, and how many times', async () => {
+    await seed()
+    const r = await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'www.kivalens.org' }, T)
+    const by = (list: Array<{ key: string; browsers: number; n: number }>) => Object.fromEntries(list.map((x) => [x.key, [x.browsers, x.n]]))
+    expect(by(r.criteria)).toEqual({ sector: [1, 3], 'sector:none': [1, 1], age: [1, 1], 'mode:both': [2, 4], 'mode:mfi': [1, 1], partner_risk_rating: [1, 1] })
+    expect(by(r.pages)).toEqual({ search: [2, 4], loan: [1, 4] })
+    expect(by(r.events)).toEqual({ basket_add: [1, 2], 'preset:popular': [1, 1] })
+    // Filter depth: A used sector, age and partner_risk_rating (the mode and list modes are not criteria of their own); B none.
+    expect(r.depth).toEqual([
+      { key: '0', browsers: 1 }, { key: '1', browsers: 0 }, { key: '2', browsers: 0 },
+      { key: '3-4', browsers: 1 }, { key: '5-7', browsers: 0 }, { key: '8+', browsers: 0 },
+    ])
+    expect(r.countries).toEqual([{ key: 'US', browsers: 2, n: 4 }])
+    expect(r.landing).toEqual([{ key: 'search', browsers: 2, n: 4 }])
+  })
+
+  it('splits page loads by country, device, language and first page, each value on its own row', async () => {
+    const at = (view: string, over: Record<string, unknown>, country: string) =>
+      db.batch(beaconStatements(db, ok(parseBeacon(report({ view, ...over }), 'www.kivalens.org', HOSTS, T)), T, country))
+    await at('view-d001', { device: 'mobile', lang: 'de', route: 'loan', u: usage() }, 'DE')
+    await at('view-d002', { device: 'desktop', lang: 'en', route: 'search', u: usage({ id: ID_B }) }, 'US')
+    await at('view-d003', { device: 'desktop', lang: 'en', route: 'search' }, 'US')
+    const r = await stats(db, { from: '2026-10-10', to: '2026-10-10', host: 'www.kivalens.org' }, T)
+    expect(r.countries).toEqual([{ key: 'US', browsers: 1, n: 2 }, { key: 'DE', browsers: 1, n: 1 }])
+    expect(r.devices).toEqual([{ key: 'desktop', browsers: 1, n: 2 }, { key: 'mobile', browsers: 1, n: 1 }])
+    expect(r.langs).toEqual([{ key: 'en', browsers: 1, n: 2 }, { key: 'de', browsers: 1, n: 1 }])
+    expect(r.landing).toEqual([{ key: 'search', browsers: 1, n: 2 }, { key: 'loan', browsers: 1, n: 1 }])
+  })
+
+  it('writes month totals nightly while all the month is still in the raw rows, then leaves them standing', async () => {
+    await seed()
+    await store(report({ view: 'view-sep1', u: usage({ id: 'DDDDDDDDDDDDDDDDDDDDDD', born: '2026-09-28' }) }), Date.UTC(2026, 8, 28, 12))
+    // On Oct 10 September is whole inside the 45 days kept, so both months are rewritten.
+    expect(monthsToRoll(T)).toEqual(['2026-09', '2026-10'])
+    // From mid-November, October's first days are gone: its totals stand as written.
+    expect(monthsToRoll(Date.UTC(2026, 10, 20))).toEqual(['2026-11'])
+    await nightly(db, T)
+    expect(rows("SELECT month, metric, n FROM monthly WHERE host = 'www.kivalens.org' AND month = '2026-09' ORDER BY metric")).toEqual([
+      { month: '2026-09', metric: 'browsers', n: 1 },
+      { month: '2026-09', metric: 'lender_browsers', n: 1 },
+      { month: '2026-09', metric: 'new_browsers', n: 1 },
+      { month: '2026-09', metric: 'pages', n: 1 },
+      { month: '2026-09', metric: 'searches', n: 3 },
+      { month: '2026-09', metric: 'shared', n: 1 },
+    ])
+    expect(rows("SELECT key, browsers, n FROM monthly_usage WHERE month = '2026-10' AND host = 'www.kivalens.org' AND kind = 'c' AND key = 'sector'")).toEqual([{ key: 'sector', browsers: 1, n: 3 }])
+    expect(rows("SELECT key, browsers FROM monthly_usage WHERE month = '2026-10' AND host = 'www.kivalens.org' AND kind = 'd' ORDER BY key")).toEqual([
+      { key: '0', browsers: 1 },
+      { key: '3-4', browsers: 1 },
+    ])
+    // Re-running replaces rather than adds.
+    await db.batch(monthlyStatements(db, '2026-10'))
+    expect(rows("SELECT COUNT(*) AS c FROM monthly_usage WHERE month = '2026-10' AND kind = 'c' AND key = 'sector' AND host = 'www.kivalens.org'")).toEqual([{ c: 1 }])
+    // The dashboard's months: September from the totals, October live.
+    const r = await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'www.kivalens.org' }, T)
+    expect(r.months.map((m) => [m.month, m.live, m.browsers])).toEqual([['2026-09', false, 1], ['2026-10', true, 2]])
+    // Still inside the free plan's 50 queries a night with two months to write.
+    expect(nightlyStatements(db, T).length).toBeLessThanOrEqual(50)
+  })
+
+  it('reads a window inside the raw rows only, and a site it knows', () => {
+    const q = (s: string) => parseStatsQuery(new URL(`https://rum.kivalens.org/v1/stats?${s}`), T, HOSTS)
+    expect(q('')).toEqual({ from: '2026-09-11', to: '2026-10-10', host: 'www.kivalens.org' })
+    expect(q('from=2026-01-01&to=2026-10-10&host=*')).toEqual({ from: dayOf(T - (RAW_DAYS - 1) * DAY_MS), to: '2026-10-10', host: '*' })
+    expect(q('from=2026-10-10&to=2026-10-01')).toEqual({ error: 'The window ends before it starts.' })
+    expect(q('host=evil.example')).toEqual({ error: 'Unknown host.' })
+    expect(q('from=yesterday')).toEqual({ error: 'Dates are YYYY-MM-DD.' })
+  })
+
+  it('opens the numbers only to the key', async () => {
+    const req = (auth?: string) => new Request('https://rum.kivalens.org/v1/stats', { headers: auth ? { Authorization: auth } : {} })
+    expect(await authorized(req('Bearer s3cret'), 's3cret')).toBe(true)
+    expect(await authorized(req('Bearer s3cre'), 's3cret')).toBe(false)
+    expect(await authorized(req(), 's3cret')).toBe(false)
+    expect(await authorized(req('s3cret'), 's3cret')).toBe(false)
+    // No key configured: nobody gets in, however the request is shaped.
+    expect(await authorized(req('Bearer '), undefined)).toBe(false)
+  })
+
+  it('serves the dashboard under a strict policy, and the numbers only with the key', async () => {
+    await seed()
+    const ctx = { waitUntil: () => {}, passThroughOnException: () => {} } as unknown as ExecutionContext
+    const env = (key?: string) => ({ DB: db as unknown as D1Database, ALLOWED_ORIGINS: 'https://www.kivalens.org,https://kivalens.org,https://beta.kivalens.org', STATS_KEY: key })
+    const get = (path: string, key?: string, auth?: string) =>
+      worker.fetch(new Request(`https://rum.kivalens.org${path}`, { headers: auth ? { Authorization: auth } : {} }) as never, env(key) as never, ctx)
+    const page = await get('/dashboard', 'k')
+    expect(page.status).toBe(200)
+    expect(page.headers.get('Content-Security-Policy')).toContain("script-src 'self'")
+    expect(page.headers.get('X-Robots-Tag')).toContain('noindex')
+    expect(await page.text()).toContain('<script src="/dashboard.js"></script>')
+    const js = await (await get('/dashboard.js', 'k')).text()
+    // The page's code carries names, never numbers: those need the key.
+    expect(js).toContain('"sector":"Sector"')
+    expect(js).not.toContain(ID_A)
+    expect((await get('/v1/stats', undefined, 'Bearer k')).status).toBe(503)
+    expect((await get('/v1/stats', 'k')).status).toBe(401)
+    expect((await get('/v1/stats', 'k', 'Bearer wrong')).status).toBe(401)
+    const ok200 = await get('/v1/stats?from=2026-10-04&to=2026-10-10', 'k', 'Bearer k')
+    expect(ok200.status).toBe(200)
+    expect(ok200.headers.get('Cache-Control')).toBe('no-store')
+    const body = (await ok200.json()) as { totals: { browsers: number } }
+    expect(body.totals.browsers).toBeGreaterThanOrEqual(0)
   })
 })

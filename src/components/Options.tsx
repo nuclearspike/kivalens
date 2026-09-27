@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { applyThemeChoice, readThemeChoice, saveThemeChoice, type ThemeChoice } from '../lib/theme'
 import { DEFAULT_LIMITS, sanitizeLimits } from '../lib/basketMix'
+import UsageStatsSwitch from './UsageStatsSwitch'
 
 interface OptionsState {
   default_lend_amount: number
@@ -133,7 +134,8 @@ export default function Options() {
     }
   }, [fetchLenderObj, lenderId, lenderObj])
 
-  // The basket's "Change this in Options" lands on its card (/options#basket-warnings).
+  // A link to a card lands on it: the basket's "Change this in Options"
+  // (/options#basket-warnings) and the Privacy page's usage statistics (/options#privacy).
   const { hash } = useLocation()
   useEffect(() => {
     if (!hash) return
@@ -342,6 +344,17 @@ export default function Options() {
             <Card.Body>
               <p className="mb-2">{t('use_page_set_kiva_preferences')}</p>
               <Link to="/autolend">{t('set_auto_lending_options_kiva')}</Link>
+            </Card.Body>
+          </Card>
+
+          {/* --- Privacy: usage statistics (src/lib/rum/identity.ts) --- */}
+          <Card className="mb-3" id="privacy" tabIndex={-1}>
+            <Card.Header>{t('privacy')}</Card.Header>
+            <Card.Body>
+              <UsageStatsSwitch
+                id="kl-usage-stats-options"
+                help={tx('usage_stats_help', { privacy: <Link to="/privacy#usage-statistics">{t('privacy')}</Link> })}
+              />
             </Card.Body>
           </Card>
 

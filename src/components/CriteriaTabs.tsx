@@ -29,6 +29,7 @@ import { LIMIT_BY_LABEL_KEY } from '../lib/criteriaActive'
 import { showConfirm } from '../lib/dialog'
 import { mfiOnlyPrompt } from '../lib/mfiOnlyPrompt'
 import { PortfolioLoansLoadingNotice } from './FilteringProgress'
+import { noteEvent } from '../lib/rum/usageEvents'
 import { ACTIVITY_OPTIONS, BONUS_CREDIT_OPTIONS, CHARGES_INTEREST_OPTIONS, COUNTRY_OPTIONS, CURRENCY_LOSS_OPTIONS, DIRECT_OPTIONS, EXCLUDE_PORTFOLIO_OPTIONS, REGION_OPTIONS, RELIGION_OPTIONS, REPAYMENT_INTERVAL_OPTIONS, SECTOR_OPTIONS, SOCIAL_PERFORMANCE_OPTIONS, SORT_OPTIONS, TAG_OPTIONS, THEME_OPTIONS, type SelectOption } from '../lib/criteriaOptions'
 
 // ---------------------------------------------------------------------------
@@ -1397,7 +1398,7 @@ export function RSSPanel({ criteria }: { criteria: Criteria }) {
               {tx('rss_url_copy_or_ifttt', { ifttt: <NewTabLink href="http://www.ifttt.com">IFTTT</NewTabLink> })}
             </p>
             <div className="d-flex justify-content-end mb-1">
-              <CopyButton text={rssUrl} label={t('copy_url')} />
+              <CopyButton text={rssUrl} label={t('copy_url')} onCopied={() => noteEvent('rss_copy')} />
             </div>
             <textarea
               style={{ width: '100%', height: 150 }}

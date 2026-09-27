@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Criteria } from '../types'
 import { EMPTY_HISTORY, MAX_ENTRIES, recordChange, recordStart, restoreEntry, type HistoryEntry, type HistoryState } from '../lib/criteriaHistory'
 import { useCriteriaStore } from './criteriaStore'
+import { noteEvent } from '../lib/rum/usageEvents'
 
 /**
  * The criteria history, kept in this browser (it is the lender's own trail, not
@@ -72,6 +73,7 @@ export const useCriteriaHistory = create<CriteriaHistoryStore>((set, get) => ({
     const entry = get().history.entries.find((e) => e.id === id)
     if (!entry) return
     const history = restoreEntry(get().history, id, Date.now())
+    noteEvent('history_restore')
     set({ history, cleared: null })
     save(history)
     const criteria = useCriteriaStore.getState()

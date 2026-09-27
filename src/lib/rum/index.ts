@@ -3,6 +3,7 @@ import { deviceClass } from './config'
 import { takeErrors } from './errors'
 import { cleanMetrics, readMarks, readResources, type RumPayload } from './payload'
 import { send } from './send'
+import { usagePayload } from './usage'
 
 /**
  * The page's measurement, loaded after first paint so it costs the first screen
@@ -12,7 +13,8 @@ import { send } from './send'
  *
  * One report per page view, sent when the page is hidden or closed, the last
  * moment the browser reliably allows. A tab hidden twice reports twice under the
- * same view id, and the collector keeps the later one.
+ * same view id, and the collector keeps the later one. The usage counts it carries
+ * (src/lib/rum/usage.ts) are cumulative for the page load for the same reason.
  */
 export function startRum(opts: { view: string; route: string; version: string; collector: string }): void {
   try {
@@ -58,6 +60,9 @@ export function startRum(opts: { view: string; route: string; version: string; c
           m: cleanMetrics({ ...vitals, ...marks.m, ...readResources(api, location.origin, opts.collector) }),
           chats: marks.chats || undefined,
           errors: takeErrors(),
+          // Usage statistics, when this browser shares them: cumulative for the page
+          // load, so the collector keeps the latest report of the view.
+          u: usagePayload(),
         }
         send(opts.collector, payload)
       } catch {

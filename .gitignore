@@ -26,3 +26,6 @@ dist-ssr
 
 # Wrangler's local state (local D1 databases, dev caches) for the Workers under cloudflare/
 .wrangler/
+# Local-only Worker secrets for wrangler dev (e.g. the collector's test STATS_KEY)
+.dev.vars
+.dev.vars.*

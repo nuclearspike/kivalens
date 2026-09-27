@@ -11,6 +11,7 @@ import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
 import { balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { freshCriteria } from '../lib/freshCriteria'
+import { noteEvent } from '../lib/rum/usageEvents'
 
 /**
  * The criteria with the MFI/Direct mode written in. A search saved before the
@@ -230,6 +231,9 @@ const DEFAULT_SAVED_SEARCHES: Record<string, SavedSearch> = {
   },
 }
 
+/** The built-in saved searches' names, which are KivaLens's own words rather than a lender's. */
+export const DEFAULT_SAVED_SEARCH_NAMES: ReadonlySet<string> = new Set(Object.keys(DEFAULT_SAVED_SEARCHES))
+
 // Maps each pre-rekey default's English name (its persisted key before this
 // migration) to its new symbol key, so `migrate` below can rename an existing
 // user's untouched defaults without disturbing any search they've renamed,
@@ -426,6 +430,8 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         loadSearch: (name: string) => {
           const crit = get().savedSearches[name]
           if (!crit) return
+          // Usage statistics name a built-in search; a lender's own is only counted.
+          noteEvent(DEFAULT_SAVED_SEARCH_NAMES.has(name) ? `preset:${name}` : 'saved_load')
           const fixed = inSavedSearchMode(get().fixUpgrades({ ...crit }))
           set((state) => {
             state.lastSwitch = name

@@ -15,12 +15,15 @@ export default function CopyButton({
   className,
   variant = 'primary',
   size = 'sm',
+  onCopied,
 }: {
   text: string
   label: string
   className?: string
   variant?: 'primary' | 'outline-secondary'
   size?: 'sm'
+  /** Called after the text reached the clipboard. */
+  onCopied?: () => void
 }) {
   const { t } = useI18n()
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -33,6 +36,7 @@ export default function CopyButton({
   const copy = async () => {
     const ok = await copyText(text)
     setState(ok ? 'copied' : 'failed')
+    if (ok) onCopied?.()
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => setState('idle'), CONFIRM_MS)
   }

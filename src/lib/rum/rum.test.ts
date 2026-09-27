@@ -231,26 +231,52 @@ describe('a page report', () => {
     history.replaceState(null, '', '/loans/2931233?lender=jane-doe&sector=Food')
   })
 
-  it('carries the page, the timings and the errors, and nothing that identifies anyone', async () => {
+  // Each test starts its own measurement under its own view id; a listener left by
+  // an earlier test may also report, so the test reads only its own view's report.
+  async function report(view: string): Promise<string> {
     const sent: string[] = []
     vi.stubGlobal('fetch', (_u: string, init: RequestInit) => {
       sent.push(String(init.body))
       return Promise.resolve(new Response(null, { status: 204 }))
     })
     const { startRum } = await import('./index')
-    startRum({ view: 'view-test-1', route: routeLabel(location.pathname), version: '2026.9.25', collector: 'https://rum.kivalens.org/v1/beacon' })
+    startRum({ view, route: routeLabel(location.pathname), version: '2026.9.25', collector: 'https://rum.kivalens.org/v1/beacon' })
     performance.mark('kl:catalog:start')
     performance.mark('kl:catalog:done', { detail: { source: 'kl' } })
     recordError({ message: 'kaput' }, 'loan')
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' })
     dispatchEvent(new Event('pagehide'))
     await new Promise((r) => setTimeout(r, 10))
-    expect(sent).toHaveLength(1)
-    const payload = JSON.parse(sent[0]) as RumPayload
+    const mine = sent.filter((body) => (JSON.parse(body) as RumPayload).view === view)
+    expect(mine).toHaveLength(1)
+    return mine[0]
+  }
+
+  it('carries the page, the timings and the errors, and nothing that identifies anyone', async () => {
+    // A browser that does not share usage statistics: exactly the anonymous report.
+    localStorage.setItem('kl_usage', 'off')
+    const sent = await report('view-test-1')
+    const payload = JSON.parse(sent) as RumPayload
     expect(payload).toMatchObject({ v: 1, view: 'view-test-1', host: location.host, route: 'loan', version: '2026.9.25', final: true, source: 'kl' })
     expect(payload.m?.catalog).toBeTypeOf('number')
     expect(payload.errors?.[0]).toMatchObject({ message: 'kaput', count: 1 })
+    expect(payload.u).toBeUndefined()
     // No id, no query, no lender anywhere in what leaves the page.
-    for (const secret of ['2931233', 'jane', 'lender', 'sector', 'Food']) expect(sent[0]).not.toContain(secret)
+    for (const secret of ['2931233', 'jane', 'lender', 'sector', 'Food']) expect(sent).not.toContain(secret)
+  })
+
+  it('from a browser that shares usage, adds only its number, a lender-ID flag, names and counts', async () => {
+    localStorage.removeItem('kl_usage')
+    const sent = await report('view-test-2')
+    const payload = JSON.parse(sent) as RumPayload
+    expect(Object.keys(payload.u ?? {}).sort()).toEqual(['born', 'c', 'e', 'id', 'lender', 'p', 'saved', 'searches'])
+    expect([0, 1]).toContain(payload.u!.lender)
+    // Still no loan id, lender ID or value from the address, anywhere in the report.
+    for (const secret of ['2931233', 'jane', 'Food']) expect(sent).not.toContain(secret)
+    // Outside the usage part's own field names, nothing from the query either.
+    const { u: _u, ...rest } = payload
+    void _u
+    for (const secret of ['lender', 'sector']) expect(JSON.stringify(rest)).not.toContain(secret)
+    localStorage.clear()
   })
 })

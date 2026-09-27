@@ -5,6 +5,7 @@ import { useLoanStore } from '../stores/loanStore'
 import { useCriteriaStore } from '../stores/criteriaStore'
 import { useUtilsStore } from '../stores/utilsStore'
 import { lsj } from './localStorage'
+import { forgetLegacyInstallId } from './rum/identity'
 import { applyBalancerData } from './balancerEvents'
 
 /**
@@ -46,7 +47,8 @@ export function useKivaLensInit() {
           maxConcurrent: options.maxConcurrent ?? 8,
         },
       )
-      useUtilsStore.getState().startHeartbeat()
+      // An install number earlier versions stored; nothing reads it (see identity.ts).
+      forgetLegacyInstallId()
       if (seededLenderId) {
         void useUtilsStore.getState().fetchLenderObj(seededLenderId, false)
       }

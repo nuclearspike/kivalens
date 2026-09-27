@@ -1,17 +1,26 @@
 import { Container } from '../ui'
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { RAW_DAYS } from '../lib/rum/retention'
+import UsageStatsSwitch from './UsageStatsSwitch'
 
 // Privacy policy. KivaLens is an independent tool (not Kiva); it has no accounts
 // of its own. The notable data flow is the "Ask KivaLens" assistant, whose
 // conversations are logged for analytics/debugging/improvement.
 export default function Privacy() {
   const { t, tx, date } = useI18n()
+  // Options' usage-statistics help links to its section (/privacy#usage-statistics).
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (!hash) return
+    const target = document.getElementById(decodeURIComponent(hash.slice(1)))
+    if (target) requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }))
+  }, [hash])
   return (
     <Container className="py-3" style={{ maxWidth: 820 }}>
       <h1>{t('kivalens_privacy_policy')}</h1>
-      <p className="text-muted">{t('last_updated_date', { date: date('2026-09-25T12:00:00Z', { dateStyle: 'long' }) })}</p>
+      <p className="text-muted">{t('last_updated_date', { date: date('2026-09-26T12:00:00Z', { dateStyle: 'long' }) })}</p>
 
       <h3>{t('about_kivalens')}</h3>
       <p>
@@ -55,9 +64,15 @@ export default function Privacy() {
       <p>
         {t('anonymous_visit_reports')}
       </p>
+
+      <h4 id="usage-statistics">{t('usage_statistics')}</h4>
       <p>
-        {t('kivalens_may_send_occasional_anonymous')}
+        {t('usage_statistics_body')}
       </p>
+      <p>
+        {t('usage_statistics_off')}
+      </p>
+      <UsageStatsSwitch id="kl-usage-stats-privacy" />
 
       <h4>{t('loans_partners_lending')}</h4>
       <p>
@@ -93,7 +108,7 @@ export default function Privacy() {
 
       <h3>{t('choices')}</h3>
       <p>
-        {tx('use_most_without_lender_id', { options: <Link to="/options">{t('options')}</Link> })}{' '}
+        {tx('use_most_without_lender_id', { options: <Link to="/options#privacy">{t('options')}</Link> })}{' '}
         {t('clearing_browser_storage_removes_local')}
       </p>
 

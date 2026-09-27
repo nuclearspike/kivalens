@@ -179,14 +179,6 @@ describe('handleApi — /api/since (incremental catch-up)', () => {
   })
 })
 
-describe('handleApi — heartbeat', () => {
-  it('always answers 200 so the client’s liveness ping cannot fail', async () => {
-    const res = await api(state, '/api/heartbeat/anything?install_id=x')
-    expect(res.statusCode).toBe(200)
-    expect(json(res)).toEqual({ status: 200 })
-  })
-})
-
 describe('handleRss — click redirects', () => {
   it('sends a Kiva click to the loan page with the app id', async () => {
     const res = await rssAt(state, '/rss_click/kiva/12345')

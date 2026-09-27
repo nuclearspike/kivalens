@@ -10,7 +10,6 @@
  *   GET  /api/loans/:batch/:page            (gzip)
  *   GET  /api/loans/:batch/keywords/:page   (gzip)
  *   GET  /api/since/:batch
- *   GET  /api/heartbeat/...
  *   POST /graphql
  *   GET  /proxy/kiva/ajax/...               (Kiva-WAF header recipe)
  *   GET  /proxy/gdocs/spreadsheets/...
@@ -1367,8 +1366,6 @@ export async function handleApi(state, request) {
     const changed = state.allLoans.filter((l) => new Date(l.kl_processed).getTime() > served.newestTime)
     return json(changed.length > 500 ? [] : changed.map((l) => compressLoan(l)))
   }
-
-  if (url.startsWith('/api/heartbeat/')) return json({ status: 200 })
 
   if (url === '/graphql' && method === 'POST') {
     const body = await readBody(request, 64 * 1024)

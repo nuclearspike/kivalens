@@ -7,6 +7,7 @@
  *   node scripts/rum-report.mjs --days 30          a longer window
  *   node scripts/rum-report.mjs --from 2026-10-01 --to 2026-10-31
  *   node scripts/rum-report.mjs --local            the local D1 (wrangler dev)
+ *   node scripts/rum-report.mjs --usage            also usage: browsers, lender IDs, searches, criteria
  *
  * Percentiles come from the raw rows (kept 45 days), so any window inside that is
  * exact; older days read the nightly summaries instead (--summaries).
@@ -82,3 +83,20 @@ const errors = query(`SELECT host, message, SUM(count) AS times, COUNT(DISTINCT 
 console.log('\nBrowser errors (top 25)')
 if (errors.length) console.table(errors.map((e) => ({ ...e, message: String(e.message).slice(0, 90) })))
 else console.log('None reported.')
+
+// Usage statistics (src/lib/rum/usage.ts). rum.kivalens.org/dashboard shows the same
+// numbers with charts; this is the same count for a terminal.
+if (flag('usage')) {
+  const totals = query(`SELECT host, COUNT(*) AS pages, COUNT(browser) AS shared, COUNT(DISTINCT browser) AS browsers,
+      COUNT(DISTINCT CASE WHEN born BETWEEN '${from}' AND '${to}' THEN browser END) AS new_browsers,
+      COUNT(DISTINCT CASE WHEN lender = 1 THEN browser END) AS lender_browsers, COALESCE(SUM(searches), 0) AS searches
+    FROM views WHERE ${range} GROUP BY host ORDER BY host`)
+  console.log('\nUsage: browsers are counted once in the window')
+  console.table(totals)
+  const criteria = query(`SELECT v.host AS host, j.key AS criterion, COUNT(DISTINCT v.browser) AS browsers, SUM(j.value) AS searches
+    FROM views v, json_each(v.usage, '$.c') j WHERE v.day BETWEEN '${from}' AND '${to}' AND v.usage IS NOT NULL
+    GROUP BY v.host, j.key ORDER BY v.host, browsers DESC, searches DESC LIMIT 60`)
+  console.log('\nCriteria used (browsers that searched with each, and searches)')
+  if (criteria.length) console.table(criteria)
+  else console.log('None yet.')
+}
