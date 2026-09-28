@@ -21,24 +21,7 @@ function NewTabLink({ href, children, ...props }: React.AnchorHTMLAttributes<HTM
   )
 }
 
-function EmailLink({
-  subject,
-  body,
-  children,
-}: {
-  subject: string
-  body: string
-  children: React.ReactNode
-}) {
-  const href = `mailto:contact@kivalens.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  return <a href={href}>{children}</a>
-}
-
-/**
- * Each tab has its own address, so a link can land on the one it means: the
- * footer's "see About for contact information" goes to /about/advanced, where
- * the contact details are, rather than to Getting Started.
- */
+/** Each tab has its own address, so a link can land on the one it means. */
 const TAB_PATHS: Record<string, string> = {
   'getting-started': '/about',
   advanced: '/about/advanced',
@@ -177,22 +160,16 @@ export default function About() {
           <p>
             <SupportEntries look="buttons" />
           </p>
-          <p>
-            {tx('data_sources_and_contact', {
+          {/* Two routes for help: KivaLens itself through Send Feedback (followed up
+              under My Reports), and Kiva's own account and loan questions through
+              Kiva. No email or GitHub-issue route: a report sent any other way cannot
+              be followed under My Reports. */}
+          <p>{tx('kiva_questions_help_center', { helpCenter: <KivaLink path="help">{t('kivas_help_center')}</KivaLink> })}</p>
+          <p className="text-muted">
+            {tx('about_sources_code_team', {
               api: <NewTabLink href="https://build.kiva.org/api">{t('kivas_public_api')}</NewTabLink>,
-              helpCenter: <KivaLink path="help">{t('kivas_help_center')}</KivaLink>,
-              issue: <NewTabLink href="https://github.com/nuclearspike/kivalens/issues">{t('open_issue_github')}</NewTabLink>,
-              email: (
-                <EmailLink subject={t('kivalens_bug')} body={t('bug_report_template')}>
-                  {t('email_me')}
-                </EmailLink>
-              ),
-              team: <KivaLink path="team/kivalens">{t('kivalens_lending_team')}</KivaLink>,
-            })}
-          </p>
-          <p>
-            {tx('open_source_browse_code', {
               code: <NewTabLink href="https://github.com/nuclearspike/kivalens">{t('browse_code_github')}</NewTabLink>,
+              team: <KivaLink path="team/kivalens">{t('kivalens_lending_team')}</KivaLink>,
             })}
           </p>
         </Tab>

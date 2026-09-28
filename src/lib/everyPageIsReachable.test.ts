@@ -19,11 +19,13 @@ const root = process.cwd()
  *   outdated — the app sends a lender here when a link they followed is stale
  *   search — the home page, and the router's destination for anything it does
  *     not recognise
+ *   aboutAdvanced — a tab of the About page: choosing the Advanced tab moves the
+ *     address there (About.tsx TAB_PATHS), and About itself is in the nav
  *
  * A route WITH a parameter is not exempt: it is checked further down for the
  * template link that builds its address from an id.
  */
-const REACHED_WITHOUT_A_LINK = new Set(['outdated', 'search'])
+const REACHED_WITHOUT_A_LINK = new Set(['outdated', 'search', 'aboutAdvanced'])
 
 function walk(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

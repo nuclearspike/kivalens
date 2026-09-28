@@ -13,6 +13,7 @@ import { streamChat, type ChatEvent, type ChatMessage, type ChartSpec } from '..
 import { WELCOME_PROMPT, WELCOME_REPLY } from '../../lib/askKivaLensWelcome'
 import { readAskKivaLensStorage, writeAskKivaLensStorage } from '../../lib/applicationStorage'
 import { useI18n } from '../../i18n'
+import { feedbackFromChatReport, openFeedbackWithChatReport } from '../../lib/chatReport'
 import './AskKivaLens.scss'
 
 const CHART_COLORS = ['#2C8C5E', '#5BA882', '#8AC4A6', '#1f6b46', '#3a9e6d', '#7bbf9b', '#b9dfca', '#155138']
@@ -341,6 +342,10 @@ export default function AskKivaLens() {
           case 'clear_basket':
             useLoanStore.getState().clearBasket()
             break
+          case 'open_feedback':
+            // A problem reported in chat goes where every report goes (src/lib/chatReport.ts).
+            openFeedbackWithChatReport(feedbackFromChatReport(e, t))
+            break
           case 'application_storage_set':
             writeAskKivaLensStorage(e.key, e.value)
             break
@@ -381,6 +386,11 @@ export default function AskKivaLens() {
             setLoading(false)
             abortRef.current = null
             break
+          default: {
+            // A ChatEvent with no case above is a type error here; chatEvents.test.ts checks the server's side.
+            const unhandled: never = e
+            void unhandled
+          }
         }
       }
 

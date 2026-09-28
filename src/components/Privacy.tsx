@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { RAW_DAYS } from '../lib/rum/retention'
 import UsageStatsSwitch from './UsageStatsSwitch'
+import { useSupportStore } from '../support/supportStore'
 
 // Privacy policy. KivaLens is an independent tool (not Kiva); it has no accounts
 // of its own. The notable data flow is the "Ask KivaLens" assistant, whose
@@ -122,7 +123,13 @@ export default function Privacy() {
 
       <h3>{t('contact')}</h3>
       <p>
-        {tx('privacy_questions_see_about', { about: <Link to="/about/advanced">{t('about')}</Link> })}
+        {tx('privacy_questions_send_feedback', {
+          feedback: (
+            <button type="button" className="kl-link-button" onClick={() => useSupportStore.getState().openFeedback()}>
+              {t('send_feedback')}
+            </button>
+          ),
+        })}
       </p>
     </Container>
   )

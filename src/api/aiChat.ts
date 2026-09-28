@@ -31,6 +31,7 @@ export type ChatEvent =
   | { type: 'delete_search'; name: string }
   | { type: 'reset_criteria' }
   | { type: 'reset_chat' }
+  | { type: 'open_feedback'; kind: 'bug'; summary: string; expected?: string; actual?: string; where?: string }
   | { type: 'application_storage_set'; key: string; value: string }
   | { type: 'chart'; chart: ChartSpec }
   | { type: 'error'; message: string }

@@ -13,10 +13,12 @@ import { pageMeta } from '../../server/pageMeta.mjs'
 import { buildSitemap } from '../../server/sitemap.mjs'
 
 /**
- * Paul: "when clicking About, it should take you to the Advanced tab since
- * that's where all the contact info is. have different URLs have /about and
- * about/advanced". The footer says "See About for contact information", and the
- * contact details are on the Advanced tab.
+ * Paul: "have different URLs have /about and about/advanced". Each About tab has
+ * its own address. Help lives on Advanced: Send Feedback and My Reports for
+ * KivaLens, Kiva's Help Center for Kiva's own questions. Paul, 2026-09-28: "now
+ * that we have bug reporting inside the app we should probably do away with github
+ * reporting (still give addy to review the code) and don't have people email me
+ * directly. let's simplify the options".
  */
 
 function renderAbout(at: string) {
@@ -41,13 +43,17 @@ describe('the About page, one address per tab', () => {
     expect(selectedTab()).toHaveTextContent('Getting Started')
   })
 
-  it('opens on Advanced, with the contact address, at /about/advanced', () => {
+  it('opens on Advanced at /about/advanced, where help is Send Feedback and My Reports, and Kiva for Kiva', () => {
     renderAbout('/about/advanced')
     expect(selectedTab()).toHaveTextContent('Advanced')
-    const contact = screen
-      .getAllByRole('link')
-      .some((a) => a.getAttribute('href')?.startsWith('mailto:contact@kivalens.org'))
-    expect(contact).toBe(true)
+    expect(screen.getByRole('button', { name: 'Send Feedback' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'My Reports' })).toBeInTheDocument()
+    const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href') ?? '')
+    expect(hrefs.some((h) => h.includes('kiva.org/help'))).toBe(true)
+    // The code stays open to read; reports never go by email or GitHub issue.
+    expect(hrefs).toContain('https://github.com/nuclearspike/kivalens')
+    expect(hrefs.some((h) => h.startsWith('mailto:'))).toBe(false)
+    expect(hrefs.some((h) => h.includes('/issues'))).toBe(false)
   })
 
   it('takes the address with it when the lender switches tab, and back', () => {
@@ -76,23 +82,27 @@ describe('the About page, one address per tab', () => {
   })
 })
 
-describe('the links that promise contact details', () => {
+describe('no link promises contact details: help is Send Feedback', () => {
   const read = (file: string) => readFileSync(path.join(process.cwd(), file), 'utf8')
 
   afterEach(cleanup)
 
-  it('land on the Advanced tab: the footer', () => {
+  it('the footer says KivaLens is independent and offers Privacy, Send Feedback and My Reports', () => {
     render(
       <MemoryRouter>
         <KLFooter />
       </MemoryRouter>,
     )
-    // The sentence is "See About for contact information"; its About is the link.
-    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about/advanced')
+    expect(screen.getByText(/KivaLens is an independent tool, not run by Kiva\.org\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
+    expect(screen.getByRole('button', { name: 'Send Feedback' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'My Reports' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'About' })).toBeNull()
   })
 
-  it('land on the Advanced tab: the privacy page', () => {
-    expect(read('src/components/Privacy.tsx')).toContain('about: <Link to="/about/advanced">')
+  it('the privacy page sends questions to Send Feedback', () => {
+    expect(read('src/components/Privacy.tsx')).toContain("tx('privacy_questions_send_feedback'")
+    expect(read('src/components/Privacy.tsx')).toContain('useSupportStore.getState().openFeedback()')
   })
 
   it('leave the nav and "learn more" on the page itself', () => {

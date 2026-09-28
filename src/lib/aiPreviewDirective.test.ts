@@ -284,10 +284,24 @@ describe('set_criteria — broadening guard', () => {
 })
 
 describe('report_bug', () => {
-  // Most users have no GitHub account, so this chat is the only channel they
-  // have. The tool CALL is what makes the report machine-visible to the digest.
-  const report = (args: Record<string, unknown>) =>
-    execTool('report_bug', args, { state, lenderId: null, criteria: emptyCriteria() }, () => {})
+  // A problem reported in chat goes where every report goes: Send Feedback opens
+  // with it filled in. The tool CALL is also what makes it visible to the digest.
+  const report = (args: Record<string, unknown>, sse: (e: unknown) => void = () => {}) =>
+    execTool('report_bug', args, { state, lenderId: null, criteria: emptyCriteria() }, sse)
+
+  it('opens Send Feedback on the page with the report filled in, and never points to GitHub or email', async () => {
+    const events: unknown[] = []
+    const r = await report({ summary: 'saved searches vanished', actual: 'the list is empty', where: 'Saved page' }, (e) => events.push(e))
+    expect(events).toEqual([{ type: 'open_feedback', kind: 'bug', summary: 'saved searches vanished', expected: '', actual: 'the list is empty', where: 'Saved page' }])
+    expect(r.note).toMatch(/My Reports/)
+    expect(r.note).toMatch(/Never mention GitHub or email/)
+  })
+
+  it('opens nothing for a report with no summary', async () => {
+    const events: unknown[] = []
+    await report({}, (e) => events.push(e))
+    expect(events).toEqual([])
+  })
 
   it('records what the user described', async () => {
     const r = await report({
