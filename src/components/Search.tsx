@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useCriteriaInUrl } from '../lib/useCriteriaInUrl'
 import { useRevealOnOpen } from '../lib/useRevealOnOpen'
 import { Container, Col, Row, Alert } from '../ui'
@@ -13,20 +13,19 @@ import FilteringProgress from './FilteringProgress'
 import ResultsHeader from './ResultsHeader'
 import BulkAddModal from './BulkAddModal'
 import { NoResultsHelp } from './NoResultsHelp'
-import { WELCOME_PROMPT } from '../lib/askKivaLensWelcome'
-import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { parseSearchPreset, parseSearchPresetTab } from '../lib/searchPreset'
 import { useI18n } from '../i18n'
 import { pluralCategory } from '../lib/pluralCategory'
 import { useShowCriteria } from '../lib/criteriaVisibility'
 import BalancingNote from './BalancingNote'
+import SearchHome from './SearchHome'
 
 // ---------------------------------------------------------------------------
 // Search page — criteria panel + loan list + detail area
 // ---------------------------------------------------------------------------
 
 export function Search() {
-  const { t, tx, number, locale } = useI18n()
+  const { t, number, locale } = useI18n()
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
   const downloading = useLoanStore((s) => s.downloading)
   const secondaryStatus = useLoanStore((s) => s.secondaryStatus)
@@ -46,9 +45,6 @@ export function Search() {
   const detailRef = useRevealOnOpen<HTMLDivElement>()
   const setSelectedId = useLoanStore((s) => s.setSelectedId)
   const { id: routeLoanId } = useParams<{ id: string }>()
-  const hasLenderId = Boolean(useUtilsStore((s) => s.lenderId))
-  const aiServerEnabled = useUtilsStore((s) => s.aiServerEnabled)
-  const aiWidgetDisabled = useUtilsStore((s) => s.aiWidgetDisabled)
   const [searchParams, setSearchParams] = useSearchParams()
   const presetHandled = useRef(false)
 
@@ -80,7 +76,7 @@ export function Search() {
   // then takes itself out of the address, so this turns on by that same render.
   useCriteriaInUrl(!searchParams.has('preset') && !searchParams.has('tab'))
 
-  // /loans/:id pre-selects the loan; plain /search shows the welcome panel.
+  // /loans/:id pre-selects the loan; plain /search shows the start panel (SearchHome).
   // The URL is the source of truth for the right-hand panel.
   useEffect(() => {
     setSelectedId(routeLoanId ? parseInt(routeLoanId, 10) : null)
@@ -172,71 +168,12 @@ export function Search() {
           />
         </Col>
 
-        {/* Loan detail panel / Welcome panel */}
+        {/* Loan detail panel, or the start panel when no loan is open */}
         <Col ref={detailRef} md={detailCol} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 60px)', borderLeft: '1px solid var(--kl-border)' }}>
           {selectedId ? (
             <Loan loanId={selectedId} />
           ) : (
-            <div className="p-3">
-              <h2 style={{ marginTop: 0, color: 'var(--kl-green-text)' }}>{t('welcome_kivalens')}</h2>
-              <h4>{t('quick_start')}</h4>
-              <ol style={{ paddingLeft: 18, lineHeight: 1.8 }}>
-                <li>{t('use_criteria_left_filter_loans')}</li>
-                <li>{t('click_loan_review_details_repayment')}</li>
-                <li>{t('click_lend_loans_like')}</li>
-                <li>{t('go_basket_tab_transfer_loans')}</li>
-              </ol>
-              {aiServerEnabled && !aiWidgetDisabled ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    useUtilsStore
-                      .getState()
-                      .openAskKl(t(WELCOME_PROMPT))
-                  }
-                  style={{
-                    marginTop: 8,
-                    background: 'var(--kl-green)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 999,
-                    padding: '10px 18px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('need_help_getting_started_chat')}
-                </button>
-              ) : null}
-              {!hasLenderId ? (
-                <div
-                  style={{
-                    marginTop: 16,
-                    padding: '12px 16px',
-                    background: 'var(--kl-green-light)',
-                    borderRadius: 6,
-                    border: '1px solid var(--kl-green-border)',
-                  }}
-                >
-                  {tx('set_lender_id_purpose', {
-                    link: (
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          showLenderIDModal()
-                        }}
-                      >
-                        {t('set_lender_id_2')}
-                      </a>
-                    ),
-                  })}
-                </div>
-              ) : null}
-              <div style={{ marginTop: 16 }}>
-                <Link to="/about">{t('learn_more')}</Link>
-              </div>
-            </div>
+            <SearchHome />
           )}
         </Col>
       </Row>

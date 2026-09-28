@@ -1974,3 +1974,125 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+// ---------------------------------------------------------------------------
+// Search start panel (src/components/SearchHome.tsx): one card per stage the
+// lender is in. The stack owns the gaps (Paul's rule 3); cards size to content.
+// ---------------------------------------------------------------------------
+.kl-home {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+.kl-home-heading {
+  margin: 0;
+  color: var(--kl-green-text);
+}
+.kl-home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--kl-border);
+  border-radius: 8px;
+  background: var(--kl-surface);
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  p {
+    margin: 0;
+  }
+  &.kl-home-card-attention {
+    border-color: var(--kl-warning);
+    box-shadow: inset 3px 0 0 var(--kl-warning);
+  }
+  .kl-spread-line {
+    margin: 0;
+  }
+}
+.kl-home-note {
+  font-size: 13px;
+  color: var(--kl-text-muted);
+}
+.kl-home-summary {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+// Always present while the basket has loans; only its words change (rule 43).
+.kl-home-status {
+  font-size: 13px;
+  color: var(--kl-text-muted);
+  &.kl-home-status-attention {
+    color: var(--kl-pill-warn-text);
+    font-weight: 600;
+  }
+}
+.kl-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.kl-home-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kl-home-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+}
+// A name wraps rather than ending in an ellipsis: a cut-off name hides what Open will
+// search for, and German names run about a third longer than English ones.
+.kl-home-row-name {
+  overflow-wrap: anywhere;
+}
+.kl-home-row-count {
+  color: var(--kl-text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kl-home-new {
+  color: var(--kl-green-text);
+  font-weight: 600;
+  font-size: 13px;
+}
+.kl-home-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  img {
+    display: block;
+    border-radius: 6px;
+  }
+}
+.kl-home-steps {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.7;
+}
+.kl-home-done {
+  color: var(--kl-green-text);
+  font-weight: 600;
+  font-size: 13px;
+}

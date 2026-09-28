@@ -98,6 +98,20 @@ export const EVENTS: Record<string, string> = {
   rss_copy: 'RSS feed link copied',
 }
 
+/** The Search start panel's cards (src/lib/searchStages.ts), for home:<stage> actions. */
+export const HOME_CARDS: Record<string, string> = {
+  link: 'A search from a link',
+  back_from_kiva: 'Back from Kiva',
+  basket: 'Basket waiting',
+  few_results: 'Only a few results',
+  new_since: 'Since the last visit',
+  continuing: 'Where you left off',
+  saved: 'Saved searches',
+  lender: 'Their Kiva lending',
+  lender_pitch: 'Add a lender ID',
+  first_visit: 'First visit',
+}
+
 /** A built-in saved search's name is its catalog key. */
 export function presetName(key: string): string {
   const name = (en as Record<string, string>)[key]
@@ -112,6 +126,7 @@ export function labelsForDashboard(): Record<string, unknown> {
     modes: MODES,
     pages: PAGES,
     events: EVENTS,
+    home: HOME_CARDS,
     presets: Object.fromEntries(
       Object.keys(en)
         .filter((k) => /^[a-z0-9_]+$/.test(k))

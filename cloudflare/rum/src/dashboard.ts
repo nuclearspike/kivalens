@@ -375,6 +375,7 @@ function render(d) {
   col2.appendChild(namedPanel('Pages', 'Share of browsers that went to each page, and how many times.', d.pages, function (k) { return L.pages[k] || k; }, T.browsers, { nameHead: 'Page' }));
   col2.appendChild(namedPanel('Actions', 'Built-in saved searches are named; a lender\\u2019s own are counted together.', d.events, function (k) {
     if (k.indexOf('preset:') === 0) { var n = k.slice(7); return 'Built-in search: ' + (L.presets[n] || n); }
+    if (k.indexOf('home:') === 0) { var h = k.slice(5); return 'Start panel: ' + (L.home[h] || h); }
     return L.events[k] || k;
   }, T.browsers, { nameHead: 'Action' }));
   col3.appendChild(namedPanel('Where visits start', 'The page each page load began on, for every page load (including browsers that do not share usage).', d.landing, function (k) { return L.pages[k] || k; }, T.pages, { nameHead: 'Page', shareHead: 'Loads', countHead: 'Count', shareText: function (it) { return pct(it.count, T.pages); } }));

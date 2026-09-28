@@ -4,6 +4,9 @@ import { deviceClass, routeLabel, shouldMeasure } from './config'
 import { ERROR_FLUSH_DELAY_MS, MAX_DISTINCT_ERRORS, installErrorReporting, recordError, resetErrorsForTests, takeErrors } from './errors'
 import { cleanMetrics, readMarks, readResources, type RumPayload } from './payload'
 import { MAX_BEACON_BYTES, send } from './send'
+// Imported up front: the measurement module brings the stores (usage statistics),
+// which is too slow to load inside a test's time limit on a busy machine.
+import { startRum } from './index'
 
 /**
  * Real-user measurement on the page: what is reported, and what never is.
@@ -239,7 +242,6 @@ describe('a page report', () => {
       sent.push(String(init.body))
       return Promise.resolve(new Response(null, { status: 204 }))
     })
-    const { startRum } = await import('./index')
     startRum({ view, route: routeLabel(location.pathname), version: '2026.9.25', collector: 'https://rum.kivalens.org/v1/beacon' })
     performance.mark('kl:catalog:start')
     performance.mark('kl:catalog:done', { detail: { source: 'kl' } })

@@ -33,6 +33,7 @@ import {
   type MixFilter,
 } from '../lib/basketMix'
 import { useActiveExposure } from '../lib/useActiveExposure'
+import { basketNoticeText } from '../lib/basketNotice'
 import {
   buildBasketRepayments,
   type BasketRepaymentMonth,
@@ -301,7 +302,7 @@ function BasketRepaymentChart({
  */
 export default function Basket() {
   const i18n = useI18n()
-  const { t, number, currency } = i18n
+  const { t, number, currency, locale } = i18n
   const getBasket = useLoanStore((s) => s.getBasket)
   const clearBasket = useLoanStore((s) => s.clearBasket)
   const removeFromBasket = useLoanStore((s) => s.removeFromBasket)
@@ -709,7 +710,7 @@ export default function Basket() {
             className="alert alert-warning d-flex justify-content-between align-items-start mt-2"
             role="alert"
           >
-            <span>{basketNotice}</span>
+            <span>{basketNoticeText(basketNotice, t, locale, number)}</span>
             <button
               type="button"
               className="btn-close ms-2"

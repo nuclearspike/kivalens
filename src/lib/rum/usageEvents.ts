@@ -27,9 +27,9 @@ function bump(map: Map<string, number>, name: string, by: number) {
   map.set(name, (map.get(name) ?? 0) + by)
 }
 
-/** The actions counted, besides preset:<name> for a built-in saved search loaded. */
+/** The actions counted, besides preset:<name> for a built-in saved search loaded and home:<stage> for a start-panel card used. */
 export const USAGE_EVENTS = ['basket_add', 'checkout', 'checkout_loans', 'saved_load', 'history_restore', 'rss_copy'] as const
-export type UsageEvent = (typeof USAGE_EVENTS)[number] | `preset:${string}`
+export type UsageEvent = (typeof USAGE_EVENTS)[number] | `preset:${string}` | `home:${string}`
 
 /** A named action (USAGE_EVENTS, or preset:<name> for a built-in saved search). */
 export function noteEvent(name: UsageEvent, by = 1): void {

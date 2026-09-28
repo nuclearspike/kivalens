@@ -2,7 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FIELD_GROUP } from '../../../server/criteriaFields.mjs'
 import { ROUTES } from '../../../server/routeMap.mjs'
-import { CRITERIA, EVENTS, PAGES, PRESET_KEYS } from '../../../cloudflare/rum/src/labels'
+import { CRITERIA, EVENTS, HOME_CARDS, PAGES, PRESET_KEYS } from '../../../cloudflare/rum/src/labels'
+import { STAGE_IDS } from '../searchStages'
 import { useCriteriaHistory } from '../../stores/criteriaHistoryStore'
 import { DEFAULT_SAVED_SEARCH_NAMES, useCriteriaStore } from '../../stores/criteriaStore'
 import { useLoanStore } from '../../stores/loanStore'
@@ -201,5 +202,6 @@ describe('the dashboard can name everything the page reports', () => {
     for (const extra of ['root', 'other']) expect(PAGES[extra], extra).toBeTruthy()
     for (const event of USAGE_EVENTS) expect(EVENTS[event], event).toBeTruthy()
     expect([...PRESET_KEYS].sort()).toEqual([...DEFAULT_SAVED_SEARCH_NAMES].sort())
+    for (const stage of STAGE_IDS) expect(HOME_CARDS[stage], stage).toBeTruthy()
   })
 })

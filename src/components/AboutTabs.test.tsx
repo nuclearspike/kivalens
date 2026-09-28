@@ -97,7 +97,8 @@ describe('the links that promise contact details', () => {
 
   it('leave the nav and "learn more" on the page itself', () => {
     expect(read('src/components/KLNav.tsx')).toContain('<Nav.Link as={Link} to="/about"')
-    expect(read('src/components/Search.tsx')).toContain('<Link to="/about">')
+    // Learn more sits in the Search start panel's quick start (SearchHome.tsx).
+    expect(read('src/components/SearchHome.tsx')).toContain('<Link className="kl-home-link" to="/about">')
   })
 })
 

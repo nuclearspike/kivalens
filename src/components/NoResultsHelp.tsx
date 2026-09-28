@@ -3,7 +3,7 @@ import { Alert, Button } from '../ui'
 import { useCriteriaStore } from '../stores/criteriaStore'
 import { useUtilsStore } from '../stores/utilsStore'
 import { getKivaLoans } from '../api/kiva'
-import { activeCriteria } from '../lib/criteriaActive'
+import { removalSuggestions } from '../lib/removalSuggestions'
 import { labelOf as criteriaLabel, valueOf as criteriaValue } from '../lib/describeCriteria'
 import { useI18n } from '../i18n'
 
@@ -19,23 +19,7 @@ export function NoResultsHelp() {
   const openAskKl = useUtilsStore((s) => s.openAskKl)
   const lenderId = useUtilsStore((s) => s.lenderId)
 
-  const items = useMemo(() => {
-    const kl = getKivaLoans()
-    const ready = kl.isReady()
-    return activeCriteria(lastKnown)
-      // "Exclude loans I funded" only constrains results when a lender id is set.
-      .filter((a) => a.id !== 'portfolio.exclude' || !!lenderId)
-      .map((a) => {
-        let count = 0
-        try {
-          count = ready ? kl.filter(a.without(lastKnown), false).length : 0
-        } catch {
-          count = 0
-        }
-        return { ...a, count }
-      })
-      .sort((x, y) => y.count - x.count)
-  }, [lastKnown, lenderId])
+  const items = useMemo(() => removalSuggestions(lastKnown, lenderId, getKivaLoans()), [lastKnown, lenderId])
 
   // Said the way the criteria history says it (src/lib/describeCriteria.ts):
   // countries and field partners by name, exclusions as exclusions.

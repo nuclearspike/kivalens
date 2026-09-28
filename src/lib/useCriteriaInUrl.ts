@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCriteriaStore } from '../stores'
 import { criteriaFromParams, hasCriteriaParams, withCriteria } from '../../server/criteriaUrl.mjs'
+import { noteLinkArrival } from './arrival'
 
 // The address is rewritten once the lender stops changing things, not on every
 // keystroke in Use or Description: browsers rate-limit history writes, and an
@@ -38,6 +39,9 @@ export function useCriteriaInUrl(active: boolean) {
     if (!hasCriteriaParams(searchParams)) return
     const fromUrl = criteriaFromParams(searchParams)
     if (!fromUrl) return
+    // Remembered with the search it replaces, so the start panel can offer both
+    // (src/lib/arrival.ts); an address naming the search already here is a reload.
+    noteLinkArrival(fromUrl, useCriteriaStore.getState().lastKnown)
     useCriteriaStore.getState().setCriteria(fromUrl)
     // These criteria came from a link, not from a saved search, so the switcher
     // stops naming one.

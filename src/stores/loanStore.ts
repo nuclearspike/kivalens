@@ -20,6 +20,13 @@ import { afterNextPaint } from '../lib/afterNextPaint'
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * A change to the basket the lender did not make: loans that finished funding or
+ * are gone from Kiva, amounts lowered to what a loan still needs. Counts, so the
+ * page says them in the lender's language; a string is a message already translated.
+ */
+export type BasketNotice = string | { funded: number; lowered: number } | { unavailable: number }
+
 export interface BasketEntry {
   id: number
   amount: number
@@ -92,7 +99,8 @@ export interface LoanState {
   /** Background resync state label */
   backgroundResyncState: string | null
   /** Transient notice shown when the basket is auto-adjusted (loans removed/capped) */
-  basketNotice: string | null
+  /** What the basket page tells the lender changed: text already in their language, or counts it words (BasketNoticeText). */
+  basketNotice: BasketNotice | null
   /** True while the lender's funded-loan list is downloading (portfolio exclusion pending) */
   lenderLoansLoading: boolean
   /** Async dependencies that can still change an active filtering result. */
@@ -133,7 +141,7 @@ export interface LoanActions {
   setRunningTotals: (totals: RunningTotals | null) => void
   setSecondaryStatus: (label: string | null) => void
   setBackgroundResyncState: (state: string | null) => void
-  setBasketNotice: (msg: string | null) => void
+  setBasketNotice: (msg: BasketNotice | null) => void
   setLenderLoansLoading: (loading: boolean) => void
   setFilterDependencyLoading: (key: string, loading: boolean) => void
   /** Record the loan ids sent to Kiva so the outcome can be reconciled on return */
@@ -294,14 +302,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
             const orig = originalAmounts.get(bi.loan_id)
             if (orig != null && bi.amount < orig) reduced++
           }
-          if (removed > 0 || reduced > 0) {
-            const parts: string[] = []
-            if (removed > 0)
-              parts.push(`${removed} loan${removed === 1 ? '' : 's'} removed (finished funding)`)
-            if (reduced > 0)
-              parts.push(`${reduced} amount${reduced === 1 ? '' : 's'} lowered to what's still needed`)
-            state.basketNotice = `Basket updated: ${parts.join('; ')}.`
-          }
+          if (removed > 0 || reduced > 0) state.basketNotice = { funded: removed, lowered: reduced }
         })
       },
 
@@ -371,9 +372,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
           }
           if (removeIds.length) {
             s.basket = s.basket.filter((bi) => !removeIds.includes(bi.loan_id))
-            s.basketNotice =
-              `${removeIds.length} loan${removeIds.length === 1 ? '' : 's'} removed from your ` +
-              `basket (no longer available on Kiva).`
+            s.basketNotice = { unavailable: removeIds.length }
           }
         })
       },
@@ -498,7 +497,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         })
       },
 
-      setBasketNotice: (msg: string | null) => {
+      setBasketNotice: (msg: BasketNotice | null) => {
         set((state) => {
           state.basketNotice = msg
         })

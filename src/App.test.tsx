@@ -120,7 +120,7 @@ describe('moving between pages never reloads the app', () => {
       ['src/components/LoanListItem.tsx', 'pathname: `/loans/${loan.id}`'],
       ['src/components/Partners.tsx', 'to={`/partners/${partner.id}`}'],
       ['src/components/Criteria.tsx', 'as={Link} to="/saved"'],
-      ['src/components/Search.tsx', '<Link to="/about">'],
+      ['src/components/SearchHome.tsx', '<Link className="kl-home-link" to="/about">'],
       ['src/components/AskKivaLens/AskKivaLens.tsx', '<Link to="/privacy">'],
     ]
     for (const [file, marker] of rows) {
