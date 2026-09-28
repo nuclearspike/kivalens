@@ -21,12 +21,15 @@ updates:
         update-types:
           - major
     ignore:
-      # Node is pinned to 24.x by the engines field + Heroku stack; major bumps
-      # here are a deliberate platform decision, not a dependency update.
+      # A Node major is a platform decision, not a dependency update. Production
+      # runs Node 22.x (package.json engines; Heroku installs the newest 22.x at
+      # build) while local development and the tests run Node 24, the major these
+      # types describe, so an API newer than Node 22 type-checks here and fails
+      # on Heroku.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
-      # TypeScript 7 is not installable here yet: typescript-eslint (8.67.0, the
-      # latest) peers typescript ">=4.8.4 <6.1.0", so a TS 7 tree fails `npm ci`
+      # TypeScript 7 is not installable here: typescript-eslint (8.70.1, the latest
+      # on 2026-09-28) peers typescript ">=4.8.4 <6.1.0", so a TS 7 tree fails `npm ci`
       # with ERESOLVE — and Heroku installs with npm ci, so it would break the
       # deploy rather than just CI. Verified 2026-08-22: build and 371 tests pass
       # under TS 7, npm ci does not. Drop this entry once typescript-eslint
