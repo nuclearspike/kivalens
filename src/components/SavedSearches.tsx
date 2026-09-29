@@ -124,11 +124,14 @@ export function SavedSearches() {
   }, [savedSearches, refreshList])
 
   const loanCount = useLoanStore((s) => s.loanCount)
+  const balancerDataVersion = useLoanStore((s) => s.balancerDataVersion)
 
   const selectedCrit = selected ? getSavedSearch(selected) : undefined
   const summary = useMemo(() => summarizeCriteria(selectedCrit, t, sector), [selectedCrit, t, sector])
   const checkedNames = useMemo(() => searches.filter((n) => checked[n]), [searches, checked])
 
+  // Undefined while the search waits for part of the lender's portfolio (countSavedSearch);
+  // balancerDataVersion counts it again when that arrives.
   const matchingCount = useMemo(() => {
     if (!selected) return 0
     const kl = getKivaLoans()
@@ -136,12 +139,12 @@ export function SavedSearches() {
     const crit = getSavedSearch(selected)
     if (!crit) return 0
     return countSavedSearch(kl, crit)
-  }, [selected, getSavedSearch, loanCount])
+  }, [selected, getSavedSearch, loanCount, balancerDataVersion])
 
   const searchCounts = useMemo(() => {
     const kl = getKivaLoans()
-    if (!kl?.isReady()) return {} as Record<string, number>
-    const counts: Record<string, number> = {}
+    if (!kl?.isReady()) return {} as Record<string, number | undefined>
+    const counts: Record<string, number | undefined> = {}
     for (const name of searches) {
       const crit = savedSearches[name]
       if (crit) {
@@ -149,7 +152,7 @@ export function SavedSearches() {
       }
     }
     return counts
-  }, [searches, savedSearches, loanCount])
+  }, [searches, savedSearches, loanCount, balancerDataVersion])
 
   // A shared link (?import=) carries other lenders' searches. It asks first,
   // names what it would add, and is taken out of the address either way, so a
@@ -442,8 +445,8 @@ export function SavedSearches() {
                     onClick={(e) => handleToggleCheck(name, e)}
                     style={{ marginRight: 6 }}
                   />
-                  {searchCounts[name] != null ? (
-                    <span className="saved-search-count">{searchCounts[name]}</span>
+                  {name in searchCounts ? (
+                    <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
                   ) : null}
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                      {t(name)}
@@ -508,7 +511,7 @@ export function SavedSearches() {
 
               <div style={{ marginBottom: 16 }}>
                 <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--kl-green-text)' }}>
-                  {t('count_matching_loans', { count: number(matchingCount) })}
+                  {t('count_matching_loans', { count: matchingCount === undefined ? '…' : number(matchingCount) })}
                 </span>
               </div>
 

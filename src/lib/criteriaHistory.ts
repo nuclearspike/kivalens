@@ -1,4 +1,5 @@
 import type { Criteria } from '../types'
+import { resolvePartnerMode } from '../../server/loanFilter.mjs'
 
 /**
  * The criteria history: every search the lender has had, newest first, each
@@ -56,9 +57,17 @@ function leaves(value: unknown, prefix = '', out: Leaves = new Map()): Leaves {
   return out
 }
 
-/** A search's identity: what it sets, regardless of key order or empty values. */
+/**
+ * A search's identity: what it sets, regardless of key order or empty values, with
+ * its MFI/Direct mode as it resolves. A fresh search has no mode until the store
+ * writes one in (withPartnerMode); without this a first visit listed "No filters"
+ * twice, one unset and one Both. A stored mode is read as it is, so this costs the
+ * typing that records history nothing more.
+ */
 export function criteriaKey(c: Criteria): string {
-  return JSON.stringify([...leaves(c)].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+  const out = leaves(c)
+  out.set('partner.direct', resolvePartnerMode(c))
+  return JSON.stringify([...out].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
 }
 
 export function changedPaths(before: Criteria, after: Criteria): string[] {
@@ -114,9 +123,17 @@ export function recordStart(state: HistoryState, current: Criteria, now: number)
   return withTop(state, current, now, false, null)
 }
 
-/** Going back to an entry makes it the newest: it is the search in force from now. */
-export function restoreEntry(state: HistoryState, id: string, now: number): HistoryState {
+/**
+ * Going back to an entry makes it the newest: it is the search in force from now.
+ * `runsAs`, when given, is that search as it runs (an entry recorded in Both with
+ * partner criteria comes back in MFI Only), and it replaces what was recorded, so
+ * the change that applies it is not recorded again; any other entry for that same
+ * search goes, so each search is listed once.
+ */
+export function restoreEntry(state: HistoryState, id: string, now: number, runsAs?: Criteria): HistoryState {
   const entry = state.entries.find((e) => e.id === id)
   if (!entry) return state
-  return { entries: [{ ...entry, at: now }, ...state.entries.filter((e) => e.id !== id)], live: null }
+  const restored = { ...entry, at: now, criteria: runsAs ?? entry.criteria }
+  const key = criteriaKey(restored.criteria)
+  return { entries: [restored, ...state.entries.filter((e) => e.id !== id && criteriaKey(e.criteria) !== key)], live: null }
 }

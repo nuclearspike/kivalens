@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  filterLoans, isFundraising, partnerCriteriaSet, resolvePartnerMode, partnerModeGaps, rangeCounter, rangeDistributions,
+  balancersInUse, filterLoans, isFundraising, partnerCriteriaSet, resolvePartnerMode, partnerModeGaps, rangeCounter, rangeDistributions,
 } from '../../server/loanFilter.mjs'
 
 const mkLoan = (o: Record<string, unknown>) => ({
@@ -272,5 +272,24 @@ describe('sorting: an unknown value never outranks a known one', () => {
     const ids = filterLoans({ partner: { direct: 'both' }, loan: { sort: 'popularity' } }, { loans: popular, activePartners: partners, atheistListProcessed: false })
       .map((l: { id: number }) => l.id)
     expect(ids).toEqual([3, 1, 2])
+  })
+})
+
+describe('balancersInUse: the parts of the portfolio a count of the search waits for', () => {
+  const on = (allactive = 'all') => ({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive, values: [] })
+  it('lists each enabled balancer with its all-or-active, in the Portfolio tab order', () => {
+    expect(balancersInUse({ portfolio: { pb_country: on(), pb_sector: on('active'), pb_region: { ...on(), enabled: false } } })).toEqual([
+      ['sector', 'active'],
+      ['country', 'all'],
+    ])
+    expect(balancersInUse({ portfolio: { exclude_portfolio_loans: 'true' } })).toEqual([])
+    expect(balancersInUse({})).toEqual([])
+  })
+  it('counts balance by partner only in MFI Only, the one mode it applies in', () => {
+    expect(balancersInUse({ partner: { direct: 'mfi' }, portfolio: { pb_partner: on('active') } })).toEqual([['partner', 'active']])
+    // Unset means MFI Only once balance by partner is on (resolvePartnerMode).
+    expect(balancersInUse({ partner: {}, portfolio: { pb_partner: on('active') } })).toEqual([['partner', 'active']])
+    expect(balancersInUse({ partner: { direct: 'both' }, portfolio: { pb_partner: on() } })).toEqual([])
+    expect(balancersInUse({ partner: { direct: 'direct' }, portfolio: { pb_partner: on(), pb_country: on() } })).toEqual([['country', 'all']])
   })
 })

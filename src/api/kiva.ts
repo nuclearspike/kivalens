@@ -1028,6 +1028,17 @@ export class Loans {
     return held?.value.slices ?? null
   }
 
+  /**
+   * A slice this lender's filter will have but does not yet: never read, or being
+   * read. A held copy (even a stale one standing in), no lender ID and a slice Kiva
+   * would not return are all settled: a count made now is what the search gives.
+   */
+  balancerPending = (sliceBy: string, include: string): boolean => {
+    if (!this.lenderId) return false
+    const key = this.balancerKey(sliceBy, include)
+    return !this.balancerData.has(key) && !this.balancerFailed.has(key)
+  }
+
   /** The lender's distribution by one slice, read from Kiva once an hour at most, one request at a time. */
   loadBalancerData(sliceBy: string, include: string): Promise<BalancerResult> {
     const lenderId = this.lenderId

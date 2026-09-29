@@ -43,7 +43,8 @@ const DAY_MS = 86_400_000
 
 interface HomeCounts {
   /** Loans each named search finds now. */
-  searches: Record<string, number>
+  /** Undefined while a search waits for part of the lender's portfolio (countSavedSearch). */
+  searches: Record<string, number | undefined>
   /** Loans posted since the last visit: all of them, those this search finds, and per saved search. */
   newTotal: number
   newMatch: number
@@ -87,6 +88,7 @@ export default function SearchHome() {
   const allLoans = useLoanStore((s) => s.loans)
   const downloading = useLoanStore((s) => s.downloading)
   const filteredLoans = useLoanStore((s) => s.filteredLoans)
+  const balancerDataVersion = useLoanStore((s) => s.balancerDataVersion)
   const lastKnown = useCriteriaStore((s) => s.lastKnown)
   const savedSearches = useCriteriaStore((s) => s.savedSearches)
   const lenderId = useUtilsStore((s) => s.lenderId)
@@ -150,7 +152,7 @@ export default function SearchHome() {
       const names = new Set<string>(ownSaved)
       if (has('first_visit')) STARTING_POINTS.forEach((n) => names.add(n))
       if (has('lender')) PORTFOLIO_POINTS.forEach((n) => names.add(n))
-      const searches: Record<string, number> = {}
+      const searches: Record<string, number | undefined> = {}
       for (const name of names) {
         const crit = savedSearches[name]
         if (crit) searches[name] = countSavedSearch(kl, crit as Criteria)
@@ -179,7 +181,7 @@ export default function SearchHome() {
       setCounts({ searches, newTotal, newMatch, newBySearch, widen })
     }
     // `has` reads `stages`, which stagesKey stands for.
-  }, [loansReady, allLoans, filteredLoans, savedSearches, lastKnown, lenderId, visit.previousEnd, stagesKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loansReady, allLoans, filteredLoans, savedSearches, lastKnown, lenderId, visit.previousEnd, stagesKey, balancerDataVersion]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const one = (v: number) => pluralCategory(locale, v) === 'one'
   const loansText = (count: number | undefined) =>
@@ -247,7 +249,9 @@ export default function SearchHome() {
   const cards: ReactNode[] = []
   for (const stage of stages) {
     if (stage === 'link' && link) {
-      const previousLines = describe(link.previous)
+      // The search the link replaced comes back as it runs, like any other picked from a list.
+      const previous = inSavedSearchMode(link.previous)
+      const previousLines = describe(previous)
       cards.push(
         <Card key={stage} title={t('home_link_title')}>
           <p className="kl-home-summary" title={criteriaDetails(lines, t)}>{criteriaSummary(lines, t)}</p>
@@ -261,7 +265,7 @@ export default function SearchHome() {
                 title={criteriaDetails(previousLines, t)}
                 onClick={() => {
                   act('link')
-                  useCriteriaStore.getState().setCriteria(link.previous)
+                  useCriteriaStore.getState().setCriteria(previous)
                   clearLinkArrival()
                 }}
               >

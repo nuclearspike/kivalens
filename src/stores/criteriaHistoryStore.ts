@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Criteria } from '../types'
 import { EMPTY_HISTORY, MAX_ENTRIES, recordChange, recordStart, restoreEntry, type HistoryEntry, type HistoryState } from '../lib/criteriaHistory'
-import { useCriteriaStore } from './criteriaStore'
+import { inSavedSearchMode, useCriteriaStore } from './criteriaStore'
 import { noteEvent } from '../lib/rum/usageEvents'
 
 /**
@@ -72,7 +72,11 @@ export const useCriteriaHistory = create<CriteriaHistoryStore>((set, get) => ({
   restore: (id) => {
     const entry = get().history.entries.find((e) => e.id === id)
     if (!entry) return
-    const history = restoreEntry(get().history, id, Date.now())
+    // The search as it runs: recorded in Both with partner criteria or balance by
+    // partner (as entries made before that rule were), it comes back in MFI Only,
+    // like a saved search (inSavedSearchMode; Paul, 2026-09-28).
+    const runsAs = inSavedSearchMode(structuredClone(entry.criteria) as Criteria)
+    const history = restoreEntry(get().history, id, Date.now(), runsAs)
     noteEvent('history_restore')
     set({ history, cleared: null })
     save(history)
@@ -80,7 +84,7 @@ export const useCriteriaHistory = create<CriteriaHistoryStore>((set, get) => ({
     // Criteria from the history are not the saved search the switcher last named;
     // its Re-save must not write them over that search.
     criteria.clearLastSwitch()
-    criteria.setCriteria(structuredClone(entry.criteria) as Criteria)
+    criteria.setCriteria(structuredClone(runsAs))
   },
   clear: () => {
     // What is on screen stays, as the one entry: clearing the trail is not a reset.

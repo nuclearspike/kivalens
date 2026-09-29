@@ -261,6 +261,23 @@ describe('MFI or Direct: the mode is written in as criteria arrive', () => {
     expect(countSavedSearch({ filter: () => { throw new Error('not loaded') } }, crit())).toBe(0)
   })
 
+  it("waits to count a search while a balancer it applies is still being read from the lender's portfolio", async () => {
+    const { countSavedSearch } = await import('./criteriaStore')
+    const balancer = (allactive: string) => ({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive, values: [] })
+    const asked: string[] = []
+    const kl = (pending: boolean) => ({ filter: () => [1, 2, 3], balancerPending: (slice: string, include: string) => (asked.push(`${slice}:${include}`), pending) })
+    // Paul, 2026-09-28: Countries I Don't Have counted every country until the portfolio arrived.
+    const countries = crit({ portfolio: { exclude_portfolio_loans: 'true', pb_country: balancer('all') } })
+    expect(countSavedSearch(kl(true), countries)).toBeUndefined()
+    expect(asked).toEqual(['country:all'])
+    expect(countSavedSearch(kl(false), countries)).toBe(3)
+    // Balance Partner Risk stored in Both runs in MFI Only, so it waits for the partner slice.
+    expect(countSavedSearch(kl(true), crit({ partner: { direct: 'both' }, portfolio: { pb_partner: balancer('active') } }))).toBeUndefined()
+    // Nothing to wait for: no balancer, or balance by partner kept in Direct Only, where it applies to nothing.
+    expect(countSavedSearch(kl(true), crit({ loan: { sector: 'Retail' } }))).toBe(3)
+    expect(countSavedSearch(kl(true), crit({ partner: { direct: 'direct' }, portfolio: { pb_partner: balancer('active') } }))).toBe(3)
+  })
+
   it('matches new loans for a saved search in the mode it loads in', () => {
     store().setCriteria(crit({ partner: { direct: 'both', partners: '246' } }))
     store().saveSearch('test-both-with-a-partner')

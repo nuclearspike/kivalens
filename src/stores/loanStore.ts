@@ -107,6 +107,8 @@ export interface LoanState {
   pendingFilterDependencies: string[]
   /** Slices of the lender's portfolio Kiva would not return, so a balancer on them is not applied. */
   balancerFailures: Array<{ sliceBy: string; include: string }>
+  /** Goes up each time part of the lender's portfolio arrives or fails, so counts that waited for it count again. */
+  balancerDataVersion: number
   /** Snapshot of loan ids sent to Kiva at checkout, awaiting outcome confirmation (T1.1) */
   pendingCheckout: { ids: number[]; at: number } | null
 }
@@ -207,6 +209,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       lenderLoansLoading: false,
       pendingFilterDependencies: [],
       balancerFailures: [],
+      balancerDataVersion: 0,
       pendingCheckout: null,
 
       // ---------------------------------------------------------------

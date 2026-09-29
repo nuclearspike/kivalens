@@ -9,7 +9,7 @@ import { cl, wait } from '../lib/utils'
 import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
-import { balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
+import { balancersInUse, balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { freshCriteria } from '../lib/freshCriteria'
 import { noteEvent } from '../lib/rum/usageEvents'
 
@@ -29,11 +29,13 @@ export function withPartnerMode(criteria: Criteria): Criteria {
 }
 
 /**
- * A saved search with partner criteria runs in MFI Only, whatever mode was stored
- * with it. Its partner filters, or its balance by partner, apply only to loans
- * with a field partner: in Both they would be kept and do nothing, and "Balance
- * Partner Risk" would balance nothing (Paul, 2026-09-25). Both is the default, so
- * it is usually what happened to be in force when the search was saved, not a
+ * A search picked from a list runs in MFI Only when it has partner criteria,
+ * whatever mode was stored with it: a saved search (the switcher, the Saved tab,
+ * the Search welcome panel), a History entry, and the search a link replaced.
+ * Its partner filters, or its balance by partner, apply only to loans with a field
+ * partner: in Both they would be kept and do nothing, and "Balance Partner Risk"
+ * would balance nothing (Paul, 2026-09-25 and 2026-09-28). Both is the default, so
+ * it is usually what happened to be in force when the search was recorded, not a
  * choice. This does not replace a stored Direct Only: that is the other side,
  * chosen on purpose.
  */
@@ -44,13 +46,25 @@ export function inSavedSearchMode(criteria: Criteria): Criteria {
   return { ...criteria, partner: { ...criteria.partner, direct: 'mfi' } }
 }
 
-/** How many loans a saved search finds, in the mode it runs in; 0 when it cannot be run. */
+/**
+ * How many loans a saved search finds, in the mode it runs in; 0 when it cannot be
+ * run. Undefined while a balancer it applies is still being read from the lender's
+ * portfolio: until then the filter runs without that balancer's list, and "Countries
+ * I Don't Have" would show every country (Paul, 2026-09-28). Filtering first asks for
+ * the missing part; lists count again when it arrives (loanStore.balancerDataVersion).
+ */
 export function countSavedSearch(
-  kl: { filter: (criteria: Partial<Criteria>, cacheResults?: boolean) => unknown[] },
+  kl: {
+    filter: (criteria: Partial<Criteria>, cacheResults?: boolean) => unknown[]
+    balancerPending?: (sliceBy: string, include: string) => boolean
+  },
   criteria: Criteria,
-): number {
+): number | undefined {
   try {
-    return kl.filter(inSavedSearchMode(criteria), false).length
+    const running = inSavedSearchMode(criteria)
+    const found = kl.filter(running, false).length
+    if (balancersInUse(running).some(([slice, include]) => kl.balancerPending?.(slice, include))) return undefined
+    return found
   } catch {
     return 0
   }

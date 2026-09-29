@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Dropdown } from '../ui'
-import { useCriteriaStore } from '../stores'
+import { useCriteriaStore, useLoanStore } from '../stores'
 import { countSavedSearch } from '../stores/criteriaStore'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
@@ -38,7 +38,9 @@ export function SearchSwitcher() {
   const lastSwitch = useCriteriaStore((s) => s.lastSwitch)
 
   const [searchNames, setSearchNames] = useState<string[]>(() => getSavedSearchNames())
-  const [searchCounts, setSearchCounts] = useState<Record<string, number>>({})
+  // A count is undefined while its search waits for part of the lender's portfolio (countSavedSearch).
+  const [searchCounts, setSearchCounts] = useState<Record<string, number | undefined>>({})
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const refreshNames = useCallback(() => {
     const names = getSavedSearchNames()
@@ -46,7 +48,7 @@ export function SearchSwitcher() {
     const kl = getKivaLoans()
     if (kl?.isReady()) {
       const savedSearches = useCriteriaStore.getState().savedSearches
-      const counts: Record<string, number> = {}
+      const counts: Record<string, number | undefined> = {}
       for (const name of names) {
         const crit = savedSearches[name]
         if (crit) {
@@ -56,6 +58,14 @@ export function SearchSwitcher() {
       setSearchCounts(counts)
     }
   }, [getSavedSearchNames])
+
+  // While the menu is open, counts that waited for part of the lender's portfolio count again when it arrives.
+  useEffect(() => {
+    if (!menuOpen) return
+    return useLoanStore.subscribe((s, prev) => {
+      if (s.balancerDataVersion !== prev.balancerDataVersion) refreshNames()
+    })
+  }, [menuOpen, refreshNames])
 
   const handleClear = useCallback(() => {
     startFresh()
@@ -103,7 +113,12 @@ export function SearchSwitcher() {
 
         <CriteriaHistoryMenu />
 
-        <Dropdown onToggle={(isOpen) => { if (isOpen) refreshNames() }}>
+        <Dropdown
+          onToggle={(isOpen) => {
+            setMenuOpen(isOpen)
+            if (isOpen) refreshNames()
+          }}
+        >
           <Dropdown.Toggle size="sm" id="saved-search-dropdown" style={{ flex: 1 }} data-aikl="saved-searches">
             {lastSwitch ? `‘${t(lastSwitch)}’` : t('saved_searches')}
           </Dropdown.Toggle>
@@ -115,8 +130,8 @@ export function SearchSwitcher() {
                 onClick={() => handleLoad(name)}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
-                {searchCounts[name] != null ? (
-                  <span className="saved-search-count">{searchCounts[name]}</span>
+                {name in searchCounts ? (
+                  <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
                 ) : null}
                 <span>{t(name)}</span>
               </Dropdown.Item>

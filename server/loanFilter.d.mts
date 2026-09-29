@@ -123,6 +123,8 @@ export declare function portfolioBalancer<T extends { enabled?: boolean; allacti
   sliceBy: string,
   ctx: FilterContext | undefined,
 ): T
+/** The balancers the search applies, as [slice, all-or-active] pairs (balance by partner only in MFI Only). */
+export declare function balancersInUse(criteria: unknown): Array<[string, string]>
 
 export declare function filterPartnerIds(c: unknown, ctx: FilterContext): number[]
 export declare function filterPartners<T = unknown>(c: unknown, ctx: FilterContext): T[]
@@ -131,8 +133,9 @@ export declare function filterLoans<T = unknown>(c: unknown, ctx: FilterContext)
 export type PartnerMode = 'both' | 'mfi' | 'direct'
 /** True when the search filters on the field partner (judged by the engine's own tests). */
 export declare function partnerCriteriaSet(criteria: unknown): boolean
-/** The MFI/Direct mode: the stored value, or — for a search saved before it existed — MFI when it filters on the partner, else Both. */
+/** Balance by partner is on: it means MFI Only from that moment, before its partner list has been read. */
 export declare function balancesByPartner(criteria: unknown): boolean
+/** The MFI/Direct mode: the stored value, or — for a search saved before it existed — MFI when it filters on the partner, else Both. */
 export declare function resolvePartnerMode(criteria: unknown): PartnerMode
 /** Loans matching every other criterion that the mode or the already-lent filter keeps out of view. */
 export declare function partnerModeGaps(

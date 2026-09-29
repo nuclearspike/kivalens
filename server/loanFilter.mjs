@@ -314,6 +314,21 @@ export function resolveBalancerValues(config, slices, sliceBy) {
     : filtered.map((s) => s.name).filter((v) => v != null)
 }
 
+/**
+ * The balancers this search applies, as [slice, all-or-active] pairs: every enabled
+ * one, except balance by partner outside MFI Only, where partner criteria are kept
+ * but applied to nothing. A count of the search waits while any of these is still
+ * being read from the lender's portfolio (countSavedSearch in src/stores/criteriaStore.ts).
+ */
+export function balancersInUse(c) {
+  const portfolio = c?.portfolio ?? {}
+  const mfi = resolvePartnerMode(c) === 'mfi'
+  return BALANCER_SLICES.filter((slice) => portfolio[`pb_${slice}`]?.enabled && (slice !== 'partner' || mfi)).map((slice) => [
+    slice,
+    portfolio[`pb_${slice}`].allactive ?? 'all',
+  ])
+}
+
 /** The balancer as the filter applies it: its list from the lender's portfolio when ctx has it. */
 export function portfolioBalancer(config, sliceBy, ctx) {
   if (!config?.enabled) return config

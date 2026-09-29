@@ -26,7 +26,7 @@ vi.mock('../lib/dialog', async (orig) => ({ ...(await orig<typeof import('../lib
 const NOW = Date.now()
 const H = 3_600_000
 const kl = getKivaLoans()
-const saved = { loans: kl.indexedLoans, partners: kl.partnersFromKiva, filter: kl.filter, isReady: kl.isReady }
+const saved = { loans: kl.indexedLoans, partners: kl.partnersFromKiva, filter: kl.filter, isReady: kl.isReady, balancerPending: kl.balancerPending }
 const savedSearchesBefore = useCriteriaStore.getState().savedSearches
 
 const loan = (id: number, over: Record<string, unknown> = {}): KivaLoan =>
@@ -75,6 +75,7 @@ afterEach(() => {
   kl.partnersFromKiva = saved.partners
   kl.filter = saved.filter
   kl.isReady = saved.isReady
+  kl.balancerPending = saved.balancerPending
   useLoanStore.setState({ basket: [], pendingCheckout: null })
 })
 
@@ -154,6 +155,22 @@ describe('a search from a link', () => {
     expect(sameSearch(useCriteriaStore.getState().lastKnown, mine)).toBe(true)
     expect(screen.queryByRole('heading', { name: 'A search from a link' })).toBeNull()
   })
+  it('goes back to the search the link replaced in the mode it needs: balancing by partner means MFI Only', async () => {
+    const f = freshCriteria()
+    const mine = {
+      ...f,
+      partner: { ...f.partner, direct: 'both' },
+      portfolio: { ...f.portfolio, pb_partner: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active', values: [] } },
+    } as unknown as Criteria
+    const shared = withSector('Retail')
+    useCriteriaStore.setState({ lastKnown: shared })
+    noteLinkArrival(shared, mine)
+    loansReady()
+    renderHome()
+    fireEvent.click(within(card('A search from a link')).getByRole('button', { name: 'Back to the search you had' }))
+    expect(useCriteriaStore.getState().lastKnown.partner.direct).toBe('mfi')
+    expect(useCriteriaStore.getState().lastKnown.portfolio.pb_partner).toMatchObject({ enabled: true })
+  })
 })
 
 describe('where you left off', () => {
@@ -198,6 +215,26 @@ describe('the lender’s own Kiva lending', () => {
     expect(c).toHaveTextContent('42 loans on Kiva since 2015.')
     await waitFor(() => expect(within(c).getAllByText('3 loans')).toHaveLength(2))
     expect(within(c).getByRole('link', { name: 'See your lending on Stats' })).toHaveAttribute('href', '/stats')
+  })
+
+  it("waits to count a portfolio search until the lender's portfolio has arrived, then counts it", async () => {
+    // Paul, 2026-09-28: Countries I Don't Have looked unbalanced. Its count was made before the
+    // portfolio arrived, so it counted every country.
+    useUtilsStore.setState({ lenderId: 'jane', lenderObj: { lender_id: 'jane', name: 'Jane', loan_count: 42, member_since: '2015-03-01T00:00:00Z' } })
+    let pending = true
+    kl.balancerPending = () => pending
+    loansReady()
+    renderHome()
+    const c = card('Your Kiva lending')
+    // "…" is also what stands before the first count: wait until the counting has run.
+    await waitFor(() => expect(kl.filter).toHaveBeenCalled())
+    await act(async () => {})
+    expect(within(c).getAllByText('… loans')).toHaveLength(2)
+    // Open still works while it waits; the search itself balances when the data comes.
+    within(c).getAllByRole('button', { name: /^Open / }).forEach((b) => expect(b).toBeEnabled())
+    pending = false
+    act(() => useLoanStore.setState((st) => ({ balancerDataVersion: st.balancerDataVersion + 1 })))
+    await waitFor(() => expect(within(c).getAllByText('3 loans')).toHaveLength(2))
   })
 
   it('shows a returning lender without an ID what setting one unlocks', () => {

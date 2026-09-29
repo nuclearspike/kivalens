@@ -123,6 +123,35 @@ describe('the list', () => {
     // And applying it adds nothing: the top already is that search.
     expect(recordChange(restored, state.entries[0].criteria, older.criteria, 10_000_000).entries).toEqual(restored.entries)
   })
+
+  it('takes a search with its mode unset and the same search with the mode written in as one', () => {
+    // A first visit: the store starts with no mode and then writes Both in (withPartnerMode).
+    const start = recordStart(EMPTY_HISTORY, crit({}, {}), 1)
+    const state = recordChange(start, crit({}, {}), crit({}, { direct: 'both' }), 2)
+    expect(state.entries).toHaveLength(1)
+    // A partner filter with no mode is MFI Only, not Both: those stay two searches.
+    const withPartner = recordStart(EMPTY_HISTORY, crit({}, { partners: '246' }), 1)
+    expect(recordChange(withPartner, crit({}, { partners: '246' }), crit({}, { direct: 'both', partners: '246' }), 2).entries).toHaveLength(2)
+  })
+
+  it('goes back to a search as it runs, recorded that way, and keeps it listed once', () => {
+    // Recorded in Both with a partner filter; it runs in MFI Only (inSavedSearchMode).
+    const recorded = crit({ sector: 'Food' }, { direct: 'both', partners: '246' })
+    const runsAs = crit({ sector: 'Food' }, { direct: 'mfi', partners: '246' })
+    const state = play([recorded, [crit({ sector: 'Retail' }), COALESCE_MS + 1], [runsAs, COALESCE_MS + 1], [crit({ sector: 'Arts' }), COALESCE_MS + 1]])
+    expect(state.entries).toHaveLength(4)
+    const old = state.entries[3]
+    const restored = restoreEntry(state, old.id, 9_999_999, runsAs)
+    expect(restored.entries[0]).toMatchObject({ id: old.id, at: 9_999_999, criteria: runsAs })
+    // The MFI copy already listed goes: each search once.
+    expect(restored.entries.map((e) => [(e.criteria.loan as Record<string, unknown>).sector, (e.criteria.partner as Record<string, unknown>).direct])).toEqual([
+      ['Food', 'mfi'],
+      ['Arts', undefined],
+      ['Retail', undefined],
+    ])
+    // And applying it adds nothing: the top already is that search as it runs.
+    expect(recordChange(restored, state.entries[0].criteria, runsAs, 10_000_000).entries).toEqual(restored.entries)
+  })
 })
 
 describe('what counts as a change', () => {

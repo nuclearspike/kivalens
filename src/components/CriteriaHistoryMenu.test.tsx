@@ -90,6 +90,33 @@ describe('the History menu', () => {
     expect(summaries).toEqual(['-', 'KE', '-'])
   })
 
+  it('says and brings back a search that balances by partner in MFI Only, even one recorded in Both', () => {
+    // Paul, 2026-09-28: whatever needs MFI Only switches to it, from History as from Saved Searches.
+    const f = freshCriteria()
+    const balancing = {
+      ...f,
+      loan: { ...f.loan, limit_to: { enabled: true, count: 1, limit_by: 'Partner' } },
+      partner: { ...f.partner, direct: 'both' },
+      portfolio: { ...f.portfolio, pb_partner: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active', values: [] } },
+    } as unknown as Criteria
+    act(() => criteria().setCriteria(balancing))
+    expect(criteria().lastKnown.partner.direct).toBe('both')
+    act(() => criteria().setCriteria(withLoan({ sector: 'Food' })))
+    renderMenu()
+    open()
+    const line = lines().find((l) => l.textContent?.includes('per Partner'))!
+    // The line says what choosing it gives, balancing and all.
+    expect(line.title.split('\n').slice(1)).toEqual(['Limit to 1 per Partner', 'MFI / Direct: MFI Only', 'Balancer: partner'])
+    const before = useCriteriaHistory.getState().history.entries.length
+    fireEvent.click(line)
+    expect(criteria().lastKnown.partner.direct).toBe('mfi')
+    expect(criteria().lastKnown.portfolio.pb_partner).toMatchObject({ enabled: true })
+    // Recorded as it runs, and not twice.
+    const entries = useCriteriaHistory.getState().history.entries
+    expect(entries).toHaveLength(before)
+    expect(entries[0].criteria.partner).toMatchObject({ direct: 'mfi' })
+  })
+
   it('keeps the history across visits, and clears to just the search in force, with a way back', () => {
     act(() => criteria().setCriteria(withLoan({ sector: 'Food' })))
     window.dispatchEvent(new Event('pagehide'))

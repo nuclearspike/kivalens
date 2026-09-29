@@ -6,6 +6,7 @@ import { criteriaKey } from '../lib/criteriaHistory'
 import { criteriaDetails, criteriaSummary, describeCriteria } from '../lib/describeCriteria'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { useCriteriaStore } from '../stores'
+import { inSavedSearchMode } from '../stores/criteriaStore'
 
 /**
  * History, between Reset and Saved Searches: every search the lender has had,
@@ -35,12 +36,14 @@ export default function CriteriaHistoryMenu() {
     const currentKey = criteriaKey(current)
     const describeDeps = { t, data, partnerName: (id: string) => getKivaLoans().getPartner(Number(id))?.name }
     lines = entries.map((entry) => {
-      const described = describeCriteria(entry.criteria, describeDeps)
+      // Each line says what choosing it gives: the search as it runs (restore applies the same rule).
+      const runsAs = inSavedSearchMode(entry.criteria)
+      const described = describeCriteria(runsAs, describeDeps)
       return {
         entry,
         summary: criteriaSummary(described, t),
         details: criteriaDetails(described, t),
-        isCurrent: criteriaKey(entry.criteria) === currentKey,
+        isCurrent: criteriaKey(runsAs) === currentKey,
       }
     })
   }
