@@ -109,6 +109,21 @@ describe('resolveAmbiguousAges', () => {
     expect(loans[0].kls_age).toBeNull()
   })
 
+  it("gives the model the name on the loan, and never asks about an age the story ties to that name (Paul, 2026-09-29)", async () => {
+    answers(null) // the son's age: the model says the borrower's is not stated
+    const loans = [
+      { name: 'Rosa', kls_age: null, description: { texts: { en: 'Her son works in Lima and is 24 years old.' } } }, // asked, with the name
+      { name: 'Zhamalaim', kls_age: null, description: { texts: { en: 'Zhamalaim is 48 and married with two children.' } } }, // settled by the name
+    ]
+    const stats = await resolveAmbiguousAges(loans as never)
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(stats).toMatchObject({ considered: 1, asked: 1 })
+    expect(loans.map((l) => l.kls_age)).toEqual([null, null]) // the second is filled in by the refresh's own read, not here
+    const user = create.mock.calls[0][0].messages.find((m: { role: string }) => m.role === 'user').content
+    expect(user).toBe('Name on the loan: Rosa\n\nHer son works in Lima and is 24 years old.')
+    expect(create.mock.calls[0][0].messages[0].content).toContain('An age the description ties to that name is the borrower')
+  })
+
   it('does nothing, cheaply, when there is nothing to settle', async () => {
     const stats = await resolveAmbiguousAges([] as never)
     expect(stats).toMatchObject({ considered: 0, asked: 0 })

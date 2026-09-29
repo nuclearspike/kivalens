@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': '阿富汗',
   'africa': '非洲',
   'age': '年龄',
-  'age_found_loan_description_set': '从贷款描述中检测到的年龄。将下方滑块设为高于最小值，可排除未检测到年龄的贷款。',
+  'age_found_loan_description_set': '贷款描述中给出的借款人本人的年龄；子女、配偶或其他亲属的年龄不计在内。将下方滑块设为高于最小值，可排除描述中未给出年龄的贷款。',
   'age_mentioned': '提及的年龄',
   'agriculture': '农业',
   'ai': 'AI',

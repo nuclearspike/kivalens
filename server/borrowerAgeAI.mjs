@@ -24,7 +24,8 @@ const MODEL = process.env.OPENAI_AGE_MODEL || process.env.OPENAI_CHAT_MODEL || '
 // A refresh should never be able to run up an unbounded bill, however odd the feed.
 const MAX_CALLS_PER_REFRESH = Number(process.env.AGE_AI_MAX_CALLS) || 150
 const CONCURRENCY = 4
-// The answer depends only on the text, so a cached answer never goes stale.
+// The answer depends only on the story, so a cached answer never goes stale. It is keyed by the
+// text alone: a story is written for one loan, and its name comes with it.
 const CACHE_PREFIX = 'age-ai-'
 
 let _client
@@ -40,7 +41,8 @@ const keyFor = (text) => CACHE_PREFIX + createHash('sha256').update(text).digest
 const PROMPT = `You are reading a Kiva loan description to find the age of THE BORROWER — the person the loan is for.
 
 Rules:
-- Descriptions often give other people's ages: children, a spouse, a parent, a nephew. Never return one of those.
+- The name on the loan comes before the description. An age the description ties to that name is the borrower's.
+- Descriptions often give other people's ages: children (adult children too), a spouse, a parent, a nephew. Never return one of those.
 - Return the borrower's CURRENT age, not an age from their past ("at age 19 she married" is not their age now).
 - An age may be written in words ("fifty-five-year-old").
 - The description may contain a typo ("25 ears old" means 25).
@@ -49,14 +51,14 @@ Rules:
 
 Answer with JSON only: {"age": <integer 18-95>} or {"age": null}`
 
-async function askOne(text) {
+async function askOne(text, name) {
   const api = client()
   if (!api) return { age: null, asked: false }
   const response = await api.chat.completions.create({
     model: MODEL,
     messages: [
       { role: 'system', content: PROMPT },
-      { role: 'user', content: text.slice(0, 4000) },
+      { role: 'user', content: `${name ? `Name on the loan: ${name}\n\n` : ''}${text.slice(0, 4000)}` },
     ],
     response_format: { type: 'json_object' },
     temperature: 0,
@@ -92,7 +94,7 @@ async function cached(text) {
  * Mutates each loan it can answer for and leaves the rest untouched (kls_age stays
  * null). Never throws: a refresh must finish whatever the model does.
  *
- * @param {Array<{ description?: any, kls_age?: number|null }>} loans processed loans
+ * @param {Array<{ name?: string, posted_date?: string, description?: any, kls_age?: number|null }>} loans processed loans
  * @param {(msg: string) => void} log
  */
 export async function resolveAmbiguousAges(loans, log = () => {}) {
@@ -100,7 +102,7 @@ export async function resolveAmbiguousAges(loans, log = () => {}) {
   for (const loan of loans) {
     const text = loan?.description?.texts?.en
     if (!text || loan.kls_age != null) continue
-    if (read(text).confidence === 'ambiguous') pending.push({ loan, text })
+    if (read(text, loan.name, loan.posted_date).confidence === 'ambiguous') pending.push({ loan, text })
   }
   if (!pending.length) return { considered: 0, fromCache: 0, asked: 0, resolved: 0 }
 
@@ -140,7 +142,7 @@ export async function resolveAmbiguousAges(loans, log = () => {}) {
     while (next < queue.length) {
       const item = queue[next++]
       try {
-        const { age, asked } = await askOne(item.text)
+        const { age, asked } = await askOne(item.text, item.loan.name)
         if (!asked) return
         stats.asked += 1
         await cache.set(keyFor(item.text), JSON.stringify(age))

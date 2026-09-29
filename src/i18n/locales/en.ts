@@ -125,7 +125,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afghanistan',
   'africa': 'Africa',
   'age': 'Age',
-  'age_found_loan_description_set': 'Age found in the loan description. Set lower slider above min to exclude loans without detected ages.',
+  'age_found_loan_description_set': 'The borrower\'s own age, as the loan description gives it; the ages of children, a spouse or other relatives are left out. Set the lower slider above the minimum to leave out loans whose description gives no age.',
   'age_mentioned': 'Age Mentioned',
   'agriculture': 'Agriculture',
   'ai': 'AI',

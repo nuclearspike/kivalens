@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afghanistan',
   'africa': 'Afrique',
   'age': 'Âge',
-  'age_found_loan_description_set': 'Âge indiqué dans la description du prêt. Placez le curseur inférieur au-dessus de min pour exclure les prêts sans âge détecté.',
+  'age_found_loan_description_set': 'L’âge de l’emprunteur lui-même, tel que l’indique la description du prêt ; l’âge des enfants, du conjoint ou d’autres proches n’est pas pris en compte. Placez le curseur inférieur au-dessus de min pour exclure les prêts dont la description ne donne pas d’âge.',
   'age_mentioned': 'Âge mentionné',
   'agriculture': 'Agriculture',
   'ai': 'IA',

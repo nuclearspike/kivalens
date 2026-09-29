@@ -389,7 +389,7 @@ export function processLoan(raw) {
   // An age the description cannot settle stays null here; resolveAmbiguousAges()
   // fills those in after the batch is processed, so a child's age is never published
   // as the borrower's.
-  loan.kls_age = ageFrom(readAge(descrText))
+  loan.kls_age = ageFrom(readAge(descrText, loan.name, loan.posted_date))
 
   loan.kl_repayments = []
   const schedPayments = loan.terms?.scheduled_payments

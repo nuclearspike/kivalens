@@ -18,7 +18,7 @@ const commonDescr = [
 // it is read here too — from the one shared implementation, never a second copy.
 // An age the description cannot settle stays null here; only the server asks a
 // model about those, so the browser never publishes a guess.
-export const getAge = (text: string): number | null => ageFrom(readAge(text))
+export const getAge = (text: string, name?: string | null, postedDate?: string | null): number | null => ageFrom(readAge(text, name, postedDate))
 
 export class ResultProcessors {
   static processLoans(loans: any[]): any[] {
@@ -88,7 +88,7 @@ export class ResultProcessors {
     }
 
     if (loan.kls_age == null) {
-      loan.kls_age = getAge(descriptionText || '')
+      loan.kls_age = getAge(descriptionText || '', loan.name, loan.posted_date)
     }
   }
 

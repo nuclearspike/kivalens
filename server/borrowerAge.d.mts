@@ -8,8 +8,14 @@ export interface AgeReading {
   why: string
 }
 
-/** Reads the borrower's age out of a loan description. */
-export declare function read(text: string | null | undefined): AgeReading
+/**
+ * Reads the borrower's age out of a loan description. `name` is the name on the loan: an age tied
+ * to it is the borrower's, and every other age is then left out. `asOf` is when the story was
+ * written (the loan's posted date, or a year); a birth year counts as the age it gives then.
+ */
+export declare function read(text: string | null | undefined, name?: string | null, asOf?: string | number | Date | null): AgeReading
+/** The words of the name on the loan that a story may call the borrower by. */
+export declare function nameTokens(name: string | null | undefined): string[]
 /** True when the reading should go to resolveAmbiguousAges() before being published. */
 export declare function needsReview(result: AgeReading): boolean
 /** The age safe to publish from the text alone (null while a reading is ambiguous). */

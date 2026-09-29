@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afghanistan',
   'africa': 'Africa',
   'age': 'Età',
-  'age_found_loan_description_set': 'Età trovata nella descrizione del prestito. Imposta il dispositivo di scorrimento inferiore sopra il minimo per escludere i prestiti senza età rilevata.',
+  'age_found_loan_description_set': 'L’età del mutuatario stesso, come la riporta la descrizione del prestito; le età di figli, coniuge o altri familiari non contano. Imposta il dispositivo di scorrimento inferiore sopra il minimo per escludere i prestiti la cui descrizione non riporta un’età.',
   'age_mentioned': 'Età menzionata',
   'agriculture': 'Agricoltura',
   'ai': 'AI',

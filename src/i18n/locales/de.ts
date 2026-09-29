@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afghanistan',
   'africa': 'Afrika',
   'age': 'Alter',
-  'age_found_loan_description_set': 'Alter in der Kreditbeschreibung angegeben. Stellen Sie den unteren Schieberegler über „Min“, um Kredite ohne erkanntes Alter auszuschließen.',
+  'age_found_loan_description_set': 'Das eigene Alter der Kreditnehmerin oder des Kreditnehmers laut Kreditbeschreibung; das Alter von Kindern, Ehepartnern oder anderen Angehörigen zählt nicht. Stellen Sie den unteren Schieberegler über „Min“, um Kredite ohne angegebenes Alter auszuschließen.',
   'age_mentioned': 'Alter angegeben',
   'agriculture': 'Landwirtschaft',
   'ai': 'KI',

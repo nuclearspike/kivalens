@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afganistán',
   'africa': 'África',
   'age': 'Edad',
-  'age_found_loan_description_set': 'Edad encontrada en la descripción del préstamo. Establezca el control deslizante inferior encima del mínimo para excluir préstamos sin edades detectadas.',
+  'age_found_loan_description_set': 'La edad del propio prestatario, según la descripción del préstamo; no cuentan las edades de hijos, cónyuge u otros familiares. Coloque el control deslizante inferior por encima del mínimo para excluir los préstamos cuya descripción no da una edad.',
   'age_mentioned': 'Edad mencionada',
   'agriculture': 'agricultura',
   'ai': 'IA',

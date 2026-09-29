@@ -122,7 +122,7 @@ const catalog: Record<string, string> = {
   'afghanistan': 'Afghanistan',
   'africa': 'Afrika',
   'age': 'Leeftijd',
-  'age_found_loan_description_set': 'Leeftijd gevonden in de leningbeschrijving. Zet de onderste schuifregelaar boven min om leningen uit te sluiten zonder gedetecteerde leeftijden.',
+  'age_found_loan_description_set': 'De leeftijd van de lener zelf, zoals de leningbeschrijving die geeft; leeftijden van kinderen, een partner of andere familieleden tellen niet mee. Zet de onderste schuifregelaar boven min om leningen uit te sluiten waarvan de beschrijving geen leeftijd noemt.',
   'age_mentioned': 'Leeftijd vermeld',
   'agriculture': 'Landbouw',
   'ai': 'AI',
