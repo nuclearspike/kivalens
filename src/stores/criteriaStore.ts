@@ -245,6 +245,39 @@ const DEFAULT_SAVED_SEARCHES: Record<string, SavedSearch> = {
   },
 }
 
+/**
+ * The built-in searches that are a portfolio balancer, and which one: without it
+ * they find nothing their names promise.
+ */
+export const PORTFOLIO_PRESETS: Readonly<Record<string, 'pb_country' | 'pb_partner'>> = {
+  countries_i_dont_have: 'pb_country',
+  balance_partner_risk: 'pb_partner',
+}
+
+/**
+ * Puts back the balancer of each built-in portfolio search that has it switched off
+ * or missing. Clearing the lender ID switched off every balancer in every saved
+ * search until 2026-09-29, and a copy damaged that way stayed so; a built-in one
+ * means nothing without its balancer, so it gets the definition's back. A lender's
+ * own searches are left as they are: a balancer found off there may be one they
+ * turned off. Returns the names put right.
+ */
+export function restorePortfolioPresets(saved: Record<string, SavedSearch> | undefined): string[] {
+  const restored: string[] = []
+  if (!saved) return restored
+  for (const [name, key] of Object.entries(PORTFOLIO_PRESETS)) {
+    const search = saved[name]
+    const definition = DEFAULT_SAVED_SEARCHES[name]?.portfolio?.[key]
+    if (!search || !definition) continue
+    const portfolio = (search.portfolio ?? {}) as Record<string, unknown>
+    const bal = portfolio[key] as BalancerConfig | undefined
+    if (bal?.enabled) continue
+    search.portfolio = { ...portfolio, [key]: { ...(definition as BalancerConfig), ...(bal ?? {}), enabled: true } } as never
+    restored.push(name)
+  }
+  return restored
+}
+
 /** The built-in saved searches' names, which are KivaLens's own words rather than a lender's. */
 export const DEFAULT_SAVED_SEARCH_NAMES: ReadonlySet<string> = new Set(Object.keys(DEFAULT_SAVED_SEARCHES))
 
@@ -588,13 +621,16 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         // values — in the live criteria and in every saved search. Setting an ID again
         // refreshes them once they are switched back on (updateBalancers).
         releasePortfolioBalancers: () => {
+          // This drops only the lists the lender's portfolio filled in. It does not
+          // switch the balancers off: they are the search's own settings, and the filter
+          // works each list out from whichever lender comes next. Switched off, "Countries
+          // I Don't Have" would stop balancing for good, even once an ID is set again.
           const release = (crit: { portfolio: Record<string, unknown> }) => {
             for (const key of PORTFOLIO_BALANCERS) {
               const bal = crit.portfolio[key] as
                 | (BalancerConfig & { values?: unknown[] })
                 | undefined
               if (!bal) continue
-              bal.enabled = false
               delete bal.values
             }
           }
@@ -673,7 +709,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
     }),
     {
       name: 'kivalens-criteria',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         lastKnown: state.lastKnown,
         savedSearches: state.savedSearches,
@@ -712,6 +748,17 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           p.savedSearches = renamed
           if (p.lastSwitch && nameChanges[p.lastSwitch]) {
             p.lastSwitch = nameChanges[p.lastSwitch]
+          }
+        }
+        if (version < 3 && p.savedSearches) {
+          // Built-in portfolio searches whose balancer a cleared lender ID switched off
+          // (restorePortfolioPresets). A repair that cannot run must never stop the
+          // searches loading: a failed migrate leaves the defaults in force, and they
+          // would then be saved over the lender's own.
+          try {
+            restorePortfolioPresets(p.savedSearches)
+          } catch (e) {
+            console.error('restorePortfolioPresets', e)
           }
         }
         return p as CriteriaState & CriteriaActions

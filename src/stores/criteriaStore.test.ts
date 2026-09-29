@@ -341,3 +341,46 @@ describe('Reset, then one thing (a partner’s Show loans)', () => {
     expect(store().savedSearches['test-reset-switch'].loan).toMatchObject({ sector: 'Retail' })
   })
 })
+
+describe('clearing the lender ID keeps every search’s balancers', () => {
+  // Paul, 2026-09-29: "Countries I Don't Have" stopped balancing for good. Clearing the
+  // lender ID switched off every balancer in every saved search.
+  const bal = (over: Record<string, unknown> = {}) => ({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all', values: ['Kenya'], ...over })
+
+  it('drops only the lists the lender’s portfolio filled in', () => {
+    store().setCriteria(crit({ portfolio: { pb_country: bal() } }))
+    store().saveSearch('test-my-balancer')
+    store().releasePortfolioBalancers()
+    for (const c of [store().savedSearches['test-my-balancer'], store().savedSearches.countries_i_dont_have, store().lastKnown]) {
+      const b = (c.portfolio as Record<string, Record<string, unknown>>).pb_country
+      expect(b).toMatchObject({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' })
+      expect(b).not.toHaveProperty('values')
+    }
+    expect(store().savedSearches.balance_partner_risk.portfolio.pb_partner).toMatchObject({ enabled: true })
+  })
+
+  it('puts back the balancer of a built-in portfolio search found switched off, and leaves a lender’s own alone', async () => {
+    const { restorePortfolioPresets } = await import('./criteriaStore')
+    const saved = {
+      countries_i_dont_have: crit({ loan: { limit_to: { enabled: true, count: 1, limit_by: 'Country' } }, portfolio: { exclude_portfolio_loans: 'true', pb_country: bal({ enabled: false, values: undefined }) } }),
+      balance_partner_risk: crit({ portfolio: { exclude_portfolio_loans: 'true' } }),
+      'my own': crit({ portfolio: { pb_sector: bal({ enabled: false }) } }),
+    } as never as Parameters<typeof restorePortfolioPresets>[0]
+    expect(restorePortfolioPresets(saved)).toEqual(['countries_i_dont_have', 'balance_partner_risk'])
+    const s = saved as unknown as Record<string, { portfolio: Record<string, Record<string, unknown>>; loan: Record<string, unknown> }>
+    expect(s.countries_i_dont_have.portfolio.pb_country).toMatchObject({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' })
+    expect(s.countries_i_dont_have.loan.limit_to).toMatchObject({ limit_by: 'Country' })
+    // Missing altogether: the definition's balancer.
+    expect(s.balance_partner_risk.portfolio.pb_partner).toMatchObject({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active' })
+    expect(s['my own'].portfolio.pb_sector).toMatchObject({ enabled: false })
+    // Nothing to do the second time.
+    expect(restorePortfolioPresets(saved)).toEqual([])
+  })
+
+  it('repairs a stored copy when the store loads it (version 2 to 3)', async () => {
+    const damaged = { ...store().savedSearches.countries_i_dont_have, portfolio: { exclude_portfolio_loans: 'true', pb_country: { enabled: false, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' } } }
+    localStorage.setItem('kivalens-criteria', JSON.stringify({ state: { savedSearches: { countries_i_dont_have: damaged }, lastSwitch: null }, version: 2 }))
+    await useCriteriaStore.persist.rehydrate()
+    expect((store().savedSearches.countries_i_dont_have.portfolio as Record<string, Record<string, unknown>>).pb_country).toMatchObject({ enabled: true })
+  })
+})

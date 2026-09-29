@@ -132,7 +132,8 @@ describe('clearing the lender id lets go of what their portfolio put in', () => 
   // so leaving them behind would keep filtering by a portfolio the app no longer has.
   const balancer = () => ({ enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 10, allactive: 'all', values: [123, 456] })
 
-  it('switches the balancers off and drops their values, live and in saved searches', () => {
+  it('drops the lists their portfolio filled in and keeps the balancers on, live and in saved searches', () => {
+    // Paul, 2026-09-29: switching them off here broke "Countries I Don't Have" for good.
     useCriteriaStore.setState((state) => ({
       lastKnown: { ...state.lastKnown, portfolio: { ...state.lastKnown.portfolio, pb_partner: balancer() } },
       savedSearches: { ...state.savedSearches, mine: { loan: {}, partner: {}, portfolio: { pb_country: balancer() } } },
@@ -143,9 +144,9 @@ describe('clearing the lender id lets go of what their portfolio put in', () => 
     const live = useCriteriaStore.getState().lastKnown.portfolio as Record<string, { enabled: boolean; values?: unknown[] }>
     const saved = useCriteriaStore.getState().savedSearches.mine.portfolio as Record<string, { enabled: boolean; values?: unknown[] }>
     expect(store().lenderId).toBe('')
-    expect(live.pb_partner.enabled).toBe(false)
+    expect(live.pb_partner.enabled).toBe(true)
     expect(live.pb_partner.values).toBeUndefined()
-    expect(saved.pb_country.enabled).toBe(false)
+    expect(saved.pb_country.enabled).toBe(true)
     expect(saved.pb_country.values).toBeUndefined()
   })
 })
