@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { I18nProvider } from '../i18n'
 import BalancingNote from './BalancingNote'
+import LenderIdNotice from './LenderIdNotice'
 import { Loans, getKivaLoans } from '../api/kiva'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { applyBalancerData } from '../lib/balancerEvents'
@@ -234,18 +235,22 @@ describe('a search that arrives without its balancer list', () => {
     expect(screen.queryByText(/not applied/)).toBeNull()
   })
 
-  it('says it needs a lender ID when there is none, with the way to set one', () => {
+  it('says it needs a lender ID when there is none, with the way to set one: the notice above the results, not this line', () => {
+    // Paul, 2026-09-29: the need is said loudly above the results (LenderIdNotice), whatever criteria tab is
+    // open; the line under the count stays silent, so there is one message.
     kl.lenderId = ''
     useUtilsStore.setState({ lenderId: '' })
-    render(
+    const { container } = render(
       <I18nProvider>
+        <LenderIdNotice />
         <BalancingNote />
       </I18nProvider>,
     )
-    expect(screen.getByText(/needs your Kiva lender ID/)).toHaveTextContent(
-      'Portfolio balancing is on but not applied: it needs your Kiva lender ID. Set your Lender ID',
+    expect(screen.getByRole('status')).toHaveTextContent(
+      "Portfolio balancing by Countries needs your Kiva lender ID, so it isn't applied to this search yet.",
     )
     expect(screen.getByRole('button', { name: 'Set your Lender ID' })).toBeInTheDocument()
+    expect(container.querySelector('.kl-count-gaps')).toBeNull()
   })
 
   it('says it is reading the portfolio, then that balancing is applied from it, on the same line', async () => {
@@ -274,15 +279,25 @@ describe('a search that arrives without its balancer list', () => {
     useCriteriaStore.setState({
       lastKnown: {
         ...COUNTRIES_I_DONT_HAVE,
+        partner: { direct: 'mfi' },
         portfolio: { ...COUNTRIES_I_DONT_HAVE.portfolio, pb_partner: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active' } },
       } as unknown as Criteria,
     })
-    render(
+    const { unmount } = render(
       <I18nProvider>
         <BalancingNote />
       </I18nProvider>,
     )
     expect(screen.getByText(/^Portfolio balancing by Partners and Countries/)).toBeInTheDocument()
+    unmount()
+    // In Both, balance by partner applies to nothing, so it is not named as applied (balancersInUse).
+    useCriteriaStore.setState((st) => ({ lastKnown: { ...st.lastKnown, partner: { direct: 'both' } } as unknown as Criteria }))
+    render(
+      <I18nProvider>
+        <BalancingNote />
+      </I18nProvider>,
+    )
+    expect(screen.getByText(/^Portfolio balancing by Countries/)).toBeInTheDocument()
   })
 
   it('is wired into the app: the search is filtered again when the portfolio arrives', () => {

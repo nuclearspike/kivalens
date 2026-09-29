@@ -384,3 +384,15 @@ describe('clearing the lender ID keeps every search’s balancers', () => {
     expect((store().savedSearches.countries_i_dont_have.portfolio as Record<string, Record<string, unknown>>).pb_country).toMatchObject({ enabled: true })
   })
 })
+
+describe('balancesWhenLoaded: a stored search judged as loading it will run it', () => {
+  const pb = { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'active' }
+  it('reads balance by partner stored in Both as MFI Only, and a stored Direct Only as it is', async () => {
+    const { balancesWhenLoaded } = await import('./criteriaStore')
+    expect(balancesWhenLoaded(crit({ partner: { direct: 'both' }, portfolio: { pb_partner: pb } }))).toBe(true)
+    expect(balancesWhenLoaded(crit({ partner: { direct: 'direct' }, portfolio: { pb_partner: pb } }))).toBe(false)
+    expect(balancesWhenLoaded(crit({ portfolio: { pb_country: { ...pb, allactive: 'all' } } }))).toBe(true)
+    expect(balancesWhenLoaded(crit({ loan: { sector: 'Food' } }))).toBe(false)
+    expect(balancesWhenLoaded(undefined)).toBe(false)
+  })
+})

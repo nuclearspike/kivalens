@@ -4,7 +4,8 @@ import { Button } from '../ui'
 import { useI18n } from '../i18n'
 import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
-import { DEFAULT_SAVED_SEARCH_NAMES, countSavedSearch, inSavedSearchMode } from '../stores/criteriaStore'
+import { DEFAULT_SAVED_SEARCH_NAMES, balancesWhenLoaded, countSavedSearch, inSavedSearchMode } from '../stores/criteriaStore'
+import { NeedsLenderIdTag } from './LenderIdNotice'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import type { Criteria, KivaLoan } from '../types'
@@ -404,7 +405,7 @@ export default function SearchHome() {
     } else if (stage === 'saved') {
       cards.push(
         <Card key={stage} title={t('home_saved_title')}>
-          <ul className="kl-home-list">{ownSaved.slice(0, SAVED_SHOWN).map((name) => searchRow(stage, name, counts?.searches[name], { extra: newTag(name) }))}</ul>
+          <ul className="kl-home-list">{ownSaved.slice(0, SAVED_SHOWN).map((name) => searchRow(stage, name, counts?.searches[name], { extra: <>{newTag(name)}{!lenderId && balancesWhenLoaded(savedSearches[name]) ? <NeedsLenderIdTag /> : null}</> }))}</ul>
           {ownSaved.length > SAVED_SHOWN ? (
             <p className="kl-home-note">
               <Link to="/saved" onClick={() => act(stage)}>{t('home_saved_all', { count: number(ownSaved.length) })}</Link>

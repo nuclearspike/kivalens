@@ -237,6 +237,25 @@ describe('the lender’s own Kiva lending', () => {
     await waitFor(() => expect(within(c).getAllByText('3 loans')).toHaveLength(2))
   })
 
+  it('tags an own saved search that needs a lender ID while none is set (Paul, 2026-09-29)', async () => {
+    const f = freshCriteria()
+    useCriteriaStore.setState({
+      savedSearches: {
+        ...savedSearchesBefore,
+        'My sectors': { ...f, portfolio: { ...f.portfolio, pb_sector: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' } } } as never,
+        'My food': withSector('Food') as never,
+      },
+    })
+    lastVisit(48)
+    loansReady()
+    renderHome()
+    const c = card('Your saved searches')
+    const row = (name: string) => [...c.querySelectorAll('.kl-home-row')].find((r) => r.textContent?.includes(name)) as HTMLElement
+    await waitFor(() => expect(row('My sectors')).toBeTruthy())
+    expect(row('My sectors').querySelector('.kl-needs-lender-tag')).toHaveTextContent('Needs your Lender ID')
+    expect(row('My food').querySelector('.kl-needs-lender-tag')).toBeNull()
+  })
+
   it('shows a returning lender without an ID what setting one unlocks', () => {
     useCriteriaHistory.setState({ history: { entries: [{ id: 'h1', at: NOW - 100 * H, criteria: freshCriteria() }], live: null } })
     renderHome()

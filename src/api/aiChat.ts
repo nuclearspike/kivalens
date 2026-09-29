@@ -60,6 +60,8 @@ export interface StreamChatBody {
   basket?: { loanId: number; amount: number }[]
   /** Names of the user's saved searches. */
   savedSearches?: string[]
+  /** Those that balance by the lender's portfolio, while no lender ID is set (balancesWhenLoaded). */
+  savedSearchesNeedingLenderId?: string[]
   /** Browser-local values visible only inside the AskKivaLens: namespace. */
   applicationStorage?: Record<string, string>
   /** Stable per-browser id so server logs can group a user's turns. */

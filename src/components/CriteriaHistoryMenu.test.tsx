@@ -8,7 +8,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { I18nProvider } from '../i18n'
 import CriteriaHistoryMenu from './CriteriaHistoryMenu'
 import PartnerDetail from './PartnerDetail'
-import { useCriteriaStore, useLoanStore } from '../stores'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { resetCriteriaHistoryForTests, startCriteriaHistory, useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { freshCriteria } from '../lib/freshCriteria'
 import { getKivaLoans } from '../api/kiva'
@@ -149,6 +149,24 @@ describe('the History menu', () => {
     const entries = useCriteriaHistory.getState().history.entries
     expect(entries).toHaveLength(before)
     expect(entries[0].criteria.partner).toMatchObject({ direct: 'mfi' })
+  })
+
+  it('tags a line whose search needs a lender ID while none is set (Paul, 2026-09-29)', () => {
+    const f = freshCriteria()
+    const countries = { ...f, portfolio: { ...f.portfolio, pb_country: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' } } } as unknown as Criteria
+    useUtilsStore.setState({ lenderId: '' } as never)
+    act(() => criteria().setCriteria(countries))
+    act(() => criteria().setCriteria(withLoan({ sector: 'Food' })))
+    renderMenu()
+    open()
+    const tagged = lines().filter((l) => l.querySelector('.kl-needs-lender-tag'))
+    expect(tagged).toHaveLength(1)
+    expect(tagged[0]).toHaveTextContent('Needs your Lender ID')
+    act(() => useUtilsStore.setState({ lenderId: 'jane' } as never))
+    open()
+    open()
+    expect(document.querySelectorAll('.kl-needs-lender-tag')).toHaveLength(0)
+    useUtilsStore.setState({ lenderId: '' } as never)
   })
 
   it('keeps the history across visits, and clears to just the search in force, with a way back', () => {

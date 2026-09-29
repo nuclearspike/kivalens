@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../../server/routeMap.mjs'
 import { describePage } from './describePage'
 import { useUtilsStore } from '../../stores/utilsStore'
-import { useCriteriaStore } from '../../stores/criteriaStore'
+import { balancesWhenLoaded, useCriteriaStore } from '../../stores/criteriaStore'
 import { useLoanStore } from '../../stores/loanStore'
 import type { Criteria } from '../../types'
 import ReactMarkdown from 'react-markdown'
@@ -406,6 +406,9 @@ export default function AskKivaLens() {
           page: describePage(),
           basket: loanState.basket.map((b) => ({ loanId: b.loan_id, amount: b.amount })),
           savedSearches: useCriteriaStore.getState().getSavedSearchNames(),
+          savedSearchesNeedingLenderId: lenderId
+            ? []
+            : useCriteriaStore.getState().getSavedSearchNames().filter((n) => balancesWhenLoaded(useCriteriaStore.getState().savedSearches[n])),
           applicationStorage: readAskKivaLensStorage(),
           clientId,
         },

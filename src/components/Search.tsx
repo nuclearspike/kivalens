@@ -18,6 +18,7 @@ import { useI18n } from '../i18n'
 import { pluralCategory } from '../lib/pluralCategory'
 import { useShowCriteria } from '../lib/criteriaVisibility'
 import BalancingNote from './BalancingNote'
+import LenderIdNotice, { ExcludeNeedsLenderIdLine } from './LenderIdNotice'
 import SearchHome from './SearchHome'
 
 // ---------------------------------------------------------------------------
@@ -119,6 +120,8 @@ export function Search() {
           <span className="notification-bar-message">{notification}</span>
         </div>
       ) : null}
+      {/* On a phone the criteria stack above the results, so the notice comes first there. */}
+      <LenderIdNotice className="d-md-none" />
       <Row>
         {/* Criteria panel */}
         {showCriteria && (
@@ -131,6 +134,7 @@ export function Search() {
         <Col md={listCol} data-aikl="results" className="results-col">
           <FilteringProgress />
           <ResultsHeader showCriteria={showCriteria} onToggleCriteria={toggleShowCriteria} onBulkAdd={openBulkAdd} />
+          <LenderIdNotice className="d-none d-md-block" />
 
           {secondaryStatus ? (
             <Alert variant="warning" className="not-rounded" style={{ marginBottom: 0 }}>
@@ -152,6 +156,7 @@ export function Search() {
               })}
               {gapNotes.length > 0 && <div className="kl-count-gaps">{gapNotes.join(' · ')}</div>}
               <BalancingNote />
+              <ExcludeNeedsLenderIdLine />
             </div>
           ) : null}
 

@@ -5,8 +5,9 @@ import { criteriaKey } from '../lib/criteriaHistory'
 import { criteriaDetails, criteriaSummary, describeCriteria } from '../lib/describeCriteria'
 import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
-import { useCriteriaStore } from '../stores'
-import { inSavedSearchMode } from '../stores/criteriaStore'
+import { useCriteriaStore, useUtilsStore } from '../stores'
+import { balancesWhenLoaded, inSavedSearchMode } from '../stores/criteriaStore'
+import { NeedsLenderIdTag } from './LenderIdNotice'
 
 /**
  * History, between Reset and Saved Searches: every search the lender has had,
@@ -22,6 +23,7 @@ export default function CriteriaHistoryMenu() {
   const cleared = useCriteriaHistory((s) => s.cleared)
   const undoClear = useCriteriaHistory((s) => s.undoClear)
   const current = useCriteriaStore((s) => s.lastKnown)
+  const lenderId = useUtilsStore((s) => s.lenderId)
   // When the menu was opened; null while it is closed. "3 minutes ago" is read
   // at opening, and the lines are worked out only while it is open: the history
   // changes on every keystroke of a Name search, and a closed menu must cost
@@ -29,7 +31,7 @@ export default function CriteriaHistoryMenu() {
   const [openedAt, setOpenedAt] = useState<number | null>(null)
   const clearReasonId = useId()
 
-  let lines: Array<{ entry: (typeof entries)[number]; summary: string; details: string; isCurrent: boolean }> = []
+  let lines: Array<{ entry: (typeof entries)[number]; summary: string; details: string; isCurrent: boolean; needsId: boolean }> = []
   if (openedAt !== null) {
     // Not memoized: a field partner's name may arrive after the page, from a list
     // that is not React state, and each opening describes afresh.
@@ -44,6 +46,7 @@ export default function CriteriaHistoryMenu() {
         summary: criteriaSummary(described, t),
         details: criteriaDetails(described, t),
         isCurrent: criteriaKey(runsAs) === currentKey,
+        needsId: !lenderId && balancesWhenLoaded(entry.criteria),
       }
     })
   }
@@ -96,7 +99,7 @@ export default function CriteriaHistoryMenu() {
             <Dropdown.Divider />
             {/* Scrolls on its own; its edges shade while there is more that way. */}
             <div className="kl-criteria-history-list">
-              {lines.map(({ entry, summary, details, isCurrent }) => (
+              {lines.map(({ entry, summary, details, isCurrent, needsId }) => (
                 <Dropdown.Item
                   key={entry.id}
                   active={isCurrent}
@@ -107,6 +110,7 @@ export default function CriteriaHistoryMenu() {
                 >
                   <span className="kl-criteria-history-when">{formatRelativeTime(locale, entry.at, now)}</span>
                   <span className="kl-criteria-history-summary">{summary}</span>
+                  {needsId ? <NeedsLenderIdTag /> : null}
                 </Dropdown.Item>
               ))}
             </div>

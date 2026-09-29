@@ -1456,6 +1456,48 @@ ul.spacedList li {
   color: var(--kl-text-muted);
 }
 
+// Above the results when the search balances and no lender ID is set (LenderIdNotice):
+// the Portfolio tab banner's palette, loud on purpose (Paul, 2026-09-29).
+.kl-lender-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  // Flush and square like the column's other banners (the loading and catch-up alerts):
+  // the column owns the spacing, not the panel (rule 3).
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 0;
+  background-color: var(--kl-warning);
+  color: var(--kl-on-warning);
+  p {
+    margin: 0;
+  }
+}
+.kl-lender-notice-text {
+  font-weight: 600;
+}
+.kl-lender-notice-hint {
+  font-size: 13px;
+}
+// Beside a search in a list (Saved Searches, the Saved tab, History, the welcome panel)
+// that balances while no lender ID is set.
+// In a History line it keeps its size beside the summary, which gives way with "…".
+.kl-criteria-history-item .kl-needs-lender-tag {
+  flex: none;
+}
+.kl-needs-lender-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--kl-pill-warn-bg);
+  color: var(--kl-pill-warn-text);
+}
+
 // A criterion that is on but cannot apply (a portfolio balancer without the lender's
 // portfolio), so the count does not pass for a filtered one.
 .kl-count-gaps.kl-count-problem {

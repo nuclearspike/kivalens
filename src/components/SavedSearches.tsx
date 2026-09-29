@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Container, Col, Row, Button, ButtonGroup, ListGroup, Card, Modal, Alert, Form } from '../ui'
-import { useCriteriaStore, useLoanStore } from '../stores'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { showAlert, showConfirm, showPrompt } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import type { Criteria } from '../types'
-import { countSavedSearch, type SavedSearch } from '../stores/criteriaStore'
+import { balancesWhenLoaded, countSavedSearch, type SavedSearch } from '../stores/criteriaStore'
+import { NeedsLenderIdTag } from './LenderIdNotice'
+import { showLenderIDModal } from '../lib/showLenderIdModal'
 import { useI18n } from '../i18n'
 import { describeCriteria, lineText, type CriteriaLine, type Translate } from '../lib/describeCriteria'
 import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
@@ -98,7 +100,7 @@ const SUMMARY_GROUPS: ReadonlyArray<{ prefix: string; title: string }> = [
 ]
 
 export function SavedSearches() {
-  const { t, data, number, locale } = useI18n()
+  const { t, tx, data, number, locale } = useI18n()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
@@ -133,6 +135,7 @@ export function SavedSearches() {
 
   const loanCount = useLoanStore((s) => s.loanCount)
   const balancerDataVersion = useLoanStore((s) => s.balancerDataVersion)
+  const lenderId = useUtilsStore((s) => s.lenderId)
 
   const selectedCrit = selected ? getSavedSearch(selected) : undefined
   // The search as it runs, in the criteria panel's own words, under the tab each belongs to
@@ -463,6 +466,7 @@ export function SavedSearches() {
                   {/* The whole name, wrapping: a cut-off name hides which search it is (Paul, 2026-09-28). */}
                   <span className="kl-saved-search-name" style={{ flex: 1, minWidth: 0 }}>
                      {t(name)}
+                     {!lenderId && balancesWhenLoaded(savedSearches[name]) ? <NeedsLenderIdTag /> : null}
                   </span>
                 </ListGroup.Item>
               ))}
@@ -535,6 +539,18 @@ export function SavedSearches() {
                 <Button variant="danger" onClick={() => handleDelete(selected)}>{t('delete')}</Button>
               </ButtonGroup>
 
+              {/* Said before the summary, where the lender reads what the search does (Paul, 2026-09-29). */}
+              {!lenderId && selected && balancesWhenLoaded(savedSearches[selected]) ? (
+                <Alert variant="warning" className="py-2 kl-saved-needs-id">
+                  {tx('saved_needs_lender_id', {
+                    set: (
+                      <button type="button" className="kl-link-button" onClick={() => showLenderIDModal()}>
+                        {t('set_lender_id_2')}
+                      </button>
+                    ),
+                  })}
+                </Alert>
+              ) : null}
               {summary.length > 0 ? (
                 <Card>
                   <Card.Header>{t('criteria_summary')}</Card.Header>

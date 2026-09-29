@@ -380,3 +380,38 @@ describe('analyze_loans preview directive', () => {
     expect(result.applied_to_search).toBe(false)
   })
 })
+
+describe('a search that needs a lender ID, as Ask KivaLens says it (Paul, 2026-09-29)', () => {
+  const countries = () => ({ loan: {}, partner: {}, portfolio: { pb_country: { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' } } })
+
+  it('set_criteria: balancing with no lender id is said to be not applied, asking before it opens the Lender ID dialog', async () => {
+    const r = (await execTool('set_criteria', { criteria: countries() }, { state, lenderId: null, criteria: emptyCriteria() }, () => {})) as { note: string }
+    expect(r.note).toContain('PORTFOLIO BALANCING by country is ON but NOT applied')
+    // Paul: the dialog never opens by itself. A weaker model read "offer to set it (prompt_lender_id)"
+    // as "call it", asking and then opening the dialog in the same reply.
+    expect(r.note).toContain('ask whether they want to set their lender id now')
+    expect(r.note).toContain('Do NOT call prompt_lender_id in this reply')
+    const withId = (await execTool('set_criteria', { criteria: countries() }, { state, lenderId: 'jane', criteria: emptyCriteria() }, () => {})) as { note: string }
+    expect(withId.note).not.toContain('PORTFOLIO BALANCING')
+  })
+
+  it('load_search: a saved search the page says needs the id gets the same note', async () => {
+    const sctx = (lenderId: string | null) => ({ state, lenderId, criteria: emptyCriteria(), savedSearches: ['Mine', 'Other'], savedSearchesNeedingLenderId: ['Mine'] })
+    const events: unknown[] = []
+    const r = (await execTool('load_search', { name: 'Mine' }, sctx(null), (e: unknown) => events.push(e))) as { ok: boolean; note?: string }
+    expect(r.ok).toBe(true)
+    expect(r.note).toContain('is ON but NOT applied')
+    expect(events).toEqual([{ type: 'load_search', name: 'Mine' }])
+    expect(((await execTool('load_search', { name: 'Other' }, sctx(null), () => {})) as { note?: string }).note).toBeUndefined()
+    expect(((await execTool('load_search', { name: 'Mine' }, sctx('jane'), () => {})) as { note?: string }).note).toBeUndefined()
+  })
+
+  it('the CONTEXT line says whether balancing is on, and inert without the id', async () => {
+    const { buildSystemPrompt } = await import('../../server/aiChat.mjs')
+    const context = (lenderId: string | null, criteria: unknown) =>
+      (buildSystemPrompt(state, lenderId, criteria) as string).split('\n').find((l) => l.startsWith('CONTEXT:'))!
+    expect(context(null, countries())).toContain('Portfolio balancing is ON (country) but INERT')
+    expect(context('jane', countries())).toContain('Portfolio balancing is ON (country).')
+    expect(context(null, emptyCriteria())).toContain('Portfolio balancing is OFF.')
+  })
+})

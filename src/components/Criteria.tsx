@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Dropdown } from '../ui'
-import { useCriteriaStore, useLoanStore } from '../stores'
-import { countSavedSearch } from '../stores/criteriaStore'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
+import { balancesWhenLoaded, countSavedSearch } from '../stores/criteriaStore'
+import { NeedsLenderIdTag } from './LenderIdNotice'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
@@ -36,6 +37,8 @@ export function SearchSwitcher() {
   const deleteSearch = useCriteriaStore((s) => s.deleteSearch)
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
   const lastSwitch = useCriteriaStore((s) => s.lastSwitch)
+  const savedSearches = useCriteriaStore((s) => s.savedSearches)
+  const lenderId = useUtilsStore((s) => s.lenderId)
 
   const [searchNames, setSearchNames] = useState<string[]>(() => getSavedSearchNames())
   // A count is undefined while its search waits for part of the lender's portfolio (countSavedSearch).
@@ -134,6 +137,7 @@ export function SearchSwitcher() {
                   <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
                 ) : null}
                 <span>{t(name)}</span>
+                {!lenderId && balancesWhenLoaded(savedSearches[name]) ? <NeedsLenderIdTag /> : null}
               </Dropdown.Item>
             ))}
             {searchNames.length > 0 ? <Dropdown.Divider /> : null}

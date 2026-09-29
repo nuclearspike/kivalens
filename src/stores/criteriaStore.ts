@@ -47,6 +47,17 @@ export function inSavedSearchMode(criteria: Criteria): Criteria {
 }
 
 /**
+ * Whether a stored search (saved, or recorded in History) balances by the lender's
+ * portfolio once loaded, judged the way loadSearch reads it (fixUpgrades, then
+ * inSavedSearchMode), so an old shape, or a partner search stored in Both, is judged
+ * as it will run. The lists tag such a search while no lender ID is set.
+ */
+export function balancesWhenLoaded(criteria: Criteria | undefined): boolean {
+  if (!criteria) return false
+  return balancersInUse(inSavedSearchMode(useCriteriaStore.getState().fixUpgrades(criteria))).length > 0
+}
+
+/**
  * How many loans a saved search finds, in the mode it runs in; 0 when it cannot be
  * run. Undefined while a balancer it applies is still being read from the lender's
  * portfolio: until then the filter runs without that balancer's list, and "Countries
