@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'Il bilanciamento del portafoglio per {which} e «{exclude}» richiedono il tuo ID prestatore Kiva, quindi nessuno dei due è ancora applicato a questa ricerca.',
   'exclude_needs_lender_id': 'I tuoi prestiti non sono ancora esclusi. {set}',
   'needs_lender_id_tag': 'Richiede il tuo ID prestatore',
+  'search_in_force': 'Visualizzata',
+  'search_in_force_title': 'Questa ricerca è già quella attiva.',
   'saved_needs_lender_id': 'Questa ricerca richiede il tuo ID prestatore Kiva per fare ciò che promette. {set}',
   'try_again': 'Riprova',
   'portfolio_balancing_data': 'i dati di bilanciamento del portafoglio',

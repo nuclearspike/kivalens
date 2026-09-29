@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': '按{which}的投资组合平衡和“{exclude}”都需要您的 Kiva 出借人 ID，因此两者都尚未应用到此搜索。',
   'exclude_needs_lender_id': '您自己的贷款尚未被排除。{set}',
   'needs_lender_id_tag': '需要您的出借人 ID',
+  'search_in_force': '正在显示',
+  'search_in_force_title': '您已在使用此搜索。',
   'saved_needs_lender_id': '此搜索需要您的 Kiva 出借人 ID 才能按说明运作。{set}',
   'try_again': '重试',
   'portfolio_balancing_data': '投资组合平衡数据',

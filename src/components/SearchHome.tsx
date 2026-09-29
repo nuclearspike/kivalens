@@ -4,8 +4,9 @@ import { Button } from '../ui'
 import { useI18n } from '../i18n'
 import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
-import { DEFAULT_SAVED_SEARCH_NAMES, balancesWhenLoaded, countSavedSearch, inSavedSearchMode } from '../stores/criteriaStore'
+import { DEFAULT_SAVED_SEARCH_NAMES, balancesWhenLoaded, countSavedSearch, inSavedSearchMode, isSearchInForce } from '../stores/criteriaStore'
 import { NeedsLenderIdTag } from './LenderIdNotice'
+import { SearchInForceTag } from './SearchInForce'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import type { Criteria, KivaLoan } from '../types'
@@ -41,6 +42,8 @@ const STARTING_POINTS = ['expiring_soon', 'only_one_more_lender_needed', 'popula
 const PORTFOLIO_POINTS = ['countries_i_dont_have', 'balance_partner_risk']
 /** Saved searches listed before "All saved searches". */
 const SAVED_SHOWN = 6
+// Out of sight, out of the tab order and the accessibility tree, and still taking its room.
+const KEEP_ROOM = { visibility: 'hidden' } as const
 const DAY_MS = 86_400_000
 
 interface HomeCounts {
@@ -192,26 +195,37 @@ export default function SearchHome() {
   }
   // A built-in starting point that finds nothing right now stays where it is (rows
   // never jump as counts arrive), its Open disabled with the reason on hover. A
-  // lender's own search opens whatever it finds: they may want to change it.
+  // lender's own search opens whatever it finds: they may want to change it. The
+  // search already in force says so in Open's place, since opening it would change
+  // nothing. Open and that mark share one cell, the one not in use hidden but keeping
+  // its room, so choosing a search moves no count, and every row's count lines up.
   const searchRow = (stage: StageId, name: string, count: number | undefined, opts: { extra?: ReactNode; builtIn?: boolean } = {}) => {
     const empty = !!opts.builtIn && count === 0
+    const inForce = isSearchInForce(savedSearches[name], lastKnown)
     return (
-      <li key={name} className="kl-home-row">
+      <li key={name} className="kl-home-row" aria-current={inForce ? 'true' : undefined}>
         <span className="kl-home-row-name" title={t(name)}>
           {t(name)}
           {opts.extra}
         </span>
         <span className="kl-home-row-count">{loansText(count)}</span>
-        <Button
-          size="sm"
-          variant="outline-secondary"
-          disabled={empty}
-          title={empty ? t('home_finds_none_now') : undefined}
-          onClick={() => openSearch(stage, name)}
-          aria-label={t('home_open_name', { name: t(name) })}
-        >
-          {t('home_open')}
-        </Button>
+        <span className="kl-home-row-action">
+          <span style={inForce ? KEEP_ROOM : undefined}>
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              disabled={empty}
+              title={empty ? t('home_finds_none_now') : undefined}
+              onClick={() => openSearch(stage, name)}
+              aria-label={t('home_open_name', { name: t(name) })}
+            >
+              {t('home_open')}
+            </Button>
+          </span>
+          <span style={inForce ? undefined : KEEP_ROOM}>
+            <SearchInForceTag className="kl-home-row-in-force" />
+          </span>
+        </span>
       </li>
     )
   }

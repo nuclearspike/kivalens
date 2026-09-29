@@ -12,6 +12,7 @@ import { useUtilsStore } from './utilsStore'
 import { balancersInUse, balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
 import { freshCriteria } from '../lib/freshCriteria'
 import { noteEvent } from '../lib/rum/usageEvents'
+import { sameSearch } from '../lib/arrival'
 
 /**
  * The criteria with the MFI/Direct mode written in. A search saved before the
@@ -47,14 +48,33 @@ export function inSavedSearchMode(criteria: Criteria): Criteria {
 }
 
 /**
- * Whether a stored search (saved, or recorded in History) balances by the lender's
- * portfolio once loaded, judged the way loadSearch reads it (fixUpgrades, then
- * inSavedSearchMode), so an old shape, or a partner search stored in Both, is judged
- * as it will run. The lists tag such a search while no lender ID is set.
+ * The search a stored one (saved, or recorded in History) puts in force: loadSearch
+ * reads it this way (fixUpgrades, then inSavedSearchMode), so an old shape, or a
+ * partner search stored in Both, is judged by every list as it will run.
+ */
+export function asLoaded(criteria: Criteria): Criteria {
+  return inSavedSearchMode(useCriteriaStore.getState().fixUpgrades(criteria))
+}
+
+/**
+ * Whether a stored search balances by the lender's portfolio once loaded. The lists
+ * tag such a search while no lender ID is set.
  */
 export function balancesWhenLoaded(criteria: Criteria | undefined): boolean {
   if (!criteria) return false
-  return balancersInUse(inSavedSearchMode(useCriteriaStore.getState().fixUpgrades(criteria))).length > 0
+  return balancersInUse(asLoaded(criteria)).length > 0
+}
+
+/**
+ * Whether choosing a stored search would change nothing, because it is the search
+ * in force. The lists say so in place of offering it (Paul, 2026-09-29: "when i
+ * click the button it does NOTHING bc I'm already on that"). Compared as addresses
+ * (sameSearch), as a reload is: a changed sort or any other edit makes it a different
+ * search again, while the lists a lender's portfolio fills into a balancer are not
+ * part of what is compared.
+ */
+export function isSearchInForce(criteria: Criteria | undefined, current: Criteria): boolean {
+  return !!criteria && sameSearch(asLoaded(criteria), current)
 }
 
 /**
@@ -490,7 +510,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
           if (!crit) return
           // Usage statistics name a built-in search; a lender's own is only counted.
           noteEvent(DEFAULT_SAVED_SEARCH_NAMES.has(name) ? `preset:${name}` : 'saved_load')
-          const fixed = inSavedSearchMode(get().fixUpgrades({ ...crit }))
+          const fixed = asLoaded(crit)
           set((state) => {
             state.lastSwitch = name
             state.lastKnown = fixed as never

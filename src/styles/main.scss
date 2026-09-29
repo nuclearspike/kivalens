@@ -1483,8 +1483,41 @@ ul.spacedList li {
 // Beside a search in a list (Saved Searches, the Saved tab, History, the welcome panel)
 // that balances while no lender ID is set.
 // In a History line it keeps its size beside the summary, which gives way with "…".
-.kl-criteria-history-item .kl-needs-lender-tag {
+.kl-criteria-history-item .kl-needs-lender-tag,
+.kl-criteria-history-item .kl-in-force-tag {
   flex: none;
+}
+// Beside the stored search that is already in force (SearchInForce.tsx).
+.kl-in-force-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--kl-pill-good-bg);
+  color: var(--kl-pill-good-text);
+}
+// Open and the in-force mark stacked in one cell, as wide as the wider of the two
+// (SearchHome.tsx hides the one not in use without giving up its room).
+.kl-home-row-action {
+  display: grid;
+  justify-items: end;
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+// The small button's box, so the row keeps its height whichever of the two shows.
+.kl-home-row-in-force {
+  display: inline-block;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--kl-green-text);
 }
 .kl-needs-lender-tag {
   display: inline-block;

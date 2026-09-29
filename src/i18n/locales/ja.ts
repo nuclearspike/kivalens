@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': '{which}によるポートフォリオの均等化と「{exclude}」にはKivaの貸し手IDが必要です。設定されるまで、どちらもこの検索には適用されません。',
   'exclude_needs_lender_id': 'ご自身のローンはまだ除外されていません。{set}',
   'needs_lender_id_tag': '貸し手IDが必要',
+  'search_in_force': '表示中',
+  'search_in_force_title': 'この検索はすでに表示中です。',
   'saved_needs_lender_id': 'この検索が意図どおりに動くにはKivaの貸し手IDが必要です。{set}',
   'try_again': '再試行',
   'portfolio_balancing_data': 'ポートフォリオ均等化データ',

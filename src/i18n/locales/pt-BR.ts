@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'O balanceamento de carteira por {which} e “{exclude}” precisam do seu ID de credor na Kiva, por isso nenhum dos dois é aplicado ainda a esta busca.',
   'exclude_needs_lender_id': 'Seus próprios empréstimos ainda não são excluídos. {set}',
   'needs_lender_id_tag': 'Precisa do seu ID de credor',
+  'search_in_force': 'Em exibição',
+  'search_in_force_title': 'Você já está nesta busca.',
   'saved_needs_lender_id': 'Esta busca precisa do seu ID de credor na Kiva para fazer o que promete. {set}',
   'try_again': 'Tentar novamente',
   'portfolio_balancing_data': 'dados de balanceamento de carteira',

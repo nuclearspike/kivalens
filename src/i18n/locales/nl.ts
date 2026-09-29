@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'Portefeuilleverdeling op {which} en ‘{exclude}’ hebben uw Kiva-uitlener-ID nodig; daarom wordt geen van beide al op deze zoekopdracht toegepast.',
   'exclude_needs_lender_id': 'Uw eigen leningen worden nog niet weggelaten. {set}',
   'needs_lender_id_tag': 'Heeft uw uitlener-ID nodig',
+  'search_in_force': 'Getoond',
+  'search_in_force_title': 'Deze zoekopdracht wordt al getoond.',
   'saved_needs_lender_id': 'Deze zoekopdracht heeft uw Kiva-uitlener-ID nodig om te doen wat hij belooft. {set}',
   'try_again': 'Opnieuw proberen',
   'portfolio_balancing_data': 'portefeuillebalanceringsgegevens',

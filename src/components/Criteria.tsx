@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Dropdown } from '../ui'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
-import { balancesWhenLoaded, countSavedSearch } from '../stores/criteriaStore'
+import { balancesWhenLoaded, countSavedSearch, isSearchInForce } from '../stores/criteriaStore'
 import { NeedsLenderIdTag } from './LenderIdNotice'
+import { SearchInForceTag } from './SearchInForce'
 import { showPrompt, showConfirm } from '../lib/dialog'
 import { getKivaLoans } from '../api/kiva'
 import { CriteriaTabs } from './CriteriaTabs'
@@ -38,6 +39,7 @@ export function SearchSwitcher() {
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
   const lastSwitch = useCriteriaStore((s) => s.lastSwitch)
   const savedSearches = useCriteriaStore((s) => s.savedSearches)
+  const current = useCriteriaStore((s) => s.lastKnown)
   const lenderId = useUtilsStore((s) => s.lenderId)
 
   const [searchNames, setSearchNames] = useState<string[]>(() => getSavedSearchNames())
@@ -126,20 +128,28 @@ export function SearchSwitcher() {
             {lastSwitch ? `‘${t(lastSwitch)}’` : t('saved_searches')}
           </Dropdown.Toggle>
           <Dropdown.Menu className="kl-saved-switcher-menu" style={{ maxHeight: 400, overflowY: 'auto', fontSize: 12 }}>
-            {searchNames.map((name) => (
-              <Dropdown.Item
-                key={name}
-                active={lastSwitch === name}
-                onClick={() => handleLoad(name)}
-                style={{ display: 'flex', alignItems: 'center' }}
-              >
-                {name in searchCounts ? (
-                  <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
-                ) : null}
-                <span>{t(name)}</span>
-                {!lenderId && balancesWhenLoaded(savedSearches[name]) ? <NeedsLenderIdTag /> : null}
-              </Dropdown.Item>
-            ))}
+            {searchNames.map((name) => {
+              // Judged only while the menu is open: the search changes with every
+              // keystroke of a Name search, and a closed menu should not compare every
+              // saved search on each one.
+              const inForce = menuOpen && isSearchInForce(savedSearches[name], current)
+              return (
+                <Dropdown.Item
+                  key={name}
+                  active={lastSwitch === name}
+                  aria-current={inForce ? 'true' : undefined}
+                  onClick={() => handleLoad(name)}
+                  style={{ display: 'flex', alignItems: 'center' }}
+                >
+                  {name in searchCounts ? (
+                    <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
+                  ) : null}
+                  <span>{t(name)}</span>
+                  {!lenderId && balancesWhenLoaded(savedSearches[name]) ? <NeedsLenderIdTag /> : null}
+                  {inForce ? <SearchInForceTag /> : null}
+                </Dropdown.Item>
+              )
+            })}
             {searchNames.length > 0 ? <Dropdown.Divider /> : null}
             {lastSwitch ? (
               <>

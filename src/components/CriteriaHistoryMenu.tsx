@@ -1,13 +1,13 @@
 import { useId, useState } from 'react'
 import { Dropdown } from '../ui'
 import { formatRelativeTime, useI18n } from '../i18n'
-import { criteriaKey } from '../lib/criteriaHistory'
 import { criteriaDetails, criteriaSummary, describeCriteria } from '../lib/describeCriteria'
 import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { useCriteriaStore, useUtilsStore } from '../stores'
-import { balancesWhenLoaded, inSavedSearchMode } from '../stores/criteriaStore'
+import { balancesWhenLoaded, inSavedSearchMode, isSearchInForce } from '../stores/criteriaStore'
 import { NeedsLenderIdTag } from './LenderIdNotice'
+import { SearchInForceTag } from './SearchInForce'
 
 /**
  * History, between Reset and Saved Searches: every search the lender has had,
@@ -35,7 +35,6 @@ export default function CriteriaHistoryMenu() {
   if (openedAt !== null) {
     // Not memoized: a field partner's name may arrive after the page, from a list
     // that is not React state, and each opening describes afresh.
-    const currentKey = criteriaKey(current)
     const describeDeps = kivaDescribeDeps(t, data)
     lines = entries.map((entry) => {
       // Each line says what choosing it gives: the search as it runs (restore applies the same rule).
@@ -45,7 +44,8 @@ export default function CriteriaHistoryMenu() {
         entry,
         summary: criteriaSummary(described, t),
         details: criteriaDetails(described, t),
-        isCurrent: criteriaKey(runsAs) === currentKey,
+        // The rule every list of searches uses, so the one in force reads the same everywhere.
+        isCurrent: isSearchInForce(entry.criteria, current),
         needsId: !lenderId && balancesWhenLoaded(entry.criteria),
       }
     })
@@ -111,6 +111,7 @@ export default function CriteriaHistoryMenu() {
                   <span className="kl-criteria-history-when">{formatRelativeTime(locale, entry.at, now)}</span>
                   <span className="kl-criteria-history-summary">{summary}</span>
                   {needsId ? <NeedsLenderIdTag /> : null}
+                  {isCurrent ? <SearchInForceTag /> : null}
                 </Dropdown.Item>
               ))}
             </div>

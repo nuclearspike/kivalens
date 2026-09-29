@@ -396,3 +396,34 @@ describe('balancesWhenLoaded: a stored search judged as loading it will run it',
     expect(balancesWhenLoaded(undefined)).toBe(false)
   })
 })
+
+describe('isSearchInForce: choosing a stored search would change nothing', () => {
+  // Paul, 2026-09-29: "when i click the button it does NOTHING bc I'm already on that ...
+  // we need either to hide it or to indicate that you're already doing it."
+  const pb = { enabled: true, hideshow: 'hide', ltgt: 'gt', percent: 0, allactive: 'all' }
+
+  it('is the search just loaded, and no other', async () => {
+    const { isSearchInForce } = await import('./criteriaStore')
+    store().loadSearch('countries_i_dont_have')
+    expect(isSearchInForce(store().savedSearches.countries_i_dont_have, store().lastKnown)).toBe(true)
+    expect(isSearchInForce(store().savedSearches.balance_partner_risk, store().lastKnown)).toBe(false)
+    expect(isSearchInForce(undefined, store().lastKnown)).toBe(false)
+  })
+
+  it('stops being it after any change, a sort included', async () => {
+    const { isSearchInForce } = await import('./criteriaStore')
+    store().loadSearch('expiring_soon')
+    const k = store().lastKnown
+    store().setCriteria({ ...k, loan: { ...k.loan, sort: 'newest' } } as Criteria)
+    expect(isSearchInForce(store().savedSearches.expiring_soon, store().lastKnown)).toBe(false)
+  })
+
+  it("is judged as loading runs it: a partner search stored in Both is the one in force in MFI Only, and the portfolio's lists are not part of it", async () => {
+    const { isSearchInForce } = await import('./criteriaStore')
+    const stored = crit({ partner: { direct: 'both' }, portfolio: { pb_partner: pb } })
+    store().setCriteria(crit({ partner: { direct: 'mfi' }, portfolio: { pb_partner: { ...pb, values: [20, 31] } } }))
+    expect(isSearchInForce(stored, store().lastKnown)).toBe(true)
+    store().setCriteria(crit({ partner: { direct: 'both' }, portfolio: { pb_partner: pb } }))
+    expect(isSearchInForce(stored, store().lastKnown)).toBe(false)
+  })
+})

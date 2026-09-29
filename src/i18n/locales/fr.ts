@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'L’équilibrage du portefeuille par {which} et « {exclude} » ont besoin de votre identifiant de prêteur Kiva : ni l’un ni l’autre n’est encore appliqué à cette recherche.',
   'exclude_needs_lender_id': 'Vos propres prêts ne sont pas encore exclus. {set}',
   'needs_lender_id_tag': 'Nécessite votre identifiant de prêteur',
+  'search_in_force': 'Affichée',
+  'search_in_force_title': 'Cette recherche est déjà affichée.',
   'saved_needs_lender_id': 'Cette recherche a besoin de votre identifiant de prêteur Kiva pour faire ce qu’elle annonce. {set}',
   'try_again': 'Réessayer',
   'portfolio_balancing_data': 'les données d’équilibrage du portefeuille',

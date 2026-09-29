@@ -279,3 +279,45 @@ describe('a handful of results', () => {
     expect((useCriteriaStore.getState().lastKnown.loan as Record<string, unknown>).sector).toBeUndefined()
   })
 })
+
+describe('the search already showing', () => {
+  // Paul, 2026-09-29, on "Countries I Don't Have" with its Open still offered: "when i click the
+  // button it does NOTHING bc I'm already on that ... indicate that you're already doing it."
+  it("says so in Open's place, and offers Open again once the search changes", async () => {
+    useUtilsStore.setState({ lenderId: 'jane', lenderObj: { lender_id: 'jane', name: 'Jane', loan_count: 42, member_since: '2015-03-01T00:00:00Z' } })
+    loansReady()
+    renderHome()
+    act(() => useCriteriaStore.getState().loadSearch('countries_i_dont_have'))
+    const c = card('Your Kiva lending')
+    const row = (name: string) => [...c.querySelectorAll('.kl-home-row')].find((r) => r.textContent?.includes(name)) as HTMLElement
+    await waitFor(() => expect(within(c).getAllByText('3 loans')).toHaveLength(2))
+    const countries = row("Countries I Don't Have")
+    expect(countries).toHaveAttribute('aria-current', 'true')
+    expect(within(countries).queryByRole('button')).toBeNull()
+    expect(countries.querySelector('.kl-home-row-in-force')).toBeVisible()
+    expect(countries.querySelector('.kl-home-row-in-force')).toHaveTextContent('✓ Showing')
+    expect(countries.querySelector('.kl-home-row-in-force')).toHaveAttribute('title', "You're on this search already.")
+    expect(within(row('Balance Partner Risk')).getByRole('button', { name: 'Open Balance Partner Risk' })).toBeEnabled()
+    expect(row('Balance Partner Risk').querySelector('.kl-home-row-in-force')).not.toBeVisible()
+    act(() => {
+      const k = useCriteriaStore.getState().lastKnown
+      useCriteriaStore.getState().setCriteria({ ...k, loan: { ...k.loan, sort: 'newest' } } as Criteria)
+    })
+    expect(row("Countries I Don't Have")).not.toHaveAttribute('aria-current')
+    expect(row("Countries I Don't Have").querySelector('.kl-home-row-in-force')).not.toBeVisible()
+    fireEvent.click(within(row("Countries I Don't Have")).getByRole('button', { name: "Open Countries I Don't Have" }))
+    expect((useCriteriaStore.getState().lastKnown.loan as Record<string, unknown>).sort).not.toBe('newest')
+    expect(row("Countries I Don't Have").querySelector('.kl-home-row-in-force')).toBeVisible()
+  })
+
+  it('does the same for a starting point on a first visit', async () => {
+    loansReady()
+    renderHome()
+    act(() => useCriteriaStore.getState().loadSearch('expiring_soon'))
+    const c = card('Start with a ready-made search')
+    const row = [...c.querySelectorAll('.kl-home-row')].find((r) => r.textContent?.includes('Expiring Soon')) as HTMLElement
+    expect(row.querySelector('.kl-home-row-in-force')).toBeVisible()
+    expect(within(row).queryByRole('button')).toBeNull()
+    expect(within(c).getAllByRole('button', { name: /^Open / }).length).toBeGreaterThan(0)
+  })
+})

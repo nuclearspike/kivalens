@@ -886,6 +886,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'Portfolio balancing by {which} and “{exclude}” need your Kiva lender ID, so neither is applied to this search yet.',
   'exclude_needs_lender_id': 'Your own loans aren\'t left out yet. {set}',
   'needs_lender_id_tag': 'Needs your Lender ID',
+  'search_in_force': 'Showing',
+  'search_in_force_title': 'You\'re on this search already.',
   'saved_needs_lender_id': 'This search needs your Kiva lender ID to do what it says. {set}',
   'try_again': 'Try again',
   'portfolio_balancing_data': 'portfolio balancing data',

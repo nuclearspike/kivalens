@@ -883,6 +883,8 @@ const catalog: Record<string, string> = {
   'lender_notice_balancing_and_exclude': 'Der Portfolioausgleich nach {which} und „{exclude}“ brauchen Ihre Kiva-Kreditgeber-ID; deshalb wird auf diese Suche noch keins von beiden angewendet.',
   'exclude_needs_lender_id': 'Ihre eigenen Kredite werden noch nicht ausgeblendet. {set}',
   'needs_lender_id_tag': 'Braucht Ihre Kreditgeber-ID',
+  'search_in_force': 'Angezeigt',
+  'search_in_force_title': 'Diese Suche ist bereits eingestellt.',
   'saved_needs_lender_id': 'Diese Suche braucht Ihre Kiva-Kreditgeber-ID, um zu tun, was sie verspricht. {set}',
   'try_again': 'Erneut versuchen',
   'portfolio_balancing_data': 'Portfolio-Ausgleichsdaten',
