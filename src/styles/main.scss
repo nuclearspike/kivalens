@@ -431,6 +431,22 @@ body {
     overflow-wrap: anywhere;
   }
 }
+// The Saved tab's Criteria Summary: a section per criteria tab, a line per criterion.
+.kl-saved-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kl-saved-summary-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kl-text-muted);
+}
+.kl-saved-summary-lines {
+  margin: 0;
+  padding-left: 18px;
+}
 .saved-search-count {
   display: inline-block;
   min-width: 28px;

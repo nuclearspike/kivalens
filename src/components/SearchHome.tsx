@@ -6,6 +6,7 @@ import { getKivaLoans } from '../api/kiva'
 import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
 import { DEFAULT_SAVED_SEARCH_NAMES, countSavedSearch, inSavedSearchMode } from '../stores/criteriaStore'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
+import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import type { Criteria, KivaLoan } from '../types'
 import { clearLinkArrival, sameSearch, useLinkArrival } from '../lib/arrival'
 import { currentVisit } from '../lib/visits'
@@ -101,10 +102,7 @@ export default function SearchHome() {
   const [now] = useState(() => Date.now())
 
   const loansReady = !downloading && allLoans.length > 0
-  const deps: DescribeDeps = useMemo(
-    () => ({ t, data, partnerName: (id) => getKivaLoans()?.getPartner(Number(id))?.name }),
-    [t, data],
-  )
+  const deps: DescribeDeps = useMemo(() => kivaDescribeDeps(t, data), [t, data])
   const describe = (c: Criteria) => describeCriteria(c, deps)
   const lines = describe(lastKnown)
   const ownSaved = Object.keys(savedSearches ?? {}).filter((n) => !DEFAULT_SAVED_SEARCH_NAMES.has(n))

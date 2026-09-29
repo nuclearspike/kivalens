@@ -7,7 +7,8 @@ import { getKivaLoans } from '../api/kiva'
 import type { Criteria } from '../types'
 import { countSavedSearch, type SavedSearch } from '../stores/criteriaStore'
 import { useI18n } from '../i18n'
-import { summarizeCriteria, type Translate } from '../lib/summarizeCriteria'
+import { describeCriteria, lineText, type CriteriaLine, type Translate } from '../lib/describeCriteria'
+import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import { pluralCategory } from '../lib/pluralCategory'
 import { criteriaToSearch } from '../../server/criteriaUrl.mjs'
 
@@ -89,8 +90,15 @@ function collectSearches(
 // Main component
 // ---------------------------------------------------------------------------
 
+/** The Criteria Summary's sections: the criteria tabs, in their order. */
+const SUMMARY_GROUPS: ReadonlyArray<{ prefix: string; title: string }> = [
+  { prefix: 'loan.', title: 'borrower' },
+  { prefix: 'partner.', title: 'partner_2' },
+  { prefix: 'portfolio.', title: 'portfolio_2' },
+]
+
 export function SavedSearches() {
-  const { t, sector, number, locale } = useI18n()
+  const { t, data, number, locale } = useI18n()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const getSavedSearchNames = useCriteriaStore((s) => s.getSavedSearchNames)
@@ -127,7 +135,11 @@ export function SavedSearches() {
   const balancerDataVersion = useLoanStore((s) => s.balancerDataVersion)
 
   const selectedCrit = selected ? getSavedSearch(selected) : undefined
-  const summary = useMemo(() => summarizeCriteria(selectedCrit, t, sector), [selectedCrit, t, sector])
+  // The search as it runs, in the criteria panel's own words, under the tab each belongs to
+  // (describeCriteria, as History says it). Worked out on each render, so a balancer's count
+  // appears when the lender's portfolio arrives (balancerDataVersion re-renders the page).
+  const summaryLines = selectedCrit ? describeCriteria(selectedCrit as Criteria, kivaDescribeDeps(t, data)) : []
+  const summary = SUMMARY_GROUPS.map((g) => ({ title: g.title, lines: summaryLines.filter((l) => l.id.startsWith(g.prefix)) })).filter((g) => g.lines.length > 0)
   const checkedNames = useMemo(() => searches.filter((n) => checked[n]), [searches, checked])
 
   // Undefined while the search waits for part of the lender's portfolio (countSavedSearch);
@@ -526,15 +538,17 @@ export function SavedSearches() {
               {summary.length > 0 ? (
                 <Card>
                   <Card.Header>{t('criteria_summary')}</Card.Header>
-                  <Card.Body>
-                    <dl className="row mb-0">
-                      {summary.map((item, i) => (
-                        <span key={i}>
-                          <dt className="col-sm-4">{item.label}</dt>
-                          <dd className="col-sm-8">{item.value}</dd>
-                        </span>
-                      ))}
-                    </dl>
+                  <Card.Body className="kl-saved-summary">
+                    {summary.map((group) => (
+                      <section key={group.title}>
+                        <h5 className="kl-saved-summary-title">{t(group.title)}</h5>
+                        <ul className="kl-saved-summary-lines">
+                          {group.lines.map((line: CriteriaLine) => (
+                            <li key={line.id}>{lineText(line)}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    ))}
                   </Card.Body>
                 </Card>
               ) : (

@@ -1,4 +1,4 @@
-import type { Criteria, BalancerConfig } from '../types'
+import { PORTFOLIO_BALANCERS, type Criteria, type BalancerConfig } from '../types'
 import { humanize } from './utils'
 import en from '../i18n/locales/en'
 import { resolvePartnerMode } from '../../server/loanFilter.mjs'
@@ -209,7 +209,8 @@ export function activeCriteria(c: Criteria): ActiveCrit[] {
     out.push({ id: 'portfolio.exclude', label: 'exclude_loans_i_funded', value: 'on', without: (cc) => { const n = clone(cc); n.portfolio = { ...n.portfolio, exclude_portfolio_loans: 'false' }; return n } })
   }
   // portfolio balancers
-  for (const pb of ['pb_sector', 'pb_country', 'pb_activity', 'pb_partner', 'pb_region', 'pb_gender'] as const) {
+  // In the Portfolio tab's order (PORTFOLIO_BALANCERS), so every list of them agrees.
+  for (const pb of PORTFOLIO_BALANCERS) {
     const b = portfolio[pb] as BalancerConfig | undefined
     // Balance by partner is partner-side: kept but inert outside MFI Only.
     if (pb === 'pb_partner' && !partnerApplies) continue

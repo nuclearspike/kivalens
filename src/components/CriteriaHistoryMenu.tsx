@@ -1,9 +1,9 @@
 import { useId, useState } from 'react'
 import { Dropdown } from '../ui'
 import { formatRelativeTime, useI18n } from '../i18n'
-import { getKivaLoans } from '../api/kiva'
 import { criteriaKey } from '../lib/criteriaHistory'
 import { criteriaDetails, criteriaSummary, describeCriteria } from '../lib/describeCriteria'
+import { kivaDescribeDeps } from '../lib/kivaDescribeDeps'
 import { useCriteriaHistory } from '../stores/criteriaHistoryStore'
 import { useCriteriaStore } from '../stores'
 import { inSavedSearchMode } from '../stores/criteriaStore'
@@ -34,7 +34,7 @@ export default function CriteriaHistoryMenu() {
     // Not memoized: a field partner's name may arrive after the page, from a list
     // that is not React state, and each opening describes afresh.
     const currentKey = criteriaKey(current)
-    const describeDeps = { t, data, partnerName: (id: string) => getKivaLoans().getPartner(Number(id))?.name }
+    const describeDeps = kivaDescribeDeps(t, data)
     lines = entries.map((entry) => {
       // Each line says what choosing it gives: the search as it runs (restore applies the same rule).
       const runsAs = inSavedSearchMode(entry.criteria)

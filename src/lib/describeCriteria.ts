@@ -1,4 +1,4 @@
-import type { Criteria } from '../types'
+import type { BalancerConfig, Criteria } from '../types'
 import { activeCriteria, type ActiveCrit } from './criteriaActive'
 import { COUNTRY_OPTIONS, SORT_OPTIONS } from './criteriaOptions'
 
@@ -28,6 +28,8 @@ export interface DescribeDeps {
   data: (english: string) => string
   /** A field partner's name by id, when the partner list is loaded. */
   partnerName: (id: string) => string | undefined
+  /** How many slices a balancer hides or shows for the lender now; undefined until their portfolio is read. */
+  balancerCount?: (sliceBy: string, config: BalancerConfig) => number | undefined
 }
 
 const COUNTRY_LABEL = new Map(COUNTRY_OPTIONS.map((o) => [o.value, o.label]))
@@ -64,10 +66,37 @@ export function valueOf(it: Pick<ActiveCrit, 'id' | 'value' | 'modifier'>, deps:
   return v
 }
 
+/**
+ * A balancer in words, "hide those with more than 5% of my total portfolio", and how
+ * many that is for the lender now once their portfolio has been read. Read the way
+ * the filter reads it (resolveBalancerValues): gt is "more than", anything else
+ * "less than", and a missing percent is 0.
+ */
+function balancerRule(b: BalancerConfig, sliceBy: string, deps: DescribeDeps): string {
+  const show = b.hideshow === 'show'
+  const more = b.ltgt === 'gt'
+  // More than 0% is any at all, the rule both built-in portfolio searches use: "already in my portfolio".
+  const any = more && (b.percent ?? 0) === 0
+  const params = { percent: String(b.percent ?? 0), scope: deps.t(b.allactive === 'active' ? 'balancer_scope_active' : 'balancer_scope_all') }
+  const rule = any
+    ? deps.t(show ? 'balancer_rule_show_any' : 'balancer_rule_hide_any', params)
+    : show
+      ? deps.t(more ? 'balancer_rule_show_more' : 'balancer_rule_show_less', params)
+      : deps.t(more ? 'balancer_rule_hide_more' : 'balancer_rule_hide_less', params)
+  const count = deps.balancerCount?.(sliceBy, b)
+  if (count === undefined) return rule
+  return `${rule} · ${deps.t(show ? 'balancer_shown_now' : 'balancer_hidden_now', { count })}`
+}
+
 export function describeCriteria(c: Criteria, deps: DescribeDeps): CriteriaLine[] {
+  const portfolio = (c.portfolio ?? {}) as Record<string, unknown>
   const lines: CriteriaLine[] = activeCriteria(c)
     .filter((it) => it.id !== 'portfolio.exclude')
-    .map((it) => ({ id: it.id, label: labelOf(it, deps.t), value: valueOf(it, deps) }))
+    .map((it) => {
+      const pb = it.id.startsWith('portfolio.pb_') ? it.id.slice('portfolio.'.length) : null
+      const value = pb ? balancerRule(portfolio[pb] as BalancerConfig, pb.slice('pb_'.length), deps) : valueOf(it, deps)
+      return { id: it.id, label: labelOf(it, deps.t), value }
+    })
   const loan = (c.loan ?? {}) as Record<string, unknown>
   const sort = typeof loan.sort === 'string' ? loan.sort : ''
   if (sort && SORT_LABEL.has(sort)) lines.push({ id: 'loan.sort', label: deps.t('sort'), value: deps.t(SORT_LABEL.get(sort)!) })
@@ -78,14 +107,24 @@ export function describeCriteria(c: Criteria, deps: DescribeDeps): CriteriaLine[
   return lines
 }
 
+/**
+ * A line's label and value as one: "Sector: Agriculture". A label that already
+ * ends its name with a colon ("Balancer: country", "バランサー：国") takes its value
+ * after a dash instead, so the line never reads "Balancer: country: hide …".
+ */
+export function lineText(l: CriteriaLine): string {
+  if (!l.value) return l.label
+  return /[:：]/.test(l.label) ? `${l.label} — ${l.value}` : `${l.label}: ${l.value}`
+}
+
 /** One line: "Sector: Agriculture · Country: Kenya". */
 export function criteriaSummary(lines: CriteriaLine[], t: Translate): string {
   if (lines.length === 0) return t('no_filters_set')
-  return lines.map((l) => (l.value ? `${l.label}: ${l.value}` : l.label)).join(' · ')
+  return lines.map(lineText).join(' · ')
 }
 
 /** Every line on its own, for the hover that shows what a summary cut short. */
 export function criteriaDetails(lines: CriteriaLine[], t: Translate): string {
   if (lines.length === 0) return t('no_filters_set')
-  return lines.map((l) => (l.value ? `${l.label}: ${l.value}` : l.label)).join('\n')
+  return lines.map(lineText).join('\n')
 }

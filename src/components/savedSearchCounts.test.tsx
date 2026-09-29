@@ -38,6 +38,36 @@ const arrive = () => {
 const countOf = (name: string) =>
   [...document.querySelectorAll('.saved-search-count')].find((b) => b.parentElement?.textContent?.includes(name))?.textContent
 
+describe('the Saved tab says the whole search', () => {
+  // Paul, 2026-09-29: "the criteria summary isn't complete. it leaves out PB crits.
+  // 'Countries I dont' have' doesn't show the port balancing."
+  it('by tab: the limit under Borrower, and the balancer under Your Portfolio with what it hides now', async () => {
+    pending = false
+    const savedSlices = kl.balancerSlices
+    kl.balancerSlices = ((slice: string) => (slice === 'country' ? [{ id: 'KE', name: 'Kenya', value: 3, percent: 60 }, { id: 'UG', name: 'Uganda', value: 2, percent: 40 }] : null)) as never
+    try {
+      render(
+        <I18nProvider>
+          <MemoryRouter initialEntries={['/saved']}>
+            <Routes>
+              <Route path="/saved" element={<SavedSearches />} />
+            </Routes>
+          </MemoryRouter>
+        </I18nProvider>,
+      )
+      fireEvent.click(screen.getByText("Countries I Don't Have", { selector: 'span' }))
+      const summary = screen.getByText('Criteria Summary').closest('.card') as HTMLElement
+      const sections = [...summary.querySelectorAll('section')].map((sec) => [sec.querySelector('h5')!.textContent, [...sec.querySelectorAll('li')].map((li) => li.textContent)])
+      expect(sections).toEqual([
+        ['Borrower', ['Limit to 1 per Country']],
+        ['Your Portfolio', ['Balancer: country — hide those already in my total portfolio · hidden now: 2']],
+      ])
+    } finally {
+      kl.balancerSlices = savedSlices
+    }
+  })
+})
+
 describe('saved-search counts wait for the portfolio', () => {
   it('in the Saved Searches menu, counting again while it is open', async () => {
     render(

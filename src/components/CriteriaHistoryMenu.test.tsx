@@ -136,7 +136,11 @@ describe('the History menu', () => {
     open()
     const line = lines().find((l) => l.textContent?.includes('per Partner'))!
     // The line says what choosing it gives, balancing and all.
-    expect(line.title.split('\n').slice(1)).toEqual(['Limit to 1 per Partner', 'MFI / Direct: MFI Only', 'Balancer: partner'])
+    expect(line.title.split('\n').slice(1)).toEqual([
+      'Limit to 1 per Partner',
+      'MFI / Direct: MFI Only',
+      'Balancer: partner — hide those already in my active portfolio',
+    ])
     const before = useCriteriaHistory.getState().history.entries.length
     fireEvent.click(line)
     expect(criteria().lastKnown.partner.direct).toBe('mfi')
