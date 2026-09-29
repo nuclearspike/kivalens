@@ -122,7 +122,7 @@ export function SearchSwitcher() {
           <Dropdown.Toggle size="sm" id="saved-search-dropdown" style={{ flex: 1 }} data-aikl="saved-searches">
             {lastSwitch ? `‘${t(lastSwitch)}’` : t('saved_searches')}
           </Dropdown.Toggle>
-          <Dropdown.Menu style={{ maxHeight: 400, overflowY: 'auto', fontSize: 12 }}>
+          <Dropdown.Menu className="kl-saved-switcher-menu" style={{ maxHeight: 400, overflowY: 'auto', fontSize: 12 }}>
             {searchNames.map((name) => (
               <Dropdown.Item
                 key={name}

@@ -448,7 +448,8 @@ export function SavedSearches() {
                   {name in searchCounts ? (
                     <span className="saved-search-count">{searchCounts[name] ?? '…'}</span>
                   ) : null}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                  {/* The whole name, wrapping: a cut-off name hides which search it is (Paul, 2026-09-28). */}
+                  <span className="kl-saved-search-name" style={{ flex: 1, minWidth: 0 }}>
                      {t(name)}
                   </span>
                 </ListGroup.Item>

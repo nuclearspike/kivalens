@@ -416,8 +416,21 @@ body {
 }
 
 // ============================================================
-// Saved Search Count Badges
+// Saved Searches: names and count badges
 // ============================================================
+// A saved search's name is shown whole, wrapping, wherever saved searches are listed:
+// a cut-off name hides which search it is (Paul, 2026-09-28). The switcher's items
+// wrap within a width a phone can hold rather than widening the menu past the screen.
+.kl-saved-search-name {
+  overflow-wrap: anywhere;
+}
+.kl-saved-switcher-menu {
+  max-width: min(26rem, calc(100vw - 32px));
+  .dropdown-item {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
 .saved-search-count {
   display: inline-block;
   min-width: 28px;
