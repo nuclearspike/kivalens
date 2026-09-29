@@ -60,28 +60,15 @@ export default function CriteriaHistoryMenu() {
         {lines.length === 0 ? (
           <Dropdown.Header>{t('criteria_history_empty')}</Dropdown.Header>
         ) : (
-          lines.map(({ entry, summary, details, isCurrent }) => (
-            <Dropdown.Item
-              key={entry.id}
-              active={isCurrent}
-              aria-current={isCurrent ? 'true' : undefined}
-              title={`${date(entry.at, { dateStyle: 'medium', timeStyle: 'short' })}\n${details}`}
-              onClick={() => restore(entry.id)}
-              className="kl-criteria-history-item"
-            >
-              <span className="kl-criteria-history-when">{formatRelativeTime(locale, entry.at, now)}</span>
-              <span className="kl-criteria-history-summary">{summary}</span>
-            </Dropdown.Item>
-          ))
-        )}
-        {lines.length > 0 && (
           <>
-            <Dropdown.Divider />
-            {/* One entry that is Clear, or, right after a clear, Restore (undo over a
-                confirmation, rule 18): the menu stays open so the result shows at once,
-                and focus stays on the same entry. Clear is shown even with nothing to
-                clear yet, unavailable and saying why (rule 39): aria-disabled rather
-                than disabled, so a keyboard or screen-reader user can still reach it. */}
+            {/* Clear comes first with a divider under it, and only the list below
+                scrolls: at the foot of a list that scrolled, nothing showed that it
+                was there (Paul, 2026-09-28). One entry that is Clear, or, right after
+                a clear, Restore (undo over a confirmation, rule 18): the menu stays
+                open so the result shows at once, and focus stays on the same entry.
+                Clear is shown even with nothing to clear yet, unavailable and saying
+                why (rule 39): aria-disabled rather than disabled, so a keyboard or
+                screen-reader user can still reach it. */}
             {cleared ? (
               <Dropdown.Item key="clear" keepOpen onClick={undoClear}>
                 {t('restore_history')}
@@ -106,6 +93,23 @@ export default function CriteriaHistoryMenu() {
                 )}
               </Dropdown.Item>
             )}
+            <Dropdown.Divider />
+            {/* Scrolls on its own; its edges shade while there is more that way. */}
+            <div className="kl-criteria-history-list">
+              {lines.map(({ entry, summary, details, isCurrent }) => (
+                <Dropdown.Item
+                  key={entry.id}
+                  active={isCurrent}
+                  aria-current={isCurrent ? 'true' : undefined}
+                  title={`${date(entry.at, { dateStyle: 'medium', timeStyle: 'short' })}\n${details}`}
+                  onClick={() => restore(entry.id)}
+                  className="kl-criteria-history-item"
+                >
+                  <span className="kl-criteria-history-when">{formatRelativeTime(locale, entry.at, now)}</span>
+                  <span className="kl-criteria-history-summary">{summary}</span>
+                </Dropdown.Item>
+              ))}
+            </div>
           </>
         )}
       </Dropdown.Menu>

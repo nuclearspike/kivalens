@@ -1956,9 +1956,29 @@ textarea {
 
 .kl-criteria-history {
   max-height: 400px;
-  overflow-y: auto;
   width: min(460px, calc(100vw - 32px));
   font-size: 12px;
+}
+
+// Clear, a divider, then the searches: only the searches scroll, so Clear never
+// scrolls out of view (Paul, 2026-09-28: "the history dropdown is scrollable but you
+// can't tell that. so the Clear option is hidden").
+.dropdown-menu.kl-criteria-history.show {
+  display: flex;
+  flex-direction: column;
+}
+// An edge shades while there is more to scroll that way: the shades stay at the
+// edges (scroll), and covers the colour of the menu travel with the list (local),
+// so a cover hides the top shade at the top and the bottom one at the end.
+.kl-criteria-history-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  background:
+    linear-gradient(var(--kl-surface-raised) 30%, transparent) top / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--kl-surface-raised) 70%) bottom / 100% 24px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, var(--kl-shadow), transparent) top / 100% 10px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, var(--kl-shadow), transparent) bottom / 100% 10px no-repeat scroll;
 }
 
 // One line per search: when, then what — the what cut with "…" where it runs

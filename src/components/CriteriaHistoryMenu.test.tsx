@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { I18nProvider } from '../i18n'
@@ -88,6 +90,34 @@ describe('the History menu', () => {
     // The search gone back to is now the newest, not a duplicate.
     const summaries = useCriteriaHistory.getState().history.entries.map((e) => (e.criteria.loan as Record<string, unknown>).country_code ?? '-')
     expect(summaries).toEqual(['-', 'KE', '-'])
+  })
+
+  it('puts Clear first, a divider under it, outside the list that scrolls; Restore takes its place', () => {
+    // Paul, 2026-09-28: "the history dropdown is scrollable but you can't tell that. so the
+    // Clear option is hidden. let's have that at the top, divider under it."
+    act(() => criteria().setCriteria(withLoan({ sector: 'Food' })))
+    renderMenu()
+    open()
+    const menu = () => document.querySelector('.kl-criteria-history') as HTMLElement
+    const first = menu().firstElementChild as HTMLElement
+    expect(first).toHaveTextContent('Clear search history')
+    expect(first.nextElementSibling).toHaveClass('dropdown-divider')
+    const list = menu().querySelector('.kl-criteria-history-list') as HTMLElement
+    expect(list.contains(first)).toBe(false)
+    // Every search line is in the list, and nothing else is.
+    expect(lines().length).toBe(2)
+    expect([...list.querySelectorAll('.kl-criteria-history-item')]).toEqual(lines())
+    fireEvent.click(first)
+    expect(menu().firstElementChild).toHaveTextContent('Restore search history')
+    expect(menu().firstElementChild!.nextElementSibling).toHaveClass('dropdown-divider')
+  })
+
+  it('scrolls only the list, never the menu that holds Clear', () => {
+    const scss = readFileSync(path.join(process.cwd(), 'src/styles/main.scss'), 'utf8')
+    const block = (selector: string) => scss.slice(scss.indexOf(`${selector} {`), scss.indexOf('}', scss.indexOf(`${selector} {`)))
+    expect(block('.kl-criteria-history')).not.toMatch(/overflow-y/)
+    expect(block('.kl-criteria-history-list')).toMatch(/overflow-y:\s*auto/)
+    expect(block('.dropdown-menu.kl-criteria-history.show')).toMatch(/flex-direction:\s*column/)
   })
 
   it('says and brings back a search that balances by partner in MFI Only, even one recorded in Both', () => {
