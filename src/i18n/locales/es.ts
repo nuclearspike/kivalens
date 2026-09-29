@@ -1229,7 +1229,7 @@ const catalog: Record<string, string> = {
   'home_few_title': 'Solo coinciden {count} préstamos',
   'home_few_title_one': 'Solo coincide {count} préstamo',
   'home_finds_none_now': 'No encuentra ningún préstamo en este momento.',
-  'home_few_body': 'Sin uno de estos filtros encontraría más:',
+  'home_few_body': 'Quitar uno de estos filtros encontraría más:',
   'home_few_nothing': 'Quitar un solo filtro no encontraría más.',
   'home_few_remove': 'Quitar',
   'home_new_title': 'Desde su última visita',

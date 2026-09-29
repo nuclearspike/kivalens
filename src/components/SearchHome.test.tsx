@@ -267,7 +267,7 @@ describe('the lender’s own Kiva lending', () => {
 })
 
 describe('a handful of results', () => {
-  it('says which one filter to take out, with what the search would find, and takes it out', async () => {
+  it('says which one filter to remove, with what the search would find, and removes it', async () => {
     const narrow = { ...withSector('Retail'), loan: { ...withSector('Retail').loan, age_min: 18, age_max: 20 } } as Criteria
     useCriteriaStore.setState({ lastKnown: narrow })
     kl.filter = vi.fn((c: Criteria) => ((c.loan as Record<string, unknown>).sector ? LOANS.slice(0, 2) : LOANS)) as never
@@ -275,7 +275,12 @@ describe('a handful of results', () => {
     renderHome()
     const c = card('Only 2 loans match')
     await waitFor(() => expect(within(c).getByText('4 loans')).toBeInTheDocument())
-    fireEvent.click(within(c).getByRole('button', { name: /Remove “Sector: Retail” → 4 loans/ }))
+    expect(c).toHaveTextContent('Removing one of these filters would find more:')
+    const remove = within(c).getByRole('button', { name: /Remove “Sector: Retail” → 4 loans/ })
+    // The word the app uses everywhere else. Paul, 2026-09-29: "i think 'remove' rather than
+    // 'take out' is much clearer and translates better also".
+    expect(remove).toHaveTextContent(/^Remove$/)
+    fireEvent.click(remove)
     expect((useCriteriaStore.getState().lastKnown.loan as Record<string, unknown>).sector).toBeUndefined()
   })
 })
