@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': 'Par pays',
   'by_sector': 'Par secteur',
   'basket_spread_title': 'Comment ce panier est réparti',
+  'basket_spread_click_hint': 'Cliquez sur une barre pour ne voir que ces prêts du panier. Cliquez à nouveau pour tout revoir.',
   'by_field_partner': 'Par partenaire local',
   'by_partner_rating': 'Par cote de risque du partenaire',
   'mix_label_partner': 'Partenaire local',

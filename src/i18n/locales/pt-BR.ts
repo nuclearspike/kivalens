@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': 'Por país',
   'by_sector': 'Por setor',
   'basket_spread_title': 'Como esta cesta está distribuída',
+  'basket_spread_click_hint': 'Clique em uma barra para ver só esses empréstimos da sua cesta. Clique de novo para ver todos.',
   'by_field_partner': 'Por parceiro de campo',
   'by_partner_rating': 'Por classificação de risco do parceiro',
   'mix_label_partner': 'Parceiro de campo',

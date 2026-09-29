@@ -235,6 +235,7 @@ const catalog: Record<string, string> = {
   'by_country': 'By Country',
   'by_sector': 'By Sector',
   'basket_spread_title': 'How this basket is spread',
+  'basket_spread_click_hint': 'Click a bar to see only those loans in your basket. Click it again to see them all.',
   'by_field_partner': 'By Field Partner',
   'by_partner_rating': 'By Partner Risk Rating',
   'mix_label_partner': 'Field partner',

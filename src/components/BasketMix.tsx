@@ -266,6 +266,9 @@ export default function BasketMix({
         <h4 className="mb-2" id={titleId}>
           {t('basket_spread_title')}
         </h4>
+        {/* Each row is a toggle that filters the basket list, and nothing else says so (Paul, 2026-09-29).
+            Shown while the rows load too, so it is in place when they arrive. */}
+        {mix.count > 1 ? <p className="kl-mix-note kl-mix-hint">{t('basket_spread_click_hint')}</p> : null}
         {exposure.status === 'loading' ? (
           <p className="kl-mix-note mb-0">{t('mix_checking_active')}</p>
         ) : (

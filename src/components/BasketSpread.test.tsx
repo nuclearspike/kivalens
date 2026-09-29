@@ -123,6 +123,16 @@ describe('the basket page', () => {
     expect(screen.queryByText(/Showing 6 of 8/)).toBeNull()
   })
 
+  it('says its bars are clickable: one shows only its loans, again shows all', () => {
+    // Paul, 2026-09-29: "this def needs a 'click graph to filter' type of message. it's not apparent."
+    openBasket()
+    const hint = 'Click a bar to see only those loans in your basket. Click it again to see them all.'
+    const card = screen.getByRole('heading', { name: 'How this basket is spread' }).closest('section') as HTMLElement
+    expect(card.querySelector('.kl-mix-hint')).toHaveTextContent(hint)
+    // Right under the title, before the rows it explains.
+    expect(card.querySelector('h4')!.nextElementSibling).toHaveClass('kl-mix-hint')
+  })
+
   it('narrows the list from a breakdown row too, and lifts it once the row’s loans are gone', () => {
     openBasket()
     fireEvent.click(screen.getByRole('button', { name: /^Uganda/ }))
@@ -213,6 +223,8 @@ describe('with a lender ID', () => {
     useUtilsStore.setState({ lenderId: 'examplelender' })
     openBasket()
     expect(screen.getByText('Checking your active loans on Kiva…')).toBeInTheDocument()
+    // The hint is already in place while the rows load, so nothing moves when they come.
+    expect(screen.getByText('Click a bar to see only those loans in your basket. Click it again to see them all.')).toBeInTheDocument()
     expect(screen.queryByText('Heavy on one field partner')).toBeNull()
     expect(fetchBalancerData).toHaveBeenCalledWith('partner', { enabled: true, allactive: 'active' })
     expect(fetchBalancerData).toHaveBeenCalledWith('country', { enabled: true, allactive: 'active' })

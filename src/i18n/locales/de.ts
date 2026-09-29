@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': 'Nach Land',
   'by_sector': 'Nach Sektor',
   'basket_spread_title': 'So verteilt sich dieser Warenkorb',
+  'basket_spread_click_hint': 'Klicken Sie auf einen Balken, um nur diese Kredite im Warenkorb zu sehen. Ein erneuter Klick zeigt wieder alle.',
   'by_field_partner': 'Nach Partnerorganisation',
   'by_partner_rating': 'Nach Risikobewertung des Partners',
   'mix_label_partner': 'Partnerorganisation',

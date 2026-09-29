@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': '按国家',
   'by_sector': '按行业',
   'basket_spread_title': '此购物篮的分布',
+  'basket_spread_click_hint': '点击某一条，只看购物篮中的这些贷款；再次点击即可查看全部。',
   'by_field_partner': '按现场合作伙伴',
   'by_partner_rating': '按合作伙伴风险评级',
   'mix_label_partner': '现场合作伙伴',

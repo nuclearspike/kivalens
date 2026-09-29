@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': 'Per land',
   'by_sector': 'Per sector',
   'basket_spread_title': 'Hoe dit mandje verdeeld is',
+  'basket_spread_click_hint': 'Klik op een balk om alleen die leningen in uw mandje te zien. Klik nog eens om ze allemaal te zien.',
   'by_field_partner': 'Per lokale partner',
   'by_partner_rating': 'Per risicobeoordeling van de partner',
   'mix_label_partner': 'Lokale partner',

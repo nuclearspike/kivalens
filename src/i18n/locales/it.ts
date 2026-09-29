@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': 'Per paese',
   'by_sector': 'Per settore',
   'basket_spread_title': 'Come è distribuito questo carrello',
+  'basket_spread_click_hint': 'Un clic su una barra mostra solo quei prestiti del carrello; un altro clic li mostra tutti.',
   'by_field_partner': 'Per partner locale',
   'by_partner_rating': 'Per valutazione del rischio del partner',
   'mix_label_partner': 'Partner locale',

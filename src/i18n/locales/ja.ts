@@ -232,6 +232,7 @@ const catalog: Record<string, string> = {
   'by_country': '国別',
   'by_sector': 'セクター別',
   'basket_spread_title': 'このバスケットの内訳',
+  'basket_spread_click_hint': 'バーをクリックすると、バスケット内のそのローンだけを表示します。もう一度クリックするとすべて表示に戻ります。',
   'by_field_partner': 'フィールドパートナー別',
   'by_partner_rating': 'パートナーのリスク評価別',
   'mix_label_partner': 'フィールドパートナー',
