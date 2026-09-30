@@ -30,6 +30,27 @@ const emit = () => listeners.forEach((l) => l())
 export const sameSearch = (a: Criteria | null | undefined, b: Criteria | null | undefined): boolean =>
   criteriaToSearch(a) === criteriaToSearch(b)
 
+let addressRead = false
+
+/**
+ * Whether the address this page load opened on came from outside the lender's own use of
+ * KivaLens: a link, a bookmark, a typed address. A reload, Back or Forward, and a tab the browser
+ * restores show the lender's own address, even when another KivaLens tab has changed the stored
+ * search meanwhile (Paul, 2026-09-30: "i hadn't loaded from a link or bookmark ... I'm assuming I
+ * refreshed. so the site is assuming something that's not true"). Only the first address a page
+ * load reads can be one: coming back to the Search page later in the same load is the lender's
+ * own navigation. Call it once per page load; later calls answer false.
+ */
+export function addressCameFromOutside(): boolean {
+  if (addressRead) return false
+  addressRead = true
+  const nav = typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function'
+    ? (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+    : undefined
+  // A browser that cannot say how the page was reached is taken at its word as a fresh arrival.
+  return !nav || nav.type === 'navigate' || nav.type === 'prerender'
+}
+
 /** Called when an address's search replaces a different one the browser had. */
 export function noteLinkArrival(arrived: Criteria, previous: Criteria): void {
   if (sameSearch(arrived, previous)) return
@@ -54,8 +75,9 @@ export function useLinkArrival(): LinkArrival | null {
   return useSyncExternalStore(subscribe, () => linkArrival, () => null)
 }
 
-/** Tests only. */
+/** Tests only: a fresh page load. */
 export function resetArrivalForTests(): void {
   linkArrival = null
+  addressRead = false
   emit()
 }

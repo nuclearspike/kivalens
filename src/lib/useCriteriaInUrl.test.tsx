@@ -5,6 +5,7 @@ import { cleanup, render, screen, act } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { useCriteriaInUrl } from './useCriteriaInUrl'
 import { useCriteriaStore } from '../stores'
+import { resetArrivalForTests, useLinkArrival } from './arrival'
 
 function Harness({ active = true }: { active?: boolean }) {
   useCriteriaInUrl(active)
@@ -131,5 +132,65 @@ describe('the saved-search button', () => {
     useCriteriaStore.getState().loadSearch('expiring_soon')
     at('/search?utm_source=news')
     expect(useCriteriaStore.getState().lastSwitch).toBe('expiring_soon')
+  })
+})
+
+// Paul, 2026-09-30: "i saw this come up and i hadn't loaded from a link or bookmark. I'd just had
+// my browser left open and I'm assuming I refreshed. so the site is assuming something that's not
+// true." Reproduced: another KivaLens tab changed the stored search, then this one reloaded.
+describe('only an address from outside is called a link', () => {
+  const loadedBy = (type: string | null) =>
+    vi.spyOn(performance, 'getEntriesByType').mockReturnValue(type ? ([{ type }] as unknown as PerformanceEntryList) : [])
+  function Probe() {
+    return <output data-testid="arrival">{JSON.stringify(useLinkArrival())}</output>
+  }
+  const arrived = (): ReturnType<typeof useLinkArrival> => {
+    render(<Probe />)
+    return JSON.parse(screen.getByTestId('arrival').textContent || 'null')
+  }
+  const storedElsewhere = () => useCriteriaStore.getState().setCriteria({ loan: { sector: 'Food' }, partner: {}, portfolio: {} })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    resetArrivalForTests()
+  })
+
+  it('a reload restores the address search without calling it a link, whatever another tab stored', () => {
+    resetArrivalForTests()
+    loadedBy('reload')
+    storedElsewhere()
+    at('/search?country_code=KE')
+    expect(useCriteriaStore.getState().lastKnown.loan.country_code).toBe('KE')
+    expect(arrived()).toBeNull()
+  })
+
+  it('so does Back or Forward, and a tab the browser restores', () => {
+    resetArrivalForTests()
+    loadedBy('back_forward')
+    storedElsewhere()
+    at('/search?country_code=KE')
+    expect(useCriteriaStore.getState().lastKnown.loan.country_code).toBe('KE')
+    expect(arrived()).toBeNull()
+  })
+
+  it('a link, a bookmark or a typed address is one, with the search it replaced', () => {
+    resetArrivalForTests()
+    loadedBy('navigate')
+    storedElsewhere()
+    at('/search?country_code=KE')
+    const link = arrived()
+    expect(link?.arrived.loan.country_code).toBe('KE')
+    expect(link?.previous.loan.sector).toBe('Food')
+  })
+
+  it('only the first address of a page load can be one: coming back to Search later is the lender’s own', () => {
+    resetArrivalForTests()
+    loadedBy('navigate')
+    at('/search')
+    cleanup()
+    storedElsewhere()
+    at('/search?country_code=KE')
+    expect(useCriteriaStore.getState().lastKnown.loan.country_code).toBe('KE')
+    expect(arrived()).toBeNull()
   })
 })
