@@ -7,16 +7,19 @@
 // age ends up shown as the borrower's, which is the one outcome to avoid. So the
 // regex publishes nothing for those and this asks instead.
 //
-// What this costs: ~54 descriptions out of 8,007 (0.7%), asked ONCE each — the
-// answer is cached by the text itself, so a re-read of the same story, and every
-// later refresh, is free. It runs on the server during a data refresh, never in a
-// lender's request, and it shares the chat's monthly budget. If the key is absent,
-// the budget is spent, or the model is unreachable, the age simply stays unset:
-// no age is better than the wrong person's age.
+// What this costs: about 20 descriptions of ~6,800 (0.3%), each asked about once. The
+// answer is kept on the loan itself (kl_age_answer: the age or null, and a fingerprint of
+// the story it answered), carried from one refresh to the next and saved with the loan's
+// details in the warm-start snapshot (Redis, klCache.mjs), so a restart or a deploy asks
+// nothing again (Paul, 2026-09-30: "the borrower ages should be (OF COURSE) added to the
+// loan details, not stored on ephemeral storage with heroku"). Only a new loan, or a story
+// Kiva has since edited, is asked about. It runs on the server during a data refresh, never
+// in a lender's request, and it shares the chat's monthly budget. If the key is absent, the
+// budget is spent, or the model is unreachable, the age simply stays unset: no age is better
+// than the wrong person's age.
 
 import OpenAI from 'openai'
 import { createHash } from 'node:crypto'
-import { cache } from './runtime.mjs'
 import { budgetExceeded, addSpend, costOf } from './aiUsage.mjs'
 import { read } from './borrowerAge.mjs'
 
@@ -24,9 +27,6 @@ const MODEL = process.env.OPENAI_AGE_MODEL || process.env.OPENAI_CHAT_MODEL || '
 // A refresh should never be able to run up an unbounded bill, however odd the feed.
 const MAX_CALLS_PER_REFRESH = Number(process.env.AGE_AI_MAX_CALLS) || 150
 const CONCURRENCY = 4
-// The answer depends only on the story, so a cached answer never goes stale. It is keyed by the
-// text alone: a story is written for one loan, and its name comes with it.
-const CACHE_PREFIX = 'age-ai-'
 
 let _client
 function client() {
@@ -36,7 +36,20 @@ function client() {
   return _client
 }
 
-const keyFor = (text) => CACHE_PREFIX + createHash('sha256').update(text).digest('hex').slice(0, 32)
+/** A fingerprint of the story an answer was given for: a story Kiva edits is asked about again. */
+export const storyPrint = (text) => createHash('sha256').update(text).digest('hex').slice(0, 16)
+
+const isAnswer = (a) => !!a && typeof a.of === 'string' && (a.age === null || Number.isInteger(a.age))
+
+/**
+ * The model's answers, by loan id, on the loans a refresh is about to replace: the previous
+ * batch, or the details a warm start restored from the snapshot.
+ */
+export function lastAgeAnswers(loans) {
+  const answers = new Map()
+  for (const loan of loans || []) if (loan && isAnswer(loan.kl_age_answer)) answers.set(loan.id, loan.kl_age_answer)
+  return answers
+}
 
 const PROMPT = `You are reading a Kiva loan description to find the age of THE BORROWER — the person the loan is for.
 
@@ -76,50 +89,40 @@ async function askOne(text, name) {
   return { age, asked: true }
 }
 
-/** The cached answer for this text, or undefined when it has never been asked. */
-async function cached(text) {
-  const raw = await cache.get(keyFor(text))
-  if (raw === null) return undefined
-  try {
-    const value = JSON.parse(raw)
-    return value === null || Number.isInteger(value) ? value : undefined
-  } catch {
-    return undefined
-  }
-}
-
 /**
- * Fills in kls_age for the loans whose description the patterns could not settle.
+ * Fills in kls_age for the loans whose description the patterns could not settle, and records
+ * the model's answer on each loan it asked about (kl_age_answer), "no age" included.
  *
- * Mutates each loan it can answer for and leaves the rest untouched (kls_age stays
- * null). Never throws: a refresh must finish whatever the model does.
+ * `lastAnswers` (lastAgeAnswers() of the loans being replaced) are reused while the story is the
+ * same, so a loan is asked about once for as long as it is listed. Mutates only the loans it can
+ * answer for. Never throws: a refresh must finish whatever the model does.
  *
- * @param {Array<{ name?: string, posted_date?: string, description?: any, kls_age?: number|null }>} loans processed loans
+ * @param {Array<{ id?: number, name?: string, posted_date?: string, description?: any, kls_age?: number|null, kl_age_answer?: { age: number|null, of: string } }>} loans processed loans
  * @param {(msg: string) => void} log
+ * @param {Map<number, { age: number|null, of: string }>} [lastAnswers]
  */
-export async function resolveAmbiguousAges(loans, log = () => {}) {
-  const pending = []
+export async function resolveAmbiguousAges(loans, log = () => {}, lastAnswers = new Map()) {
+  const stats = { considered: 0, kept: 0, asked: 0, resolved: 0 }
+  const unanswered = []
   for (const loan of loans) {
     const text = loan?.description?.texts?.en
     if (!text || loan.kls_age != null) continue
-    if (read(text, loan.name, loan.posted_date).confidence === 'ambiguous') pending.push({ loan, text })
+    if (read(text, loan.name, loan.posted_date).confidence !== 'ambiguous') continue
+    stats.considered += 1
+    const of = storyPrint(text)
+    const last = [loan.kl_age_answer, lastAnswers.get(loan.id)].find((a) => isAnswer(a) && a.of === of)
+    if (last) {
+      loan.kl_age_answer = last
+      stats.kept += 1
+      if (last.age != null) { loan.kls_age = last.age; stats.resolved += 1 }
+    } else {
+      unanswered.push({ loan, text, of })
+    }
   }
-  if (!pending.length) return { considered: 0, fromCache: 0, asked: 0, resolved: 0 }
-
-  const stats = { considered: pending.length, fromCache: 0, asked: 0, resolved: 0 }
-
-  // The cache is the cheap pass, and on a warm dyno it answers nearly all of them.
-  const unanswered = []
-  for (const item of pending) {
-    let hit
-    try { hit = await cached(item.text) } catch { hit = undefined }
-    if (hit === undefined) { unanswered.push(item); continue }
-    stats.fromCache += 1
-    if (hit != null) { item.loan.kls_age = hit; stats.resolved += 1 }
-  }
+  if (!stats.considered) return stats
 
   if (!unanswered.length) {
-    log(`Ages: ${stats.considered} ambiguous, all cached, ${stats.resolved} resolved`)
+    log(`Ages: ${stats.considered} ambiguous, all answered before, ${stats.resolved} resolved`)
     return stats
   }
   if (!client()) {
@@ -145,16 +148,16 @@ export async function resolveAmbiguousAges(loans, log = () => {}) {
         const { age, asked } = await askOne(item.text, item.loan.name)
         if (!asked) return
         stats.asked += 1
-        await cache.set(keyFor(item.text), JSON.stringify(age))
+        item.loan.kl_age_answer = { age, of: item.of }
         if (age != null) { item.loan.kls_age = age; stats.resolved += 1 }
       } catch (error) {
-        // One failed lookup must not take down a refresh, and must not be cached:
+        // One failed lookup must not take down a refresh, and must not be recorded:
         // the next refresh should be free to try again.
         log(`Ages: lookup failed (${error?.message || error})`)
       }
     }
   }))
 
-  log(`Ages: ${stats.considered} ambiguous — ${stats.fromCache} cached, ${stats.asked} asked, ${stats.resolved} resolved`)
+  log(`Ages: ${stats.considered} ambiguous — ${stats.kept} answered before, ${stats.asked} asked, ${stats.resolved} resolved`)
   return stats
 }

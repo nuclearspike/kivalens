@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createState, prepareData, startRefresh, loansFilterable, awaitLoansFilterable, rehydrateWarmCache } from '../../server/klCore.mjs'
+import { createState, prepareData, startRefresh, loansFilterable, awaitLoansFilterable, rehydrateWarmCache, snapshotOf } from '../../server/klCore.mjs'
+import { storyPrint } from '../../server/borrowerAgeAI.mjs'
 import { configureRuntime, memoryCache, resetRuntime } from '../../server/runtime.mjs'
 import { filterLoans } from '../../server/loanFilter.mjs'
 import zlib from 'node:zlib'
@@ -835,5 +836,61 @@ describe('a refresh that fails', () => {
     } finally {
       resetRuntime()
     }
+  })
+})
+
+// Paul, 2026-09-30: "the borrower ages should be (OF COURSE) added to the loan details, not stored
+// on ephemeral storage with heroku." The model's answer rides with the loan's details into the
+// snapshot, so the refresh after a restart keeps it instead of asking again. The API key is blanked
+// for these tests: no paid call can happen, and an age that appears can only have come from the
+// answer carried on the loan.
+describe("a borrower's age from the model is kept with the loan, across refreshes and restarts", () => {
+  beforeEach(() => { vi.stubEnv('OPENAI_API_KEY', '') })
+  afterEach(() => { vi.unstubAllEnvs() })
+  // "He is 44" is the borrower's own, but nothing ties it to the name, so the text alone cannot settle it.
+  const story = { texts: { en: 'His name is Rivo. He is 44 and lives in Vatofotsy with his wife and 3 children.' } }
+  const answer = { age: 44, of: storyPrint(story.texts.en) }
+  const pageLoans = (state: ReturnType<typeof createState>) =>
+    state.batches.get(state.batch)!.loanPages.flatMap((gz: Buffer) => JSON.parse(zlib.gunzipSync(gz).toString('utf8')))
+
+  it('the refresh after a warm start keeps the answer the snapshot carried, without asking, and saves it again', async () => {
+    globalThis.fetch = fakeKiva(() => [[loan(1, { name: 'Rivo', description: story })]]) as unknown as typeof fetch
+    const state = createState()
+    // What hydrateFromCache restores from Redis: each loan's details from the last snapshot.
+    state.allLoans = [{ id: 1, description: story, kl_repayments: [], kl_age_answer: answer }] as never
+    await prepareData(state, silent)
+    expect(state.allLoans[0]).toMatchObject({ kls_age: 44, kl_age_answer: answer })
+    expect(snapshotOf(state)!.details[0].kl_age_answer).toEqual(answer)
+    // Browsers get the age and not the bookkeeping behind it.
+    expect(pageLoans(state)[0].kls_age).toBe(44)
+    expect(pageLoans(state)[0]).not.toHaveProperty('kl_age_answer')
+  })
+
+  it('the expand of a warm start keeps it on the loans too', async () => {
+    globalThis.fetch = fakeKiva(() => [[loan(1, { name: 'Rivo', description: story })]]) as unknown as typeof fetch
+    const live = createState()
+    live.allLoans = [{ id: 1, description: story, kl_repayments: [], kl_age_answer: answer }] as never
+    await prepareData(live, silent)
+    const warm = createState()
+    warm.batch = live.batch
+    warm.klStart = live.klStart
+    warm.partnersGz = live.partnersGz
+    warm.optionsGz = live.optionsGz
+    warm.allLoans = snapshotOf(live)!.details as never
+    warm.warmDetails = snapshotOf(live)!.details as never
+    warm.batches.set(live.batch, live.batches.get(live.batch)!)
+    warm.ready = true
+    expect(rehydrateWarmCache(warm, silent)).toBe(true)
+    expect(warm.allLoans[0].kl_age_answer).toEqual(answer)
+  })
+
+  it('a story Kiva has edited does not inherit the old answer', async () => {
+    const edited = { texts: { en: 'His name is Rivo. He is 45 and lives in Vatofotsy with his wife and 3 children.' } }
+    globalThis.fetch = fakeKiva(() => [[loan(1, { name: 'Rivo', description: edited })]]) as unknown as typeof fetch
+    const state = createState()
+    state.allLoans = [{ id: 1, description: story, kl_repayments: [], kl_age_answer: answer }] as never
+    await prepareData(state, silent)
+    expect(state.allLoans[0].kls_age ?? null).toBeNull()
+    expect(state.allLoans[0]).not.toHaveProperty('kl_age_answer')
   })
 })

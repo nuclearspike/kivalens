@@ -30,7 +30,7 @@ import { sendDailyDigest } from './digest.mjs'
 import { recentlyFunded, observeFundedLoans, resolveLoanDetails } from './loanLifecycle.mjs'
 import { criteriaFromParams } from './criteriaUrl.mjs'
 import { read as readAge, ageFrom } from './borrowerAge.mjs'
-import { resolveAmbiguousAges } from './borrowerAgeAI.mjs'
+import { lastAgeAnswers, resolveAmbiguousAges } from './borrowerAgeAI.mjs'
 
 // ---------------------------------------------------------------------------
 // Config
@@ -668,6 +668,7 @@ function rehydrateCompressedLoan(l, words, detail) {
   if (detail) {
     if (detail.description) l.description = detail.description
     if (detail.kl_repayments) l.kl_repayments = detail.kl_repayments
+    if (detail.kl_age_answer) l.kl_age_answer = detail.kl_age_answer
   }
   if (!l.description) l.description = { languages: ['en'], texts: { en: '' } }
   return l
@@ -899,17 +900,22 @@ export async function prepareData(state, log = console.log) {
     log(`Processed ${processed} loans`)
     log(`Excluded ${processed - fundable.length} closed or fully-funded loans; ${fundable.length} remain`)
 
+    // The model's answers about ages live on the loans being replaced (the previous
+    // batch, or the details a warm start restored); taken before they are released.
+    const lastAnswers = lastAgeAnswers(state.allLoans)
+
     // Stage the live dataset now (releasing the previous batch's loans — holding
     // both through the gzip awaits cost ~29MB on the 512MB dyno), and flag the
     // staged window so the warm-cache expand cannot overwrite it mid-gzip.
     state.liveStaged = true
     state.allLoans = fundable.map((p) => p.loan)
 
-    // The handful of descriptions the patterns could not settle. Cached by the text,
-    // so this is free on all but the first sighting of a story, and it never throws:
-    // a loan whose age stays unknown is simply not offered for an age filter.
+    // The handful of descriptions the patterns could not settle. Each loan keeps the
+    // model's answer (kl_age_answer), so only a new or edited story is asked about,
+    // and it never throws: a loan whose age stays unknown is simply not offered for
+    // an age filter.
     try {
-      await resolveAmbiguousAges(state.allLoans, log)
+      await resolveAmbiguousAges(state.allLoans, log, lastAnswers)
     } catch (error) {
       logSafely(log, `Ages: resolution skipped (${describeError(error, { messageOnly: true })})`)
     }
@@ -992,7 +998,7 @@ export async function prepareData(state, log = console.log) {
  * The published batch as the snapshot store keeps it (runtime.mjs `snapshots`),
  * or null before anything is published: the pages the browser downloads, the
  * partners and options, and each loan's description and repayment schedule,
- * which /graphql serves.
+ * which /graphql serves, and the model's answer about its borrower's age.
  */
 export function snapshotOf(state) {
   const served = state.batches.get(state.batch)
@@ -1005,7 +1011,13 @@ export function snapshotOf(state) {
     optionsGz: state.optionsGz,
     loanPages: served.loanPages,
     keywordPages: served.keywordPages,
-    details: (state.allLoans || []).map((l) => ({ id: l.id, description: l.description, kl_repayments: l.kl_repayments })),
+    details: (state.allLoans || []).map((l) => ({
+      id: l.id,
+      description: l.description,
+      kl_repayments: l.kl_repayments,
+      // The model's answer about the borrower's age, so a restart does not ask again.
+      ...(l.kl_age_answer ? { kl_age_answer: l.kl_age_answer } : {}),
+    })),
   }
 }
 

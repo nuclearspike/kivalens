@@ -15,7 +15,7 @@ configureRuntime({
 const budgetExceeded = vi.fn(async () => false)
 vi.mock('../../server/aiUsage.mjs', () => ({ budgetExceeded, addSpend: vi.fn(), costOf: () => 0.0001 }))
 
-const { resolveAmbiguousAges } = await import('../../server/borrowerAgeAI.mjs')
+const { resolveAmbiguousAges, lastAgeAnswers, storyPrint } = await import('../../server/borrowerAgeAI.mjs')
 
 // "is 48" with no "years old": exactly what the patterns refuse to settle.
 const ambiguous = (text = 'Zhamalaim is 48 and married with two children.') =>
@@ -47,28 +47,45 @@ describe('resolveAmbiguousAges', () => {
     expect(loans[3].kls_age).toBeNull() // still refused; the model was never asked
   })
 
-  it('asks once per description and reuses the answer, so a refresh costs nothing twice', async () => {
+  // Paul, 2026-09-30: "the borrower ages should be (OF COURSE) added to the loan details, not
+  // stored on ephemeral storage with heroku." The answer rides on the loan, and the next refresh
+  // (or the details a warm start restored) hands it on.
+  it('asks once per loan and keeps the answer on it, so a refresh costs nothing twice', async () => {
     answers(48)
-    await resolveAmbiguousAges([ambiguous()] as never)
-    const second = [ambiguous()]
-    const stats = await resolveAmbiguousAges(second as never)
+    const first = [{ id: 7, ...ambiguous() }]
+    await resolveAmbiguousAges(first as never)
+    expect(first[0]).toMatchObject({ kls_age: 48, kl_age_answer: { age: 48, of: storyPrint('Zhamalaim is 48 and married with two children.') } })
+    const second = [{ id: 7, ...ambiguous() }]
+    const stats = await resolveAmbiguousAges(second as never, () => {}, lastAgeAnswers(first))
     expect(create).toHaveBeenCalledTimes(1)
-    expect(stats).toMatchObject({ fromCache: 1, asked: 0, resolved: 1 })
+    expect(stats).toMatchObject({ kept: 1, asked: 0, resolved: 1 })
     expect(second[0].kls_age).toBe(48)
   })
 
   it('remembers a "no age" answer too, instead of paying to be told again', async () => {
     answers(null)
-    await resolveAmbiguousAges([ambiguous()] as never)
-    const again = [ambiguous()]
-    await resolveAmbiguousAges(again as never)
+    const first = [{ id: 7, ...ambiguous() }]
+    await resolveAmbiguousAges(first as never)
+    expect(first[0].kl_age_answer).toMatchObject({ age: null })
+    const again = [{ id: 7, ...ambiguous() }]
+    await resolveAmbiguousAges(again as never, () => {}, lastAgeAnswers(first))
     expect(create).toHaveBeenCalledTimes(1)
     expect(again[0].kls_age).toBeNull()
   })
 
+  it('asks again when Kiva has edited the story, and never hands an answer to another loan', async () => {
+    answers(48)
+    const first = [{ id: 7, ...ambiguous() }]
+    await resolveAmbiguousAges(first as never)
+    const edited = [{ id: 7, ...ambiguous('Zhamalaim is 49 and married with two children.') }]
+    const otherLoan = [{ id: 8, ...ambiguous() }]
+    await resolveAmbiguousAges([...edited, ...otherLoan] as never, () => {}, lastAgeAnswers(first))
+    expect(create).toHaveBeenCalledTimes(3) // the first, the edited story, and loan 8's own
+  })
+
   it('refuses an answer outside the range Kiva lends in', async () => {
     for (const bad of [7, 130, null, 'forty']) {
-      store.clear(); create.mockReset()
+      create.mockReset()
       create.mockResolvedValue({ choices: [{ message: { content: JSON.stringify({ age: bad }) } }], usage: {} })
       const loans = [ambiguous()]
       await resolveAmbiguousAges(loans as never)
@@ -83,8 +100,8 @@ describe('resolveAmbiguousAges', () => {
     await expect(resolveAmbiguousAges(loans as never, (m: string) => logged.push(m))).resolves.toBeTruthy()
     expect(loans[0].kls_age).toBeNull()
     expect(logged.join(' ')).toContain('failed')
-    // A failure is not cached: the next refresh is free to try again.
-    expect(store.size).toBe(0)
+    // A failure is not recorded on the loan: the next refresh is free to try again.
+    expect(loans[0]).not.toHaveProperty('kl_age_answer')
   })
 
   it('survives an unparseable answer', async () => {

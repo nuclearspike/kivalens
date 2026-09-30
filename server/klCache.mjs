@@ -18,7 +18,10 @@
  * snapshot shape below — BUMP CACHE_VERSION. The version is part of the key name,
  * so old-format data is never read back into a new build (clean miss -> the
  * server just does its normal live fetch). Stale/old-version keys self-evict via
- * the TTL.
+ * the TTL. An optional per-loan field that both builds read correctly either way
+ * needs no bump: the details' kl_age_answer (the model's answer about the
+ * borrower's age) is ignored by a build that does not know it, and its absence
+ * only means one more question for a build that does.
  * ╚════════════════════════════════════════════════════╝
  */
 
