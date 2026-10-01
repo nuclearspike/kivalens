@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- locale helpers and the provider intentionally share one public module. */
 import { localizeCountryName } from './countryNames'
-import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import enCatalog from './locales/en'
 
@@ -47,6 +47,22 @@ function loadCatalog(locale: SecondaryLocale): Promise<Catalog> {
     case 'ja': return import('./locales/ja').then((m) => m.default)
     case 'zh-Hans': return import('./locales/zh-Hans').then((m) => m.default)
   }
+}
+
+// Catalogs already loaded in this page: a language chosen before is switched to at once.
+const loadedCatalogs = new Map<SecondaryLocale, Catalog>()
+
+/** The catalog for a locale if it is here already (English always is), else undefined. */
+function catalogNow(locale: Locale): Catalog | undefined {
+  return locale === 'en' ? EMPTY_CATALOG : loadedCatalogs.get(locale)
+}
+
+async function ensureCatalog(locale: Locale): Promise<Catalog> {
+  const have = catalogNow(locale)
+  if (have) return have
+  const catalog = await loadCatalog(locale as SecondaryLocale)
+  loadedCatalogs.set(locale as SecondaryLocale, catalog)
+  return catalog
 }
 
 function templateFor(locale: Locale, key: string, catalog: Catalog): string {
@@ -254,29 +270,59 @@ const I18nContext = createContext<I18nValue>({
   percent: (value, fraction) => formatPercent('en', value, fraction),
 })
 
+// The page's own language starts loading as soon as this module runs, before React renders,
+// so it is usually here by the time anything is painted.
+if (typeof window !== 'undefined') {
+  const early = initialLocale()
+  if (early !== 'en') void ensureCatalog(early).catch(() => {})
+}
+
+/**
+ * The language on screen and its strings, which change together. A newly chosen language
+ * replaces the one on screen only once its strings have arrived, so moving between two
+ * languages never passes through English (Paul, 2026-10-01: "when i am on French lang and
+ * then switch to German lang ... it first rebuilds the UI in EN and THEN switches to the
+ * other lang"). English is shown only while a language's strings are not here at all: on a
+ * first load that beats them, or when they fail to load.
+ */
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale)
-  const [loadedCatalog, setLoadedCatalog] = useState<{
-    locale: SecondaryLocale
-    catalog: Catalog
-  } | null>(null)
+  const [shown, setShown] = useState<{ locale: Locale; catalog: Catalog }>(() => {
+    const first = initialLocale()
+    return { locale: first, catalog: catalogNow(first) ?? EMPTY_CATALOG }
+  })
+  // The language last asked for: a load that finishes after another choice is dropped.
+  const wanted = useRef<Locale>(shown.locale)
+  const show = useCallback((next: Locale) => {
+    wanted.current = next
+    const now = catalogNow(next)
+    if (now) {
+      setShown({ locale: next, catalog: now })
+      return
+    }
+    void ensureCatalog(next)
+      .then((catalog) => {
+        if (wanted.current === next) setShown({ locale: next, catalog })
+      })
+      .catch(() => {
+        // Its strings could not be loaded: the language is still the one chosen, in English words.
+        if (wanted.current === next) setShown({ locale: next, catalog: EMPTY_CATALOG })
+      })
+  }, [])
   const setLocale = useCallback((next: Locale) => {
     if (!supported.has(next)) return
-    setLocaleState(next)
     try { window.localStorage.setItem(STORAGE_KEY, next) } catch { /* ignore */ }
-  }, [])
+    show(next)
+  }, [show])
+  // A first load that painted before its language's strings arrived picks them up here.
   useEffect(() => {
-    document.documentElement.lang = locale
-    if (locale === 'en') return
-    let active = true
-    const secondaryLocale = locale as SecondaryLocale
-    void loadCatalog(secondaryLocale).then((catalog) => {
-      if (active) setLoadedCatalog({ locale: secondaryLocale, catalog })
-    })
-    return () => { active = false }
-  }, [locale])
-  const activeCatalog =
-    locale !== 'en' && loadedCatalog?.locale === locale ? loadedCatalog.catalog : EMPTY_CATALOG
+    if (shown.locale !== 'en' && shown.catalog === EMPTY_CATALOG && wanted.current === shown.locale) show(shown.locale)
+    // Only on mount: later switches go through setLocale.
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    document.documentElement.lang = shown.locale
+  }, [shown.locale])
+  const locale = shown.locale
+  const activeCatalog = shown.catalog
   const value = useMemo<I18nValue>(() => ({
     locale,
     setLocale,

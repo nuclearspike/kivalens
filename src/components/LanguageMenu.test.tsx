@@ -32,17 +32,64 @@ describe('LanguageMenu', () => {
     expect(screen.getByRole('menuitemradio', { name: /日本語/ })).toHaveAttribute('aria-checked', 'false')
   })
 
-  it('switches the locale immediately, persists it, and updates <html lang>', async () => {
+  // Paul, 2026-10-01: "when i am on French lang and then switch to German lang (or any two non EN
+  // langs) it first rebuilds the UI in EN and THEN switches to the other lang." The choice is kept
+  // at once; what is on screen changes in one step, once the new language's strings are here.
+  it('keeps the choice at once, then switches code, labels and <html lang> together', async () => {
     renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /简体中文/ }))
 
-    expect(document.documentElement.lang).toBe('zh-Hans')
     expect(window.localStorage.getItem('KivaLensLocale')).toBe('zh-Hans')
-    // The closed state shows the new code at once; the aria-label follows once
-    // the (lazily loaded) catalog resolves, so wait for it rather than read it.
-    expect(screen.getByRole('button', { name: /choose language/i })).toHaveTextContent('ZH')
     expect(await screen.findByRole('button', { name: '选择语言' })).toHaveTextContent('ZH')
+    expect(document.documentElement.lang).toBe('zh-Hans')
+  })
+
+  it('moves between two other languages without passing through English', async () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    const toggle = await screen.findByRole('button', { name: 'Choisir la langue' })
+    // Every label and code the toggle takes from here on.
+    const seen: string[] = []
+    const note = () => seen.push(`${toggle.getAttribute('aria-label')} ${toggle.textContent?.trim()}`)
+    const watch = new MutationObserver(note)
+    watch.observe(toggle, { attributes: true, childList: true, subtree: true, characterData: true })
+    fireEvent.click(toggle)
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Deutsch/ }))
+    await screen.findByRole('button', { name: 'Sprache auswählen' })
+    watch.disconnect()
+    expect(seen.length).toBeGreaterThan(0)
+    expect(seen.filter((s) => s.startsWith('Choose language'))).toEqual([])
+    expect(seen.filter((s) => /^Choisir la langue DE|^Sprache auswählen FR/.test(s))).toEqual([])
+  })
+
+  it('a language that finishes loading after a newer choice does not take over', async () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }))
+    // Italian is asked for, then French again before Italian has arrived.
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Italiano/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Choisir la langue' }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    await import('../i18n/locales/it')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(screen.getByRole('button', { name: 'Choisir la langue' })).toHaveTextContent('FR')
+    expect(window.localStorage.getItem('KivaLensLocale')).toBe('fr')
+  })
+
+  it('switches back to a language already loaded at once', async () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Deutsch/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Sprache auswählen' }))
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    // No wait: French has been here once in this page.
+    expect(screen.getByRole('button', { name: 'Choisir la langue' })).toHaveTextContent('FR')
+    expect(document.documentElement.lang).toBe('fr')
   })
 
   it('opening the menu focuses the current language', () => {
