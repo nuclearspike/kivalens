@@ -481,8 +481,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
             </p>
 
             <div className="d-flex gap-3">
-              {/* Left detail column */}
-              <div style={{ flex: '1 1 50%', fontSize: 13, lineHeight: 1.6, minWidth: 0 }}>
+              {/* Left detail column: each fact is a direct child, so the stack's gap spaces it. */}
+              <div className="kl-facts" style={{ flex: '1 1 50%', minWidth: 0 }}>
                 <div>
                   <div className="detail-label">{t('matches_saved_searches')}</div>
                   <div>
@@ -572,7 +572,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                 )}
 
                 {loan.status === 'fundraising' && (
-                  <div style={{ marginTop: 4 }}>
+                  <>
                     {loan.kl_dollars_per_hour && (
                       <div>
                         <span className="detail-label">{t('dollar_hour_2')}</span>{' '}
@@ -595,7 +595,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
                         {currency(loan.kl_still_needed ?? 0)}
                       </>}
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
 

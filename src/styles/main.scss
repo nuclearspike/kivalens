@@ -631,6 +631,17 @@ body {
   font-size: $kl-font-size-sm;
 }
 
+// A stack of facts: a muted label over its value, or a one-line "label value". The space
+// between facts belongs to the stack, never to a fact (no per-fact margin), so a fact added
+// later is spaced without anyone having to remember. Within a fact, label and value stay tight.
+.kl-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 // ============================================================
 // Alerts
 // ============================================================
