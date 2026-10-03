@@ -15,9 +15,8 @@
 //     direct Kiva-API and Google-Docs fallbacks, the shared Feedback /
 //     My Reports service (src/support/runtime.ts), and the real-user
 //     measurement collector (src/lib/rum, cloudflare/rum)
-//   - form-action allows the basket checkout POST to Kiva (the POST and its
-//     redirects can land on www/apex/other kiva.org subdomains, so allow the
-//     whole kiva.org family or the browser blocks the submission)
+//   - form-action is 'self': no form on the site posts anywhere else. Checkout
+//     at Kiva is a link (src/lib/kivaCheckout.ts), which no directive governs.
 
 export const CSP = [
   "default-src 'self'",
@@ -26,7 +25,7 @@ export const CSP = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https://www.kiva.org https://*.kivaws.org",
   "connect-src 'self' https://api.kivaws.org https://www.kiva.org https://docs.google.com https://api.humansareuseful.ai https://rum.kivalens.org",
-  "form-action 'self' https://www.kiva.org https://kiva.org https://*.kiva.org",
+  "form-action 'self'",
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",

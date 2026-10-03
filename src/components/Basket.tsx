@@ -34,6 +34,14 @@ import {
 } from '../lib/basketMix'
 import { useActiveExposure } from '../lib/useActiveExposure'
 import { basketNoticeText } from '../lib/basketNotice'
+import { kivaHandoff, minutesAtKiva, KIVA_BUNDLE_AMOUNT, KIVA_SIGNED_OUT_LIMIT } from '../lib/kivaCheckout'
+
+/**
+ * From this many loans, the page says how long Kiva will need: twenty take it
+ * about half a minute (KIVA_SECONDS_PER_LOAN), long enough to look stuck to
+ * someone who was not told.
+ */
+const SLOW_AT_KIVA_FROM = 20
 import {
   buildBasketRepayments,
   type BasketRepaymentMonth,
@@ -298,7 +306,8 @@ function BasketRepaymentChart({
 
 /**
  * Basket page showing all basket items, total amount, and checkout button.
- * Checkout builds a Kiva URL and submits the basket via a hidden form POST.
+ * Checkout is a link to the Kiva address that adds these loans to the lender's
+ * basket there (src/lib/kivaCheckout.ts).
  */
 export default function Basket() {
   const i18n = useI18n()
@@ -320,7 +329,6 @@ export default function Basket() {
   const reconcileBasketOrphans = useLoanStore((s) => s.reconcileBasketOrphans)
   const lenderId = useUtilsStore((s) => s.lenderId)
 
-  const [showTransfer, setShowTransfer] = useState(false)
   const navigate = useNavigate()
   // The address says which loan is open, the way it does beside the search
   // results: /basket/:id is a place the lender can return to or hand to someone.
@@ -338,11 +346,11 @@ export default function Basket() {
   )
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Kiva's checkout callback lands on /basket?clear=1. Any other open tab is
-  // told the hand-off is over; this tab reconciles on mount like any visit. The
-  // basket is never emptied on the callback alone, because the callback fires
-  // when the basket is SET, not when payment completes — the outcome is
-  // reconciled against Kiva, or asked about, per T1.1.
+  // /basket?clear=1 is where Kiva's retired basket address sent the checkout tab
+  // back to, and where the older #/clear-basket address resolves. One arriving
+  // from history or an old tab tells any other open tab to reconcile; this tab
+  // reconciles on mount like any visit. The flag empties nothing by itself: it
+  // says a basket was handed over, not that it was paid for (T1.1).
   const checkoutReturnHandled = useRef(false)
   useEffect(() => {
     if (checkoutReturnHandled.current || !searchParams.has('clear')) return
@@ -392,9 +400,6 @@ export default function Basket() {
   // loans without the user's say-so.
   const reconcilingRef = useRef(false)
   const reconcileCheckout = useCallback(async () => {
-    // Back on this tab — the Kiva hand-off is over, so drop the "Transferring…"
-    // modal (it was never being dismissed once checkout completed).
-    setShowTransfer(false)
     if (reconcilingRef.current) return
     const pending = useLoanStore.getState().pendingCheckout
     if (!pending) return
@@ -559,14 +564,16 @@ export default function Basket() {
     })
   }, [downloading, loanCount, rawBasketCount, basketCount, reconcileBasketOrphans])
 
-  // Build the JSON payload for Kiva's /basket/set endpoint
-  const makeBasketPayload = useCallback((): string => {
-    return JSON.stringify(
-      basketEntries
-        .filter((e) => e.loan && (e.loan.kl_still_needed ?? 0) > 0)
-        .map((e) => ({ id: e.id, amount: e.amount })),
-    )
-  }, [basketEntries])
+  // Where Checkout at Kiva goes: the loans still raising money, at Kiva.
+  const handoff = useMemo(
+    () => kivaHandoff(lendable.map((e) => ({ id: e.id, amount: e.amount, name: e.loan?.name }))),
+    [lendable],
+  )
+  // Every loan at one amount other than Kiva's own reads better as a sentence than as a list of the same figure.
+  const oneChosenAmount =
+    handoff && handoff.setAtKiva.length === handoff.loans.length && handoff.setAtKiva.every((l) => l.amount === handoff.setAtKiva[0].amount)
+      ? handoff.setAtKiva[0].amount
+      : null
 
   const handleClear = async () => {
     const ok = await showConfirm(t('sure_want_empty_basket'), {
@@ -580,36 +587,12 @@ export default function Basket() {
     }
   }
 
-  const handleCheckout = () => {
-    if (basketCount === 0) return
-    // Snapshot what we're sending so the outcome can be reconciled on return.
-    const sentIds = basketEntries
-      .filter((e) => e.loan && (e.loan.kl_still_needed ?? 0) > 0)
-      .map((e) => e.id)
-    if (sentIds.length === 0) return
-
-    const form = document.getElementById('kiva-basket-form') as HTMLFormElement | null
-    if (!form) return
-    // Set the hidden input values right before submit.
-    const loansInput = form.querySelector<HTMLInputElement>('input[name="loans"]')
-    if (loansInput) loansInput.value = makeBasketPayload()
-
-    beginCheckout(sentIds)
-    setShowTransfer(true)
-
-    // Kiva 404s a basket POST when the lender's session has expired. Open the
-    // checkout window to a Kiva page first (in-gesture, so it isn't popup-
-    // blocked) to establish the session, then submit the form INTO that same
-    // named window once it has had time to load. Submitting into an existing
-    // window is not a popup, so the delay is safe — whereas a deferred
-    // target="_blank" submit gets blocked and opens a blank tab. If the popup is
-    // blocked outright, fall back to an immediate in-gesture submit.
-    const checkoutWin = window.open('https://www.kiva.org/about', 'kivaCheckout')
-    if (checkoutWin) {
-      setTimeout(() => form.submit(), 2500)
-    } else {
-      form.submit()
-    }
+  // Loans are here and none of them can go. While they are still arriving it is too early to say.
+  const nothingToSend = !handoff && basketCount > 0 && !downloading
+  // The link itself takes the lender to Kiva. This only notes what went, so the
+  // outcome can be reconciled when they come back to this tab.
+  const noteCheckout = () => {
+    if (handoff) beginCheckout(handoff.loans.map((loan) => loan.id))
   }
 
   // A loan the lender opens — from a row or from a band of the repayment chart —
@@ -629,10 +612,6 @@ export default function Basket() {
   const handleSelect = (id: number) => {
     openLoan(id)
   }
-
-  // Kiva sends the checkout tab back here when the basket is set. The address is
-  // fixed rather than built from the current path, which is a page of this app.
-  const callbackUrl = `${location.protocol}//${location.host}/basket?clear=1`
 
   return (
     // Three panes side by side from tablet width up. Below that they stack, each the
@@ -724,24 +703,77 @@ export default function Basket() {
             <h3 style={{ margin: '0 0 8px' }}>
               {t('basket_count_loans_dollar_amount', { count: number(basketCount), amount: currency(amountSum, { min: 0, max: 2 }) })}
             </h3>
-            <form
-              id="kiva-basket-form"
-              method="POST"
-              action="https://www.kiva.org/basket/set"
-              target="kivaCheckout"
-            >
-              <input name="callback_url" value={callbackUrl} type="hidden" />
-              <input name="loans" value={makeBasketPayload()} type="hidden" />
-              <input name="donation" value="0.00" type="hidden" />
-              <input name="app_id" value="org.kiva.kivalens" type="hidden" />
-            </form>
-            <button
-              className="btn btn-success"
-              disabled={basketCount === 0}
-              onClick={handleCheckout}
-            >
-              {t('checkout_kiva')}
-            </button>
+            <div className="kl-checkout">
+              {handoff ? (
+                // A real link: the browser opens it in a new tab on any kind of click, and
+                // no popup blocker has a say. A middle click reaches onAuxClick, not onClick.
+                <a
+                  className="btn btn-success"
+                  href={handoff.url}
+                  target="_blank"
+                  rel="noopener"
+                  aria-describedby="kl-checkout-note"
+                  onClick={noteCheckout}
+                  onAuxClick={(e) => {
+                    if (e.button === 1) noteCheckout()
+                  }}
+                >
+                  {t('checkout_kiva')}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  disabled
+                  aria-describedby={nothingToSend ? 'kl-checkout-note' : undefined}
+                >
+                  {t('checkout_kiva')}
+                </button>
+              )}
+              {handoff ? (
+                <div id="kl-checkout-note" className="kl-checkout-notes">
+                  <p>{t('checkout_opens_kiva')}</p>
+                  {handoff.needsSignIn ? (
+                    <p>{t('checkout_sign_in_first', { limit: currency(KIVA_SIGNED_OUT_LIMIT, { min: 0, max: 2 }) })}</p>
+                  ) : null}
+                  {handoff.loans.length >= SLOW_AT_KIVA_FROM ? (
+                    <p>{t('checkout_takes_a_while', { minutes: number(minutesAtKiva(handoff.loans.length)) })}</p>
+                  ) : null}
+                  {handoff.left > 0 ? (
+                    <p>{t('checkout_first_part', { count: number(handoff.loans.length), left: number(handoff.left) })}</p>
+                  ) : null}
+                </div>
+              ) : nothingToSend ? (
+                <div id="kl-checkout-note" className="kl-checkout-notes">
+                  <p>{t('checkout_nothing_to_send')}</p>
+                </div>
+              ) : null}
+              {handoff && handoff.setAtKiva.length > 0 ? (
+                <div className="kl-checkout-amounts" role="note">
+                  {oneChosenAmount !== null ? (
+                    <p>
+                      {t('checkout_one_amount_set_at_kiva', {
+                        amount: currency(KIVA_BUNDLE_AMOUNT, { min: 0, max: 2 }),
+                        chosen: currency(oneChosenAmount, { min: 0, max: 2 }),
+                        count: number(handoff.setAtKiva.length),
+                      })}
+                    </p>
+                  ) : (
+                    <>
+                      <p>{t('checkout_amounts_set_at_kiva', { amount: currency(KIVA_BUNDLE_AMOUNT, { min: 0, max: 2 }) })}</p>
+                      <ul>
+                        {handoff.setAtKiva.map((loan) => (
+                          <li key={loan.id}>
+                            <span>{loan.name ?? loan.id}</span>
+                            <strong>{currency(loan.amount, { min: 0, max: 2 })}</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </div>
             <BasketSpreadLine mix={mix} warnings={warnings} onSeeWhy={seeWhy} />
           </div>
         </div>
@@ -771,45 +803,6 @@ export default function Basket() {
       >
         {selectedId ? <Loan loanId={selectedId} /> : null}
       </div>
-
-      {/* Transfer modal */}
-      {showTransfer && (
-        <div
-          className="modal d-block"
-          tabIndex={-1}
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowTransfer(false)
-          }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">{t('transferring_basket_kiva')}</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  aria-label={t('close')}
-                  onClick={() => setShowTransfer(false)}
-                />
-              </div>
-              <div className="modal-body">
-                <p>
-                  {t('depending_number_loans_basket')}
-                </p>
-              </div>
-              <div className="modal-footer">
-                <div className="progress w-100">
-                  <div
-                    className="progress-bar progress-bar-striped progress-bar-animated"
-                    style={{ width: '100%' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
