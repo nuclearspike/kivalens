@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './App'
-import { I18nProvider } from './i18n'
+import { I18nProvider, firstLanguageReady } from './i18n'
 import { applyThemeChoice, readThemeChoice } from './lib/theme'
 import { installGlassLens } from './lib/glassLens'
 import { COLLECTOR_URL, routeLabel, shouldMeasure } from './lib/rum/config'
@@ -53,10 +53,15 @@ applyThemeChoice(readThemeChoice())
 // Glass slider handles refract at the rim where the browser can render it.
 installGlassLens()
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <I18nProvider>
-      <RouterProvider router={router} />
-    </I18nProvider>
-  </StrictMode>,
-)
+// The first render waits for the reader's own language (no wait for English), so the page never
+// opens in English and then changes. It does not render first and translate after: that is the
+// flash this prevents.
+void firstLanguageReady().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <I18nProvider>
+        <RouterProvider router={router} />
+      </I18nProvider>
+    </StrictMode>,
+  )
+})

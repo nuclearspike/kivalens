@@ -10,6 +10,10 @@ afterEach(() => {
   window.localStorage.clear()
 })
 
+// A language's strings are a module loaded on demand; under the whole suite running in parallel its
+// first load can take longer than the default one-second wait.
+const LOADED = { timeout: 5000 }
+
 function renderMenu() {
   return render(
     <I18nProvider>
@@ -41,7 +45,7 @@ describe('LanguageMenu', () => {
     fireEvent.click(screen.getByRole('menuitemradio', { name: /简体中文/ }))
 
     expect(window.localStorage.getItem('KivaLensLocale')).toBe('zh-Hans')
-    expect(await screen.findByRole('button', { name: '选择语言' })).toHaveTextContent('ZH')
+    expect(await screen.findByRole('button', { name: '选择语言' }, LOADED)).toHaveTextContent('ZH')
     expect(document.documentElement.lang).toBe('zh-Hans')
   })
 
@@ -49,7 +53,7 @@ describe('LanguageMenu', () => {
     renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
-    const toggle = await screen.findByRole('button', { name: 'Choisir la langue' })
+    const toggle = await screen.findByRole('button', { name: 'Choisir la langue' }, LOADED)
     // Every label and code the toggle takes from here on.
     const seen: string[] = []
     const note = () => seen.push(`${toggle.getAttribute('aria-label')} ${toggle.textContent?.trim()}`)
@@ -57,7 +61,7 @@ describe('LanguageMenu', () => {
     watch.observe(toggle, { attributes: true, childList: true, subtree: true, characterData: true })
     fireEvent.click(toggle)
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Deutsch/ }))
-    await screen.findByRole('button', { name: 'Sprache auswählen' })
+    await screen.findByRole('button', { name: 'Sprache auswählen' }, LOADED)
     watch.disconnect()
     expect(seen.length).toBeGreaterThan(0)
     expect(seen.filter((s) => s.startsWith('Choose language'))).toEqual([])
@@ -68,7 +72,7 @@ describe('LanguageMenu', () => {
     renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }, LOADED))
     // Italian is asked for, then French again before Italian has arrived.
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Italiano/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Choisir la langue' }))
@@ -83,9 +87,9 @@ describe('LanguageMenu', () => {
     renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /choose language/i }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Choisir la langue' }, LOADED))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Deutsch/ }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Sprache auswählen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Sprache auswählen' }, LOADED))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
     // No wait: French has been here once in this page.
     expect(screen.getByRole('button', { name: 'Choisir la langue' })).toHaveTextContent('FR')

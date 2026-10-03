@@ -270,11 +270,29 @@ const I18nContext = createContext<I18nValue>({
   percent: (value, fraction) => formatPercent('en', value, fraction),
 })
 
-// The page's own language starts loading as soon as this module runs, before React renders,
-// so it is usually here by the time anything is painted.
+// The page's own language starts loading as soon as this module runs, before React renders.
+let firstLanguage: Promise<unknown> = Promise.resolve()
 if (typeof window !== 'undefined') {
   const early = initialLocale()
-  if (early !== 'en') void ensureCatalog(early).catch(() => {})
+  if (early !== 'en') firstLanguage = ensureCatalog(early).catch(() => {})
+}
+
+// How long the first paint may wait for the reader's own language. On www the strings arrived
+// 65 to 103 ms after the app's own code in the page loads where they lost that race
+// (analysis/deploy-2026-10-03), so this is far more than an ordinary connection needs; past it,
+// a slow or failed download shows the page in English, which then changes, rather than nothing.
+const FIRST_LANGUAGE_WAIT_MS = 1500
+
+/**
+ * Resolves once the page's own language has its strings (at once for English), or after
+ * `waitMs` on a line too slow to wait for. The app's first render waits on it (src/main.tsx),
+ * so a page never opens in English and then changes to the reader's language.
+ */
+export function firstLanguageReady(waitMs = FIRST_LANGUAGE_WAIT_MS): Promise<void> {
+  return Promise.race([
+    firstLanguage.then(() => {}),
+    new Promise<void>((resolve) => { setTimeout(resolve, waitMs) }),
+  ])
 }
 
 /**
