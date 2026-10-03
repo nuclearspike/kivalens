@@ -22,6 +22,43 @@ async function pageOpeningIn(locale: string) {
   return await import('./index')
 }
 
+describe('a language that fails to load', () => {
+  it('leaves the page in English, does not hold it, and reports the failure', async () => {
+    const reported: unknown[] = []
+    // The browser's own way to raise a handled error as an uncaught one, which the collector hears.
+    vi.stubGlobal('reportError', (error: unknown) => { reported.push(error) })
+    try {
+      vi.doMock('./locales/it', () => {
+        throw new Error('language chunk missing')
+      })
+      const i18n = await pageOpeningIn('it')
+      const first = await Promise.race([
+        i18n.firstLanguageReady(60_000).then(() => 'ready'),
+        new Promise<string>((resolve) => { setTimeout(() => resolve('still waiting'), 500) }),
+      ])
+      expect(first).toBe('ready')
+      await new Promise((resolve) => { setTimeout(resolve, 20) })
+      expect(reported.length).toBeGreaterThan(0)
+      // ...and the page still renders, in English words.
+      function Probe() {
+        const { t, locale } = i18n.useI18n()
+        return <output data-testid="first">{`${locale}:${t('search')}`}</output>
+      }
+      render(
+        <i18n.I18nProvider>
+          <Probe />
+        </i18n.I18nProvider>,
+      )
+      expect(screen.getByTestId('first')).toHaveTextContent('it:Search')
+      // The provider asks once more on mount; that failure is reported too, before the stub goes.
+      await new Promise((resolve) => { setTimeout(resolve, 30) })
+      expect(reported.length).toBeGreaterThan(1)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
 describe("the page's own language is on screen from the first render", () => {
   it('a page that opens in French renders French first, never English', async () => {
     const i18n = await pageOpeningIn('fr')

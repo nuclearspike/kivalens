@@ -270,11 +270,19 @@ const I18nContext = createContext<I18nValue>({
   percent: (value, fraction) => formatPercent('en', value, fraction),
 })
 
+// A language that cannot be loaded leaves the page in English. The failure is handled here, so
+// it is handed to the browser as an uncaught error, which is what the error collector listens
+// for (src/lib/rum/errors.ts); swallowing it would leave a page stuck in English with no trace.
+const reportLater = (error: unknown) => {
+  if (typeof reportError === 'function') reportError(error)
+  else setTimeout(() => { throw error })
+}
+
 // The page's own language starts loading as soon as this module runs, before React renders.
 let firstLanguage: Promise<unknown> = Promise.resolve()
 if (typeof window !== 'undefined') {
   const early = initialLocale()
-  if (early !== 'en') firstLanguage = ensureCatalog(early).catch(() => {})
+  if (early !== 'en') firstLanguage = ensureCatalog(early).catch(reportLater)
 }
 
 // How long the first paint may wait for the reader's own language. On www the strings arrived
@@ -321,9 +329,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       .then((catalog) => {
         if (wanted.current === next) setShown({ locale: next, catalog })
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         // Its strings could not be loaded: the language is still the one chosen, in English words.
         if (wanted.current === next) setShown({ locale: next, catalog: EMPTY_CATALOG })
+        reportLater(error)
       })
   }, [])
   const setLocale = useCallback((next: Locale) => {
