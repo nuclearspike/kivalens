@@ -400,6 +400,38 @@ body {
   color: var(--kl-pill-warn-text);
 }
 
+// The Partners page's list and what stands over it: how many are listed, then
+// Show their loans. The two are always stacked. Side by side they fitted or
+// wrapped depending on how wide the numbers were, and the list under them jumped
+// as a filter changed the count. The column's height is shared with the list, so
+// the list ends where the window does.
+.kl-partner-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: calc(100vh - 80px);
+}
+
+.kl-partner-list-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  // A long translation wraps inside the button instead of running out of the column.
+  .btn {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+}
+
+.kl-partner-list {
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .partner-pill-bad {
   background: var(--kl-pill-bad-bg);
   color: var(--kl-pill-bad-text);

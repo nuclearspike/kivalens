@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useMemo, useCallback, useDeferredValue, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useLatestRef } from '../lib/useLatestRef'
 import { markOpenIntent, useRevealOnOpen } from '../lib/useRevealOnOpen'
@@ -17,7 +17,9 @@ import { useRangeTotals } from '../lib/useRangeTotals'
 import { DEFAULT_PARTNER_FILTERS, partnerFiltersArePristine } from '../lib/partnerFilterDefaults'
 import { partnerOptionCounts, partnerRangeDistributions, partnerRangeValues, rangeCounter } from '../../server/loanFilter.mjs'
 import type { Partner } from '../types'
-import { useLoanStore, useUtilsStore } from '../stores'
+import { useCriteriaStore, useLoanStore, useUtilsStore } from '../stores'
+import { freshThen } from '../lib/freshCriteria'
+import { partnerCutSearch } from '../lib/partnerCut'
 import { getKivaLoans } from '../api/kiva'
 import PartnerDetail from './PartnerDetail'
 import { useI18n } from '../i18n'
@@ -391,6 +393,34 @@ export function Component() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, nameSearch, downloading, partnerTick])
 
+  // The search that shows the listed partners' loans, and how many loans it finds
+  // (Paul, 2026-10-06: "there's NO WAY to transition the partner cut into a bunch
+  // of loans"). Counted by the search itself, so the button's number is the number
+  // Search then shows. The count follows the filters a render behind
+  // (useDeferredValue): typing a name or dragging a handle never waits for a pass
+  // over every loan.
+  const cut = useMemo(
+    () => partnerCutSearch(filters, filtered, (f) => getKivaLoans()?.filterAllPartners(f) ?? []),
+    [filters, filtered],
+  )
+  const countedCut = useDeferredValue(cut)
+  const loansReady = !downloading && loans.length > 0
+  const cutLoanCount = useMemo(() => {
+    if (!countedCut || !loansReady) return 0
+    return getKivaLoans().filter(freshThen(countedCut), false).length
+    // `loans` stands for the loan data behind getKivaLoans(), which the call reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countedCut, loansReady, loans])
+  const startFresh = useCriteriaStore((s) => s.startFresh)
+  const navigate = useNavigate()
+  const showCutLoans = () => {
+    if (!cut) return
+    startFresh(cut)
+    // The Partner tab is where the filters that came over, or the partners named, can be seen and changed.
+    useUtilsStore.getState().setAiCriteriaTab('partner')
+    navigate('/search')
+  }
+
   // The histograms behind the sliders: per slider, the partners that match every
   // other filter on this page (the name search included), so each one shows what
   // moving its own handles would add or drop.
@@ -676,16 +706,30 @@ export function Component() {
           </div>
         </div>
 
-        <div className="col-md-3">
-          <div className="mb-1">
+        <div className="col-md-3 kl-partner-list-col">
+          <div className="kl-partner-list-head">
             <span className="small text-muted">
                {t('showing_shown_total_partners', {
                  shown: number(filtered.length),
                  total: number(totalCount),
                })}
             </span>
+            {/* One button whose words say why it is off, so nothing appears or moves when the list empties of loans. */}
+            <Button
+              size="sm"
+              variant="primary"
+              disabled={!loansReady || !cut || cutLoanCount === 0}
+              title={t('partners_show_their_loans_title')}
+              onClick={showCutLoans}
+            >
+              {!loansReady
+                ? t('partners_show_their_loans', { count: '…' })
+                : cut && cutLoanCount > 0
+                  ? t('partners_show_their_loans', { count: number(cutLoanCount) })
+                  : t('partners_no_loans_now')}
+            </Button>
           </div>
-          <div style={{ maxHeight: 'calc(100vh - 110px)', overflowY: 'auto' }}>
+          <div className="kl-partner-list">
             <ListGroup>
               {filtered.map((partner) => (
                 <PartnerListItem

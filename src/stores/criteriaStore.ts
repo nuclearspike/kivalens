@@ -10,7 +10,7 @@ import { getKivaLoans } from '../api/kiva'
 import { useLoanStore } from './loanStore'
 import { useUtilsStore } from './utilsStore'
 import { balancersInUse, balancesByPartner, partnerCriteriaSet, resolveBalancerValues, resolvePartnerMode } from '../../server/loanFilter.mjs'
-import { freshCriteria } from '../lib/freshCriteria'
+import { freshThen } from '../lib/freshCriteria'
 import { noteEvent } from '../lib/rum/usageEvents'
 import { sameSearch } from '../lib/arrival'
 
@@ -414,14 +414,7 @@ export const useCriteriaStore = create<CriteriaState & CriteriaActions>()(
         },
 
         startFresh: (then?: Criteria) => {
-          const fresh = freshCriteria()
-          const next: Criteria = then
-            ? {
-                loan: { ...fresh.loan, ...then.loan },
-                partner: { ...fresh.partner, ...then.partner },
-                portfolio: { ...fresh.portfolio, ...then.portfolio },
-              }
-            : fresh
+          const next = freshThen(then)
           // A reset is no longer the saved search it replaced: the switcher stops
           // naming it, or its Re-save would overwrite that search with this one.
           set((state) => {

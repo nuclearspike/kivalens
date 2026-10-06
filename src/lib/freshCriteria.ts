@@ -19,3 +19,18 @@ export function freshCriteria(): Criteria {
     },
   }
 }
+
+/**
+ * Reset, then `then` on top of it: the search a caller starts when it means "only
+ * this, and nothing left over from the search before". One function, so what a
+ * page counts before starting such a search is what the search then finds.
+ */
+export function freshThen(then?: Criteria): Criteria {
+  const fresh = freshCriteria()
+  if (!then) return fresh
+  return {
+    loan: { ...fresh.loan, ...then.loan },
+    partner: { ...fresh.partner, ...then.partner },
+    portfolio: { ...fresh.portfolio, ...then.portfolio },
+  }
+}
