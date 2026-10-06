@@ -10,7 +10,9 @@ import { useCriteriaHistory, resetCriteriaHistoryForTests } from '../stores/crit
 import { getKivaLoans } from '../api/kiva'
 import { freshCriteria } from '../lib/freshCriteria'
 import { noteLinkArrival, resetArrivalForTests, sameSearch } from '../lib/arrival'
-import { resetVisitForTests, VISITS_KEY } from '../lib/visits'
+import { currentVisit, resetVisitForTests, VISITS_KEY } from '../lib/visits'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { readUsageEvents, resetUsageEventsForTests } from '../lib/rum/usageEvents'
 import type { Criteria, KivaLoan } from '../types'
 
@@ -185,6 +187,35 @@ describe('where you left off', () => {
     expect(c).toHaveTextContent('Sector: Retail')
     fireEvent.click(within(c).getByRole('button', { name: 'Start fresh' }))
     expect(sameSearch(useCriteriaStore.getState().lastKnown, freshCriteria())).toBe(true)
+  })
+})
+
+describe('a search made on another page, earlier in this page load', () => {
+  // Paul's Show their loans on the Partners page (2026-10-06) lands here. The page
+  // load began there a minute ago, two days after the last visit, and the search was
+  // made five seconds ago.
+  const arriveFromAnotherPage = (visitBeganAtPageLoad: boolean) => {
+    lastVisit(48)
+    if (visitBeganAtPageLoad) currentVisit(NOW - 60_000)
+    const made = withSector('Retail')
+    useCriteriaStore.setState({ lastKnown: made })
+    useCriteriaHistory.setState({ history: { entries: [{ id: 'h1', at: NOW - 5_000, criteria: made }], live: null } })
+    loansReady()
+    renderHome()
+  }
+
+  it('is not called the search left here last time', () => {
+    arriveFromAnotherPage(true)
+    expect(screen.queryByRole('heading', { name: 'Where you left off' })).toBeNull()
+  })
+
+  it('would be, if the visit only began when this panel first asked: so the app begins it at page load', () => {
+    arriveFromAnotherPage(false)
+    expect(screen.getByRole('heading', { name: 'Where you left off' })).toBeInTheDocument()
+    const main = readFileSync(path.join(process.cwd(), 'src/main.tsx'), 'utf8')
+    const begins = main.indexOf('\ncurrentVisit()')
+    expect(begins).toBeGreaterThan(-1)
+    expect(begins).toBeLessThan(main.indexOf('createRoot('))
   })
 })
 

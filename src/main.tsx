@@ -9,6 +9,7 @@ import { COLLECTOR_URL, routeLabel, shouldMeasure } from './lib/rum/config'
 import { installErrorReporting, takeErrors } from './lib/rum/errors'
 import { makeViewId } from './lib/rum/payload'
 import { send } from './lib/rum/send'
+import { currentVisit } from './lib/visits'
 import 'rc-slider/assets/index.css'
 import './styles/base/index.scss'
 import './styles/main.scss'
@@ -46,6 +47,11 @@ if (shouldMeasure()) {
   if (document.readyState === 'complete') startMeasuring()
   else addEventListener('load', startMeasuring, { once: true })
 }
+
+// The visit begins when the page does, whichever page that is. It does not wait for the
+// Search page to ask: a search made from Partners or Saved before then would be dated
+// before the visit, and the start panel would call it the one "you had last time".
+currentVisit()
 
 // public/theme-init.js already set <html data-theme> before first paint; this
 // also brings the browser-chrome colour in line with a forced theme.
