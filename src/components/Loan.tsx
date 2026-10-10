@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import type { ChangeEvent } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   ComposedChart,
@@ -16,8 +15,7 @@ import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
 import PartnerDetail from './PartnerDetail'
 import { getKivaLoans } from '../api/kiva'
-import { lendAmountOptions } from '../lib/lendAmountOptions'
-import { lsj } from '../lib/localStorage'
+import { lendAmountFor } from '../lib/kivaCheckout'
 import { humanize } from '../lib/utils'
 import { useI18n } from '../i18n'
 
@@ -180,42 +178,6 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
     return stored ? parseInt(stored, 10) : DETAILS_TAB
   })
 
-  const defaultLendAmount = useCallback(
-    (l: KivaLoan): number => {
-      const options = lendAmountOptions(l.kl_still_needed ?? 0)
-      if (!options.length) return 25
-      const defaultAmount =
-        lsj.get<{ default_lend_amount?: number }>('Options').default_lend_amount ?? 25
-      return options.filter((o) => o <= defaultAmount).pop() ?? options[0] ?? 25
-    },
-    [],
-  )
-
-  const [lendAmount, setLendAmount] = useState<number>(() =>
-    loan ? defaultLendAmount(loan) : 25,
-  )
-  const [lastLoanId, setLastLoanId] = useState<number | null>(loan?.id ?? null)
-
-  useEffect(() => {
-    if (!loan) return
-    const options = lendAmountOptions(loan.kl_still_needed ?? 0)
-    if (!options.length) {
-      setLendAmount(25)
-      setLastLoanId(loan.id)
-      return
-    }
-
-    const defaultAmount = defaultLendAmount(loan)
-    const isNewLoan = lastLoanId !== loan.id
-
-    setLendAmount((current) => {
-      if (isNewLoan) return defaultAmount
-      if (!options.includes(current)) return defaultAmount
-      return current
-    })
-    setLastLoanId(loan.id)
-  }, [defaultLendAmount, lastLoanId, loan])
-
   if (!loan) {
     return (
       <div className="p-3">
@@ -242,12 +204,8 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
     localStorage.setItem('loan_active_tab', String(tab))
   }
 
-  const handleLendAmountChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setLendAmount(parseInt(e.target.value, 10))
-  }
-
   const handleLend = () => {
-    addToBasket(loan.id, lendAmount)
+    addToBasket(loan.id)
   }
 
   const handleRemove = () => {
@@ -268,7 +226,7 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const loanUrl = `https://www.kiva.org/lend/${loan.id}`
   // Read at render: the partner list is already loaded by the time a loan can be shown.
   const partnerName = loan.partner_id ? getKivaLoans()?.getPartner(loan.partner_id)?.name : undefined
-  const options = lendAmountOptions(loan.kl_still_needed ?? 0)
+  const lendAmount = currency(lendAmountFor(loan.kl_still_needed), { min: 0, max: 2 })
   const tags = loan.kls_tags ?? []
   const themes = loan.themes ?? []
   const descriptionText = loan.description?.texts?.en
@@ -298,54 +256,16 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
              {t('remove_basket')}
           </button>
         ) : (
-          <span
-            className="float_right"
-            style={{
-              display: 'inline-flex',
-              borderRadius: 6,
-              overflow: 'hidden',
-              border: '1px solid var(--kl-green)',
-              opacity: loan.status !== 'fundraising' ? 0.5 : 1,
-            }}
+          // One button and no amount to pick beside it: a choice here would be one
+          // Kiva never sees. Its hint names the amount the loan is added at.
+          <button
+            className="btn btn-success float_right"
+            disabled={loan.status !== 'fundraising' || detailLoading || detailError}
+            title={t('lend_adds_at_amount', { amount: lendAmount })}
+            onClick={handleLend}
           >
-            <select
-              disabled={loan.status !== 'fundraising' || detailLoading || detailError}
-              value={lendAmount}
-              onChange={handleLendAmountChange}
-              style={{
-                padding: '4px 8px',
-                fontSize: 14,
-                border: 'none',
-                borderRight: '1px solid var(--kl-green)',
-                background: 'var(--kl-surface)',
-                color: 'var(--kl-green-text)',
-                fontWeight: 600,
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              {options.map((o) => (
-                <option key={o} value={o}>
-                  ${o}
-                </option>
-              ))}
-            </select>
-            <button
-              disabled={loan.status !== 'fundraising' || detailLoading || detailError}
-              onClick={handleLend}
-              style={{
-                padding: '4px 14px',
-                fontSize: 14,
-                border: 'none',
-                background: 'var(--kl-green)',
-                color: '#fff',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {t('lend')}
-            </button>
-          </span>
+            {t('lend')}
+          </button>
         )}
 
         <a href={loanUrl} target="_blank" rel="noopener noreferrer" title={t('view_kiva')}>

@@ -18,7 +18,6 @@ const TIPS_HELP = [
   'fill_up_basket_quickly_matching',
   'kivalens_integrates_teams_mfi_research',
   'getting_too_many_results_single',
-  'options_tab_allows_configure_default',
   'hover_over_labels_dotted_underline',
   'use_dollar_hour_sort_option',
   'want_see_graphs_showing_distribution',

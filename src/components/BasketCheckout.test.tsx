@@ -63,7 +63,6 @@ function openBasket(items: Array<[id: number, amount: number]>, loans = items.ma
 
 const checkout = () => screen.getByText('Checkout at Kiva')
 const notes = () => document.getElementById('kl-checkout-note')
-const amounts = () => document.querySelector('.kl-checkout-amounts')
 
 beforeEach(() => {
   kl.partnersFromKiva = PARTNERS
@@ -92,9 +91,8 @@ describe('Checkout at Kiva', () => {
     expect(link).toHaveAttribute('rel', 'noopener')
     // The note it is described by says where it goes and what Kiva adds to the total.
     expect(link).toHaveAttribute('aria-describedby', 'kl-checkout-note')
-    expect(notes()).toHaveTextContent('Opens Kiva in a new tab and adds these loans to your basket there.')
-    expect(notes()).toHaveTextContent('Kiva suggests a donation at checkout, which you can change.')
-    expect(amounts()).toBeNull()
+    expect(notes()).toHaveTextContent('Opens Kiva in a new tab and adds these loans to your basket there, at $25 each.')
+    expect(notes()).toHaveTextContent('At Kiva’s checkout you can change a loan’s amount and the donation Kiva suggests.')
   })
 
   it('posts nothing: the page holds no form for Kiva and opens no window itself', () => {
@@ -111,7 +109,7 @@ describe('Checkout at Kiva', () => {
   })
 
   it('notes what went when the link is pressed, so the return can be reconciled', () => {
-    openBasket([[11, 25], [12, 50]])
+    openBasket([[11, 25], [12, 25]])
     expect(useLoanStore.getState().pendingCheckout).toBeNull()
     fireEvent.click(checkout())
     expect(useLoanStore.getState().pendingCheckout?.ids).toEqual([11, 12])
@@ -125,27 +123,20 @@ describe('Checkout at Kiva', () => {
     expect(useLoanStore.getState().pendingCheckout?.ids).toEqual([11, 12])
   })
 
-  it('sends one loan with the amount chosen, and has nothing to explain about amounts', () => {
-    openBasket([[11, 75]])
-    expect(checkout()).toHaveAttribute('href', 'https://www.kiva.org/process-instant-lending/11/75?app_id=org.kiva.kivalens')
-    expect(amounts()).toBeNull()
+  it('sends one loan by Kiva’s single-loan address, at $25', () => {
+    openBasket([[11, 25]])
+    expect(checkout()).toHaveAttribute('href', 'https://www.kiva.org/process-instant-lending/11/25?app_id=org.kiva.kivalens')
   })
 
-  it('lists the loans whose amount has to be set at Kiva, each with what was chosen', () => {
-    openBasket([[11, 25], [12, 50], [13, 100]])
-    const box = amounts()!
-    expect(box).toHaveAttribute('role', 'note')
-    expect(box).toHaveTextContent('Kiva adds each loan at $25, whatever you chose here. Set your amount for these at Kiva’s checkout:')
-    const rows = [...box.querySelectorAll('li')].map((li) => li.textContent)
-    expect(rows).toEqual(['Borrower 12$50', 'Borrower 13$100'])
-    expect(box).not.toHaveTextContent('Borrower 11')
-  })
-
-  it('says it in one sentence when every loan was chosen at the same other amount', () => {
-    openBasket([[11, 50], [12, 50], [13, 50]])
-    const box = amounts()!
-    expect(box).toHaveTextContent('Kiva adds each loan at $25, whatever you chose here. You chose $50 for each of these 3 loans, so set that at Kiva’s checkout.')
-    expect(box.querySelector('li')).toBeNull()
+  // Paul, 2026-10-10: "We need to remove the dollar drop-downs now that kiva only accepts $25
+  // as the default. it gives a false signal to the user".
+  it('offers no amount to choose anywhere on the page, and lists no amounts to set at Kiva', () => {
+    const { container } = openBasket([[11, 25], [12, 25], [13, 25]])
+    expect(container.querySelector('.list-group select')).toBeNull()
+    expect(container.querySelector('.kl-checkout select')).toBeNull()
+    expect(container.querySelector('.kl-checkout-amounts')).toBeNull()
+    expect(container.querySelector('.kl-checkout li')).toBeNull()
+    expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Basket: 3 loans $75')
   })
 
   it('goes through Kiva’s sign-in for a basket over $150, and says so first', () => {
@@ -208,6 +199,5 @@ describe('Checkout at Kiva', () => {
     expect(checkout()).toBeDisabled()
     expect(checkout()).not.toHaveAttribute('aria-describedby')
     expect(notes()).toBeNull()
-    expect(amounts()).toBeNull()
   })
 })

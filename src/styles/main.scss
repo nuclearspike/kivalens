@@ -1793,44 +1793,6 @@ textarea {
   color: var(--kl-text-muted);
 }
 
-// The loans whose amount Kiva's address cannot carry. It is as wide as the
-// card, and a long list scrolls inside it so the card's other parts stay near.
-.kl-checkout-amounts {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  font-size: 13px;
-  border-radius: 4px;
-  background: var(--kl-pill-warn-bg);
-  color: var(--kl-pill-warn-text);
-
-  ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    max-height: 11.5em;
-    overflow-y: auto;
-  }
-
-  li {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  li span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  li strong {
-    flex: none;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
 // Under Checkout at Kiva, always present while the basket has loans: its words
 // change when a warning arrives, and nothing moves.
 .kl-spread-line {

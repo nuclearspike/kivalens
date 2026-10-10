@@ -1,8 +1,9 @@
 /**
  * The basket holds real money the user is about to send to Kiva, so its
  * arithmetic and de-duplication are the highest-consequence logic in the client:
- * a double entry double-charges, and an amount above what a loan still needs is
- * rejected at checkout.
+ * a double entry double-charges. Every loan is in it at the one amount it goes to
+ * Kiva at ($25), or at what the loan still needs when that is less, and nothing
+ * here can make it more.
  * @vitest-environment jsdom
  */
 import { describe, expect, it, beforeEach } from 'vitest'
@@ -45,34 +46,59 @@ const seedLoans = (loans: KivaLoan[]) => createKivaLoans().setKivaLoans(loans, t
 beforeEach(() => {
   store().clearBasket()
   store().clearPendingCheckout()
+  useLoanStore.setState({ basketNotice: null })
+  // What a loan is added at depends on what the loaded loan still needs, so no
+  // test inherits the loans another one loaded.
+  seedLoans([])
 })
 
 describe('basket — adding', () => {
-  it('defaults a new entry to $25', () => {
+  it('adds a loan at $25', () => {
     store().addToBasket(1)
     expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }])
   })
 
-  it('honours an explicit amount', () => {
-    store().addToBasket(1, 100)
-    expect(store().basket[0].amount).toBe(100)
+  it('adds a loan with less than $25 left at what it still needs', () => {
+    seedLoans([mk(1, { kl_still_needed: 10 }), mk(2, { kl_still_needed: 25 }), mk(3, { kl_still_needed: 0 })])
+    for (const id of [1, 2, 3]) store().addToBasket(id)
+    // A loan with nothing left counts $25 until the basket refreshes and drops it.
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 10 }, { loan_id: 2, amount: 25 }, { loan_id: 3, amount: 25 }])
   })
 
-  it('never adds the same loan twice (and keeps the original amount)', () => {
-    store().addToBasket(1, 50)
-    store().addToBasket(1, 999)
-    expect(store().basket).toHaveLength(1)
-    expect(store().basket[0].amount).toBe(50)
+  it('takes no other amount: a second argument is not part of adding', () => {
+    ;(store().addToBasket as (loanId: number, amount?: number) => void)(1, 100)
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }])
+  })
+
+  it('never adds the same loan twice', () => {
+    store().addToBasket(1)
+    store().addToBasket(1)
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }])
   })
 
   it('batch-add de-dupes against what is already in the basket', () => {
-    store().addToBasket(1, 25)
+    store().addToBasket(1)
     store().batchAddToBasket([
-      { loan_id: 1, amount: 75 },
-      { loan_id: 2, amount: 50 },
+      { loan_id: 1, amount: 25 },
+      { loan_id: 2, amount: 25 },
     ])
-    expect(store().basket.map((b) => b.loan_id)).toEqual([1, 2])
-    expect(store().basket.find((b) => b.loan_id === 1)!.amount).toBe(25)
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }, { loan_id: 2, amount: 25 }])
+  })
+
+  it('batch-add never takes more than $25 for a loan, whoever asks, and keeps a smaller amount', () => {
+    store().batchAddToBasket([
+      { loan_id: 1, amount: 100 },
+      { loan_id: 2, amount: 15 },
+      { loan_id: 3, amount: 0 },
+      { loan_id: 4, amount: Number.NaN },
+    ])
+    expect(store().basket.map((b) => b.amount)).toEqual([25, 15, 25, 25])
+  })
+
+  it('batch-add never takes more for a loan than it still needs', () => {
+    seedLoans([mk(1, { kl_still_needed: 10 }), mk(2)])
+    store().batchAddToBasket([{ loan_id: 1, amount: 25 }, { loan_id: 2, amount: 25 }])
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 10 }, { loan_id: 2, amount: 25 }])
   })
 
   it('batch-add de-dupes WITHIN its own payload', () => {
@@ -118,37 +144,59 @@ describe('basket — removing and clearing', () => {
 })
 
 describe('basket — amounts', () => {
-  it('sets one loan’s amount', () => {
-    store().addToBasket(1, 25)
-    store().setBasketAmount(1, 175)
-    expect(store().basket[0].amount).toBe(175)
+  it('has no way to set another amount', () => {
+    expect('setBasketAmount' in store()).toBe(false)
+    expect('setAllBasketAmounts' in store()).toBe(false)
   })
 
-  it('setting an amount for a loan not in the basket does not create one', () => {
-    store().setBasketAmount(42, 100)
-    expect(store().basket).toEqual([])
-  })
-
-  it('sets every amount at once', () => {
-    store().batchAddToBasket([1, 2, 3].map((id) => ({ loan_id: id, amount: 25 })))
-    store().setAllBasketAmounts(50)
-    expect(store().basket.every((b) => b.amount === 50)).toBe(true)
+  it('reads a basket stored while amounts could be chosen at $25, and keeps a smaller amount', async () => {
+    localStorage.setItem(
+      'kivalens-basket',
+      JSON.stringify({
+        state: { basket: [{ loan_id: 1, amount: 100 }, { loan_id: 2, amount: 25 }, { loan_id: 3, amount: 10 }], pendingCheckout: { ids: [9], at: 1 } },
+        version: 0,
+      }),
+    )
+    await useLoanStore.persist.rehydrate()
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }, { loan_id: 2, amount: 25 }, { loan_id: 3, amount: 10 }])
+    // The rest of what was stored comes back as it was.
+    expect(store().pendingCheckout).toEqual({ ids: [9], at: 1 })
   })
 })
 
 describe('basket — adjustBasketAmountsToWhatsLeft', () => {
-  it('caps an amount to what the loan still needs', () => {
-    seedLoans([mk(1, { kl_still_needed: 75 })])
-    store().addToBasket(1, 200)
+  it('lowers an amount to what the loan still needs now', () => {
+    seedLoans([mk(1)])
+    store().addToBasket(1)
+    expect(store().basket[0].amount).toBe(25)
+    seedLoans([mk(1, { kl_still_needed: 15 })])
     store().adjustBasketAmountsToWhatsLeft()
-    expect(store().basket[0].amount).toBe(75)
+    expect(store().basket[0].amount).toBe(15)
+    expect(store().basketNotice).toEqual({ funded: 0, lowered: 1 })
+  })
+
+  it('raises an amount back when the loan needs more again: there is no control to raise it with', () => {
+    // Both were lowered to $10 while someone else's basket at Kiva held the rest.
+    useLoanStore.setState({ basket: [{ loan_id: 1, amount: 10 }, { loan_id: 2, amount: 10 }] })
+    seedLoans([mk(1, { kl_still_needed: 300 }), mk(2, { kl_still_needed: 20 })])
+    store().adjustBasketAmountsToWhatsLeft()
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 25 }, { loan_id: 2, amount: 20 }])
+    // Raising is not something to warn about.
+    expect(store().basketNotice).toBeNull()
+  })
+
+  it('leaves alone a loan whose need is not known', () => {
+    seedLoans([mk(1, { kl_still_needed: undefined })])
+    useLoanStore.setState({ basket: [{ loan_id: 1, amount: 10 }] })
+    store().adjustBasketAmountsToWhatsLeft()
+    expect(store().basket).toEqual([{ loan_id: 1, amount: 10 }])
   })
 
   it('leaves an amount already within what is needed', () => {
     seedLoans([mk(1, { kl_still_needed: 500 })])
-    store().addToBasket(1, 50)
+    store().addToBasket(1)
     store().adjustBasketAmountsToWhatsLeft()
-    expect(store().basket[0].amount).toBe(50)
+    expect(store().basket[0].amount).toBe(25)
   })
 
   it('drops a loan that no longer needs anything', () => {

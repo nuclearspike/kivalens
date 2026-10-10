@@ -6,14 +6,18 @@
  * missing" (2026-10-03).
  *
  * Kiva offers two such addresses, and neither returns the lender to KivaLens:
- *   - /add-loan-bundle?loanIds=1,2,3 adds each loan at $25, whatever was chosen
- *     here, and skips a loan it cannot add;
+ *   - /add-loan-bundle?loanIds=1,2,3 adds each loan at $25 and skips a loan it
+ *     cannot add. It takes no amount;
  *   - /process-instant-lending/<id>/<amount> adds one loan at the amount named.
- * One loan therefore goes with its amount. Several go as a bundle, and the ones
- * chosen at another amount are returned so the page can say they are set at
- * Kiva's checkout. It does not visit the single-loan address once per loan
- * because this page cannot see when Kiva has finished one, and a visit cut short
- * loses its loan without a word.
+ * So every loan goes at $25 (KIVA_LEND_AMOUNT), and KivaLens offers no other
+ * amount anywhere: a control for one would promise what the bundle cannot carry
+ * (Paul, 2026-10-10: the dollar drop-downs give "a false signal to the user").
+ * An amount is changed at Kiva's checkout. A loan with less than $25 left to
+ * raise counts for what it still needs (lendAmountFor), since Kiva cannot take
+ * more for it than that. A basket of one loan uses the single-loan address,
+ * which has to be told an amount, and is told that one. It does not visit the
+ * single-loan address once per loan, because this page cannot see when Kiva has
+ * finished one, and a visit cut short loses its loan without a word.
  *
  * A basket nobody is signed in to holds $150 of loans at Kiva and no more: the
  * loans past that are refused, by the bundle silently. A basket over that goes
@@ -28,8 +32,11 @@
  * rest the next part.
  */
 
-/** What Kiva's bundle address lends to each loan. */
-export const KIVA_BUNDLE_AMOUNT = 25
+import { KIVA_LEND_AMOUNT, lendAmountFor } from '../../server/lendAmount.mjs'
+
+// What every loan goes to Kiva at, and what one loan is added at. Kept where the
+// server's assistant can read them too.
+export { KIVA_LEND_AMOUNT, lendAmountFor }
 
 /**
  * Dollars of loans Kiva accepts in a basket nobody is signed in to. Measured on
@@ -61,17 +68,14 @@ const KIVA = 'https://www.kiva.org'
 
 export interface CheckoutLoan {
   id: number
-  /** Dollars the lender chose for this loan. */
+  /** Dollars this loan goes at: KIVA_LEND_AMOUNT, or what it still needs when that is less. */
   amount: number
-  name?: string
 }
 
 export interface KivaHandoff {
   url: string
   /** Every loan the address carries, in basket order. */
   loans: CheckoutLoan[]
-  /** Loans Kiva adds at another amount than the lender chose: they set these at Kiva's checkout. */
-  setAtKiva: CheckoutLoan[]
   /** The basket is more than Kiva takes signed out, so the address goes through Kiva's sign-in. */
   needsSignIn: boolean
   /** Loans the address has no room for. They stay in the basket for the next checkout. */
@@ -108,20 +112,20 @@ export function kivaHandoff(basket: CheckoutLoan[]): KivaHandoff | null {
   const loans = all.slice(0, fits(all))
 
   const single = all.length === 1
+  // The single-loan address has to name an amount. It is never more than every
+  // loan goes at, whatever this was handed, and less only for a loan that needs less.
+  const oneAmount = Math.min(loans[0].amount, KIVA_LEND_AMOUNT)
   const path = single
-    ? `/process-instant-lending/${loans[0].id}/${encodeURIComponent(String(loans[0].amount))}?app_id=${APP_ID}`
+    ? `/process-instant-lending/${loans[0].id}/${encodeURIComponent(String(oneAmount))}?app_id=${APP_ID}`
     : bundlePath(loans)
 
-  // Judged on what the lender means to lend and on what the address adds, whichever
-  // is more: amounts raised at Kiva's checkout count against the same limit.
-  const chosen = loans.reduce((sum, loan) => sum + loan.amount, 0)
-  const added = single ? chosen : loans.length * KIVA_BUNDLE_AMOUNT
-  const needsSignIn = Math.max(chosen, added) > KIVA_SIGNED_OUT_LIMIT
+  // What the address adds: the one loan's amount, or $25 for each of several.
+  const added = single ? oneAmount : loans.length * KIVA_LEND_AMOUNT
+  const needsSignIn = added > KIVA_SIGNED_OUT_LIMIT
 
   return {
     url: needsSignIn ? throughSignIn(path) : `${KIVA}${path}`,
     loans,
-    setAtKiva: single ? [] : loans.filter((loan) => loan.amount !== KIVA_BUNDLE_AMOUNT),
     needsSignIn,
     left: all.length - loans.length,
   }

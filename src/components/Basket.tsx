@@ -34,7 +34,7 @@ import {
 } from '../lib/basketMix'
 import { useActiveExposure } from '../lib/useActiveExposure'
 import { basketNoticeText } from '../lib/basketNotice'
-import { kivaHandoff, minutesAtKiva, KIVA_BUNDLE_AMOUNT, KIVA_SIGNED_OUT_LIMIT } from '../lib/kivaCheckout'
+import { kivaHandoff, minutesAtKiva, KIVA_LEND_AMOUNT, KIVA_SIGNED_OUT_LIMIT } from '../lib/kivaCheckout'
 
 /**
  * From this many loans, the page says how long Kiva will need: twenty take it
@@ -566,14 +566,9 @@ export default function Basket() {
 
   // Where Checkout at Kiva goes: the loans still raising money, at Kiva.
   const handoff = useMemo(
-    () => kivaHandoff(lendable.map((e) => ({ id: e.id, amount: e.amount, name: e.loan?.name }))),
+    () => kivaHandoff(lendable.map((e) => ({ id: e.id, amount: e.amount }))),
     [lendable],
   )
-  // Every loan at one amount other than Kiva's own reads better as a sentence than as a list of the same figure.
-  const oneChosenAmount =
-    handoff && handoff.setAtKiva.length === handoff.loans.length && handoff.setAtKiva.every((l) => l.amount === handoff.setAtKiva[0].amount)
-      ? handoff.setAtKiva[0].amount
-      : null
 
   const handleClear = async () => {
     const ok = await showConfirm(t('sure_want_empty_basket'), {
@@ -732,7 +727,7 @@ export default function Basket() {
               )}
               {handoff ? (
                 <div id="kl-checkout-note" className="kl-checkout-notes">
-                  <p>{t('checkout_opens_kiva')}</p>
+                  <p>{t('checkout_opens_kiva', { amount: currency(KIVA_LEND_AMOUNT, { min: 0, max: 2 }) })}</p>
                   {handoff.needsSignIn ? (
                     <p>{t('checkout_sign_in_first', { limit: currency(KIVA_SIGNED_OUT_LIMIT, { min: 0, max: 2 }) })}</p>
                   ) : null}
@@ -746,31 +741,6 @@ export default function Basket() {
               ) : nothingToSend ? (
                 <div id="kl-checkout-note" className="kl-checkout-notes">
                   <p>{t('checkout_nothing_to_send')}</p>
-                </div>
-              ) : null}
-              {handoff && handoff.setAtKiva.length > 0 ? (
-                <div className="kl-checkout-amounts" role="note">
-                  {oneChosenAmount !== null ? (
-                    <p>
-                      {t('checkout_one_amount_set_at_kiva', {
-                        amount: currency(KIVA_BUNDLE_AMOUNT, { min: 0, max: 2 }),
-                        chosen: currency(oneChosenAmount, { min: 0, max: 2 }),
-                        count: number(handoff.setAtKiva.length),
-                      })}
-                    </p>
-                  ) : (
-                    <>
-                      <p>{t('checkout_amounts_set_at_kiva', { amount: currency(KIVA_BUNDLE_AMOUNT, { min: 0, max: 2 }) })}</p>
-                      <ul>
-                        {handoff.setAtKiva.map((loan) => (
-                          <li key={loan.id}>
-                            <span>{loan.name ?? loan.id}</span>
-                            <strong>{currency(loan.amount, { min: 0, max: 2 })}</strong>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
                 </div>
               ) : null}
             </div>

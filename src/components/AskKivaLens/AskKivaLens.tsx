@@ -307,7 +307,7 @@ export default function AskKivaLens() {
             window.open(e.url, '_blank', 'noopener,noreferrer')
             break
           case 'add_to_basket':
-            useLoanStore.getState().addToBasket(e.loanId, e.amount)
+            useLoanStore.getState().addToBasket(e.loanId)
             break
           case 'bulk_add':
             useLoanStore
@@ -332,12 +332,6 @@ export default function AskKivaLens() {
             break
           case 'remove_from_basket':
             useLoanStore.getState().removeFromBasket(e.loanId)
-            break
-          case 'set_lend_amount':
-            useLoanStore.getState().setBasketAmount(e.loanId, e.amount)
-            break
-          case 'set_all_lend_amounts':
-            useLoanStore.getState().setAllBasketAmounts(e.amount)
             break
           case 'clear_basket':
             useLoanStore.getState().clearBasket()

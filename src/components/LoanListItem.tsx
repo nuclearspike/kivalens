@@ -4,8 +4,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useLoanStore } from '../stores'
 import type { KivaLoan } from '../types'
 import KivaImage from './KivaImage'
-import { lendAmountOptions } from '../lib/lendAmountOptions'
-import { lsj } from '../lib/localStorage'
 import { useI18n } from '../i18n'
 import { markOpenIntent } from '../lib/useRevealOnOpen'
 
@@ -26,11 +24,7 @@ export default function LoanListItem({ loan }: LoanListItemProps) {
   const isSelected = selectedId === loan.id
 
   const handleDoubleClick = () => {
-    const options = lendAmountOptions(loan.kl_still_needed ?? 0)
-    const defaultAmount =
-      lsj.get<{ default_lend_amount?: number }>('Options').default_lend_amount ?? 25
-    const amount = options.filter((o) => o <= defaultAmount).pop() ?? options[0] ?? 25
-    addToBasket(loan.id, amount)
+    addToBasket(loan.id)
   }
 
   return (

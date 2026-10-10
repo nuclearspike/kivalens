@@ -15,6 +15,7 @@ import { useCriteriaStore } from './criteriaStore'
 import { isFundraising, partnerModeGaps, partnerRangeValues, rangeDistributions, type RangeDistributions } from '../../server/loanFilter.mjs'
 import { DATA_MAX_KEYS, partnerSliderMaxima, rangeBinSpecs } from '../lib/sliderConfig'
 import { afterNextPaint } from '../lib/afterNextPaint'
+import { lendAmountFor } from '../lib/kivaCheckout'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -115,15 +116,13 @@ export interface LoanState {
 
 export interface LoanActions {
   // ---- Basket -----------------------------------------------------------
-  addToBasket: (loanId: number, amount?: number) => void
+  /** Adds a loan at lendAmountFor what it still needs: KIVA_LEND_AMOUNT, or less for a loan that needs less. There is no amount to choose. */
+  addToBasket: (loanId: number) => void
   removeFromBasket: (loanId: number) => void
   batchAddToBasket: (items: BasketItem[]) => void
   batchRemoveFromBasket: (loanIds: number[]) => void
   clearBasket: () => void
-  setBasketAmount: (loanId: number, amount: number) => void
-  /** Set the same lend amount on every loan in the basket */
-  setAllBasketAmounts: (amount: number) => void
-  /** Adjust every basket item amount to the lesser of current amount and kl_still_needed */
+  /** Set every basket item to lendAmountFor what its loan still needs now, and drop the loans that need nothing */
   adjustBasketAmountsToWhatsLeft: () => void
   /** Return hydrated basket entries (with loan objects attached) */
   getBasket: () => BasketEntry[]
@@ -187,6 +186,21 @@ function sameDistributions(a: RangeDistributions | null, b: RangeDistributions |
   return true
 }
 
+/** What a loan is added at, from what the loaded loan still needs (lendAmountFor). */
+function amountFor(loanId: number): number {
+  return lendAmountFor(getKivaLoans()?.getById(loanId)?.kl_still_needed)
+}
+
+/**
+ * A basket item at what it goes to Kiva at: never more than amountFor its loan,
+ * whoever asks. It may be less, as a caller filling up to a total may hand in.
+ */
+function atKivasAmount(item: BasketItem): BasketItem {
+  const most = amountFor(item.loan_id)
+  const amount = Number(item.amount)
+  return { ...item, amount: amount > 0 ? Math.min(amount, most) : most }
+}
+
 export const useLoanStore = create<LoanState & LoanActions>()(
   persist(
     immer((set, get) => ({
@@ -216,10 +230,10 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       // Basket actions
       // ---------------------------------------------------------------
 
-      addToBasket: (loanId: number, amount = 25) => {
+      addToBasket: (loanId: number) => {
         set((state) => {
           if (state.basket.some((bi) => bi.loan_id === loanId)) return
-          state.basket.push({ loan_id: loanId, amount })
+          state.basket.push({ loan_id: loanId, amount: amountFor(loanId) })
         })
       },
 
@@ -239,7 +253,7 @@ export const useLoanStore = create<LoanState & LoanActions>()(
           for (const it of items) {
             if (seen.has(it.loan_id)) continue
             seen.add(it.loan_id)
-            toAdd.push(it)
+            toAdd.push(atKivasAmount(it))
           }
           if (toAdd.length) state.basket = state.basket.concat(toAdd)
         })
@@ -260,30 +274,20 @@ export const useLoanStore = create<LoanState & LoanActions>()(
         })
       },
 
-      setBasketAmount: (loanId: number, amount: number) => {
-        set((state) => {
-          const item = state.basket.find((bi) => bi.loan_id === loanId)
-          if (item) item.amount = amount
-        })
-      },
-
-      setAllBasketAmounts: (amount: number) => {
-        set((state) => {
-          for (const bi of state.basket) bi.amount = amount
-        })
-      },
-
       adjustBasketAmountsToWhatsLeft: () => {
         const entries = get().getBasket()
         const originalAmounts = new Map(get().basket.map((bi) => [bi.loan_id, bi.amount]))
         set((state) => {
-          // Cap each basket item amount to what the loan still needs
+          // Each item counts for what its loan is added at now. That lowers an item
+          // whose loan needs less than before. It also raises one back, because a
+          // loan's need grows again when someone else's basket at Kiva lets it go,
+          // and the lender has no control here to raise it with. A loan with
+          // nothing left counts 0 and is dropped below.
           for (const entry of entries) {
             if (!entry.loan) continue
             const bi = state.basket.find((b) => b.loan_id === entry.id)
-            if (bi) {
-              bi.amount = Math.min(bi.amount, entry.loan.kl_still_needed ?? bi.amount)
-            }
+            const left = entry.loan.kl_still_needed
+            if (bi && left != null) bi.amount = left > 0 ? lendAmountFor(left) : 0
           }
           const before = state.basket.length
           // Remove items with zero amount (fully funded)
@@ -568,10 +572,17 @@ export const useLoanStore = create<LoanState & LoanActions>()(
       // Persist the basket and any in-flight checkout so the outcome can be
       // reconciled after the user returns (even via the checkout tab / a reload).
       partialize: (state) => ({ basket: state.basket, pendingCheckout: state.pendingCheckout }),
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<LoanState>),
-      }),
+      // A basket stored while an amount could still be chosen here may hold $50 or
+      // $100 against a loan. It is read back at what the loan will go to Kiva at, so
+      // the totals on screen are the ones Kiva will show.
+      merge: (persisted, current) => {
+        const stored = persisted as Partial<LoanState> | undefined
+        return {
+          ...current,
+          ...stored,
+          ...(Array.isArray(stored?.basket) ? { basket: stored.basket.map(atKivasAmount) } : {}),
+        }
+      },
     },
   ),
 )

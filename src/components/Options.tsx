@@ -12,7 +12,6 @@ import { DEFAULT_LIMITS, sanitizeLimits } from '../lib/basketMix'
 import UsageStatsSwitch from './UsageStatsSwitch'
 
 interface OptionsState {
-  default_lend_amount: number
   hide_criteria_graphs: boolean
   mergeAtheistList: boolean
   debugging: boolean
@@ -23,8 +22,6 @@ interface OptionsState {
   basket_partner_limit: number
   basket_country_limit: number
 }
-
-const LEND_AMOUNTS = [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000]
 
 function basketLimitsOf(saved: Partial<OptionsState>) {
   const limits = sanitizeLimits(saved)
@@ -80,7 +77,6 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
   const [state, setState] = useState<OptionsState>(() => {
     const saved = lsj.get<Partial<OptionsState>>('Options')
     return {
-      default_lend_amount: saved.default_lend_amount ?? 25,
       hide_criteria_graphs: saved.hide_criteria_graphs ?? false,
       mergeAtheistList: saved.mergeAtheistList ?? true,
       debugging: saved.debugging ?? false,
@@ -260,22 +256,6 @@ export default function Options() {
                   </select>
                 </div>
                 <Form.Text className="text-muted">{t('appearance_help')}</Form.Text>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('default_lending_amount')}</Form.Label>
-                <div>
-                  <select
-                    value={opts.default_lend_amount}
-                    onChange={(e) => setOpts({ default_lend_amount: parseInt(e.target.value, 10) })}
-                    style={{ padding: '4px 8px', fontSize: 14, borderRadius: 4, border: '1px solid var(--kl-border-strong)', background: 'var(--kl-input-bg)', color: 'var(--kl-text)' }}
-                  >
-                    {LEND_AMOUNTS.map((amt) => (
-                      <option key={amt} value={amt}>
-                        ${amt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </Form.Group>
               <Form.Check
                 type="checkbox"

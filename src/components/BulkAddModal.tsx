@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useLoanStore } from '../stores'
 import type { BasketItem } from '../types'
 import { useI18n } from '../i18n'
+import { KIVA_LEND_AMOUNT, lendAmountFor } from '../lib/kivaCheckout'
 
 interface BulkAddModalProps {
   onHide: () => void
@@ -10,7 +11,8 @@ interface BulkAddModalProps {
 /**
  * Modal for adding multiple loans to the basket at once.
  * Uses the current filtered/sorted loans, skipping any already in basket.
- * Respects Kiva's $10,000 basket maximum.
+ * Respects Kiva's $10,000 basket maximum. Each loan is added at what any loan is
+ * added at (lendAmountFor), so the only figure to choose is the total.
  */
 export default function BulkAddModal({ onHide }: BulkAddModalProps) {
   const { t, currency } = useI18n()
@@ -23,7 +25,6 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
   const basketSpace = 10000 - currentBasketTotal
 
   const [maxBasket, setMaxBasket] = useState(Math.min(1000, basketSpace))
-  const [maxPerLoan, setMaxPerLoan] = useState(25)
 
   const handleAdd = useCallback(() => {
     let amountRemaining = Math.min(maxBasket, basketSpace)
@@ -32,17 +33,18 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
     for (const loan of filteredLoans) {
       if (inBasket(loan.id)) continue
       const stillNeeded = loan.kl_still_needed ?? Math.max(loan.loan_amount - loan.funded_amount, 0)
-      const toLend = Math.min(stillNeeded, amountRemaining, maxPerLoan)
-      if (toLend > 0) {
-        amountRemaining -= toLend
-        toAdd.push({ loan_id: loan.id, amount: toLend })
-      }
-      if (amountRemaining < 25) break
+      if (stillNeeded <= 0) continue
+      // A loan goes in whole or not at all: part of its amount would be a figure
+      // Kiva is never sent, and the basket would raise it again on its next refresh.
+      const toLend = lendAmountFor(stillNeeded)
+      if (toLend > amountRemaining) break
+      amountRemaining -= toLend
+      toAdd.push({ loan_id: loan.id, amount: toLend })
     }
 
     batchAddToBasket(toAdd)
     onHide()
-  }, [maxBasket, maxPerLoan, basketSpace, filteredLoans, inBasket, batchAddToBasket, onHide])
+  }, [maxBasket, basketSpace, filteredLoans, inBasket, batchAddToBasket, onHide])
 
   return (
     <div className="modal d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -54,30 +56,18 @@ export default function BulkAddModal({ onHide }: BulkAddModalProps) {
           </div>
           <div className="modal-body">
             <p>
-              {t('mega_lender_tool_using_current_sort')}
+              {t('mega_lender_tool_using_current_sort', { amount: currency(KIVA_LEND_AMOUNT) })}
             </p>
             <div className="mb-3">
               <label className="form-label">{t('max_lend_dollar_amount', { amount: currency(maxBasket) })}</label>
               <input
                 type="range"
                 className="form-range"
-                min={25}
+                min={KIVA_LEND_AMOUNT}
                 max={basketSpace}
-                step={25}
+                step={KIVA_LEND_AMOUNT}
                 value={maxBasket}
                 onChange={(e) => setMaxBasket(parseInt(e.target.value, 10))}
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">{t('max_per_loan_dollar_amount', { amount: currency(maxPerLoan) })}</label>
-              <input
-                type="range"
-                className="form-range"
-                min={25}
-                max={250}
-                step={25}
-                value={maxPerLoan}
-                onChange={(e) => setMaxPerLoan(parseInt(e.target.value, 10))}
               />
             </div>
           </div>

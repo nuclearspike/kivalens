@@ -23,8 +23,17 @@ import {
 import { sendDigestNow } from './digest.mjs'
 import { cache } from './runtime.mjs'
 import { eventStream, json, pathOf, readBody, text } from './http.mjs'
+import { KIVA_LEND_AMOUNT, lendAmountFor } from './lendAmount.mjs'
 import crypto from 'node:crypto'
 import { AsyncLocalStorage } from 'node:async_hooks'
+
+// The amount a loan is added at, as the assistant writes it, and what it is told
+// each time it adds one: an amount is not something it can set.
+const LEND_USD = `$${KIVA_LEND_AMOUNT}`
+const lendAmountNote = (amount) =>
+  amount < KIVA_LEND_AMOUNT
+    ? `Added at $${amount}, all this loan still needs. KivaLens adds a loan at ${LEND_USD}, or at what it still needs when that is less; no other amount can be set in KivaLens.`
+    : `Added at ${LEND_USD}, the one amount KivaLens adds a loan at. A loan's amount is changed on Kiva's checkout page, not in KivaLens.`
 
 const MODEL = process.env.OPENAI_RESPONSES_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
 // Global kill switch: the assistant is available ONLY when this is exactly 'true'.
@@ -599,9 +608,9 @@ async function execTool(name, args, sctx, sse) {
         loan = matches[0]
       }
       if (!loan) return { error: 'not_found', note: 'Give a loanId (e.g. the selected loan) or a borrower name.' }
-      const amount = Number(args.amount) > 0 ? Number(args.amount) : undefined
-      sse({ type: 'add_to_basket', loanId: loan.id, amount })
-      return { ok: true, loanId: loan.id, name: loan.name, amount: amount ?? 25 }
+      sse({ type: 'add_to_basket', loanId: loan.id })
+      const amount = lendAmountFor(loan.kl_still_needed)
+      return { ok: true, loanId: loan.id, name: loan.name, amount, note: lendAmountNote(amount) }
     }
     case 'get_basket': {
       const basket = sctx.basket || []
@@ -617,22 +626,6 @@ async function execTool(name, args, sctx, sse) {
       if (id == null) return { error: 'not_in_basket', note: 'No basket loan matches.' }
       sse({ type: 'remove_from_basket', loanId: id })
       return { ok: true, loanId: id }
-    }
-    case 'set_lend_amount': {
-      const id = resolveBasketLoan(sctx, state, args)
-      if (id == null) return { error: 'not_in_basket', note: 'Add it to the basket first.' }
-      const amount = Number(args.amount)
-      if (!(amount > 0)) return { error: 'invalid_amount', note: 'Amount must be a positive number of USD.' }
-      sse({ type: 'set_lend_amount', loanId: id, amount })
-      return { ok: true, loanId: id, amount }
-    }
-    case 'set_all_lend_amounts': {
-      const basket = sctx.basket || []
-      if (!basket.length) return { error: 'empty_basket', note: 'The basket is empty — nothing to change.' }
-      const amount = Number(args.amount)
-      if (!(amount > 0)) return { error: 'invalid_amount', note: 'Amount must be a positive number of USD.' }
-      sse({ type: 'set_all_lend_amounts', amount })
-      return { ok: true, count: basket.length, amount }
     }
     case 'clear_basket': {
       sse({ type: 'clear_basket' })
@@ -868,19 +861,18 @@ async function execTool(name, args, sctx, sse) {
       if (!(await awaitReady(sctx))) return { ready: false, note: 'The add did NOT run: loan data is still loading for the assistant. Tell the user the search on the left is live and to say the word again in a moment to add those loans; do NOT tell them nothing matches and do NOT imply the search is broken.' }
       const crit = validateCriteria(sctx.criteria || {}, vocab)
       const matched = filterLoans(crit, loanCtx(state))
-      const perLoan = Math.min(Math.max(Number(args.perLoan) || 25, 25), 500)
       const HARD_CAP = 10000
-      const maxTotal = Math.min(Math.max(Number(args.maxTotal) || 250, perLoan), HARD_CAP)
+      const maxTotal = Math.min(Math.max(Number(args.maxTotal) || 250, KIVA_LEND_AMOUNT), HARD_CAP)
       const existing = new Set((sctx.basket || []).map((b) => Number(b.loanId)))
       let total = (sctx.basket || []).reduce((s, b) => s + (Number(b.amount) || 0), 0)
       const items = []
       for (const l of matched) {
         if (existing.has(l.id)) continue
-        if (total + perLoan > maxTotal) break
-        const need = Number(l.kl_still_needed)
-        const amt = need > 0 ? Math.min(perLoan, Math.max(25, Math.ceil(need))) : perLoan
-        items.push({ loanId: l.id, amount: amt })
-        total += amt
+        // A loan goes in at what any loan is added at, whole or not at all.
+        const amount = lendAmountFor(l.kl_still_needed)
+        if (total + amount > maxTotal) break
+        items.push({ loanId: l.id, amount })
+        total += amount
       }
       if (!items.length) return { added: 0, note: matched.length ? 'Nothing added — the $ cap was reached or those loans are already in the basket.' : 'No loans match the current filter.' }
       sse({ type: 'bulk_add', items })
@@ -1033,7 +1025,6 @@ const TOOL_DEFS = [
         properties: {
           loanId: { type: 'number' },
           name: { type: 'string' },
-          amount: { type: 'number', description: 'USD to lend, default 25' },
         },
       },
     },
@@ -1042,7 +1033,7 @@ const TOOL_DEFS = [
     type: 'function',
     function: {
       name: 'get_basket',
-      description: "List what's currently in the user's basket (loans + lend amounts + total). The BASKET summary is also in CONTEXT.",
+      description: "List what's currently in the user's basket (the loans and the total). The BASKET summary is also in CONTEXT.",
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -1052,22 +1043,6 @@ const TOOL_DEFS = [
       name: 'remove_from_basket',
       description: 'Remove a loan from the basket, by loanId or borrower name.',
       parameters: { type: 'object', properties: { loanId: { type: 'number' }, name: { type: 'string' } } },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'set_lend_amount',
-      description: 'Change the lend amount (USD) for a SINGLE loan already in the basket, by loanId or borrower name. For ALL basket loans at once, use set_all_lend_amounts.',
-      parameters: { type: 'object', properties: { loanId: { type: 'number' }, name: { type: 'string' }, amount: { type: 'number' } }, required: ['amount'] },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'set_all_lend_amounts',
-      description: 'Set the SAME lend amount (USD) on EVERY loan currently in the basket, in one call. Use for "change all basket loans to $X" / "set everything to $X" / "make them all $X".',
-      parameters: { type: 'object', properties: { amount: { type: 'number' } }, required: ['amount'] },
     },
   },
   {
@@ -1262,8 +1237,8 @@ const TOOL_DEFS = [
     function: {
       name: 'bulk_add_to_basket',
       description:
-        'Add MANY loans from the current filter into the basket at once (the KivaLens power move). Fills up to maxTotal USD at perLoan each ($25 Kiva minimum, $10k hard cap), skipping loans already in the basket. Nothing is funded — the user still reviews the basket and checks out on Kiva. Confirm the rough $ total with the user before calling.',
-      parameters: { type: 'object', properties: { maxTotal: { type: 'number', description: 'Total USD to add (default 250).' }, perLoan: { type: 'number', description: 'USD per loan (default/min 25).' } } },
+        'Add MANY loans from the current filter into the basket at once (the KivaLens power move). Fills up to maxTotal USD at ' + LEND_USD + ' a loan (less for a loan that needs less), the one amount KivaLens adds a loan at ($10k hard cap), skipping loans already in the basket. Nothing is funded — the user still reviews the basket and checks out on Kiva. Confirm the rough $ total with the user before calling.',
+      parameters: { type: 'object', properties: { maxTotal: { type: 'number', description: 'Total USD to add (default 250).' } } },
     },
   },
   {
@@ -1447,8 +1422,9 @@ export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     'GUIDANCE TOOLS — SHOW, don\'t just tell: point_at(target, message) bounces an arrow + callout at a UI element. DEFAULT to point_at WHENEVER you tell the user WHERE a feature / control / setting / page is, or HOW to get to it — point at it, don\'t only describe the location. E.g. "you can set that on the Options page" → ALSO call point_at("nav-options", "Set it here!"); "your saved searches are here" → point_at("nav-saved", "Right here!"). Header nav tabs (present on EVERY page): nav-search, nav-basket, nav-partners, nav-stats, nav-wall, nav-teams, nav-saved, nav-options, nav-about. Search-page targets: results, bulk-add, criteria-tabs, reset, saved-searches. INDIVIDUAL CRITERIA FIELDS: crit-country_code (Countries), crit-sector (Sectors), crit-activity (Activities), crit-themes (Themes), crit-tags (Tags) live on the "borrower" tab; crit-region, crit-social_performance, crit-religion on the "partner" tab — you MUST switch_criteria_tab to that tab FIRST so the field is on screen, then point_at("crit-<field>"). If the user is NOT on the Search page, navigate("search") first (the arrow only appears if the target is on the current page). navigate(page) switches pages; switch_criteria_tab(tab) switches the Search criteria tab.',
     'LENDER ID: check CONTEXT below. NEVER call prompt_lender_id or ask for the id if it is already set. If it is NOT set and you need it: ask the user and call set_lender_id when they give it; or call prompt_lender_id to open the entry dialog; if they do not know it, offer open_kiva_lender_help (opens kiva.org in a new tab where their id appears) and have them paste it back.',
     'PORTFOLIO: if the lender id is set, you may read their lending history directly with get_lender_profile / get_portfolio_distribution — no permission step. Compare their distribution to advise more-of-the-same vs. diversify, then propose criteria. If no lender id is set, get it first (see LENDER ID).',
-    'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / set_lend_amount / set_all_lend_amounts (sets EVERY basket loan to one amount — use for "change all loans to $X") / clear_basket. For set_lend_amount / remove_from_basket when the user says "it" / "this" / "my basket loan", target the loan that is IN THE BASKET — pass the loanId from the CONTEXT basket list (which now shows each basket loan\'s loanId), NOT the selected loan\'s id, which may be a different loan. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
-    'BASKET COST vs. STILL-NEEDED: the cost to ADD loans to the basket is the lend amount YOU choose per loan — the $25 Kiva minimum unless the user picks more — NOT the loans\' total "still needed". Adding N loans at the minimum costs $25 x N. When you quote what it costs to add/queue loans, quote $25 x N (or perLoan x N), never the sum of their still-needed amounts.',
+    'BASKET: to add a loan to the basket you MUST call add_to_basket (by loanId — e.g. the SELECTED LOAN — or by borrower name). NEVER say you added a loan unless that tool returned ok. Likewise never claim ANY action without calling its tool. Manage the basket with get_basket / remove_from_basket / clear_basket. For remove_from_basket when the user says "it" / "this" / "my basket loan", target the loan that is IN THE BASKET — pass the loanId from the CONTEXT basket list (which now shows each basket loan\'s loanId), NOT the selected loan\'s id, which may be a different loan. You do NOT check out / transfer to Kiva — for that, navigate("basket") and let the user do it.',
+    `LEND AMOUNT: every loan goes into the basket, and on to Kiva, at ${LEND_USD} (a loan with less than ${LEND_USD} left to raise goes in at what it still needs). KivaLens cannot set any other amount, for one loan or for all of them: Kiva's basket link takes none, and no page of KivaLens, the Basket page included, has an amount to choose or change. If the user asks to change the amounts in the basket, or to lend more or less than ${LEND_USD} to a loan already in it, do NOT say you did it, call no tool for it and navigate nowhere: tell them KivaLens adds each loan at ${LEND_USD} and that a loan's amount is changed only at Kiva, on Kiva's own checkout page, which opens when they press Checkout at Kiva on the Basket page. If they ask you to ADD a loan at another amount, add it with add_to_basket, then say it went in at ${LEND_USD} and that its amount can be changed at Kiva's checkout. Never say an amount can be set, changed or adjusted in KivaLens.`,
+    `BASKET COST vs. STILL-NEEDED: adding N loans to the basket costs ${LEND_USD} x N, NOT the loans' total "still needed". When you quote what it costs to add/queue loans, quote ${LEND_USD} x N, never the sum of their still-needed amounts.`,
     'MORE TOOLS: list_saved_searches / load_search / delete_search manage saved searches; reset_criteria clears all filters; generate_rss_feed returns a shareable feed URL for alerts; render_chart draws a bar/pie chart inline — use it whenever a visual helps (portfolio breakdowns, facet counts, comparisons). render_chart shows the chart to the user AUTOMATICALLY; after calling it just add a one-line caption.',
     'APPLICATION STORAGE: save_application_storage and retrieve_application_storage give you a small browser-local memory under the fixed AskKivaLens: prefix. Use it for durable preferences, lending goals, and short continuity notes when the user asks you to remember something or it will clearly improve a later visit. Retrieve before claiming what you remember. Never store secrets, lender IDs, payment data, entire transcripts, or borrower descriptions. Storage stays on this browser and is not an account or cloud sync.',
     'START OVER: reset_chat clears the CONVERSATION (call it for "start over" / "reset the chat" / "clear this"). reset_criteria clears the search FILTERS. If it is ambiguous, ask which they mean in one line.',
