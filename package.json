@@ -56,6 +56,11 @@
     "vitest": "^5.0.5",
     "wrangler": "^4.152.0"
   },
+  "overrides": {
+    "miniflare": {
+      "undici": "^7.30.1"
+    }
+  },
   "engines": {
     "node": "22.x"
   }
