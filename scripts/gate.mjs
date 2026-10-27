@@ -3,18 +3,20 @@
 //
 //   node scripts/gate.mjs [commit] [--out <dir>] [--keep]
 //
-// Steps: npm ci, build, the test suite, the language check, the RUM Worker's types, lint against the
-// recorded baseline (scripts/lint-baseline.json), and npm audit. Logs and summary.json go to --out, by
-// default analysis/gates/<UTC time>_<commit>/ in the main checkout, so they outlive a worktree. The summary
-// also records the built entry script and its sha256, which scripts/deploy.mjs compares with what the live
-// site serves. Exit 0 only if every step passes. The clean copy is deleted after a pass and kept after a
-// failure (or with --keep), for a look at what failed.
+// Steps: npm's version against package.json's engines.npm, which is the npm Heroku builds with
+// (scripts/npm-engine.mjs says why the two must match); npm ci, build, the test suite, the language check,
+// the RUM Worker's types, lint against the recorded baseline (scripts/lint-baseline.json), and npm audit.
+// Logs and summary.json go to --out, by default analysis/gates/<UTC time>_<commit>/ in the main checkout,
+// so they outlive a worktree. The summary also records the built entry script and its sha256, which
+// scripts/deploy.mjs compares with what the live site serves. Exit 0 only if every step passes. The clean
+// copy is deleted after a pass and kept after a failure (or with --keep), for a look at what failed.
 import { execFileSync, spawnSync } from 'node:child_process'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { checkNpm } from './npm-engine.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -56,8 +58,16 @@ function step(name, cmd, cmdArgs, { env = {}, judge } = {}) {
   return s.ok
 }
 
-console.log(`gate for ${sha} · node ${process.version}; Heroku builds with node ${pkg.engines?.node ?? '(engines not set)'}`)
-let ok = step('npm-ci', 'npm', ['ci', '--no-audit', '--no-fund'])
+console.log(`gate for ${sha} · node ${process.version}; Heroku builds with node ${pkg.engines?.node ?? '(engines not set)'}, npm ${pkg.engines?.npm ?? '(engines not set)'}`)
+let npmVersion = null
+let ok = step('npm-version', 'npm', ['--version'], {
+  judge: (r) => {
+    if (r.status !== 0) return { ok: false, detail: `npm --version exited ${r.status}` }
+    npmVersion = r.stdout.trim()
+    return checkNpm(pkg.engines?.npm, npmVersion)
+  },
+})
+ok = ok && step('npm-ci', 'npm', ['ci', '--no-audit', '--no-fund'])
 ok = ok && step('build', 'npm', ['run', 'build'], { env: { SOURCE_VERSION: sha } })
 if (ok) {
   // Four workers and 30 s a test: on a machine busy with other work, the default run failed different
@@ -94,11 +104,11 @@ if (fs.existsSync(indexHtml)) {
   const name = /assets\/index-[\w-]+\.js/.exec(fs.readFileSync(indexHtml, 'utf8'))?.[0]
   if (name) entry = { path: `/${name}`, sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(tree, 'dist', name))).digest('hex') }
 }
-const EXPECTED = ['npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
+const EXPECTED = ['npm-version', 'npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
 const passed = EXPECTED.every((n) => steps.find((s) => s.name === n)?.ok) && entry !== null
 const keep = !passed || args.includes('--keep')
 if (!keep) fs.rmSync(tree, { recursive: true, force: true })
-const summary = { commit: sha, at: new Date().toISOString(), node: process.version, herokuNode: pkg.engines?.node ?? null, passed, steps, entry, tree: keep ? tree : null }
+const summary = { commit: sha, at: new Date().toISOString(), node: process.version, herokuNode: pkg.engines?.node ?? null, npm: npmVersion, herokuNpm: pkg.engines?.npm ?? null, passed, steps, entry, tree: keep ? tree : null }
 fs.writeFileSync(path.join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n')
 console.log(`\n${passed ? 'GATE PASSED' : 'GATE FAILED'} for ${short}`)
 console.log(`record: ${out}${keep ? `\nclean copy kept: ${tree}` : ''}`)

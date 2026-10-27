@@ -14,6 +14,10 @@ quietly, so the first sign was a lender's report 26 hours in.
 - Run the release gate on the commit: `node scripts/gate.mjs <commit>`. It builds a clean copy of the
   commit the way Heroku will and runs the tests, the language check, the RUM Worker's types, lint, and
   `npm audit`. Tests passing in your own checkout are not the gate.
+- `engines.npm` in package.json is the npm Heroku builds with, and the gate stops before `npm ci` when
+  your npm is outside it. npm majors disagree about which lockfiles are valid: on 2026-10-26 a lockfile
+  that npm 11 accepted passed the gate, and Heroku's default npm 10 refused to build it. Keep the pin a
+  plain version (`11.x`, not `>=11`), and change the pin and your npm together.
 - Lint has old debt. The gate fails a commit with more problems than `scripts/lint-baseline.json`
   allows. When you fix some, lower the number; never raise it to let a commit through.
 - A test that comes with a fix must fail without the fix. Run it both ways before you rely on it.
