@@ -29,7 +29,7 @@ const must = (ok, what) => { if (!ok) throw new CheckFailed(what) }
 async function get(path, init = {}) {
   const res = await fetch(BASE + path, { ...init, redirect: 'manual', signal: AbortSignal.timeout(30_000) })
   const text = await res.text()
-  return { status: res.status, type: (res.headers.get('content-type') || '').toLowerCase(), text }
+  return { status: res.status, type: (res.headers.get('content-type') || '').toLowerCase(), headers: res.headers, text }
 }
 function json(r, what) {
   try {
@@ -50,6 +50,16 @@ const CHECKS = [
     must(js.status === 200 && js.type.includes('javascript'), `${entry} answered ${js.status} ${js.type}`)
     state.entry = entry
     return entry
+  }],
+  ['The Lite app privacy notice', async () => {
+    for (const language of ['en', 'de', 'fr', 'es', 'pt-BR', 'ja', 'zh-Hans']) {
+      const r = await get(`/${language}/lite-privacy`)
+      must(r.status === 200 && r.type.startsWith('text/html'), `/${language}/lite-privacy answered ${r.status} ${r.type}`)
+      must(r.headers.get('x-robots-tag') === 'noindex', `/${language}/lite-privacy is missing noindex`)
+      must(r.text.includes(`<html lang="${language}">`) && r.text.includes('KivaLens Lite'), `/${language}/lite-privacy returned the wrong page`)
+      must(!r.text.includes('/search') && !r.text.includes('/assets/index-'), `/${language}/lite-privacy fell back to the loan app`)
+    }
+    return 'seven standalone, noindex notices'
   }],
   ['The loan catalog', async () => {
     const start = json(await get('/api/start'), '/api/start')

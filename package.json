@@ -56,6 +56,9 @@
     "vitest": "^5.0.5",
     "wrangler": "^4.153.0"
   },
+  "overrides": {
+    "minimatch": "^11.0.1"
+  },
   "engines": {
     "node": "22.x",
     "npm": "11.x"

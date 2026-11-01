@@ -1,0 +1,9 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.65; }
+body { margin: 0; background: Canvas; color: CanvasText; }
+main { max-width: 48rem; margin: auto; padding: clamp(1.25rem, 5vw, 3rem); overflow-wrap: anywhere; }
+nav { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-block: 1.5rem; }
+a { color: LinkText; text-underline-offset: .15em; }
+a[aria-current] { font-weight: 700; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+h1, h2 { line-height: 1.25; }
+section { margin-block-start: 2rem; }
