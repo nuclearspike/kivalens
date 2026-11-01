@@ -24,7 +24,7 @@ import { shellLookup } from './pageMeta.mjs'
 import { renderShell } from './shell.mjs'
 import { buildSitemap } from './sitemap.mjs'
 import { SECURITY_HEADERS } from './securityHeaders.mjs'
-import { litePrivacyResponse } from './litePrivacy.mjs'
+import { litePrivacyResponseForRequest } from './litePrivacy.mjs'
 
 const PORT = process.env.PORT || 3000
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
@@ -237,15 +237,8 @@ async function handleRequest(req, res) {
   }
 
   // App-only notice, deliberately outside the site's navigation and app shell.
-  const litePrivacy = litePrivacyResponse((req.url || '').split('?')[0])
-  if (litePrivacy && (req.method === 'GET' || req.method === 'HEAD')) {
-    if (req.method === 'HEAD') {
-      for (const [key, value] of litePrivacy.headers) res.setHeader(key, value)
-      res.end()
-      return
-    }
-    return sendResponse(res, litePrivacy)
-  }
+  const litePrivacy = litePrivacyResponseForRequest(req.method, req.url)
+  if (litePrivacy) return sendResponse(res, litePrivacy)
 
   // The pages worth finding, listed from the partners already in memory.
   if ((req.url || '').split('?')[0] === '/sitemap.xml') {
