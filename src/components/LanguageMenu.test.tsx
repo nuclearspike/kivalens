@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider, LOCALES } from '../i18n'
 import LanguageMenu from './LanguageMenu'
 
@@ -46,7 +46,8 @@ describe('LanguageMenu', () => {
 
     expect(window.localStorage.getItem('KivaLensLocale')).toBe('zh-Hans')
     expect(await screen.findByRole('button', { name: '选择语言' }, LOADED)).toHaveTextContent('ZH')
-    expect(document.documentElement.lang).toBe('zh-Hans')
+    // The translated render can be observed before the provider's passive effect.
+    await waitFor(() => expect(document.documentElement.lang).toBe('zh-Hans'), LOADED)
   })
 
   it('moves between two other languages without passing through English', async () => {

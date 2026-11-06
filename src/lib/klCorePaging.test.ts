@@ -4,6 +4,7 @@ import { storyPrint } from '../../server/borrowerAgeAI.mjs'
 import { configureRuntime, memoryCache, resetRuntime } from '../../server/runtime.mjs'
 import { filterLoans } from '../../server/loanFilter.mjs'
 import zlib from 'node:zlib'
+import { setImmediate as yieldToIO } from 'node:timers/promises'
 import { recorded } from '../test/upstream'
 
 /**
@@ -992,7 +993,13 @@ describe('a loan is never published without its details', () => {
   async function refresh(state: ReturnType<typeof createState>, log: (m: string) => void = silent) {
     let done = false
     const run = prepareData(state, log).finally(() => (done = true))
-    for (let i = 0; i < 60 && !done; i++) await vi.advanceTimersByTimeAsync(1000)
+    // Compression finishes on the real I/O loop. Do not exhaust a fixed number
+    // of fake-clock ticks before it can enqueue the detail retry's timer.
+    // Vitest's test timeout still bounds a refresh that never settles.
+    while (!done) {
+      await vi.advanceTimersByTimeAsync(1000)
+      await yieldToIO()
+    }
     await run
   }
   const servedLoans = (state: ReturnType<typeof createState>) =>
