@@ -20,7 +20,10 @@ import type { Criteria, KivaLoan, Partner } from '../types'
  * and a note under the count when a balancer that is on cannot apply.
  */
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -76,6 +79,8 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
   })
 
   it('does not ask Kiva again for a slice it would not return, until told to retry', async () => {
+    const reported = vi.fn()
+    vi.stubGlobal('reportError', reported)
     const kl = new Loans()
     kl.lenderId = 'a'
     kl.fetchSuperGraphData = vi.fn(async () => {
@@ -96,9 +101,14 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
     await settle()
     await settle()
     expect(kl.fetchSuperGraphData).toHaveBeenCalledTimes(2)
+    expect(reported).toHaveBeenCalledTimes(2)
+    expect(reported).toHaveBeenNthCalledWith(1, new Error('Reading portfolio figures from Kiva failed: 502'))
+    expect(reported).toHaveBeenNthCalledWith(2, new Error('Reading portfolio figures from Kiva failed: 502'))
   })
 
   it('keeps applying the last copy when a later re-read fails, and does not report it as unread', async () => {
+    const reported = vi.fn()
+    vi.stubGlobal('reportError', reported)
     const kl = new Loans()
     kl.lenderId = 'a'
     let up = true
@@ -116,6 +126,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
     await settle()
     expect(kl.balancerSlices('country', 'all')?.map((s) => s.name)).toEqual(['Kenya'])
     expect(kl.balancerFailures()).toEqual([])
+    expect(reported).toHaveBeenCalledExactlyOnceWith(new Error('Reading portfolio figures from Kiva failed: 502'))
     now.mockRestore()
   })
 
@@ -212,6 +223,8 @@ describe('a search that arrives without its balancer list', () => {
   })
 
   it('says under the count when Kiva would not return the portfolio, and tries again on request', async () => {
+    const reported = vi.fn()
+    vi.stubGlobal('reportError', reported)
     let fail = true
     useLender(`lender-${Math.random()}`, async () => {
       if (fail) throw new Error('502')
@@ -233,6 +246,7 @@ describe('a search that arrives without its balancer list', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     await waitFor(() => expect(shown()).toEqual([2, 3, 5]))
     expect(screen.queryByText(/not applied/)).toBeNull()
+    expect(reported).toHaveBeenCalledExactlyOnceWith(new Error('Reading portfolio figures from Kiva failed: 502'))
   })
 
   it('says it needs a lender ID when there is none, with the way to set one: the notice above the results, not this line', () => {
