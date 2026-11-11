@@ -15,7 +15,6 @@ interface OptionsState {
   hide_criteria_graphs: boolean
   mergeAtheistList: boolean
   debugging: boolean
-  betaTester: boolean
   loansFromKiva: boolean
   maxRepaymentTerms: number
   maxRepaymentTerms_on: boolean
@@ -80,7 +79,6 @@ function usePersistedOptions(): [OptionsState, (patch: Partial<OptionsState>) =>
       hide_criteria_graphs: saved.hide_criteria_graphs ?? false,
       mergeAtheistList: saved.mergeAtheistList ?? true,
       debugging: saved.debugging ?? false,
-      betaTester: saved.betaTester ?? false,
       loansFromKiva: saved.loansFromKiva ?? false,
       maxRepaymentTerms: saved.maxRepaymentTerms ?? 8,
       maxRepaymentTerms_on: saved.maxRepaymentTerms_on ?? false,
@@ -338,17 +336,10 @@ export default function Options() {
             </Card.Body>
           </Card>
 
-          {/* --- Debug / Beta --- */}
+          {/* --- Debugging --- */}
           <Card className="mb-3">
-            <Card.Header>{t('debug_beta_testing')}</Card.Header>
+            <Card.Header>{t('debugging')}</Card.Header>
             <Card.Body>
-              <Form.Check
-                type="checkbox"
-                className="mb-2"
-                label={t('show_me_features_being_beta_tested')}
-                checked={opts.betaTester}
-                onChange={(e) => setOpts({ betaTester: e.target.checked })}
-              />
               <Form.Check
                 type="checkbox"
                 className="mb-2"
