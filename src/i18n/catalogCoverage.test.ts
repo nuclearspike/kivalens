@@ -115,6 +115,9 @@ describe('localization catalog coverage', () => {
   it('keeps every locale catalog in exact key and {placeholder} parity with non-empty values', () => {
     const enKeys = Object.keys(en).sort()
     expect(new Set(enKeys).size).toBe(enKeys.length) // no duplicate keys
+    for (const [key, value] of Object.entries(en)) {
+      expect(value.trim().length, `en.ts['${key}'] is empty`).toBeGreaterThan(0)
+    }
     for (const locale of locales) {
       const catalog = catalogs[locale]
       expect(Object.keys(catalog).sort(), `${locale}.ts key set differs from en.ts`).toEqual(enKeys)

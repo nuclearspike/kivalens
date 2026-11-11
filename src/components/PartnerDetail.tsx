@@ -38,7 +38,7 @@ function safeWebsiteUrl(value: unknown): string | null {
 }
 
 export default function PartnerDetail({ partner, showStatus = true }: PartnerDetailProps) {
-  const { t, sector, date, number, currency, percent } = useI18n()
+  const { t, data, sector, date, number, currency, percent } = useI18n()
   const navigate = useNavigate()
   const loans = useLoanStore((s) => s.loans)
   const startFresh = useCriteriaStore((s) => s.startFresh)
@@ -75,7 +75,7 @@ export default function PartnerDetail({ partner, showStatus = true }: PartnerDet
     navigate('/search')
   }
 
-  const countryNames = partner.countries?.map((c) => c.name).join(', ') ?? '(unknown)'
+  const countryNames = partner.countries?.length ? partner.countries.map((c) => data(c.name)).join(', ') : t('unknown')
   const atheistScore = partner.atheistScore
   const showAtheistResearch = !!atheistScore
   const website = safeWebsiteUrl((partner as unknown as { url?: string }).url)

@@ -219,6 +219,13 @@ if (staleConstRefs.length) {
   for (const s of staleConstRefs) console.error(`    ${s.file}:${s.line}  t(${s.identifier}) — ${s.identifier} = ${JSON.stringify(s.text.slice(0, 60))}`)
 }
 
+// 2a. English is one catalog among nine: an empty value there shows nothing too.
+const emptyInEn = [...enKeys].filter((k) => !catalogs.en[k] || !catalogs.en[k].trim())
+if (emptyInEn.length) {
+  fail(`en.ts has ${emptyInEn.length} empty value(s):`)
+  for (const k of emptyInEn.slice(0, 20)) console.error(`    ${k}`)
+}
+
 // 2. Every en.ts key must exist, non-empty, in every other locale.
 for (const locale of SECONDARY) {
   const cat = catalogs[locale]
