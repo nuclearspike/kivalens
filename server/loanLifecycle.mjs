@@ -98,8 +98,11 @@ export async function resolveLoanDetails(state, ids, processLoan, refresh = fals
   const missing = []
   for (const id of ids) {
     const cached = catalog.get(id)
-    if (!refresh && !funded.has(id) && cached?.description?.texts?.en && Array.isArray(cached.kl_repayments))
-      result.set(id, shape(cached, 'catalog', cached.kl_processed || null))
+    // The catalog vouches only for a loan this server's own refresh checked with Kiva
+    // (kl_processed). A warm start holds the snapshot's story and schedule with no status or
+    // amounts, and its expanded pages carry the snapshot's figures; both are asked of Kiva.
+    if (!refresh && !funded.has(id) && cached?.kl_processed && cached.description?.texts?.en && Array.isArray(cached.kl_repayments))
+      result.set(id, shape(cached, 'catalog', cached.kl_processed))
     else missing.push(id)
   }
   const deadline = Date.now() + 20_000

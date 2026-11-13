@@ -265,6 +265,15 @@ describe('what the server hands the page about itself', () => {
       .toBe('Field partner 15 · KivaLens')
   })
 
+  it('titles a loan the warm start holds only the story of as a loan not yet loaded, never blank', () => {
+    // After a restart, until the warm pages are expanded or the first refresh stages its own loans,
+    // the server holds each loan's story and schedule alone (snapshotOf's details): nothing to name it by.
+    const warm = { allLoans: [{ id: 2549812, description: { texts: { en: 'Amara keeps cows.' } }, kl_repayments: [] }] }
+    const m = pageMeta({ pathname: '/loans/2549812', lookup: shellLookup(warm, '/loans/2549812') })
+    expect(m.title).toBe('Loan 2549812 · KivaLens')
+    expect(m.description).toBe(pageMeta({ pathname: '/loans/2549812', lookup: {} }).description)
+  })
+
   it('looks nothing up for a page that is not about one thing', () => {
     expect(shellLookup(state, '/search')).toEqual({})
     expect(shellLookup(state, '/about')).toEqual({})

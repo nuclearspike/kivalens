@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createState, handleApi } from '../../server/klCore.mjs'
+import { createState, handleApi, prepareData, rehydrateWarmCache, snapshotOf, startRefresh } from '../../server/klCore.mjs'
 import { observeFundedLoans, recentlyFunded, RECENTLY_FUNDED_TTL_MS } from '../../server/loanLifecycle.mjs'
+import { buildSystemPrompt, execTool } from '../../server/aiChat.mjs'
+import { pageMeta, shellLookup } from '../../server/pageMeta.mjs'
+import { configureRuntime, resetRuntime } from '../../server/runtime.mjs'
+import { recorded } from '../test/upstream'
 
 async function graph(state: ReturnType<typeof createState>, ids: number[], refresh = false): Promise<any> {
   const response = await handleApi(state, new Request('http://www.kivalens.org/graphql', {
@@ -59,7 +63,7 @@ describe('selected loan lifecycle', () => {
   it('refreshes a cached fundraising selection and can correct a later funding reversal', async () => {
     const state = createState()
     state.allLoans = [{ id: 1, status: 'fundraising', funded_amount: 25, loan_amount: 100,
-      description: { texts: { en: 'Old story' } }, kl_repayments: [] }]
+      description: { texts: { en: 'Old story' } }, kl_repayments: [], kl_processed: new Date() }]
     const upstream = vi.fn()
       .mockResolvedValueOnce(Response.json({ loans: [{ id: 1, status: 'funded', funded_amount: 100,
         funded_date: new Date().toISOString(), description: { texts: { en: 'Public story' } } }] }))
@@ -105,6 +109,243 @@ describe('selected loan lifecycle', () => {
       ? new Response('', { status: 404 }) : Response.json({ loans: [{ id: 1, status: 'funded' }] })))
     const result = (await graph(createState(), [1, 2])).data.loans
     expect(result.map((loan: { status: string }) => loan.status)).toEqual(['funded', 'unavailable'])
+  })
+})
+
+// After a restart the server answers from its warm-start snapshot until its first refresh publishes
+// (about four minutes in production). Until the snapshot's pages are expanded or the refresh stages
+// its own loans, state.allLoans holds each loan's story and schedule alone; the expanded pages carry
+// the snapshot's status and figures, which this process never checked. Neither may be passed off as
+// a checked status.
+describe('a loan asked about right after a restart', () => {
+  const listing = recorded('kiva-search-page.json').loans!
+  const details = recorded('kiva-loan-details.json').loans!
+  // Kiva labels its JSON text/html.
+  const kivaJson = (body: unknown) => new Response(JSON.stringify(body), { headers: { 'content-type': 'text/html; charset=utf-8' } })
+  const detailIds = (url: string) => /\/v1\/loans\/([\d,]+)\.json/.exec(url)?.[1].split(',').map(Number)
+
+  /** A server that published Kiva's recorded loans, and the snapshot it saved for the next start. */
+  async function publishedSnapshot() {
+    vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request) => {
+      const url = String(input)
+      if (url.includes('/loans/search.json')) return kivaJson({ paging: { pages: 1, page: 1 }, loans: listing })
+      const wanted = detailIds(url)
+      if (wanted) return kivaJson({ loans: details.filter((loan) => wanted.includes(loan.id)) })
+      if (url.includes('/partners.json')) return kivaJson({ paging: { pages: 1, page: 1 }, partners: [] })
+      if (url.includes('api.kivaws.org/graphql')) return kivaJson({ data: { lend: { sector: [], activity: [], tag: [], loanThemeFilter: [] } } })
+      if (url.includes('docs.google.com')) return new Response('', { status: 404 })
+      throw new Error(`unexpected request: ${url}`)
+    }))
+    const live = createState()
+    await prepareData(live, () => {})
+    clearTimeout(live.snapshotTimer)
+    expect(live.allLoans.map((loan: { id: number }) => loan.id).sort()).toEqual(details.map((loan) => loan.id).sort())
+    return { live, snapshot: snapshotOf(live)! }
+  }
+
+  /** The restarted server: warm from the snapshot, its own refresh still downloading. */
+  /** Kiva's answer for these ids, as recorded unless a test says what changed since. */
+  type Answer = (wanted: number[]) => Response | Promise<Response>
+  const asRecorded: Answer = (wanted) => kivaJson({ loans: details.filter((loan) => wanted.includes(loan.id)) })
+
+  async function restarted(snapshot: unknown, answer: Answer = asRecorded) {
+    configureRuntime({ snapshots: { save: async () => {}, load: async () => snapshot } })
+    const lookups: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request) => {
+      const url = String(input)
+      const wanted = detailIds(url)
+      if (!wanted) return new Promise<Response>(() => {}) // the refresh's own downloads never finish here
+      lookups.push(url)
+      return answer(wanted)
+    }))
+    const state = createState()
+    const refresh = startRefresh(state, () => {})
+    await vi.waitFor(() => expect(state.ready).toBe(true))
+    return { state, lookups, stop: () => refresh.stop() }
+  }
+
+  afterEach(() => resetRuntime())
+
+  it('checks the status with Kiva instead of answering "unknown" from the warm start', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, lookups, stop } = await restarted(snapshot)
+    try {
+      const kiva = details[0]
+      // What the warm start holds for it: the story and the schedule, and nothing to vouch for a status.
+      const held = state.allLoans.find((loan: { id: number }) => loan.id === kiva.id)
+      expect(held.description.texts.en).toBeTruthy()
+      expect(held.kl_repayments.length).toBeGreaterThan(0)
+      expect(held).not.toHaveProperty('status')
+      expect(held).not.toHaveProperty('loan_amount')
+      expect(held).not.toHaveProperty('kl_processed')
+      const [answer] = (await graph(state, [kiva.id])).data.loans
+      expect(answer).toMatchObject({ id: kiva.id, status: 'fundraising', kl_status_source: 'kiva',
+        loan_amount: kiva.loan_amount, funded_amount: kiva.funded_amount })
+      expect(answer.kl_status_checked_at).toEqual(expect.any(String))
+      expect(answer.kl_lookup_error).toBeUndefined()
+      expect(answer.description.texts.en).toBe((kiva.description as { texts: { en: string } }).texts.en)
+      expect(lookups.map(detailIds)).toEqual([[kiva.id]])
+      // The page head for its address names it as a loan not yet loaded, not " · KivaLens".
+      expect(pageMeta({ pathname: `/loans/${kiva.id}`, lookup: shellLookup(state, `/loans/${kiva.id}`) }).title)
+        .toBe(`Loan ${kiva.id} · KivaLens`)
+    } finally { stop() }
+  })
+
+  it('still checks with Kiva once the warm pages are expanded: the snapshot cannot vouch for a status', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, lookups, stop } = await restarted(snapshot)
+    try {
+      expect(rehydrateWarmCache(state)).toBe(true) // what an Ask KivaLens question during the window does
+      const held = state.allLoans.find((loan: { id: number }) => loan.id === details[1].id)
+      expect(held).toMatchObject({ status: 'fundraising', loan_amount: details[1].loan_amount })
+      expect(held).not.toHaveProperty('kl_processed') // the snapshot's figures, never checked by this process
+      const [answer] = (await graph(state, [details[1].id])).data.loans
+      expect(answer).toMatchObject({ status: 'fundraising', kl_status_source: 'kiva' })
+      expect(lookups.map(detailIds)).toEqual([[details[1].id]])
+    } finally { stop() }
+  })
+
+  it('answers from the catalog, without asking Kiva, for loans its own refresh checked', async () => {
+    const { live } = await publishedSnapshot()
+    const asked = vi.fn()
+    vi.stubGlobal('fetch', asked)
+    const [answer] = (await graph(live, [details[2].id])).data.loans
+    expect(answer).toMatchObject({ status: 'fundraising', kl_status_source: 'catalog' })
+    expect(answer.kl_status_checked_at).toEqual(expect.any(String))
+    expect(asked).not.toHaveBeenCalled()
+  })
+
+  // The snapshot says fundraising for every loan in it; Kiva's answer is the one that counts,
+  // before the warm pages are expanded and after.
+  const funded = (l: Record<string, unknown>) => ({ ...l, status: 'funded', funded_amount: l.loan_amount, funded_date: new Date(Date.now() - 60_000).toISOString() })
+  const expired = (l: Record<string, unknown>) => ({ ...l, status: 'expired' })
+  it.each([
+    ['funded', funded, 'story-only'], ['expired', expired, 'story-only'],
+    ['funded', funded, 'expanded'], ['expired', expired, 'expanded'],
+  ] as const)('reports a loan that was %s since the snapshot as Kiva says (%s warm record)', async (status, change, held) => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, stop } = await restarted(snapshot, (wanted) =>
+      kivaJson({ loans: details.filter((loan) => wanted.includes(loan.id)).map(change) }))
+    try {
+      if (held === 'expanded') expect(rehydrateWarmCache(state)).toBe(true)
+      const [answer] = (await graph(state, [details[0].id])).data.loans
+      expect(answer).toMatchObject({ status, kl_status_source: 'kiva' })
+      expect(state.recentlyFunded.map((entry: { id: number }) => entry.id)).toEqual(status === 'funded' ? [details[0].id] : [])
+    } finally { stop() }
+  })
+
+  it('reports a loan Kiva no longer has as unavailable', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, stop } = await restarted(snapshot, () => new Response('', { status: 404 }))
+    try {
+      expect((await graph(state, [details[0].id])).data.loans[0]).toMatchObject({ status: 'unavailable', kl_status_source: 'kiva' })
+    } finally { stop() }
+  })
+
+  it('says it could not check, and keeps the story, when Kiva does not answer', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, stop } = await restarted(snapshot, () => { throw new TypeError('fetch failed') })
+    try {
+      const [answer] = (await graph(state, [details[0].id])).data.loans
+      expect(answer).toMatchObject({ status: 'unknown', kl_status_source: 'unverified', kl_lookup_error: 'upstream_unavailable' })
+      expect(answer.description.texts.en).toBe((details[0].description as { texts: { en: string } }).texts.en)
+    } finally { stop() }
+  })
+
+  // Ask KivaLens expands the warm pages when a chat starts. A snapshot that lands after that, or an
+  // expand that fails, leaves story-only records in allLoans; the loan tools must not read them as loans.
+  it('gives Ask KivaLens the whole loan when the snapshot lands after the chat began', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const early = createState()
+    expect(rehydrateWarmCache(early)).toBe(false) // the chat's own expand, before the snapshot is in
+    const { state, stop } = await restarted(snapshot)
+    try {
+      const id = details[0].id
+      const sctx = { state, lenderId: null, selectedLoanId: id, criteria: null, basket: [] }
+      const selected = await execTool('get_selected_loan', {}, sctx, () => {})
+      expect(selected).toMatchObject({ id, name: details[0].name, status: 'fundraising', loan_amount: details[0].loan_amount })
+      const events: unknown[] = []
+      await execTool('add_to_basket', { loanId: id }, sctx, (e: unknown) => events.push(e))
+      expect(events).toEqual([{ type: 'add_to_basket', loanId: id }])
+    } finally { stop() }
+  })
+
+  it('tells Ask KivaLens the loan data is loading, rather than passing it a loan with no name or status', async () => {
+    const { snapshot } = await publishedSnapshot()
+    const { state, stop } = await restarted(snapshot)
+    try {
+      state.warmRehydrated = true // an expand that failed is not tried again
+      const id = details[0].id
+      const sctx = { state, lenderId: null, selectedLoanId: id, criteria: null, basket: [], readyDeadline: Date.now() }
+      for (const name of ['get_selected_loan', 'get_loan_details']) {
+        const result = await execTool(name, { loanId: id }, sctx, () => {})
+        expect(result).toMatchObject({ ready: false })
+        expect(result).not.toHaveProperty('name')
+      }
+      const events: unknown[] = []
+      expect(await execTool('add_to_basket', { loanId: id }, sctx, (e: unknown) => events.push(e))).toMatchObject({ ready: false })
+      expect(await execTool('add_to_basket', { name: String(details[0].name) }, sctx, (e: unknown) => events.push(e))).toMatchObject({ ready: false })
+      expect(events).toEqual([])
+      expect(buildSystemPrompt(state, null, null, { selectedLoanId: id })).not.toContain('SELECTED LOAN — the user is viewing THIS loan')
+    } finally { stop() }
+  })
+
+  // The first refresh after a warm start holds its whole live loans while it settles ages and
+  // compresses its pages, and keeps them if it then fails; filterableLoans waits for publication.
+  it.each([
+    ['staged but not yet published', { liveStaged: true }],
+    ['left by a refresh that failed after staging, with no expand possible', { liveStaged: false, warmRehydrated: true }],
+  ])('lets Ask KivaLens use whole loans %s', async (_, flags) => {
+    const { live } = await publishedSnapshot()
+    Object.assign(live, { filterableLoans: false }, flags)
+    const id = details[0].id
+    const sctx = { state: live, lenderId: null, selectedLoanId: id, criteria: null, basket: [], readyDeadline: Date.now() }
+    expect(await execTool('get_selected_loan', {}, sctx, () => {})).toMatchObject({ id, name: details[0].name, status: 'fundraising' })
+    expect(await execTool('get_loan_details', { loanId: id }, sctx, () => {})).toMatchObject({ id, name: details[0].name })
+    const events: unknown[] = []
+    expect(await execTool('add_to_basket', { loanId: id }, sctx, (e: unknown) => events.push(e))).toMatchObject({ ok: true })
+    expect(events).toEqual([{ type: 'add_to_basket', loanId: id }])
+    expect(buildSystemPrompt(live, null, null, { selectedLoanId: id })).toContain('SELECTED LOAN — the user is viewing THIS loan')
+  })
+
+  // allLoans can be replaced while a tool awaits: by a late snapshot's story-only records, or by the
+  // next batch's version of the same loan. The answer comes from the one record the tool checked.
+  it.each([
+    ['a late snapshot\u2019s story-only records', (l: Record<string, unknown>) => ({ id: l.id, description: { texts: { en: 'From the snapshot.' } }, kl_repayments: [] })],
+    ['the next batch\u2019s version of each loan', (l: Record<string, unknown>) => ({ ...l, name: 'Renamed', description: { texts: { en: 'A newer story.' } } })],
+  ])('answers from the record it checked when allLoans is replaced by %s before it resumes', async (_, replace) => {
+    const { live } = await publishedSnapshot()
+    const id = details[0].id
+    const story = (details[0].description as { texts: { en: string } }).texts.en
+    const sctx = { state: live, lenderId: null, selectedLoanId: id, criteria: null, basket: [] }
+    for (const name of ['get_selected_loan', 'get_loan_details']) {
+      const kept = live.allLoans
+      const pending = execTool(name, { loanId: id }, sctx, () => {})
+      live.allLoans = kept.map(replace)
+      const result = await pending
+      live.allLoans = kept
+      expect(result).toMatchObject({ id, name: details[0].name, description: story })
+    }
+  })
+
+  it('looks again after waiting: a snapshot that lands while a loan tool waits is expanded and used', async () => {
+    const { snapshot } = await publishedSnapshot()
+    let deliver!: (s: unknown) => void
+    configureRuntime({ snapshots: { save: async () => {}, load: () => new Promise((resolve) => (deliver = resolve)) } })
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})))
+    const state = createState()
+    const refresh = startRefresh(state, () => {})
+    try {
+      const id = details[0].id
+      const sctx = { state, lenderId: null, selectedLoanId: id, criteria: null, basket: [] }
+      const selected = execTool('get_selected_loan', {}, sctx, () => {})
+      const detail = execTool('get_loan_details', { loanId: id }, sctx, () => {})
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      expect(state.allLoans).toEqual([]) // both tools are waiting: nothing has landed yet
+      deliver(snapshot)
+      expect(await selected).toMatchObject({ id, name: details[0].name, status: 'fundraising' })
+      expect(await detail).toMatchObject({ id, name: details[0].name, status: 'fundraising' })
+    } finally { refresh.stop() }
   })
 })
 

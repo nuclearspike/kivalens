@@ -332,10 +332,18 @@ function loanRow(state, l) {
   }
 }
 
-// Compact loan + field-partner summary for context / the get_loan_details tool.
-function loanBrief(state, id) {
-  const l = (state.allLoans || []).find((x) => x.id === Number(id))
-  if (!l) return null
+// A whole loan has a status; a warm start's story-only records (snapshotOf's details: id, story,
+// schedule) never do. Readiness flags can change during an await (a refresh fails, a late snapshot
+// lands), so whatever presents or acts on a loan judges the record it is about to use, after any wait.
+const isWholeLoan = (l) => typeof l?.status === 'string'
+const holdsWholeLoans = (state) => (state.allLoans || []).some(isWholeLoan)
+const findLoan = (state, id) => (state.allLoans || []).find((x) => x.id === Number(id))
+
+// Compact loan + field-partner summary for context / the get_loan_details tool; null for a
+// story-only record. It takes the record itself, not an id: a tool that found its loan before an
+// await must summarise that record, since allLoans may have been replaced while it waited.
+function loanBrief(state, l) {
+  if (!isWholeLoan(l)) return null
   const p = findPartner(state, l.partner_id)
   return {
     id: l.id,
@@ -448,6 +456,20 @@ export function sanitizeApplicationStorage(input) {
 // for a minute. Each call spends only what remains of the request's budget.
 const awaitReady = (sctx) =>
   awaitLoansFilterable(sctx.state, Math.max(0, (sctx.readyDeadline ?? Date.now() + 20_000) - Date.now()))
+/**
+ * The whole loan with this id. When the server holds only story-only records (or nothing yet), waits
+ * within the request's readiness budget, which expands a snapshot that has landed, then looks again.
+ * `loading` when it is still not whole; neither field when the loaded loans do not include it.
+ */
+async function wholeLoan(sctx, id) {
+  const { state } = sctx
+  if (!isWholeLoan(findLoan(state, id)) && !holdsWholeLoans(state)) await awaitReady(sctx)
+  const loan = findLoan(state, id)
+  if (isWholeLoan(loan)) return { loan }
+  return holdsWholeLoans(state) ? {} : { loading: true }
+}
+const LOAN_DATA_LOADING =
+  'Loan data is still loading for the assistant, so this loan cannot be looked up yet. Do NOT say it does not exist; tell the user it will be available in a moment.'
 
 async function execTool(name, args, sctx, sse) {
   // The readiness budget is one shared deadline per request, not per tool —
@@ -583,16 +605,22 @@ async function execTool(name, args, sctx, sse) {
       return { activities: vocab.activities }
     }
     case 'get_loan_details': {
-      const brief = loanBrief(state, args.loanId)
+      const { loan: l, loading } = await wholeLoan(sctx, args.loanId)
+      if (loading) return { ready: false, note: LOAN_DATA_LOADING }
+      const brief = loanBrief(state, l)
       if (!brief) return { error: 'not_found', note: 'No loaded loan with that id.' }
-      const l = state.allLoans.find((x) => x.id === Number(args.loanId))
-      return { ...brief, description: l?.description?.texts?.en || '', repayment_schedule: l?.kl_repayments || [] }
+      return { ...brief, description: l.description?.texts?.en || '', repayment_schedule: l.kl_repayments || [] }
     }
     case 'add_to_basket': {
+      const notYet = { ready: false, note: `The add did NOT run. ${LOAN_DATA_LOADING} Ask them to say it again in a moment.` }
       let loan = null
       if (args.loanId != null) {
-        loan = (state.allLoans || []).find((l) => l.id === Number(args.loanId))
+        const found = await wholeLoan(sctx, args.loanId)
+        if (found.loading) return notYet
+        loan = found.loan ?? null
       } else if (args.name) {
+        if (!holdsWholeLoans(state)) await awaitReady(sctx)
+        if (!holdsWholeLoans(state)) return notYet
         const q = String(args.name).trim().toLowerCase()
         const matches = (state.allLoans || []).filter(
           (l) => l.status === 'fundraising' && (l.name || '').toLowerCase().includes(q),
@@ -951,10 +979,11 @@ async function execTool(name, args, sctx, sse) {
     case 'get_selected_loan': {
       const id = sctx.selectedLoanId
       if (id == null) return { none: true, note: 'The user is not viewing a specific loan right now.' }
-      const brief = loanBrief(state, id)
+      const { loan: l, loading } = await wholeLoan(sctx, id)
+      if (loading) return { ready: false, note: `${LOAN_DATA_LOADING} The loan itself is on the user screen.` }
+      const brief = loanBrief(state, l)
       if (!brief) return { none: true, note: 'The selected loan is not in the loaded set.' }
-      const l = (state.allLoans || []).find((x) => x.id === Number(id))
-      return { ...brief, description: l?.description?.texts?.en || '', repayment_schedule: l?.kl_repayments || [] }
+      return { ...brief, description: l.description?.texts?.en || '', repayment_schedule: l.kl_repayments || [] }
     }
     default:
       return { error: 'unknown_tool' }
@@ -1466,7 +1495,7 @@ export function buildSystemPrompt(state, lenderId, criteria, extra = {}) {
     `CONTEXT: lender id ${lenderId ? `is set (${lenderId})` : 'is NOT set'}. Exclude-funded filter is ${criteria?.portfolio?.exclude_portfolio_loans === 'true' ? (lenderId ? 'ON' : 'ON but INERT — no lender id, so it excludes NOTHING yet') : 'OFF'}. Portfolio balancing is ${contextBalancing(criteria, lenderId)}. Loan data ${loansFilterable(state) ? 'is ready' : 'is still loading (searches cannot be counted yet — never say nothing matches)'}.`,
   ]
   if (extra.page) lines.push(`The user is currently on: ${extra.page}.`)
-  const selected = extra.selectedLoanId ? loanBrief(state, extra.selectedLoanId) : null
+  const selected = extra.selectedLoanId ? loanBrief(state, findLoan(state, extra.selectedLoanId)) : null
   if (selected) {
     lines.push(
       'SELECTED LOAN — the user is viewing THIS loan right now. ANY question that could be about the loan/borrower/partner on screen ("this", "it", the repayment term, the partner, "is this normal") is about THIS loan — answer with its specifics below, never generically and never asking which loan. Use get_loan_details for its full description or repayment schedule:',

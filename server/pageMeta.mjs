@@ -119,7 +119,10 @@ function loanMeta(loan, param, tagline) {
   const lead = [loan.name, where].filter(Boolean).join(' · ')
   const use = loan.use ? `Needs a loan ${String(loan.use).replace(/^to\s+/i, 'to ')}` : null
   return {
-    title: lead,
+    // A record with nothing to name it by is titled like a loan not yet loaded, never left blank.
+    // A warm start holds such records (each loan's story and schedule alone) until its pages are
+    // expanded or the first refresh stages its own loans.
+    title: lead || `Loan ${param}`,
     description: clip(use || `${loan.sector ?? ''} ${loan.activity ?? ''}`.trim() || tagline, 200),
     image: loanImage(loan),
   }
