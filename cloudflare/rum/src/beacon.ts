@@ -1,5 +1,5 @@
 import { METRICS, type MetricName } from '../../../src/lib/rum/payload'
-import { scrubAddresses, scrubMessage } from '../../../src/lib/rum/scrub'
+import { scrubAddresses, scrubMessage, scrubStack } from '../../../src/lib/rum/scrub'
 
 /**
  * A report from a page, checked and reduced to what the collector stores.
@@ -195,7 +195,7 @@ export function parseBeacon(body: string, originHost: string, allowedHosts: Read
       // The page is part of an error's identity: the same message on two pages is two rows.
       fingerprint: fingerprint([errorRoute, message, source, line]),
       message,
-      stack: typeof r.stack === 'string' && r.stack ? scrubAddresses(r.stack, origin).slice(0, 2000) : null,
+      stack: typeof r.stack === 'string' && r.stack ? scrubStack(r.stack, origin).slice(0, 2000) : null,
       source,
       line,
       col: int(r.col, 0, 10_000_000),

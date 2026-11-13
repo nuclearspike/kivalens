@@ -102,6 +102,33 @@ describe('what the collector accepts', () => {
     })
   })
 
+  it('scrubs the message at the top of a stack from an older page, which scrubbed only its addresses', () => {
+    const page = 'https://www.kivalens.org'
+    const b = ok(
+      parseBeacon(
+        report({
+          final: false,
+          errors: [
+            {
+              message: 'HTTP 404',
+              stack: `Error: HTTP 404: https://api.kivaws.org/v1/lenders/example_lender/loans.json; loan 9876543\n at f (${page}/assets/index-Ab.js:3:14567)`,
+            },
+          ],
+        }),
+        'www.kivalens.org',
+        HOSTS,
+      ),
+    )
+    expect(b.errors[0].stack).toBe(`Error: HTTP 404: https://api.kivaws.org/… loan #\n at f (${page}/assets/index-Ab.js:3:14567)`)
+  })
+
+  it('scrubs a stack a second time without losing what the page kept', () => {
+    // The page has already scrubbed it: [page] and a cut address keep their positions.
+    const stack = 'Error: lender.js:#abc, loan #\n    at f ([page]:1:23456)\n    at g (https://cdn.example.com/…)\n    at h (https://www.kivalens.org/assets/index-12345678.js:12345:23456)'
+    const b = ok(parseBeacon(report({ final: false, errors: [{ message: 'x', stack }] }), 'www.kivalens.org', HOSTS))
+    expect(b.errors[0].stack).toBe(stack)
+  })
+
   it('keeps only known, sane numbers', () => {
     const b = ok(parseBeacon(report({ m: { lcp: 1200, cls: 0.12, inp: -5, fcp: 'fast', bogus: 3, ttfb: 10 * 60_000 + 1, results: Number.NaN } }), 'www.kivalens.org', HOSTS))
     expect(b.view!.metrics).toEqual({ lcp: 1200, cls: 0.12 })

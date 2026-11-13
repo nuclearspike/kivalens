@@ -57,9 +57,11 @@ describe('browser errors', () => {
 
   it("strips a search or lender id out of a stack's addresses", () => {
     recordError({ message: 'boom', stack: 'Error: boom\n at f (https://www.kivalens.org/search?lender=jane#t:1:2)' }, 'search')
-    expect(takeErrors()[0].stack).toBe('Error: boom\n at f (https://www.kivalens.org/search:1:2)')
+    // With no origin given, every address is another site's: cut to the site, line and column with it.
+    expect(takeErrors()[0].stack).toBe('Error: boom\n at f (https://www.kivalens.org/…)')
     recordError({ message: 'two', stack: 'at g (https://www.kivalens.org/assets/a.js?v=1:3:14)\n at h (https://www.kivalens.org/?q=a:b#frag)' }, 'search')
-    expect(takeErrors()[0].stack).toBe('at g (https://www.kivalens.org/assets/a.js:3:14)\n at h (https://www.kivalens.org/)')
+    // No origin given, so even a script file is another site's and is cut, line and column with it.
+    expect(takeErrors()[0].stack).toBe('at g (https://www.kivalens.org/…)\n at h (https://www.kivalens.org/…)')
   })
 
   it('replaces every address on this site, which can hold a loan or partner id, whichever page it was', () => {
@@ -85,6 +87,107 @@ describe('browser errors', () => {
       origin,
     )
     expect(takeErrors()[0].message).toBe('HTTP 404: https://api.kivaws.org/… for loan # on [page]')
+  })
+
+  it('scrubs the message a browser repeats at the top of a stack, and keeps every frame\'s line and column', () => {
+    const origin = 'https://www.kivalens.org'
+    const header = 'Error: HTTP 404: https://api.kivaws.org/v1/lenders/example_lender/loans.json; loan 9876543'
+    recordError(
+      {
+        message: 'boom',
+        stack: `${header}\n    at f (${origin}/assets/index-Ab.js:1:23456)\n    at ${origin}/assets/index-Ab.js:2:10457\ng@${origin}/assets/a.js:3:14567`,
+      },
+      'loan',
+      origin,
+    )
+    expect(takeErrors()[0].stack).toBe(
+      `Error: HTTP 404: https://api.kivaws.org/… loan #\n    at f (${origin}/assets/index-Ab.js:1:23456)\n    at ${origin}/assets/index-Ab.js:2:10457\ng@${origin}/assets/a.js:3:14567`,
+    )
+  })
+
+  it('reads a frame by where it ends, in every browser\'s format, and a line that only starts with "at" as message text', () => {
+    const origin = 'https://www.kivalens.org'
+    const asset = `${origin}/assets/index-Ab.js`
+    recordError(
+      {
+        message: 'boom',
+        stack: [
+          'at lender example; loan 9876543',
+          'at lender x loan:9876543:1',
+          'lender@kiva loan:9876543',
+          `    at new Promise (<anonymous>)`,
+          `global code@${asset}:12:10457`,
+          `f@${asset} line 2 > eval:1:12345`,
+          `    at g (https://cdn.example.com/lib/v2/3141592.js:4:56)`,
+          `h@${asset}:12345`,
+          `    at e (eval at k (${asset}:7:23456))`,
+        ].join('\n'),
+      },
+      'loan',
+      origin,
+    )
+    expect(takeErrors()[0].stack).toBe(
+      [
+        'at lender example; loan #',
+        'at lender x loan:#:1',
+        'lender@kiva loan:#',
+        `    at new Promise (<anonymous>)`,
+        `global code@${asset}:12:10457`,
+        `f@${asset} line 2 > eval:1:12345`,
+        `    at g (https://cdn.example.com/…)`,
+        `h@${asset}:12345`,
+        `    at e (eval at k (${asset}:7:23456))`,
+      ].join('\n'),
+    )
+  })
+
+  it('keeps only this site\'s own script addresses: another site\'s /assets/ path is cut like any other', () => {
+    const origin = 'https://www.kivalens.org'
+    const elsewhere = 'https://api.kivaws.org/assets/lenders/example_lender.json'
+    recordError({ message: `failed ${elsewhere}`, stack: `Error: failed ${elsewhere}\n    at f (${elsewhere}:3:4)\n    at g (${origin}/assets/index-Ab.js:5:6)` }, 'loan', origin)
+    const e = takeErrors()[0]
+    expect(e.message).toBe('failed https://api.kivaws.org/…')
+    expect(e.stack).toBe(`Error: failed https://api.kivaws.org/…\n    at f (https://api.kivaws.org/…)\n    at g (${origin}/assets/index-Ab.js:5:6)`)
+  })
+
+  it('keeps a number only where it locates code, however the line is shaped', () => {
+    const origin = 'https://www.kivalens.org'
+    recordError(
+      {
+        message: 'x',
+        stack: [
+          'Error: lender@https://www.kiva.org loan:9876543',
+          '    at f (app.js:1:23456)',
+          `    at g (${origin}/assets/a(b).js:2:34567)`,
+          '    at h ([page]:1:23456)',
+        ].join('\n'),
+      },
+      'loan',
+      origin,
+    )
+    expect(takeErrors()[0].stack).toBe(
+      [
+        'Error: lender@https://www.kiva.org loan:#',
+        '    at f (app.js:1:23456)',
+        `    at g (${origin}/assets/a(b).js:2:34567)`,
+        '    at h ([page]:1:23456)',
+      ].join('\n'),
+    )
+  })
+
+  it('keeps every number that locates code and no other, in the shapes a review found', () => {
+    const origin = 'https://www.kivalens.org'
+    const lines = [
+      ['Error: loan https://www.kiva.org/lend:9876543', 'Error: loan https://www.kiva.org/…'],
+      ['Error: lender.js:9876543abc', 'Error: lender.js:#abc'],
+      ['Error: failed "https://api.kivaws.org/v1/lenders/alice/loans.json"', 'Error: failed "https://api.kivaws.org/…"'],
+      [`    at ${origin}/assets/index-12345678.js:12345:23456`, `    at ${origin}/assets/index-12345678.js:12345:23456`],
+      [`anonymous@${origin}/assets/app.js line 12345 > Function:1:23456`, `anonymous@${origin}/assets/app.js line 12345 > Function:1:23456`],
+      [`Error: loan ${origin}/loan:9876543`, 'Error: loan [page]:#'],
+      ['Error: failed HTTPS://api.kivaws.org/v1/lenders/alice/loans.json', 'Error: failed HTTPS://api.kivaws.org/…'],
+    ]
+    recordError({ message: 'x', stack: lines.map(([raw]) => raw).join('\n') }, 'loan', origin)
+    expect(takeErrors()[0].stack).toBe(lines.map(([, kept]) => kept).join('\n'))
   })
 
   it('counts the same error on two pages separately', () => {

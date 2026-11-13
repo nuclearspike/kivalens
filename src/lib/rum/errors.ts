@@ -10,7 +10,7 @@
  */
 
 import type { ReportedError } from './payload'
-import { scrubAddresses, scrubMessage } from './scrub'
+import { scrubAddresses, scrubMessage, scrubStack } from './scrub'
 
 export type { ReportedError }
 
@@ -51,7 +51,7 @@ export function recordError(
   if (pending.size >= MAX_DISTINCT_ERRORS) return false
   pending.set(key, {
     message,
-    stack: typeof e.stack === 'string' ? scrubAddresses(e.stack, origin).slice(0, MAX_STACK) : undefined,
+    stack: typeof e.stack === 'string' ? scrubStack(e.stack, origin).slice(0, MAX_STACK) : undefined,
     source,
     line: typeof e.line === 'number' ? e.line : undefined,
     col: typeof e.col === 'number' ? e.col : undefined,

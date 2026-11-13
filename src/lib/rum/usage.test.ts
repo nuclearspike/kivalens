@@ -103,6 +103,13 @@ describe('which criteria a search used', () => {
     for (const secret of ['Retail', 'Food', 'KE', 'jane', 'goats', '18', '40']) expect(tokens.join(' ')).not.toContain(secret)
   })
 
+  it('reads a mode only from a list, never from typed words that look like one', () => {
+    // The page's own encoding puts all: or none: in front of a list; a name or a
+    // use is what the lender typed, and "all:jane" is their words.
+    expect(criteriaTokens(crit({ name: 'all:jane', use: 'none:goats' }))).toEqual(['mode:both', 'name', 'use'])
+    expect(criteriaTokens(crit({ sector: 'Retail', sector_all_any_none: 'all' }))).toEqual(['mode:both', 'sector', 'sector:all'])
+  })
+
   it('an untouched search uses nothing but its mode', () => {
     expect(criteriaTokens(crit())).toEqual(['mode:both'])
   })

@@ -27,7 +27,7 @@ describe('the privacy page', () => {
   // Paul, 2026-09-25: measure the live site; the page must say exactly what is sent and kept.
   it('says what each visit reports, what it never carries, and how long it is kept', () => {
     renderPrivacy()
-    expect(screen.getByText(/each visit sends one report/)).toHaveTextContent(/no cookie, account, lender ID or loan ID/)
+    expect(screen.getByText(/each visit sends a report when you leave or hide the page/)).toHaveTextContent(/KivaLens sets no cookies, and none of the details it collects is an account, lender ID or loan ID/)
     expect(screen.getByText(/never the IP address/)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`Visit reports are kept for ${RAW_DAYS} days`))).toHaveTextContent(/Monthly totals/)
     // Nothing on the page still describes the retired five-minute heartbeat.
@@ -41,7 +41,10 @@ describe('the privacy page', () => {
     expect(body).toHaveTextContent(/replaced after 13 months/)
     expect(body).toHaveTextContent(/whether a Kiva lender ID is set, never the ID/)
     expect(body).toHaveTextContent(/the names of the filters they used/)
-    expect(body).toHaveTextContent(/never what you chose or typed/)
+    // Some choices among KivaLens's own settings are carried (the sort order, All or
+    // None, MFI or Direct): the text says so, and that values never are.
+    expect(body).toHaveTextContent(/the KivaLens settings you chose for them, such as the sort order or “all” or “none” for a list/)
+    expect(body).toHaveTextContent(/never which sectors, countries, partners or ages you picked, or the words you typed/)
     const box = screen.getByLabelText('Share usage statistics from this browser') as HTMLInputElement
     expect(box.checked).toBe(true)
     // Off: the number is forgotten at once.

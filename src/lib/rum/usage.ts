@@ -1,5 +1,5 @@
 import { criteriaToParams } from '../../../server/criteriaUrl.mjs'
-import { BALANCER_SET, FIELD_GROUP, LIMIT_BY_VALUES } from '../../../server/criteriaFields.mjs'
+import { FIELD_GROUP, LIMIT_BY_VALUES } from '../../../server/criteriaFields.mjs'
 import { resolvePartnerMode } from '../../../server/loanFilter.mjs'
 import { useCriteriaHistory } from '../../stores/criteriaHistoryStore'
 import { DEFAULT_SAVED_SEARCH_NAMES, useCriteriaStore } from '../../stores/criteriaStore'
@@ -83,7 +83,9 @@ export function criteriaTokens(criteria: Criteria): string[] {
     } else if (name === 'limit_to') {
       const by = value.split(':')[1]
       if (by && LIMIT_BY.has(by)) out.add(`limit_to:${by.toLowerCase()}`)
-    } else if (!BALANCER_SET.has(name)) {
+    } else if (FIELD_GROUP.has(`${name}_all_any_none`)) {
+      // Only a list carries a mode. A typed field (a name, a use) is never read
+      // for one: "all:jane" typed as a name is the lender's words, not a mode.
       const listMode = /^(all|none):/.exec(value)
       if (listMode) out.add(`${name}:${listMode[1]}`)
     }

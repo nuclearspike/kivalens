@@ -46,7 +46,8 @@ export async function postUrl(
     body: JSON.stringify({ query }),
     ...(opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : {}),
   })
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+  // Kiva's answer is not quoted: it can name a lender, and the message reaches the error collector.
+  if (!response.ok) throw new HttpStatusError(response.status)
   return opts.parseJSON ? response.json() : response.text()
 }
 
