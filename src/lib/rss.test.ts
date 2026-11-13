@@ -1,6 +1,7 @@
 import { afterEach, describe, it, expect, vi } from 'vitest'
 // handleRss is plain JS in klCore; createState gives a baseline server state.
 import { handleRss, createState } from '../../server/klCore.mjs'
+import { WARMUP_BYTES, WARMUP_MARK } from '../../scripts/serverLog.mjs'
 
 /** A handler's Response read out: status, lower-cased headers, body text. */
 async function read(response: Response) {
@@ -108,6 +109,49 @@ describe('handleRss feed', () => {
     const res = await read(response!)
     expect(res.statusCode).toBe(200)
     expect(res.body).toContain('<title>Waiting</title>')
+  })
+
+  it('marks each warm-up 503 with the request id the router logs, for the deploy log check (scripts/serverLog.mjs)', async () => {
+    vi.useFakeTimers()
+    const logged = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const warming = { ...state, rssReady: false, rssReadyPromise: new Promise<void>(() => {}) }
+      const ask = (headers: Record<string, string>) =>
+        handleRss(warming, new Request(`http://www.kivalens.org${feedUrl({ feed: { name: 'Warming' } })}`, { headers }))
+      const pending = [ask({ 'x-request-id': 'c7ce92a0-8e9f-d344-6ed0-e07a7f430c60' }), ask({})]
+      await vi.advanceTimersByTimeAsync(25_000)
+      const answers = await Promise.all(pending)
+      expect(answers.map((r) => r?.status)).toEqual([503, 503])
+      // The router logs the body's size as bytes=, and the log check knows the warm-up answer by it.
+      for (const r of answers) expect(new TextEncoder().encode(await r!.text()).length).toBe(WARMUP_BYTES)
+
+      const lines = logged.mock.calls.map((c) => `app[web.1]: ${c.join(' ')}`)
+      const ids = lines.map((l) => l.match(WARMUP_MARK)?.groups?.id).filter(Boolean)
+      expect(ids).toEqual(['c7ce92a0-8e9f-d344-6ed0-e07a7f430c60'])
+      expect(lines).toContain('app[web.1]: [rss] warming up: answered 503 to a request without an id')
+    } finally {
+      logged.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it('marks no answer once ready, nor the 503 for a failed portfolio download', async () => {
+    const logged = vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const ok = await handleRss(state, new Request(`http://www.kivalens.org${feedUrl({ feed: { name: 'Ready' } })}`, { headers: { 'x-request-id': 'd4f7231d-948d-5931-fbe7-8c81aaf66034' } }))
+      const failed = await handleRss(state, new Request(`http://www.kivalens.org${feedUrl({
+        feed: { name: 'Portfolio', lender_id: `rss-mark-${Date.now()}` },
+        portfolio: { pb_sector: { enabled: true, percent: 10, ltgt: 'lt' } },
+      })}`, { headers: { 'x-request-id': '6bfdae51-c670-0c5e-6028-b7a3944a9f31' } }))
+      expect([ok?.status, failed?.status]).toEqual([200, 503])
+      // "RSS portfolio filter data is unavailable; retry shortly": 55 bytes, never the warm-up answer's size.
+      expect(new TextEncoder().encode(await failed!.text()).length).toBe(55)
+      expect(logged.mock.calls.some((c) => WARMUP_MARK.test(`app[web.1]: ${c.join(' ')}`))).toBe(false)
+    } finally {
+      vi.restoreAllMocks()
+    }
   })
 
   it('rejects active portfolio filters without a lender id', async () => {

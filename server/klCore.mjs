@@ -1442,6 +1442,10 @@ async function serveRssFeed(state, request, url) {
   // General API readiness may come from the compressed warm start. RSS filtering
   // needs the separately-published live loan and partner objects.
   if (!state.rssReady && !(await waitForRssData(state))) {
+    // The deploy's log check (scripts/serverLog.mjs) reads a router 503 as warm-up only when this line
+    // names its request: X-Request-ID is the id Heroku's router logs as request_id.
+    const id = request.headers.get('x-request-id')
+    console.log(id ? `[rss] warming up: answered 503 to request ${id}` : '[rss] warming up: answered 503 to a request without an id')
     return rssUnavailable('RSS filter data is still loading; retry shortly')
   }
 

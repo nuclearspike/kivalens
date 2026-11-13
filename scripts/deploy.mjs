@@ -20,6 +20,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { judgeServerLog } from './serverLog.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -251,25 +252,20 @@ if (post.status !== 0) {
 }
 done('live checks', 'every live check passes')
 
-// 9. The server's own log since the release.
+// 9. The server's own log since the release, judged by scripts/serverLog.mjs.
 const logs = await run('heroku-logs', 'heroku', ['logs', '-a', APP, '-n', '1500'], { quiet: true })
-const since = Date.parse(newest.created_at)
-const stampOf = (l) => Date.parse(l.slice(0, 32).split(' ')[0])
-const stamped = logs.text.split('\n').filter((l) => Number.isFinite(stampOf(l)))
-const lines = stamped.filter((l) => stampOf(l) >= since)
-// Heroku hands back at most 1,500 lines; on a busy server they may start after the release.
-if (stamped.length && stampOf(stamped[0]) > since) say(`NOTE  server log — the ${stamped.length} lines Heroku returns start ${stamped[0].slice(0, 19)}, after the release`)
-const crashed = lines.filter((l) => /State changed from \w+ to crashed|code=H10/.test(l))
-const errors = lines.filter((l) => /status=5\d\d|at=error|\[proxy\] (refused|error)|Error:/.test(l))
-summary.logs = { lines: lines.length, crashed: crashed.length, errors: errors.length }
-if (crashed.length) fail('server log', `the app crashed after the release: ${crashed[0].slice(0, 200)}`)
-if (errors.length) {
-  say(`WARN  server log — ${errors.length} error line${errors.length === 1 ? '' : 's'} since the release; read ${errors.length === 1 ? 'it' : 'them'} in heroku-logs.log:`)
-  for (const l of errors.slice(0, 5)) say(`        ${l.slice(0, 220)}`)
-} else {
-  done('server log', `${lines.length} line${lines.length === 1 ? '' : 's'} since the release, no errors`)
+const judged = judgeServerLog(logs, { since: Date.parse(newest.created_at) })
+summary.logs = judged.summary
+for (const n of judged.notes) say(`NOTE  server log — ${n}`)
+for (const why of judged.incomplete) say(`WARN  server log — not read in full: ${why}`)
+if (judged.crashed) fail('server log', `the app crashed after the release: ${judged.crashed.slice(0, 200)}`)
+if (judged.errors.length) {
+  say(`WARN  server log — ${judged.errors.length} error line${judged.errors.length === 1 ? '' : 's'} since the release; read ${judged.errors.length === 1 ? 'it' : 'them'} in heroku-logs.log:`)
+  for (const l of judged.errors.slice(0, 5)) say(`        ${l.slice(0, 220)}`)
+} else if (!judged.incomplete.length) {
+  done('server log', `${judged.log.lines.length} line${judged.log.lines.length === 1 ? '' : 's'} since the release, no errors`)
 }
 
-summary.outcome = errors.length ? 'deployed, with errors in the server log to read' : 'deployed'
+summary.outcome = judged.tail ? `deployed, ${judged.tail}` : 'deployed'
 save()
-say(`\nDEPLOYED ${short} as v${newest.version} on ${SITE}${errors.length ? `, with ${errors.length} error line${errors.length === 1 ? '' : 's'} in the server log to read` : ''}. Record: ${rec}`)
+say(`\nDEPLOYED ${short} as v${newest.version} on ${SITE}${judged.tail ? `, ${judged.tail}` : ''}. Record: ${rec}`)
