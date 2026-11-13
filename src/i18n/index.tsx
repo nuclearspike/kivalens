@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- locale helpers and the provider intentionally share one public module. */
 import { localizeCountryName } from './countryNames'
+import { reasonOf, reportProblem } from '../lib/reportProblem'
 import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import enCatalog from './locales/en'
@@ -57,12 +58,39 @@ function catalogNow(locale: Locale): Catalog | undefined {
   return locale === 'en' ? EMPTY_CATALOG : loadedCatalogs.get(locale)
 }
 
-async function ensureCatalog(locale: Locale): Promise<Catalog> {
+// Catalogs on their way: a second ask for a language joins the download already running, so the
+// provider picking up the page's own language waits on the same load as the first render.
+const loadingCatalogs = new Map<SecondaryLocale, Promise<Catalog>>()
+
+// A language that cannot be loaded leaves the page in English. The failure is handled, so it goes
+// to the error collector (src/lib/reportProblem.ts); swallowing it would leave a page stuck in
+// English with no trace. It is reported once per failed download, where the download fails, and
+// whoever was waiting on it does not report it again.
+function reportLanguageFailure(locale: Locale, error: unknown): void {
+  reportProblem(`Language strings for ${locale} could not be loaded: ${reasonOf(error)}`)
+}
+
+function ensureCatalog(locale: Locale): Promise<Catalog> {
   const have = catalogNow(locale)
-  if (have) return have
-  const catalog = await loadCatalog(locale as SecondaryLocale)
-  loadedCatalogs.set(locale as SecondaryLocale, catalog)
-  return catalog
+  if (have) return Promise.resolve(have)
+  const secondary = locale as SecondaryLocale
+  const running = loadingCatalogs.get(secondary)
+  if (running) return running
+  // A failed download is forgotten, so the next ask for the language tries again.
+  const loading = loadCatalog(secondary).then(
+    (catalog) => {
+      loadingCatalogs.delete(secondary)
+      loadedCatalogs.set(secondary, catalog)
+      return catalog
+    },
+    (error: unknown) => {
+      loadingCatalogs.delete(secondary)
+      reportLanguageFailure(secondary, error)
+      throw error
+    },
+  )
+  loadingCatalogs.set(secondary, loading)
+  return loading
 }
 
 function templateFor(locale: Locale, key: string, catalog: Catalog): string {
@@ -270,19 +298,12 @@ const I18nContext = createContext<I18nValue>({
   percent: (value, fraction) => formatPercent('en', value, fraction),
 })
 
-// A language that cannot be loaded leaves the page in English. The failure is handled here, so
-// it is handed to the browser as an uncaught error, which is what the error collector listens
-// for (src/lib/rum/errors.ts); swallowing it would leave a page stuck in English with no trace.
-const reportLater = (error: unknown) => {
-  if (typeof reportError === 'function') reportError(error)
-  else setTimeout(() => { throw error })
-}
-
-// The page's own language starts loading as soon as this module runs, before React renders.
+// The page's own language starts loading as soon as this module runs, before React renders. A
+// failure has been reported by ensureCatalog; here it only lets the page go.
 let firstLanguage: Promise<unknown> = Promise.resolve()
 if (typeof window !== 'undefined') {
   const early = initialLocale()
-  if (early !== 'en') firstLanguage = ensureCatalog(early).catch(reportLater)
+  if (early !== 'en') firstLanguage = ensureCatalog(early).catch(() => {})
 }
 
 // How long the first paint may wait for the reader's own language. On www the strings arrived
@@ -297,10 +318,20 @@ const FIRST_LANGUAGE_WAIT_MS = 1500
  * so a page never opens in English and then changes to the reader's language.
  */
 export function firstLanguageReady(waitMs = FIRST_LANGUAGE_WAIT_MS): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined
   return Promise.race([
     firstLanguage.then(() => {}),
-    new Promise<void>((resolve) => { setTimeout(resolve, waitMs) }),
-  ])
+    new Promise<void>((resolve) => { timer = setTimeout(resolve, waitMs) }),
+  ]).finally(() => clearTimeout(timer))
+}
+
+/**
+ * Resolves once no download of `locale`'s strings is running: at once if none is, else after it
+ * has arrived or failed and everyone already waiting on it has had the answer. It starts nothing.
+ */
+export function languageLoadSettled(locale: Locale): Promise<void> {
+  const running = locale === 'en' ? undefined : loadingCatalogs.get(locale)
+  return running ? running.then(() => {}, () => {}) : Promise.resolve()
 }
 
 /**
@@ -318,6 +349,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   })
   // The language last asked for: a load that finishes after another choice is dropped.
   const wanted = useRef<Locale>(shown.locale)
+  // A load that finishes after the provider has gone is dropped too: there is nothing left to show
+  // it in, and React still reads the page's window to schedule an update to an unmounted tree. It
+  // is false only once the provider has gone; the effect sets it again on every mount, since
+  // StrictMode mounts twice.
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
   const show = useCallback((next: Locale) => {
     wanted.current = next
     const now = catalogNow(next)
@@ -325,15 +365,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setShown({ locale: next, catalog: now })
       return
     }
-    void ensureCatalog(next)
-      .then((catalog) => {
-        if (wanted.current === next) setShown({ locale: next, catalog })
-      })
-      .catch((error: unknown) => {
-        // Its strings could not be loaded: the language is still the one chosen, in English words.
-        if (wanted.current === next) setShown({ locale: next, catalog: EMPTY_CATALOG })
-        reportLater(error)
-      })
+    // The failure handler is then's second argument, not a catch after it, so an error thrown
+    // while showing strings that did arrive is never taken for strings that failed to load.
+    void ensureCatalog(next).then(
+      (catalog) => {
+        if (mounted.current && wanted.current === next) setShown({ locale: next, catalog })
+      },
+      () => {
+        // Its strings could not be loaded (ensureCatalog has reported it): the language is still
+        // the one chosen, in English words.
+        if (mounted.current && wanted.current === next) setShown({ locale: next, catalog: EMPTY_CATALOG })
+      },
+    )
   }, [])
   const setLocale = useCallback((next: Locale) => {
     if (!supported.has(next)) return

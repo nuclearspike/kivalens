@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { I18nProvider, LOCALES } from '../i18n'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { I18nProvider, LOCALES, languageLoadSettled } from '../i18n'
 import LanguageMenu from './LanguageMenu'
 
 afterEach(() => {
@@ -78,8 +78,8 @@ describe('LanguageMenu', () => {
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Italiano/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Choisir la langue' }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
-    await import('../i18n/locales/it')
-    await new Promise((resolve) => setTimeout(resolve, 20))
+    // Italian's strings arrive and are handed to the provider, and anything that does to the page is on it.
+    await act(() => languageLoadSettled('it'))
     expect(screen.getByRole('button', { name: 'Choisir la langue' })).toHaveTextContent('FR')
     expect(window.localStorage.getItem('KivaLensLocale')).toBe('fr')
   })
