@@ -37,7 +37,6 @@
     '/about',
     '/about/advanced',
     '/privacy',
-    '/autolend',
     '/outdated',
   ]
   var PARAM_ROUTES = [/^\/loans\/[^/]+$/, /^\/partners\/[^/]+$/, /^\/basket\/[^/]+$/]
@@ -83,6 +82,13 @@
     ],
     [
       /^\/donate$/,
+      function () {
+        return HOME
+      },
+      null,
+    ],
+    [
+      /^\/autolend$/,
       function () {
         return HOME
       },

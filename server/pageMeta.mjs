@@ -45,7 +45,6 @@ export const PAGE_NAMES = {
   about: { key: 'about', name: 'About' },
   aboutAdvanced: { key: 'advanced', name: 'Advanced' },
   privacy: { key: 'privacy', name: 'Privacy' },
-  autolend: { key: 'auto_lending', name: 'Auto-Lending' },
   outdated: { key: 'outdated_link_ellipsis', name: 'Outdated Link…' },
 }
 

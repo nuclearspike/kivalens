@@ -15,7 +15,6 @@ export type RouteId =
   | 'about'
   | 'aboutAdvanced'
   | 'privacy'
-  | 'autolend'
   | 'outdated'
 
 export interface Route {

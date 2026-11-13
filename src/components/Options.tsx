@@ -316,15 +316,6 @@ export default function Options() {
             </Card.Body>
           </Card>
 
-          {/* --- Auto-Lending --- */}
-          <Card className="mb-3">
-            <Card.Header>{t('auto_lending')}</Card.Header>
-            <Card.Body>
-              <p className="mb-2">{t('use_page_set_kiva_preferences')}</p>
-              <Link to="/autolend">{t('set_auto_lending_options_kiva')}</Link>
-            </Card.Body>
-          </Card>
-
           {/* --- Privacy: usage statistics (src/lib/rum/identity.ts) --- */}
           <Card className="mb-3" id="privacy" tabIndex={-1}>
             <Card.Header>{t('privacy')}</Card.Header>

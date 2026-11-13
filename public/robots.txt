@@ -10,7 +10,6 @@ Allow: /
 Disallow: /basket
 Disallow: /saved
 Disallow: /options
-Disallow: /autolend
 Disallow: /outdated
 
 # Data, not pages.

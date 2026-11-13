@@ -1,4 +1,4 @@
 {
-  "problems": 158,
+  "problems": 150,
   "why": "ESLint errors and warnings in the whole repo when the release gate was written (2026-10-16), most of them no-explicit-any in code older than the lint rules. scripts/gate.mjs fails a commit that has more. Lower this number when you fix some; never raise it to let a commit through."
 }

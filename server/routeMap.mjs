@@ -45,7 +45,6 @@ export const ROUTES = [
   // promises them can land on them.
   { id: 'aboutAdvanced', path: '/about/advanced', page: 'about' },
   { id: 'privacy', path: '/privacy' },
-  { id: 'autolend', path: '/autolend' },
   { id: 'outdated', path: '/outdated' },
 ]
 
@@ -77,6 +76,9 @@ const LEGACY = [
   { from: /^\/on$/, to: () => HOME, kind: 'gone' },
   // Donations to KivaLens are no longer asked for (Paul, 2026-09-25).
   { from: /^\/donate$/, to: () => HOME, kind: 'gone' },
+  // KivaLens no longer sets Kiva's auto-lending: the KivaLens Assistant extension
+  // that carried the settings to Kiva is not in the Chrome Web Store (Paul, 2026-11-12).
+  { from: /^\/autolend$/, to: () => HOME, kind: 'gone' },
   // The root is a destination, not a retired address: the app navigates on from
   // it. The server leaves it alone so the most-typed URL costs no redirect.
   { from: /^\/?$/, to: () => HOME, kind: 'home' },

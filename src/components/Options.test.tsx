@@ -7,7 +7,7 @@ import Options from './Options'
 import { useUtilsStore } from '../stores'
 import en from '../i18n/locales/en'
 
-// The Auto-Lending card links to /autolend, so the page needs a router.
+// Options links to the Privacy page, so it needs a router.
 const render = (ui: React.ReactElement) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>)
 
 beforeEach(() => useUtilsStore.setState({ lenderId: '', lenderObj: null, lenderModalOpen: false }))

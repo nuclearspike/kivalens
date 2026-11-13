@@ -145,68 +145,6 @@ class QueuedActions {
 }
 
 // ---------------------------------------------------------------------------
-// Default static data
-// ---------------------------------------------------------------------------
-
-export const defaultKivaData = {
-  sectors: [
-    'Agriculture', 'Arts', 'Clean Energy', 'Clothing', 'Construction', 'Education',
-    'Entertainment', 'Food', 'Health', 'Housing', 'Manufacturing', 'Personal Use',
-    'Retail', 'Reuse & Recycle', 'Sanitation & Hygiene', 'Services', 'Transportation',
-    'Water', 'Wholesale',
-  ],
-  countries: [
-    { code: 'AF', name: 'Afghanistan' }, { code: 'AM', name: 'Armenia' },
-    { code: 'FJ', name: 'Fiji' }, { code: 'TO', name: 'Tonga' },
-    { code: 'AZ', name: 'Azerbaijan' }, { code: 'BZ', name: 'Belize' },
-    { code: 'BJ', name: 'Benin' }, { code: 'BO', name: 'Bolivia' },
-    { code: 'BA', name: 'Bosnia and Herzegovina' }, { code: 'BR', name: 'Brazil' },
-    { code: 'BG', name: 'Bulgaria' }, { code: 'BF', name: 'Burkina Faso' },
-    { code: 'BI', name: 'Burundi' }, { code: 'KH', name: 'Cambodia' },
-    { code: 'CM', name: 'Cameroon' }, { code: 'TD', name: 'Chad' },
-    { code: 'CL', name: 'Chile' }, { code: 'CN', name: 'China' },
-    { code: 'CO', name: 'Colombia' }, { code: 'CG', name: 'Congo (Rep.)' },
-    { code: 'CR', name: 'Costa Rica' }, { code: 'CI', name: "Cote D'Ivoire" },
-    { code: 'DO', name: 'Dominican Republic' }, { code: 'EC', name: 'Ecuador' },
-    { code: 'EG', name: 'Egypt' }, { code: 'SV', name: 'El Salvador' },
-    { code: 'GZ', name: 'Gaza' }, { code: 'GE', name: 'Georgia' },
-    { code: 'GH', name: 'Ghana' }, { code: 'GU', name: 'Guam' },
-    { code: 'GT', name: 'Guatemala' }, { code: 'HT', name: 'Haiti' },
-    { code: 'HN', name: 'Honduras' }, { code: 'IN', name: 'India' },
-    { code: 'ID', name: 'Indonesia' }, { code: 'IQ', name: 'Iraq' },
-    { code: 'IL', name: 'Israel' }, { code: 'JO', name: 'Jordan' },
-    { code: 'KE', name: 'Kenya' }, { code: 'XK', name: 'Kosovo' },
-    { code: 'KG', name: 'Kyrgyzstan' }, { code: 'LA', name: 'Lao PDR' },
-    { code: 'LB', name: 'Lebanon' }, { code: 'LS', name: 'Lesotho' },
-    { code: 'LR', name: 'Liberia' }, { code: 'MG', name: 'Madagascar' },
-    { code: 'AL', name: 'Albania' }, { code: 'MW', name: 'Malawi' },
-    { code: 'ML', name: 'Mali' }, { code: 'MR', name: 'Mauritania' },
-    { code: 'MX', name: 'Mexico' }, { code: 'MD', name: 'Moldova' },
-    { code: 'MN', name: 'Mongolia' }, { code: 'MZ', name: 'Mozambique' },
-    { code: 'MM', name: 'Myanmar (Burma)' }, { code: 'NA', name: 'Namibia' },
-    { code: 'NP', name: 'Nepal' }, { code: 'NI', name: 'Nicaragua' },
-    { code: 'NG', name: 'Nigeria' }, { code: 'PK', name: 'Pakistan' },
-    { code: 'PS', name: 'Palestine' }, { code: 'PA', name: 'Panama' },
-    { code: 'PG', name: 'Papua New Guinea' }, { code: 'PY', name: 'Paraguay' },
-    { code: 'PE', name: 'Peru' }, { code: 'PH', name: 'Philippines' },
-    { code: 'RW', name: 'Rwanda' }, { code: 'VC', name: 'St Vincent' },
-    { code: 'WS', name: 'Samoa' }, { code: 'SN', name: 'Senegal' },
-    { code: 'SL', name: 'Sierra Leone' }, { code: 'SB', name: 'Solomon Islands' },
-    { code: 'SO', name: 'Somalia' }, { code: 'ZA', name: 'South Africa' },
-    { code: 'QS', name: 'South Sudan' }, { code: 'LK', name: 'Sri Lanka' },
-    { code: 'SR', name: 'Suriname' }, { code: 'TJ', name: 'Tajikistan' },
-    { code: 'TZ', name: 'Tanzania' }, { code: 'TH', name: 'Thailand' },
-    { code: 'CD', name: 'Congo (Dem. Rep.)' }, { code: 'TL', name: 'Timor-Leste' },
-    { code: 'TG', name: 'Togo' }, { code: 'TR', name: 'Turkey' },
-    { code: 'UG', name: 'Uganda' }, { code: 'UA', name: 'Ukraine' },
-    { code: 'US', name: 'United States' }, { code: 'VU', name: 'Vanuatu' },
-    { code: 'VN', name: 'Vietnam' }, { code: 'VI', name: 'Virgin Islands' },
-    { code: 'YE', name: 'Yemen' }, { code: 'ZM', name: 'Zambia' },
-    { code: 'ZW', name: 'Zimbabwe' },
-  ].slice().sort((a, b) => a.name.localeCompare(b.name)),
-}
-
-// ---------------------------------------------------------------------------
 // CSV parsing (for Atheist Team spreadsheet)
 // ---------------------------------------------------------------------------
 
@@ -762,63 +700,6 @@ export class Loans {
     const allToCheck = Array.from(new Set([...mostPopular, ...aboutToExpire, ...closeToFunded, ...showing]))
     cl('checkHotLoans', allToCheck)
     this.refreshLoans(allToCheck)
-  }
-
-  // ---- Partner & Sector & Country list getters ----
-
-  getListOfPartners(crit: Criteria): number[] {
-    return this.filterPartners(crit).slice().sort((a: number, b: number) => a - b)
-  }
-
-  getListOfSectors(crit: Criteria): string[] {
-    let sectors = [...defaultKivaData.sectors]
-
-    if ((crit.loan as any).sector) {
-      const values = (crit.loan as any).sector.split(',')
-      const predicate =
-        (crit.loan as any).sector_all_any_none === 'none'
-          ? (s: string) => !values.includes(s)
-          : (s: string) => values.includes(s)
-      sectors = sectors.filter(predicate)
-    }
-
-    const pb = crit.portfolio?.pb_sector
-    if (pb?.enabled && pb.values?.length) {
-      const vals = pb.values as string[]
-      const predicate =
-        pb.hideshow === 'hide'
-          ? (n: string) => !vals.includes(n)
-          : (n: string) => vals.includes(n)
-      sectors = sectors.filter(predicate)
-    }
-
-    return sectors
-  }
-
-  getListOfCountries(crit: Criteria): string[] {
-    const countries = [...defaultKivaData.countries]
-    let cnames = countries.map((c) => c.name)
-
-    if ((crit.loan as any).country_code) {
-      const values = (crit.loan as any).country_code.split(',')
-      const predicate =
-        (crit.loan as any).country_code_all_any_none === 'none'
-          ? (c: { code: string; name: string }) => !values.includes(c.code)
-          : (c: { code: string; name: string }) => values.includes(c.code)
-      cnames = countries.filter(predicate).map((c) => c.name)
-    }
-
-    const pb = crit.portfolio?.pb_country
-    if (pb?.enabled && pb.values?.length) {
-      const vals = pb.values as string[]
-      const predicate =
-        pb.hideshow === 'hide'
-          ? (n: string) => !vals.includes(n)
-          : (n: string) => vals.includes(n)
-      cnames = cnames.filter(predicate)
-    }
-
-    return cnames
   }
 
   // ---- Partner filtering ----

@@ -7,7 +7,7 @@ import { ROUTES } from '../../server/routeMap.mjs'
  * A page nobody can get to is a page nobody uses.
  *
  * /autolend and /on sat unlinked — /on for a decade, as a stub that called
- * nothing, until this work found it (as did /donate, since removed). Rule 39 says what a feature needs is
+ * nothing, until this work found it (as did /donate; all three are removed pages now). Rule 39 says what a feature needs is
  * shown and explained, never hidden; a route with no link is the extreme case.
  */
 
@@ -89,10 +89,12 @@ describe('every page can be reached without typing its address', () => {
     },
   )
 
-  it('links the page that was reachable only by typing it', () => {
-    // /autolend turns the lender's current search into Kiva's own auto-lending
-    // settings; it existed, working, with nothing anywhere pointing at it.
-    expect(linksTo('/autolend').map((s) => s.name)).toContain('src/components/Options.tsx')
+  it('has no Auto-Lending page, and nothing pointing at one', () => {
+    // Paul, 2026-11-12: the KivaLens Assistant extension that carried a search to
+    // Kiva's auto-lending settings is not in the Chrome Web Store, so KivaLens
+    // cannot offer it. /autolend is a removed page, redirected to Search.
+    expect(ROUTES.some((r) => r.path === '/autolend')).toBe(false)
+    expect(linksTo('/autolend')).toEqual([])
   })
 
   it('has no Donate page, and nothing pointing at one', () => {

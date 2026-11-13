@@ -111,7 +111,6 @@ describe('what is worth finding in a search engine', () => {
     ['/basket/2549812', "a lender's own things"],
     ['/saved', "a lender's own things"],
     ['/options', "a lender's own things"],
-    ['/autolend', "a lender's own things"],
     ['/wall', 'a view of the lender, not a page about anything'],
     ['/stats', 'a running total, different every minute'],
     ['/teams', "a lender's own things"],

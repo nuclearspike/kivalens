@@ -103,7 +103,8 @@ describe('every address the app has ever had', () => {
     ['#/partners/145', '/partners/145'],
     ['#/saved', '/saved'],
     ['#/privacy', '/privacy'],
-    ['#/autolend', '/autolend'],
+    // Removed 2026-11-12: KivaLens no longer sets Kiva's auto-lending.
+    ['#/autolend', '/search'],
   ]
 
   it.each(nineteen)('%s resolves to %s', (hash, expected) => {
@@ -152,6 +153,8 @@ describe('the renames, once the app is on paths', () => {
     expect(fromPath('/on')!.reason).toBe('gone')
     expect(fromPath('/donate')!.reason).toBe('gone')
     expect(url(fromPath('/donate'))).toBe('/search')
+    expect(fromPath('/autolend')!.reason).toBe('gone')
+    expect(url(fromPath('/autolend'))).toBe('/search')
     expect(fromPath('/nothing-here')!.reason).toBe('unknown')
   })
 

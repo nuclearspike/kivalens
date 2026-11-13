@@ -120,7 +120,6 @@ export const PAGES: Record<RouteId, Loader> = {
   about: fromDefault(() => import('./components/About')),
   aboutAdvanced: fromDefault(() => import('./components/About')),
   privacy: fromDefault(() => import('./components/Privacy')),
-  autolend: () => import('./components/AutoLendSettings'),
   outdated: fromDefault(() => import('./components/Outdated')),
 }
 
