@@ -24,6 +24,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { judgeServerLog } from './serverLog.mjs'
 import { buildsToCompare, gateBuildDays, herokuBuildDays } from './buildDay.mjs'
+import { GATE_STEPS } from './gateSteps.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -33,8 +34,6 @@ const APP = opt('--app') ?? 'kivalens'
 const SITE = (opt('--site') ?? 'https://www.kivalens.org').replace(/\/$/, '')
 const BRANCH = 'master'
 const LIVE_WAIT_MS = 6 * 60_000
-// The steps a gate run must have passed to stand for the commit (scripts/gate.mjs).
-const GATE_STEPS = ['npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
 const dryRun = args.includes('--dry-run')
 const yes = args.includes('--yes')
 const commitArg = args.find((a, i) => !a.startsWith('--') && !TAKES_VALUE.includes(args[i - 1]))
@@ -251,9 +250,9 @@ done('release', `v${newest.version}`)
 // 7. The live site serves this build. The build stamps its UTC day into the app, so Heroku's build matches
 // the gate's only when both were made for the same day. The gate's build counts when it was made for a day
 // Heroku can have built on. When the site serves some other new script, the commit is built again for
-// each day Heroku can have built on that the gate did not, and the script must equal one of those builds
-// byte for byte. Nothing is built again while the gate's build is live, and the time spent building is
-// not taken from the wait.
+// the other days Heroku can have built on, one at a time and its release day first, until a build equals the
+// script byte for byte; days after the match are not built. Nothing is built again while the gate's
+// build is live, and the time spent building is not taken from the wait.
 const releasedAt = Date.parse(newest.created_at)
 let herokuDays
 try {

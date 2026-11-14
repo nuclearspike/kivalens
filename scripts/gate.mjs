@@ -21,6 +21,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkNpm } from './npm-engine.mjs'
 import { buildDay } from './buildDay.mjs'
+import { BUILD_STEPS, GATE_STEPS } from './gateSteps.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -110,7 +111,7 @@ if (fs.existsSync(indexHtml)) {
   const name = /assets\/index-[\w-]+\.js/.exec(fs.readFileSync(indexHtml, 'utf8'))?.[0]
   if (name) entry = { path: `/${name}`, sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(tree, 'dist', name))).digest('hex') }
 }
-const EXPECTED = buildOnly ? ['npm-version', 'npm-ci', 'build'] : ['npm-version', 'npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
+const EXPECTED = buildOnly ? BUILD_STEPS : GATE_STEPS
 const passed = EXPECTED.every((n) => steps.find((s) => s.name === n)?.ok) && entry !== null
 const keep = !passed || args.includes('--keep')
 if (!keep) fs.rmSync(tree, { recursive: true, force: true })
