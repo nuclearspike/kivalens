@@ -51,6 +51,46 @@ describe('CopyButton', () => {
     expect(document.querySelectorAll('textarea')).toHaveLength(0) // the scratch field is gone
   })
 
+  it('a button gone before the clipboard answers shows nothing and starts no timer, and the copy still counts', async () => {
+    let answer: () => void = () => {}
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn(() => new Promise<void>((resolve) => { answer = resolve })) } })
+    const onCopied = vi.fn()
+    const { unmount } = render(<CopyButton text={URL} label="Copy URL" onCopied={onCopied} />)
+    fireEvent.click(screen.getByRole('button'))
+    unmount()
+    await act(async () => {
+      answer()
+      for (let i = 0; i < 10; i++) await Promise.resolve()
+    })
+    expect(onCopied).toHaveBeenCalledTimes(1)
+    // Its unmount cleared the timers; nothing put a new one in their place.
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('a copy that finishes after the text has changed does not say Copied beside the new text', async () => {
+    let answer: () => void = () => {}
+    const writeText = vi.fn(() => new Promise<void>((resolve) => { answer = resolve }))
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    const { rerender } = render(<CopyButton text={URL} label="Copy URL" />)
+    fireEvent.click(screen.getByRole('button'))
+    rerender(<CopyButton text={`${URL}?page=2`} label="Copy URL" />)
+    await act(async () => {
+      answer()
+      for (let i = 0; i < 10; i++) await Promise.resolve()
+    })
+    expect(writeText).toHaveBeenCalledWith(URL)
+    expect(screen.getByRole('button')).toHaveTextContent('Copy URL')
+  })
+
+  it('leaves no scratch field behind when the legacy copy command throws', async () => {
+    vi.stubGlobal('navigator', {})
+    Object.defineProperty(document, 'execCommand', { configurable: true, value: vi.fn(() => { throw new Error('not allowed') }) })
+    render(<CopyButton text={URL} label="Copy URL" />)
+    await click()
+    expect(screen.getByRole('button')).toHaveTextContent(/select/i)
+    expect(document.querySelectorAll('textarea')).toHaveLength(0)
+  })
+
   it('says so when nothing could copy, instead of claiming success', async () => {
     vi.stubGlobal('navigator', {})
     Object.defineProperty(document, 'execCommand', { configurable: true, value: vi.fn(() => false) })

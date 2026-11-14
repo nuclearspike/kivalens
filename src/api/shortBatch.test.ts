@@ -11,6 +11,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createKivaLoans, type Loans, type NotifyMessage } from './kiva'
 import { LoanWithoutDetails, ResultProcessors } from './kivajs/ResultProcessors'
+import { held } from '../test/lateWork'
 
 /** A loan as the server's batch carries it (compressLoan in server/klCore.mjs). */
 const served = (id: number, extra: Record<string, unknown> = {}) => ({
@@ -319,5 +320,241 @@ describe('a failure the catalog carries on past is reported', () => {
     await vi.waitFor(() => expect(messages().filter((m) => m.startsWith('Reading partners from Kiva failed: '))).toHaveLength(1), { timeout: 4000 })
     await until((m) => m.failed)
     expect(messages().filter((m) => m.startsWith('Reading partners'))).toHaveLength(2)
+  })
+})
+
+// Each catalog a test makes is killed when the test ends (afterEach above). A killed catalog
+// starts nothing more, so nothing it had scheduled reaches the network after its test, through
+// another test's stub, or through the real fetch the test put back.
+describe('a catalog that has been killed', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+  // Longer than every delay a catalog keeps: the catch-up after a fresh batch (five minutes) and
+  // the partner refresh (a day).
+  const LATER = 25 * 60 * 60_000
+
+  /** The network, with the first request `match` picks held until the test lets it through. */
+  function holding(pages: unknown[][], match: (url: string) => boolean, failing?: (url: string) => number | undefined) {
+    const { fetchStub } = fakeNetwork(pages, undefined, failing)
+    const gate = held<void>()
+    const asked: string[] = []
+    let holdingOne = true
+    const stub = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      asked.push(url)
+      if (holdingOne && match(url)) {
+        holdingOne = false
+        await gate.promise
+      }
+      return fetchStub(input)
+    })
+    return { stub: stub as unknown as typeof fetch, asked, release: () => gate.resolve() } as { stub: typeof fetch; asked: string[]; release: () => void }
+  }
+
+  /**
+   * Starts a catalog, kills it once `ready` holds (a request is held then), lets the held request
+   * through, and returns everything the catalog asked for after it was killed.
+   */
+  async function killedWhile(network: ReturnType<typeof holding>, ready: () => boolean, options: Record<string, unknown> = {}) {
+    globalThis.fetch = network.stub
+    kl = createKivaLoans()
+    const heard: NotifyMessage[] = []
+    kl.onNotify((msg) => { heard.push(msg) })
+    void kl.init({}, () => ({ mergeAtheistList: false, ...options }), { maxConcurrent: 8 })
+    await vi.waitFor(() => expect(ready()).toBe(true), { timeout: 4000 })
+    const before = network.asked.length
+    const heardBefore = heard.length
+    kl.kill()
+    // A killed catalog keeps no timer: no start-up, catch-up, partner refresh or lender read.
+    expect(vi.getTimerCount()).toBe(0)
+    network.release()
+    await vi.advanceTimersByTimeAsync(LATER)
+    return { askedAfter: network.asked.slice(before), heardAfter: heard.slice(heardBefore) }
+  }
+
+  it('killed before it starts, asks for nothing, not even for the lender’s own loans', async () => {
+    const { fetchStub } = fakeNetwork([[served(901)]])
+    globalThis.fetch = fetchStub as unknown as typeof fetch
+    kl = createKivaLoans()
+    void kl.init({}, () => ({ mergeAtheistList: false, kiva_lender_id: 'somelender' }), { maxConcurrent: 8 })
+    kl.kill()
+    expect(vi.getTimerCount()).toBe(0)
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(fetchStub).not.toHaveBeenCalled()
+  })
+
+  it('killed once loaded, asks for nothing more: no catch-up, no partner refresh', async () => {
+    const { fetchStub, asked } = fakeNetwork([[served(902), served(903)]])
+    const { heard, until } = load(fetchStub as unknown as typeof fetch)
+    await until((m) => m.loans_loaded)
+    // The batch's descriptions are the last of the load itself.
+    await vi.waitFor(() => expect(heard.some((m) => m.all_descriptions_loaded)).toBe(true), { timeout: 4000 })
+    const before = asked.length
+    kl.kill()
+    expect(vi.getTimerCount()).toBe(0)
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(asked.slice(before)).toEqual([])
+  })
+
+  it('killed while it asks this site where to start, stops there', async () => {
+    const network = holding([[served(904)]], (url) => url.endsWith('/api/start'))
+    const { askedAfter } = await killedWhile(network, () => network.asked.includes('/api/start'))
+    expect(askedAfter).toEqual([])
+  })
+
+  it('killed while a page of the batch is on its way, asks for nothing after it', async () => {
+    const network = holding([[served(907)]], (url) => /\/api\/loans\/7\/1$/.test(url))
+    const { askedAfter } = await killedWhile(network, () => network.asked.some((u) => /\/api\/loans\/7\/1$/.test(u)))
+    expect(askedAfter).toEqual([])
+  })
+
+  it('killed while a page that then fails is on its way, does not go on to load from Kiva', async () => {
+    const network = holding([[served(908)]], (url) => /\/api\/loans\/7\/1$/.test(url), (url) => (/\/api\/loans\/7\/1$/.test(url) ? 503 : undefined))
+    const { askedAfter } = await killedWhile(network, () => network.asked.some((u) => /\/api\/loans\/7\/1$/.test(u)))
+    expect(askedAfter).toEqual([])
+  })
+
+  it('killed while it asks for the loans changed since the batch, starts nothing that comes after the load', async () => {
+    const network = holding([[served(909)]], (url) => url.includes('/api/since/7'))
+    const { askedAfter, heardAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('/api/since/7')))
+    expect(askedAfter).toEqual([])
+    expect(heardAfter.filter((m) => m.loans_loaded)).toEqual([])
+  })
+
+  it('killed while it downloads the descriptions, asks for no further page of them', async () => {
+    const network = holding([[served(910)], [served(911)]], (url) => url.includes('/keywords/1'))
+    const { askedAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('/keywords/1')))
+    expect(askedAfter).toEqual([])
+  })
+
+  it('killed while it loads the catalog from Kiva itself, takes in nothing of it', async () => {
+    const network = holding([[served(912)]], (url) => url.includes('loans/search.json'))
+    // Kiva's search (asked for ids only) finds one loan, so the load has something to take in.
+    const plain = network.stub
+    network.stub = (async (input: RequestInfo | URL) => {
+      const answer = await plain(input)
+      return String(input).includes('loans/search.json') ? ok({ paging: { page: 1, pages: 1, total: 1 }, loans: [912] }) : answer
+    }) as typeof fetch
+    const { askedAfter, heardAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('loans/search.json')), { loansFromKiva: true })
+    // The search already under way finishes its own request for the loans' details; nothing else
+    // is asked, and nothing it found is taken in.
+    expect(askedAfter.filter((url) => !url.startsWith('https://api.kivaws.org/v1/loans/'))).toEqual([])
+    expect(heardAfter.filter((m) => m.loans_loaded)).toEqual([])
+  })
+
+  it('killed while it catches up from Kiva, starts no refresh of its loans', async () => {
+    const { fetchStub } = fakeNetwork([[served(905), served(906)]])
+    const searchAnswered = held<void>()
+    const asked: string[] = []
+    const stub = vi.fn(async (input: RequestInfo | URL) => {
+      asked.push(String(input))
+      if (String(input).includes('loans/search.json')) await searchAnswered.promise
+      return fetchStub(input)
+    })
+    const { heard, until } = load(stub as unknown as typeof fetch)
+    await until((m) => m.loans_loaded)
+    await vi.waitFor(() => expect(heard.some((m) => m.all_descriptions_loaded)).toBe(true), { timeout: 4000 })
+    void kl.backgroundResync()
+    await vi.advanceTimersByTimeAsync(20)
+    const before = asked.length
+    expect(asked[before - 1]).toContain('loans/search.json')
+    kl.kill()
+    searchAnswered.resolve()
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(asked.slice(before)).toEqual([])
+  })
+
+  it('asked to catch up once killed, asks nothing', async () => {
+    const { fetchStub, asked } = fakeNetwork([[served(913)]])
+    const { heard, until } = load(fetchStub as unknown as typeof fetch)
+    await until((m) => m.loans_loaded)
+    await vi.waitFor(() => expect(heard.some((m) => m.all_descriptions_loaded)).toBe(true), { timeout: 4000 })
+    const before = asked.length
+    kl.kill()
+    await kl.backgroundResync()
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(asked.slice(before)).toEqual([])
+  })
+
+  it("killed while this site's partners are on their way, does not go on to Google's list of them", async () => {
+    const network = holding([[served(914)]], (url) => url.includes('/api/partners'))
+    const { askedAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('/api/partners')), { mergeAtheistList: true })
+    // Pages asked for before the kill still go out once the partners are in; nothing new does.
+    expect(askedAfter.filter((url) => url.includes('/proxy/gdocs/'))).toEqual([])
+  })
+
+  it("killed while this site's partners are on their way, and they fail, does not go on to read them from Kiva", async () => {
+    const network = holding([[served(915)]], (url) => url.includes('/api/partners'), (url) => (url.includes('/api/partners') ? 503 : undefined))
+    const { askedAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('/api/partners')))
+    expect(askedAfter.filter((url) => url.includes('api.kivaws.org/v1/partners'))).toEqual([])
+    expect(reported.map((e) => e.message).filter((m) => m.startsWith('Reading partners from this site failed'))).toEqual([])
+  })
+
+  it('killed while it downloads the last page of descriptions, takes none of them in', async () => {
+    const network = holding([[served(916)]], (url) => url.includes('/keywords/1'))
+    const { heardAfter } = await killedWhile(network, () => network.asked.some((u) => u.includes('/keywords/1')))
+    expect(heardAfter.filter((m) => m.all_descriptions_loaded)).toEqual([])
+  })
+
+  it('killed while it looks for the rest of the catalog at Kiva, asks for none of what it found', async () => {
+    // Kiva's catalog: one loan within the repayment limit, and one more the second search finds.
+    const { fetchStub } = fakeNetwork([[served(917)]])
+    const secondSearch = held<void>()
+    const asked: string[] = []
+    let searches = 0
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      asked.push(url)
+      if (url.includes('loans/search.json')) {
+        searches++
+        if (searches === 2) await secondSearch.promise
+        return ok({ paging: { page: 1, pages: 1, total: searches === 1 ? 1 : 2 }, loans: searches === 1 ? [917] : [917, 918] })
+      }
+      return fetchStub(input)
+    }) as unknown as typeof fetch
+    kl = createKivaLoans()
+    void kl.init({}, () => ({ mergeAtheistList: false, loansFromKiva: true, maxRepaymentTerms_on: true, maxRepaymentTerms: 12 }), { maxConcurrent: 8 })
+    await vi.waitFor(() => expect(searches).toBe(2), { timeout: 4000 })
+    const before = asked.length
+    kl.kill()
+    secondSearch.resolve()
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(asked.slice(before).filter((url) => url.includes('/v1/loans/918'))).toEqual([])
+  })
+
+  it('killed during the pause before it takes the descriptions in, keeps no timer and takes none in', async () => {
+    const { fetchStub, asked } = fakeNetwork([[served(919)]])
+    const { heard, until } = load(fetchStub as unknown as typeof fetch)
+    await until((m) => m.loans_loaded)
+    await vi.waitFor(() => expect(asked.some((u) => u.includes('/keywords/1'))).toBe(true), { timeout: 4000 })
+    // Less than the 200 ms pause: the descriptions are in, not yet taken in.
+    await vi.advanceTimersByTimeAsync(50)
+    expect(heard.some((m) => m.all_descriptions_loaded)).toBe(false)
+    const heardBefore = heard.length
+    kl.kill()
+    expect(vi.getTimerCount()).toBe(0)
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(heard.slice(heardBefore).filter((m) => m.all_descriptions_loaded)).toEqual([])
+  })
+
+  it('killed just before the pause before taking the descriptions in, sets no timer and takes none in', async () => {
+    const network = holding([[served(920)]], (url) => url.includes('/keywords/1'))
+    globalThis.fetch = network.stub
+    kl = createKivaLoans()
+    const heard: NotifyMessage[] = []
+    kl.onNotify((msg) => { heard.push(msg) })
+    void kl.init({}, () => ({ mergeAtheistList: false }), { maxConcurrent: 8 })
+    await vi.waitFor(() => expect(network.asked.some((u) => u.includes('/keywords/1'))).toBe(true), { timeout: 4000 })
+    // The load waits here for the loans to be processed; the test holds that step.
+    const processed = held<void>()
+    kl._loansProcessedPromise = processed.promise
+    network.release()
+    await vi.advanceTimersByTimeAsync(0)
+    kl.kill()
+    processed.resolve()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(vi.getTimerCount()).toBe(0)
+    await vi.advanceTimersByTimeAsync(LATER)
+    expect(heard.filter((m) => m.all_descriptions_loaded)).toEqual([])
   })
 })

@@ -16,6 +16,7 @@ import { useUtilsStore } from '../stores'
 import LenderIdPitch from './LenderIdPitch'
 import { useI18n, type Locale } from '../i18n'
 import { reasonOf, reportProblem } from '../lib/reportProblem'
+import { useMountedRef } from '../lib/useMountedRef'
 
 interface Team {
   id: number
@@ -35,6 +36,21 @@ const SERIES_COLORS = [
   '#edc949',
   '#af7aa1',
 ]
+
+/** Kiva's graph points in date order, without the points that fall far below both neighbours. */
+function graphSeries(result: { graphData?: Array<[string, number]> } | null | undefined): Array<[number, number]> {
+  return ((result?.graphData ?? []) as Array<[string, number]>)
+    .map(([x, y]) => [parseInt(x, 10), Number(y)] as [number, number])
+    .sort((a, b) => a[0] - b[0])
+    .filter((point, index, arr) => {
+      if (index === 0 || index === arr.length - 1) return true
+      const prev = arr[index - 1][1]
+      const curr = point[1]
+      const next = arr[index + 1][1]
+      const avg = (prev + next) / 2
+      return avg === 0 || curr >= avg * 0.4
+    })
+}
 
 function formatXAxisLabel(value: number, locale: Locale) {
   return new Date(value).toLocaleDateString(locale, { month: 'short', year: '2-digit' })
@@ -68,7 +84,9 @@ export default function Teams() {
   const [graphType, setGraphType] = useState<GraphType>('team_new_users')
   const [checkedTeamIds, setCheckedTeamIds] = useState<Set<number>>(new Set())
   const [querying, setQuerying] = useState(0)
-  const [graphError, setGraphError] = useState('')
+  // Each graph type has its own failure, shown only on that graph and cleared only by that graph's
+  // next answer, so a late answer for the other graph never shows, hides or clears it.
+  const [graphErrors, setGraphErrors] = useState<Record<GraphType, string | null>>({ team_new_users: null, team_loan_count: null })
   const inFlight = useRef(new Set<string>())
   const [teamData, setTeamData] = useState<Record<GraphType, TeamSeriesMap>>({
     team_new_users: {},
@@ -90,20 +108,30 @@ export default function Teams() {
       team_new_users: {},
       team_loan_count: {},
     })
+    // Teams that come back after the lender has changed (or the page has gone) are dropped, so a
+    // slow answer for the last lender never replaces this one's. A failure is still reported.
+    // The failure handler is then's second argument, so an error in showing the teams is never
+    // reported as Kiva's.
+    let current = true
     new LenderTeams(lenderId)
       .start()
-      .then((loadedTeams) => {
-        setTeams(loadedTeams as Team[])
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : t('failed_load_teams'))
-        reportProblem(`Reading the lender's teams from Kiva failed: ${reasonOf(err)}`)
-      })
+      .then(
+        (loadedTeams) => {
+          if (current) setTeams(loadedTeams as Team[])
+        },
+        (err) => {
+          if (current) setError(err instanceof Error ? err.message : t('failed_load_teams'))
+          reportProblem(`Reading the lender's teams from Kiva failed: ${reasonOf(err)}`)
+        },
+      )
       .finally(() => {
-        setLoadingTeams(false)
+        if (current) setLoadingTeams(false)
       })
+    return () => { current = false }
   }, [lenderDataVersion, lenderId, t])
 
+  // A graph keeps loading across this effect's re-runs, so only the page going drops its answer.
+  const mounted = useMountedRef()
   useEffect(() => {
     // Track in-flight requests across effect re-runs (the effect re-fires on
     // every teamData update) so a team is fetched and counted exactly once.
@@ -118,41 +146,35 @@ export default function Teams() {
     missingIds.forEach((teamId) => {
       const flightKey = `${graphType}:${teamId}`
       inFlight.current.add(flightKey)
+      // An answer that cannot be read is a failed read; the failure handler is then's second
+      // argument, so an error in showing a graph is never reported as Kiva's.
       req.kiva.ajax
         .get('getGraphData', { graphName: graphType, id: teamId })
-        .then((result) => {
-          const sorted = ((result?.graphData ?? []) as Array<[string, number]>)
-            .map(([x, y]) => [parseInt(x, 10), Number(y)] as [number, number])
-            .sort((a, b) => a[0] - b[0])
-            .filter((point, index, arr) => {
-              if (index === 0 || index === arr.length - 1) return true
-              const prev = arr[index - 1][1]
-              const curr = point[1]
-              const next = arr[index + 1][1]
-              const avg = (prev + next) / 2
-              return avg === 0 || curr >= avg * 0.4
-            })
-
-          setGraphError('')
-          setTeamData((prev) => ({
-            ...prev,
-            [graphType]: {
-              ...prev[graphType],
-              [teamId]: sorted,
-            },
-          }))
-        })
-        .catch((err) => {
-          // Scope graph-fetch failures to the chart pane; never unmount the page.
-          setGraphError(err instanceof Error ? err.message : t('failed_load_team_graph_data'))
-          reportProblem(`Reading a team graph from Kiva failed: ${reasonOf(err)}`)
-        })
+        .then(graphSeries)
+        .then(
+          (sorted) => {
+            if (!mounted.current) return
+            setGraphErrors((errors) => ({ ...errors, [graphType]: null }))
+            setTeamData((prev) => ({
+              ...prev,
+              [graphType]: {
+                ...prev[graphType],
+                [teamId]: sorted,
+              },
+            }))
+          },
+          (err) => {
+            // Scope graph-fetch failures to the chart pane; never unmount the page.
+            if (mounted.current) setGraphErrors((errors) => ({ ...errors, [graphType]: err instanceof Error ? err.message : t('failed_load_team_graph_data') }))
+            reportProblem(`Reading a team graph from Kiva failed: ${reasonOf(err)}`)
+          },
+        )
         .finally(() => {
           inFlight.current.delete(flightKey)
-          setQuerying((count) => Math.max(0, count - 1))
+          if (mounted.current) setQuerying((count) => Math.max(0, count - 1))
         })
     })
-  }, [checkedTeamIds, graphType, teamData, t])
+  }, [checkedTeamIds, graphType, teamData, t, mounted])
 
   const toggleTeam = useCallback((teamId: number) => {
     setCheckedTeamIds((prev) => {
@@ -270,7 +292,7 @@ export default function Teams() {
         </Col>
 
         <Col sm={8}>
-          {graphError ? <Alert variant="danger">{graphError}</Alert> : null}
+          {graphErrors[graphType] ? <Alert variant="danger">{graphErrors[graphType]}</Alert> : null}
           {checkedTeamIds.size > 0 && chartData.length > 0 ? (
             <div style={{ height: 600 }}>
               <ResponsiveContainer width="100%" height="100%">

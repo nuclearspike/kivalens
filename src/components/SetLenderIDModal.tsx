@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Button, Form, Modal } from '../ui'
 import { getKivaLoans } from '../api/kiva'
 import { companion, companionEnabled } from '../api/companion'
@@ -29,10 +29,16 @@ export default function SetLenderIDModal() {
   const [companionBusy, setCompanionBusy] = useState(false)
   const [companionNote, setCompanionNote] = useState<string | null>(null)
 
+  // Each Save or Detect is one ask. Closing or reopening the dialog, typing, or asking again
+  // supersedes it: an answer that comes back after that installs no lender and closes nothing.
+  const ask = useRef(0)
   useEffect(() => {
+    ask.current++
     setInput(lenderId)
     setChecking(false)
     setFailed(false)
+    setCompanionBusy(false)
+    setCompanionNote(null)
   }, [lenderId, show])
 
   // Feature-detect the Companion when the modal opens (only if the integration is enabled).
@@ -61,11 +67,16 @@ export default function SetLenderIDModal() {
 
   const handleDetect = async () => {
     if (companionBusy) return
+    const mine = ++ask.current
+    const current = () => ask.current === mine
+    // A Save under way is superseded: its answer is dropped, so it no longer shows as checking.
+    setChecking(false)
     setCompanionBusy(true)
     setCompanionNote(null)
     setFailed(false)
     try {
       const status = await companion.getStatus().catch(() => null)
+      if (!current()) return
       if (status && !status.hasToken) {
         setCompanionNote(
           t('companion_installed_but_not'),
@@ -73,6 +84,7 @@ export default function SetLenderIDModal() {
         return
       }
       const lender = await companion.detectLender()
+      if (!current()) return
       if (!lender) {
         setCompanionNote(t('could_not_read_kiva_account'))
         return
@@ -82,19 +94,24 @@ export default function SetLenderIDModal() {
       setLenderId(lender.lender_id)
       closeModal()
     } catch (e) {
-      setCompanionNote(t('companion_error_message', { message: e instanceof Error ? e.message : String(e) }))
+      if (current()) setCompanionNote(t('companion_error_message', { message: e instanceof Error ? e.message : String(e) }))
     } finally {
-      setCompanionBusy(false)
+      if (current()) setCompanionBusy(false)
     }
   }
 
   const handleSave = async () => {
     if (!trimmed || badRegEx || checking) return
 
+    const mine = ++ask.current
+    const current = () => ask.current === mine
+    // A Detect under way is superseded the same way.
+    setCompanionBusy(false)
     setChecking(true)
     setFailed(false)
     try {
       const lender = await getKivaLoans()?.fetchLender(trimmed)
+      if (!current()) return
       if (!lender) {
         setFailed(true)
         return
@@ -102,9 +119,9 @@ export default function SetLenderIDModal() {
       setLenderId(lender.lender_id, lender)
       closeModal()
     } catch {
-      setFailed(true)
+      if (current()) setFailed(true)
     } finally {
-      setChecking(false)
+      if (current()) setChecking(false)
     }
   }
 
@@ -121,8 +138,11 @@ export default function SetLenderIDModal() {
           type="text"
           value={input}
           onChange={(e) => {
+            ask.current++
             setInput(e.target.value)
             setFailed(false)
+            setChecking(false)
+            setCompanionBusy(false)
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {

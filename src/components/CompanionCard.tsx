@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, Button, Card } from '../ui'
 import { companion } from '../api/companion'
 import { useI18n } from '../i18n'
+import { useMountedRef } from '../lib/useMountedRef'
+import { reasonOf, reportProblem } from '../lib/reportProblem'
 
 const muted = { color: 'var(--kl-text-muted)' }
 
@@ -16,21 +18,38 @@ export default function CompanionCard() {
   const [hasToken, setHasToken] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  // The extension answers on its own time. Only the latest refresh shows its answers (StrictMode
+  // runs the mount effect twice, and Refresh can be pressed again), and a card gone by then sets
+  // nothing.
+  const mounted = useMountedRef()
+  const refreshes = useRef(0)
   const refresh = useCallback(async () => {
+    const mine = ++refreshes.current
+    const current = () => mounted.current && refreshes.current === mine
     setBusy(true)
     try {
       const ok = await companion.ping()
+      if (!current()) return
       setAvailable(ok)
       if (ok) {
-        const f = await companion.getFeatures().catch(() => null)
+        // An extension that answered but would not say more is still connected, without the detail.
+        const f = await companion.getFeatures().catch((error: unknown) => {
+          reportProblem(`The browser extension answered but did not give its version: ${reasonOf(error)}`)
+          return null
+        })
+        if (!current()) return
         setVersion(f?.version ?? null)
-        const s = await companion.getStatus().catch(() => null)
+        const s = await companion.getStatus().catch((error: unknown) => {
+          reportProblem(`The browser extension answered but did not give its status: ${reasonOf(error)}`)
+          return null
+        })
+        if (!current()) return
         setHasToken(!!s?.hasToken)
       }
     } finally {
-      setBusy(false)
+      if (current()) setBusy(false)
     }
-  }, [])
+  }, [mounted])
 
   useEffect(() => {
     void refresh()

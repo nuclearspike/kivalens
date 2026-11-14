@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   ComposedChart,
@@ -19,6 +19,8 @@ import { getKivaLoans } from '../api/kiva'
 import { lendAmountFor } from '../lib/kivaCheckout'
 import { humanize } from '../lib/utils'
 import { useI18n } from '../i18n'
+import { useMountedRef } from '../lib/useMountedRef'
+import { reasonOf, reportProblem } from '../lib/reportProblem'
 
 // ---------------------------------------------------------------------------
 // RepaymentGraphs sub-component
@@ -168,10 +170,18 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const [translating, setTranslating] = useState(false)
   const [showOriginal, setShowOriginal] = useState(false)
   const [translateError, setTranslateError] = useState(false)
+  // Which ask a translation answers. This view stays mounted from one loan to the next, so an
+  // answer that comes back after the lender has moved to another loan or language, or asked
+  // again, answers an ask no longer on screen and is dropped. A count, not the loan and
+  // language: after loan A, B and A again, the first ask for A is still not this one.
+  const translationAsk = useRef(0)
+  const mounted = useMountedRef()
   useEffect(() => {
+    translationAsk.current++
     setTranslation(null)
     setShowOriginal(false)
     setTranslateError(false)
+    setTranslating(false)
   }, [loanId, locale])
 
   const [activeTab, setActiveTab] = useState<number>(() => {
@@ -233,17 +243,26 @@ export default function Loan({ loanId: loanIdProp }: { loanId?: number } = {}) {
   const descriptionText = loan.description?.texts?.en
   const handleTranslate = async () => {
     if (!descriptionText || translating) return
+    const ask = ++translationAsk.current
+    const stillShown = () => mounted.current && translationAsk.current === ask
     setTranslating(true)
     setTranslateError(false)
+    // The try holds only the request, so a failure is the translator's, never an error in showing it.
+    let result: string
     try {
-      const result = await translateText(descriptionText, locale)
-      setTranslation(result)
-      setShowOriginal(false)
-    } catch {
+      result = await translateText(descriptionText, locale)
+    } catch (error) {
+      // Reported whether or not the lender is still on this loan: the failure was real.
+      reportProblem(`Translating a loan's story failed: ${reasonOf(error)}`)
+      if (!stillShown()) return
       setTranslateError(true)
-    } finally {
       setTranslating(false)
+      return
     }
+    if (!stillShown()) return
+    setTranslation(result)
+    setShowOriginal(false)
+    setTranslating(false)
   }
 
   return (

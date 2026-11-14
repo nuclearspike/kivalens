@@ -7,8 +7,9 @@ import { languageTitle, requestableLanguages, unsupportedBrowserLanguage } from 
 import { supportDeps } from './runtime'
 import { submitFeedback } from './service'
 import { SUPPORT_CATALOG, supportText } from './text'
-import { useSupportStore, type FeedbackKindId } from './supportStore'
+import { sameDraft, useSupportStore, type FeedbackKindId } from './supportStore'
 import type { ClientFacts } from './protocol'
+import { useMountedRef } from '../lib/useMountedRef'
 
 /**
  * Send Feedback, as every HumansAreUseful app has it (retained definition 1.1.22,
@@ -38,9 +39,12 @@ function languageName(code: string, locale: string): string {
 export default function FeedbackDialog() {
   const { locale } = useI18n()
   const s = (key: string, params?: Record<string, string | number>) => supportText(locale, key, params)
-  const { draft, setDraft, close, discardDraft, accepted } = useSupportStore()
+  const { draft, setDraft, close, discardDraft, accepted, acceptedLate } = useSupportStore()
   const [sending, setSending] = useState(false)
   const [failure, setFailure] = useState<Failure | null>(null)
+  // A send can finish after the dialog has closed: the report is still sent and thanked for, and
+  // the closed dialog sets nothing.
+  const mounted = useMountedRef()
   const [touched, setTouched] = useState(false)
   const [facts, setFacts] = useState<ClientFacts | null>(null)
   const [query, setQuery] = useState('')
@@ -103,27 +107,37 @@ export default function FeedbackDialog() {
     if (!valid || sending || failure?.upgrade) return
     setSending(true)
     setFailure(null)
+    const sent = draft
+    // The try holds only the sending, so a failure is the send's, never an error in showing it.
+    let outcome: Awaited<ReturnType<typeof submitFeedback>> | null
     try {
       const deps = await supportDeps(locale)
-      const outcome = await submitFeedback(deps, {
+      outcome = await submitFeedback(deps, {
         kind: KIND_TO_WIRE[draft.kind],
         message: wireMessage(),
         systemLanguage,
         ...(withEmail ? { email } : {}),
       })
-      if (outcome.ok) {
+    } catch {
+      outcome = null
+    }
+    if (outcome?.ok) {
+      // Closed and cleared only if the lender is still on the report that was sent: one who closed
+      // the dialog, or wrote on while it was sending, keeps what they have.
+      if (mounted.current && sameDraft(useSupportStore.getState().draft, sent)) {
         accepted()
         return
       }
-      if (outcome.kind === 'transport') setFailure({ key: 'feedback.failedDetail', upgrade: false })
-      else if (outcome.error.code === 'upgrade_required') setFailure({ key: 'feedback.upgradeRequired', upgrade: true })
-      else if (outcome.error.retryable && outcome.status >= 500) setFailure({ key: 'feedback.failedDetail', upgrade: false })
-      else setFailure({ key: 'feedback.serviceUnavailable', upgrade: false })
-    } catch {
-      setFailure({ key: 'feedback.failedDetail', upgrade: false })
-    } finally {
-      setSending(false)
+      acceptedLate(sent)
+      if (mounted.current) setSending(false)
+      return
     }
+    if (!mounted.current) return
+    setSending(false)
+    if (!outcome || outcome.kind === 'transport') setFailure({ key: 'feedback.failedDetail', upgrade: false })
+    else if (outcome.error.code === 'upgrade_required') setFailure({ key: 'feedback.upgradeRequired', upgrade: true })
+    else if (outcome.error.retryable && outcome.status >= 500) setFailure({ key: 'feedback.failedDetail', upgrade: false })
+    else setFailure({ key: 'feedback.serviceUnavailable', upgrade: false })
   }
 
   const onKeyDown = (event: KeyboardEvent) => {

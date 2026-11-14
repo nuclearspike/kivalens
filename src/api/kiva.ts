@@ -233,7 +233,21 @@ export class Loans {
   private updateIntervalHandle = 0
   private hotLoansIntervalHandle = 0
   private startGettingLoansHandle = 0
+  private startGettingLoansTimer = 0
   private repaidInRecalcHandle = 0
+  private partnerRefreshHandle = 0
+  private catchUpTimer = 0
+  private lenderReadTimer = 0
+  private descriptionsTimer = 0
+  // Once killed, a catalog starts nothing more of its own and keeps no timer: no start-up,
+  // resync, catch-up, lender read or partner refresh, and a load, resync or partner read under
+  // way stops at its next step. Requests already asked for still finish into a catalog nobody
+  // reads, and so does a paged read of Kiva already under way (the catalog's search, a lender's
+  // loans): those classes have no way to be stopped.
+  private killed = false
+  // Each read of a lender's own loans, so one that finishes after another lender ID was set is
+  // dropped instead of being taken for the new lender's.
+  private lenderRead = 0
 
   // ---- Promises for sequencing ----
   private partnerDownloadPromise: Promise<void>
@@ -401,6 +415,7 @@ export class Loans {
       try {
         await fetchPartnersFromKL()
       } catch (e) {
+        if (this.killed) return
         cl('KL partner load failed, falling back to Kiva', e)
         reportProblem(`Reading partners from this site failed, so they were read from Kiva: ${reasonOf(e)}`)
         await fetchPartnersFromKiva()
@@ -409,9 +424,11 @@ export class Loans {
 
     // ---- Load from Kiva (fallback) ----
     const loadFromKiva = async () => {
+      if (this.killed) return
       cl('Loading from Kiva (fallback)...')
       fetchPartners()
-      window.setInterval(fetchPartners, 6 * 60 * 60_000)
+      window.clearInterval(this.partnerRefreshHandle)
+      this.partnerRefreshHandle = window.setInterval(fetchPartners, 6 * 60 * 60_000)
 
       if (baseOptions.maxRepaymentTerms_on) {
         const months = parseInt(baseOptions.maxRepaymentTerms, 10)
@@ -426,6 +443,7 @@ export class Loans {
         const loans = await searchInstance.start((progress: ProgressEvent) => {
           this.notify({ loan_load_progress: progress })
         })
+        if (this.killed) return
         this.setKivaLoans(loans)
         this.notify({ loans_loaded: true })
         mark('kl:catalog:done', { source: 'kiva' })
@@ -469,7 +487,8 @@ export class Loans {
 
       // ---- KL partners + loans in parallel ----
       const partnersPromise = fetchPartners()
-      window.setInterval(fetchPartners, 24 * 60 * 60_000)
+      window.clearInterval(this.partnerRefreshHandle)
+      this.partnerRefreshHandle = window.setInterval(fetchPartners, 24 * 60 * 60_000)
 
       try {
         let receivedPages = 0
@@ -499,6 +518,7 @@ export class Loans {
           })
           allLoans.push(...ResultProcessors.processLoans(rawLoans, leftOut))
         }
+        if (this.killed) return
         // A batch with nothing usable in it is no batch: Kiva has the loans.
         if (!allLoans.length) throw new Error('The server batch held no loan this page could use')
 
@@ -517,6 +537,7 @@ export class Loans {
 
         // Ensure partners are loaded before filtering (filter needs partner IDs)
         await partnersPromise
+        if (this.killed) return
 
         this.notify({ loans_loaded: true, loan_load_progress: { complete: true } })
         mark('kl:catalog:done', { source: 'kl' })
@@ -529,7 +550,7 @@ export class Loans {
 
         // Catch up from Kiva once the snapshot is five minutes old: at once for
         // one built long ago, later for a fresh one (src/lib/catchUp.ts).
-        wait(catchUpDelayMs(klStart.builtAt)).then(() => this.backgroundResync())
+        this.catchUpTimer = window.setTimeout(() => { void this.backgroundResync() }, catchUpDelayMs(klStart.builtAt))
       } catch (e) {
         cl('KL loan load failed, falling back to Kiva', e)
         reportProblem(`Loading the catalog from this site failed, so it was loaded from Kiva: ${reasonOf(e)}`)
@@ -548,14 +569,19 @@ export class Loans {
           const descrPages = Array.from({ length: pages }, (_, i) => i + 1)
           const allDescr: Array<{ id: number; t: string[] }> = []
           for (const page of descrPages) {
+            if (this.killed) return
             const descriptions: Array<{ id: number; t: string[] }> = await req.kl.get(
               `loans/${batch}/keywords/${page}`,
             )
             allDescr.push(...descriptions)
           }
-          // Wait for loans to be processed, then merge descriptions
+          // Wait for loans to be processed, then merge descriptions. The pause is a timer kill()
+          // clears, and none is set once killed, so a catalog killed at any point before the merge
+          // merges nothing and announces nothing.
           await this._loansProcessedPromise
-          await wait(200)
+          await new Promise<void>((resolve) => {
+            if (!this.killed) this.descriptionsTimer = window.setTimeout(resolve, 200)
+          })
           for (const desc of allDescr) {
             const loan = this.getById(desc.id)
             if (loan) {
@@ -619,6 +645,7 @@ export class Loans {
 
       // Try KL server first
       const klStart = await fetchKLApiStart()
+      if (this.killed) return
       if (klStart && klStart.pages > 0) {
         loadFromKL(klStart)
       } else {
@@ -628,7 +655,7 @@ export class Loans {
       }
     }
 
-    setTimeout(startGettingLoans, 10)
+    this.startGettingLoansTimer = window.setTimeout(startGettingLoans, 10)
     this.startGettingLoansHandle = window.setInterval(startGettingLoans, 10_000)
   }
 
@@ -649,7 +676,8 @@ export class Loans {
     const queue = [...loanArr]
     const failures: unknown[] = []
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, async () => {
-      while (queue.length) {
+      // A killed catalog's workers take no further loan.
+      while (queue.length && !this.killed) {
         const existing = queue.shift()!
         let detail = found.get(existing.id)
         try {
@@ -674,8 +702,13 @@ export class Loans {
         }
       }
     }))
-    if (!Array.isArray(loans)) this.notify({ background_updated: loanArr.length })
-    if (failures.length) throw new Error('Some loan details could not be verified', { cause: failures[0] })
+    // A killed catalog checked nothing, so it announces nothing.
+    if (!Array.isArray(loans) && !this.killed) this.notify({ background_updated: loanArr.length })
+    if (failures.length) {
+      // Reported here and rethrown, so its callers do not report it again.
+      reportProblem(`Checking loan details with Kiva failed: ${reasonOf(failures[0])}`)
+      throw new Error('Some loan details could not be verified', { cause: failures[0] })
+    }
   }
 
   // ---- Hot loans ----
@@ -791,7 +824,7 @@ export class Loans {
   // ---- Atheist list ----
 
   async getAtheistList(): Promise<void> {
-    if (this.startedAtheistDownload || this.atheistListProcessed) return
+    if (this.killed || this.startedAtheistDownload || this.atheistListProcessed) return
     this.startedAtheistDownload = true
 
     try {
@@ -873,10 +906,16 @@ export class Loans {
   // ---- Teardown ----
 
   kill(): void {
+    this.killed = true
     clearInterval(this.updateIntervalHandle)
     clearInterval(this.hotLoansIntervalHandle)
     clearInterval(this.startGettingLoansHandle)
+    clearTimeout(this.startGettingLoansTimer)
     clearInterval(this.repaidInRecalcHandle)
+    clearInterval(this.partnerRefreshHandle)
+    clearTimeout(this.catchUpTimer)
+    clearTimeout(this.lenderReadTimer)
+    clearTimeout(this.descriptionsTimer)
     this.queueToRefreshActions.destroy()
     this.queueNewLoanQueryActions.destroy()
   }
@@ -945,7 +984,7 @@ export class Loans {
     const held = this.balancerData.get(key)
     if (held && Date.now() - held.at < BALANCER_TTL_MS) return held.value.slices
     if (!this.balancerFailed.has(key) && !this.balancerLoads.has(key)) {
-      queueMicrotask(() => void this.loadBalancerData(sliceBy, include).catch(() => {}))
+      queueMicrotask(() => { if (!this.killed) void this.loadBalancerData(sliceBy, include).catch(() => {}) })
     }
     return held?.value.slices ?? null
   }
@@ -1130,17 +1169,25 @@ export class Loans {
   }
 
   setLender(lenderId?: string | null): void {
+    const reading = this.lenderLoansState === LenderLoansState.Downloading
     if (!lenderId) {
+      this.lenderRead++
+      clearTimeout(this.lenderReadTimer)
       this.lenderId = ''
       this.lenderLoansMessage = 'Lender ID not set'
       this.lenderLoansState = LenderLoansState.Unknown
+      // A read under way will not be finished now, so the page stops waiting on it.
+      if (reading) this.notify({ lender_loans_event: 'done' })
       return
     }
+    // The same lender is already being read: one read is enough. Another lender is read anew.
+    if (reading && lenderId === this.lenderId) return
     this.lenderId = lenderId
     if (!this.lenderLoans) this.lenderLoans = {}
     this.lenderLoans[lenderId] = []
+    const read = ++this.lenderRead
+    const current = () => !this.killed && read === this.lenderRead
 
-    if (this.lenderLoansState === LenderLoansState.Downloading) return
     this.lenderLoansMessage = `Loading fundraising loans for ${this.lenderId} (Please wait...)`
     this.lenderLoansState = LenderLoansState.Downloading
     this.notify({ lender_loans_event: 'started' })
@@ -1163,16 +1210,18 @@ export class Loans {
       this.notify({ lender_loans_event: 'done' })
     }
 
-    wait(500).then(async () => {
+    clearTimeout(this.lenderReadTimer)
+    this.lenderReadTimer = window.setTimeout(async () => {
       try {
         const lfl = new LenderFundraisingLoans(lenderId)
         const ids = await (lfl as any).ids()
-        processIds(ids)
+        if (current()) processIds(ids)
       } catch (e) {
+        // Reported even when another lender has been set since: the failure was real.
         reportProblem(`Reading the lender's own loans from Kiva failed: ${reasonOf(e)}`)
-        markFailed()
+        if (current()) markFailed()
       }
-    })
+    }, 500)
   }
 
   // ---- Single-loan refresh ----
@@ -1318,6 +1367,7 @@ export class Loans {
     try {
       const searchInstance = new LoansSearch({ ids_only: 'true' }, false)
       const allIds: number[] = await searchInstance.start()
+      if (this.killed) return
       const newIds = allIds.filter((id) => !this.hasLoan(id))
       await this.newLoanNotice(newIds)
       this.secondaryLoadState = ''
@@ -1331,6 +1381,8 @@ export class Loans {
   // ---- Background resync ----
 
   async backgroundResync(shouldNotify = false): Promise<void> {
+    // The catch-up after a load and the resync interval both come here.
+    if (this.killed) return
     this.backgroundResyncCount++
     const resyncNum = this.backgroundResyncCount
 
@@ -1340,6 +1392,7 @@ export class Loans {
     try {
       const searchInstance = new LoansSearch(this.baseKivaParams, false)
       const loans: KivaLoan[] = await searchInstance.start()
+      if (this.killed) return
 
       let loansUpdated = 0
       const loansAdded: number[] = []

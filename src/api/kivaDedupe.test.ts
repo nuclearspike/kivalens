@@ -3,9 +3,20 @@
  * needs a DOM global.
  * @vitest-environment jsdom
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Loans } from './kiva'
 import type { KivaLoan } from '../types'
+
+// Each catalog a case makes runs queue intervals until it is killed.
+const made: Loans[] = []
+const catalog = () => {
+  const loans = new Loans()
+  made.push(loans)
+  return loans
+}
+afterEach(() => {
+  for (const loans of made.splice(0)) loans.kill()
+})
 
 /**
  * The client ingests loans from two places, with different trust:
@@ -54,7 +65,7 @@ const indexAgrees = (l: Loans) =>
 
 describe('setKivaLoans — direct-from-Kiva pull (must de-dupe)', () => {
   it('keeps one entry when a page seam repeats a loan', () => {
-    const l = new Loans()
+    const l = catalog()
     // page 1 ended with 3; the listing shifted, so page 2 served 3 again
     l.setKivaLoans([mk(1), mk(2), mk(3), mk(3), mk(4)])
 
@@ -63,7 +74,7 @@ describe('setKivaLoans — direct-from-Kiva pull (must de-dupe)', () => {
   })
 
   it('merges the repeat into the existing loan instead of appending', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1, { funded_amount: 100 }), mk(1, { funded_amount: 250 })])
 
     expect(idsOf(l)).toEqual([1])
@@ -72,7 +83,7 @@ describe('setKivaLoans — direct-from-Kiva pull (must de-dupe)', () => {
   })
 
   it('is a no-op for an empty pull (does not wipe what is loaded)', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(2)])
     l.setKivaLoans([])
 
@@ -80,7 +91,7 @@ describe('setKivaLoans — direct-from-Kiva pull (must de-dupe)', () => {
   })
 
   it('replaces the dataset on a reset pull', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(2)])
     l.setKivaLoans([mk(3)])
 
@@ -92,7 +103,7 @@ describe('setKivaLoans — direct-from-Kiva pull (must de-dupe)', () => {
 
 describe('setKivaLoans — trusted server batch', () => {
   it('takes the batch verbatim (the server already de-duped)', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(2), mk(3)], true, true)
 
     expect(idsOf(l)).toEqual([1, 2, 3])
@@ -103,7 +114,7 @@ describe('setKivaLoans — trusted server batch', () => {
     // This is why server-side de-duplication is mandatory: on this fast path the
     // client does no hasLoan() check, so a duplicate from the server would be
     // shown twice. klCorePaging.test.ts guards the server end of this contract.
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(1)], true, true)
 
     expect(idsOf(l)).toEqual([1, 1])
@@ -112,7 +123,7 @@ describe('setKivaLoans — trusted server batch', () => {
 
 describe('setKivaLoans — incremental /api/since delta', () => {
   it('appends genuinely new loans without touching existing ones', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(2)], true, true)
     l.setKivaLoans([mk(3)], false)
 
@@ -121,7 +132,7 @@ describe('setKivaLoans — incremental /api/since delta', () => {
   })
 
   it('updates an already-loaded loan rather than duplicating it', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1, { funded_amount: 0 })], true, true)
     l.setKivaLoans([mk(1, { funded_amount: 750 })], false)
 
@@ -130,7 +141,7 @@ describe('setKivaLoans — incremental /api/since delta', () => {
   })
 
   it('keeps the index consistent across mixed new + updated deltas', () => {
-    const l = new Loans()
+    const l = catalog()
     l.setKivaLoans([mk(1), mk(2)], true, true)
     l.setKivaLoans([mk(2, { funded_amount: 500 }), mk(3)], false)
 

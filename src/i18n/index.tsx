@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- locale helpers and the provider intentionally share one public module. */
 import { localizeCountryName } from './countryNames'
 import { reasonOf, reportProblem } from '../lib/reportProblem'
+import { useMountedRef } from '../lib/useMountedRef'
 import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import enCatalog from './locales/en'
@@ -349,15 +350,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   })
   // The language last asked for: a load that finishes after another choice is dropped.
   const wanted = useRef<Locale>(shown.locale)
-  // A load that finishes after the provider has gone is dropped too: there is nothing left to show
-  // it in, and React still reads the page's window to schedule an update to an unmounted tree. It
-  // is false only once the provider has gone; the effect sets it again on every mount, since
-  // StrictMode mounts twice.
-  const mounted = useRef(true)
-  useEffect(() => {
-    mounted.current = true
-    return () => { mounted.current = false }
-  }, [])
+  // A load that finishes after the provider has gone is dropped too (src/lib/useMountedRef.ts).
+  const mounted = useMountedRef()
   const show = useCallback((next: Locale) => {
     wanted.current = next
     const now = catalogNow(next)
@@ -377,7 +371,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         if (mounted.current && wanted.current === next) setShown({ locale: next, catalog: EMPTY_CATALOG })
       },
     )
-  }, [])
+  }, [mounted])
   const setLocale = useCallback((next: Locale) => {
     if (!supported.has(next)) return
     try { window.localStorage.setItem(STORAGE_KEY, next) } catch { /* ignore */ }

@@ -440,7 +440,11 @@ export default function AskKivaLens() {
     setLoading(false)
   }, [])
 
-  useEffect(() => () => abortRef.current?.abort(), [])
+  useEffect(() => () => {
+    abortRef.current?.abort()
+    // A frame already asked for, to show streamed text, would set state on a chat that has gone.
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+  }, [])
 
   // Global server switch (ASK_KIVALENS_ENABLED + key present). Hide everything if off.
   useEffect(() => {

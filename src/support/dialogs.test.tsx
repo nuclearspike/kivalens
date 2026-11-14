@@ -12,6 +12,8 @@ import LanguageMenu from '../components/LanguageMenu'
 import KLFooter from '../components/KLFooter'
 import { EMPTY_DRAFT, useSupportStore } from './supportStore'
 import { MemoryStore, resetSupportStoreForTests, type StoredReport } from './storage'
+import { escapesWithNoWindow, held, turn } from '../test/lateWork'
+import { supportText } from './text'
 
 /**
  * The shared Feedback and My Reports as a lender meets them, against a fake
@@ -21,7 +23,9 @@ import { MemoryStore, resetSupportStoreForTests, type StoredReport } from './sto
 
 type Call = { path: string; body: { client: Record<string, unknown>; payload: Record<string, unknown> } }
 let calls: Call[] = []
-let feedbackResponse: () => Response
+let feedbackResponse: () => Response | Promise<Response>
+let statusResponse: () => Response | Promise<Response>
+let contactResponse: () => Response | Promise<Response>
 let store: MemoryStore
 
 const json = (status: number, value: object) => new Response(JSON.stringify({ serverTime: new Date().toISOString(), ...value }), { status })
@@ -30,6 +34,8 @@ const accepted = () => json(202, { payload: { reportCode: 'LSS-AAAAA-BBBBB', rec
 beforeEach(() => {
   calls = []
   feedbackResponse = accepted
+  contactResponse = () => json(200, { payload: { revision: 3, contact: { state: 'none' } } })
+  statusResponse = () => json(200, { payload: { status: 'investigating', revision: 2, updatedAt: new Date().toISOString(), messages: [], outcome: { code: 'beingLookedAt' }, contact: { state: 'none' } } })
   store = new MemoryStore(true)
   resetSupportStoreForTests(store)
   useSupportStore.setState({ open: null, draft: EMPTY_DRAFT, thanks: null })
@@ -40,7 +46,8 @@ beforeEach(() => {
       calls.push({ path, body: JSON.parse(init.body as string) })
       if (path === '/v1/installations/enroll') return json(201, { payload: { keyId: 'key-1' } })
       if (path === '/v1/feedback') return feedbackResponse()
-      if (path === '/v1/reports/status') return json(200, { payload: { status: 'investigating', revision: 2, updatedAt: new Date().toISOString(), messages: [], outcome: { code: 'beingLookedAt' }, contact: { state: 'none' } } })
+      if (path === '/v1/reports/status') return statusResponse()
+      if (path === '/v1/reports/contact') return contactResponse()
       return json(404, { error: { code: 'routeNotFound', message: '', retryable: false } })
     }),
   )
@@ -288,6 +295,141 @@ describe('My Reports', () => {
     expect(screen.getByText('No reports yet')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }))
     expect(useSupportStore.getState().open).toBe('feedback')
+  })
+})
+
+describe('a dialog closed before the service answers', () => {
+  // An answer whose body is there at once: a real Response reads its body over several turns of
+  // the event loop, longer than the cases below wait for what the answer sets off.
+  const ready = (status: number, value: object) =>
+    ({ ok: status < 400, status, headers: new Headers(), json: async () => ({ serverTime: new Date().toISOString(), ...value }) }) as unknown as Response
+
+  it.each([
+    ['accepts', () => ready(202, { payload: { reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), status: 'received', contactVerificationPending: false } })],
+    ['refuses it', () => ready(400, { error: { code: 'invalidRequest', message: '', retryable: false } })],
+  ])('Send Feedback, closed while sending, sets nothing when the service %s', async (_outcome, answer) => {
+    const reply = held<Response>()
+    feedbackResponse = () => reply.promise
+    const view = openFeedback('bug')
+    type(screen.getByRole('textbox'), 'Sent, then closed.')
+    fireEvent.click(send())
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/feedback')).toBe(true))
+    view.unmount()
+    expect(await escapesWithNoWindow(() => reply.resolve(answer()))).toEqual([])
+  })
+
+  it('Send Feedback, closed and opened again for a new report before the first is accepted, keeps the new one', async () => {
+    const reply = held<Response>()
+    feedbackResponse = () => reply.promise
+    const view = openFeedback('bug')
+    type(screen.getByRole('textbox'), 'The first report.')
+    fireEvent.click(send())
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/feedback')).toBe(true))
+    act(() => useSupportStore.getState().close())
+    view.unmount()
+    openFeedback('bug')
+    type(screen.getByRole('textbox'), 'A second report, not sent yet.')
+    await act(async () => {
+      reply.resolve(ready(202, { payload: { reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), status: 'received', contactVerificationPending: false } }))
+      for (let i = 0; i < 4; i++) await turn()
+    })
+    expect(useSupportStore.getState().open).toBe('feedback')
+    expect(useSupportStore.getState().draft.message).toBe('A second report, not sent yet.')
+    expect(useSupportStore.getState().thanks).not.toBeNull()
+    expect(screen.getByRole('textbox')).toHaveValue('A second report, not sent yet.')
+  })
+
+  it('Send Feedback, written on while sending, keeps what was written and stays open when the report is accepted', async () => {
+    const reply = held<Response>()
+    feedbackResponse = () => reply.promise
+    openFeedback('bug')
+    type(screen.getByRole('textbox'), 'The first report.')
+    fireEvent.click(send())
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/feedback')).toBe(true))
+    type(screen.getByRole('textbox'), 'More, written while it was sending.')
+    await act(async () => {
+      reply.resolve(ready(202, { payload: { reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), status: 'received', contactVerificationPending: false } }))
+      for (let i = 0; i < 4; i++) await turn()
+    })
+    expect(useSupportStore.getState().open).toBe('feedback')
+    expect(useSupportStore.getState().draft.message).toBe('More, written while it was sending.')
+    expect(useSupportStore.getState().thanks).not.toBeNull()
+    expect(send()).toBeEnabled()
+  })
+
+  it('Send Feedback, closed before the report is accepted, clears the report it sent and thanks the lender', async () => {
+    const reply = held<Response>()
+    feedbackResponse = () => reply.promise
+    const view = openFeedback('bug')
+    type(screen.getByRole('textbox'), 'Sent, then closed.')
+    fireEvent.click(send())
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/feedback')).toBe(true))
+    act(() => useSupportStore.getState().close())
+    view.unmount()
+    await act(async () => {
+      reply.resolve(ready(202, { payload: { reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), status: 'received', contactVerificationPending: false } }))
+      for (let i = 0; i < 4; i++) await turn()
+    })
+    expect(useSupportStore.getState().draft).toEqual(EMPTY_DRAFT)
+    expect(useSupportStore.getState().open).toBeNull()
+    expect(useSupportStore.getState().thanks).not.toBeNull()
+  })
+
+  it('My Reports, closed before this browser says whether status was checked before, sets nothing', async () => {
+    await store.putReport({ appId: 'kivalens-web', reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), kind: 'bug', message: 'A report', createdAt: '2026-09-20T10:00:00.000Z', outcome: 'received' })
+    act(() => useSupportStore.getState().openReports())
+    const view = wrap(<MyReportsDialog />)
+    const checkButton = await screen.findByRole('button', { name: 'Check for status' })
+    const asked = held<undefined>()
+    vi.spyOn(store, 'getMeta').mockReturnValue(asked.promise as never)
+    fireEvent.click(checkButton)
+    await waitFor(() => expect(store.getMeta).toHaveBeenCalled())
+    view.unmount()
+    expect(await escapesWithNoWindow(() => asked.resolve(undefined))).toEqual([])
+  })
+
+  it('My Reports, closed while an email is taken off a report, sets nothing when the service answers', async () => {
+    await store.putReport({ appId: 'kivalens-web', reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), kind: 'bug', message: 'A report', createdAt: '2026-09-20T10:00:00.000Z', outcome: 'received', contact: { state: 'verified', email: 'lender@example.com' } as never })
+    const reply = held<Response>()
+    contactResponse = () => reply.promise
+    act(() => useSupportStore.getState().openReports())
+    const view = wrap(<MyReportsDialog />)
+    const [head] = await screen.findAllByRole('listitem')
+    fireEvent.click(within(head).getAllByRole('button')[0])
+    fireEvent.click(await screen.findByRole('button', { name: supportText('en', 'reports.email.remove') }))
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/reports/contact')).toBe(true))
+    view.unmount()
+    expect(await escapesWithNoWindow(() => reply.resolve(ready(200, { payload: { revision: 3, contact: { state: 'none' } } })))).toEqual([])
+  })
+
+  it('My Reports, closed while an email is added to a report, sets nothing when the service answers', async () => {
+    await store.putReport({ appId: 'kivalens-web', reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), kind: 'bug', message: 'A report', createdAt: '2026-09-20T10:00:00.000Z', outcome: 'received', contact: { state: 'none' } as never })
+    const reply = held<Response>()
+    contactResponse = () => reply.promise
+    act(() => useSupportStore.getState().openReports())
+    const view = wrap(<MyReportsDialog />)
+    const [head] = await screen.findAllByRole('listitem')
+    fireEvent.click(within(head).getAllByRole('button')[0])
+    fireEvent.click(await screen.findByRole('button', { name: supportText('en', 'reports.email.add') }))
+    type(screen.getByLabelText(supportText('en', 'reports.addEmail.field')), 'lender@example.com')
+    fireEvent.click(screen.getByLabelText(supportText('en', 'feedback.consent')))
+    fireEvent.click(screen.getByRole('button', { name: supportText('en', 'reports.addEmail.send') }))
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/reports/contact')).toBe(true))
+    view.unmount()
+    expect(await escapesWithNoWindow(() => reply.resolve(ready(200, { payload: { revision: 3, contact: { state: 'pending', pendingEmail: 'lender@example.com' } } })))).toEqual([])
+  })
+
+  it('My Reports, closed while checking status, sets nothing when the service answers', async () => {
+    await store.putReport({ appId: 'kivalens-web', reportCode: 'LSS-AAAAA-BBBBB', receipt: 'r'.repeat(40), kind: 'bug', message: 'A report', createdAt: '2026-09-20T10:00:00.000Z', outcome: 'received' })
+    const reply = held<Response>()
+    statusResponse = () => reply.promise
+    act(() => useSupportStore.getState().openReports())
+    const view = wrap(<MyReportsDialog />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Check for status' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Check' }))
+    await waitFor(() => expect(calls.some((c) => c.path === '/v1/reports/status')).toBe(true))
+    view.unmount()
+    expect(await escapesWithNoWindow(() => reply.resolve(ready(200, { payload: { status: 'investigating', revision: 2, updatedAt: new Date().toISOString(), messages: [], outcome: { code: 'beingLookedAt' }, contact: { state: 'none' } } })))).toEqual([])
   })
 })
 

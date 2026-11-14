@@ -8,5 +8,7 @@ export default defineConfig({
     environment: 'node',
     // cloudflare/: the Workers' own logic, tested in Node (D1 is SQLite; node:sqlite stands in).
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'cloudflare/**/*.test.ts'],
+    // Kills the catalog a test file made when the file ends (src/test/setup.ts).
+    setupFiles: ['src/test/setup.ts'],
   },
 })

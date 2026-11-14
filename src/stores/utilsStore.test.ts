@@ -3,9 +3,11 @@
  * portfolio features), the AI widget's open/seed handshake, and misc toggles.
  * @vitest-environment jsdom
  */
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest'
 import { useUtilsStore } from './utilsStore'
 import { useCriteriaStore } from './criteriaStore'
+import { getKivaLoans } from '../api/kiva'
+import { held } from '../test/lateWork'
 
 const store = () => useUtilsStore.getState()
 
@@ -13,6 +15,87 @@ beforeEach(() => {
   store().closeAskKl()
   store().closeLenderIdModal()
   store().clearCallout()
+})
+
+describe("a lender ID changed while the last one's profile is read", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    store().setLenderObj(null)
+  })
+
+  /** The two profile reads, answered when the test says; the catalog's own read is left out. */
+  function twoReads() {
+    const kl = getKivaLoans()
+    vi.spyOn(kl, 'setLender').mockImplementation(() => {})
+    const first = held<never>()
+    const second = held<never>()
+    vi.spyOn(kl, 'fetchLender').mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    store().setLenderId('firstlender')
+    store().setLenderId('secondlender')
+    return { first, second }
+  }
+
+  it("keeps the new lender's profile when the earlier one answers last", async () => {
+    const { first, second } = twoReads()
+    second.resolve({ lender_id: 'secondlender', name: 'Second' } as never)
+    await Promise.resolve()
+    first.resolve({ lender_id: 'firstlender', name: 'First' } as never)
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderId).toBe('secondlender')
+    expect(store().lenderObj).toMatchObject({ name: 'Second' })
+  })
+
+  it.each([
+    ['answers', (first: ReturnType<typeof held<never>>) => first.resolve({ lender_id: 'firstlender', name: 'Old first' } as never)],
+    ['turns out not to exist', (first: ReturnType<typeof held<never>>) => first.reject({ status: 404, message: 'Not Found' })],
+  ])('keeps the profile of a lender set again with a checked profile, when the first read of the same ID %s last', async (_outcome, land) => {
+    const kl = getKivaLoans()
+    vi.spyOn(kl, 'setLender').mockImplementation(() => {})
+    const first = held<never>()
+    vi.spyOn(kl, 'fetchLender').mockReturnValueOnce(first.promise).mockResolvedValue({ lender_id: 'secondlender', name: 'Second' } as never)
+    store().setLenderId('firstlender')
+    store().setLenderId('secondlender')
+    // The lender-ID dialog checked the first ID again and sets it with its profile.
+    store().setLenderId('firstlender', { lender_id: 'firstlender', name: 'New first' } as never)
+    land(first)
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderId).toBe('firstlender')
+    expect(store().lenderObj).toMatchObject({ name: 'New first' })
+  })
+
+  it('keeps the profile a lender ID was just set with, when a read of that ID begun before answers last', async () => {
+    const kl = getKivaLoans()
+    vi.spyOn(kl, 'setLender').mockImplementation(() => {})
+    const first = held<never>()
+    vi.spyOn(kl, 'fetchLender').mockReturnValueOnce(first.promise)
+    store().setLenderId('firstlender')
+    store().setLenderId('firstlender', { lender_id: 'firstlender', name: 'New first' } as never)
+    first.resolve({ lender_id: 'firstlender', name: 'Old first' } as never)
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderObj).toMatchObject({ name: 'New first' })
+  })
+
+  it('a profile read of the same ID made on its own (as Options does) does not cancel the check that clears a missing one', async () => {
+    const kl = getKivaLoans()
+    vi.spyOn(kl, 'setLender').mockImplementation(() => {})
+    const missing = Promise.reject({ status: 404, message: 'Not Found' })
+    missing.catch(() => {})
+    vi.spyOn(kl, 'fetchLender').mockReturnValue(missing)
+    store().setLenderId('missinglender')
+    void store().fetchLenderObj('missinglender', false)
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderId).toBe('')
+  })
+
+  it('never clears the new lender ID because the earlier one turned out not to exist', async () => {
+    const { first, second } = twoReads()
+    first.reject({ status: 404, message: 'Not Found' })
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderId).toBe('secondlender')
+    second.resolve({ lender_id: 'secondlender', name: 'Second' } as never)
+    await new Promise((resolve) => { setTimeout(resolve, 0) })
+    expect(store().lenderObj).toMatchObject({ name: 'Second' })
+  })
 })
 
 describe('lender id', () => {

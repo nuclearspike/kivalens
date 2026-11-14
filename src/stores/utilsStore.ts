@@ -76,6 +76,13 @@ export interface UtilsActions {
 // Store
 // ---------------------------------------------------------------------------
 
+// Each setting of a lender ID is one ask, and a read of the profile belongs to the ask it was
+// started in: a profile, or its not-found, that comes back after a newer ask (another ID, or the
+// same ID set again with a profile already checked) is dropped, so A, then B, then A again never
+// takes the first A's answer. Two reads in the same ask (Options reads the profile on its own)
+// are both kept: neither supersedes the other.
+let lenderAsk = 0
+
 export const useUtilsStore = create<UtilsState & UtilsActions>()(
   persist(
     immer((set, get) => ({
@@ -100,6 +107,7 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
       // ---------------------------------------------------------------
 
       setLenderId: (id: string, lenderObj: LenderObj | null = null) => {
+        lenderAsk++
         const nextId = id.trim()
         set((state) => {
           state.lenderId = nextId
@@ -209,13 +217,17 @@ export const useUtilsStore = create<UtilsState & UtilsActions>()(
 
       fetchLenderObj: async (lenderId: string, displayError = false) => {
         if (!lenderId) return
+        const ask = lenderAsk
         try {
           const kl = getKivaLoans()
           if (!kl) return
 
           const lender = await kl.fetchLender(lenderId)
+          if (ask !== lenderAsk) return
           get().setLenderObj(lender)
         } catch (err: unknown) {
+          // Nor is a superseded ask's failure taken in: a lender ID set since is never cleared.
+          if (ask !== lenderAsk) return
           const error = err as { status?: number; message?: string }
           console.warn('fetchLenderObj failed', lenderId, error)
           if (displayError && (error.status === 400 || error.status === 404)) {

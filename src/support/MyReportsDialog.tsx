@@ -6,6 +6,7 @@ import { checkStatus, updateContact } from './service'
 import type { StoredReport } from './storage'
 import { reportHeadline, supportText } from './text'
 import { useSupportStore } from './supportStore'
+import { useMountedRef } from '../lib/useMountedRef'
 
 /**
  * My Reports, as every HumansAreUseful app has it (definition screens.myReports,
@@ -47,12 +48,16 @@ export default function MyReportsDialog() {
     return { list, persistent: deps.store.persistent, checked }
   }, [locale])
 
-  const load = useCallback(async () => {
+  // A check or a contact change can finish after the dialog has closed; the closed dialog sets
+  // nothing (what the service did is in this browser's records for the next time it opens).
+  const mounted = useMountedRef()
+  const load = async () => {
     const { list, persistent, checked } = await read()
+    if (!mounted.current) return
     setReports(list)
     setPersistent(persistent)
     setLastChecked(checked)
-  }, [read])
+  }
 
   useEffect(() => {
     let live = true
@@ -81,12 +86,14 @@ export default function MyReportsDialog() {
       await deps.store.setMeta(LAST_CHECK_KEY, now).catch(() => undefined)
     }
     await load()
+    if (!mounted.current) return
     setCheck(transport === list.length && list.length > 0 ? 'offline' : failed > 0 ? 'partial' : 'idle')
   }
 
   const askToCheck = async () => {
     const deps = await supportDeps(locale)
     const acknowledged = await deps.store.getMeta<boolean>(FIRST_CHECK_KEY).catch(() => undefined)
+    if (!mounted.current) return
     if (acknowledged) void runCheck()
     else setConfirming(true)
   }
@@ -195,6 +202,7 @@ function ReportDetail({ report, onChange }: { report: StoredReport; onChange: (n
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState<{ key: string; undo: boolean } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const mounted = useMountedRef()
   const outcome = report.outcome ?? 'unavailable'
   const statusParams = report.fixedVersion ? { version: report.fixedVersion } : undefined
   const contact = report.contact
@@ -209,6 +217,7 @@ function ReportDetail({ report, onChange }: { report: StoredReport; onChange: (n
     setError(null)
     const deps = await supportDeps(locale)
     const outcome = await updateContact(deps, report, action)
+    if (!mounted.current) return
     setBusy(false)
     if (!outcome.ok) {
       setError(action === 'undo' ? 'reports.email.undoFailed' : failureKey(outcome.kind === 'service' ? outcome.error.code : undefined))
@@ -230,6 +239,7 @@ function ReportDetail({ report, onChange }: { report: StoredReport; onChange: (n
     setComposer({ ...composer, saving: true, error: null })
     const deps = await supportDeps(locale)
     const outcome = await updateContact(deps, report, 'set', email)
+    if (!mounted.current) return
     if (!outcome.ok) {
       setComposer({ ...composer, saving: false, error: failureKey(outcome.kind === 'service' ? outcome.error.code : undefined) })
       return

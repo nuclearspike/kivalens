@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '../ui'
 import { useI18n } from '../i18n'
 import { copyText } from '../lib/copyText'
+import { useMountedRef } from '../lib/useMountedRef'
 
 // One click puts `text` on the clipboard; the button itself says so ("Copied")
 // for a moment and then returns to its label. Wherever the app tells someone to
@@ -26,19 +27,28 @@ export default function CopyButton({
   onCopied?: () => void
 }) {
   const { t } = useI18n()
-  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  // What the last click did, and to which text: a button whose text has changed since (a new RSS
+  // URL) shows its label, never "Copied" for text it no longer holds.
+  const [result, setResult] = useState<{ state: 'copied' | 'failed'; text: string } | null>(null)
+  const state = result && result.text === text ? result.state : 'idle'
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mounted = useMountedRef()
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current)
   }, [])
 
   const copy = async () => {
-    const ok = await copyText(text)
-    setState(ok ? 'copied' : 'failed')
+    const asked = text
+    const ok = await copyText(asked)
+    // The text is on the clipboard whether or not the button is still there to say so.
     if (ok) onCopied?.()
+    // A button gone before the clipboard answered shows nothing and starts no timer: its
+    // unmount already cleared the last one.
+    if (!mounted.current) return
+    setResult({ state: ok ? 'copied' : 'failed', text: asked })
     if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => setState('idle'), CONFIRM_MS)
+    timer.current = setTimeout(() => setResult(null), CONFIRM_MS)
   }
 
   return (

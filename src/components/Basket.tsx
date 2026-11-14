@@ -33,6 +33,8 @@ import {
   type MixFilter,
 } from '../lib/basketMix'
 import { useActiveExposure } from '../lib/useActiveExposure'
+import { useMountedRef } from '../lib/useMountedRef'
+import { reasonOf, reportProblem } from '../lib/reportProblem'
 import { basketNoticeText } from '../lib/basketNotice'
 import { kivaHandoff, minutesAtKiva, KIVA_LEND_AMOUNT, KIVA_SIGNED_OUT_LIMIT } from '../lib/kivaCheckout'
 
@@ -375,13 +377,20 @@ export default function Basket() {
     () => getBasket(),
     [basketSignature, getBasket, rawBasketCount, loanCount, repayVersion],
   )
+  const mounted = useMountedRef()
   useEffect(() => {
     const missing = basketEntries
       .filter((e) => e.loan && !e.loan.kl_repayments?.length)
     if (missing.length) {
       const kl = getKivaLoans()
       const loans = missing.map((e) => e.loan!)
-      kl.fetchDescrAndRepayments(loans).then(() => setRepayVersion((v) => v + 1))
+      // Some loans may have come back even when others could not be checked, so the rows are
+      // read again either way.
+      kl.fetchDescrAndRepayments(loans)
+        .catch(() => { /* fetchDescrAndRepayments has reported it */ })
+        .finally(() => {
+          if (mounted.current) setRepayVersion((v) => v + 1)
+        })
     }
   }, [basketEntries.map((e) => e.id).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -409,6 +418,11 @@ export default function Basket() {
       return
     }
     reconcilingRef.current = true
+    // A lender who leaves the basket, or sets another lender ID, while Kiva is asked has the
+    // checkout checked on their next visit to the basket, which reconciles any pending one: nothing
+    // is removed or asked on a page they have left, or against another lender's loans.
+    const askedFor = lenderId
+    const stillHere = () => mounted.current && useUtilsStore.getState().lenderId === askedFor
     try {
       let confirmed: number[] = []
       if (lenderId) {
@@ -417,9 +431,11 @@ export default function Basket() {
           const fundSet = new Set(fundIds)
           confirmed = pending.ids.filter((id) => fundSet.has(id))
         } catch (e) {
-          // Verification unavailable — log and fall through to asking the user.
+          // Verification unavailable: the lender is asked instead, and the error collector told.
           console.warn('KivaLens: could not verify loans against Kiva; asking instead', e)
+          reportProblem(`Checking a checkout against the lender's loans at Kiva failed, so the lender was asked: ${reasonOf(e)}`)
         }
+        if (!stillHere()) return
       }
       if (confirmed.length) batchRemoveFromBasket(confirmed)
       const remaining = pending.ids.filter((id) => !confirmed.includes(id))
@@ -449,7 +465,7 @@ export default function Basket() {
     } finally {
       reconcilingRef.current = false
     }
-  }, [lenderId, batchRemoveFromBasket, clearPendingCheckout, setBasketNotice, t])
+  }, [lenderId, batchRemoveFromBasket, clearPendingCheckout, setBasketNotice, t, mounted])
 
   useEffect(() => {
     void reconcileCheckout() // covers reload / navigating back to the basket

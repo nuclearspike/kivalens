@@ -10,8 +10,9 @@ export async function copyText(text: string): Promise<boolean> {
   } catch {
     // refused (permission, insecure context): try the legacy path below
   }
+  let scratch: HTMLTextAreaElement | null = null
   try {
-    const scratch = document.createElement('textarea')
+    scratch = document.createElement('textarea')
     scratch.value = text
     scratch.setAttribute('readonly', '')
     scratch.style.position = 'fixed'
@@ -19,10 +20,11 @@ export async function copyText(text: string): Promise<boolean> {
     scratch.style.opacity = '0'
     document.body.appendChild(scratch)
     scratch.select()
-    const ok = document.execCommand('copy')
-    scratch.remove()
-    return ok
+    return document.execCommand('copy')
   } catch {
     return false
+  } finally {
+    // Gone whatever the copy command did, thrown or not.
+    scratch?.remove()
   }
 }

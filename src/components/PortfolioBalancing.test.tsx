@@ -20,7 +20,12 @@ import type { Criteria, KivaLoan, Partner } from '../types'
  * and a note under the count when a balancer that is on cannot apply.
  */
 
-afterEach(cleanup)
+// Each catalog a case makes runs queue intervals until it is killed.
+const made: Loans[] = []
+afterEach(() => {
+  cleanup()
+  for (const loans of made.splice(0)) loans.kill()
+})
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -33,6 +38,7 @@ const superGraph = (pairs: Array<[string, string, number]>) => ({
 describe('the lender’s portfolio distribution: one copy, read on demand', () => {
   it('reads a slice once however many filters ask, says while it reads, and says when it has', async () => {
     const kl = new Loans()
+    made.push(kl)
     kl.lenderId = 'a'
     const fetch = vi.fn(async () => superGraph([['2', 'Kenya', 6], ['5', 'Uganda', 4]]))
     kl.fetchSuperGraphData = fetch
@@ -56,6 +62,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
 
   it('keeps what it read for an hour, then reads it again, lending the old copy meanwhile', async () => {
     const kl = new Loans()
+    made.push(kl)
     kl.lenderId = 'a'
     let kenya = 6
     kl.fetchSuperGraphData = vi.fn(async () => superGraph([['2', 'Kenya', kenya]]))
@@ -77,6 +84,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
 
   it('does not ask Kiva again for a slice it would not return, until told to retry', async () => {
     const kl = new Loans()
+    made.push(kl)
     kl.lenderId = 'a'
     kl.fetchSuperGraphData = vi.fn(async () => {
       throw new Error('502')
@@ -100,6 +108,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
 
   it('keeps applying the last copy when a later re-read fails, and does not report it as unread', async () => {
     const kl = new Loans()
+    made.push(kl)
     kl.lenderId = 'a'
     let up = true
     kl.fetchSuperGraphData = vi.fn(async () => {
@@ -121,6 +130,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
 
   it('keeps each lender’s portfolio apart', async () => {
     const kl = new Loans()
+    made.push(kl)
     kl.lenderId = 'a'
     kl.fetchSuperGraphData = vi.fn(async (params: Record<string, string>) =>
       superGraph(params.subject_id === 'a' ? [['2', 'Kenya', 1]] : [['8', 'Honduras', 1]]),
@@ -135,6 +145,7 @@ describe('the lender’s portfolio distribution: one copy, read on demand', () =
 
   it('asks nothing for a lender it does not know', () => {
     const kl = new Loans()
+    made.push(kl)
     kl.fetchSuperGraphData = vi.fn()
     kl.lenderId = ''
     expect(kl.balancerSlices('country', 'all')).toBeNull()

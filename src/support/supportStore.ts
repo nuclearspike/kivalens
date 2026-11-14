@@ -45,7 +45,17 @@ interface SupportState {
   setDraft: (patch: Partial<FeedbackDraft>) => void
   discardDraft: () => void
   accepted: () => void
+  /** A report accepted after the lender moved on from it (closed its dialog, or wrote on): see below. */
+  acceptedLate: (sent: FeedbackDraft) => void
   dismissThanks: () => void
+}
+
+/** The same words and choices: what the lender wrote, not which object holds it. */
+export function sameDraft(a: FeedbackDraft, b: FeedbackDraft): boolean {
+  return (
+    a.kind === b.kind && a.message === b.message && a.languageNote === b.languageNote && a.consent === b.consent &&
+    a.email === b.email && a.language?.code === b.language?.code && a.language?.label === b.language?.label
+  )
 }
 
 export const useSupportStore = create<SupportState>((set, get) => ({
@@ -64,5 +74,8 @@ export const useSupportStore = create<SupportState>((set, get) => ({
   setDraft: (patch) => set({ draft: { ...get().draft, ...patch } }),
   discardDraft: () => set({ draft: EMPTY_DRAFT, open: null }),
   accepted: () => set({ draft: EMPTY_DRAFT, open: null, thanks: Date.now() }),
+  // The lender is thanked; the draft is cleared only if it is still the report that was sent, and
+  // the dialog is left as it is: a newer draft, or a dialog the lender is writing in, is theirs.
+  acceptedLate: (sent) => set((state) => ({ thanks: Date.now(), draft: sameDraft(state.draft, sent) ? EMPTY_DRAFT : state.draft })),
   dismissThanks: () => set({ thanks: null }),
 }))
