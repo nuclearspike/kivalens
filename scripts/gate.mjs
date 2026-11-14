@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // The release gate: a commit, built and checked in a clean copy of itself, the way Heroku will build it.
 //
-//   node scripts/gate.mjs [commit] [--out <dir>] [--keep]
+//   node scripts/gate.mjs [commit] [--out <dir>] [--keep] [--build-only]
 //
 // Steps: npm's version against package.json's engines.npm, which is the npm Heroku builds with
 // (scripts/npm-engine.mjs says why the two must match); npm ci, build, the test suite, the language check,
 // the RUM Worker's types, lint against the recorded baseline (scripts/lint-baseline.json), and npm audit.
 // Logs and summary.json go to --out, by default analysis/gates/<UTC time>_<commit>/ in the main checkout,
 // so they outlive a worktree. The summary also records the built entry script and its sha256, which
-// scripts/deploy.mjs compares with what the live site serves. Exit 0 only if every step passes. The clean
-// copy is deleted after a pass and kept after a failure (or with --keep), for a look at what failed.
+// scripts/deploy.mjs compares with what the live site serves, and the UTC day the build was made for, which
+// the build stamps into the app as its version (scripts/buildDay.mjs; KL_BUILD_DAY pins it, today by
+// default). --build-only stops after the build: deploy.mjs uses it to build the commit for the day Heroku
+// built it on, when that is not the gate's day. Exit 0 only if every step passes. The clean copy is deleted
+// after a pass and kept after a failure (or with --keep), for a look at what failed.
 import { execFileSync, spawnSync } from 'node:child_process'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -17,6 +20,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkNpm } from './npm-engine.mjs'
+import { buildDay } from './buildDay.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -26,6 +30,8 @@ const commitArg = args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--
 const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim()
 const sha = git('rev-parse', '--verify', `${commitArg}^{commit}`)
 const short = sha.slice(0, 8)
+const day = buildDay(process.env)
+const buildOnly = args.includes('--build-only')
 // The main checkout, also when this runs from a worktree: records belong with the repo, not the worktree.
 const MAIN = path.dirname(path.resolve(REPO, git('rev-parse', '--git-common-dir')))
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
@@ -58,7 +64,7 @@ function step(name, cmd, cmdArgs, { env = {}, judge } = {}) {
   return s.ok
 }
 
-console.log(`gate for ${sha} · node ${process.version}; Heroku builds with node ${pkg.engines?.node ?? '(engines not set)'}, npm ${pkg.engines?.npm ?? '(engines not set)'}`)
+console.log(`${buildOnly ? 'build' : 'gate'} for ${sha}, built for ${day} · node ${process.version}; Heroku builds with node ${pkg.engines?.node ?? '(engines not set)'}, npm ${pkg.engines?.npm ?? '(engines not set)'}`)
 let npmVersion = null
 let ok = step('npm-version', 'npm', ['--version'], {
   judge: (r) => {
@@ -68,8 +74,8 @@ let ok = step('npm-version', 'npm', ['--version'], {
   },
 })
 ok = ok && step('npm-ci', 'npm', ['ci', '--no-audit', '--no-fund'])
-ok = ok && step('build', 'npm', ['run', 'build'], { env: { SOURCE_VERSION: sha } })
-if (ok) {
+ok = ok && step('build', 'npm', ['run', 'build'], { env: { SOURCE_VERSION: sha, KL_BUILD_DAY: day } })
+if (ok && !buildOnly) {
   // Four workers and 30 s a test: on a machine busy with other work, the default run failed different
   // tests each time, every one on the 5 s timeout. A timeout says nothing about the code; an assertion does.
   step('tests', 'npx', ['vitest', 'run', '--maxWorkers=4', '--testTimeout=30000'], {
@@ -104,12 +110,12 @@ if (fs.existsSync(indexHtml)) {
   const name = /assets\/index-[\w-]+\.js/.exec(fs.readFileSync(indexHtml, 'utf8'))?.[0]
   if (name) entry = { path: `/${name}`, sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(tree, 'dist', name))).digest('hex') }
 }
-const EXPECTED = ['npm-version', 'npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
+const EXPECTED = buildOnly ? ['npm-version', 'npm-ci', 'build'] : ['npm-version', 'npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
 const passed = EXPECTED.every((n) => steps.find((s) => s.name === n)?.ok) && entry !== null
 const keep = !passed || args.includes('--keep')
 if (!keep) fs.rmSync(tree, { recursive: true, force: true })
-const summary = { commit: sha, at: new Date().toISOString(), node: process.version, herokuNode: pkg.engines?.node ?? null, npm: npmVersion, herokuNpm: pkg.engines?.npm ?? null, passed, steps, entry, tree: keep ? tree : null }
+const summary = { commit: sha, at: new Date().toISOString(), buildDay: day, buildOnly, node: process.version, herokuNode: pkg.engines?.node ?? null, npm: npmVersion, herokuNpm: pkg.engines?.npm ?? null, passed, steps, entry, tree: keep ? tree : null }
 fs.writeFileSync(path.join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n')
-console.log(`\n${passed ? 'GATE PASSED' : 'GATE FAILED'} for ${short}`)
+console.log(`\n${buildOnly ? (passed ? 'BUILD PASSED' : 'BUILD FAILED') : passed ? 'GATE PASSED' : 'GATE FAILED'} for ${short}, built for ${day}`)
 console.log(`record: ${out}${keep ? `\nclean copy kept: ${tree}` : ''}`)
 process.exit(passed ? 0 : 1)

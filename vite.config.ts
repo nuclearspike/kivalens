@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react'
 import dotenv from 'dotenv'
 import { klDevServer } from './server/klDevPlugin.ts'
 import { execSync } from 'node:child_process'
+import { buildDay, klVersion } from './scripts/buildDay.mjs'
 
 // What the shared Feedback sends as this app's version and build, and shows the
-// lender before it does: the build date and the commit. Heroku's build provides
-// the commit as SOURCE_VERSION; a local build asks git.
+// lender before it does: the build's UTC day (KL_BUILD_DAY when set, so one
+// commit builds to the same bytes on any day; see scripts/buildDay.mjs) and the
+// commit. Heroku's build provides the commit as SOURCE_VERSION; a local build asks git.
 function commit(): string {
   if (process.env.SOURCE_VERSION) return process.env.SOURCE_VERSION.slice(0, 12)
   try {
@@ -15,8 +17,7 @@ function commit(): string {
     return 'dev'
   }
 }
-const built = new Date()
-const KL_VERSION = `${built.getUTCFullYear()}.${built.getUTCMonth() + 1}.${built.getUTCDate()}`
+const KL_VERSION = klVersion(buildDay(process.env))
 
 // Load .env.local into process.env so the dev plugin (which runs the same
 // server code as prod) can read OPENAI_API_KEY. The key is server-only and is

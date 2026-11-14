@@ -10,7 +10,9 @@
 // In order: GitHub's and Heroku's master must both fast-forward to the commit; the release gate
 // (scripts/gate.mjs) passes; the live checks (scripts/smoke-live.mjs) run on production as it is, so a
 // failure afterwards can be told apart from one that was already there; push to GitHub, then to Heroku;
-// wait until the live page serves the gated build's entry script, byte for byte; run the live checks
+// wait until the live page serves the gated build's entry script byte for byte (or, when Heroku built on
+// another UTC day than the gate, the commit built again for that day: the build stamps its day into the
+// app, scripts/buildDay.mjs); run the live checks
 // again; read the server log since the release. A failure at any step ends in a banner that says what
 // failed, what production is running, and the rollback command. The script does not roll back by itself:
 // a person decides that, with the failure in front of them. Records go to analysis/deploys/ in the main
@@ -21,6 +23,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { judgeServerLog } from './serverLog.mjs'
+import { buildsToCompare, gateBuildDays, herokuBuildDays } from './buildDay.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -30,6 +33,8 @@ const APP = opt('--app') ?? 'kivalens'
 const SITE = (opt('--site') ?? 'https://www.kivalens.org').replace(/\/$/, '')
 const BRANCH = 'master'
 const LIVE_WAIT_MS = 6 * 60_000
+// The steps a gate run must have passed to stand for the commit (scripts/gate.mjs).
+const GATE_STEPS = ['npm-ci', 'build', 'tests', 'languages', 'rum-types', 'lint', 'audit']
 const dryRun = args.includes('--dry-run')
 const yes = args.includes('--yes')
 const commitArg = args.find((a, i) => !a.startsWith('--') && !TAKES_VALUE.includes(args[i - 1]))
@@ -61,10 +66,10 @@ function save() {
 }
 
 // Runs a command, showing its output and keeping it in <name>.log.
-function run(name, cmd, cmdArgs, { quiet = false } = {}) {
+function run(name, cmd, cmdArgs, { quiet = false, env = {} } = {}) {
   return new Promise((resolve) => {
     const file = fs.createWriteStream(path.join(rec, `${name}.log`))
-    const child = spawn(cmd, cmdArgs, { cwd: REPO, env: process.env })
+    const child = spawn(cmd, cmdArgs, { cwd: REPO, env: { ...process.env, ...env } })
     let text = ''
     let stdout = ''
     const take = (chunk) => {
@@ -170,6 +175,10 @@ if (gateFile) {
   gate = JSON.parse(fs.readFileSync(gateFile, 'utf8'))
   if (gate.commit !== sha) fail('gate', `${gateFile} is a gate run of ${gate.commit?.slice(0, 8)}, not ${short}`)
   if (!gate.passed || !gate.entry) fail('gate', `${gateFile} did not pass`)
+  // A build-only run (gate.mjs --build-only, which this script uses to build for Heroku's day) passes
+  // without tests, lint or audit; it is not a gate.
+  const unchecked = GATE_STEPS.filter((name) => !gate.steps?.find((st) => st.name === name)?.ok)
+  if (gate.buildOnly || unchecked.length) fail('gate', `${gateFile} is not a full gate run${unchecked.length ? `: no passed ${unchecked.join(', ')}` : ' (build only)'}`)
   done('gate', `reused ${gateFile}`)
 } else {
   say('\nrunning the gate (several minutes)…')
@@ -179,6 +188,15 @@ if (gateFile) {
   done('gate', gate.steps.map((s) => `${s.name} ${s.detail}`).join('; '))
 }
 summary.entry = gate.entry
+// The day the gate built for, which the build stamps into the app as its version (scripts/buildDay.mjs).
+const gateDays = gateBuildDays(gate)
+summary.gateBuildDays = gateDays
+
+// A KL_BUILD_DAY on the Heroku app would stamp every release with that day instead of its own, and a
+// gate pinned to the same day would match it. Production builds for the day it builds on.
+const pin = await run('heroku-config', 'heroku', ['config:get', 'KL_BUILD_DAY', '-a', APP], { quiet: true })
+if (pin.status !== 0) fail('heroku config', `could not read ${APP}'s KL_BUILD_DAY setting; see heroku-config.log`)
+if (pin.stdout?.trim()) fail('heroku config', `${APP} has KL_BUILD_DAY=${pin.stdout.trim()}; every release would carry that day as its version. Unset it first.`)
 
 // 4. Production as it is, so a later failure can be compared with one that was already there.
 say('\nlive checks on production before the deploy:')
@@ -191,16 +209,25 @@ if (dryRun) {
   say('\nDRY RUN: would now run')
   say(`    git push origin ${sha}:refs/heads/${BRANCH}`)
   say(`    git push heroku ${sha}:refs/heads/${BRANCH}`)
-  say(`then wait for ${gate.entry.path} (sha256 ${gate.entry.sha256.slice(0, 16)}…) on ${SITE} and run the live checks.`)
+  say(`then wait for ${gate.entry.path} (sha256 ${gate.entry.sha256.slice(0, 16)}…, built for ${gateDays.join(' or ')}) on ${SITE} and run the live checks;`)
+  say(`if Heroku built on another UTC day and serves another script, the commit is built again for that day and compared.`)
   summary.outcome = 'dry run'
   save()
   process.exit(0)
 }
 
 // 5. Push: GitHub first, so the code on GitHub is never behind the code that is live.
+let beforeEntry = null
+try {
+  beforeEntry = await liveEntry()
+} catch {
+  // compared with what the site serves after the push; an answer now is not required
+}
+let herokuPushStartedAt = null
 for (const remote of ['origin', 'heroku']) {
   if (summary[`${remote}Before`] === sha) continue
   say(`\npushing to ${remote}…`)
+  if (remote === 'heroku') herokuPushStartedAt = Date.now()
   const p = await run(`${remote}-push`, 'git', ['push', remote, `${sha}:refs/heads/${BRANCH}`])
   if (p.status !== 0) {
     const last = p.text.trim().split('\n').slice(-3).join(' | ')
@@ -221,25 +248,79 @@ summary.release = { version: newest.version, description: newest.description, st
 if (newest.status !== 'succeeded') fail('release', `v${newest.version} is ${newest.status}`)
 done('release', `v${newest.version}`)
 
-// 7. The live site serves this build.
+// 7. The live site serves this build. The build stamps its UTC day into the app, so Heroku's build matches
+// the gate's only when both were made for the same day. The gate's build counts when it was made for a day
+// Heroku can have built on. When the site serves some other new script, the commit is built again for
+// each day Heroku can have built on that the gate did not, and the script must equal one of those builds
+// byte for byte. Nothing is built again while the gate's build is live, and the time spent building is
+// not taken from the wait.
+const releasedAt = Date.parse(newest.created_at)
+let herokuDays
+try {
+  herokuDays = herokuBuildDays(herokuPushStartedAt ?? releasedAt, releasedAt)
+} catch (e) {
+  fail('live build', e.message)
+}
+const plan = buildsToCompare(gateDays, herokuDays)
+summary.herokuBuildDays = herokuDays
+const expected = plan.gateCounts ? [{ day: gateDays[0], entry: gate.entry, what: 'the gated build' }] : []
+const buildFailures = []
+let rebuilt = false
+// Builds the commit for Heroku's possible days one at a time, likeliest first, until one is the script the
+// site serves. A build that fails is reported if no other build matches; it does not end the search.
+async function buildAgain() {
+  rebuilt = true
+  for (const day of plan.rebuild) {
+    say(`\n${SITE} serves ${seen}, not the gate's script: building ${short} for ${day}, a day Heroku can have built it on…`)
+    const out = path.join(rec, `build-${day}`)
+    const b = await run(`build-${day}`, 'node', [path.join(REPO, 'scripts', 'gate.mjs'), sha, '--build-only', '--out', out], { quiet: true, env: { KL_BUILD_DAY: day } })
+    let built = null
+    try {
+      built = JSON.parse(fs.readFileSync(path.join(out, 'summary.json'), 'utf8'))
+    } catch {
+      // counted as a failed build below
+    }
+    if (b.status !== 0 || !built?.passed || !built.entry) {
+      buildFailures.push(day)
+      say(`WARN  build for ${day} — failed; see build-${day}.log`)
+      continue
+    }
+    expected.push({ day, entry: built.entry, what: `the gated commit built for ${day}` })
+    done(`build for ${day}`, `${built.entry.path}, sha256 ${built.entry.sha256.slice(0, 16)}…`)
+    if (built.entry.path === seen) return
+  }
+}
 say('\nwaiting for the live site to serve this build…')
-const deadline = Date.now() + LIVE_WAIT_MS
+let deadline = Date.now() + LIVE_WAIT_MS
 let seen = null
 for (;;) {
   try {
     seen = await liveEntry()
-    if (seen === gate.entry.path) {
+    let want = expected.find((e) => e.entry.path === seen)
+    if (!want && !rebuilt && seen !== beforeEntry && plan.rebuild.length) {
+      const started = Date.now()
+      await buildAgain()
+      deadline += Date.now() - started
+      want = expected.find((e) => e.entry.path === seen)
+    }
+    if (want) {
       const live = await sha256Of(`${SITE}${seen}`)
-      if (live !== gate.entry.sha256) fail('live build', `${seen} on ${SITE} has sha256 ${live.slice(0, 16)}…, the gated build ${gate.entry.sha256.slice(0, 16)}…`)
-      done('live build', `${seen}, the gated build byte for byte`)
+      if (live !== want.entry.sha256) fail('live build', `${seen} on ${SITE} has sha256 ${live.slice(0, 16)}…, ${want.what} ${want.entry.sha256.slice(0, 16)}…`)
+      summary.liveBuild = { day: want.day, ...want.entry }
+      done('live build', `${seen}, ${want.what} byte for byte${want.what === 'the gated build' ? '' : ` (the gate built for ${gateDays.join(' or ')}; the build stamps its day)`}`)
       break
     }
   } catch (e) {
     seen = `(no answer: ${e.message})`
   }
-  if (Date.now() > deadline) fail('live build', `after ${LIVE_WAIT_MS / 60_000} minutes ${SITE} serves ${seen}, not ${gate.entry.path}`)
+  if (Date.now() > deadline) {
+    const known = expected.map((e) => `${e.entry.path} (${e.what})`).join(' or ') || 'no build made for a day Heroku can have built on'
+    const failed = buildFailures.length ? `; the builds for ${buildFailures.join(', ')} failed` : ''
+    fail('live build', `after ${LIVE_WAIT_MS / 60_000} minutes ${SITE} serves ${seen}, not ${known}${failed}`)
+  }
   await new Promise((r) => setTimeout(r, 10_000))
 }
+summary.expected = expected.map(({ day, entry }) => ({ day, ...entry }))
 
 // 8. The live checks, given time for the server's first own batch.
 say('\nlive checks on the new release:')
