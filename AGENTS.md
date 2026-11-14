@@ -21,6 +21,9 @@ quietly, so the first sign was a lender's report 26 hours in.
 - Lint has old debt. The gate fails a commit with more problems than `scripts/lint-baseline.json`
   allows. When you fix some, lower the number; never raise it to let a commit through.
 - A test that comes with a fix must fail without the fix. Run it both ways before you rely on it.
+- Tests that deliberately trigger handled browser failures must capture and assert their `reportError`
+  calls, then restore the global with `vi.unstubAllGlobals()`. jsdom 31 dispatches these as uncaught errors;
+  do not disable unhandled-error checks or production reporting to make such tests pass.
 - Do not merge a pull request, your own included, until the gate has passed on its head commit.
 
 ## Kiva and Google: test against what they really send
