@@ -21,7 +21,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkNpm } from './npm-engine.mjs'
 import { buildDay } from './buildDay.mjs'
-import { BUILD_STEPS, GATE_STEPS } from './gateSteps.mjs'
+import { stepProblems } from './gateSteps.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -111,12 +111,12 @@ if (fs.existsSync(indexHtml)) {
   const name = /assets\/index-[\w-]+\.js/.exec(fs.readFileSync(indexHtml, 'utf8'))?.[0]
   if (name) entry = { path: `/${name}`, sha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(tree, 'dist', name))).digest('hex') }
 }
-const EXPECTED = buildOnly ? BUILD_STEPS : GATE_STEPS
-const passed = EXPECTED.every((n) => steps.find((s) => s.name === n)?.ok) && entry !== null
+const problems = [...stepProblems(steps, { buildOnly }), ...(entry ? [] : ['no entry script in dist/index.html'])]
+const passed = problems.length === 0
 const keep = !passed || args.includes('--keep')
 if (!keep) fs.rmSync(tree, { recursive: true, force: true })
-const summary = { commit: sha, at: new Date().toISOString(), buildDay: day, buildOnly, node: process.version, herokuNode: pkg.engines?.node ?? null, npm: npmVersion, herokuNpm: pkg.engines?.npm ?? null, passed, steps, entry, tree: keep ? tree : null }
+const summary = { commit: sha, at: new Date().toISOString(), buildDay: day, buildOnly, node: process.version, herokuNode: pkg.engines?.node ?? null, npm: npmVersion, herokuNpm: pkg.engines?.npm ?? null, passed, problems, steps, entry, tree: keep ? tree : null }
 fs.writeFileSync(path.join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n')
-console.log(`\n${buildOnly ? (passed ? 'BUILD PASSED' : 'BUILD FAILED') : passed ? 'GATE PASSED' : 'GATE FAILED'} for ${short}, built for ${day}`)
+console.log(`\n${buildOnly ? (passed ? 'BUILD PASSED' : 'BUILD FAILED') : passed ? 'GATE PASSED' : 'GATE FAILED'} for ${short}, built for ${day}${passed ? '' : `: ${problems.join('; ')}`}`)
 console.log(`record: ${out}${keep ? `\nclean copy kept: ${tree}` : ''}`)
 process.exit(passed ? 0 : 1)

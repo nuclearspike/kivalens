@@ -24,7 +24,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { judgeServerLog } from './serverLog.mjs'
 import { buildsToCompare, gateBuildDays, herokuBuildDays } from './buildDay.mjs'
-import { GATE_STEPS } from './gateSteps.mjs'
+import { stepProblems } from './gateSteps.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -176,8 +176,8 @@ if (gateFile) {
   if (!gate.passed || !gate.entry) fail('gate', `${gateFile} did not pass`)
   // A build-only run (gate.mjs --build-only, which this script uses to build for Heroku's day) passes
   // without tests, lint or audit; it is not a gate.
-  const unchecked = GATE_STEPS.filter((name) => !gate.steps?.find((st) => st.name === name)?.ok)
-  if (gate.buildOnly || unchecked.length) fail('gate', `${gateFile} is not a full gate run${unchecked.length ? `: no passed ${unchecked.join(', ')}` : ' (build only)'}`)
+  const problems = gate.buildOnly ? ['it is a build-only run'] : stepProblems(gate.steps)
+  if (problems.length) fail('gate', `${gateFile} is not a full gate run: ${problems.join('; ')}`)
   done('gate', `reused ${gateFile}`)
 } else {
   say('\nrunning the gate (several minutes)…')
@@ -250,9 +250,13 @@ done('release', `v${newest.version}`)
 // 7. The live site serves this build. The build stamps its UTC day into the app, so Heroku's build matches
 // the gate's only when both were made for the same day. The gate's build counts when it was made for a day
 // Heroku can have built on. When the site serves some other new script, the commit is built again for
-// the other days Heroku can have built on, one at a time and its release day first, until a build equals the
-// script byte for byte; days after the match are not built. Nothing is built again while the gate's
-// build is live, and the time spent building is not taken from the wait.
+// the other days Heroku can have built on, one at a time and its release day first, and stops at the first
+// build that has the file name the site serves (the name is a hash of the file's content); the script
+// must then equal that build byte for byte. Nothing is built again while a gate's build that counts is
+// live. A gate counts for no day when the day it built for is not known exactly (an old gate that did not
+// record its day and whose run crossed midnight) or is a day Heroku cannot have built on: its build is
+// never accepted, and every day Heroku can have built on is a candidate. The time spent building is not
+// taken from the wait.
 const releasedAt = Date.parse(newest.created_at)
 let herokuDays
 try {
