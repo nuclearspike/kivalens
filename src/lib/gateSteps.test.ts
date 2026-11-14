@@ -4,7 +4,7 @@ import { BUILD_STEPS, GATE_STEPS, stepProblems } from '../../scripts/gateSteps.m
 // gate.mjs passes a run, and deploy.mjs reuses a gate, only when stepProblems finds nothing. deploy.mjs
 // once kept its own copy of the list, which had left out npm-version.
 
-const ran = (names: string[], failed: string[] = []) => names.map((name) => ({ name, ok: !failed.includes(name) }))
+const ran = (names: readonly string[], failed: readonly string[] = []) => names.map((name) => ({ name, ok: !failed.includes(name) }))
 
 describe('a gate run passes', () => {
   it('when exactly its steps ran, in order, and passed', () => {
@@ -25,10 +25,11 @@ describe('a gate run passes', () => {
     const extra = (ok: boolean) => [...ran(GATE_STEPS.slice(0, -1)), { name: 'extra-check', ok }, ...ran(GATE_STEPS.slice(-1))]
     expect(stepProblems(extra(false))).toEqual(['extra-check ran, and is not a gate step'])
     expect(stepProblems(extra(true))).toEqual(['extra-check ran, and is not a gate step'])
+    expect(stepProblems([...extra(true), { name: 'extra-check', ok: true }])).toEqual(['extra-check ran, and is not a gate step'])
   })
 
   it('never with its steps out of order or run twice', () => {
-    expect(stepProblems(ran([...GATE_STEPS].reverse()))).toHaveLength(1)
+    expect(stepProblems(ran([...GATE_STEPS].reverse()))).toEqual([`the steps ran in the order ${[...GATE_STEPS].reverse().join(', ')}, not ${GATE_STEPS.join(', ')}`])
     expect(stepProblems(ran([...GATE_STEPS, 'lint']))).toHaveLength(1)
   })
 

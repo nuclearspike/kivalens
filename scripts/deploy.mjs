@@ -183,7 +183,12 @@ if (gateFile) {
   say('\nrunning the gate (several minutes)…')
   const g = await run('gate', 'node', [path.join(REPO, 'scripts', 'gate.mjs'), sha, '--out', path.join(rec, 'gate')])
   gate = JSON.parse(fs.readFileSync(path.join(rec, 'gate', 'summary.json'), 'utf8'))
-  if (g.status !== 0 || !gate.passed) fail('gate', `failed: ${gate.steps.filter((s) => !s.ok).map((s) => `${s.name} (${s.detail})`).join(', ') || 'see gate/'}`)
+  if (g.status !== 0 || !gate.passed) {
+    // Each failed step with its detail, then whatever else stepProblems found (a step missing, extra or out of order).
+    const failedSteps = gate.steps.filter((s) => !s.ok)
+    const why = [...failedSteps.map((s) => `${s.name} (${s.detail})`), ...(gate.problems ?? []).filter((p) => !failedSteps.some((s) => p === `${s.name} failed`))]
+    fail('gate', `failed: ${why.join('; ') || 'see gate/'}`)
+  }
   done('gate', gate.steps.map((s) => `${s.name} ${s.detail}`).join('; '))
 }
 summary.entry = gate.entry

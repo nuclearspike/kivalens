@@ -16,7 +16,7 @@ export function stepProblems(steps, { buildOnly = false } = {}) {
     if (!s) problems.push(`${name} did not run`)
     else if (s.ok !== true) problems.push(`${name} failed`)
   }
-  for (const s of steps ?? []) if (!expected.includes(s.name)) problems.push(`${s.name} ran, and is not a ${buildOnly ? 'build-only' : 'gate'} step`)
-  if (!problems.length && ran.join('\n') !== expected.join('\n')) problems.push(`the steps ran as ${ran.join(', ')}`)
+  for (const name of new Set(ran)) if (!expected.includes(name)) problems.push(`${name} ran, and is not a ${buildOnly ? 'build-only' : 'gate'} step`)
+  if (!problems.length && ran.join('\n') !== expected.join('\n')) problems.push(`the steps ran in the order ${ran.join(', ')}, not ${expected.join(', ')}`)
   return problems
 }
