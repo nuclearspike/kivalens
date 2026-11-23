@@ -111,12 +111,17 @@ describe('every address the app has ever had', () => {
     expect(url(fromHash(hash))).toBe(expected)
   })
 
+  // Pages that arrived after addresses became real paths (2026-09): no link to them was ever written as #/.
+  const PAGES_AFTER_PATHS = new Set(['mfiGame'])
+
   it('covers every route the app can reach today', () => {
     const reached = new Set(nineteen.map(([, to]) => to.split('?')[0]))
     for (const r of ROUTES) {
       // A view within another page (a loan beside the results, the About
       // page's Advanced tab) is newer than the 2015 table; its page is covered.
       if (r.param || r.page) continue
+      // A page added after the move to real paths never had a #/ address.
+      if (PAGES_AFTER_PATHS.has(r.id)) continue
       // The page that was removed has no legacy address pointing at it.
       expect(reached.has(r.path)).toBe(true)
     }

@@ -366,6 +366,57 @@ describe('usage statistics', () => {
     expect(nightlyStatements(db, T).length).toBeLessThanOrEqual(50)
   })
 
+  // The MFI Builder game (mfi.kivalens.org) sends the shape mfi-builder/src/usage.ts buildReport makes:
+  // no timings, route 'game', and usage whose actions are its milestones, where the visit came from and
+  // how long was played.
+  const GAME_HOSTS = new Set([...HOSTS, 'mfi.kivalens.org'])
+  const gameReport = (view: string, u?: Record<string, unknown>) =>
+    JSON.stringify({ v: 1, view, host: 'mfi.kivalens.org', route: 'game', version: 'index-DpZUMW9U', final: true, lang: 'en', device: 'desktop', ...(u ? { u } : {}) })
+  const gameUsage = (id: string, e: Record<string, number>, p: Record<string, number> = { overview: 1 }) =>
+    ({ id, born: '2026-09-28', lender: 0, saved: 0, searches: 0, c: {}, p, e })
+  const storeGame = (body: string, at = T) => db.batch(beaconStatements(db, ok(parseBeacon(body, 'mfi.kivalens.org', GAME_HOSTS, at)), at, 'CA'))
+
+  it('takes the MFI game\'s reports as its own site, and counts its players, milestones, arrivals and views', async () => {
+    // Only once the game's origin is allowed (wrangler.jsonc).
+    expect('refused' in parseBeacon(gameReport('game-0001'), 'mfi.kivalens.org', HOSTS, T)).toBe(true)
+    const allowed = readFileSync(path.join(__dirname, '../wrangler.jsonc'), 'utf8')
+    expect(allowed).toMatch(/"ALLOWED_ORIGINS": "[^"]*https:\/\/mfi\.kivalens\.org/)
+    await storeGame(gameReport('game-0001', gameUsage(ID_A, { 'reached:setup': 1, 'reached:opened': 1, 'first:setup': 1, 'first:opened': 1, 'from:kiva': 1, days: 30, minutes: 12 }, { overview: 2, lending: 1 })))
+    await storeGame(gameReport('game-0002', gameUsage(ID_B, { 'reached:setup': 1, 'first:setup': 1, 'from:kivalens': 1, minutes: 3 })))
+    // A player with Global Privacy Control: a page load, nothing else.
+    await storeGame(gameReport('game-0003'))
+    await seed()
+    const r = await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'mfi.kivalens.org' }, T)
+    expect(r.totals).toMatchObject({ pages: 3, shared: 2, browsers: 2, lender_browsers: 0, searches: 0 })
+    const by = (list: Array<{ key: string; browsers: number; n: number }>) => Object.fromEntries(list.map((x) => [x.key, [x.browsers, x.n]]))
+    expect(by(r.events)).toEqual({
+      'reached:setup': [2, 2], 'reached:opened': [1, 1], 'first:setup': [2, 2], 'first:opened': [1, 1],
+      'from:kiva': [1, 1], 'from:kivalens': [1, 1], days: [1, 30], minutes: [2, 15],
+    })
+    expect(by(r.pages)).toEqual({ overview: [2, 3], lending: [1, 1] })
+    expect(r.landing).toEqual([{ key: 'game', browsers: 2, n: 3 }])
+    // KivaLens's own numbers are untouched by the game's.
+    expect((await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'www.kivalens.org' }, T)).totals.browsers).toBe(2)
+  })
+
+  it('adds up the game\'s first counts over every month kept, so a player is counted once ever', async () => {
+    const SEP = Date.UTC(2026, 8, 28, 12)
+    // September: A sets up and opens. October: A comes back (no new first counts) and B sets up.
+    await storeGame(gameReport('game-s001', gameUsage(ID_A, { 'reached:setup': 1, 'reached:opened': 1, 'first:setup': 1, 'first:opened': 1 })), SEP)
+    await storeGame(gameReport('game-o001', gameUsage(ID_A, { 'reached:setup': 1, 'reached:opened': 1, 'reached:first_loan': 1, 'first:first_loan': 1 })), T)
+    await storeGame(gameReport('game-o002', gameUsage(ID_B, { 'reached:setup': 1, 'first:setup': 1 })), T)
+    await nightly(db, T)
+    const r = await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'mfi.kivalens.org' }, T)
+    expect(r.firsts).toEqual([{ key: 'first:first_loan', n: 1 }, { key: 'first:opened', n: 1 }, { key: 'first:setup', n: 2 }])
+    // In the window, both players are at setup or beyond.
+    expect(r.events.find((x) => x.key === 'reached:setup')).toMatchObject({ browsers: 2 })
+    // Once September's raw rows expire, its month totals still carry its first counts.
+    db.raw.exec("DELETE FROM views WHERE day < '2026-10-01'")
+    expect((await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'mfi.kivalens.org' }, T)).firsts).toEqual(r.firsts)
+    // A site with none has none.
+    expect((await stats(db, { from: '2026-10-04', to: '2026-10-10', host: 'www.kivalens.org' }, T)).firsts).toEqual([])
+  })
+
   it('reads a window inside the raw rows only, and a site it knows', () => {
     const q = (s: string) => parseStatsQuery(new URL(`https://rum.kivalens.org/v1/stats?${s}`), T, HOSTS)
     expect(q('')).toEqual({ from: '2026-09-11', to: '2026-10-10', host: 'www.kivalens.org' })
@@ -399,6 +450,10 @@ describe('usage statistics', () => {
     const js = await (await get('/dashboard.js', 'k')).text()
     // The page's code carries names, never numbers: those need the key.
     expect(js).toContain('"sector":"Sector"')
+    expect(() => new Function(js)).not.toThrow()
+    expect(js).toContain('"gameHost":"mfi.kivalens.org"')
+    expect(js).toContain('"second_office","Opened a second office"')
+    expect(await (await get('/dashboard', 'k')).text()).toContain('<option value="mfi.kivalens.org">')
     expect(js).not.toContain(ID_A)
     expect((await get('/v1/stats', undefined, 'Bearer k')).status).toBe(503)
     expect((await get('/v1/stats', 'k')).status).toBe(401)

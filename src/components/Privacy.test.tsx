@@ -27,8 +27,9 @@ describe('the privacy page', () => {
   // Paul, 2026-09-25: measure the live site; the page must say exactly what is sent and kept.
   it('says what each visit reports, what it never carries, and how long it is kept', () => {
     renderPrivacy()
-    expect(screen.getByText(/each visit sends a report when you leave or hide the page/)).toHaveTextContent(/KivaLens sets no cookies, and none of the details it collects is an account, lender ID or loan ID/)
-    expect(screen.getByText(/never the IP address/)).toBeInTheDocument()
+    const visitReport = screen.getByText(/each visit sends a report when you leave or hide the page/)
+    expect(visitReport).toHaveTextContent(/KivaLens sets no cookies, and none of the details it collects is an account, lender ID or loan ID/)
+    expect(visitReport).toHaveTextContent(/never the IP address/)
     expect(screen.getByText(new RegExp(`Visit reports are kept for ${RAW_DAYS} days`))).toHaveTextContent(/Monthly totals/)
     // Nothing on the page still describes the retired five-minute heartbeat.
     expect(screen.queryByText(/heartbeat/i)).toBeNull()
@@ -57,6 +58,41 @@ describe('the privacy page', () => {
     fireEvent.click(box)
     expect(box.checked).toBe(true)
     expect(localStorage.getItem(USAGE_CHOICE_KEY)).toBe('on')
+  })
+
+  // Paul, 2026-11-22: the MFI game at mfi.kivalens.org is tracked too, so the policy has to say what it reports.
+  // mfi-builder/src/usage.ts defines the report; this section is its public description.
+  it('describes the MFI game: its own save, its anonymous visit report, its opt-out usage statistics and its error log', () => {
+    renderPrivacy()
+    const heading = screen.getByRole('heading', { name: /The MFI Builder game \(mfi\.kivalens\.org\)/ })
+    expect(heading).toHaveAttribute('id', 'mfi-game')
+    const body = screen.getByText(/keeps your campaign in your browser/)
+    expect(body).toHaveTextContent(/never sent anywhere unless you export it yourself/)
+    for (const what of [/when you leave or hide the page \(again, with the latest figures, each time you hide it; only the latest is kept\)/,
+      /a random number for that visit only, never kept in the browser/, /the game’s address and version/, /the screen size class and language/,
+      /keeps the date and time each report arrived and the country your connection comes from, never the IP address/,
+      /kept for 14 days/]) expect(body).toHaveTextContent(what)
+    const usage = screen.getByText(/turn usage statistics off in the game’s Settings/)
+    for (const what of [/separate from KivaLens’s own, and the day it was made \(it is replaced after 13 months\)/, /KivaLens, Kiva, a search engine or another site/,
+      /which parts of the game you opened/, /how many game days passed and how many minutes you played/, /“month 6 reached”/,
+      /Never your save, amounts, names or the choices you made/]) expect(usage).toHaveTextContent(what)
+    expect(screen.getByText(/Global Privacy Control starts with them off\. Turning them off deletes the number/)).toHaveTextContent(/\(see Data retention\)/)
+    expect(screen.getByText(/does not use advertising or cross-site tracking cookies/)).toHaveTextContent(/The MFI Builder game uses no cookies either/)
+  })
+
+  it('opens at the game section when linked there', async () => {
+    const scrolled = vi.fn()
+    Element.prototype.scrollIntoView = scrolled
+    render(
+      <I18nProvider>
+        <MemoryRouter initialEntries={['/privacy#mfi-game']}>
+          <Privacy />
+        </MemoryRouter>
+      </I18nProvider>,
+    )
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+    expect(scrolled).toHaveBeenCalled()
+    expect(scrolled.mock.contexts[0]).toHaveAttribute('id', 'mfi-game')
   })
 
   it('starts off, and says why, in a browser that sends Global Privacy Control', () => {

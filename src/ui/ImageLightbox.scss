@@ -1,0 +1,105 @@
+// The image lightbox (ImageLightbox.tsx): the picture fills the largest box that
+// fits the viewport without changing its shape, over a dark backdrop.
+.kl-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vmin;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: zoom-out;
+}
+
+.kl-lightbox-image {
+  width: 96vw;
+  height: 96vh;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.6));
+}
+
+.kl-lightbox-error {
+  margin: 0;
+  max-width: 28rem;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: var(--kl-surface);
+  color: var(--kl-text);
+  cursor: default;
+}
+
+.kl-lightbox-close {
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+// A thumbnail that opens the lightbox: the picture and its caption are one button.
+.kl-enlargeable {
+  margin: 0;
+  min-width: 0;
+}
+
+.kl-enlargeable-button,
+.kl-image-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kl-focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.kl-enlargeable-button {
+  img {
+    width: 100%;
+    border: 1px solid var(--kl-border);
+    border-radius: 6px;
+  }
+
+  figcaption {
+    margin-top: 4px;
+    color: var(--kl-text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+.kl-image-button {
+  display: inline-block;
+  width: auto;
+}

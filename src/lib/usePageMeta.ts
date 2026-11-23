@@ -27,11 +27,11 @@ export function usePageMeta() {
       loan?: unknown
       partner?: unknown
       names: Record<string, string>
-      strings: { tagline: string; matching: string }
+      strings: { tagline: string; matching: string; game: string }
     } = {
       // The sentences, not only the page names: without these the app would
       // overwrite the server's head with English on every move.
-      strings: { tagline: t('site_tagline'), matching: t('kiva_loans_matching') },
+      strings: { tagline: t('site_tagline'), matching: t('kiva_loans_matching'), game: t('mfi_game_meta') },
       // The page names in the lender's language; the shapes around them —
       // which page says what, and what may be indexed — stay with the server.
       names: Object.fromEntries(

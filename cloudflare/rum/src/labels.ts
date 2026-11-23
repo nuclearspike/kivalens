@@ -80,6 +80,7 @@ export const PAGES: Record<string, string> = {
   stats: 'Stats',
   wall: 'Wall',
   teams: 'Teams',
+  mfiGame: 'MFI Game',
   options: 'Options',
   about: 'About',
   aboutAdvanced: 'About › Advanced',
@@ -97,6 +98,45 @@ export const EVENTS: Record<string, string> = {
   history_restore: 'Went back through History',
   rss_copy: 'RSS feed link copied',
 }
+
+/**
+ * The MFI Builder game (mfi.kivalens.org), which reports to this collector as its own site. Its milestones,
+ * views and arrival sources are named in mfi-builder/src/usage.ts; these lists follow that file's order.
+ */
+export const GAME_MILESTONES: ReadonlyArray<readonly [string, string]> = [
+  ['setup', 'Leased a place'],
+  ['opened', 'Opened the branch'],
+  ['first_loan', 'Made a first loan'],
+  ['first_repayment', 'Received a first repayment'],
+  ['month_2', 'Reached month 2'],
+  ['month_3', 'Reached month 3'],
+  ['month_6', 'Reached month 6'],
+  ['month_12', 'Reached month 12'],
+  ['month_24', 'Reached month 24'],
+  ['month_36', 'Reached month 36'],
+  ['assessment', 'Reached the 36-month assessment'],
+  ['continued', 'Continued past the assessment'],
+  ['second_office', 'Opened a second office'],
+]
+/** The game's views, by the names its own navigation shows. */
+export const GAME_VIEWS: Record<string, string> = {
+  overview: 'Overview',
+  branch: 'Your branch',
+  team: 'People',
+  lending: 'Lending',
+  field: 'Fieldwork',
+  finance: 'Finances',
+  community: 'Community',
+}
+export const GAME_ARRIVALS: Record<string, string> = {
+  kivalens: 'From KivaLens',
+  kiva: 'From Kiva.org',
+  search: 'From a search engine',
+  other: 'From another site',
+  direct: 'No referring site',
+}
+/** The game's host, which the dashboard shows with its own report. */
+export const GAME_HOST = 'mfi.kivalens.org'
 
 /** The Search start panel's cards (src/lib/searchStages.ts), for home:<stage> actions. */
 export const HOME_CARDS: Record<string, string> = {
@@ -127,6 +167,10 @@ export function labelsForDashboard(): Record<string, unknown> {
     pages: PAGES,
     events: EVENTS,
     home: HOME_CARDS,
+    gameMilestones: GAME_MILESTONES,
+    gameViews: GAME_VIEWS,
+    gameArrivals: GAME_ARRIVALS,
+    gameHost: GAME_HOST,
     presets: Object.fromEntries(
       Object.keys(en)
         .filter((k) => /^[a-z0-9_]+$/.test(k))

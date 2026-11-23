@@ -50,6 +50,23 @@ describe('LanguageMenu', () => {
     await waitFor(() => expect(document.documentElement.lang).toBe('zh-Hans'), LOADED)
   })
 
+  it('never shows a language\'s labels while <html lang> still names the previous one', async () => {
+    renderMenu()
+    const toggle = screen.getByRole('button', { name: /choose language/i })
+    // The page's language at the moment the toggle's label changes, not some time later.
+    const langWhenLabelled: string[] = []
+    const watch = new MutationObserver(() => {
+      if (toggle.getAttribute('aria-label') === 'Choisir la langue') langWhenLabelled.push(document.documentElement.lang)
+    })
+    watch.observe(toggle, { attributes: true, attributeFilter: ['aria-label'] })
+    fireEvent.click(toggle)
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Français/ }))
+    await screen.findByRole('button', { name: 'Choisir la langue' }, LOADED)
+    watch.disconnect()
+    expect(langWhenLabelled.length).toBeGreaterThan(0)
+    expect(langWhenLabelled).toEqual(langWhenLabelled.map(() => 'fr'))
+  })
+
   it('moves between two other languages without passing through English', async () => {
     renderMenu()
     fireEvent.click(screen.getByRole('button', { name: /choose language/i }))

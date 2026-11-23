@@ -39,6 +39,8 @@ export const ROUTES = [
   { id: 'stats', path: '/stats' },
   { id: 'wall', path: '/wall' },
   { id: 'teams', path: '/teams' },
+  // MFI Builder, the microfinance game at mfi.kivalens.org: what it is, and the way in.
+  { id: 'mfiGame', path: '/mfi-game' },
   { id: 'options', path: '/options' },
   { id: 'about', path: '/about' },
   // The About page's second tab, where the contact details are, so a link that

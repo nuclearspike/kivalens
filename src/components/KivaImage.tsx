@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
 import type { KivaLoan } from '../types'
 import cx from 'classnames'
 import { useI18n } from '../i18n'
+import { ImageLightbox } from '../ui/ImageLightbox'
 
 interface KivaImageProps {
   loan?: KivaLoan
@@ -57,89 +57,19 @@ export default function KivaImage({
     ? { backgroundImage: `url("${loadingImageUrl}")`, backgroundSize: 'cover' }
     : {}
 
-  // Close the lightbox on Escape and lock body scroll while it's open.
-  useEffect(() => {
-    if (!zoom) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setZoom(false)
-    }
-    document.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-    }
-  }, [zoom])
-
   return (
     <div className={cx('KivaImage', { loaded, not_loaded: !loaded })} style={style}>
       {!loaded && <div className="loading_notice">{t('larger_version_loading_ellipsis')}</div>}
-      <img
-        width={width ?? image_width}
-        height={height}
-        onLoad={() => setLoaded(true)}
-        alt={altText}
-        src={imageUrl}
-        onClick={enlargeable ? () => setZoom(true) : undefined}
-        style={enlargeable ? { cursor: 'zoom-in' } : undefined}
-        title={enlargeable ? t('click_enlarge') : undefined}
-      />
+      {enlargeable ? (
+        // A button, so the photo enlarges from the keyboard as well as by click.
+        <button type="button" className="kl-image-button" onClick={() => setZoom(true)} title={t('click_enlarge')}>
+          <img width={width ?? image_width} height={height} onLoad={() => setLoaded(true)} alt={altText} src={imageUrl} />
+        </button>
+      ) : (
+        <img width={width ?? image_width} height={height} onLoad={() => setLoaded(true)} alt={altText} src={imageUrl} />
+      )}
 
-      {enlargeable &&
-        zoom &&
-        createPortal(
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={altText || t('borrower_photo')}
-            onClick={() => setZoom(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 2000,
-              background: 'rgba(0, 0, 0, 0.85)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'zoom-out',
-              padding: '2vmin',
-            }}
-          >
-            <img
-              src={largeUrl}
-              alt={altText}
-              // Fill the largest box that fits the viewport, preserving aspect
-              // ratio (object-fit:contain). w800 is Kiva's max source, so on very
-              // large screens this upscales rather than fetching higher-res.
-              style={{
-                width: '96vw',
-                height: '96vh',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 8px 40px rgba(0, 0, 0, 0.6))',
-              }}
-            />
-            <button
-              type="button"
-              aria-label={t('close')}
-              onClick={() => setZoom(false)}
-              style={{
-                position: 'fixed',
-                top: 12,
-                right: 18,
-                fontSize: 34,
-                lineHeight: 1,
-                color: '#fff',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              ×
-            </button>
-          </div>,
-          document.body,
-        )}
+      {enlargeable && zoom && <ImageLightbox src={largeUrl} alt={altText || t('borrower_photo')} onClose={() => setZoom(false)} />}
     </div>
   )
 }

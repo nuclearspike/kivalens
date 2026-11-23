@@ -8,7 +8,9 @@ import { useSupportStore } from '../support/supportStore'
 
 // Privacy policy. KivaLens is an independent tool (not Kiva); it has no accounts
 // of its own. The notable data flow is the "Ask KivaLens" assistant, whose
-// conversations are logged for analytics/debugging/improvement.
+// conversations are logged for analytics/debugging/improvement. The MFI Builder
+// game at mfi.kivalens.org is covered here too (#mfi-game): what it reports is
+// defined in mfi-builder/src/usage.ts, and the two change together.
 export default function Privacy() {
   const { t, tx, date } = useI18n()
   // Options' usage-statistics help links to its section (/privacy#usage-statistics).
@@ -21,7 +23,7 @@ export default function Privacy() {
   return (
     <Container className="py-3" style={{ maxWidth: 820 }}>
       <h1>{t('kivalens_privacy_policy')}</h1>
-      <p className="text-muted">{t('last_updated_date', { date: date('2026-09-26T12:00:00Z', { dateStyle: 'long' }) })}</p>
+      <p className="text-muted">{t('last_updated_date', { date: date('2026-11-22T12:00:00Z', { dateStyle: 'long' }) })}</p>
 
       <h3>{t('about_kivalens')}</h3>
       <p>
@@ -75,6 +77,11 @@ export default function Privacy() {
       </p>
       <UsageStatsSwitch id="kl-usage-stats-privacy" />
 
+      <h4 id="mfi-game">{t('mfi_game_privacy_heading')}</h4>
+      <p>{t('mfi_game_privacy_body')}</p>
+      <p>{t('mfi_game_privacy_usage')}</p>
+      <p>{t('mfi_game_privacy_off', { retention: t('data_retention') })}</p>
+
       <h4>{t('loans_partners_lending')}</h4>
       <p>
         {t('loan_borrower_field_partner_information')}
@@ -99,7 +106,7 @@ export default function Privacy() {
 
       <h3>{t('cookies_tracking')}</h3>
       <p>
-        {t('kivalens_not_use_advertising_cross_site')}
+        {t('kivalens_not_use_advertising_cross_site')} {t('mfi_game_cookies')}
       </p>
 
       <h3>{t('data_retention')}</h3>

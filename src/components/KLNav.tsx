@@ -58,6 +58,9 @@ export default function KLNav() {
             <Nav.Link as={Link} to="/saved" active={isActive('/saved')} data-aikl="nav-saved">
               {t('saved')}
             </Nav.Link>
+            <Nav.Link as={Link} to="/mfi-game" active={isActive('/mfi-game')} data-aikl="nav-mfi-game">
+              {t('mfi_game')}
+            </Nav.Link>
             <Nav.Link as={Link} to="/options" active={isActive('/options')} data-aikl="nav-options">
               {t('options')}
             </Nav.Link>

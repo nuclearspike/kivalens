@@ -172,12 +172,26 @@
   }
 }
 
+// Ten tabs, the language menu and the suggested-language button share the bar.
+// Between the lg and xl breakpoints the tabs sit closer together, so the longer
+// languages still fit on one row there.
+// (main.scss pads the tabs with !important, so this does too.)
+@media (min-width: $breakpoint-lg) and (max-width: 1199.98px) {
+  .navbar.navbar-expand-lg .navbar-nav .nav-link {
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+  }
+}
+
 // expand="lg": horizontal layout at the lg breakpoint
 @media (min-width: $breakpoint-lg) {
   .navbar-expand-lg {
     .navbar-collapse {
       display: flex !important;
       flex-basis: auto;
+      // When a language's names still do not fit, the language menu and the
+      // suggested-language button move below the tabs rather than off the screen.
+      flex-wrap: wrap;
     }
 
     .navbar-nav {
@@ -212,12 +226,22 @@
       display: flex;
       align-items: center;
       gap: 0.3em;
+      // A tab's name stays on one line ("Jogo MFI", not "Jogo" over "MFI"); a bar
+      // too full for its row moves whole items onto the next one instead.
+      white-space: nowrap;
     }
 
     .navbar-collapse > :not(.navbar-nav) {
       align-self: center;
     }
   }
+}
+
+// A section reached by its address (/privacy#mfi-game, /options#privacy) lands
+// below the sticky navbar rather than under it. The bar is one row (about 56px)
+// from the large breakpoint up; below it the menu is collapsed to the same row.
+main [id] {
+  scroll-margin-top: 64px;
 }
 
 .sticky-top {

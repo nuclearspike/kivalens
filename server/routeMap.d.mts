@@ -11,6 +11,7 @@ export type RouteId =
   | 'stats'
   | 'wall'
   | 'teams'
+  | 'mfiGame'
   | 'options'
   | 'about'
   | 'aboutAdvanced'

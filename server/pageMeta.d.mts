@@ -15,11 +15,18 @@ export declare const SITE_DESCRIPTION: string
 export declare const SITE_IMAGE: string
 export declare const PAGE_NAMES: Record<string, { key: string; name: string }>
 export declare const INDEXABLE: Set<string>
+export declare const GAME_DESCRIPTION: string
+export declare const GAME_IMAGE: string
 
 export declare function pageMeta(input?: {
   pathname?: string
   search?: string
-  lookup?: { partner?: unknown; loan?: unknown; names?: Record<string, string> }
+  lookup?: {
+    partner?: unknown
+    loan?: unknown
+    names?: Record<string, string>
+    strings?: { tagline?: string; matching?: string; game?: string }
+  }
 }): PageMeta
 export declare function applyPageMeta(html: string, meta: PageMeta): string
 export declare function describeSearch(search: string): string

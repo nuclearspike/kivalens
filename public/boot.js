@@ -33,6 +33,7 @@
     '/stats',
     '/wall',
     '/teams',
+    '/mfi-game',
     '/options',
     '/about',
     '/about/advanced',

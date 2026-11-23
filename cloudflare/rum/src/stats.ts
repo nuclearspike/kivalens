@@ -35,6 +35,12 @@ export interface StatsResult {
   langs: Named[]
   landing: Named[]
   months: Array<{ month: string; live: boolean } & Totals>
+  /**
+   * Actions named first:<what>, added up over every month kept: a page sends one
+   * the first time its browser number does something (the MFI game's milestones),
+   * so the sum is how many browsers ever did it, without keeping the numbers.
+   */
+  firsts: Array<{ key: string; n: number }>
 }
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/
@@ -69,7 +75,7 @@ export async function stats(db: SqlDatabase, q: StatsQuery, now: number): Promis
   const window = [q.from, q.to, q.host] as const
   const thisMonth = [monthStart(today), today, q.host] as const
 
-  const [totalRows, dailyRows, usageRows, depthRows, dimRows, monthRows, liveMonthRows] = await Promise.all([
+  const [totalRows, dailyRows, usageRows, depthRows, dimRows, monthRows, liveMonthRows, firstRows, liveFirstRows] = await Promise.all([
     db.prepare(`SELECT metric, SUM(n) AS n FROM (${totalsSelect}) GROUP BY metric`).bind(...window).all<{ metric: string; n: number }>(),
     db
       .prepare(
@@ -102,6 +108,14 @@ export async function stats(db: SqlDatabase, q: StatsQuery, now: number): Promis
       .bind(q.host, today.slice(0, 7))
       .all<{ month: string; metric: string; n: number }>(),
     db.prepare(`SELECT metric, SUM(n) AS n FROM (${totalsSelect}) GROUP BY metric`).bind(...thisMonth).all<{ metric: string; n: number }>(),
+    db
+      .prepare(`SELECT key, SUM(n) AS n FROM monthly_usage WHERE kind = 'e' AND key LIKE 'first:%' AND (?1 = '*' OR host = ?1) AND month < ?2 GROUP BY key`)
+      .bind(q.host, today.slice(0, 7))
+      .all<{ key: string; n: number }>(),
+    db
+      .prepare(`SELECT key, SUM(n) AS n FROM (${usageSelect}) WHERE kind = 'e' AND key LIKE 'first:%' GROUP BY key`)
+      .bind(...thisMonth)
+      .all<{ key: string; n: number }>(),
   ])
 
   const byKind = (kind: string): Named[] =>
@@ -122,6 +136,8 @@ export async function stats(db: SqlDatabase, q: StatsQuery, now: number): Promis
     months.set(r.month, t)
   }
   const depth = new Map(depthRows.results.map((r) => [r.key, Number(r.browsers)]))
+  const firsts = new Map<string, number>()
+  for (const r of [...firstRows.results, ...liveFirstRows.results]) firsts.set(r.key, (firsts.get(r.key) ?? 0) + Number(r.n ?? 0))
 
   return {
     window: q,
@@ -140,6 +156,7 @@ export async function stats(db: SqlDatabase, q: StatsQuery, now: number): Promis
       ...[...months.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([month, t]) => ({ month, live: false, ...t })),
       { month: today.slice(0, 7), live: true, ...totalsFrom(liveMonthRows.results) },
     ],
+    firsts: [...firsts.entries()].map(([key, n]) => ({ key, n })).sort((a, b) => (a.key < b.key ? -1 : 1)),
   }
 }
 

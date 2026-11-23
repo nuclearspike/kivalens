@@ -116,6 +116,7 @@ export const PAGES: Record<RouteId, Loader> = {
   stats: fromDefault(() => import('./components/Stats')),
   wall: () => import('./components/SnowStack'),
   teams: fromDefault(() => import('./components/Teams')),
+  mfiGame: fromDefault(() => import('./components/MfiGame')),
   options: fromDefault(() => import('./components/Options')),
   about: fromDefault(() => import('./components/About')),
   aboutAdvanced: fromDefault(() => import('./components/About')),

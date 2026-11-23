@@ -41,6 +41,7 @@ export const PAGE_NAMES = {
   stats: { key: 'stats', name: 'Stats' },
   wall: { key: 'wall', name: 'Wall' },
   teams: { key: 'teams', name: 'Teams' },
+  mfiGame: { key: 'mfi_game', name: 'MFI Game' },
   options: { key: 'options', name: 'Options' },
   about: { key: 'about', name: 'About' },
   aboutAdvanced: { key: 'advanced', name: 'Advanced' },
@@ -54,7 +55,15 @@ export const PAGE_NAMES = {
  * is secret, but because an expired loan or one of a million filter
  * combinations is a bad result for whoever finds it.
  */
-export const INDEXABLE = new Set(['search', 'partners', 'partner', 'about', 'aboutAdvanced', 'privacy'])
+export const INDEXABLE = new Set(['search', 'partners', 'partner', 'mfiGame', 'about', 'aboutAdvanced', 'privacy'])
+
+/**
+ * The MFI Game page is passed around as a link to the game, so its card says what
+ * the game is and shows it, in the lender's language where the app supplies one.
+ */
+export const GAME_DESCRIPTION =
+  'MFI Builder: a free browser game about founding and running a small microfinance institution, from its first loan officer to its first repayments.'
+export const GAME_IMAGE = `${SITE_ORIGIN}/images/mfi-game/district.jpg`
 
 const clip = (text, max) => {
   const s = String(text ?? '').replace(/\s+/g, ' ').trim()
@@ -161,6 +170,9 @@ export function pageMeta({ pathname = '/', search = '', lookup = {} } = {}) {
     title = meta.title
     description = meta.description
     image = meta.image
+  } else if (route.id === 'mfiGame') {
+    description = lookup.strings?.game ?? GAME_DESCRIPTION
+    image = GAME_IMAGE
   } else if (route.id === 'search' && search && search !== '?') {
     // One search out of a million filter combinations is a poor thing to find in
     // a search engine, and it would compete with the page itself.

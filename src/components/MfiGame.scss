@@ -1,0 +1,32 @@
+// The MFI Game page (MfiGame.tsx): one reading column, the way in at the top and
+// again at the end, and two screenshots side by side that stack on a phone.
+.kl-mfi-game {
+  max-width: 960px;
+
+  h3 {
+    margin-top: 1.25rem;
+  }
+}
+
+.kl-mfi-game-lead {
+  font-size: 1.1rem;
+  max-width: 46rem;
+}
+
+.kl-mfi-game-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 12px 0 16px;
+}
+
+.kl-mfi-game-shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

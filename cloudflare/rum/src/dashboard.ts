@@ -11,6 +11,11 @@ import { labelsForDashboard } from './labels'
  * the stats key once and keeps it in that browser; the numbers come from
  * GET /v1/stats (stats.ts). Nothing here is public: without the key the page is
  * an empty form.
+ *
+ * The MFI Builder game (mfi.kivalens.org) reports to the same collector and has
+ * its own report here: players, how far their campaigns got, where they came from
+ * and which parts of the game they used (Paul, 2026-11-22: "I want stats of how
+ * many people have done it, how far they've gotten").
  */
 
 export const DASHBOARD_CSP =
@@ -34,6 +39,7 @@ export const dashboardHtml = `<!doctype html>
       <select id="host">
         <option value="www.kivalens.org">www.kivalens.org</option>
         <option value="beta.kivalens.org">beta.kivalens.org</option>
+        <option value="mfi.kivalens.org">mfi.kivalens.org (MFI game)</option>
         <option value="*">All sites</option>
       </select>
     </label>
@@ -282,7 +288,7 @@ function namedPanel(title, note, list, labels, denom, opts) {
 }
 
 function chartPanel(d) {
-  var p = panel('Browsers per day', null);
+  var p = panel(isGame() ? 'Players per day' : 'Browsers per day', null);
   var box = el('div', 'chart'); p.appendChild(box);
   var lg = el('div', 'legend'); var a = el('span'); a.appendChild(el('i', 'returning')); a.appendChild(document.createTextNode('Returning')); var b = el('span'); b.appendChild(el('i', 'new')); b.appendChild(document.createTextNode('New (first seen that day)')); lg.appendChild(a); lg.appendChild(b);
   p.appendChild(lg);
@@ -316,7 +322,7 @@ function drawChart() {
     var ret = Math.max(0, r.browsers - r.new_browsers), X = left + i * bw + bw * 0.12, BW = Math.max(1, bw * 0.76);
     var hRet = (ret / nice) * plotH, hNew = (r.new_browsers / nice) * plotH;
     var gEl = svg('g', {});
-    var title = svg('title', {}); title.textContent = dayName(x) + ': ' + num(r.browsers) + ' browsers (' + num(r.new_browsers) + ' new), ' + num(r.pages) + ' page loads, ' + num(r.searches) + ' searches'; gEl.appendChild(title);
+    var title = svg('title', {}); title.textContent = dayName(x) + ': ' + num(r.browsers) + ' browsers (' + num(r.new_browsers) + ' new), ' + num(r.pages) + ' page loads' + (isGame() ? '' : ', ' + num(r.searches) + ' searches'); gEl.appendChild(title);
     gEl.appendChild(svg('rect', { x: X, width: BW, y: top + plotH - hRet, height: hRet, class: 'returning' }));
     gEl.appendChild(svg('rect', { x: X, width: BW, y: top + plotH - hRet - hNew, height: hNew, class: 'new' }));
     s.appendChild(gEl);
@@ -327,10 +333,13 @@ function drawChart() {
 var resizeTimer = 0;
 window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawChart, 150); });
 
+function isGame() { return state.host === L.gameHost; }
+
 function monthsPanel(d) {
-  var p = panel('Months', 'Browsers are counted once a month however often they come back. Months are kept after the daily reports expire; the current month is counted live.');
+  var game = isGame();
+  var p = panel('Months', (game ? 'Players' : 'Browsers') + ' are counted once a month however often they come back. Months are kept after the daily reports expire; the current month is counted live.');
   var wrap = el('div', 'scroll'), t = el('table'), head = el('tr');
-  ['Month', 'Browsers', 'New', 'Lender ID', 'Page loads', 'Searches', 'Per browser'].forEach(function (h) { head.appendChild(el('th', null, h)); });
+  (game ? ['Month', 'Players', 'New', 'Page loads'] : ['Month', 'Browsers', 'New', 'Lender ID', 'Page loads', 'Searches', 'Per browser']).forEach(function (h) { head.appendChild(el('th', null, h)); });
   var thead = el('thead'); thead.appendChild(head); t.appendChild(thead);
   var body = el('tbody');
   d.months.slice().reverse().forEach(function (m) {
@@ -338,6 +347,7 @@ function monthsPanel(d) {
     tr.appendChild(el('td', null, monthName(m.month) + (m.live ? ' (so far)' : '')));
     tr.appendChild(el('td', null, num(m.browsers)));
     tr.appendChild(el('td', null, num(m.new_browsers)));
+    if (game) { tr.appendChild(el('td', null, num(m.pages))); body.appendChild(tr); return; }
     tr.appendChild(el('td', null, num(m.lender_browsers) + ' \\u00b7 ' + pct(m.lender_browsers, m.browsers)));
     tr.appendChild(el('td', null, num(m.pages)));
     tr.appendChild(el('td', null, num(m.searches)));
@@ -348,8 +358,64 @@ function monthsPanel(d) {
   return p;
 }
 
+// The MFI game's own report: players, how far their campaigns got (this period, and
+// ever: first:<milestone> counts added up over every month kept), where visits came
+// from, and which views were opened.
+function renderGame(d, r) {
+  var T = d.totals, ev = function (k) { var x = find(d.events, k); return x ? x : { browsers: 0, n: 0 }; };
+  var ever = {}; (d.firsts || []).forEach(function (f) { ever[f.key.slice(6)] = f.n; });
+  var tiles = el('section', 'tiles');
+  tiles.appendChild(tile('Players', num(T.browsers), num(T.new_browsers) + ' new'));
+  tiles.appendChild(tile('Page loads', num(T.pages), num(T.shared) + ' from players who share usage'));
+  tiles.appendChild(tile('Began setting up', num(ev('reached:setup').browsers), pct(ev('reached:setup').browsers, T.browsers) + ' of players'));
+  tiles.appendChild(tile('Opened the branch', num(ev('reached:opened').browsers), pct(ev('reached:opened').browsers, T.browsers) + ' of players'));
+  var minutes = ev('minutes');
+  tiles.appendChild(tile('Minutes played', num(minutes.n), minutes.browsers ? (Math.round((minutes.n / minutes.browsers) * 10) / 10) + ' per player who played' : ''));
+  var days = ev('days');
+  tiles.appendChild(tile('Game days played', num(days.n), days.browsers ? num(days.browsers) + (days.browsers === 1 ? ' player' : ' players') + ' moved time on' : ''));
+  r.appendChild(tiles);
+  var far = panel('How far players got', 'In this period: players whose campaign had reached each point (a player counts at every point up to their furthest). Ever: players who reached it in any month since the game began reporting, counted once per browser.');
+  var head = el('div', 'row-head'); head.appendChild(el('span', null, 'Milestone')); head.appendChild(el('span', null, 'This period')); head.appendChild(el('span', null, 'Ever'));
+  var box = el('div', 'rows'); box.appendChild(head);
+  L.gameMilestones.forEach(function (m) {
+    var x = ev('reached:' + m[0]), row = el('div', 'row-item primary');
+    var fill = el('span', 'fill'); fill.style.width = (T.browsers ? Math.min(100, (x.browsers / T.browsers) * 100) : 0) + '%'; row.appendChild(fill);
+    var name = el('span', 'name', m[1]); name.title = m[0]; row.appendChild(name);
+    var share = el('span', 'num', num(x.browsers)); share.title = pct(x.browsers, T.browsers) + ' of players in this period'; row.appendChild(share);
+    row.appendChild(el('span', 'num', num(ever[m[0]] || 0)));
+    box.appendChild(row);
+  });
+  far.appendChild(box);
+  r.appendChild(far);
+  r.appendChild(chartPanel(d));
+  // Two stacks of similar height, so neither column holds a gap beside the other.
+  var grid = el('div', 'grid');
+  var col1 = el('div', 'stack'), col2 = el('div', 'stack');
+  var arrivals = d.events.filter(function (x) { return x.key.indexOf('from:') === 0; });
+  col1.appendChild(namedPanel('Where visits came from', 'From the referring site of each page load, for players who share usage. Kiva.org includes its message boards; a site that sends no referrer counts as No referring site.', arrivals, function (k) { var a = k.slice(5); return L.gameArrivals[a] || a; }, T.browsers, { nameHead: 'Arrived', shareHead: 'Players', countHead: 'Loads' }));
+  col1.appendChild(namedPanel('Game views opened', 'Share of players who opened each part of the game, and how many times.', d.pages, function (k) { return L.gameViews[k] || k; }, T.browsers, { nameHead: 'View', shareHead: 'Players' }));
+  col2.appendChild(monthsPanel(d));
+  var three = el('section', 'panel'); three.appendChild(el('h2', null, 'Countries, devices and languages'));
+  three.appendChild(el('p', 'note', 'By page loads, including players who do not share usage.'));
+  var lists = el('div', 'lists3');
+  [['Country', d.countries], ['Device', d.devices], ['Language', d.langs]].forEach(function (pair) {
+    var col = el('div');
+    col.appendChild(rowList(pair[1].slice(0, 12).map(function (x) { return { name: x.key, share: x.n, count: x.browsers }; }), T.pages, { nameHead: pair[0], shareHead: 'Loads', countHead: 'Players', shareText: function (it) { return pct(it.share, T.pages); } }));
+    lists.appendChild(col);
+  });
+  three.appendChild(lists);
+  col2.appendChild(three);
+  grid.appendChild(col1); grid.appendChild(col2);
+  r.appendChild(grid);
+}
+
 function render(d) {
   var r = $('report'); r.textContent = '';
+  if (isGame()) {
+    if (d.window.from > windowFor(state.period).from) r.appendChild(el('p', 'note', 'Counted from ' + dayName(d.window.from) + ': daily reports are kept 45 days. Earlier months are in the Months table.'));
+    renderGame(d, r);
+    return;
+  }
   var T = d.totals, ev = function (k) { var x = find(d.events, k); return x ? x.n : 0; };
   if (d.window.from > windowFor(state.period).from) {
     r.appendChild(el('p', 'note', 'Counted from ' + dayName(d.window.from) + ': daily reports are kept 45 days. Earlier months are in the Months table.'));

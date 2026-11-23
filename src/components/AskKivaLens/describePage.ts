@@ -15,6 +15,7 @@ const PAGE_LABELS: Partial<Record<RouteId, string>> = {
   about: 'the About page',
   aboutAdvanced: 'the About page (Advanced tab: contact details, the API, reporting problems)',
   teams: 'the Teams page',
+  mfiGame: 'the MFI Game page (about MFI Builder, the microfinance management game at mfi.kivalens.org)',
 }
 
 export function describePage(pathname = typeof window !== 'undefined' ? window.location.pathname : '/'): string {

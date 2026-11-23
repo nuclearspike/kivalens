@@ -1169,7 +1169,7 @@ const TOOL_DEFS = [
       description: 'Switch the user to another KivaLens page.',
       parameters: {
         type: 'object',
-        properties: { page: { type: 'string', enum: ['search', 'basket', 'partners', 'stats', 'saved', 'options', 'about', 'teams', 'wall'] } },
+        properties: { page: { type: 'string', enum: ['search', 'basket', 'partners', 'stats', 'saved', 'options', 'about', 'teams', 'wall', 'mfiGame'] } },
         required: ['page'],
       },
     },

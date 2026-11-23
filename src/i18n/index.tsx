@@ -2,7 +2,7 @@
 import { localizeCountryName } from './countryNames'
 import { reasonOf, reportProblem } from '../lib/reportProblem'
 import { useMountedRef } from '../lib/useMountedRef'
-import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import enCatalog from './locales/en'
 
@@ -382,7 +382,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (shown.locale !== 'en' && shown.catalog === EMPTY_CATALOG && wanted.current === shown.locale) show(shown.locale)
     // Only on mount: later switches go through setLocale.
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
+  // <html lang> changes in the same commit as the labels, so a screen reader never
+  // reads new words in the previous language's voice. It is not a passive effect:
+  // that runs after paint, while the labels already show in the new language.
+  useLayoutEffect(() => {
     document.documentElement.lang = shown.locale
   }, [shown.locale])
   const locale = shown.locale

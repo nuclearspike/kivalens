@@ -24,7 +24,8 @@
   // 00:20 UTC: the last 7 days' percentiles, this month's (and last month's) usage totals, then expiry of old rows.
   "triggers": { "crons": ["20 0 * * *"] },
   "vars": {
-    "ALLOWED_ORIGINS": "https://www.kivalens.org,https://kivalens.org,https://beta.kivalens.org"
+    // mfi.kivalens.org is the MFI Builder game (mfi-builder/src/usage.ts), shown as its own site on the dashboard.
+    "ALLOWED_ORIGINS": "https://www.kivalens.org,https://kivalens.org,https://beta.kivalens.org,https://mfi.kivalens.org"
   },
   "observability": { "enabled": true }
 }
