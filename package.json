@@ -37,7 +37,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261030.1",
     "@eslint/js": "^10.0.1",
-    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
@@ -48,7 +48,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
-    "jsdom": "^30.1.3",
+    "jsdom": "^31.0.1",
     "sass": "^1.107.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.0",
