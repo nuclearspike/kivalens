@@ -71,7 +71,7 @@ describe('the privacy page', () => {
     for (const what of [/when you leave or hide the page \(again, with the latest figures, each time you hide it; only the latest is kept\)/,
       /a random number for that visit only, never kept in the browser/, /the game’s address and version/, /the screen size class and language/,
       /keeps the date and time each report arrived and the country your connection comes from, never the IP address/,
-      /kept for 14 days/]) expect(body).toHaveTextContent(what)
+      /a separate log, kept for 14 days: the error’s message and where in the game’s code it happened, the game view and build, when it was first and last seen and how often, and the browser’s user-agent string \(its name and version, the operating system and, on some phones, the model\)/]) expect(body).toHaveTextContent(what)
     const usage = screen.getByText(/turn usage statistics off in the game’s Settings/)
     for (const what of [/separate from KivaLens’s own, and the day it was made \(it is replaced after 13 months\)/, /KivaLens, Kiva, a search engine, another site or none/,
       /another site or none \(a typed address or a bookmark\)/, /which parts of the game you opened, and how often/,

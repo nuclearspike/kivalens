@@ -322,7 +322,7 @@ function drawChart() {
     var ret = Math.max(0, r.browsers - r.new_browsers), X = left + i * bw + bw * 0.12, BW = Math.max(1, bw * 0.76);
     var hRet = (ret / nice) * plotH, hNew = (r.new_browsers / nice) * plotH;
     var gEl = svg('g', {});
-    var title = svg('title', {}); title.textContent = dayName(x) + ': ' + num(r.browsers) + ' browsers (' + num(r.new_browsers) + ' new), ' + num(r.pages) + ' page loads' + (isGame() ? '' : ', ' + num(r.searches) + ' searches'); gEl.appendChild(title);
+    var title = svg('title', {}); title.textContent = dayName(x) + ': ' + num(r.browsers) + (isGame() ? ' players (' : ' browsers (') + num(r.new_browsers) + ' new), ' + num(r.pages) + ' page loads' + (isGame() ? '' : ', ' + num(r.searches) + ' searches'); gEl.appendChild(title);
     gEl.appendChild(svg('rect', { x: X, width: BW, y: top + plotH - hRet, height: hRet, class: 'returning' }));
     gEl.appendChild(svg('rect', { x: X, width: BW, y: top + plotH - hRet - hNew, height: hNew, class: 'new' }));
     s.appendChild(gEl);

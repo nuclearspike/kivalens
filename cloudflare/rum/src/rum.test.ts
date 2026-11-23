@@ -453,6 +453,9 @@ describe('usage statistics', () => {
     expect(() => new Function(js)).not.toThrow()
     expect(js).toContain('"gameHost":"mfi.kivalens.org"')
     expect(js).toContain('"second_office","Opened a second office"')
+    // The game's chart counts players, in its heading and in each day's hover alike.
+    expect(js).toContain("isGame() ? 'Players per day' : 'Browsers per day'")
+    expect(js).toContain("isGame() ? ' players (' : ' browsers ('")
     expect(await (await get('/dashboard', 'k')).text()).toContain('<option value="mfi.kivalens.org">')
     expect(js).not.toContain(ID_A)
     expect((await get('/v1/stats', undefined, 'Bearer k')).status).toBe(503)
