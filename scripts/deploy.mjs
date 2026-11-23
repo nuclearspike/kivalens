@@ -7,7 +7,8 @@
 //   [--gate <summary.json>]                        reuse a passed gate run of the same commit
 //   [--site <url>] [--app <name>]                  another site and Heroku app, to test this script
 //
-// In order: GitHub's and Heroku's master must both fast-forward to the commit; the release gate
+// In order: local master must be the commit (a deploy pushes local master, scripts/deployPush.mjs), and
+// GitHub's and Heroku's master must both fast-forward to it; the release gate
 // (scripts/gate.mjs) passes; the live checks (scripts/smoke-live.mjs) run on production as it is, so a
 // failure afterwards can be told apart from one that was already there; push to GitHub, then to Heroku;
 // wait until the live page serves the gated build's entry script byte for byte (or, when Heroku built on
@@ -25,6 +26,7 @@ import { fileURLToPath } from 'node:url'
 import { judgeServerLog } from './serverLog.mjs'
 import { buildsToCompare, gateBuildDays, herokuBuildDays } from './buildDay.mjs'
 import { stepProblems } from './gateSteps.mjs'
+import { localBranchProblem, pushArgs } from './deployPush.mjs'
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = process.argv.slice(2)
@@ -141,7 +143,17 @@ async function sha256Of(url) {
 say(`${dryRun ? 'DRY RUN: ' : ''}deploy ${sha} to ${SITE} (Heroku app ${APP})`)
 say(`record: ${rec}`)
 
-// 1. Both remotes must fast-forward to the commit.
+// 1. Local master must be the commit, and both remotes must fast-forward to it.
+const localHead = () => {
+  try {
+    return git('rev-parse', '--verify', `refs/heads/${BRANCH}`)
+  } catch {
+    return null
+  }
+}
+const localProblem = localBranchProblem(localHead(), sha, BRANCH)
+if (localProblem) fail(`local ${BRANCH}`, localProblem)
+done(`local ${BRANCH}`, `at ${short}`)
 for (const remote of ['origin', 'heroku']) {
   const f = await run(`fetch-${remote}`, 'git', ['fetch', remote, BRANCH], { quiet: true })
   if (f.status !== 0) fail('remotes', `git fetch ${remote} failed: ${f.text.trim().split('\n').at(-1)}`)
@@ -211,8 +223,8 @@ else say(`NOTE  production before — some checks already fail; the deploy goes 
 
 if (dryRun) {
   say('\nDRY RUN: would now run')
-  say(`    git push origin ${sha}:refs/heads/${BRANCH}`)
-  say(`    git push heroku ${sha}:refs/heads/${BRANCH}`)
+  say(`    git ${pushArgs('origin', BRANCH).join(' ')}`)
+  say(`    git ${pushArgs('heroku', BRANCH).join(' ')}`)
   say(`then wait for ${gate.entry.path} (sha256 ${gate.entry.sha256.slice(0, 16)}…, built for ${gateDays.join(' or ')}) on ${SITE} and run the live checks;`)
   say(`if Heroku built on another UTC day and serves another script, the commit is built again for that day and compared.`)
   summary.outcome = 'dry run'
@@ -230,9 +242,12 @@ try {
 let herokuPushStartedAt = null
 for (const remote of ['origin', 'heroku']) {
   if (summary[`${remote}Before`] === sha) continue
+  // Local master can move while the gate runs; what goes out must still be the gated commit.
+  const moved = localBranchProblem(localHead(), sha, BRANCH)
+  if (moved) fail(`push to ${remote}`, moved)
   say(`\npushing to ${remote}…`)
   if (remote === 'heroku') herokuPushStartedAt = Date.now()
-  const p = await run(`${remote}-push`, 'git', ['push', remote, `${sha}:refs/heads/${BRANCH}`])
+  const p = await run(`${remote}-push`, 'git', pushArgs(remote, BRANCH))
   if (p.status !== 0) {
     const last = p.text.trim().split('\n').slice(-3).join(' | ')
     fail(`push to ${remote}`, `git push exited ${p.status}: ${last}`)

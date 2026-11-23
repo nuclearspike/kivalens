@@ -41,6 +41,8 @@ quietly, so the first sign was a lender's report 26 hours in.
 
 ## Deploying
 
+- Merge the change into local master in the main checkout first: a deploy pushes local master, and the
+  machine's pre-push hook refuses any other source for master, a worktree branch or a bare commit id included.
 - Deploy only with `node scripts/deploy.mjs <commit> --yes`, after `--dry-run` on the same commit. The
   script requires both remotes to fast-forward, runs the gate, checks production before and after, waits
   until the live site serves the gated build byte for byte, and reads the server log since the release.
