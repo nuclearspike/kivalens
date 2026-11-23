@@ -73,11 +73,13 @@ describe('the privacy page', () => {
       /keeps the date and time each report arrived and the country your connection comes from, never the IP address/,
       /kept for 14 days/]) expect(body).toHaveTextContent(what)
     const usage = screen.getByText(/turn usage statistics off in the game’s Settings/)
-    for (const what of [/separate from KivaLens’s own, and the day it was made \(it is replaced after 13 months\)/, /KivaLens, Kiva, a search engine or another site/,
-      /which parts of the game you opened/, /how many game days passed and how many minutes you played/, /“month 6 reached”/,
-      /Never your save, amounts, names or the choices you made/]) expect(usage).toHaveTextContent(what)
-    expect(screen.getByText(/Global Privacy Control starts with them off\. Turning them off deletes the number/)).toHaveTextContent(/\(see Data retention\)/)
-    expect(screen.getByText(/does not use advertising or cross-site tracking cookies/)).toHaveTextContent(/The MFI Builder game uses no cookies either/)
+    for (const what of [/separate from KivaLens’s own, and the day it was made \(it is replaced after 13 months\)/, /KivaLens, Kiva, a search engine, another site or none/,
+      /another site or none \(a typed address or a bookmark\)/, /which parts of the game you opened, and how often/,
+      /how many game days passed and how many minutes the game was on screen/,
+      /setting up, opening, the first loan, the first repayment, months 2, 3, 6, 12, 24 and 36, the assessment, carrying on after it, and a second office/,
+      /Nothing else about your campaign: never your save, amounts, names or the other choices you made/]) expect(usage).toHaveTextContent(what)
+    expect(screen.getByText(/Global Privacy Control starts with them off\. Turning them off deletes the number and its record of the milestones already counted/)).toHaveTextContent(/\(see Data retention\)/)
+    expect(screen.getByText(/does not use advertising or cross-site tracking cookies/)).toHaveTextContent(/The MFI Builder game uses no cookies either: .*its random number, when that number was made and which milestones it has counted/)
   })
 
   it('opens at the game section when linked there', async () => {
